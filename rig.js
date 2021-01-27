@@ -9,6 +9,7 @@ import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
+import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -32,6 +33,7 @@ class RigManager {
       visemes: true,
       debug: true,
     });
+    this.localRig.aux = new RigAux(this.localRig);
     scene.add(this.localRig.model);
 
     this.localRig.avatarUrl = null;
@@ -228,8 +230,10 @@ class RigManager {
               visemes: true,
               debug: false //!o,
             });
+            localRig.aux = new RigAux(localRig);
           } else {
             localRig = new Avatar();
+            localRig.aux = new RigAux(localRig);
             localRig.model = o;
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
@@ -243,6 +247,7 @@ class RigManager {
             visemes: true,
             debug: true,
           });
+          localRig.aux = new RigAux(localRig);
         }
         scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
@@ -271,6 +276,7 @@ class RigManager {
       debug: true
       // decapitate: selectedTool === 'firstperson',
     });
+    peerRig.aux = new RigAux(peerRig);
     this.scene.add(peerRig.model);
 
     peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
@@ -563,8 +569,10 @@ class RigManager {
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
     this.localRig.update(timeDiff);
+    this.localRig.aux.update(timeDiff);
     this.peerRigs.forEach(rig => {
       rig.update(timeDiff);
+      rig.aux.update(timeDiff);
     });
     
     this.lastTimetamp = now;

@@ -10,7 +10,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
-import {rigAuxManager} from './rig-aux.js';
+// import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
@@ -382,19 +382,19 @@ const _click = () => {
             }
             case 'wear': {
               _ungrab();
-              rigAuxManager.addWearable(o);
+              rigManager.localRig.aux.addWearable(o);
               o.used = true;
               break;
             }
             case 'sit': {
               _ungrab();
-              rigAuxManager.addSittable(o);
+              rigManager.localRig.aux.addSittable(o);
               o.used = true;
               break;
             }
             case 'pet': {
               _ungrab();
-              rigAuxManager.addPet(o);
+              rigManager.localRig.aux.addPet(o);
               o.used = true;
               break;
             }

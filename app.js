@@ -4,7 +4,7 @@ import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-import {rigAuxManager} from './rig-aux.js';
+// import {rigAuxManager} from './rig-aux.js';
 import geometryManager from './geometry-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -326,8 +326,6 @@ export default class App {
         rigManager.update();
       };
       _updateRig();
-
-      rigAuxManager.update(now);
 
       weaponsManager.update();
 
