@@ -384,6 +384,7 @@ const _click = () => {
             _ungrab();
             const auxPose = rigManager.localRig.aux.getPose();
             auxPose.wearables.push({
+              id: rigManager.localRig.aux.getNextId(),
               contentId,
               component
             });
@@ -394,6 +395,7 @@ const _click = () => {
             _ungrab();
             const auxPose = rigManager.localRig.aux.getPose();
             auxPose.sittables.push({
+              id: rigManager.localRig.aux.getNextId(),
               contentId,
               component
             });
@@ -404,6 +406,7 @@ const _click = () => {
             _ungrab();
             const auxPose = rigManager.localRig.aux.getPose();
             auxPose.pets.push({
+              id: rigManager.localRig.aux.getNextId(),
               contentId,
               component
             });
