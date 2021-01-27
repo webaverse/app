@@ -372,32 +372,27 @@ const _click = () => {
   } else if (appManager.grabbedObjects[0]) {
     if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
       const o = appManager.grabbedObjects[0];
-      if (!o.used) {
-        const components = o.components || [];
-        for (const component of components) {
-          switch (component.type) {
-            case 'swing': {
-              console.log('swing', o, component);
-              break;
-            }
-            case 'wear': {
-              _ungrab();
-              rigManager.localRig.aux.addWearable(o);
-              o.used = true;
-              break;
-            }
-            case 'sit': {
-              _ungrab();
-              rigManager.localRig.aux.addSittable(o);
-              o.used = true;
-              break;
-            }
-            case 'pet': {
-              _ungrab();
-              rigManager.localRig.aux.addPet(o);
-              o.used = true;
-              break;
-            }
+      const components = o.components || [];
+      for (const component of components) {
+        switch (component.type) {
+          case 'swing': {
+            console.log('swing', o, component);
+            break;
+          }
+          case 'wear': {
+            _ungrab();
+            rigManager.localRig.aux.addWearable(o.contentId, component);
+            break;
+          }
+          case 'sit': {
+            _ungrab();
+            rigManager.localRig.aux.addSittable(o.contentId, component);
+            break;
+          }
+          case 'pet': {
+            _ungrab();
+            rigManager.localRig.aux.addPet(o.contentId, component);
+            break;
           }
         }
       }
