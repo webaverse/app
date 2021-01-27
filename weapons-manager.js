@@ -1110,6 +1110,22 @@ const itemSpecs3 = [
     "start_url": "https://avaer.github.io/camera/index.js"
   },
   {
+    "name": "cat-in-hat",
+    "start_url": "https://avaer.github.io/cat-in-hat/manifest.json"
+  },
+  {
+    "name": "sword",
+    "start_url": "https://avaer.github.io/sword/manifest.json"
+  },
+  {
+    "name": "dragon-pet",
+    "start_url": "https://avaer.github.io/dragon-pet/manifest.json"
+  },
+  {
+    "name": "dragon-mount",
+    "start_url": "https://avaer.github.io/dragon-mount/manifest.json"
+  },
+  {
     "name": "cityscape",
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
