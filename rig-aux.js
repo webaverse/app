@@ -258,6 +258,29 @@ export class RigAux {
     avatarScene.remove(pet.model);
     this.pets.splice(this.pets.indexOf(pet), 1);
   }
+  decapitate() {
+    for (const wearable of this.wearables) {
+      if (wearable.component.bone === 'Head') {
+        wearable.model.traverse(o => {
+          if (o.isMesh) {
+            o.savedVisible = o.visible;
+            o.visible = false;
+          }
+        });
+      }
+    }
+  }
+  undecapitate() {
+    for (const wearable of this.wearables) {
+      if (wearable.component.bone === 'Head') {
+        wearable.model.traverse(o => {
+          if (o.isMesh) {
+            o.visible = o.savedVisible;
+          }
+        });
+      }
+    }
+  }
   update(timeDiff) {
     for (const wearable of this.wearables) {
 	    wearable.update(timeDiff);
