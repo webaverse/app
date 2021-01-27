@@ -1712,6 +1712,14 @@ const weaponsManager = {
   setBuildMode(mode) {
     editedObject.setMode(mode);
   },
+  canJumpOff() {
+    return rigManager.localRig.aux.sittables.length > 0;
+  },
+  jumpOff() {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.sittables.length = 0;
+    rigManager.localRig.aux.setPose(auxPose);
+  },
   update() {
     _updateWeapons();
   },

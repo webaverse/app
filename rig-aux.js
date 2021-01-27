@@ -102,7 +102,7 @@ export class RigAux {
     });
   }
   removeWearable(wearable) {
-    scene.remove(wearable);
+    scene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
   async addSittable(contentId, component) {
@@ -150,37 +150,21 @@ export class RigAux {
         action.play();
 
         const {skeleton} = skinnedMesh;
-        const spineBoneIndex = skeleton.bones.findIndex(b => b.name === sitBone);
         const spineBone = root.getObjectByName(sitBone);
-        if (spineBoneIndex !== -1 && spineBone) {
+        if (spineBone) {
           // const spine = skeleton.bones[spineBoneIndex];
           // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
           // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
-          
-          physicsManager.setSitState(true);
+
           // const sitTarget = physicsManager.getSitTarget();
-          physicsManager.setSitController(root);
-          physicsManager.setSitTarget(spineBone);
-          
-          rigManager.localRig.sitState = true;
 
           const update = timeDiff => {
             timeDiff *= 1000;
-            // console.log('velocity', physicsManager.velocity.length());
             
             action.weight = physicsManager.velocity.length() * 10;
 
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
-            
-            // spineBone.updateMatrixWorld();
-            // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
-            
-            
-            // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
-            
-            // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
-            // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
           };
           const id = ++this.nextId;
           this.sittables.push({
@@ -201,7 +185,7 @@ export class RigAux {
     }
   }
   removeSittable(sittable) {
-    scene.remove(sittable);
+    scene.remove(sittable.model);
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
   async addPet(contentId, component) {
@@ -274,7 +258,7 @@ export class RigAux {
     }
   }
   removePet(pet) {
-    scene.remove(pet);
+    scene.remove(pet.model);
     this.pets.splice(this.pets.indexOf(pet), 1);
   }
   update(timeDiff) {
@@ -287,16 +271,35 @@ export class RigAux {
     for (const pet of this.pets) {
 	    pet.update(timeDiff);
 	  }
+    
+    const sitState = this.sittables.length > 0;
+    if (sitState) {
+      physicsManager.setSitController(this.sittables[0].model);
+      const {sitBone = 'Spine'} = this.sittables[0].component;
+      const spineBone = this.sittables[0].model.getObjectByName(sitBone);
+      physicsManager.setSitTarget(spineBone);
+    }          
+    rigManager.localRig.sitState = sitState;
+    physicsManager.setSitState(sitState);
   }
   destroy() {
-    for (const wearable of this.wearables) {
-      wearable.destroy();
+    {
+      const localWearables = this.wearables.slice();
+      for (const wearable of localWearables) {
+        this.removeWearable(wearable);
+      }
     }
-    for (const sittable of this.sittables) {
-      sittable.destroy();
-	  }
-    for (const pet of this.pets) {
-      pet.destroy();
+    {    
+      const localSittables = this.sittables.slice();
+      for (const sittable of localSittables) {
+        this.removeSittable(sittable);
+      }
+    }
+    {    
+      const localPets = this.pets.slice();
+      for (const pet of localPets) {
+        this.removePet(pet);
+      }
     }
   }
 }
