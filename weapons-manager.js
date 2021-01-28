@@ -473,8 +473,7 @@ const _upload = () => {
 };
 
 const _grab = object => {
-  const transforms = rigManager.getRigTransforms();
-  const {position, quaternion} = transforms[0];
+  const {position, quaternion} = renderer.xr.getSession() ? rigManager.getRigTransforms()[0] : camera;
 
   appManager.grabbedObjects[0] = object;
   weaponsManager.gridSnap = 0;
