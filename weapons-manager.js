@@ -574,9 +574,9 @@ const _updateWeapons = () => {
 
   const _handlePush = () => {
     if (ioManager.keys.forward) {
-      weaponsManager.menuPush(1);
-    } else if (ioManager.keys.backward) {
       weaponsManager.menuPush(-1);
+    } else if (ioManager.keys.backward) {
+      weaponsManager.menuPush(1);
     }
   };
   _handlePush();
@@ -1663,8 +1663,9 @@ const weaponsManager = {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
   },
   menuPush(direction) {
-    // appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
-    // XXX
+    appManager.grabbedObjectMatrices[0].decompose(localVector, localQuaternion, localVector2);
+    localVector.z += direction * 0.1;
+    appManager.grabbedObjectMatrices[0].compose(localVector, localQuaternion, localVector2);
   },
   menuDrop() {
     console.log('menu drop');
