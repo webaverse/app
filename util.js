@@ -102,7 +102,7 @@ export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabl
   if (collision) {
     const {point} = collision;
     o.position.fromArray(point)
-      .add(localVector2.set(0, 0.01, 0));
+      // .add(localVector2.set(0, 0.01, 0));
 
     if (o.position.distanceTo(localVector) > offset) {
       collision = null;
