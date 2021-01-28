@@ -403,6 +403,52 @@ const _equip = async () => {
     }
   }
 };
+const _try = () => {
+  const o = appManager.grabbedObjects[0];
+  const {contentId} = o;
+  const components = o.components || [];
+  for (const component of components) {
+    switch (component.type) {
+      case 'swing': {
+        console.log('swing', o, component);
+        break;
+      }
+      case 'wear': {
+        _ungrab();
+        const auxPose = rigManager.localRig.aux.getPose();
+        auxPose.wearables.push({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId,
+          component
+        });
+        rigManager.localRig.aux.setPose(auxPose);
+        break;
+      }
+      case 'sit': {
+        _ungrab();
+        const auxPose = rigManager.localRig.aux.getPose();
+        auxPose.sittables.push({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId,
+          component
+        });
+        rigManager.localRig.aux.setPose(auxPose);
+        break;
+      }
+      case 'pet': {
+        _ungrab();
+        const auxPose = rigManager.localRig.aux.getPose();
+        auxPose.pets.push({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId,
+          component
+        });
+        rigManager.localRig.aux.setPose(auxPose);
+        break;
+      }
+    }
+  }
+};
 
 const _handleUpload = async file => {
   const {name, hash} = await loginManager.uploadFile(file);
@@ -1568,6 +1614,9 @@ const weaponsManager = {
   },
   menuEquip() {
     _equip();
+  },
+  menuTry() {
+    _try();
   },
   menuKey(c) {
     menuMesh.key(c);
