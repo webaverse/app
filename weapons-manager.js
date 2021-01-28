@@ -664,7 +664,7 @@ const _updateWeapons = () => {
       if (grabbedObject) {
         const {position, quaternion} = transforms[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        const {handSnap} = updateGrabbedObject(grabbedObject, appManager.grabbedObjectMatrices[i], localMatrix, {
+        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
           collisionEnabled: true,
           handSnapEnabled: true,
           geometryManager,
