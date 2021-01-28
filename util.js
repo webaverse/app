@@ -91,12 +91,18 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
 }
 
 // returns whether we actually snapped
-export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
+export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, appManager, geometryManager, gridSnap}) {
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
   const offset = localVector3.length();
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
+
+  const grabbedObject = appManager.grabbedObjects[0];
+  const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
+  for (const physicsId of grabbedPhysicsIds) {
+    geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+  }
 
   let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
   if (collision) {
@@ -110,6 +116,10 @@ export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabl
   }
   if (!collision) {
     o.position.copy(localVector5);
+  }
+
+  for (const physicsId of grabbedPhysicsIds) {
+    geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
   }
 
   const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;

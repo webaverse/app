@@ -612,6 +612,7 @@ const _updateWeapons = () => {
         const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
           collisionEnabled: true,
           handSnapEnabled: true,
+          appManager,
           geometryManager,
           gridSnap: weaponsManager.getGridSnap(),
         });
@@ -706,6 +707,7 @@ const _updateWeapons = () => {
       updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
         collisionEnabled: true,
         handSnapEnabled: false,
+        appManager,
         geometryManager,
         gridSnap: weaponsManager.getGridSnap(),
       });
