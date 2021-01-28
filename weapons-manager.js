@@ -671,6 +671,13 @@ const _updateWeapons = () => {
           gridSnap: weaponsManager.getGridSnap(),
         });
 
+        if (grabbedObject.getPhysicsIds) {
+          const physicsIds = grabbedObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, grabbedObject.position, grabbedObject.quaternion);
+          }
+        }
+
         if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
           moveMesh.quaternion.copy(grabbedObject.quaternion);
