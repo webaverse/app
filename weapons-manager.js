@@ -555,61 +555,6 @@ const _updateWeapons = () => {
   };
   _handleHighlight();
 
-  const _handlePhysicsHighlight = () => {
-    highlightedPhysicsObject = null;
-
-    if (weaponsManager.editMode) {
-      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
-      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-      if (collision) {
-        const objects = world.getObjects().concat(world.getStaticObjects());
-        for (const object of objects) {
-          if (object.getPhysicsIds) {
-            const physicsIds = object.getPhysicsIds();
-            if (physicsIds.includes(collision.objectId)) {
-              highlightedPhysicsObject = object;
-              highlightedPhysicsId = collision.objectId;
-              break;
-            }
-          }
-        }
-      }
-    }
-  };
-  _handlePhysicsHighlight();
-
-  const _updatePhysicsHighlight = () => {
-    highlightPhysicsMesh.visible = false;
-
-    if (highlightedPhysicsObject) {
-      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
-        const physics = physicsManager.getGeometry(highlightedPhysicsId);
-
-        if (physics) {
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          highlightPhysicsMesh.geometry.dispose();
-          highlightPhysicsMesh.geometry = geometry;
-          // highlightPhysicsMesh.scale.setScalar(1.05);
-          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
-        }
-      }
-
-      const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-
-      highlightPhysicsMesh.position.copy(physicsTransform.position);
-      highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      highlightPhysicsMesh.visible = true;
-    }
-  };
-  _updatePhysicsHighlight();
-
   const _handleEdit = () => {
     editMesh.visible = false;
     
@@ -687,6 +632,61 @@ const _updateWeapons = () => {
     }
   };
   _updateGrab();
+
+  const _handlePhysicsHighlight = () => {
+    highlightedPhysicsObject = null;
+
+    if (weaponsManager.editMode) {
+      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const objects = world.getObjects().concat(world.getStaticObjects());
+        for (const object of objects) {
+          if (object.getPhysicsIds) {
+            const physicsIds = object.getPhysicsIds();
+            if (physicsIds.includes(collision.objectId)) {
+              highlightedPhysicsObject = object;
+              highlightedPhysicsId = collision.objectId;
+              break;
+            }
+          }
+        }
+      }
+    }
+  };
+  _handlePhysicsHighlight();
+
+  const _updatePhysicsHighlight = () => {
+    highlightPhysicsMesh.visible = false;
+
+    if (highlightedPhysicsObject) {
+      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
+        const physics = physicsManager.getGeometry(highlightedPhysicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          highlightPhysicsMesh.geometry.dispose();
+          highlightPhysicsMesh.geometry = geometry;
+          // highlightPhysicsMesh.scale.setScalar(1.05);
+          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
+        }
+      }
+
+      const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
+
+      highlightPhysicsMesh.position.copy(physicsTransform.position);
+      highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+      highlightPhysicsMesh.visible = true;
+    }
+  };
+  _updatePhysicsHighlight();
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
