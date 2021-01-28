@@ -94,7 +94,11 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
     this.grabbedObjects = [null, null];
-    this.grabbedObjectOffsets = [0, 0];
+    // this.grabbedObjectOffsets = [0, 0];
+    this.grabbedObjectMatrices = [
+      new THREE.Matrix4(),
+      new THREE.Matrix4(),
+    ];
   }
   createApp(appId) {
     const app = new App(appId);

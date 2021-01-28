@@ -5,6 +5,10 @@ import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 
 export function jsonParse(s, d = null) {
   try {
@@ -83,21 +87,23 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
 }
 
 // returns whether we actually snapped
-export function updateGrabbedObject(o, transform, offset, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
-  const {position, quaternion} = transform;
+export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
+  grabMatrix.decompose(localVector, localQuaternion, localVector2);
+  offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
+  const offset = localVector3.length();
 
-  let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+  let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
   if (collision) {
     const {point} = collision;
     o.position.fromArray(point)
       .add(localVector2.set(0, 0.01, 0));
 
-    if (o.position.distanceTo(position) > offset) {
+    if (o.position.distanceTo(localVector) > offset) {
       collision = null;
     }
   }
   if (!collision) {
-    o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
+    o.position.copy(localVector).add(localVector.set(0, 0, -offset).applyQuaternion(localQuaternion));
   }
 
   const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
@@ -105,7 +111,7 @@ export function updateGrabbedObject(o, transform, offset, {collisionEnabled, han
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
   } else {
-    o.quaternion.copy(quaternion);
+    o.quaternion.copy(localQuaternion);
   }
 
   return {

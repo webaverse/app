@@ -519,8 +519,10 @@ const makeShapeMesh = () => {
   object.update = (transform, gridSnap) => {
     const modeMesh = modeMeshes[mode];
     modeMesh.visible = true;
-    
-    updateGrabbedObject(modeMesh, transform, appManager.grabbedObjectOffsets[0], {
+
+    const {position, quaternion} = transform;
+    localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+    updateGrabbedObject(modeMesh, appManager.grabbedObjectMatrices[0], localMatrix, {
       collisionEnabled: true,
       handSnapEnabled: false,
       geometryManager,
