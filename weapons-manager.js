@@ -637,6 +637,12 @@ const _updateWeapons = () => {
     highlightedPhysicsObject = null;
 
     if (weaponsManager.editMode) {
+      const grabbedObject = appManager.grabbedObjects[0];
+      const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
+      for (const physicsId of grabbedPhysicsIds) {
+        geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+      }
+
       const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
@@ -651,6 +657,10 @@ const _updateWeapons = () => {
             }
           }
         }
+      }
+
+      for (const physicsId of grabbedPhysicsIds) {
+        geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
       }
     }
   };
