@@ -525,6 +525,7 @@ const makeShapeMesh = () => {
     updateGrabbedObject(modeMesh, appManager.grabbedObjectMatrices[0], localMatrix, {
       collisionEnabled: true,
       handSnapEnabled: false,
+      appManager,
       geometryManager,
       gridSnap,
     });
