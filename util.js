@@ -7,8 +7,12 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
 export function jsonParse(s, d = null) {
   try {
@@ -91,6 +95,8 @@ export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabl
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
   const offset = localVector3.length();
+  localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
+    .decompose(localVector5, localQuaternion3, localVector6);
 
   let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
   if (collision) {
@@ -103,7 +109,7 @@ export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabl
     }
   }
   if (!collision) {
-    o.position.copy(localVector).add(localVector.set(0, 0, -offset).applyQuaternion(localQuaternion));
+    o.position.copy(localVector5);
   }
 
   const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
@@ -111,7 +117,7 @@ export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabl
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
   } else {
-    o.quaternion.copy(localQuaternion);
+    o.quaternion.copy(localQuaternion3);
   }
 
   return {
