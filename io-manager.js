@@ -299,6 +299,12 @@ ioManager.bindInput = () => {
         }
         break;
       }
+      case 71: { // G
+        if (document.pointerLockElement) {
+          weaponsManager.menuTry();
+        }
+        break;
+      }
       case 90: { // Z
         if (weaponsManager.canStartBuild()) {
           weaponsManager.startBuild('wall');
