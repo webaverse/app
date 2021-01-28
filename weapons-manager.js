@@ -370,53 +370,10 @@ const _click = () => {
   if (weaponsManager.canBuild()) {
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
-    if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
-      const o = appManager.grabbedObjects[0];
-      const {contentId} = o;
-      const components = o.components || [];
-      for (const component of components) {
-        switch (component.type) {
-          case 'swing': {
-            console.log('swing', o, component);
-            break;
-          }
-          case 'wear': {
-            _ungrab();
-            const auxPose = rigManager.localRig.aux.getPose();
-            auxPose.wearables.push({
-              id: rigManager.localRig.aux.getNextId(),
-              contentId,
-              component
-            });
-            rigManager.localRig.aux.setPose(auxPose);
-            break;
-          }
-          case 'sit': {
-            _ungrab();
-            const auxPose = rigManager.localRig.aux.getPose();
-            auxPose.sittables.push({
-              id: rigManager.localRig.aux.getNextId(),
-              contentId,
-              component
-            });
-            rigManager.localRig.aux.setPose(auxPose);
-            break;
-          }
-          case 'pet': {
-            _ungrab();
-            const auxPose = rigManager.localRig.aux.getPose();
-            auxPose.pets.push({
-              id: rigManager.localRig.aux.getNextId(),
-              contentId,
-              component
-            });
-            rigManager.localRig.aux.setPose(auxPose);
-            break;
-          }
-        }
-      }
-    } else {
-      _ungrab();
+    _ungrab();
+  } else {
+    if (highlightedPhysicsObject) {
+      _grab(highlightedPhysicsObject);
     }
   }
 };
@@ -479,12 +436,15 @@ const _grab = object => {
   object.savedRotation.copy(object.rotation);
   object.startQuaternion.copy(quaternion);
 
-  const distance = object.position.distanceTo(position);
+  appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
+    .premultiply(localMatrix.compose(position, quaternion, localVector.set(1, 1, 1)).invert());
+
+  /* const distance = object.position.distanceTo(position);
   if (distance < maxGrabDistance) {
     appManager.grabbedObjectOffsets[0] = 0;
   } else {
     appManager.grabbedObjectOffsets[0] = distance;
-  }
+  } */
 };
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
@@ -656,7 +616,9 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        const {handSnap} = updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
+        const {position, quaternion} = transforms[i];
+        localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+        const {handSnap} = updateGrabbedObject(grabbedObject, appManager.grabbedObjectMatrices[i], localMatrix, {
           collisionEnabled: true,
           handSnapEnabled: true,
           geometryManager,
@@ -675,7 +637,10 @@ const _updateWeapons = () => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      updateGrabbedObject(deployMesh, transforms[0], maxGrabDistance, {
+      const {position, quaternion} = transforms[0];
+      localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+      localMatrix2.compose(localVector.set(0, 0, -maxGrabDistance), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+      updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
         collisionEnabled: true,
         handSnapEnabled: false,
         geometryManager,
@@ -1047,7 +1012,7 @@ const _loadItemSpec1 = async u => {
   editedObject = object;
 
   weaponsManager.setMenu(0);
-  appManager.grabbedObjectOffsets[0] = maxGrabDistance;
+  // appManager.grabbedObjectOffsets[0] = maxGrabDistance;
   cameraManager.requestPointerLock();
 
   return object;
@@ -1630,7 +1595,8 @@ const weaponsManager = {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
   },
   menuPush(direction) {
-    appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
+    // appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
+    // XXX
   },
   menuDrop() {
     console.log('menu drop');
