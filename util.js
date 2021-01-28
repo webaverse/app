@@ -419,7 +419,7 @@ export function convertMeshToPhysicsMesh(mesh) {
       for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
         localVector
           .fromArray(geometry.attributes.position.data.array, j)
-          // .applyMatrix4(mesh.matrix)
+          .applyMatrix4(mesh.matrix)
           .toArray(positions, i);
       }
       newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -428,7 +428,7 @@ export function convertMeshToPhysicsMesh(mesh) {
       for (let i = 0; i < positions.length; i += 3) {
         localVector
           .fromArray(geometry.attributes.position.array, i)
-          // .applyMatrix4(mesh.matrix)
+          .applyMatrix4(mesh.matrix)
           .toArray(positions, i);
       }
       newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
