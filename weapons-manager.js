@@ -187,8 +187,8 @@ editMesh.visible = false;
 scene.add(editMesh);
 let editedObject = null;
 
-const coord = new THREE.Vector3();
-const lastCoord = coord.clone();
+// const coord = new THREE.Vector3();
+// const lastCoord = coord.clone();
 let highlightedWorld = null;
 
 const moveMesh = _makeTargetMesh();
@@ -1060,7 +1060,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   }
 
-  locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
+  locationLabel.innerText = `Overworld`;
 };
 
 const _loadItemSpec1 = async u => {
