@@ -14,6 +14,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 
 const planeGeometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit, baseUnit, 1, baseUnit)
   .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
