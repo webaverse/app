@@ -374,6 +374,7 @@ const _click = () => {
   } else {
     if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
+      _updateMenu();
     }
   }
 };
