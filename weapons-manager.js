@@ -373,8 +373,10 @@ const _click = () => {
     _ungrab();
   } else {
     if (highlightedPhysicsObject) {
-      _grab(highlightedPhysicsObject);
-      _updateMenu();
+      if (world.getObjects().includes(highlightedPhysicsObject)) {
+        _grab(highlightedPhysicsObject);
+        _updateMenu();
+      }
     }
   }
 };
