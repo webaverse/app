@@ -480,7 +480,14 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
     }
   });
   o.isVrm = true;
-  o.run = () => {
+
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  o.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(o.position, o.quaternion, new THREE.Vector3(0.3, 1.5, 0.3), false);
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+    
     // elide expensive bone updates; this should not be called if wearing the avatar
     const skinnedMeshes = [];
     o.traverse(o => {
@@ -504,6 +511,15 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
       }
     }
   };
+  o.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  o.getPhysicsIds = () => physicsIds;
+  o.getStaticPhysicsIds = () => staticPhysicsIds;
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
