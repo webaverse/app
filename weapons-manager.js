@@ -379,6 +379,7 @@ const _click = () => {
   if (weaponsManager.canBuild()) {
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
+    _deselectLoadout();
     _ungrab();
   } else {
     if (highlightedPhysicsObject) {
@@ -1783,6 +1784,7 @@ const weaponsManager = {
     if (this.editMode) {
       let changed = false;
       if (appManager.grabbedObjects[0]) {
+        _deselectLoadout();
         _ungrab();
         changed = true;
       }
