@@ -20,7 +20,7 @@ import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
 import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
-import {maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1103,6 +1103,9 @@ const _loadItemSpec1 = async u => {
 
   const object = await p;
   editedObject = object;
+  if (editedObject.isBuild) {
+    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit/2), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+  }
 
   weaponsManager.setMenu(0);
   // appManager.grabbedObjectOffsets[0] = maxGrabDistance;

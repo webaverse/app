@@ -544,7 +544,7 @@ const makeShapeMesh = () => {
     localQuaternion.setFromEuler(localEuler);
     modeMesh.quaternion.premultiply(localQuaternion);
 
-    modeMesh.visible = true;
+    // modeMesh.visible = true;
   };
   const shapes = [];
   object.place = () => {
