@@ -517,6 +517,7 @@ const makeShapeMesh = () => {
   object.setMode = newMode => {
     mode = newMode;
   };
+  object.getPhysicsIds = () => physicsIds;
   object.update = (transform, gridSnap) => {
     const modeMesh = modeMeshes[mode];
     modeMesh.visible = true;
