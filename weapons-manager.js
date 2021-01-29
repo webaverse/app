@@ -237,6 +237,13 @@ const _selectLoadout = index => {
       selectedLoadoutObject.position.copy(position);
       selectedLoadoutObject.quaternion.copy(quaternion);
 
+      if (selectedLoadoutObject.getPhysicsIds) {
+        const physicsIds = selectedLoadoutObject.getPhysicsIds();
+        for (const physicsId of physicsIds) {
+          physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+        }
+      }
+
       _grab(selectedLoadoutObject);
 
       weaponsManager.setMenu(0);
