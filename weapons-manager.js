@@ -1773,9 +1773,19 @@ const weaponsManager = {
   },
   toggleEditMode() {
     this.editMode = !this.editMode;
-    if (this.editMode && editedObject) {
-      editedObject = null;
-      _updateMenu();
+    if (this.editMode) {
+      let changed = false;
+      if (appManager.grabbedObjects[0]) {
+        _ungrab();
+        changed = true;
+      }
+      if (editedObject) {
+        editedObject = null;
+        changed = true;
+      }
+      if (changed) {
+        _updateMenu();
+      }
     }
   },
   /* canUpload() {
