@@ -30,6 +30,8 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
+const localMatrix4 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
 
@@ -642,6 +644,10 @@ const _updateWeapons = () => {
       if (grabbedObject) {
         const {position, quaternion} = transforms[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+        
+        grabbedObject.updateMatrixWorld();
+        const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
+        
         const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
           collisionEnabled: true,
           handSnapEnabled: true,
@@ -650,10 +656,19 @@ const _updateWeapons = () => {
           gridSnap: weaponsManager.getGridSnap(),
         });
 
+        grabbedObject.updateMatrixWorld();
+        const newMatrix = localMatrix3.copy(grabbedObject.matrixWorld);
+        
         if (grabbedObject.getPhysicsIds) {
           const physicsIds = grabbedObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, grabbedObject.position, grabbedObject.quaternion);
+            const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+            const oldTransformMatrix = localMatrix4.compose(physicsTransform.position, physicsTransform.quaternion, localVector2.set(1, 1, 1));
+            oldTransformMatrix.clone()
+              .premultiply(oldMatrix.invert())
+              .premultiply(newMatrix)
+              .decompose(localVector, localQuaternion, localVector2);
+            physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion);
           }
         }
 
