@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {renderer, camera/*, orbitControls*/} from './app-object.js';
+import {appManager, renderer, camera/*, orbitControls*/} from './app-object.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
@@ -161,7 +161,7 @@ const cameraManager = {
     const f = -cameraOffset.z;
     if (f < 0.5) {
       return 'firstperson';
-    } else if (f < 2) {
+    } else if (f < 2 || !!appManager.grabbedObjects[0]) {
       return 'thirdperson';
     } else {
       return 'isometric';
