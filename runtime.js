@@ -314,6 +314,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 
   mesh.run = async () => {
     if (physicsMesh) {
+      physicsMesh.position.copy(mesh.position);
+      physicsMesh.quaternion.copy(mesh.quaternion);
       const physicsId = physicsManager.addGeometry(physicsMesh);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
