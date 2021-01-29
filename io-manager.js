@@ -275,8 +275,8 @@ ioManager.bindInput = () => {
       }
       case 82: { // R
         if (document.pointerLockElement) {
-          if (weaponsManager.canEquip()) {
-            weaponsManager.menuEquip();
+          if (weaponsManager.canTry()) {
+            weaponsManager.menuTry();
           } else if (weaponsManager.canRotate()) {
             weaponsManager.menuRotate(1);
           }
@@ -332,12 +332,12 @@ ioManager.bindInput = () => {
         }
         break;
       }
-      case 82: { // R
+      /* case 82: { // R
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-r').click(); // equip
         break;
-      }
+      } */
       case 71: { // G
         weaponsManager.menuDrop();
         break;

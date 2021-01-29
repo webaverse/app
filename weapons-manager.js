@@ -379,7 +379,7 @@ const _click = () => {
   }
 };
 
-const _equip = async () => {
+/* const _equip = async () => {
   if (highlightedObject) {
     const {contentId} = highlightedObject;
     
@@ -403,15 +403,17 @@ const _equip = async () => {
       notifications.removeNotification(notification);
     }
   }
-};
-const _try = () => {
+}; */
+const _try = async () => {
   const o = appManager.grabbedObjects[0];
   const {contentId} = o;
   const components = o.components || [];
+  let used = false;
   for (const component of components) {
     switch (component.type) {
       case 'swing': {
         console.log('swing', o, component);
+        used = true;
         break;
       }
       case 'wear': {
@@ -423,6 +425,7 @@ const _try = () => {
           component
         });
         rigManager.localRig.aux.setPose(auxPose);
+        used = true;
         break;
       }
       case 'sit': {
@@ -434,6 +437,7 @@ const _try = () => {
           component
         });
         rigManager.localRig.aux.setPose(auxPose);
+        used = true;
         break;
       }
       case 'pet': {
@@ -445,8 +449,32 @@ const _try = () => {
           component
         });
         rigManager.localRig.aux.setPose(auxPose);
+        used = true;
         break;
       }
+    }
+  }
+  if (!used) {
+    _ungrab();
+    
+    const notification = notifications.addNotification(`\
+      <i class="icon fa fa-user-ninja"></i>
+      <div class=wrap>
+        <div class=label>Getting changed</div>
+        <div class=text>
+          The system is updating your avatar...
+        </div>
+        <div class=close-button>✕</div>
+      </div>
+    `, {
+      timeout: Infinity,
+    });
+    try {
+      await loginManager.setAvatar(contentId);
+    } catch(err) {
+      console.warn(err);
+    } finally {
+      notifications.removeNotification(notification);
     }
   }
 };
@@ -1628,11 +1656,14 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
-  canEquip() {
+  /* canEquip() {
     return highlightMesh.visible;
   },
   menuEquip() {
     _equip();
+  }, */
+  canTry() {
+    return !!appManager.grabbedObjects[0];
   },
   menuTry() {
     _try();
