@@ -298,7 +298,9 @@ ioManager.bindInput = () => {
       }
       case 71: { // G
         if (document.pointerLockElement) {
-          weaponsManager.menuTry();
+          if (weaponsManager.canTry()) {
+            weaponsManager.menuTry();
+          }
         }
         break;
       }
