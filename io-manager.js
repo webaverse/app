@@ -275,9 +275,7 @@ ioManager.bindInput = () => {
       }
       case 82: { // R
         if (document.pointerLockElement) {
-          if (weaponsManager.canTry()) {
-            weaponsManager.menuTry();
-          } else if (weaponsManager.canRotate()) {
+          if (weaponsManager.canRotate()) {
             weaponsManager.menuRotate(1);
           }
           // pe.equip('back');
