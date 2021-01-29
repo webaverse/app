@@ -515,6 +515,8 @@ const _grab = object => {
   appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
     .premultiply(localMatrix.compose(position, quaternion, localVector.set(1, 1, 1)).invert());
 
+  weaponsManager.editMode = false;
+
   /* const distance = object.position.distanceTo(position);
   if (distance < maxGrabDistance) {
     appManager.grabbedObjectOffsets[0] = 0;
