@@ -371,12 +371,12 @@ world.addEventListener('trackedobjectadd', async e => {
         }
 
         mesh.run && await mesh.run();
-        if (mesh.getStaticPhysicsIds) {
+        /* if (mesh.getStaticPhysicsIds) {
           const staticPhysicsIds = mesh.getStaticPhysicsIds();
           for (const physicsId of staticPhysicsIds) {
             physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
           }
-        }
+        } */
       } else {
         console.warn('failed to load object', file);
 
