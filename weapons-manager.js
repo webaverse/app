@@ -509,6 +509,7 @@ const _grab = object => {
   appManager.grabbedObjects[0] = object;
   weaponsManager.gridSnap = 0;
 
+  object.updateMatrixWorld();
   object.savedRotation.copy(object.rotation);
   object.startQuaternion.copy(quaternion);
 
