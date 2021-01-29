@@ -293,9 +293,14 @@ ioManager.bindInput = () => {
         e.stopPropagation();
         if (weaponsManager.canPush()) {
           ioManager.keys.forward = true;
-          // weaponsManager.menuPush(-1);
         } else {
           physicsManager.setFlyState(!physicsManager.getFlyState());
+        }
+        break;
+      }
+      case 71: { // G
+        if (document.pointerLockElement) {
+          weaponsManager.menuTry();
         }
         break;
       }
@@ -324,7 +329,6 @@ ioManager.bindInput = () => {
           weaponsManager.setBuildMode('stair');
         } else if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
-          // weaponsManager.menuPush(1);
         }
         break;
       }
