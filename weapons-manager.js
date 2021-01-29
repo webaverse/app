@@ -1108,7 +1108,7 @@ const _loadItemSpec1 = async u => {
   const object = await p;
   editedObject = object;
   if (editedObject.isBuild) {
-    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit/2), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
   }
 
   weaponsManager.setMenu(0);
