@@ -1786,6 +1786,7 @@ const weaponsManager = {
     const object = await _loadItemSpec1('./assets/type/object.geo');
     object.setMode(mode);
     this.gridSnap = 1;
+    this.editMode = false;
   },
   setBuildMode(mode) {
     editedObject.setMode(mode);
