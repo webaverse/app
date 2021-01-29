@@ -1755,6 +1755,10 @@ const weaponsManager = {
   },
   toggleEditMode() {
     this.editMode = !this.editMode;
+    if (this.editMode && editedObject) {
+      editedObject = null;
+      _updateMenu();
+    }
   },
   /* canUpload() {
     return this.menuOpen === 1;
