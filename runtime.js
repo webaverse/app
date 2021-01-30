@@ -95,6 +95,41 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
 const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
+const componentHandlers = {
+  'swing': (o, component) => {
+    console.log('swing', o);
+  },
+  'wear': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.wearables.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+  'sit': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.sittables.length = 0;
+    auxPose.sittables.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+  'pet': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.pets.length = 0;
+    auxPose.pets.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component,
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+};
+
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -333,6 +368,20 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
   };
+  mesh.use = () => {
+    let used = false;
+    for (const component of components) {
+      const componentHandler = componentHandlers[component.type];
+      if (componentHandler) {
+        componentHandler(mesh, component);
+        used = true;
+      }
+    }
+    return used;
+  };
+  if (autoRun) {
+    mesh.use();
+  }
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
