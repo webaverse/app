@@ -292,6 +292,9 @@ ioManager.bindInput = () => {
         if (weaponsManager.canPush()) {
           ioManager.keys.forward = true;
         } else {
+          if (weaponsManager.canJumpOff()) {
+            weaponsManager.jumpOff();
+          }
           physicsManager.setFlyState(!physicsManager.getFlyState());
         }
         break;
