@@ -258,7 +258,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   camera.position.add(physicsManager.offset);
   physicsManager.offset.setScalar(0);
   
-  if (!sitState) {
+  if (!sitController) {
     applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
     camera.updateMatrixWorld();
