@@ -77,6 +77,15 @@ export class RigAux {
     }
   }
   async addWearable(id, contentId, component) {
+    const wearable = {
+      id,
+      contentId,
+      component,
+      // model: o,
+      update,
+    };
+    this.wearables.push(wearable);
+    
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -91,19 +100,21 @@ export class RigAux {
         .premultiply(chest.matrixWorld)
         .decompose(o.position, o.quaternion, o.scale);
     };
-    this.wearables.push({
-      id,
-      contentId,
-      component,
-      model: o,
-      update,
-    });
   }
   removeWearable(wearable) {
     avatarScene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
   async addSittable(id, contentId, component) {
+    const sittable = {
+      id,
+      contentId,
+      component,
+      // model: o,
+      update: () => {},
+    };
+    this.sittables.push(sittable);
+
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -149,7 +160,7 @@ export class RigAux {
 
           // const sitTarget = physicsManager.getSitTarget();
 
-          const update = timeDiff => {
+          sittable.update = timeDiff => {
             timeDiff *= 1000;
             
             action.weight = physicsManager.velocity.length() * 10;
@@ -157,13 +168,6 @@ export class RigAux {
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
           };
-          this.sittables.push({
-            id,
-            contentId,
-            component,
-            model: o,
-            update,
-          });
         } else {
           console.warn('could not find sit bone in model: ' + sitBone + '; bones available: ' + JSON.stringify(skeleton.bones.map(b => b.name)));
         }
@@ -179,6 +183,15 @@ export class RigAux {
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
   async addPet(id, contentId, component) {
+    const pet = {
+      id,
+      contentId,
+      component,
+      // model: o,
+      update: () => {},
+    };
+    this.pets.push(pet);
+    
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -210,7 +223,7 @@ export class RigAux {
       action.play();
 
       const smoothVelocity = new THREE.Vector3();
-      const update = timeDiff => {
+      pet.update = timeDiff => {
         const speed = 0.003;
         timeDiff *= 1000;
 
@@ -238,13 +251,6 @@ export class RigAux {
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
       };
-      this.pets.push({
-        id,
-        contentId,
-        component,
-        model: o,
-        update,
-      });
     } else {
       console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
     }
