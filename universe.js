@@ -222,7 +222,7 @@ const enterWorld = async worldSpec => {
     }
     {
       const ps = objects.map(async object => {
-        let {start_url, position, quaternion, physics, physics_url, autoScale, dynamic} = object;
+        let {start_url, position, quaternion, physics, physics_url, autoScale, autoRun, dynamic} = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
         }
@@ -233,6 +233,7 @@ const enterWorld = async worldSpec => {
           physics,
           physics_url,
           autoScale,
+          autoRun,
         });
       });
       promises.push.apply(promises, ps);
