@@ -295,7 +295,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     physicsManager.velocity.y = 0;
 
     applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
-    if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
+    if (physicsManager.velocity.lengthSq() > 0) {
       sitController.quaternion
         .setFromUnitVectors(
           localVector4.set(0, 0, -1),
