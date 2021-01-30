@@ -443,6 +443,7 @@ const _try = async () => {
       case 'sit': {
         _ungrab();
         const auxPose = rigManager.localRig.aux.getPose();
+        auxPose.sittables.length = 0;
         auxPose.sittables.push({
           id: rigManager.localRig.aux.getNextId(),
           contentId,
@@ -455,6 +456,7 @@ const _try = async () => {
       case 'pet': {
         _ungrab();
         const auxPose = rigManager.localRig.aux.getPose();
+        auxPose.pets.length = 0;
         auxPose.pets.push({
           id: rigManager.localRig.aux.getNextId(),
           contentId,
