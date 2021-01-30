@@ -680,7 +680,7 @@ const _updateWeapons = () => {
           }
         }
         
-        grabbedObject.setPose(grabbedObject.position, grabbedObject.quaternion, grabbedObject.scale);
+        grabbedObject.setPose(localVector.copy(grabbedObject.position), localQuaternion.copy(grabbedObject.quaternion), localVector2.copy(grabbedObject.scale));
 
         if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
