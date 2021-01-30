@@ -131,7 +131,7 @@ const componentHandlers = {
 };
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, autoRun = false, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -906,7 +906,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, autoScale = true, autoRun = false, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -922,7 +922,12 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
   const res = await fetch(srcUrl);
   const j = await res.json();
   let {start_url, physics, physics_url, components} = j;
-  const u = _dotifyUrl(start_url);
+  if (typeof j.autoScale === 'boolean') {
+    autoScale = j.autoScale;
+  }
+  if (typeof j.autoRun === 'boolean') {
+    autoRun = j.autoRun;
+  }
 
   /* if (physics_url) {
     if (files && _isResolvableUrl(physics_url)) {
@@ -930,6 +935,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     }
   } */
 
+  const u = _dotifyUrl(start_url);
   return await runtime.loadFile({
     url: u,
     name: u,
@@ -939,13 +945,15 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     physics,
     physics_url,
     components,
+    autoScale,
+    autoRun,
     instanceId,
     ownerAddress,
     monetizationPointer,
   });
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadWebBundle = async (file, {instanceId = null, autoScale = true, autoRun = false, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -984,6 +992,8 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
   }, {
     files,
     instanceId,
+    autoScale,
+    autoRun,
     ownerAddress,
     monetizationPointer,
   });
