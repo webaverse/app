@@ -896,7 +896,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
   });
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null}) => {
+const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
   if (file.url) {
