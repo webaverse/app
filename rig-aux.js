@@ -97,7 +97,7 @@ export class RigAux {
   	// const component = o.components.find(c => c.type === 'wear');
   	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
     wearable.update = now => {
-      const chest = this.rig.modelBones[bone];
+      const chest = this.rig.model.isVrm ? this.rig.modelBones[bone] : this.rig.model;
       localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
         .premultiply(chest.matrixWorld)
         .decompose(o.position, o.quaternion, o.scale);
@@ -229,7 +229,7 @@ export class RigAux {
         const speed = 0.003;
         timeDiff *= 1000;
 
-        const head = this.rig.object ? this.rig.modelBones.Head : this.rig.model; // vrm or xrpk
+        const head = this.rig.model.isVrm ? this.rig.modelBones.Head : this.rig.model;
         const position = head.getWorldPosition(localVector);
         position.y = 0;
         const distance = mesh.position.distanceTo(position);
