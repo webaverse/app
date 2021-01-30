@@ -679,6 +679,8 @@ const _updateWeapons = () => {
             physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion);
           }
         }
+        
+        grabbedObject.setPose(grabbedObject.position, grabbedObject.quaternion, grabbedObject.scale);
 
         if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
