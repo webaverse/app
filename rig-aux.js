@@ -299,13 +299,16 @@ export class RigAux {
 	    pet.update(timeDiff);
 	  }
     
-    const sitState = this.sittables.length > 0;
+    const sitState = this.sittables.length > 0 && !!this.sittables[0].model;
     if (sitState) {
       physicsManager.setSitController(this.sittables[0].model);
       const {sitBone = 'Spine'} = this.sittables[0].component;
       const spineBone = this.sittables[0].model.getObjectByName(sitBone);
       physicsManager.setSitTarget(spineBone);
-    }          
+    } else {
+      physicsManager.setSitController(null);
+      physicsManager.setSitTarget(null);
+    }
     rigManager.localRig.sitState = sitState;
     physicsManager.setSitState(sitState);
   }
