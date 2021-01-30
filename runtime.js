@@ -379,14 +379,15 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
     return used;
   };
-  if (autoRun) {
+  /* if (autoRun) {
     mesh.use();
-  }
+  } */
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
-  mesh.components = components;
-  mesh.used = false;
+  // mesh.components = components;
+  mesh.autoRun = autoRun;
+  // mesh.used = false;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -836,8 +837,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  mesh.components = components;
-  mesh.used = false;
+  // mesh.components = components;
+  // mesh.used = false;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
