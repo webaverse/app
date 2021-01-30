@@ -121,6 +121,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
+    sittable.model = o;
     avatarScene.add(o);
 
     const root = o;
