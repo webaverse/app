@@ -23,6 +23,7 @@ export class RigAux {
   }
   getPose() {
     const _formatAuxObject = o => ({
+      id: o.id,
       contentId: o.contentId,
       component: o.component,
     });
