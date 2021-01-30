@@ -94,7 +94,7 @@ export class RigAux {
     
   	// const component = o.components.find(c => c.type === 'wear');
   	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
-    const update = now => {
+    wearable.update = now => {
       const chest = this.rig.modelBones[bone];
       localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
         .premultiply(chest.matrixWorld)
