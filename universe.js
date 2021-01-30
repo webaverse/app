@@ -229,12 +229,15 @@ const enterWorld = async worldSpec => {
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
+        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
           physics,
           physics_url,
           autoScale,
           autoRun,
         });
+        if (autoRun) {
+          o.use();
+        }
       });
       promises.push.apply(promises, ps);
     }
