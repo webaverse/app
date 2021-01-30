@@ -523,7 +523,7 @@ const makeShapeMesh = () => {
     modeMesh.visible = true;
 
     const {position, quaternion} = transform;
-    localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+    localMatrix.compose(localVector.copy(position).add(localVector2.set(0, baseUnit/2, 0)), quaternion, localVector3.set(1, 1, 1));
     updateGrabbedObject(modeMesh, localMatrix, appManager.grabbedObjectMatrices[0], {
       collisionEnabled: true,
       handSnapEnabled: false,
