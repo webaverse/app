@@ -82,7 +82,7 @@ export class RigAux {
       id,
       contentId,
       component,
-      // model: o,
+      model: null,
       update: () => {},
     };
     this.wearables.push(wearable);
@@ -91,6 +91,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
+    wearable.model = o;
     avatarScene.add(o);
     
   	// const component = o.components.find(c => c.type === 'wear');
