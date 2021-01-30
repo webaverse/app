@@ -233,7 +233,6 @@ const enterWorld = async worldSpec => {
           physics,
           physics_url,
           autoScale,
-          autoRun,
         });
         if (autoRun) {
           o.use();
