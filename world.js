@@ -352,6 +352,7 @@ world.addEventListener('trackedobjectadd', async e => {
         physics: options.physics,
         physics_url: options.physics_url,
         autoScale: options.autoScale,
+        autoRun: options.autoRun,
         dynamic,
         monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
         ownerAddress: file.token ? file.token.owner.address : ""
@@ -484,6 +485,7 @@ world.getWorldJson = async q => {
     for (const object of spec.objects) {
       object.dynamic = true;
       object.autoScale = false;
+      object.autoRun = true;
     }
     spec.objects.splice(0, 0, {
       start_url: `https://webaverse.github.io/pedestal/index.js`,
