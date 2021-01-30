@@ -418,77 +418,30 @@ const _click = () => {
 }; */
 const _try = async () => {
   const o = appManager.grabbedObjects[0];
-  const {contentId} = o;
-  const components = o.components || [];
-  let used = false;
-  for (const component of components) {
-    switch (component.type) {
-      case 'swing': {
-        console.log('swing', o, component);
-        used = true;
-        break;
-      }
-      case 'wear': {
-        _ungrab();
-        const auxPose = rigManager.localRig.aux.getPose();
-        auxPose.wearables.push({
-          id: rigManager.localRig.aux.getNextId(),
-          contentId,
-          component
-        });
-        rigManager.localRig.aux.setPose(auxPose);
-        used = true;
-        break;
-      }
-      case 'sit': {
-        _ungrab();
-        const auxPose = rigManager.localRig.aux.getPose();
-        auxPose.sittables.length = 0;
-        auxPose.sittables.push({
-          id: rigManager.localRig.aux.getNextId(),
-          contentId,
-          component
-        });
-        rigManager.localRig.aux.setPose(auxPose);
-        used = true;
-        break;
-      }
-      case 'pet': {
-        _ungrab();
-        const auxPose = rigManager.localRig.aux.getPose();
-        auxPose.pets.length = 0;
-        auxPose.pets.push({
-          id: rigManager.localRig.aux.getNextId(),
-          contentId,
-          component
-        });
-        rigManager.localRig.aux.setPose(auxPose);
-        used = true;
-        break;
-      }
-    }
-  }
-  if (!used) {
+  if (o) {
     _ungrab();
-    
-    const notification = notifications.addNotification(`\
-      <i class="icon fa fa-user-ninja"></i>
-      <div class=wrap>
-        <div class=label>Getting changed</div>
-        <div class=text>
-          The system is updating your avatar...
+
+    const used = o.use ? o.use() : false;
+    if (!used) {
+      const notification = notifications.addNotification(`\
+        <i class="icon fa fa-user-ninja"></i>
+        <div class=wrap>
+          <div class=label>Getting changed</div>
+          <div class=text>
+            The system is updating your avatar...
+          </div>
+          <div class=close-button>✕</div>
         </div>
-        <div class=close-button>✕</div>
-      </div>
-    `, {
-      timeout: Infinity,
-    });
-    try {
-      await loginManager.setAvatar(contentId);
-    } catch(err) {
-      console.warn(err);
-    } finally {
-      notifications.removeNotification(notification);
+      `, {
+        timeout: Infinity,
+      });
+      try {
+        await loginManager.setAvatar(o.contentId);
+      } catch(err) {
+        console.warn(err);
+      } finally {
+        notifications.removeNotification(notification);
+      }
     }
   }
 };
