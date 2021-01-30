@@ -82,7 +82,7 @@ export class RigAux {
       contentId,
       component,
       // model: o,
-      update,
+      update: () => {},
     };
     this.wearables.push(wearable);
     
