@@ -95,6 +95,41 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
 const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
+const componentHandlers = {
+  'swing': (o, component) => {
+    console.log('swing', o);
+  },
+  'wear': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.wearables.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+  'sit': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.sittables.length = 0;
+    auxPose.sittables.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+  'pet': (o, component) => {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.pets.length = 0;
+    auxPose.pets.push({
+      id: rigManager.localRig.aux.getNextId(),
+      contentId: o.contentId,
+      component,
+    });
+    rigManager.localRig.aux.setPose(auxPose);
+  },
+};
+
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -333,11 +368,22 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
   };
+  mesh.use = () => {
+    let used = false;
+    for (const component of components) {
+      const componentHandler = componentHandlers[component.type];
+      if (componentHandler) {
+        componentHandler(mesh, component);
+        used = true;
+      }
+    }
+    return used;
+  };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
-  mesh.components = components;
-  mesh.used = false;
+  // mesh.components = components;
+  // mesh.used = false;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -787,8 +833,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  mesh.components = components;
-  mesh.used = false;
+  // mesh.components = components;
+  // mesh.used = false;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
@@ -857,7 +903,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -873,7 +919,9 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
   const res = await fetch(srcUrl);
   const j = await res.json();
   let {start_url, physics, physics_url, components} = j;
-  const u = _dotifyUrl(start_url);
+  if (typeof j.autoScale === 'boolean') {
+    autoScale = j.autoScale;
+  }
 
   /* if (physics_url) {
     if (files && _isResolvableUrl(physics_url)) {
@@ -881,6 +929,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     }
   } */
 
+  const u = _dotifyUrl(start_url);
   return await runtime.loadFile({
     url: u,
     name: u,
@@ -890,13 +939,14 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     physics,
     physics_url,
     components,
+    autoScale,
     instanceId,
     ownerAddress,
     monetizationPointer,
   });
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadWebBundle = async (file, {instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -935,6 +985,7 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
   }, {
     files,
     instanceId,
+    autoScale,
     ownerAddress,
     monetizationPointer,
   });
