@@ -267,7 +267,7 @@ export class RigAux {
   decapitate() {
     for (const wearable of this.wearables) {
       if (wearable.component.bone === 'Head') {
-        wearable.model.traverse(o => {
+        wearable.model && wearable.model.traverse(o => {
           if (o.isMesh) {
             o.savedVisible = o.visible;
             o.visible = false;
@@ -279,7 +279,7 @@ export class RigAux {
   undecapitate() {
     for (const wearable of this.wearables) {
       if (wearable.component.bone === 'Head') {
-        wearable.model.traverse(o => {
+        wearable.model && wearable.model.traverse(o => {
           if (o.isMesh) {
             o.visible = o.savedVisible;
           }
