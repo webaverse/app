@@ -280,6 +280,7 @@ const _addObject = dynamic => (contentId, parentId = null, position = new THREE.
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
+    trackedObject.set('scale', [1, 1, 1]);
     trackedObject.set('options', JSON.stringify(options));
   });
   if (pendingAddPromise) {
@@ -384,14 +385,16 @@ world.addEventListener('trackedobjectadd', async e => {
         scene.add(mesh);
       }
 
-      mesh.setPose = (position, quaternion) => {
+      mesh.setPose = (position, quaternion, scale) => {
         trackedObject.set('position', position.toArray());
         trackedObject.set('quaternion', quaternion.toArray());
+        trackedObject.set('scale', scale.toArray());
       };
 
       const _observe = () => {
         mesh.position.fromArray(trackedObject.get('position'));
         mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+        mesh.scale.fromArray(trackedObject.get('scale'));
       };
       trackedObject.observe(_observe);
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
