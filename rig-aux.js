@@ -229,7 +229,7 @@ export class RigAux {
         const speed = 0.003;
         timeDiff *= 1000;
 
-        const head = this.rig.modelBones.Head;
+        const head = this.rig.object ? this.rig.modelBones.Head : this.rig.model; // vrm or xrpk
         const position = head.getWorldPosition(localVector);
         position.y = 0;
         const distance = mesh.position.distanceTo(position);
