@@ -230,10 +230,12 @@ class RigManager {
               visemes: true,
               debug: false //!o,
             });
-            localRig.aux = new RigAux(localRig);
+            localRig.aux = oldRig.aux;
+            localRig.aux.rig = localRig;
           } else {
             localRig = new Avatar();
-            localRig.aux = new RigAux(localRig);
+            localRig.aux = oldRig.aux;
+            localRig.aux.rig = localRig;
             localRig.model = o;
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
@@ -247,7 +249,8 @@ class RigManager {
             visemes: true,
             debug: true,
           });
-          localRig.aux = new RigAux(localRig);
+          localRig.aux = oldRig.aux;
+          localRig.aux.rig = localRig;
         }
         scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
