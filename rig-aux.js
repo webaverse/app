@@ -1,7 +1,6 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
 import {avatarScene} from './app-object.js';
 import {contentIdToFile} from './util.js';
 
@@ -304,19 +303,6 @@ export class RigAux {
     for (const pet of this.pets) {
 	    pet.update(timeDiff);
 	  }
-    
-    const sitState = this.sittables.length > 0 && !!this.sittables[0].model;
-    if (sitState) {
-      physicsManager.setSitController(this.sittables[0].model);
-      const {sitBone = 'Spine'} = this.sittables[0].component;
-      const spineBone = this.sittables[0].model.getObjectByName(sitBone);
-      physicsManager.setSitTarget(spineBone);
-    } else {
-      physicsManager.setSitController(null);
-      physicsManager.setSitTarget(null);
-    }
-    rigManager.localRig.sitState = sitState;
-    physicsManager.setSitState(sitState);
   }
   destroy() {
     {

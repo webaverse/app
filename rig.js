@@ -572,8 +572,20 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.update(timeDiff);
-    this.localRig.aux.update(timeDiff);
+    {
+      this.localRig.update(timeDiff);
+      this.localRig.aux.update(timeDiff);
+
+      const sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      if (sitState) {
+        physicsManager.setSitController(this.localRig.aux.sittables[0].model);
+        const {sitBone = 'Spine'} = this.localRig.aux.sittables[0].component;
+        const spineBone = this.localRig.aux.sittables[0].model.getObjectByName(sitBone);
+        physicsManager.setSitTarget(spineBone);
+      }
+      rigManager.localRig.sitState = sitState;
+      physicsManager.setSitState(sitState);
+    }
     this.peerRigs.forEach(rig => {
       rig.update(timeDiff);
       rig.aux.update(timeDiff);
