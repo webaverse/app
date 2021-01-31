@@ -904,10 +904,7 @@ window.addEventListener('mousemove', e => {
           targetPoint,
           new THREE.Vector3(0, 1, 0)
         ));
-        // console.log('lol', cubeMesh.position.toArray());
       }
-
-      // console.log('lol', mouse.toArray());
     }
   }
 });
