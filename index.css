@@ -2930,7 +2930,7 @@ progress::-webkit-progress-value {
   user-drag: none;
   -webkit-user-drag: none;
 }
-.inventory-menu .wrap .slot.flip-horizontal {
+.inventory-menu .wrap .slot .flip-horizontal {
   transform: scalex(-1)
 }
 .inventory-menu .wrap .inventory-slots {
