@@ -883,7 +883,7 @@ window.addEventListener('mousemove', e => {
 
     const mouse = new THREE.Vector2();
     mouse.x = ((e.clientX - (boundingBox.left)) / boundingBox.width) * 2 - 1;
-    mouse.y = - ((e.clientY - boundingBox.height*0.1) / boundingBox.height) * 2 + 1;
+    mouse.y = - ((e.clientY - boundingBox.top) / boundingBox.height) * 2 + 1;
     if (isFinite(mouse.x) && isFinite(mouse.y)) {
       // console.log('box', mouse.toArray());
       localRaycaster.setFromCamera(mouse, inventoryAvatarCamera);
