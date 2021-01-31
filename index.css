@@ -2919,12 +2919,16 @@ progress::-webkit-progress-value {
   background-color: #00B3DB;
   fill: #FF0000;
 }
-.inventory-menu .wrap .slot img,
+.inventory-menu .wrap .slot .placeholder,
 .inventory-menu .wrap .slot .item
 {
   position: absolute;
   width: calc(50px - 5px * 2 - 3px * 2);
   height: calc(50px - 5px * 2 - 3px * 2);
+}
+.inventory-menu .wrap .slot .placeholder {
+  user-drag: none;
+  -webkit-user-drag: none;
 }
 .inventory-menu .wrap .slot.flip-horizontal {
   transform: scalex(-1)
