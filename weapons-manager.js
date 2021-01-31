@@ -1547,6 +1547,8 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
+const inventoryMenuEl = document.getElementById('inventory-menu');
+
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1800,6 +1802,10 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
+  },
+  toggleInventory() {
+    inventoryMenuEl.classList.toggle('open');
+    document.exitPointerLock();
   },
   update() {
     _updateWeapons();
