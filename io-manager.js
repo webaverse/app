@@ -308,30 +308,36 @@ ioManager.bindInput = () => {
         break;
       }
       case 90: { // Z
-        if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('wall');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('wall');
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('wall');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('wall');
+          }
         }
         break;
       }
       case 88: { // X
-        if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('floor');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('floor');
-        } else {
-          weaponsManager.menuDelete();
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('floor');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('floor');
+          } else {
+            weaponsManager.menuDelete();
+          }
         }
         break;
       }
       case 67: { // C
-        if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('stair');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('stair');
-        } else if (weaponsManager.canPush()) {
-          ioManager.keys.backward = true;
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('stair');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('stair');
+          } else if (weaponsManager.canPush()) {
+            ioManager.keys.backward = true;
+          }
         }
         break;
       }
