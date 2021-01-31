@@ -437,6 +437,9 @@ ioManager.bindInput = () => {
     }
   });
   window.addEventListener('keyup', e => {
+    if (_inputFocused() || e.repeat) {
+      return;
+    }
     switch (e.which) {
       /* case 81: { // Q
         weaponsManager.setWeaponWheel(false);
