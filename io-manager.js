@@ -341,6 +341,10 @@ ioManager.bindInput = () => {
         }
         break;
       }
+      case 73: { // I
+        weaponsManager.toggleInventory();
+        break;
+      }
       /* case 82: { // R
         e.preventDefault();
         e.stopPropagation();
