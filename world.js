@@ -8,7 +8,9 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {camera, appManager, scene, scene3} from './app-object.js';
+import Avatar from './avatars/avatars.js';
+import {RigAux} from './rig-aux.js';
+import {camera, appManager, scene, scene3, inventoryAvatarScene} from './app-object.js';
 import {baseUnit} from './constants.js';
 import {contentIdToFile} from './util.js';
 import {
@@ -570,3 +572,25 @@ messages.addEventListener('messageadd', e => {
     }));
   }
 });
+
+(async () => {
+  const url = `https://webaverse.github.io/assets/male.vrm`;
+  const name = 'male.vrm';
+  const mesh = await runtime.loadFile({
+    url,
+    name,
+  });
+  if (mesh) {
+    mesh.name = 'avatarMesh';
+    const localRig = new Avatar(mesh.raw, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: false //!o,
+    });
+    localRig.aux = new RigAux(localRig);
+    localRig.model.rig = localRig;
+    
+    inventoryAvatarScene.add(localRig.model);
+  }
+})();

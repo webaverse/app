@@ -145,6 +145,38 @@ class AppManager {
 }
 const appManager = new AppManager();
 
+const inventoryAvatarScene = new THREE.Scene();
+const inventoryAvatarCamera = new THREE.PerspectiveCamera();
+const inventoryAvatarRenderer = (() => {
+  let canvas = document.getElementById('inventory-avatar') || undefined;
+  let context = canvas && canvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: false,
+    xrCompatible: true,
+  });
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    context,
+    antialias: true,
+    alpha: true,
+    // preserveDrawingBuffer: false,
+  });
+  const w = 400;
+  const h = 590;
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  // renderer.autoClear = false;
+  renderer.sortObjects = false;
+  
+  inventoryAvatarCamera.aspect = w/h;
+  inventoryAvatarCamera.near = 0.1;
+  inventoryAvatarCamera.far = 100;
+  inventoryAvatarCamera.updateProjectionMatrix();
+
+  return renderer;
+})();
+
 class App extends EventTarget {
   constructor(appId) {
     super();
@@ -159,4 +191,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};
+export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager, inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer};

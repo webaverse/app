@@ -14,7 +14,7 @@ import {rigManager} from './rig.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, orthographicScene, camera, dolly, inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer} from './app-object.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
@@ -34,6 +34,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
+const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
 
@@ -497,6 +498,7 @@ const _ungrab = () => {
   _updateMenu();
 };
 
+let avatarMesh = null;
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
@@ -819,9 +821,69 @@ const _updateWeapons = () => {
   _handleUseAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) && !appManager.grabbedObjects[0]);
-  
+
   popovers.update();
+
+  if (weaponsManager.inventoryOpen) {
+    inventoryAvatarCamera.position.set(0, 1, 0);
+
+    avatarMesh = inventoryAvatarScene.getObjectByName('avatarMesh');
+    if (avatarMesh) {
+      avatarMesh.rig.inputs.hmd.position.set(0, 1.4, -2.5);
+      /* avatarMesh.rig.inputs.hmd.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(0, 0, 1)
+      ); */
+      avatarMesh.rig.inputs.leftGamepad.position.copy(avatarMesh.rig.inputs.hmd.position).add(localVector.set(-0.2, -0.6, 0.2));
+      avatarMesh.rig.inputs.leftGamepad.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(0, 0, 1)
+      );
+      avatarMesh.rig.inputs.rightGamepad.position.copy(avatarMesh.rig.inputs.hmd.position).add(localVector.set(0.2, -0.6, 0.2));
+      avatarMesh.rig.inputs.rightGamepad.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(0, 0, 1)
+      );
+      inventoryAvatarRenderer.render(inventoryAvatarScene, inventoryAvatarCamera);
+
+      const timeDiff = 0.01;
+      avatarMesh.rig.update(timeDiff);
+      avatarMesh.rig.aux.update(timeDiff);
+    }
+  }
 };
+
+const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+  side: THREE.DoubleSide,
+}));
+inventoryAvatarScene.add(cubeMesh);
+
+window.addEventListener('mousemove', e => {
+  const mouse = new THREE.Vector2();
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
+  localRaycaster.setFromCamera(mouse, inventoryAvatarCamera);
+
+  if (avatarMesh) {
+    const targetPoint = new THREE.Vector3(0, 0, -2).applyQuaternion(
+      new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        localRaycaster.ray.direction
+      )
+    );
+    cubeMesh.position.copy(targetPoint);
+    // const eyePosition = localRaycaster.ray.origin.clone();
+    // avatarMesh.rig.inputs.hmd.position.copy(eyePosition);
+    avatarMesh.rig.inputs.hmd.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 0, -1),
+      new THREE.Vector3(1, 0, 0)
+    );
+    console.log('lol', cubeMesh.position.toArray());
+  }
+
+  // console.log('lol', mouse.toArray());
+});
 
 /* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
@@ -1548,6 +1610,7 @@ renderer.domElement.addEventListener('drop', async e => {
 scene.add(cubeMesh); */
 
 const inventoryMenuEl = document.getElementById('inventory-menu');
+const inventoryAvatarEl = document.getElementById('inventory-avatar');
 
 const weaponsManager = {
   // weapons,
@@ -1802,6 +1865,9 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
+  },
+  inventoryOpen() {
+    return inventoryMenuEl.classList.contains('open');
   },
   toggleInventory() {
     inventoryMenuEl.classList.toggle('open');
