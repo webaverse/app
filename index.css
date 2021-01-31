@@ -2878,3 +2878,24 @@ progress::-webkit-progress-value {
 #network-name {
   text-transform: capitalize;
 }
+
+.inventory-menu {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  align-items: center;
+}
+.inventory-menu:not(.open) {
+  display: none;
+}
+.inventory-menu > .wrap {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(#00B3DB, #003743);
+  border: 5px solid #003743;
+}
