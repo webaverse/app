@@ -889,7 +889,7 @@ window.addEventListener('mousemove', e => {
       localRaycaster.setFromCamera(mouse, inventoryAvatarCamera);
 
       if (avatarMesh) {
-        targetPoint = new THREE.Vector3(0, inventoryAvatarCamera.position.y, -2).applyQuaternion(
+        targetPoint = new THREE.Vector3(0, inventoryAvatarCamera.position.y, -1.5).applyQuaternion(
           new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 0, -1),
             localRaycaster.ray.direction
