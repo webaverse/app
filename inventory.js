@@ -174,7 +174,7 @@ const inventoryAvatarRenderer = (() => {
       fingers: true,
       hair: true,
       visemes: true,
-      debug: false //!o,
+      debug: false,
     });
     localRig.aux = new RigAux(localRig);
     localRig.model.rig = localRig;
