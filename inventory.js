@@ -40,6 +40,11 @@ const equips = {
   mount: null,
 };
 
+const _loadEquipPreview = async key => {
+};
+const _unloadEquipPreview = key => {
+};
+
 const inventorySpecToImg = inventorySpec => {
   const img = document.createElement('img');
   img.src = inventorySpec.preview_url;
@@ -72,6 +77,7 @@ const inventorySpecToImg = inventorySpec => {
         if (j._inventorySrc) {
           const inventorySpec = j.spec;
           equips[key] = inventorySpec;
+          _loadEquipPreview(key);
 
           _clear();
 
@@ -80,7 +86,8 @@ const inventorySpecToImg = inventorySpec => {
         } else if (j._equipmentSrc) {
           const inventorySpec = j.value;
           equips[key] = inventorySpec;
-          
+          _loadEquipPreview(key);
+
           const img = inventorySpecToImg(inventorySpec);
           slotEl.appendChild(img);
         }
@@ -94,6 +101,7 @@ const inventorySpecToImg = inventorySpec => {
       });
       slotEl.addEventListener('dragend', e => {
         equips[key] = null;
+        _unloadEquipPreview(key);
         _clear();
       });
     }
