@@ -19,6 +19,7 @@ import {
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
+import {inventoryAvatarScene} from './inventory.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
