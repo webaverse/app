@@ -44,7 +44,6 @@ const inventorySpecToImg = inventorySpec => {
   const img = document.createElement('img');
   img.src = inventorySpec.preview_url;
   img.classList.add('item');
-  img.setAttribute('draggable', '');
   return img;
 };
 {
