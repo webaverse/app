@@ -37,7 +37,7 @@ export class RigAux {
     {
       for (const newWearable of wearables) {
         if (!this.wearables.some(w => w.id === newWearable.id)) {
-          this.addWearable(newWearable.id, newWearable.contentId, newWearable.component);
+          this.addWearable(newWearable);
         }
       }
       const localWearables = this.wearables.slice();
@@ -51,7 +51,7 @@ export class RigAux {
     {
       for (const newSittable of sittables) {
         if (!this.sittables.some(s => s.id === newSittable.id)) {
-          this.addSittable(newSittable.id, newSittable.contentId, newSittable.component);
+          this.addSittable(newSittable);
         }
       }
       const localSittables = this.sittables.slice();
@@ -65,7 +65,7 @@ export class RigAux {
     {
       for (const newPet of pets) {
         if (!this.pets.some(p => p.id === newPet.id)) {
-          this.addPet(newPet.id, newPet.contentId, newPet.component);
+          this.addPet(newPet);
         }
       }
       const localPets = this.pets.slice();
@@ -76,7 +76,7 @@ export class RigAux {
       }
     }
   }
-  async addWearable(id, contentId, component) {
+  async addWearable({id, contentId, component}) {
     const wearable = {
       id,
       contentId,
@@ -106,7 +106,7 @@ export class RigAux {
     this.scene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
-  async addSittable(id, contentId, component) {
+  async addSittable({id, contentId, component}) {
     const sittable = {
       id,
       contentId,
@@ -187,7 +187,7 @@ export class RigAux {
     this.scene.remove(sittable.model);
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
-  async addPet(id, contentId, component) {
+  async addPet({id, contentId, component}) {
     const pet = {
       id,
       contentId,
