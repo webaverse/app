@@ -872,11 +872,11 @@ const _updateWeapons = () => {
   }
 };
 
-const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
   color: 0xFF0000,
   side: THREE.DoubleSide,
 }));
-inventoryAvatarScene.add(cubeMesh);
+inventoryAvatarScene.add(cubeMesh); */
 
 window.addEventListener('mousemove', e => {
   if (weaponsManager.inventoryOpen) {
@@ -896,7 +896,7 @@ window.addEventListener('mousemove', e => {
             localRaycaster.ray.direction
           )
         );
-        cubeMesh.position.copy(targetPoint);
+        // cubeMesh.position.copy(targetPoint);
 
         avatarMesh.rig.inputs.hmd.position.copy(initialAvatarPosition)
           .add(new THREE.Vector3(mouse.x * 0.03, mouse.y * 0.1, 0));
