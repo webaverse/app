@@ -91,27 +91,32 @@ export class RigAux {
       local: true,
     });
     wearable.model = o;
-    this.scene.add(o);
-    
-  	// const component = o.components.find(c => c.type === 'wear');
-  	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
-    wearable.update = now => {
-      const chest = this.rig.model.isVrm ? this.rig.modelBones[bone] : this.rig.model;
-      localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
-        .premultiply(chest.matrixWorld)
-        .decompose(o.position, o.quaternion, o.scale);
-    };
+    if (this.wearables.includes(wearable)) {
+      this.scene.add(o);
+      
+      // const component = o.components.find(c => c.type === 'wear');
+      const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
+      wearable.update = now => {
+        const chest = this.rig.model.isVrm ? this.rig.modelBones[bone] : this.rig.model;
+        localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
+          .premultiply(chest.matrixWorld)
+          .decompose(o.position, o.quaternion, o.scale);
+      };
+    }
   }
   removeWearable(wearable) {
-    this.scene.remove(wearable.model);
-    this.wearables.splice(this.wearables.indexOf(wearable), 1);
+    wearable.model && this.scene.remove(wearable.model);
+    const index = this.wearables.indexOf(wearable);
+    if (index !== -1) {
+      this.wearables.splice(index, 1);
+    }
   }
   async addSittable({id, contentId, component}) {
     const sittable = {
       id,
       contentId,
       component,
-      // model: o,
+      model: null,
       update: () => {},
     };
     this.sittables.push(sittable);
@@ -121,78 +126,83 @@ export class RigAux {
       local: true,
     });
     sittable.model = o;
-    this.scene.add(o);
+    if (this.sittables.includes(sittable)) {
+      this.scene.add(o);
 
-    const root = o;
-    
-    let skinnedMesh = null;
-    root.traverse(o => {
-      if (o.isSkinnedMesh && !skinnedMesh) {
-        skinnedMesh = o;
-      }
-    });
-    if (skinnedMesh) {
-      const animations = o.getAnimations();
+      const root = o;
       
-      // const component = o.components.find(c => c.type === 'sit');
-      const {sitBone = 'Spine', walkAnimation = 'walk', idleAnimation = 'idle'} = component;
-      const walkAnimationClip = animations.find(a => a.name === walkAnimation);
-      const idleAnimationClip = animations.find(a => a.name === idleAnimation);
-
-      if (walkAnimationClip || idleAnimationClip) {
-        // hacks
-        {
-          root.position.y = 0;
-          localEuler.setFromQuaternion(root.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          root.quaternion.setFromEuler(localEuler);
+      let skinnedMesh = null;
+      root.traverse(o => {
+        if (o.isSkinnedMesh && !skinnedMesh) {
+          skinnedMesh = o;
         }
+      });
+      if (skinnedMesh) {
+        const animations = o.getAnimations();
         
-        const mixer = new THREE.AnimationMixer(root);
-        const walkAction = walkAnimationClip && mixer.clipAction(walkAnimationClip);
-        walkAction && walkAction.play();
-        const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
-        idleAction && idleAction.play();
+        // const component = o.components.find(c => c.type === 'sit');
+        const {sitBone = 'Spine', walkAnimation = 'walk', idleAnimation = 'idle'} = component;
+        const walkAnimationClip = animations.find(a => a.name === walkAnimation);
+        const idleAnimationClip = animations.find(a => a.name === idleAnimation);
 
-        const {skeleton} = skinnedMesh;
-        const spineBone = root.getObjectByName(sitBone);
-        if (spineBone) {
-          // const spine = skeleton.bones[spineBoneIndex];
-          // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
-          // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
+        if (walkAnimationClip || idleAnimationClip) {
+          // hacks
+          {
+            root.position.y = 0;
+            localEuler.setFromQuaternion(root.quaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            root.quaternion.setFromEuler(localEuler);
+          }
+          
+          const mixer = new THREE.AnimationMixer(root);
+          const walkAction = walkAnimationClip && mixer.clipAction(walkAnimationClip);
+          walkAction && walkAction.play();
+          const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
+          idleAction && idleAction.play();
 
-          // const sitTarget = physicsManager.getSitTarget();
+          const {skeleton} = skinnedMesh;
+          const spineBone = root.getObjectByName(sitBone);
+          if (spineBone) {
+            // const spine = skeleton.bones[spineBoneIndex];
+            // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
+            // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
 
-          sittable.update = timeDiff => {
-            timeDiff *= 1000;
-            
-            walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
-            idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
+            // const sitTarget = physicsManager.getSitTarget();
 
-            const deltaSeconds = timeDiff / 1000;
-            mixer.update(deltaSeconds);
-          };
+            sittable.update = timeDiff => {
+              timeDiff *= 1000;
+              
+              walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
+              idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
+
+              const deltaSeconds = timeDiff / 1000;
+              mixer.update(deltaSeconds);
+            };
+          } else {
+            console.warn('could not find sit bone in model: ' + sitBone + '; bones available: ' + JSON.stringify(skeleton.bones.map(b => b.name)));
+          }
         } else {
-          console.warn('could not find sit bone in model: ' + sitBone + '; bones available: ' + JSON.stringify(skeleton.bones.map(b => b.name)));
+          console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
         }
       } else {
-        console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
+        console.warn('no skinned mesh in model');
       }
-    } else {
-      console.warn('no skinned mesh in model');
     }
   }
   removeSittable(sittable) {
-    this.scene.remove(sittable.model);
-    this.sittables.splice(this.sittables.indexOf(sittable), 1);
+    sittable.model && this.scene.remove(sittable.model);
+    const index = this.sittables.indexOf(sittable);
+    if (index !== -1) {
+      this.sittables.splice(index, 1);
+    }
   }
   async addPet({id, contentId, component}) {
     const pet = {
       id,
       contentId,
       component,
-      // model: o,
+      model: null,
       update: () => {},
     };
     this.pets.push(pet);
@@ -201,71 +211,77 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
-    this.scene.add(o);
+    pet.model = o;
+    if (this.pets.includes(pet)) {
+      this.scene.add(o);
 
-    const mesh = o;
-    const animations = mesh.getAnimations();
+      const mesh = o;
+      const animations = mesh.getAnimations();
+        
+      // const component = mesh.components.find(c => c.type === 'pet');
+      const {walkAnimation = 'walk', flyAnimation = 'fly', idleAnimation = 'idle'} = component;
       
-    // const component = mesh.components.find(c => c.type === 'pet');
-    const {walkAnimation = 'walk', flyAnimation = 'fly', idleAnimation = 'idle'} = component;
-    
-    const walkAnimationClip = animations.find(a => a.name === walkAnimation);
-    const flyAnimationClip = animations.find(a => a.name === flyAnimation);
-    const idleAnimationClip = animations.find(a => a.name === idleAnimation);
-    const moveAnimationClip = walkAnimationClip || flyAnimationClip;
-    if (moveAnimationClip || idleAnimationClip) {
-      // hacks
-      {
-        mesh.position.y = 0;
-        localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        mesh.quaternion.setFromEuler(localEuler);
+      const walkAnimationClip = animations.find(a => a.name === walkAnimation);
+      const flyAnimationClip = animations.find(a => a.name === flyAnimation);
+      const idleAnimationClip = animations.find(a => a.name === idleAnimation);
+      const moveAnimationClip = walkAnimationClip || flyAnimationClip;
+      if (moveAnimationClip || idleAnimationClip) {
+        // hacks
+        {
+          mesh.position.y = 0;
+          localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          mesh.quaternion.setFromEuler(localEuler);
+        }
+        
+        const mixer = new THREE.AnimationMixer(mesh);
+        const moveAction = moveAnimationClip && mixer.clipAction(moveAnimationClip);
+        moveAction && moveAction.play();
+        const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
+        idleAction && idleAction.play();
+
+        const smoothVelocity = new THREE.Vector3();
+        pet.update = timeDiff => {
+          const speed = 0.003;
+          timeDiff *= 1000;
+
+          const head = this.rig.model.isVrm ? this.rig.modelBones.Head : this.rig.model;
+          const position = head.getWorldPosition(localVector);
+          position.y = 0;
+          const distance = mesh.position.distanceTo(position);
+          const minDistance = 1;
+          let moveDelta;
+          if (distance > minDistance) {
+            const direction = position.clone().sub(mesh.position).normalize();
+            const maxMoveDistance = distance - minDistance;
+            const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
+            moveDelta = direction.clone().multiplyScalar(moveDistance);
+            mesh.position.add(moveDelta);
+            mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+          } else {
+            moveDelta = new THREE.Vector3();
+          }
+          smoothVelocity.lerp(moveDelta, 0.3);
+          if (moveAnimationClip === walkAnimationClip) {
+            moveAction && (moveAction.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
+          }
+          idleAction && (idleAction.weight = moveAction ? (1 - moveAction.weight) : 1);
+
+          const deltaSeconds = timeDiff / 1000;
+          mixer.update(deltaSeconds);
+        };
+      } else {
+        console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
       }
-      
-      const mixer = new THREE.AnimationMixer(mesh);
-      const moveAction = moveAnimationClip && mixer.clipAction(moveAnimationClip);
-      moveAction && moveAction.play();
-      const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
-      idleAction && idleAction.play();
-
-      const smoothVelocity = new THREE.Vector3();
-      pet.update = timeDiff => {
-        const speed = 0.003;
-        timeDiff *= 1000;
-
-        const head = this.rig.model.isVrm ? this.rig.modelBones.Head : this.rig.model;
-        const position = head.getWorldPosition(localVector);
-        position.y = 0;
-        const distance = mesh.position.distanceTo(position);
-        const minDistance = 1;
-        let moveDelta;
-        if (distance > minDistance) {
-          const direction = position.clone().sub(mesh.position).normalize();
-          const maxMoveDistance = distance - minDistance;
-          const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
-          moveDelta = direction.clone().multiplyScalar(moveDistance);
-          mesh.position.add(moveDelta);
-          mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
-        } else {
-          moveDelta = new THREE.Vector3();
-        }
-        smoothVelocity.lerp(moveDelta, 0.3);
-        if (moveAnimationClip === walkAnimationClip) {
-          moveAction && (moveAction.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
-        }
-        idleAction && (idleAction.weight = moveAction ? (1 - moveAction.weight) : 1);
-
-        const deltaSeconds = timeDiff / 1000;
-        mixer.update(deltaSeconds);
-      };
-    } else {
-      console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
     }
   }
   removePet(pet) {
-    this.scene.remove(pet);
-    this.pets.splice(this.pets.indexOf(pet), 1);
+    pet.model && this.scene.remove(pet.model);
+    const index = this.pets.indexOf(pet);
+    if (index !== -1) {
+      this.pets.splice(index, 1);
+    }
   }
   getNextId() {
     return ++this.nextId;
