@@ -205,12 +205,15 @@ export class RigAux {
     const animations = mesh.getAnimations();
       
     // const component = mesh.components.find(c => c.type === 'pet');
-    const {walkAnimation = 'walk', flyAnimation = 'fly'} = component;
+    const {idleAnimation = 'idle', walkAnimation = 'walk', flyAnimation = 'fly'} = component;
     
+    const idleAnimationClip = animations.find(a => a.name === idleAnimation);
+
     const walkAnimationClip = animations.find(a => a.name === walkAnimation);
     const flyAnimationClip = animations.find(a => a.name === flyAnimation);
     const animation = walkAnimationClip || flyAnimationClip;
-    if (animation) {
+    const idleAnimation2 = idleAnimationClip;
+    if (animation || idleAnimation2) {
       // hacks
       {
         mesh.position.y = 0;
@@ -221,9 +224,12 @@ export class RigAux {
       }
       
       const mixer = new THREE.AnimationMixer(mesh);
+      const idleClip = idleAnimation2;
+      const idleAction = mixer.clipAction(idleClip);
       const clip = animation;
       const action = mixer.clipAction(clip);
       action.play();
+      idleAction.play();
 
       const smoothVelocity = new THREE.Vector3();
       pet.update = timeDiff => {
@@ -249,6 +255,11 @@ export class RigAux {
         smoothVelocity.lerp(moveDelta, 0.3);
         if (animation === walkAnimationClip) {
           action.weight = smoothVelocity.length() * 100;
+          console.log("action.weight 1", smoothVelocity.length() * 100);
+          if (idleAction) {
+            idleAction.weight = Math.abs(smoothVelocity.length * 100) * -1;
+            console.log("action.weight 2", Math.abs(smoothVelocity.length() * 100) * -1);
+          }
         }
 
         const deltaSeconds = timeDiff / 1000;
