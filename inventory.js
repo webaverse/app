@@ -31,7 +31,13 @@ const inventorySpecs = [
 ];
 
 const equips = {
-  
+  leftHand: null,
+  rightHand: null,
+  head: null,
+  body: null,
+  legs: null,
+  pet: null,
+  mount: null,
 };
 
 const inventorySpecToImg = inventorySpec => {
@@ -42,9 +48,22 @@ const inventorySpecToImg = inventorySpec => {
   return img;
 };
 {
+  let equipSpecIndex = 0;
   const equipSlotsEl = document.getElementById('equip-slots');
   for (const rowEl of equipSlotsEl.children) {
     for (const slotEl of rowEl.children) {
+      const key = slotEl.getAttribute('slot');
+      const index = equipSpecIndex++;
+      
+      const _clear = () => {
+        const localChildren = Array.from(slotEl.children);
+        for (const childEl of localChildren) {
+          if (childEl.classList.contains('item')) {
+            slotEl.removeChild(childEl);
+          }
+        }
+      };
+      
       slotEl.addEventListener('dragover', e => {
         e.preventDefault();
       });
@@ -53,12 +72,30 @@ const inventorySpecToImg = inventorySpec => {
         const j = JSON.parse(s);
         if (j._inventorySrc) {
           const inventorySpec = j.spec;
-          
-          slotEl.innerHTML = '';
+          equips[key] = inventorySpec;
+
+          _clear();
 
           const img = inventorySpecToImg(inventorySpec);
           slotEl.appendChild(img);
+        } else if (j._equipmentSrc) {
+          const inventorySpec = j.value;
+          equips[key] = inventorySpec;
+          
+          const img = inventorySpecToImg(inventorySpec);
+          slotEl.appendChild(img);
         }
+      });
+      slotEl.addEventListener('dragstart', e => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('application/json', JSON.stringify({
+          value: equips[key],
+          _equipmentSrc: true,
+        }));
+      });
+      slotEl.addEventListener('dragend', e => {
+        equips[key] = null;
+        _clear();
       });
     }
   }
