@@ -40,6 +40,13 @@ const equipSpecs = {
   pet: null,
   mount: null,
 };
+const equipObjects = (() => {
+  const result = {};
+  for (const k in equipSpecs) {
+    result[k] = null;
+  }
+  return result;
+})();
 
 const _loadEquipPreview = async key => {
   const inventorySpec = equipSpecs[key];
@@ -51,8 +58,13 @@ const _loadEquipPreview = async key => {
   });
   o.contentId = start_url;
   o.useAux && o.useAux(avatarMesh.rig.aux);
+  equipObjects[key] = o;
 };
 const _unloadEquipPreview = key => {
+  const o = equipObjects[key];
+  if (o) {
+    o.destroy();
+  }
 };
 
 const inventorySpecToImg = inventorySpec => {
