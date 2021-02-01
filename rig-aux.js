@@ -1,7 +1,6 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
-import {avatarScene} from './app-object.js';
 import {contentIdToFile} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -11,8 +10,9 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export class RigAux {
-  constructor(rig) {
+  constructor({rig, scene}) {
     this.rig = rig;
+    this.scene = scene;
 
     this.wearables = [];
     this.sittables = [];
@@ -91,7 +91,7 @@ export class RigAux {
       local: true,
     });
     wearable.model = o;
-    avatarScene.add(o);
+    this.scene.add(o);
     
   	// const component = o.components.find(c => c.type === 'wear');
   	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
@@ -103,7 +103,7 @@ export class RigAux {
     };
   }
   removeWearable(wearable) {
-    avatarScene.remove(wearable.model);
+    this.scene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
   async addSittable(id, contentId, component) {
@@ -121,7 +121,7 @@ export class RigAux {
       local: true,
     });
     sittable.model = o;
-    avatarScene.add(o);
+    this.scene.add(o);
 
     const root = o;
     
@@ -184,7 +184,7 @@ export class RigAux {
     }
   }
   removeSittable(sittable) {
-    avatarScene.remove(sittable.model);
+    this.scene.remove(sittable.model);
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
   async addPet(id, contentId, component) {
@@ -201,7 +201,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
-    avatarScene.add(o);
+    this.scene.add(o);
 
     const mesh = o;
     const animations = mesh.getAnimations();
@@ -264,7 +264,7 @@ export class RigAux {
     }
   }
   removePet(pet) {
-    avatarScene.remove(pet.model);
+    this.scene.remove(pet.model);
     this.pets.splice(this.pets.indexOf(pet), 1);
   }
   getNextId() {
