@@ -140,7 +140,7 @@ export class RigAux {
       const walkAnimationClip = animations.find(a => a.name === walkAnimation);
       const idleAnimationClip = animations.find(a => a.name === idleAnimation);
 
-      if (walkAnimationClip) {
+      if (walkAnimationClip || idleAnimationClip) {
         // hacks
         {
           root.position.y = 0;
@@ -152,7 +152,7 @@ export class RigAux {
         
         const mixer = new THREE.AnimationMixer(root);
         const walkAction = mixer.clipAction(walkAnimationClip);
-        walkAction.play();
+        walkAction && walkAction.play();
         const idleAction = mixer.clipAction(idleAnimationClip);
         idleAction && idleAction.play();
 
@@ -168,7 +168,7 @@ export class RigAux {
           sittable.update = timeDiff => {
             timeDiff *= 1000;
             
-            walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1);
+            walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
             idleAction && (idleAction.weight = 1 - walkAction.weight);
 
             const deltaSeconds = timeDiff / 1000;
