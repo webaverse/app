@@ -169,25 +169,26 @@ const inventoryAvatarRenderer = (() => {
 })();
 
 // XXX
+let avatarMesh = null;
 (async () => {
   const url = `https://webaverse.github.io/assets/male.vrm`;
   const name = 'male.vrm';
-  const mesh = await runtime.loadFile({
+  avatarMesh = await runtime.loadFile({
     url,
     name,
   });
   if (mesh) {
-    mesh.name = 'avatarMesh';
-    const localRig = new Avatar(mesh.raw, {
+    avatarMesh.name = 'avatarMesh';
+    const rig = new Avatar(avatarMesh.raw, {
       fingers: true,
       hair: true,
       visemes: true,
       debug: false,
     });
-    localRig.aux = new RigAux(localRig);
-    localRig.model.rig = localRig;
+    rig.aux = new RigAux(rig);
+    rig.model.rig = rig;
     
-    inventoryAvatarScene.add(localRig.model);
+    inventoryAvatarScene.add(rig.model);
   }
 })();
 
