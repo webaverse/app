@@ -193,6 +193,12 @@ const inventoryAvatarRenderer = (() => {
 })();
 addDefaultLights(inventoryAvatarScene);
 
+const planeMesh = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 0.1).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2)), new THREE.MeshBasicMaterial({
+  color: 0x333333,
+}));
+planeMesh.position.set(0, -0.2, -2.5);
+inventoryAvatarScene.add(planeMesh);
+
 // XXX
 let avatarMesh = null;
 (async () => {
