@@ -253,9 +253,9 @@ export class RigAux {
         }
         smoothVelocity.lerp(moveDelta, 0.3);
         if (moveAnimationClip === walkAnimationClip) {
-          moveAnimationClip && (moveAnimationClip.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
+          moveAction && (moveAction.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
         }
-        idleAnimationClip && (idleAnimationClip.weight = moveAnimationClip ? (1 - moveAnimationClip.weight) : 1);
+        idleAction && (idleAction.weight = moveAction ? (1 - moveAction.weight) : 1);
 
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
