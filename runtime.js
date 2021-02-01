@@ -96,37 +96,49 @@ const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
-  'swing': (o, component) => {
-    console.log('swing', o);
+  'swing': {
+    load(o, component, rigAux) {
+      console.log('swing', o, component, rigAux);
+    },
+    unload(o, component) {},
   },
-  'wear': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.wearables.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'wear': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.wearables.push({
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      });
+      rigAux.setPose(auxPose);
+    },
+    unload(o, component) {},
   },
-  'sit': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.sittables.length = 0;
-    auxPose.sittables.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'sit': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.sittables.length = 0;
+      auxPose.sittables.push({
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      });
+      rigAux.setPose(auxPose);
+    },
+    unload(o, component) {},
   },
-  'pet': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.pets.length = 0;
-    auxPose.pets.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component,
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'pet': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.pets.length = 0;
+      auxPose.pets.push({
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component,
+      });
+      rigAux.setPose(auxPose);
+    },
+    unload(o, component) {},
   },
 };
 
@@ -361,23 +373,30 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
   };
+  mesh.useAux = rigAux => {
+    let used = false;
+    for (const component of components) {
+      const componentHandler = componentHandlers[component.type];
+      if (componentHandler) {
+        componentHandler.load(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
-  };
-  mesh.use = () => {
-    let used = false;
+    
     for (const component of components) {
       const componentHandler = componentHandlers[component.type];
       if (componentHandler) {
-        componentHandler(mesh, component);
-        used = true;
+        componentHandler.unload(mesh, component);
       }
     }
-    return used;
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;

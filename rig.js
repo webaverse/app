@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
@@ -33,7 +33,10 @@ class RigManager {
       visemes: true,
       debug: true,
     });
-    this.localRig.aux = new RigAux(this.localRig);
+    this.localRig.aux = new RigAux({
+      rig: this.localRig,
+      scene: avatarScene,
+    });
     scene.add(this.localRig.model);
 
     this.localRig.avatarUrl = null;
@@ -278,7 +281,10 @@ class RigManager {
       visemes: true,
       debug: true
     });
-    peerRig.aux = new RigAux(peerRig);
+    peerRig.aux = new RigAux({
+      rig: peerRig,
+      scene: avatarScene,
+    });
     this.scene.add(peerRig.model);
 
     peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');

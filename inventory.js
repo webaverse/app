@@ -30,7 +30,7 @@ const inventorySpecs = [
   },
 ];
 
-const equips = {
+const equipSpecs = {
   leftHand: null,
   rightHand: null,
   head: null,
@@ -41,6 +41,16 @@ const equips = {
 };
 
 const _loadEquipPreview = async key => {
+  const inventorySpec = equipSpecs[key];
+  const {start_url} = inventorySpec;
+
+  const o = await runtime.loadFile({
+    url: start_url,
+    name: start_url,
+  });
+  o.position.set(-5, 0, -5);
+  o.contentId = start_url;
+  o.useAux && o.useAux(avatarMesh.rig.aux);
 };
 const _unloadEquipPreview = key => {
 };
@@ -74,33 +84,35 @@ const inventorySpecToImg = inventorySpec => {
       slotEl.addEventListener('drop', e => {
         const s = e.dataTransfer.getData('application/json');
         const j = JSON.parse(s);
-        if (j._inventorySrc) {
-          const inventorySpec = j.spec;
-          equips[key] = inventorySpec;
-          _loadEquipPreview(key);
+        if (avatarMesh) {
+          if (j._inventorySrc) {
+            const inventorySpec = j.spec;
+            equipSpecs[key] = inventorySpec;
+            _loadEquipPreview(key);
 
-          _clear();
+            _clear();
 
-          const img = inventorySpecToImg(inventorySpec);
-          slotEl.appendChild(img);
-        } else if (j._equipmentSrc) {
-          const inventorySpec = j.value;
-          equips[key] = inventorySpec;
-          _loadEquipPreview(key);
+            const img = inventorySpecToImg(inventorySpec);
+            slotEl.appendChild(img);
+          } else if (j._equipmentSrc) {
+            const inventorySpec = j.value;
+            equipSpecs[key] = inventorySpec;
+            _loadEquipPreview(key);
 
-          const img = inventorySpecToImg(inventorySpec);
-          slotEl.appendChild(img);
+            const img = inventorySpecToImg(inventorySpec);
+            slotEl.appendChild(img);
+          }
         }
       });
       slotEl.addEventListener('dragstart', e => {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('application/json', JSON.stringify({
-          value: equips[key],
+          value: equipSpecs[key],
           _equipmentSrc: true,
         }));
       });
       slotEl.addEventListener('dragend', e => {
-        equips[key] = null;
+        equipSpecs[key] = null;
         _unloadEquipPreview(key);
         _clear();
       });
@@ -185,7 +197,10 @@ let avatarMesh = null;
       visemes: true,
       debug: false,
     });
-    rig.aux = new RigAux(rig);
+    rig.aux = new RigAux({
+      rig,
+      scene: inventoryAvatarScene,
+    });
     rig.model.rig = rig;
     
     inventoryAvatarScene.add(rig.model);
