@@ -264,7 +264,7 @@ export class RigAux {
     }
   }
   removePet(pet) {
-    this.scene.remove(pet.model);
+    this.scene.remove(pet);
     this.pets.splice(this.pets.indexOf(pet), 1);
   }
   getNextId() {
