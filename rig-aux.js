@@ -136,10 +136,11 @@ export class RigAux {
       const animations = o.getAnimations();
       
       // const component = o.components.find(c => c.type === 'sit');
-      const {sitBone = 'Spine', walkAnimation = 'walk'} = component;
-      const animation = animations.find(a => a.name === walkAnimation);
+      const {sitBone = 'Spine', walkAnimation = 'walk', idleAnimation = 'idle'} = component;
+      const walkAnimationClip = animations.find(a => a.name === walkAnimation);
+      const idleAnimationClip = animations.find(a => a.name === idleAnimation);
 
-      if (animation) {
+      if (walkAnimationClip || idleAnimationClip) {
         // hacks
         {
           root.position.y = 0;
@@ -150,9 +151,10 @@ export class RigAux {
         }
         
         const mixer = new THREE.AnimationMixer(root);
-        const clip = animation;
-        const action = mixer.clipAction(clip);
-        action.play();
+        const walkAction = walkAnimationClip && mixer.clipAction(walkAnimationClip);
+        walkAction && walkAction.play();
+        const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
+        idleAction && idleAction.play();
 
         const {skeleton} = skinnedMesh;
         const spineBone = root.getObjectByName(sitBone);
@@ -166,7 +168,8 @@ export class RigAux {
           sittable.update = timeDiff => {
             timeDiff *= 1000;
             
-            action.weight = physicsManager.velocity.length() * 10;
+            walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
+            idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
 
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
@@ -205,12 +208,13 @@ export class RigAux {
     const animations = mesh.getAnimations();
       
     // const component = mesh.components.find(c => c.type === 'pet');
-    const {walkAnimation = 'walk', flyAnimation = 'fly'} = component;
+    const {walkAnimation = 'walk', flyAnimation = 'fly', idleAnimation = 'idle'} = component;
     
     const walkAnimationClip = animations.find(a => a.name === walkAnimation);
     const flyAnimationClip = animations.find(a => a.name === flyAnimation);
-    const animation = walkAnimationClip || flyAnimationClip;
-    if (animation) {
+    const idleAnimationClip = animations.find(a => a.name === idleAnimation);
+    const moveAnimationClip = walkAnimationClip || flyAnimationClip;
+    if (moveAnimationClip || idleAnimationClip) {
       // hacks
       {
         mesh.position.y = 0;
@@ -221,9 +225,10 @@ export class RigAux {
       }
       
       const mixer = new THREE.AnimationMixer(mesh);
-      const clip = animation;
-      const action = mixer.clipAction(clip);
-      action.play();
+      const moveAction = moveAnimationClip && mixer.clipAction(moveAnimationClip);
+      moveAction && moveAction.play();
+      const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
+      idleAction && idleAction.play();
 
       const smoothVelocity = new THREE.Vector3();
       pet.update = timeDiff => {
@@ -247,9 +252,10 @@ export class RigAux {
           moveDelta = new THREE.Vector3();
         }
         smoothVelocity.lerp(moveDelta, 0.3);
-        if (animation === walkAnimationClip) {
-          action.weight = smoothVelocity.length() * 100;
+        if (moveAnimationClip === walkAnimationClip) {
+          moveAnimationClip && (moveAnimationClip.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
         }
+        idleAnimationClip && (idleAnimationClip.weight = moveAnimationClip ? (1 - moveAnimationClip.weight) : 1);
 
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
