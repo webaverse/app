@@ -30,6 +30,10 @@ const inventorySpecs = [
   },
 ];
 
+const equips = {
+  
+};
+
 const inventorySpecToImg = inventorySpec => {
   const img = document.createElement('img');
   img.src = inventorySpec.preview_url;
@@ -49,6 +53,8 @@ const inventorySpecToImg = inventorySpec => {
         const j = JSON.parse(s);
         if (j._inventorySrc) {
           const inventorySpec = j.spec;
+          
+          slotEl.innerHTML = '';
 
           const img = inventorySpecToImg(inventorySpec);
           slotEl.appendChild(img);
