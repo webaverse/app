@@ -136,10 +136,11 @@ export class RigAux {
       const animations = o.getAnimations();
       
       // const component = o.components.find(c => c.type === 'sit');
-      const {sitBone = 'Spine', walkAnimation = 'walk'} = component;
-      const animation = animations.find(a => a.name === walkAnimation);
+      const {sitBone = 'Spine', walkAnimation = 'walk', idleAnimation = 'idle'} = component;
+      const walkAnimationClip = animations.find(a => a.name === walkAnimation);
+      const idleAnimationClip = animations.find(a => a.name === idleAnimation);
 
-      if (animation) {
+      if (walkAnimationClip) {
         // hacks
         {
           root.position.y = 0;
@@ -150,9 +151,10 @@ export class RigAux {
         }
         
         const mixer = new THREE.AnimationMixer(root);
-        const clip = animation;
-        const action = mixer.clipAction(clip);
-        action.play();
+        const walkAction = mixer.clipAction(walkAnimationClip);
+        walkAction.play();
+        const idleAction = mixer.clipAction(idleAnimationClip);
+        idleAction && idleAction.play();
 
         const {skeleton} = skinnedMesh;
         const spineBone = root.getObjectByName(sitBone);
@@ -166,7 +168,8 @@ export class RigAux {
           sittable.update = timeDiff => {
             timeDiff *= 1000;
             
-            action.weight = physicsManager.velocity.length() * 10;
+            walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1);
+            idleAction && (idleAction.weight = 1 - walkAction.weight);
 
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
