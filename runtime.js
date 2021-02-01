@@ -1364,6 +1364,7 @@ const typeHandlers = {
   'vox': _loadVox,
   'png': _loadImg,
   'gif': _loadImg,
+  'jpeg': _loadImg,
   'jpg': _loadImg,
   'js': _loadScript,
   'json': _loadManifestJson,
