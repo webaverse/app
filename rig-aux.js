@@ -151,9 +151,9 @@ export class RigAux {
         }
         
         const mixer = new THREE.AnimationMixer(root);
-        const walkAction = mixer.clipAction(walkAnimationClip);
+        const walkAction = walkAnimationClip && mixer.clipAction(walkAnimationClip);
         walkAction && walkAction.play();
-        const idleAction = mixer.clipAction(idleAnimationClip);
+        const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
         idleAction && idleAction.play();
 
         const {skeleton} = skinnedMesh;
@@ -225,9 +225,9 @@ export class RigAux {
       }
       
       const mixer = new THREE.AnimationMixer(mesh);
-      const moveAction = mixer.clipAction(moveAnimationClip);
+      const moveAction = moveAnimationClip && mixer.clipAction(moveAnimationClip);
       moveAction && moveAction.play();
-      const idleAction = mixer.clipAction(idleAnimationClip);
+      const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
       idleAction && idleAction.play();
 
       const smoothVelocity = new THREE.Vector3();
