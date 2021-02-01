@@ -48,7 +48,6 @@ const _loadEquipPreview = async key => {
     url: start_url,
     name: start_url,
   });
-  o.position.set(-5, 0, -5);
   o.contentId = start_url;
   o.useAux && o.useAux(avatarMesh.rig.aux);
 };
