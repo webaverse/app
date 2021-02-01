@@ -169,7 +169,7 @@ export class RigAux {
             timeDiff *= 1000;
             
             walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
-            idleAction && (idleAction.weight = 1 - walkAction.weight);
+            idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
 
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
@@ -255,7 +255,7 @@ export class RigAux {
         if (moveAnimationClip === walkAnimationClip) {
           moveAnimationClip && (moveAnimationClip.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
         }
-        idleAnimationClip && (idleAnimationClip.weight = 1 - moveAnimationClip.weight);
+        idleAnimationClip && (idleAnimationClip.weight = moveAnimationClip ? (1 - moveAnimationClip.weight) : 1);
 
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
