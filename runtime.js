@@ -99,46 +99,66 @@ const componentHandlers = {
   'swing': {
     load(o, component, rigAux) {
       console.log('swing', o, component, rigAux);
+      return () => {};
     },
-    unload(o, component) {},
   },
   'wear': {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
-      auxPose.wearables.push({
+      const wearable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
         component
-      });
+      };
+      auxPose.wearables.push(wearable);
       rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.wearables = auxPose.wearables.filter(w => w.id !== wearable.id);
+        rigAux.setPose(auxPose);
+      };
     },
-    unload(o, component) {},
   },
   'sit': {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.sittables.length = 0;
-      auxPose.sittables.push({
+      const sittable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
         component
-      });
+      };
+      auxPose.sittables.push(sittable);
       rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.sittables = auxPose.sittables.filter(w => w.id !== sittable.id);
+        rigAux.setPose(auxPose);
+      };
     },
-    unload(o, component) {},
+    unload(o, component) {
+      o.parent.remove(o);
+    },
   },
   'pet': {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.pets.length = 0;
-      auxPose.pets.push({
+      const pet = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
         component,
-      });
+      };
+      auxPose.pets.push(pet);
       rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        console.log('filter 1', auxPose.pets.slice());
+        auxPose.pets = auxPose.pets.filter(w => w.id !== pet.id);
+        console.log('filter 2', auxPose.pets.slice());
+        rigAux.setPose(auxPose);
+      };
     },
-    unload(o, component) {},
   },
 };
 
@@ -165,6 +185,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       URL.revokeObjectURL(srcUrl);
     }
   }
+  console.log('loaded', o);
   const {parser, animations} = o;
   o = o.scene;
   const animationMixers = [];
@@ -373,12 +394,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
   };
+  const componentUnloadFns = [];
   mesh.useAux = rigAux => {
     let used = false;
     for (const component of components) {
       const componentHandler = componentHandlers[component.type];
       if (componentHandler) {
-        componentHandler.load(mesh, component, rigAux);
+        const unloadFn = componentHandler.load(mesh, component, rigAux);
+        componentUnloadFns.push(unloadFn);
         used = true;
       }
     }
@@ -391,12 +414,10 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
     
-    for (const component of components) {
-      const componentHandler = componentHandlers[component.type];
-      if (componentHandler) {
-        componentHandler.unload(mesh, component);
-      }
+    for (const fn of componentUnloadFns) {
+      fn();
     }
+    componentUnloadFns.length = 0;
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
