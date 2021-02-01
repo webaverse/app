@@ -38,13 +38,16 @@ const inventorySpecs = [
       for (const slotEl of rowEl.children) {
         if (inventorySpecIndex < inventorySpecs.length) {
           const inventorySpec = inventorySpecs[inventorySpecIndex++];
+
+          {          
+            const img = document.createElement('img');
+            img.src = inventorySpec.preview_url;
+            img.classList.add('item');
+            img.setAttribute('draggable', '');
+            slotEl.appendChild(img);
+          }
+
           
-          const img = document.createElement('img');
-          img.src = inventorySpec.preview_url;
-          img.classList.add('item');
-          img.setAttribute('draggable', '');
-          
-          slotEl.appendChild(img);
         } else {
           break;
         }
