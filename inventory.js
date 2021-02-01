@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import runtime from './runtime.js';
+import {addDefaultLights} from './util.js';
 
 const inventorySpecs = [
   {
@@ -178,6 +179,7 @@ const inventoryAvatarRenderer = (() => {
 
   return renderer;
 })();
+addDefaultLights(inventoryAvatarScene);
 
 // XXX
 let avatarMesh = null;
