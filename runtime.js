@@ -185,7 +185,6 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       URL.revokeObjectURL(srcUrl);
     }
   }
-  console.log('loaded', o);
   const {parser, animations} = o;
   o = o.scene;
   const animationMixers = [];
