@@ -30,6 +30,33 @@ const inventorySpecs = [
   },
 ];
 
+const inventorySpecToImg = inventorySpec => {
+  const img = document.createElement('img');
+  img.src = inventorySpec.preview_url;
+  img.classList.add('item');
+  img.setAttribute('draggable', '');
+  return img;
+};
+{
+  const equipSlotsEl = document.getElementById('equip-slots');
+  for (const rowEl of equipSlotsEl.children) {
+    for (const slotEl of rowEl.children) {
+      slotEl.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+      slotEl.addEventListener('drop', e => {
+        const s = e.dataTransfer.getData('application/json');
+        const j = JSON.parse(s);
+        if (j._inventorySrc) {
+          const inventorySpec = j.spec;
+
+          const img = inventorySpecToImg(inventorySpec);
+          slotEl.appendChild(img);
+        }
+      });
+    }
+  }
+}
 {
   let inventorySpecIndex = 0;
   const inventorySlotsEl = document.getElementById('inventory-slots');
@@ -39,15 +66,16 @@ const inventorySpecs = [
         if (inventorySpecIndex < inventorySpecs.length) {
           const inventorySpec = inventorySpecs[inventorySpecIndex++];
 
-          {          
-            const img = document.createElement('img');
-            img.src = inventorySpec.preview_url;
-            img.classList.add('item');
-            img.setAttribute('draggable', '');
-            slotEl.appendChild(img);
-          }
+          const img = inventorySpecToImg(inventorySpec);
+          slotEl.appendChild(img);
 
-          
+          slotEl.addEventListener('dragstart', e => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('application/json', JSON.stringify({
+              _inventorySrc: true,
+              spec: inventorySpec,
+            }));
+          });
         } else {
           break;
         }
