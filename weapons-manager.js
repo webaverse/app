@@ -423,7 +423,7 @@ const _try = async () => {
   if (o) {
     _ungrab();
 
-    const used = o.use ? o.useAux(rigManager.localRig.aux) : false;
+    const used = o.useAux ? o.useAux(rigManager.localRig.aux) : false;
     if (!used) {
       const notification = notifications.addNotification(`\
         <i class="icon fa fa-user-ninja"></i>
