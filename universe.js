@@ -234,8 +234,8 @@ const enterWorld = async worldSpec => {
           physics_url,
           autoScale,
         });
-        if (autoRun && o.useAux) {
-          o.useAux();
+        if (autoRun && o.use) {
+          o.use();
         }
       });
       promises.push.apply(promises, ps);
