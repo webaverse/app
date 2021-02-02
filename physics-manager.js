@@ -287,7 +287,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         jumpState = true;
         jumpTime = 0;
       }
-    } else if (!jumpState) {
+    } else if (!jumpState && physicsManager.velocity.y < -4) {
       jumpState = true;
       jumpTime = 0;
     }
