@@ -8,7 +8,8 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {appManager, scene, scene3} from './app-object.js';
+import {camera, appManager, scene, scene3} from './app-object.js';
+import {baseUnit} from './constants.js';
 import {contentIdToFile} from './util.js';
 import {
   storageHost,
@@ -490,9 +491,11 @@ world.getWorldJson = async q => {
     spec.objects.splice(0, 0, {
       start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
-    for (const object of spec.objects) {
+    /* for (const object of spec.objects) {
       object.position = [0, 0, -2];
-    }
+    } */
+    camera.position.set(0, 0, baseUnit);
+    // camera.updateMatrixWorld();
   } else {
     spec = _getDefault();
   }
