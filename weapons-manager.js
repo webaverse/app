@@ -1524,6 +1524,10 @@ const bindInterface = () => {
       }
     }
   });
+  chatInputEl.addEventListener('blur', e => {
+    chatInputEl.classList.remove('open');
+    chatInputEl.value = '';
+  });
 };
 
 renderer.domElement.addEventListener('dragover', e => {
