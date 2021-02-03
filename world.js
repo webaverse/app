@@ -8,8 +8,6 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import Avatar from './avatars/avatars.js';
-import {RigAux} from './rig-aux.js';
 import {camera, appManager, scene, scene3} from './app-object.js';
 import {baseUnit} from './constants.js';
 import {contentIdToFile} from './util.js';
@@ -19,10 +17,6 @@ import {
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
-import {inventoryAvatarScene} from './inventory.js';
-
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
 
 // world
 export const world = new EventTarget();
