@@ -18,9 +18,6 @@ import {
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-
 // world
 export const world = new EventTarget();
 
