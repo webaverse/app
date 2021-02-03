@@ -103,6 +103,8 @@ export class RigAux {
           .decompose(o.position, o.quaternion, o.scale);
       };
     }
+
+    return wearable;
   }
   removeWearable(wearable) {
     wearable.model && this.scene.remove(wearable.model);
@@ -189,6 +191,8 @@ export class RigAux {
         console.warn('no skinned mesh in model');
       }
     }
+    
+    return sittable;
   }
   removeSittable(sittable) {
     sittable.model && this.scene.remove(sittable.model);
@@ -275,6 +279,8 @@ export class RigAux {
         console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
       }
     }
+    
+    return pet;
   }
   removePet(pet) {
     pet.model && this.scene.remove(pet.model);

@@ -10,7 +10,7 @@ import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
-import {camera, appManager, scene, scene3, inventoryAvatarScene} from './app-object.js';
+import {camera, appManager, scene, scene3} from './app-object.js';
 import {baseUnit} from './constants.js';
 import {contentIdToFile} from './util.js';
 import {

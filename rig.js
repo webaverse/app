@@ -582,12 +582,16 @@ class RigManager {
       this.localRig.update(timeDiff);
       this.localRig.aux.update(timeDiff);
 
-      const sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
       if (sitState) {
-        physicsManager.setSitController(this.localRig.aux.sittables[0].model);
         const {sitBone = 'Spine'} = this.localRig.aux.sittables[0].component;
         const spineBone = this.localRig.aux.sittables[0].model.getObjectByName(sitBone);
-        physicsManager.setSitTarget(spineBone);
+        if (spineBone) {
+          physicsManager.setSitController(this.localRig.aux.sittables[0].model);
+          physicsManager.setSitTarget(spineBone);
+        } else {
+          sitState = false;
+        }
       }
       rigManager.localRig.sitState = sitState;
       physicsManager.setSitState(sitState);
