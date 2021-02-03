@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import Avatar from './avatars/avatars.js';
+import {rigManager} from './rig.js';
 import {RigAux} from './rig-aux.js';
 import runtime from './runtime.js';
 import {addDefaultLights} from './util.js';
@@ -40,13 +41,14 @@ const equipSpecs = {
   pet: null,
   mount: null,
 };
-const equipObjects = (() => {
+const equipPreviewObjects = (() => {
   const result = {};
   for (const k in equipSpecs) {
     result[k] = null;
   }
   return result;
 })();
+const equipComponents = JSON.parse(JSON.stringify(equipPreviewObjects));
 
 const _loadEquipPreview = async key => {
   const inventorySpec = equipSpecs[key];
@@ -58,12 +60,75 @@ const _loadEquipPreview = async key => {
   });
   o.contentId = start_url;
   o.useAux && o.useAux(avatarMesh.rig.aux);
-  equipObjects[key] = o;
+  equipPreviewObjects[key] = o;
+
+  const components = o.getComponents ? o.getComponents() : [];
+  equipComponents[key] = [];
+  for (const component of components) {
+    const {type} = component;
+    switch (type) {
+      case 'wear': {
+        const auxComponent = await rigManager.localRig.aux.addWearable({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId: start_url,
+          component,
+        });
+        equipComponents[key].push({
+          type,
+          auxComponent,
+        });
+        break;
+      }
+      case 'pet': {
+        const auxComponent = await rigManager.localRig.aux.addPet({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId: start_url,
+          component,
+        });
+        equipComponents[key].push({
+          type,
+          auxComponent,
+        });
+        break;
+      }
+      case 'sit': {
+        const auxComponent = await rigManager.localRig.aux.addSittable({
+          id: rigManager.localRig.aux.getNextId(),
+          contentId: start_url,
+          component,
+        });
+        equipComponents[key].push({
+          type,
+          auxComponent,
+        });
+        break;
+      }
+    }
+  }
 };
 const _unloadEquipPreview = key => {
-  const o = equipObjects[key];
+  const o = equipPreviewObjects[key];
   if (o) {
     o.destroy();
+
+    const specs = equipComponents[key];
+    for (const spec of specs) {
+      const {type} = spec;
+      switch (type) {
+        case 'wear': {
+          rigManager.localRig.aux.removeWearable(spec.auxComponent);
+          break;
+        }
+        case 'pet': {
+          rigManager.localRig.aux.removePet(spec.auxComponent);
+          break;
+        }
+        case 'sit': {
+          rigManager.localRig.aux.removeSittable(spec.auxComponent);
+          break;
+        }
+      }
+    }
   }
 };
 
