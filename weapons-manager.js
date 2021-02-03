@@ -15,6 +15,7 @@ import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
@@ -34,6 +35,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
+const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
 
@@ -421,7 +423,7 @@ const _try = async () => {
   if (o) {
     _ungrab();
 
-    const used = o.use ? o.use() : false;
+    const used = o.useAux ? o.useAux(rigManager.localRig.aux) : false;
     if (!used) {
       const notification = notifications.addNotification(`\
         <i class="icon fa fa-user-ninja"></i>
@@ -819,9 +821,17 @@ const _updateWeapons = () => {
   _handleUseAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) && !appManager.grabbedObjects[0]);
-  
+
   popovers.update();
+
+  inventoryUpdate();
 };
+
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+  side: THREE.DoubleSide,
+}));
+inventoryAvatarScene.add(cubeMesh); */
 
 /* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {

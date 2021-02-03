@@ -96,37 +96,69 @@ const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
-  'swing': (o, component) => {
-    console.log('swing', o);
+  'swing': {
+    load(o, component, rigAux) {
+      console.log('swing', o, component, rigAux);
+      return () => {};
+    },
   },
-  'wear': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.wearables.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'wear': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      const wearable = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      };
+      auxPose.wearables.push(wearable);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.wearables = auxPose.wearables.filter(w => w.id !== wearable.id);
+        rigAux.setPose(auxPose);
+      };
+    },
   },
-  'sit': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.sittables.length = 0;
-    auxPose.sittables.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'sit': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.sittables.length = 0;
+      const sittable = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      };
+      auxPose.sittables.push(sittable);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.sittables = auxPose.sittables.filter(w => w.id !== sittable.id);
+        rigAux.setPose(auxPose);
+      };
+    },
+    unload(o, component) {
+      o.parent.remove(o);
+    },
   },
-  'pet': (o, component) => {
-    const auxPose = rigManager.localRig.aux.getPose();
-    auxPose.pets.length = 0;
-    auxPose.pets.push({
-      id: rigManager.localRig.aux.getNextId(),
-      contentId: o.contentId,
-      component,
-    });
-    rigManager.localRig.aux.setPose(auxPose);
+  'pet': {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.pets.length = 0;
+      const pet = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component,
+      };
+      auxPose.pets.push(pet);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        // console.log('filter 1', auxPose.pets.slice());
+        auxPose.pets = auxPose.pets.filter(w => w.id !== pet.id);
+        // console.log('filter 2', auxPose.pets.slice());
+        rigAux.setPose(auxPose);
+      };
+    },
   },
 };
 
@@ -361,28 +393,35 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
   };
+  const componentUnloadFns = [];
+  mesh.useAux = rigAux => {
+    let used = false;
+    for (const component of components) {
+      const componentHandler = componentHandlers[component.type];
+      if (componentHandler) {
+        const unloadFn = componentHandler.load(mesh, component, rigAux);
+        componentUnloadFns.push(unloadFn);
+        used = true;
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
-  };
-  mesh.use = () => {
-    let used = false;
-    for (const component of components) {
-      const componentHandler = componentHandlers[component.type];
-      if (componentHandler) {
-        componentHandler(mesh, component);
-        used = true;
-      }
+    
+    for (const fn of componentUnloadFns) {
+      fn();
     }
-    return used;
+    componentUnloadFns.length = 0;
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
-  // mesh.components = components;
+  mesh.getComponents = () => components;
   // mesh.used = false;
 
   const appId = ++appIds;

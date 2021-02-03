@@ -439,9 +439,7 @@ const shapeMaterial = (() => {
 
       '}'
     ].join('\n'),
-    
-    
-    
+
     /* uniforms: {
       uTex: {
         type: 't',

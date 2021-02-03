@@ -4,6 +4,7 @@ import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
+import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 
@@ -339,6 +340,10 @@ ioManager.bindInput = () => {
             ioManager.keys.backward = true;
           }
         }
+        break;
+      }
+      case 73: { // I
+        inventoryToggle();
         break;
       }
       /* case 82: { // R
