@@ -1557,9 +1557,6 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
-const inventoryMenuEl = document.getElementById('inventory-menu');
-const inventoryAvatarEl = document.getElementById('inventory-avatar');
-
 const weaponsManager = {
   // weapons,
   // cubeMesh,
