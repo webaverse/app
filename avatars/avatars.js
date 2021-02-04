@@ -9,7 +9,6 @@ import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
-import animationsJson from '../animations/animations.js';
 
 // import {FBXLoader} from '../FBXLoader.js';
 // import {downloadFile} from '../util.js';
