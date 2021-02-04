@@ -189,8 +189,8 @@ let hitAnimation;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
-  animations = CBOR.decode(arrayBuffer).animations;
-  animations = animations.map(a => THREE.AnimationClip.parse(a));
+  animations = CBOR.decode(arrayBuffer).animations
+    .map(a => THREE.AnimationClip.parse(a));
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
     for (let i = 1; i < animations.length; i++) {
