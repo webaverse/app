@@ -179,11 +179,9 @@ let jumpAnimation;
 let sittingAnimation;
 let floatAnimation;
 const loadPromise = (async () => {
-  console.log('animations 1');
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
   animations = CBOR.decode(arrayBuffer).animations;
-  console.log('animations 2', animations, animationsJson);
   animations = animations.map(a => THREE.AnimationClip.parse(a));
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
@@ -280,8 +278,6 @@ const loadPromise = (async () => {
   jumpAnimation = animations.find(a => a.isJump);
   sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
-  
-  console.log('animations 3');
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
