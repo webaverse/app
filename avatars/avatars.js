@@ -109,6 +109,13 @@ let animations;
     // `floating.fbx`,
     `treading water.fbx`,
     `sitting idle.fbx`,
+    `Pistol Aiming Idle.fbx`,
+    `Pistol Idle.fbx`,
+    `Rifle Aiming Idle.fbx`,
+    `Rifle Idle.fbx`,
+    `Standing Torch Idle 01.fbx`,
+    `sword and shield attack (4).fbx`,
+    `Throw.fbx`,
   ];
   for (const name of animationFileNames) {
     const u = './animations/' + name;
@@ -177,6 +184,8 @@ let runningBackwardAnimations;
 let jumpAnimation;
 let sittingAnimation;
 let floatAnimation;
+let rifleAnimation;
+let hitAnimation;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -257,6 +266,10 @@ const loadPromise = (async () => {
     animation.isSitting = /sitting/i.test(animation.name);
     // animation.isFalling  = /falling/i.test(animation.name);
     animation.isFloat  = /treading/i.test(animation.name);
+    animation.isPistol  = /pistol aiming/i.test(animation.name);
+    animation.isRifle  = /rifle aiming/i.test(animation.name);
+    // animation.isHit  = /sword/i.test(animation.name);
+    animation.isHit  = /melee/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -277,6 +290,8 @@ const loadPromise = (async () => {
   jumpAnimation = animations.find(a => a.isJump);
   sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
+  rifleAnimation = animations.find(a => a.isRifle);
+  hitAnimation = animations.find(a => a.isHit);
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
