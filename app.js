@@ -54,7 +54,6 @@ export default class App {
       Avatar.waitForLoad(),
     ])
       .then(() => {
-        console.log('loaded');
         runtime.injectDependencies(geometryManager, physicsManager, world);
       });
     this.contentLoaded = false;
