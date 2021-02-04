@@ -52,6 +52,14 @@ const animationsSelectMap = {
   // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
   'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
+  'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
+  'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
