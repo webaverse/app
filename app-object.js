@@ -55,8 +55,8 @@ scene.add(dolly);
 const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 scene.add(orthographicCamera);
 
-addDefaultLights(scene, true);
-addDefaultLights(avatarScene, false);
+// addDefaultLights(scene, true);
+// addDefaultLights(avatarScene, false);
 
 const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
