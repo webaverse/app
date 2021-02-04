@@ -194,13 +194,14 @@ physicsManager.animals = animals; */
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
+  let gliding;
   if (flyState) {
     physicsManager.velocity.multiplyScalar(0.9);
+    gliding = false;
   } else {
     localVector.copy(gravity)
       .multiplyScalar(timeDiff);
 
-    let gliding;
     if (glideState && physicsManager.velocity.y < 0) {
       const transforms = rigManager.getRigTransforms();
 
@@ -218,18 +219,18 @@ const _applyGravity = timeDiff => {
       gliding = false;
     }
     physicsManager.velocity.add(localVector);
-
-    if (!jumpState || gliding) {
-      physicsManager.velocity.x *= 0.7;
-      physicsManager.velocity.z *= 0.7;
-    }
-
-    const terminalVelocity = 50;
-    const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-    physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
-    physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
-    physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
   }
+  
+  if (!jumpState || gliding) {
+    physicsManager.velocity.x *= 0.7;
+    physicsManager.velocity.z *= 0.7;
+  }
+
+  const terminalVelocity = 50;
+  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+  physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
+  physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
+  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
 };
 const _getAvatarWorldObject = o => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
