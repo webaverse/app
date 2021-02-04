@@ -58,6 +58,7 @@ const animationsSelectMap = {
   'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
   'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
@@ -94,6 +95,7 @@ const animationsDistanceMap = {
   'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
   'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
@@ -130,6 +132,8 @@ let animations;
     `Rifle Aiming Idle.fbx`,
     `Rifle Idle.fbx`,
     `Standing Torch Idle 01.fbx`,
+    `standing melee attack downward.fbx`,
+    `sword and shield slash.fbx`,
     `sword and shield attack (4).fbx`,
     `Throw.fbx`,
   ];
@@ -284,8 +288,9 @@ const loadPromise = (async () => {
     animation.isFloat  = /treading/i.test(animation.name);
     animation.isPistol  = /pistol aiming/i.test(animation.name);
     animation.isRifle  = /rifle aiming/i.test(animation.name);
-    // animation.isHit  = /sword/i.test(animation.name);
-    animation.isHit  = /melee/i.test(animation.name);
+    animation.isHit  = /downward/i.test(animation.name);
+    // animation.isHit  = /slash/i.test(animation.name);
+    // animation.isHit  = /attack/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
