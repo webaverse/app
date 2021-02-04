@@ -14,6 +14,7 @@ import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import {bindInterface as inventoryBindInterface} from './inventory.js';
 import {parseCoord} from './util.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 
@@ -110,6 +111,7 @@ export default class App {
     blockchain.bindInterface();
     universe.bindInterface();
     weaponsManager.bindInterface();
+    inventoryBindInterface();
   }
   bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
