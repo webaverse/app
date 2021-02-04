@@ -1711,7 +1711,7 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
-          if (window.lol) {
+          if (window.lol) { // XXX
             const t2 = (now/1000) % hitAnimation.duration;
             const src2 = hitAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
