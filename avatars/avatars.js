@@ -154,10 +154,10 @@ let animations;
     reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
     animations.push(reverseAnimation);
   }
-  const animationsJsonObjects = animations.map(a => a.toJSON());
-  const animationsString = JSON.stringify(animationsJsonObjects);
+  const animationsJson = animations.map(a => a.toJSON());
+  const animationsString = JSON.stringify(animationsJson);
   const animationsCborBuffer = CBOR.encode({
-    animations: animationsJsonObjects,
+    animations: animationsJson,
   });
   console.log('decoding 1', animationsCborBuffer);
   console.log('decoding 2', CBOR.decode(animationsCborBuffer));
