@@ -20,7 +20,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
-// renderer.physicallyCorrectLights = true;
+renderer.physicallyCorrectLights = true;
 // renderer.shadowMap.enabled = true;
 // renderer.shadowMap.type = THREE.PCFShadowMap;
 if (!canvas) {
