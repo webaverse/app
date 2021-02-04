@@ -8,10 +8,11 @@ import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
+import CBOR from '../cbor.js';
 import animationsJson from '../animations/animations.js';
 
-/* import {FBXLoader} from '../FBXLoader.js';
-import {downloadFile} from '../util.js'; */
+// import {FBXLoader} from '../FBXLoader.js';
+// import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -81,7 +82,7 @@ const animationsDistanceMap = {
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
   'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
 };
-let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+let animations;
 
 /* // bake animations
 (async () => {
@@ -154,110 +155,136 @@ let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
     reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
     animations.push(reverseAnimation);
   }
-  const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
+  const animationsJsonObjects = animations.map(a => a.toJSON());
+  const animationsString = JSON.stringify(animationsJsonObjects);
+  const animationsCborBuffer = CBOR.encode({
+    animations: animationsJsonObjects,
+  });
+  console.log('decoding 1', animationsCborBuffer);
+  console.log('decoding 2', CBOR.decode(animationsCborBuffer));
   animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
   console.log('exporting', animations);
-  downloadFile(new Blob(['export default ' + animationsString], {
-    type: 'text/javascript',
-  }), 'animations.js');
+  downloadFile(new Blob([animationsCborBuffer], {
+    type: 'application/cbor',
+  }), 'animations.cbor');
 })().catch(err => {
   console.warn(err);
 }); */
 
-const _normalizeAnimationDurations = (animations, baseAnimation) => {
-  for (let i = 1; i < animations.length; i++) {
-    const animation = animations[i];
-    const oldDuration = animation.duration;
-    const newDuration = baseAnimation.duration;
-    for (const track of animation.tracks) {
-      const {times} = track;
-      for (let j = 0; j < times.length; j++) {
-        // times[i] *= newDuration/oldDuration;
+let walkingAnimations;
+let walkingBackwardAnimations;
+let runningAnimations;
+let runningBackwardAnimations;
+let jumpAnimation;
+let sittingAnimation;
+let floatAnimation;
+const loadPromise = (async () => {
+  console.log('animations 1');
+  const res = await fetch('../animations/animations.cbor');
+  const arrayBuffer = await res.arrayBuffer();
+  animations = CBOR.decode(arrayBuffer).animations;
+  console.log('animations 2', animations, animationsJson);
+  animations = animations.map(a => THREE.AnimationClip.parse(a));
+
+  const _normalizeAnimationDurations = (animations, baseAnimation) => {
+    for (let i = 1; i < animations.length; i++) {
+      const animation = animations[i];
+      const oldDuration = animation.duration;
+      const newDuration = baseAnimation.duration;
+      for (const track of animation.tracks) {
+        const {times} = track;
+        for (let j = 0; j < times.length; j++) {
+          // times[i] *= newDuration/oldDuration;
+        }
       }
+      animation.duration = newDuration;
     }
-    animation.duration = newDuration;
-  }
-};
-const walkingAnimations = [
-  `walking.fbx`,
-  `left strafe walking.fbx`,
-  `right strafe walking.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
-const walkingBackwardAnimations = [
-  `walking backwards.fbx`,
-  `left strafe walking reverse.fbx`,
-  `right strafe walking reverse.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
-const runningAnimations = [
-  `running.fbx`,
-  `left strafe.fbx`,
-  `right strafe.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
-const runningBackwardAnimations = [
-  `running backwards.fbx`,
-  `left strafe reverse.fbx`,
-  `right strafe reverse.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
-animations.forEach(animation => {
-  animation.direction = (() => {
-    switch (animation.name) {
-      case 'running.fbx':
-      case 'walking.fbx':
-        return 'forward';
-      case 'running backwards.fbx':
-      case 'walking backwards.fbx':
-        return 'backward';
-      case 'left strafe walking.fbx':
-      case 'left strafe.fbx':
-      case 'left strafe walking reverse.fbx':
-      case 'left strafe reverse.fbx':
-        return 'left';
-      case 'right strafe walking.fbx':
-      case 'right strafe.fbx':
-      case 'right strafe walking reverse.fbx':
-      case 'right strafe reverse.fbx':
-        return 'right';
-      case 'jump.fbx':
-      /* case 'falling.fbx':
-      case 'falling idle.fbx':
-      case 'falling landing.fbx': */
-        return 'jump';
-      // case 'floating.fbx':
-      case 'treading water.fbx':
-        return 'float';
-      default:
-        return null;
-    }
-  })();
-  animation.isIdle = /idle/i.test(animation.name);
-  animation.isJump = /jump/i.test(animation.name);
-  animation.isSitting = /sitting/i.test(animation.name);
-  // animation.isFalling  = /falling/i.test(animation.name);
-  animation.isFloat  = /treading/i.test(animation.name);
-  animation.isForward = /forward/i.test(animation.name);
-  animation.isBackward = /backward/i.test(animation.name);
-  animation.isLeft = /left/i.test(animation.name);
-  animation.isRight = /right/i.test(animation.name);
-  animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-  animation.isReverse = /reverse/i.test(animation.name);
-  animation.interpolants = {};
-  animation.tracks.forEach(track => {
-    const i = track.createInterpolant();
-    i.name = track.name;
-    animation.interpolants[track.name] = i;
-    return i;
+  };
+  const walkingAnimations = [
+    `walking.fbx`,
+    `left strafe walking.fbx`,
+    `right strafe walking.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+  const walkingBackwardAnimations = [
+    `walking backwards.fbx`,
+    `left strafe walking reverse.fbx`,
+    `right strafe walking reverse.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+  const runningAnimations = [
+    `running.fbx`,
+    `left strafe.fbx`,
+    `right strafe.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+  const runningBackwardAnimations = [
+    `running backwards.fbx`,
+    `left strafe reverse.fbx`,
+    `right strafe reverse.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+  animations.forEach(animation => {
+    animation.direction = (() => {
+      switch (animation.name) {
+        case 'running.fbx':
+        case 'walking.fbx':
+          return 'forward';
+        case 'running backwards.fbx':
+        case 'walking backwards.fbx':
+          return 'backward';
+        case 'left strafe walking.fbx':
+        case 'left strafe.fbx':
+        case 'left strafe walking reverse.fbx':
+        case 'left strafe reverse.fbx':
+          return 'left';
+        case 'right strafe walking.fbx':
+        case 'right strafe.fbx':
+        case 'right strafe walking reverse.fbx':
+        case 'right strafe reverse.fbx':
+          return 'right';
+        case 'jump.fbx':
+        /* case 'falling.fbx':
+        case 'falling idle.fbx':
+        case 'falling landing.fbx': */
+          return 'jump';
+        // case 'floating.fbx':
+        case 'treading water.fbx':
+          return 'float';
+        default:
+          return null;
+      }
+    })();
+    animation.isIdle = /idle/i.test(animation.name);
+    animation.isJump = /jump/i.test(animation.name);
+    animation.isSitting = /sitting/i.test(animation.name);
+    // animation.isFalling  = /falling/i.test(animation.name);
+    animation.isFloat  = /treading/i.test(animation.name);
+    animation.isForward = /forward/i.test(animation.name);
+    animation.isBackward = /backward/i.test(animation.name);
+    animation.isLeft = /left/i.test(animation.name);
+    animation.isRight = /right/i.test(animation.name);
+    animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+    animation.isReverse = /reverse/i.test(animation.name);
+    animation.interpolants = {};
+    animation.tracks.forEach(track => {
+      const i = track.createInterpolant();
+      i.name = track.name;
+      animation.interpolants[track.name] = i;
+      return i;
+    });
+    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+    } */
   });
-  /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-  } */
+  jumpAnimation = animations.find(a => a.isJump);
+  sittingAnimation = animations.find(a => a.isSitting);
+  floatAnimation = animations.find(a => a.isFloat);
+  
+  console.log('animations 3');
+})().catch(err => {
+  console.log('load avatar animations error', err);
 });
-const jumpAnimation = animations.find(a => a.isJump);
-const sittingAnimation = animations.find(a => a.isSitting);
-const floatAnimation = animations.find(a => a.isFloat);
 
 const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
@@ -1900,4 +1927,5 @@ class Avatar {
     this.setMicrophoneMediaStream(null);
   }
 }
+Avatar.waitForLoad = () => loadPromise;
 export default Avatar;

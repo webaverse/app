@@ -551,7 +551,10 @@
       },
     });
     
-    app.startLoop();
+    app.waitForLoad()
+      .then(() => {
+        app.startLoop();
+      });
   </script>
 </body>
 

@@ -5,6 +5,7 @@ import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
+import Avatar from './avatars/avatars.js';
 import geometryManager from './geometry-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -48,8 +49,12 @@ let xrscene = null;
 
 export default class App {
   constructor() {
-    this.loadPromise = geometryManager.waitForLoad()
+    this.loadPromise = Promise.all([
+      geometryManager.waitForLoad(),
+      Avatar.waitForLoad(),
+    ])
       .then(() => {
+        console.log('loaded');
         runtime.injectDependencies(geometryManager, physicsManager, world);
       });
     this.contentLoaded = false;
