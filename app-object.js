@@ -21,6 +21,8 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
+renderer.gammaOutput = true;
+renderer.gammaFactor = 2.2;
 // renderer.shadowMap.enabled = true;
 // renderer.shadowMap.type = THREE.PCFShadowMap;
 if (!canvas) {
