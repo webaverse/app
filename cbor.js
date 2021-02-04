@@ -21,7 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
+const exports = {};
+const module = {exports};
 (function(global, undefined) { "use strict";
 var POW_2_24 = 5.960464477539063e-8,
     POW_2_32 = 4294967296,
@@ -403,4 +404,5 @@ else if (typeof module !== "undefined" && module.exports)
 else if (!global.CBOR)
   global.CBOR = obj;
 
-})(this);
+})(module.exports);
+export default module.exports;
