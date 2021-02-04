@@ -1711,25 +1711,33 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
-          if (this.jumpState) {
-            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
-            const src2 = jumpAnimation.interpolants[k];
+          if (window.lol) {
+            const t2 = (now/1000) % hitAnimation.duration;
+            const src2 = hitAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.sitState) {
-            const src2 = sittingAnimation.interpolants[k];
-            const v2 = src2.evaluate(1);
+          } else {
+            if (this.jumpState) {
+              const t2 = this.jumpTime/1000 * 0.6 + 0.7;
+              const src2 = jumpAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
-          }
-          if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
-            const t2 = this.flyTime/1000;
-            const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-            const src2 = floatAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2 % floatAnimation.duration);
+              dst.fromArray(v2);
+            } else if (this.sitState) {
+              const src2 = sittingAnimation.interpolants[k];
+              const v2 = src2.evaluate(1);
 
-            dst.slerp(localQuaternion.fromArray(v2), f);
+              dst.fromArray(v2);
+            }
+            if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
+              const t2 = this.flyTime/1000;
+              const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+              const src2 = floatAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+              dst.slerp(localQuaternion.fromArray(v2), f);
+            }
           }
         }
       }
