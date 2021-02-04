@@ -135,99 +135,6 @@ const _unloadEquipPreview = key => {
   }
 };
 
-const inventorySpecToImg = inventorySpec => {
-  const img = document.createElement('img');
-  img.src = inventorySpec.preview_url;
-  img.classList.add('item');
-  return img;
-};
-{
-  let equipSpecIndex = 0;
-  const equipSlotsEl = document.getElementById('equip-slots');
-  for (const rowEl of equipSlotsEl.children) {
-    for (const slotEl of rowEl.children) {
-      const key = slotEl.getAttribute('slot');
-      const index = equipSpecIndex++;
-      
-      const _clear = () => {
-        const localChildren = Array.from(slotEl.children);
-        for (const childEl of localChildren) {
-          if (childEl.classList.contains('item')) {
-            slotEl.removeChild(childEl);
-          }
-        }
-      };
-      
-      slotEl.addEventListener('dragover', e => {
-        e.preventDefault();
-      });
-      slotEl.addEventListener('drop', e => {
-        const s = e.dataTransfer.getData('application/json');
-        const j = JSON.parse(s);
-        if (avatarMesh) {
-          if (j._inventorySrc) {
-            const inventorySpec = j.spec;
-            equipSpecs[key] = inventorySpec;
-            _loadEquipPreview(key);
-
-            _clear();
-
-            const img = inventorySpecToImg(inventorySpec);
-            slotEl.appendChild(img);
-          } else if (j._equipmentSrc) {
-            const inventorySpec = j.value;
-            equipSpecs[key] = inventorySpec;
-            _loadEquipPreview(key);
-
-            const img = inventorySpecToImg(inventorySpec);
-            slotEl.appendChild(img);
-          }
-        }
-      });
-      slotEl.addEventListener('dragstart', e => {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('application/json', JSON.stringify({
-          value: equipSpecs[key],
-          _equipmentSrc: true,
-        }));
-      });
-      slotEl.addEventListener('dragend', e => {
-        equipSpecs[key] = null;
-        _unloadEquipPreview(key);
-        _clear();
-      });
-    }
-  }
-}
-{
-  let inventorySpecIndex = 0;
-  const inventorySlotsEl = document.getElementById('inventory-slots');
-  for (const rowEl of inventorySlotsEl.children) {
-    if (inventorySpecIndex < inventorySpecs.length) {
-      for (const slotEl of rowEl.children) {
-        if (inventorySpecIndex < inventorySpecs.length) {
-          const inventorySpec = inventorySpecs[inventorySpecIndex++];
-
-          const img = inventorySpecToImg(inventorySpec);
-          slotEl.appendChild(img);
-
-          slotEl.addEventListener('dragstart', e => {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('application/json', JSON.stringify({
-              _inventorySrc: true,
-              spec: inventorySpec,
-            }));
-          });
-        } else {
-          break;
-        }
-      }
-    } else {
-      break;
-    }
-  }
-}
-
 const inventoryAvatarScene = new THREE.Scene();
 const inventoryAvatarCamera = new THREE.PerspectiveCamera();
 const inventoryAvatarRenderer = (() => {
@@ -305,8 +212,105 @@ const _ensureAvatarMesh = () => {
 
 const inventoryMenuEl = document.getElementById('inventory-menu');
 const inventoryAvatarEl = document.getElementById('inventory-avatar');
+const equipSlotsEl = document.getElementById('equip-slots');
+const inventorySlotsEl = document.getElementById('inventory-slots');
 
-const _isOpen = () => inventoryMenuEl.classList.contains('open');
+const bindInterface = () => {
+  if (equipSlotsEl && inventorySlotsEl) {
+    const inventorySpecToImg = inventorySpec => {
+      const img = document.createElement('img');
+      img.src = inventorySpec.preview_url;
+      img.classList.add('item');
+      return img;
+    };
+    {
+      let equipSpecIndex = 0;
+      for (const rowEl of equipSlotsEl.children) {
+        for (const slotEl of rowEl.children) {
+          const key = slotEl.getAttribute('slot');
+          const index = equipSpecIndex++;
+          
+          const _clear = () => {
+            const localChildren = Array.from(slotEl.children);
+            for (const childEl of localChildren) {
+              if (childEl.classList.contains('item')) {
+                slotEl.removeChild(childEl);
+              }
+            }
+          };
+          
+          slotEl.addEventListener('dragover', e => {
+            e.preventDefault();
+          });
+          slotEl.addEventListener('drop', e => {
+            const s = e.dataTransfer.getData('application/json');
+            const j = JSON.parse(s);
+            if (avatarMesh) {
+              if (j._inventorySrc) {
+                const inventorySpec = j.spec;
+                equipSpecs[key] = inventorySpec;
+                _loadEquipPreview(key);
+
+                _clear();
+
+                const img = inventorySpecToImg(inventorySpec);
+                slotEl.appendChild(img);
+              } else if (j._equipmentSrc) {
+                const inventorySpec = j.value;
+                equipSpecs[key] = inventorySpec;
+                _loadEquipPreview(key);
+
+                const img = inventorySpecToImg(inventorySpec);
+                slotEl.appendChild(img);
+              }
+            }
+          });
+          slotEl.addEventListener('dragstart', e => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('application/json', JSON.stringify({
+              value: equipSpecs[key],
+              _equipmentSrc: true,
+            }));
+          });
+          slotEl.addEventListener('dragend', e => {
+            equipSpecs[key] = null;
+            _unloadEquipPreview(key);
+            _clear();
+          });
+        }
+      }
+    }
+    {
+      let inventorySpecIndex = 0;
+      for (const rowEl of inventorySlotsEl.children) {
+        if (inventorySpecIndex < inventorySpecs.length) {
+          for (const slotEl of rowEl.children) {
+            if (inventorySpecIndex < inventorySpecs.length) {
+              const inventorySpec = inventorySpecs[inventorySpecIndex++];
+
+              const img = inventorySpecToImg(inventorySpec);
+              slotEl.appendChild(img);
+
+              slotEl.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  _inventorySrc: true,
+                  spec: inventorySpec,
+                }));
+              });
+            } else {
+              break;
+            }
+          }
+        } else {
+          break;
+        }
+      }
+    }
+  }
+};
+
+const _isOpen = () => !!inventoryMenuEl && inventoryMenuEl.classList.contains('open');
 const toggle = () => {
   inventoryMenuEl.classList.toggle('open');
   document.exitPointerLock();
@@ -396,6 +400,7 @@ export {
   inventoryAvatarScene,
   inventoryAvatarCamera,
   inventoryAvatarRenderer,
+  bindInterface,
   toggle,
   update,
 };
