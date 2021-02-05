@@ -218,7 +218,7 @@ const _selectLoadout = index => {
   (async () => {
     if (selectedLoadoutObject) {
       if (appManager.equippedObjects[0] === selectedLoadoutObject) {
-        _ungrab();
+        _unequip();
       }
       
       world.removeObject(selectedLoadoutObject.instanceId);
@@ -631,8 +631,7 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const equippedObject = appManager.equippedObjects[i];
       if (equippedObject) {
-        const transform = transforms[i];
-        const {position, quaternion} = transform;
+        const {position, quaternion} = transforms[i];
         equippedObject.position.copy(position);
         equippedObject.quaternion.copy(quaternion);
       }
