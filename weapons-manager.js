@@ -393,31 +393,6 @@ const _click = () => {
   }
 };
 
-/* const _equip = async () => {
-  if (highlightedObject) {
-    const {contentId} = highlightedObject;
-    
-    const notification = notifications.addNotification(`\
-      <i class="icon fa fa-user-ninja"></i>
-      <div class=wrap>
-        <div class=label>Getting changed</div>
-        <div class=text>
-          The system is updating your avatar...
-        </div>
-        <div class=close-button>✕</div>
-      </div>
-    `, {
-      timeout: Infinity,
-    });
-    try {
-      await loginManager.setAvatar(contentId);
-    } catch(err) {
-      console.warn(err);
-    } finally {
-      notifications.removeNotification(notification);
-    }
-  }
-}; */
 const _try = async () => {
   const o = appManager.grabbedObjects[0];
   if (o) {
@@ -1658,12 +1633,6 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
-  /* canEquip() {
-    return highlightMesh.visible;
-  },
-  menuEquip() {
-    _equip();
-  }, */
   canTry() {
     return !!appManager.grabbedObjects[0];
   },
