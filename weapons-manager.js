@@ -217,7 +217,7 @@ const _selectLoadout = index => {
 
   (async () => {
     if (selectedLoadoutObject) {
-      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+      if (appManager.equippedObjects[0] === selectedLoadoutObject) {
         _ungrab();
       }
       
@@ -234,21 +234,15 @@ const _selectLoadout = index => {
         id = contentId;
       }
       selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      selectedLoadoutObject.position.copy(position);
-      selectedLoadoutObject.quaternion.copy(quaternion);
 
       if (selectedLoadoutObject.getPhysicsIds) {
         const physicsIds = selectedLoadoutObject.getPhysicsIds();
         for (const physicsId of physicsIds) {
-          physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+          physicsManager.disableGeometry(physicsId);
         }
       }
 
-      _grab(selectedLoadoutObject);
-
-      weaponsManager.setMenu(0);
+      _equip(selectedLoadoutObject);
     }
   })().catch(console.warn);
 };
@@ -474,6 +468,13 @@ const _ungrab = () => {
   _updateMenu();
 };
 
+const _equip = object => {
+  appManager.equippedObjects[0] = object;
+};
+const _unequip = () => {
+  appManager.equippedObjects[0] = null;
+};
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
@@ -495,19 +496,21 @@ const _updateWeapons = () => {
       if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
         const objects = world.getObjects();
         for (const candidate of objects) {
-          const {position, quaternion} = transforms[0];
-          localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-            .premultiply(
-              localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-                .invert()
-            )
-            .decompose(localVector, localQuaternion, localVector2);
-          if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
-            highlightMesh.position.copy(candidate.position);
-            highlightMesh.quaternion.copy(candidate.quaternion);
-            highlightMesh.visible = true;
-            highlightedObject = candidate;
-            break;
+          if (!appManager.equippedObjects.includes(candidate)) {
+            const {position, quaternion} = transforms[0];
+            localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+              .premultiply(
+                localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+                  .invert()
+              )
+              .decompose(localVector, localQuaternion, localVector2);
+            if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
+              highlightMesh.position.copy(candidate.position);
+              highlightMesh.quaternion.copy(candidate.quaternion);
+              highlightMesh.visible = true;
+              highlightedObject = candidate;
+              break;
+            }
           }
         }
       } else if (weaponsManager.getMenu() === 4) {
@@ -623,6 +626,19 @@ const _updateWeapons = () => {
     }
   };
   _updateGrab();
+  
+  const _updateEquip = () => {
+    for (let i = 0; i < 2; i++) {
+      const equippedObject = appManager.equippedObjects[i];
+      if (equippedObject) {
+        const transform = transforms[i];
+        const {position, quaternion} = transform;
+        equippedObject.position.copy(position);
+        equippedObject.quaternion.copy(quaternion);
+      }
+    }
+  };
+  _updateEquip();
 
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
