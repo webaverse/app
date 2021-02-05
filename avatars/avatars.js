@@ -61,6 +61,8 @@ const animationsSelectMap = {
   'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
+  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
@@ -99,6 +101,8 @@ const animationsDistanceMap = {
   'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
+  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 let animations;
@@ -138,6 +142,8 @@ let animations;
     `sword and shield slash.fbx`,
     `sword and shield attack (4).fbx`,
     `One Hand Sword Combo.fbx`,
+    `magic standing idle.fbx`,
+    `Skateboarding.fbx`,
     `Throw.fbx`,
   ];
   for (const name of animationFileNames) {
@@ -295,6 +301,7 @@ const loadPromise = (async () => {
     // animation.isHit  = /slash/i.test(animation.name);
     // animation.isHit  = /attack/i.test(animation.name);
     animation.isHit = /combo/i.test(animation.name);
+    // animation.isMagic = /magic/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
