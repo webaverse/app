@@ -76,6 +76,7 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
     this.grabbedObjects = [null, null];
+    this.equippedObjects = [null, null];
     // this.grabbedObjectOffsets = [0, 0];
     this.grabbedObjectMatrices = [
       new THREE.Matrix4(),
