@@ -1643,6 +1643,12 @@ class Avatar {
 
     this.shoulderTransforms.hips.updateMatrixWorld();
   }
+  setHandEnabled(i, enabled) {
+    this.shoulderTransforms.handsEnabled[i] = enabled;
+  }
+  getHandEnabled(i) {
+    return this.shoulderTransforms.handsEnabled[i];
+  }
   setTopEnabled(enabled) {
     this.shoulderTransforms.enabled = enabled;
   }
