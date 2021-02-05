@@ -10,8 +10,8 @@ import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 
-import {FBXLoader} from '../FBXLoader.js';
-import {downloadFile} from '../util.js';
+// import {FBXLoader} from '../FBXLoader.js';
+// import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
