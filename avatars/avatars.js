@@ -10,9 +10,6 @@ import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 
-// import {FBXLoader} from '../FBXLoader.js';
-// import {downloadFile} from '../util.js';
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -110,6 +107,8 @@ const animationsDistanceMap = {
 let animations;
 
 /* // bake animations
+import {FBXLoader} from '../FBXLoader.js';
+import {downloadFile} from '../util.js';
 (async () => {
   animations = [];
   const fbxLoader = new FBXLoader();
