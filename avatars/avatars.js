@@ -55,7 +55,7 @@ const animationsSelectMap = {
   'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
   'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
@@ -96,7 +96,7 @@ const animationsDistanceMap = {
   'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
   'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
   'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
   'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
@@ -140,7 +140,7 @@ import {downloadFile} from '../util.js';
     `Rifle Idle.fbx`,
     `Standing Torch Idle 01.fbx`,
     `standing melee attack downward.fbx`,
-    `sword and shield idle.fbx`,
+    `sword and shield idle (4).fbx`,
     `sword and shield slash.fbx`,
     `sword and shield attack (4).fbx`,
     `One Hand Sword Combo.fbx`,
@@ -302,7 +302,8 @@ const loadPromise = (async () => {
     // animation.isHit  = /downward/i.test(animation.name);
     // animation.isHit  = /slash/i.test(animation.name);
     // animation.isHit  = /attack/i.test(animation.name);
-    animation.isHit = /combo/i.test(animation.name);
+    // animation.isHit  = /combo/i.test(animation.name);
+    animation.isHit = /sword and shield idle/i.test(animation.name);
     // animation.isMagic = /magic/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
