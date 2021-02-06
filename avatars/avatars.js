@@ -202,8 +202,8 @@ const loadPromise = (async () => {
     // animation.isHit  = /downward/i.test(animation.name);
     // animation.isHit  = /slash/i.test(animation.name);
     // animation.isHit  = /attack/i.test(animation.name);
-    // animation.isHit  = /combo/i.test(animation.name);
-    animation.isHit = /sword and shield idle/i.test(animation.name);
+    animation.isHit  = /combo/i.test(animation.name);
+    // animation.isHit = /sword and shield idle/i.test(animation.name);
     // animation.isMagic = /magic/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
