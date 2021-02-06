@@ -580,8 +580,9 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
+    const swingTime = physicsManager.getSwingTime();
     for (let i = 0; i < 2; i++) {
-      this.localRig.setHandEnabled(i, !!appManager.equippedObjects[i]);
+      this.localRig.setHandEnabled(i, swingTime === -1 && !!appManager.equippedObjects[i]);
     }
     this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
@@ -591,7 +592,7 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.swingTime = physicsManager.getSwingTime();
+    this.localRig.swingTime = swingTime;
     {
       this.localRig.update(timeDiff);
       this.localRig.aux.update(timeDiff);
