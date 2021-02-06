@@ -98,8 +98,10 @@ const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 const componentHandlers = {
   'swing': {
     load(o, component, rigAux) {
-      console.log('swing', o, component, rigAux);
-      return () => {};
+      physicsManager.startSwing();
+      return () => {
+        physicsManager.stopSwing();
+      };
     },
   },
   'wear': {
