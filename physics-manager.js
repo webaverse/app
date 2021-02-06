@@ -99,6 +99,18 @@ const setSitController = newSitController => {
 };
 physicsManager.setSitController = setSitController;
 
+let swingTime = -1;
+const getSwingTime = () => swingTime;
+physicsManager.getSwingTime = getSwingTime;
+const startSwing = () => {
+  swingTime = 0;
+};
+physicsManager.startSwing = startSwing;
+const stopSwing = () => {
+  swingTime = -1;
+};
+physicsManager.stopSwing = stopSwing;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion) => ({
@@ -256,9 +268,11 @@ const _getAvatarCameraOffset = () => {
 };
 physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+  // apply offset
   camera.position.add(physicsManager.offset);
   physicsManager.offset.setScalar(0);
-  
+
+  // capsule physics
   if (!sitState) {
     applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
@@ -317,8 +331,13 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
-  rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
+  // swing animation
+  if (swingTime !== -1) {
+    swingTime += timeDiff;
+  }
 
+  // apply
+  rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
   if (rigManager.localRig) {
     if (jumpState) {
       rigManager.localRig.setFloorHeight(-0xFFFFFF);
@@ -327,6 +346,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     }
   }
 
+  // collide items
   _collideItems(localMatrix);
 };
 const _collideCapsule = (() => {
