@@ -82,6 +82,7 @@ class AppManager {
       new THREE.Matrix4(),
       new THREE.Matrix4(),
     ];
+    this.swingAnimation = null;
   }
   createApp(appId) {
     const app = new App(appId);

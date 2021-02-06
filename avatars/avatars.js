@@ -1599,6 +1599,7 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swingTime = NaN;
     this.sitState = false;
     this.sitTarget = new THREE.Object3D();
 	}
@@ -1765,6 +1766,13 @@ class Avatar {
             const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
             dst.slerp(localQuaternion.fromArray(v2), f);
+          }
+          if (this.swingTime >= 0 && isTop) {
+            const t2 = (now/1000) % hitAnimation.duration;
+            const src2 = hitAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
           }
         }
       }
