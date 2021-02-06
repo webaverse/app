@@ -358,6 +358,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     } = this.localRig;
 
     return [
@@ -374,6 +375,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ];
   }
 
@@ -452,6 +454,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -482,6 +485,7 @@ class RigManager {
       peerRig.jumpTime = jumpTime;
       peerRig.flyState = flyState;
       peerRig.flyTime = flyTime;
+      peerRig.swingTime = swingTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -587,6 +591,7 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
+    this.localRig.swingTime = physicsManager.getSwingTime();
     {
       this.localRig.update(timeDiff);
       this.localRig.aux.update(timeDiff);
