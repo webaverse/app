@@ -38,6 +38,12 @@ const localBox = new THREE.Box3();
 const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
+const equipArmQuaternions = [
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
+];
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -634,9 +640,11 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const equippedObject = appManager.equippedObjects[i];
       if (equippedObject) {
-        const {position, quaternion} = transforms[i];
-        equippedObject.position.copy(position);
-        equippedObject.quaternion.copy(quaternion);
+        rigManager.localRig.modelBones.Right_wrist.getWorldPosition(localVector);
+        rigManager.localRig.modelBones.Right_wrist.getWorldQuaternion(localQuaternion)
+          .multiply(equipArmQuaternions[i]);
+        equippedObject.position.copy(localVector);
+        equippedObject.quaternion.copy(localQuaternion);
       }
     }
   };
