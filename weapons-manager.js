@@ -374,6 +374,9 @@ const _delete = () => {
 const _click = () => {
   if (weaponsManager.canBuild()) {
     editedObject.place();
+  } else if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.triggerAux && o.triggerAux();
   } else if (appManager.grabbedObjects[0]) {
     _deselectLoadout();
     _ungrab();
