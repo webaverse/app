@@ -1553,6 +1553,7 @@ class Avatar {
       new AnimationMapping('mixamorigLeftHandThumb1.quaternion', this.outputs.leftThumb0.quaternion, true),
       new AnimationMapping('mixamorigLeftHandThumb2.quaternion', this.outputs.leftThumb1.quaternion, true),
       new AnimationMapping('mixamorigLeftHandThumb3.quaternion', this.outputs.leftThumb2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandIndex1.quaternion', this.outputs.leftIndexFinger1.quaternion, true),
       new AnimationMapping('mixamorigLeftHandIndex2.quaternion', this.outputs.leftIndexFinger2.quaternion, true),
       new AnimationMapping('mixamorigLeftHandIndex3.quaternion', this.outputs.leftIndexFinger3.quaternion, true),
       new AnimationMapping('mixamorigLeftHandRing1.quaternion', this.outputs.leftRingFinger1.quaternion, true),
