@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {scene} from './app-object.js';
 
 const size = 2048;
 const tileSize = 512;
@@ -21,7 +22,7 @@ const v = document.createElement('video');
 v.setAttribute('muted', '');
 // v.setAttribute('loop', '');
 const name = `Elements - Sparks 104 Hit Radial noCT noRSZ`;
-v.src = `./rtfx/2. Prerendered animations/FX elements/${name}.webm`;
+v.src = `./rtfx/2. Prerendered animations/FX elements/webm/${name}.webm`;
 // window.v = v;
 // v.load();
 // v.play();
@@ -34,6 +35,60 @@ v.src = `./rtfx/2. Prerendered animations/FX elements/${name}.webm`;
 v.addEventListener('waiting', e => {
   console.log('waiting', e);
 }); */
+
+const fxMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTex: {
+      type: 't',
+      value: new THREE.Texture(canvas),
+      needsUpdate: true,
+    },
+    uTileSize: {
+      type: 'f',
+      value: tileSize,
+      needsUpdate: true,
+    },
+    uTileOffset: {
+      type: 'v2',
+      value: new THREE.Vector2(0, 0),
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    // uniform vec3 uUserPosition;
+    
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+    
+    uniform sampler2D uTex;
+    uniform float uTileSize;
+    uniform vec2 uTileOffset;
+    
+    varying vec2 vUv;
+
+    void main() {
+      vec4 diffuse = texture2D(uTex, vUv);
+      gl_FragColor = diffuse;
+    }
+  `,
+  side: THREE.DoubleSide,
+  transparent: true,
+  // polygonOffset: true,
+  // polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
+});
+
 (async () => {
   // v.currentTime = 0;
   await new Promise((accept, reject) => {
@@ -74,4 +129,10 @@ v.addEventListener('waiting', e => {
     }
   }
   // console.log('done');
+
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  const mesh = new THREE.Mesh(geometry, fxMaterial);
+  mesh.position.y = 1;
+  scene.add(mesh);
+  fxMaterial.uniforms.uTex.value.needsUpdate = true;
 })();
