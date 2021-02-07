@@ -380,9 +380,6 @@ const _delete = () => {
 const _click = () => {
   if (weaponsManager.canBuild()) {
     editedObject.place();
-  } else if (appManager.equippedObjects[0]) {
-    const o = appManager.equippedObjects[0];
-    o.triggerAux && o.triggerAux();
   } else if (appManager.grabbedObjects[0]) {
     _deselectLoadout();
     _ungrab();
@@ -393,6 +390,18 @@ const _click = () => {
         _updateMenu();
       }
     }
+  }
+};
+const _mousedown = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.triggerAux && o.triggerAux();
+  }
+};
+const _mouseup = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.untriggerAux && o.untriggerAux();
   }
 };
 
@@ -1658,6 +1667,12 @@ const weaponsManager = {
   },
   menuClick() {
     _click();
+  },
+  menuMouseDown() {
+    _mousedown();
+  },
+  menuMouseUp() {
+    _mouseup();
   },
   canTry() {
     return !!appManager.grabbedObjects[0];
