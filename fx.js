@@ -43,9 +43,14 @@ const fxMaterial = new THREE.ShaderMaterial({
       value: new THREE.Texture(canvas),
       needsUpdate: true,
     },
+    /* uTexSize: {
+      type: 'f',
+      value: size,
+      needsUpdate: true,
+    }, */
     uTileSize: {
       type: 'f',
-      value: tileSize,
+      value: 1/numTilesPerRow,
       needsUpdate: true,
     },
     uTileOffset: {
@@ -78,7 +83,11 @@ const fxMaterial = new THREE.ShaderMaterial({
     varying vec2 vUv;
 
     void main() {
-      vec4 diffuse = texture2D(uTex, vUv);
+      vec2 uv = vUv;
+      uv.x *= uTileSize;
+      uv.y = 1.0 - (1.0 - uv.y) * uTileSize;
+      uv += uTileOffset;
+      vec4 diffuse = texture2D(uTex, uv);
       gl_FragColor = diffuse;
     }
   `,
@@ -89,6 +98,7 @@ const fxMaterial = new THREE.ShaderMaterial({
   // polygonOffsetUnits: 1,
 });
 
+let mesh = null;
 (async () => {
   // v.currentTime = 0;
   await new Promise((accept, reject) => {
@@ -105,7 +115,7 @@ const fxMaterial = new THREE.ShaderMaterial({
   // let first = true;
   for (let row = 0; row < numTilesPerRow; row++) {
     for (let col = 0; col < numTilesPerRow; col++) {
-      v.currentTime = i/(numTiles-1) * totalLength;
+      v.currentTime = (i+1)/numTiles * totalLength;
       // v.load();
       
       // console.log('check ready state', v.readyState);
@@ -118,7 +128,7 @@ const fxMaterial = new THREE.ShaderMaterial({
             }
           };
           v.addEventListener('seeked', seeked);
-          });
+        });
       }
 
       // console.log('ok', v.currentTime/totalLength, v.duration);
@@ -131,8 +141,29 @@ const fxMaterial = new THREE.ShaderMaterial({
   // console.log('done');
 
   const geometry = new THREE.PlaneBufferGeometry(1, 1);
-  const mesh = new THREE.Mesh(geometry, fxMaterial);
+  mesh = new THREE.Mesh(geometry, fxMaterial);
   mesh.position.y = 1;
   scene.add(mesh);
   fxMaterial.uniforms.uTex.value.needsUpdate = true;
 })();
+
+const fx = {
+  update() {
+    if (mesh) {
+      const speed = 500;
+      const time = (Date.now()%speed)/speed;
+      const tile = Math.floor(time*numTiles)%numTiles;
+      const col = tile % numTilesPerRow;
+      const row = Math.floor(tile / numTilesPerRow);
+      // mesh.material.uniforms.uTileSize.value = 1;
+      // mesh.material.uniforms.uTileSize.needsUpdate = true;
+      // console.log('got col row', time, tile, col, row);
+      mesh.material.uniforms.uTileOffset.value.set(
+        col / numTilesPerRow,
+        row / numTilesPerRow
+      );
+      mesh.material.uniforms.uTileOffset.needsUpdate = true;
+    }
+  },
+};
+export default fx;
