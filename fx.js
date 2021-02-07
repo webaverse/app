@@ -102,7 +102,7 @@ const fxMaterial = new THREE.ShaderMaterial({
   const totalLength = v.duration;
   
   let i = 0;
-  let first = true;
+  // let first = true;
   for (let row = 0; row < numTilesPerRow; row++) {
     for (let col = 0; col < numTilesPerRow; col++) {
       v.currentTime = i/(numTiles-1) * totalLength;
