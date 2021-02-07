@@ -1866,9 +1866,13 @@ class Avatar {
 
       if (this.getTopEnabled()) {
         if (k === 'Left_wrist') {
-          modelBone.quaternion.multiply(leftRotation); // center
+          if (this.getHandEnabled(1)) {
+            modelBone.quaternion.multiply(leftRotation); // center
+          }
         } else if (k === 'Right_wrist') {
-          modelBone.quaternion.multiply(rightRotation); // center
+          if (this.getHandEnabled(0)) {
+            modelBone.quaternion.multiply(rightRotation); // center
+          }
         }
       }
       if (this.getBottomEnabled()) {
@@ -1916,9 +1920,9 @@ class Avatar {
 
     if (this.debugMeshes) {
       if (this.getTopEnabled()) {
-        this.outputs.leftHand.quaternion.multiply(rightRotation); // center
+        this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
-        this.outputs.rightHand.quaternion.multiply(leftRotation); // center
+        this.getHandEnabled(1) && this.outputs.rightHand.quaternion.multiply(leftRotation); // center
         this.outputs.rightHand.updateMatrixWorld();
       }
 
