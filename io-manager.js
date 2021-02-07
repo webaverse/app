@@ -553,7 +553,7 @@ ioManager.bindInput = () => {
     }
   });
   renderer.domElement.addEventListener('mousedown', e => {
-    if (document.pointerLockElement && e.buttons === 0) {
+    if (document.pointerLockElement && e.buttons === 1) {
       weaponsManager.menuMouseDown();
     }
   });
