@@ -1769,7 +1769,7 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), f);
           }
           if (this.swingTime >= 0 && isTop) {
-            const t2 = (now/1000) % hitAnimation.duration;
+            const t2 = (this.swingTime/1000) % hitAnimation.duration;
             const src2 = hitAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
