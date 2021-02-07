@@ -100,6 +100,9 @@ const componentHandlers = {
     trigger(o, component, rigAux) {
       physicsManager.startSwing();
     },
+    untrigger(o, component, rigAux) {
+      physicsManager.stopSwing();
+    },
   },
   'wear': {
     load(o, component, rigAux) {
@@ -410,6 +413,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
     return used;
   };
+        const componentHandler = componentHandlers[component.type];
   const componentUnloadFns = [];
   mesh.useAux = rigAux => {
     let used = false;

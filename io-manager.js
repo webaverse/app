@@ -552,6 +552,16 @@ ioManager.bindInput = () => {
       cameraManager.requestPointerLock();
     }
   });
+  renderer.domElement.addEventListener('mousedown', e => {
+    if (document.pointerLockElement && e.buttons === 0) {
+      weaponsManager.menuMouseDown();
+    }
+  });
+  renderer.domElement.addEventListener('mouseup', e => {
+    if (document.pointerLockElement && e.buttons === 0) {
+      weaponsManager.menuMouseDown();
+    }
+  });
   window.addEventListener('resize', e => {
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = false;
