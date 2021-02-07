@@ -66,12 +66,12 @@ v.addEventListener('waiting', e => {
           });
       }
 
-      console.log('ok', v.currentTime/totalLength, v.duration);
+      // console.log('ok', v.currentTime/totalLength, v.duration);
       
       ctx.drawImage(v, col * tileSize, row * tileSize, tileSize, tileSize);
       
       i++;
     }
   }
-  console.log('done');
+  // console.log('done');
 })();
