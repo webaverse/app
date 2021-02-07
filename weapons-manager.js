@@ -22,6 +22,7 @@ import * as popovers from './popovers.js';
 import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import fx from './fx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -493,10 +494,18 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+{
+  const effect = new THREE.Object3D();
+  effect.position.y = 1;
+  fx.add(effect);
+}
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
+
+  fx.update();
 
   const _handleHighlight = () => {
     if (!editedObject) {
