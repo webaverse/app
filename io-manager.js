@@ -559,7 +559,7 @@ ioManager.bindInput = () => {
   });
   renderer.domElement.addEventListener('mouseup', e => {
     if (document.pointerLockElement && e.buttons === 0) {
-      weaponsManager.menuMouseDown();
+      weaponsManager.menuMouseUp();
     }
   });
   window.addEventListener('resize', e => {
