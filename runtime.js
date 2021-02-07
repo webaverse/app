@@ -413,7 +413,17 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
     return used;
   };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
         const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
   const componentUnloadFns = [];
   mesh.useAux = rigAux => {
     let used = false;
