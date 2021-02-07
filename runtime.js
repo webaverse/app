@@ -897,6 +897,17 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     }
     return used;
   };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
 
