@@ -333,7 +333,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
   // swing animation
   if (swingTime !== -1) {
-    swingTime += timeDiff;
+    swingTime += timeDiff * 1000;
   }
 
   // apply
