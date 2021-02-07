@@ -1536,12 +1536,12 @@ class Avatar {
     } */
 
     this.animationMappings = [
-      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, true),
-      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, true),
-      // new AnimationMapping('mixamorigSpine1.quaternion', null, true);
-      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.chest.quaternion, true),
-      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, true),
-      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, true),
+      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false),
+      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false),
+      // new AnimationMapping('mixamorigSpine1.quaternion', null, false);
+      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.chest.quaternion, false),
+      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false),
+      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false),
 
       new AnimationMapping('mixamorigLeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
       new AnimationMapping('mixamorigLeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
@@ -1583,15 +1583,15 @@ class Avatar {
       new AnimationMapping('mixamorigRightHandPinky2.quaternion', this.outputs.rightLittleFinger2.quaternion, true),
       new AnimationMapping('mixamorigRightHandPinky3.quaternion', this.outputs.rightLittleFinger3.quaternion, true),
 
-      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, true),
-      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, true),
-      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, true),
-      // new AnimationMapping('mixamorigRightToeBase.quaternion', null, true),
+      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false),
+      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false),
+      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false),
+      // new AnimationMapping('mixamorigRightToeBase.quaternion', null, false),
 
-      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, true),
-      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, true),
-      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, true),
-      // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, true),
+      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false),
+      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false),
+      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
+      // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
     ];
 
     this.direction = new THREE.Vector3();
