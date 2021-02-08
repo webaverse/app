@@ -12,7 +12,7 @@ const size = 2048;
 const tileSize = 512;
 const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
-const speed = 10000;
+const speed = 60000;
 
 let effects = [];
 
