@@ -1,10 +1,12 @@
 import * as THREE from './three.module.js';
 import {scene} from './app-object.js';
+import {epochStartTime} from './util.js';
 
 const size = 2048;
 const tileSize = 512;
 const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
+const speed = 500;
 
 const canvas = document.createElement('canvas');
 canvas.width = size;
@@ -40,9 +42,13 @@ const planeGeometry = new THREE.PlaneBufferGeometry(1, 1);
 const fxGeometry = new THREE.BufferGeometry();
 const positions = new Float32Array(1024*1024);
 const uvs = new Float32Array(1024*1024);
+const epochStartTimes = new Float32Array(1024*1024);
+const speeds = new Float32Array(1024*1024);
 const indices = new Uint32Array(1024*1024);
 fxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 fxGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+fxGeometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
+fxGeometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
 fxGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 let effects = [];
 const fxMaterial = new THREE.ShaderMaterial({
@@ -50,6 +56,11 @@ const fxMaterial = new THREE.ShaderMaterial({
     uTex: {
       type: 't',
       value: new THREE.Texture(canvas),
+      needsUpdate: true,
+    },
+    uEpochTime: {
+      type: 'f',
+      value: 0,
       needsUpdate: true,
     },
     /* uTexSize: {
@@ -62,26 +73,41 @@ const fxMaterial = new THREE.ShaderMaterial({
       value: 1/numTilesPerRow,
       needsUpdate: true,
     },
-    uTileOffset: {
+    /* uTileOffset: {
       type: 'v2',
       value: new THREE.Vector2(0, 0),
       needsUpdate: true,
-    },
+    }, */
   },
   vertexShader: `\
     precision highp float;
     precision highp int;
+    
+    attribute float epochStartTime;
+    attribute float speed;
 
+    uniform float uEpochTime;
     uniform float uTileSize;
-    uniform vec2 uTileOffset;
+    // uniform vec2 uTileOffset;
 
     varying vec2 vUv;
+
+    float numTiles = ${numTiles.toFixed(8)};
+    float numTilesPerRow = ${numTilesPerRow.toFixed(8)};
 
     void main() {
       vUv = uv;
       vUv.x *= uTileSize;
       vUv.y = 1.0 - (1.0 - vUv.y) * uTileSize;
-      vUv += uTileOffset;
+
+      float time = mod(uEpochTime - epochStartTime, speed) / speed;
+      float tile = mod(floor(time * numTiles), numTiles);
+      float col = mod(tile, numTilesPerRow);
+      float row = floor(tile / numTilesPerRow);
+      vUv += vec2(
+        col / numTilesPerRow,
+        row / numTilesPerRow
+      );
 
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
@@ -169,6 +195,10 @@ const _updateEffects = () => {
     fxGeometry.attributes.position.needsUpdate = true;
     fxGeometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
     fxGeometry.attributes.uv.needsUpdate = true;
+    fxGeometry.attributes.epochStartTime.array.fill(effect.epochStartTime, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+    fxGeometry.attributes.epochStartTime.needsUpdate = true;
+    fxGeometry.attributes.speed.array.fill(effect.speed, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+    fxGeometry.attributes.speed.needsUpdate = true;
     for (let j = 0; j < planeGeometryClone.index.array.length; j++) {
       fxGeometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
     }
@@ -176,12 +206,13 @@ const _updateEffects = () => {
   }
   fxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
 };
-const speed = 500;
 const fx = {
   add(effect) {
     effect.updateMatrixWorld();
-    effect.startTime = Date.now();
-    effect.endTime = effect.startTime + speed;
+    const now = Date.now();
+    effect.epochStartTime = now - epochStartTime;
+    effect.endTime = now + speed;
+    effect.speed = speed;
     effects.push(effect);
     _updateEffects();
   },
@@ -193,20 +224,29 @@ const fx = {
     if (mesh) {
       if (effects.length > 0) {
         const now = Date.now();
-        effects = effects.filter(effect => now < effect.endTime);
+        let changed = false;
+        effects = effects.filter(effect => {
+          if (now < effect.endTime) {
+            console.log('ok');
+            return true;
+          } else {
+            changed = true;
+            return false;
+          }
+        });
+        changed && _updateEffects();
 
-        const time = (Date.now()%speed)/speed;
+        mesh.material.uniforms.uEpochTime.value = Date.now() - epochStartTime;
+        mesh.material.uniforms.uEpochTime.needsUpdate = true;
+        /* const time = (Date.now()%speed)/speed;
         const tile = Math.floor(time*numTiles)%numTiles;
         const col = tile % numTilesPerRow;
         const row = Math.floor(tile / numTilesPerRow);
-        // mesh.material.uniforms.uTileSize.value = 1;
-        // mesh.material.uniforms.uTileSize.needsUpdate = true;
-        // console.log('got col row', time, tile, col, row);
         mesh.material.uniforms.uTileOffset.value.set(
           col / numTilesPerRow,
           row / numTilesPerRow
         );
-        mesh.material.uniforms.uTileOffset.needsUpdate = true;
+        mesh.material.uniforms.uTileOffset.needsUpdate = true; */
         mesh.visible = true;
       } else {
         mesh.visible = false;
