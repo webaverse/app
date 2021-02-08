@@ -8,21 +8,26 @@ const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
 const speed = 500;
 
+let effects = [];
+
 const planeGeometry = new THREE.PlaneBufferGeometry(1, 1);
-const hitFxGeometry = new THREE.BufferGeometry();
-{
+const _makeFxGeometry = () => {
+  const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(1024*1024);
   const uvs = new Float32Array(1024*1024);
   const epochStartTimes = new Float32Array(1024*1024);
   const speeds = new Float32Array(1024*1024);
   const indices = new Uint32Array(1024*1024);
-  hitFxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  hitFxGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-  hitFxGeometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
-  hitFxGeometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
-  hitFxGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
-}
-let effects = [];
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
+  geometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  return geometry;
+};
+const hitFxGeometry = _makeFxGeometry();
+const bulletFxGeometry = _makeFxGeometry();
+
 const hitFxMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uTex: {
@@ -35,21 +40,11 @@ const hitFxMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    /* uTexSize: {
-      type: 'f',
-      value: size,
-      needsUpdate: true,
-    }, */
     uTileSize: {
       type: 'f',
       value: 1/numTilesPerRow,
       needsUpdate: true,
     },
-    /* uTileOffset: {
-      type: 'v2',
-      value: new THREE.Vector2(0, 0),
-      needsUpdate: true,
-    }, */
   },
   vertexShader: `\
     precision highp float;
@@ -60,7 +55,6 @@ const hitFxMaterial = new THREE.ShaderMaterial({
 
     uniform float uEpochTime;
     uniform float uTileSize;
-    // uniform vec2 uTileOffset;
 
     varying vec2 vUv;
 
@@ -103,9 +97,77 @@ const hitFxMaterial = new THREE.ShaderMaterial({
   `,
   side: THREE.DoubleSide,
   transparent: true,
-  // polygonOffset: true,
-  // polygonOffsetFactor: -1,
-  // polygonOffsetUnits: 1,
+});
+
+const bulletFxMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTex: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    uEpochTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+    uTileSize: {
+      type: 'f',
+      value: 1/numTilesPerRow,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+    
+    attribute float epochStartTime;
+    attribute float speed;
+
+    uniform float uEpochTime;
+    uniform float uTileSize;
+
+    varying vec2 vUv;
+
+    float numTiles = ${numTiles.toFixed(8)};
+    float numTilesPerRow = ${numTilesPerRow.toFixed(8)};
+
+    void main() {
+      vUv = uv;
+      vUv.x *= uTileSize;
+      vUv.y = 1.0 - (1.0 - vUv.y) * uTileSize;
+
+      float time = mod(uEpochTime - epochStartTime, speed) / speed;
+      float tile = mod(floor(time * numTiles), numTiles);
+      float col = mod(tile, numTilesPerRow);
+      float row = floor(tile / numTilesPerRow);
+      vUv += vec2(
+        col / numTilesPerRow,
+        row / numTilesPerRow
+      );
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+    
+    uniform sampler2D uTex;
+    
+    varying vec2 vUv;
+
+    void main() {
+      vec4 diffuse = texture2D(uTex, vUv);
+      if (diffuse.a > 0.15) {
+        gl_FragColor = diffuse;
+      } else {
+        discard;
+      }
+    }
+  `,
+  side: THREE.DoubleSide,
+  transparent: true,
 });
 
 let hitMesh, bulletMesh;
@@ -175,10 +237,15 @@ const loadPromise = Promise.all([
 })).then(([hitCanvas, bulletCanvas]) => {
   hitFxMaterial.uniforms.uTex.value.image = hitCanvas;
   hitFxMaterial.uniforms.uTex.value.needsUpdate = true;
-  
   hitMesh = new THREE.Mesh(hitFxGeometry, hitFxMaterial);
   hitMesh.frustumCulled = false;
   scene.add(hitMesh);
+
+  bulletFxMaterial.uniforms.uTex.value.image = hitCanvas;
+  bulletFxMaterial.uniforms.uTex.value.needsUpdate = true;
+  bulletMesh = new THREE.Mesh(bulletFxGeometry, bulletFxMaterial);
+  bulletMesh.frustumCulled = false;
+  scene.add(bulletMesh);
 });
 
 const _updateEffects = () => {
