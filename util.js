@@ -543,3 +543,5 @@ export const addDefaultLights = (scene, shadowMap) => {
     directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
   } */
 };
+
+export const epochStartTime = Date.now();
