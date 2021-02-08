@@ -227,7 +227,6 @@ const fx = {
         let changed = false;
         effects = effects.filter(effect => {
           if (now < effect.endTime) {
-            console.log('ok');
             return true;
           } else {
             changed = true;
