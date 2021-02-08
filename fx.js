@@ -13,6 +13,7 @@ const tileSize = 512;
 const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
 const speed = 500;
+const bulletSpeed = 0.3;
 
 let effects = [];
 
