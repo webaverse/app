@@ -8,54 +8,26 @@ const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
 const speed = 500;
 
-const canvas = document.createElement('canvas');
-canvas.width = size;
-canvas.height = size;
-const ctx = canvas.getContext('2d');
-/* document.body.appendChild(canvas);
-canvas.style.position = `absolute`;
-canvas.style.top = 0;
-canvas.style.left = 0;
-canvas.style.width = `${tileSize}px`;
-canvas.style.height = `${tileSize}px`;
-canvas.style.zIndex = `100`; */
-
-const v = document.createElement('video');
-v.setAttribute('muted', '');
-// v.setAttribute('loop', '');
-const name = `Elements - Sparks 104 Hit Radial noCT noRSZ`;
-v.src = `./rtfx/2. Prerendered animations/FX elements/webm/${name}.webm`;
-// window.v = v;
-// v.load();
-// v.play();
-/* v.addEventListener('seeking', e => {
-  console.log('seeking', e);
-}); */
-/* v.addEventListener('seeked', e => {
-  console.log('seeked', e);
-});
-v.addEventListener('waiting', e => {
-  console.log('waiting', e);
-}); */
-
 const planeGeometry = new THREE.PlaneBufferGeometry(1, 1);
-const fxGeometry = new THREE.BufferGeometry();
-const positions = new Float32Array(1024*1024);
-const uvs = new Float32Array(1024*1024);
-const epochStartTimes = new Float32Array(1024*1024);
-const speeds = new Float32Array(1024*1024);
-const indices = new Uint32Array(1024*1024);
-fxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-fxGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-fxGeometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
-fxGeometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
-fxGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
+const hitFxGeometry = new THREE.BufferGeometry();
+{
+  const positions = new Float32Array(1024*1024);
+  const uvs = new Float32Array(1024*1024);
+  const epochStartTimes = new Float32Array(1024*1024);
+  const speeds = new Float32Array(1024*1024);
+  const indices = new Uint32Array(1024*1024);
+  hitFxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  hitFxGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  hitFxGeometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
+  hitFxGeometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
+  hitFxGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
+}
 let effects = [];
-const fxMaterial = new THREE.ShaderMaterial({
+const hitFxMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uTex: {
       type: 't',
-      value: new THREE.Texture(canvas),
+      value: new THREE.Texture(),
       needsUpdate: true,
     },
     uEpochTime: {
@@ -136,8 +108,29 @@ const fxMaterial = new THREE.ShaderMaterial({
   // polygonOffsetUnits: 1,
 });
 
-let mesh = null;
-(async () => {
+let hitMesh, bulletMesh;
+const loadPromise = Promise.all([
+  `Elements - Sparks 104 Hit Radial noCT noRSZ`,
+  `Elements - Fire 004 Projectile Right Loop noCT noRSZ`,
+].map(async name => {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  /* if (name === `Elements - Sparks 104 Hit Radial noCT noRSZ`) {
+    document.body.appendChild(canvas);
+    canvas.style.position = `absolute`;
+    canvas.style.top = 0;
+    canvas.style.left = 0;
+    canvas.style.width = `${tileSize}px`;
+    canvas.style.height = `${tileSize}px`;
+    canvas.style.zIndex = `100`;
+  } */
+
+  const v = document.createElement('video');
+  v.setAttribute('muted', '');
+  v.src = `./rtfx/2. Prerendered animations/FX elements/webm/${name}.webm`;
+  
   // v.currentTime = 0;
   await new Promise((accept, reject) => {
     const loadedmetadata = e => {
@@ -178,33 +171,39 @@ let mesh = null;
   }
   // console.log('done');
 
-  mesh = new THREE.Mesh(fxGeometry, fxMaterial);
-  mesh.frustumCulled = false;
-  scene.add(mesh);
-  fxMaterial.uniforms.uTex.value.needsUpdate = true;
-})();
+  return canvas;
+})).then(([hitCanvas, bulletCanvas]) => {
+  hitFxMaterial.uniforms.uTex.value.image = hitCanvas;
+  hitFxMaterial.uniforms.uTex.value.needsUpdate = true;
+  
+  hitMesh = new THREE.Mesh(hitFxGeometry, hitFxMaterial);
+  hitMesh.frustumCulled = false;
+  scene.add(hitMesh);
+});
 
 const _updateEffects = () => {
-  let indexIndex = 0;
-  for (let i = 0; i < effects.length; i++) {
-    const effect = effects[i];
-    const planeGeometryClone = planeGeometry.clone()
-      .applyMatrix4(effect.matrixWorld);
+  if (effects.length > 0) {
+    let indexIndex = 0;
+    for (let i = 0; i < effects.length; i++) {
+      const effect = effects[i];
+      const planeGeometryClone = planeGeometry.clone()
+        .applyMatrix4(effect.matrixWorld);
 
-    fxGeometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, i * planeGeometryClone.attributes.position.array.length);
-    fxGeometry.attributes.position.needsUpdate = true;
-    fxGeometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
-    fxGeometry.attributes.uv.needsUpdate = true;
-    fxGeometry.attributes.epochStartTime.array.fill(effect.epochStartTime, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
-    fxGeometry.attributes.epochStartTime.needsUpdate = true;
-    fxGeometry.attributes.speed.array.fill(effect.speed, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
-    fxGeometry.attributes.speed.needsUpdate = true;
-    for (let j = 0; j < planeGeometryClone.index.array.length; j++) {
-      fxGeometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
+      hitFxGeometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, i * planeGeometryClone.attributes.position.array.length);
+      hitFxGeometry.attributes.position.needsUpdate = true;
+      hitFxGeometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
+      hitFxGeometry.attributes.uv.needsUpdate = true;
+      hitFxGeometry.attributes.epochStartTime.array.fill(effect.epochStartTime, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+      hitFxGeometry.attributes.epochStartTime.needsUpdate = true;
+      hitFxGeometry.attributes.speed.array.fill(effect.speed, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+      hitFxGeometry.attributes.speed.needsUpdate = true;
+      for (let j = 0; j < planeGeometryClone.index.array.length; j++) {
+        hitFxGeometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
+      }
+      hitFxGeometry.index.needsUpdate = true;
     }
-    fxGeometry.index.needsUpdate = true;
+    hitFxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
   }
-  fxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
 };
 const fx = {
   add(effect) {
@@ -221,7 +220,7 @@ const fx = {
     _updateEffects();
   },
   update() {
-    if (mesh) {
+    if (hitMesh) {
       if (effects.length > 0) {
         const now = Date.now();
         let changed = false;
@@ -233,22 +232,14 @@ const fx = {
             return false;
           }
         });
-        changed && _updateEffects();
+        _updateEffects();
 
-        mesh.material.uniforms.uEpochTime.value = Date.now() - epochStartTime;
-        mesh.material.uniforms.uEpochTime.needsUpdate = true;
-        /* const time = (Date.now()%speed)/speed;
-        const tile = Math.floor(time*numTiles)%numTiles;
-        const col = tile % numTilesPerRow;
-        const row = Math.floor(tile / numTilesPerRow);
-        mesh.material.uniforms.uTileOffset.value.set(
-          col / numTilesPerRow,
-          row / numTilesPerRow
-        );
-        mesh.material.uniforms.uTileOffset.needsUpdate = true; */
-        mesh.visible = true;
+        hitMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
+        hitMesh.material.uniforms.uEpochTime.needsUpdate = true;
+        // hitMesh.material.uniforms.uTileOffset.needsUpdate = true;
+        hitMesh.visible = true;
       } else {
-        mesh.visible = false;
+        hitMesh.visible = false;
       }
     }
   },
