@@ -34,9 +34,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
-const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
-const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
 const equipArmQuaternions = [
