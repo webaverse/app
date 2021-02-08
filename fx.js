@@ -179,13 +179,13 @@ const bulletFxMaterial = new THREE.ShaderMaterial({
 let hitMesh, bulletMesh;
 const loadPromise = Promise.all([
   `Elements - Sparks 104 Hit Radial noCT noRSZ`,
-  `Elements - Fire 004 Projectile Right Loop noCT noRSZ`,
+  `Elements - Energy 023 Projectile Right Loop noCT noRSZ`,
 ].map(async name => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  /* if (name === `Elements - Sparks 104 Hit Radial noCT noRSZ`) {
+  /* if (name === `Elements - Energy 023 Projectile Right Loop noCT noRSZ`) {
     document.body.appendChild(canvas);
     canvas.style.position = `absolute`;
     canvas.style.top = 0;
