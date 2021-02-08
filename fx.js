@@ -44,7 +44,7 @@ const indices = new Uint32Array(1024*1024);
 fxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 fxGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 fxGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
-const effects = [];
+let effects = [];
 const fxMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uTex: {
@@ -176,9 +176,12 @@ const _updateEffects = () => {
   }
   fxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
 };
+const speed = 500;
 const fx = {
   add(effect) {
     effect.updateMatrixWorld();
+    effect.startTime = Date.now();
+    effect.endTime = effect.startTime + speed;
     effects.push(effect);
     _updateEffects();
   },
@@ -189,7 +192,9 @@ const fx = {
   update() {
     if (mesh) {
       if (effects.length > 0) {
-        const speed = 500;
+        const now = Date.now();
+        effects = effects.filter(effect => now < effect.endTime);
+
         const time = (Date.now()%speed)/speed;
         const tile = Math.floor(time*numTiles)%numTiles;
         const col = tile % numTilesPerRow;
