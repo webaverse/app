@@ -402,7 +402,7 @@ const _mousedown = () => {
     effect.position.copy(o.position)
       .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
     effect.quaternion.copy(o.quaternion);
-    fx.add(effect);
+    fx.add('bullet', effect);
   }
 };
 const _mouseup = () => {
