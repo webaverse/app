@@ -397,6 +397,12 @@ const _mousedown = () => {
   if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.triggerAux && o.triggerAux();
+    
+    const effect = new THREE.Object3D();
+    effect.position.copy(o.position)
+      .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
+    effect.quaternion.copy(o.quaternion);
+    fx.add(effect);
   }
 };
 const _mouseup = () => {
@@ -493,12 +499,6 @@ const _equip = object => {
 const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
-
-{
-  const effect = new THREE.Object3D();
-  effect.position.y = 1;
-  fx.add(effect);
-}
 
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  

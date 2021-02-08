@@ -159,6 +159,7 @@ let mesh = null;
 })();
 
 const _updateEffects = () => {
+  let indexIndex = 0;
   for (let i = 0; i < effects.length; i++) {
     const effect = effects[i];
     const planeGeometryClone = planeGeometry.clone()
@@ -168,10 +169,12 @@ const _updateEffects = () => {
     fxGeometry.attributes.position.needsUpdate = true;
     fxGeometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
     fxGeometry.attributes.uv.needsUpdate = true;
-    fxGeometry.index.array.set(planeGeometryClone.index.array, i * planeGeometryClone.index.array.length);
+    for (let j = 0; j < planeGeometryClone.index.array.length; j++) {
+      fxGeometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
+    }
     fxGeometry.index.needsUpdate = true;
   }
-  fxGeometry.setDrawRange(0, planeGeometry.index.array.length);
+  fxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
 };
 const fx = {
   add(effect) {
