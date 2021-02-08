@@ -96,7 +96,7 @@ const fxMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 diffuse = texture2D(uTex, vUv);
-      if (diffuse.a > 0.1) {
+      if (diffuse.a > 0.15) {
         gl_FragColor = diffuse;
       } else {
         discard;
