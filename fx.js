@@ -276,7 +276,8 @@ const _updateEffects = () => {
             localMatrix2.lookAt(
               effect.position,
               effect.position.clone().sub(normal),
-              new THREE.Vector3(0, 1, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), normal.clone().multiplyScalar(-1)))
+              new THREE.Vector3(0, 0, -1).applyQuaternion(effect.quaternion)
+                .cross(normal)
             )
           );
       } else {
