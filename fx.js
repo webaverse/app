@@ -256,11 +256,17 @@ const loadPromise = Promise.all([
 
 const _updateEffects = () => {
   if (effects.length > 0) {
+    let numHitFx = 0;
+    let numBulletFx = 0;
     let indexIndex = 0;
     for (let i = 0; i < effects.length; i++) {
       const effect = effects[i];
 
+      let geometry;
       if (effect.fxType === 'bullet') {
+        effect.position.add(new THREE.Vector3(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
+        effect.updateMatrixWorld();
+        
         const line = new THREE.Line3(
           effect.position.clone(),
           effect.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(effect.quaternion))
@@ -280,35 +286,45 @@ const _updateEffects = () => {
                 .cross(normal)
             )
           );
+
+        geometry = bulletFxGeometry;
+        numBulletFx++;
       } else {
+        effect.updateMatrixWorld();
         localMatrix.copy(effect.matrixWorld);
+        geometry = hitFxGeometry;
+        numHitFx++;
       }
       const planeGeometryClone = planeGeometry.clone()
         .applyMatrix4(localMatrix);
 
-      hitFxGeometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, i * planeGeometryClone.attributes.position.array.length);
-      hitFxGeometry.attributes.position.needsUpdate = true;
-      hitFxGeometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
-      hitFxGeometry.attributes.uv.needsUpdate = true;
-      hitFxGeometry.attributes.epochStartTime.array.fill(effect.epochStartTime, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
-      hitFxGeometry.attributes.epochStartTime.needsUpdate = true;
-      hitFxGeometry.attributes.speed.array.fill(effect.speed, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
-      hitFxGeometry.attributes.speed.needsUpdate = true;
+      geometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, i * planeGeometryClone.attributes.position.array.length);
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.uv.array.set(planeGeometryClone.attributes.uv.array, i * planeGeometryClone.attributes.uv.array.length);
+      geometry.attributes.uv.needsUpdate = true;
+      geometry.attributes.epochStartTime.array.fill(effect.epochStartTime, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+      geometry.attributes.epochStartTime.needsUpdate = true;
+      geometry.attributes.speed.array.fill(effect.speed, i * planeGeometryClone.attributes.position.array.length/3, (i+1) * planeGeometryClone.attributes.position.array.length/3);
+      geometry.attributes.speed.needsUpdate = true;
       for (let j = 0; j < planeGeometryClone.index.array.length; j++) {
-        hitFxGeometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
+        geometry.index.array[indexIndex++] = planeGeometryClone.index.array[j] + i*planeGeometryClone.attributes.position.array.length/3;
       }
-      hitFxGeometry.index.needsUpdate = true;
+      geometry.index.needsUpdate = true;
     }
-    hitFxGeometry.setDrawRange(0, effects.length * planeGeometry.index.array.length);
+
+    hitFxGeometry.setDrawRange(0, numHitFx * planeGeometry.index.array.length);
+    hitMesh.visible = numHitFx > 0;
+
+    bulletFxGeometry.setDrawRange(0, numBulletFx * planeGeometry.index.array.length);
+    bulletMesh.visible = numBulletFx > 0;
   }
 };
 const fx = {
   add(fxType, effect) {
-    effect.updateMatrixWorld();
     effect.fxType = fxType;
     const now = Date.now();
     effect.epochStartTime = now - epochStartTime;
-    effect.endTime = now + speed;
+    effect.endTime = fxType === 'bullet' ? Infinity : (now + speed);
     effect.speed = speed;
     effects.push(effect);
     // _updateEffects();
@@ -334,10 +350,9 @@ const fx = {
 
         hitMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
         hitMesh.material.uniforms.uEpochTime.needsUpdate = true;
-        // hitMesh.material.uniforms.uTileOffset.needsUpdate = true;
-        hitMesh.visible = true;
-      } else {
-        hitMesh.visible = false;
+        
+        bulletMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
+        bulletMesh.material.uniforms.uEpochTime.needsUpdate = true;
       }
     }
   },
