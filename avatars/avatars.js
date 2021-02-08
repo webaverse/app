@@ -1538,7 +1538,7 @@ class Avatar {
     this.animationMappings = [
       new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false),
       new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false),
-      // new AnimationMapping('mixamorigSpine1.quaternion', null, false);
+      // new AnimationMapping('mixamorigSpine1.quaternion', null, false),
       new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.chest.quaternion, false),
       new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false),
       new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false),
