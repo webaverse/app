@@ -1,12 +1,18 @@
 import * as THREE from './three.module.js';
-import {scene} from './app-object.js';
+import {scene, camera} from './app-object.js';
 import {epochStartTime} from './util.js';
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 const size = 2048;
 const tileSize = 512;
 const numTilesPerRow = size/tileSize;
 const numTiles = numTilesPerRow ** 2;
-const speed = 500;
+const speed = 10000;
 
 let effects = [];
 
@@ -253,8 +259,31 @@ const _updateEffects = () => {
     let indexIndex = 0;
     for (let i = 0; i < effects.length; i++) {
       const effect = effects[i];
+
+      if (effect.fxType === 'bullet') {
+        const line = new THREE.Line3(
+          effect.position.clone(),
+          effect.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(effect.quaternion))
+        );
+        const closestPoint = line.closestPointToPoint(camera.position, false, new THREE.Vector3());
+        const normal = camera.position.clone().sub(closestPoint).normalize();
+        
+        effect.matrixWorld
+          .decompose(localVector, localQuaternion, localVector2);
+        localMatrix
+          .compose(localVector, localQuaternion.set(0, 0, 0, 1), localVector2)
+          .multiply(
+            localMatrix2.lookAt(
+              effect.position,
+              effect.position.clone().sub(normal),
+              new THREE.Vector3(0, 1, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), normal.clone().multiplyScalar(-1)))
+            )
+          );
+      } else {
+        localMatrix.copy(effect.matrixWorld);
+      }
       const planeGeometryClone = planeGeometry.clone()
-        .applyMatrix4(effect.matrixWorld);
+        .applyMatrix4(localMatrix);
 
       hitFxGeometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, i * planeGeometryClone.attributes.position.array.length);
       hitFxGeometry.attributes.position.needsUpdate = true;
@@ -273,18 +302,19 @@ const _updateEffects = () => {
   }
 };
 const fx = {
-  add(effect) {
+  add(fxType, effect) {
     effect.updateMatrixWorld();
+    effect.fxType = fxType;
     const now = Date.now();
     effect.epochStartTime = now - epochStartTime;
     effect.endTime = now + speed;
     effect.speed = speed;
     effects.push(effect);
-    _updateEffects();
+    // _updateEffects();
   },
   remove(effect) {
     effects.splice(effects.indexOf(effect), 1);
-    _updateEffects();
+    // _updateEffects();
   },
   update() {
     if (hitMesh) {
