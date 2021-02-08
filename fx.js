@@ -247,7 +247,7 @@ const loadPromise = Promise.all([
   hitMesh.frustumCulled = false;
   scene.add(hitMesh);
 
-  bulletFxMaterial.uniforms.uTex.value.image = hitCanvas;
+  bulletFxMaterial.uniforms.uTex.value.image = bulletCanvas;
   bulletFxMaterial.uniforms.uTex.value.needsUpdate = true;
   bulletMesh = new THREE.Mesh(bulletFxGeometry, bulletFxMaterial);
   bulletMesh.frustumCulled = false;
