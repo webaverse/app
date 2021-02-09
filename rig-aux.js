@@ -133,7 +133,7 @@ export class RigAux {
 
       const root = o;
       const animations = o.getAnimations();
-      let {walkAnimation = ['walk'], idleAnimation = ['idle']} = component;
+      let {walkAnimation = ['walk'], idleAnimation = ['idle'], walkAnimationHoldTime = 0, walkAnimationSpeedFactor = 100} = component;
       if (walkAnimation) {
         if (!Array.isArray(walkAnimation)) {
           walkAnimation = [walkAnimation];
@@ -175,7 +175,10 @@ export class RigAux {
           timeDiff *= 1000;
           
           for (const walkAction of walkActions) {
-            walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1);
+            walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * walkAnimationSpeedFactor, 0), 1);
+            if (walkAnimationHoldTime) {
+              walkAction.time = walkAnimationHoldTime;
+            }
           }
           for (const idleAction of idleActions) {
             idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
