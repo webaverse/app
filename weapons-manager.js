@@ -1226,7 +1226,7 @@ const itemSpecs3 = [
     "name": "dragon-fly",
     "start_url": "https://avaer.github.io/dragon-fly/manifest.json"
   },
-  {
+  /* {
     "name": "pistol",
     "start_url": "https://avaer.github.io/pistol/manifest.json"
   },
@@ -1237,7 +1237,7 @@ const itemSpecs3 = [
   {
     "name": "pickaxe",
     "start_url": "https://avaer.github.io/pickaxe/manifest.json"
-  },
+  }, */
   {
     "name": "cityscape",
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
