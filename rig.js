@@ -600,7 +600,7 @@ class RigManager {
       let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
       if (sitState) {
         const sittable = this.localRig.aux.sittables[0];
-        const {sitBone = 'Spine', sitOffset = [0, 0, 0]} = sittable.component;
+        const {sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = sittable.component;
         physicsManager.setSitController(sittable.model);
         const spineBone = sittable.model.getObjectByName(sitBone);
         if (spineBone) {
@@ -609,6 +609,13 @@ class RigManager {
           physicsManager.setSitTarget(sittable.model);
         }
         physicsManager.setSitOffset(sitOffset);
+        if (typeof damping === 'number') {
+          physicsManager.setDamping(damping);
+        } else {
+          physicsManager.setDamping();
+        }
+      } else {
+        physicsManager.setDamping();
       }
       rigManager.localRig.sitState = sitState;
       physicsManager.setSitState(sitState);
