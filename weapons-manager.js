@@ -243,17 +243,31 @@ const _selectLoadout = index => {
       }
       selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
 
-      if (selectedLoadoutObject.getPhysicsIds) {
-        const physicsIds = selectedLoadoutObject.getPhysicsIds();
-        for (const physicsId of physicsIds) {
-          physicsManager.disableGeometry(physicsId);
-        }
-      }
-
       if (selectedLoadoutObject.getComponents().some(component => component.type === 'swing')) {
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.disableGeometry(physicsId);
+          }
+        }
+        
         _equip(selectedLoadoutObject);
       } else {
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        selectedLoadoutObject.position.copy(position);
+        selectedLoadoutObject.quaternion.copy(quaternion);
+
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+          }
+        }
+
         _grab(selectedLoadoutObject);
+
+        weaponsManager.setMenu(0);
       }
     }
   })().catch(console.warn);
