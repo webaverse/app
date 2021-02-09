@@ -1862,7 +1862,15 @@ const weaponsManager = {
     rigManager.localRig.aux.setPose(auxPose);
   },
   getSpeed() {
-    return 0.1;
+    const defaultSpeed = 0.1;
+    const sittable = rigManager.localRig.aux.sittables[0];
+    if (sittable) {
+      const {component} = sittable;
+      const {speed = defaultSpeed} = component;
+      return speed;
+    } else {
+      return defaultSpeed;
+    }
   },
   update() {
     _updateWeapons();
