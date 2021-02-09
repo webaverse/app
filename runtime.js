@@ -97,9 +97,11 @@ const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
   'swing': {
-    load(o, component, rigAux) {
-      console.log('swing', o, component, rigAux);
-      return () => {};
+    trigger(o, component, rigAux) {
+      physicsManager.startSwing();
+    },
+    untrigger(o, component, rigAux) {
+      physicsManager.stopSwing();
     },
   },
   'wear': {
@@ -161,8 +163,15 @@ const componentHandlers = {
     },
   },
 };
+const triggerComponentTypes = [
+  'swing',
+];
+const loadComponentTypes = [
+  'wear',
+  'sit',
+  'pet',
+];
 
-// const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
@@ -393,15 +402,36 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
   };
+  mesh.triggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.trigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
   const componentUnloadFns = [];
   mesh.useAux = rigAux => {
     let used = false;
-    for (const component of components) {
-      const componentHandler = componentHandlers[component.type];
-      if (componentHandler) {
-        const unloadFn = componentHandler.load(mesh, component, rigAux);
-        componentUnloadFns.push(unloadFn);
-        used = true;
+    for (const componentType of useComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.trigger(mesh, component, rigAux);
       }
     }
     return used;
@@ -536,7 +566,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -607,6 +637,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
   };
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
+  o.getComponents = () => components;
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
@@ -856,6 +887,28 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
         }
       });
   };
+  mesh.triggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.trigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
 
@@ -872,7 +925,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  // mesh.components = components;
+  mesh.getComponents = () => components;
   // mesh.used = false;
 
   const app = appManager.createApp(appId);
