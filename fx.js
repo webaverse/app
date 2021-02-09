@@ -22,11 +22,11 @@ let effects = [];
 const planeGeometry = new THREE.PlaneBufferGeometry(1, 1);
 const _makeFxGeometry = () => {
   const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(1024*1024);
-  const uvs = new Float32Array(1024*1024);
-  const epochStartTimes = new Float32Array(1024*1024);
-  const speeds = new Float32Array(1024*1024);
-  const indices = new Uint32Array(1024*1024);
+  const positions = new Float32Array(8*1024*3);
+  const uvs = new Float32Array(8*1024*2);
+  const epochStartTimes = new Float32Array(8*1024);
+  const speeds = new Float32Array(8*1024);
+  const indices = new Uint16Array(8*1024);
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   geometry.setAttribute('epochStartTime', new THREE.BufferAttribute(epochStartTimes, 1));
