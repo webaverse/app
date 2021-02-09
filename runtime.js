@@ -409,6 +409,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       if (component) {
         const componentHandler = componentHandlers[component.type];
         componentHandler.trigger(mesh, component, rigAux);
+        used = true;
       }
     }
     return used;
@@ -420,6 +421,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       if (component) {
         const componentHandler = componentHandlers[component.type];
         componentHandler.untrigger(mesh, component, rigAux);
+        used = true;
       }
     }
     return used;
@@ -432,6 +434,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       if (component) {
         const componentHandler = componentHandlers[component.type];
         componentHandler.load(mesh, component, rigAux);
+        used = true;
       }
     }
     return used;
@@ -894,6 +897,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       if (component) {
         const componentHandler = componentHandlers[component.type];
         componentHandler.trigger(mesh, component, rigAux);
+        used = true;
       }
     }
     return used;
@@ -905,6 +909,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       if (component) {
         const componentHandler = componentHandlers[component.type];
         componentHandler.untrigger(mesh, component, rigAux);
+        used = true;
       }
     }
     return used;
