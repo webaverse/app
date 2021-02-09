@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
+import {addDefaultLights} from './util.js';
 
 let canvas = document.getElementById('canvas') || undefined;
 let context = canvas && canvas.getContext('webgl2', {
@@ -19,7 +20,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
-// renderer.physicallyCorrectLights = true;
+renderer.physicallyCorrectLights = true;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.gammaFactor = 2.2;
 // renderer.shadowMap.enabled = true;
 // renderer.shadowMap.type = THREE.PCFShadowMap;
 if (!canvas) {
@@ -54,29 +57,8 @@ scene.add(dolly);
 const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 scene.add(orthographicCamera);
 
-const _addDefaultLights = (scene, shadowMap) => {
-  const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-  scene.add(ambientLight);
-  scene.ambientLight = ambientLight;
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
-  directionalLight.position.set(1, 2, 3);
-  scene.add(directionalLight);
-  scene.directionalLight = directionalLight;
-  /* if (shadowMap) {
-    const SHADOW_MAP_WIDTH = 1024;
-    const SHADOW_MAP_HEIGHT = 1024;
-
-    directionalLight.castShadow = true;
-
-    directionalLight.shadow.camera = new THREE.PerspectiveCamera( 50, 1, 0.1, 50 );
-    // directionalLight.shadow.bias = 0.0001;
-
-    directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
-    directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
-  } */
-};
-_addDefaultLights(scene, true);
-_addDefaultLights(avatarScene, false);
+addDefaultLights(scene, true);
+addDefaultLights(avatarScene, false);
 
 const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
@@ -94,7 +76,13 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
     this.grabbedObjects = [null, null];
-    this.grabbedObjectOffsets = [0, 0];
+    this.equippedObjects = [null, null];
+    // this.grabbedObjectOffsets = [0, 0];
+    this.grabbedObjectMatrices = [
+      new THREE.Matrix4(),
+      new THREE.Matrix4(),
+    ];
+    this.swingAnimation = null;
   }
   createApp(appId) {
     const app = new App(appId);
@@ -139,7 +127,7 @@ class AppManager {
     }
   }
 }
-const appManager = new AppManager();
+const appManager = new AppManager()
 
 class App extends EventTarget {
   constructor(appId) {

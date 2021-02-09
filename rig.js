@@ -5,10 +5,11 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
+import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -31,6 +32,10 @@ class RigManager {
       hair: true,
       visemes: true,
       debug: true,
+    });
+    this.localRig.aux = new RigAux({
+      rig: this.localRig,
+      scene: avatarScene,
     });
     scene.add(this.localRig.model);
 
@@ -228,8 +233,12 @@ class RigManager {
               visemes: true,
               debug: false //!o,
             });
+            localRig.aux = oldRig.aux;
+            localRig.aux.rig = localRig;
           } else {
             localRig = new Avatar();
+            localRig.aux = oldRig.aux;
+            localRig.aux.rig = localRig;
             localRig.model = o;
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
@@ -243,6 +252,8 @@ class RigManager {
             visemes: true,
             debug: true,
           });
+          localRig.aux = oldRig.aux;
+          localRig.aux.rig = localRig;
         }
         scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
@@ -254,14 +265,14 @@ class RigManager {
     }
   }
   
-  isPeerRig(rig) {
+  /* isPeerRig(rig) {
     for (const peerRig of this.peerRigs.values()) {
       if (peerRig === rig) {
         return true;
       }
     }
     return false;
-  }
+  } */
 
   async addPeerRig(peerId) {
     const peerRig = new Avatar(null, {
@@ -269,7 +280,10 @@ class RigManager {
       hair: true,
       visemes: true,
       debug: true
-      // decapitate: selectedTool === 'firstperson',
+    });
+    peerRig.aux = new RigAux({
+      rig: peerRig,
+      scene: avatarScene,
     });
     this.scene.add(peerRig.model);
 
@@ -289,6 +303,7 @@ class RigManager {
     const peerRig = this.peerRigs.get(peerId);
     peerRig.model.parent.remove(peerRig.model);
     peerRig.textMesh.parent.remove(peerRig.textMesh);
+    peerRig.aux.destroy();
     this.peerRigs.delete(peerId);
   }
 
@@ -299,14 +314,15 @@ class RigManager {
   }
 
   async setPeerAvatarUrl(url, ext, peerId) {
-    // await this.peerRigQueue.lock();
-
     const oldPeerRig = this.peerRigs.get(peerId);
     await this.setAvatar(oldPeerRig, newPeerRig => {
       this.peerRigs.set(peerId, newPeerRig);
     }, url, ext);
+  }
 
-    // await this.peerRigQueue.unlock();
+  async setPeerAvatarAux(aux, peerId) {
+    const oldPeerRig = this.peerRigs.get(peerId);
+    oldPeerRig.aux.setPose(aux);
   }
 
   setPeerMicMediaStream(mediaStream, peerId) {
@@ -332,6 +348,7 @@ class RigManager {
     const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
     const floorHeight = this.localRig.getFloorHeight();
+    const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
     const topEnabled = this.localRig.getTopEnabled();
     const bottomEnabled = this.localRig.getBottomEnabled();
     const direction = this.localRig.direction.toArray();
@@ -341,6 +358,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     } = this.localRig;
 
     return [
@@ -348,6 +366,7 @@ class RigManager {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      handsEnabled,
       topEnabled,
       bottomEnabled,
       direction,
@@ -356,6 +375,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ];
   }
 
@@ -425,6 +445,7 @@ class RigManager {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      handsEnabled,
       topEnabled,
       bottomEnabled,
       direction,
@@ -433,6 +454,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -452,6 +474,9 @@ class RigManager {
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
       peerRig.setFloorHeight(floorHeight);
+      for (let i = 0; i < 2; i++) {
+        peerRig.setHandEnabled(i, handsEnabled[i]);
+      }
       peerRig.setTopEnabled(topEnabled);
       peerRig.setBottomEnabled(bottomEnabled);
       peerRig.direction.fromArray(direction);
@@ -460,6 +485,7 @@ class RigManager {
       peerRig.jumpTime = jumpTime;
       peerRig.flyState = flyState;
       peerRig.flyTime = flyTime;
+      peerRig.swingTime = swingTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -554,7 +580,11 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || !!appManager.grabbedObjects[0] || physicsManager.getGlideState());
+    const swingTime = physicsManager.getSwingTime();
+    for (let i = 0; i < 2; i++) {
+      this.localRig.setHandEnabled(i, swingTime === -1 && !!appManager.equippedObjects[i]);
+    }
+    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
@@ -562,9 +592,30 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.update(timeDiff);
+    this.localRig.swingTime = swingTime;
+    {
+      this.localRig.update(timeDiff);
+      this.localRig.aux.update(timeDiff);
+
+      let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      if (sitState) {
+        const sittable = this.localRig.aux.sittables[0];
+        const {sitBone = 'Spine', sitOffset = [0, 0, 0]} = sittable.component;
+        physicsManager.setSitController(sittable.model);
+        const spineBone = sittable.model.getObjectByName(sitBone);
+        if (spineBone) {
+          physicsManager.setSitTarget(spineBone);
+        } else {
+          physicsManager.setSitTarget(sittable.model);
+        }
+        physicsManager.setSitOffset(sitOffset);
+      }
+      rigManager.localRig.sitState = sitState;
+      physicsManager.setSitState(sitState);
+    }
     this.peerRigs.forEach(rig => {
       rig.update(timeDiff);
+      rig.aux.update(timeDiff);
     });
     
     this.lastTimetamp = now;

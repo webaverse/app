@@ -1,8 +1,18 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import atlaspack from './atlaspack.js';
+import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
 export function jsonParse(s, d = null) {
   try {
@@ -55,7 +65,9 @@ export function readFile(file) {
   });
 }
 export function bindUploadFileButton(inputFileEl, handleUpload) {
-  inputFileEl.addEventListener('change', async e => {
+  function change(e) {
+    inputFileEl.removeEventListener('change', change);
+    
     const {files} = e.target;
     if (inputFileEl.multiple) {
       handleUpload(Array.from(files));
@@ -68,12 +80,72 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
     parentNode.removeChild(inputFileEl);
     const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
     newInputFileEl.type = 'file';
+    newInputFileEl.id = inputFileEl.id;
     // newInputFileEl.id = 'upload-file-button';
     // newInputFileEl.style.display = 'none';
     newInputFileEl.classList.add('hidden');
     parentNode.appendChild(newInputFileEl);
     bindUploadFileButton(newInputFileEl, handleUpload);
-  });
+  }
+  inputFileEl.addEventListener('change', change);
+}
+
+// returns whether we actually snapped
+export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, appManager, geometryManager, gridSnap}) {
+  grabMatrix.decompose(localVector, localQuaternion, localVector2);
+  offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
+  const offset = localVector3.length();
+  localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
+    .decompose(localVector5, localQuaternion3, localVector6);
+
+  const grabbedObject = appManager.grabbedObjects[0];
+  const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
+  for (const physicsId of grabbedPhysicsIds) {
+    geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+  }
+
+  let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
+  if (collision) {
+    const {point} = collision;
+    o.position.fromArray(point)
+      // .add(localVector2.set(0, 0.01, 0));
+
+    if (o.position.distanceTo(localVector) > offset) {
+      collision = null;
+    }
+  }
+  if (!collision) {
+    o.position.copy(localVector5);
+  }
+
+  for (const physicsId of grabbedPhysicsIds) {
+    geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+  }
+
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  if (handSnap) {
+    snapPosition(o, gridSnap);
+    o.quaternion.setFromEuler(o.savedRotation);
+  } else {
+    o.quaternion.copy(localQuaternion3);
+  }
+
+  return {
+    handSnap,
+  };
+}
+
+export function snapPosition(o, positionSnap) {
+  if (positionSnap > 0) {
+    o.position.x = Math.round((o.position.x + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
+    o.position.y = Math.round((o.position.y + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
+    o.position.z = Math.round((o.position.z + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
+  }
+}
+export function snapRotation(o, rotationSnap) {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 }
 
 export function makePromise() {
@@ -411,3 +483,65 @@ export function isInIframe() {
     return true;
   }
 }
+
+export async function contentIdToFile(contentId) {
+  let token = null;
+  if (typeof contentId === 'number') {
+    const res = await fetch(`${tokensHost}/${contentId}`);
+    token = await res.json();
+    const {hash, name, ext} = token.properties;
+
+    const res2 = await fetch(`${storageHost}/${hash}`);
+    const file = await res2.blob();
+    file.name = `${name}.${ext}`;
+    file.token = token;
+    return file;
+  } else if (typeof contentId === 'string') {
+    let url, name;
+    if (/blob:/.test(contentId)) {
+      const match = contentId.match(/^(.+)\/([^\/]+)$/);
+      if (match) {
+        url = match[1];
+        name = match[2];
+      } else {
+        console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
+        return null;
+      }
+    } else {
+      url = contentId;
+      name = contentId;
+    }
+    return {
+      url,
+      name,
+      token,
+    };
+  } else {
+    console.warn('unknown content id type', contentId);
+    return null;
+  }
+}
+
+export const addDefaultLights = (scene, shadowMap) => {
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+  scene.add(ambientLight);
+  scene.ambientLight = ambientLight;
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+  directionalLight.position.set(1, 2, 3);
+  scene.add(directionalLight);
+  scene.directionalLight = directionalLight;
+  /* if (shadowMap) {
+    const SHADOW_MAP_WIDTH = 1024;
+    const SHADOW_MAP_HEIGHT = 1024;
+
+    directionalLight.castShadow = true;
+
+    directionalLight.shadow.camera = new THREE.PerspectiveCamera( 50, 1, 0.1, 50 );
+    // directionalLight.shadow.bias = 0.0001;
+
+    directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+    directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  } */
+};
+
+export const epochStartTime = Date.now();

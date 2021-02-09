@@ -27,6 +27,7 @@
 
   (async () => {
     const app = new App();
+    await app.waitForLoad();
     const [
       appResult,
       parcelsJson,

@@ -4,6 +4,8 @@ import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
+// import {rigAuxManager} from './rig-aux.js';
+import Avatar from './avatars/avatars.js';
 import geometryManager from './geometry-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -13,6 +15,7 @@ import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import {bindInterface as inventoryBindInterface} from './inventory.js';
 import {parseCoord} from './util.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 
@@ -46,7 +49,10 @@ let xrscene = null;
 
 export default class App {
   constructor() {
-    this.loadPromise = geometryManager.waitForLoad()
+    this.loadPromise = Promise.all([
+      geometryManager.waitForLoad(),
+      Avatar.waitForLoad(),
+    ])
       .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
       });
@@ -80,7 +86,8 @@ export default class App {
     }
 
     try {
-      await Promise.all([
+      await universe.enterWorld(worldJson);
+      /* await Promise.all([
         universe.enterWorld(worldJson),
         (async () => {
           if (q.o && !q.u && !q.r) {
@@ -91,7 +98,7 @@ export default class App {
             await world.addObject(contentId);
           }
         })(),
-      ]);
+      ]); */
     } catch (err) {
       console.error(err);
     }
@@ -108,6 +115,7 @@ export default class App {
     blockchain.bindInterface();
     universe.bindInterface();
     weaponsManager.bindInterface();
+    inventoryBindInterface();
   }
   bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
@@ -172,13 +180,19 @@ export default class App {
     {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
-      if (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession()) {
+      const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
+      if (decapitated) {
         rigManager.localRig.decapitate();
+        rigManager.localRig.aux.decapitate();
       } else {
         rigManager.localRig.undecapitate();
+        rigManager.localRig.aux.undecapitate();
       }
       renderer.render(avatarScene, camera);
-      rigManager.localRig.undecapitate();
+      if (decapitated) {
+        rigManager.localRig.undecapitate();
+        rigManager.localRig.aux.undecapitate();
+      }
     }
     // highlight render
     // renderer.render(highlightScene, camera);
