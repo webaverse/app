@@ -175,9 +175,9 @@ export class RigAux {
         } else {
           console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
         }
-      } else {
+      } /* else {
         console.warn('no skinned mesh in model');
-      }
+      } */
     }
     
     return sittable;
