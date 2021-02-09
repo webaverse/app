@@ -143,7 +143,7 @@ export class RigAux {
         const animations = o.getAnimations();
         
         // const component = o.components.find(c => c.type === 'sit');
-        const {sitBone = 'Spine', walkAnimation = 'walk', idleAnimation = 'idle'} = component;
+        const {walkAnimation = 'walk', idleAnimation = 'idle'} = component;
         const walkAnimationClip = animations.find(a => a.name === walkAnimation);
         const idleAnimationClip = animations.find(a => a.name === idleAnimation);
 
@@ -163,27 +163,15 @@ export class RigAux {
           const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
           idleAction && idleAction.play();
 
-          const {skeleton} = skinnedMesh;
-          const spineBone = root.getObjectByName(sitBone);
-          if (spineBone) {
-            // const spine = skeleton.bones[spineBoneIndex];
-            // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
-            // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
+          sittable.update = timeDiff => {
+            timeDiff *= 1000;
+            
+            walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
+            idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
 
-            // const sitTarget = physicsManager.getSitTarget();
-
-            sittable.update = timeDiff => {
-              timeDiff *= 1000;
-              
-              walkAction && (walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1));
-              idleAction && (idleAction.weight = walkAction ? (1 - walkAction.weight) : 1);
-
-              const deltaSeconds = timeDiff / 1000;
-              mixer.update(deltaSeconds);
-            };
-          } else {
-            console.warn('could not find sit bone in model: ' + sitBone + '; bones available: ' + JSON.stringify(skeleton.bones.map(b => b.name)));
-          }
+            const deltaSeconds = timeDiff / 1000;
+            mixer.update(deltaSeconds);
+          };
         } else {
           console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
         }
