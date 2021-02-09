@@ -348,6 +348,7 @@ class RigManager {
     const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
     const floorHeight = this.localRig.getFloorHeight();
+    const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
     const topEnabled = this.localRig.getTopEnabled();
     const bottomEnabled = this.localRig.getBottomEnabled();
     const direction = this.localRig.direction.toArray();
@@ -357,6 +358,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     } = this.localRig;
 
     return [
@@ -364,6 +366,7 @@ class RigManager {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      handsEnabled,
       topEnabled,
       bottomEnabled,
       direction,
@@ -372,6 +375,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ];
   }
 
@@ -441,6 +445,7 @@ class RigManager {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      handsEnabled,
       topEnabled,
       bottomEnabled,
       direction,
@@ -449,6 +454,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
+      swingTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -468,6 +474,9 @@ class RigManager {
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
       peerRig.setFloorHeight(floorHeight);
+      for (let i = 0; i < 2; i++) {
+        peerRig.setHandEnabled(i, handsEnabled[i]);
+      }
       peerRig.setTopEnabled(topEnabled);
       peerRig.setBottomEnabled(bottomEnabled);
       peerRig.direction.fromArray(direction);
@@ -476,6 +485,7 @@ class RigManager {
       peerRig.jumpTime = jumpTime;
       peerRig.flyState = flyState;
       peerRig.flyTime = flyTime;
+      peerRig.swingTime = swingTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -570,7 +580,11 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || !!appManager.grabbedObjects[0] || physicsManager.getGlideState());
+    const swingTime = physicsManager.getSwingTime();
+    for (let i = 0; i < 2; i++) {
+      this.localRig.setHandEnabled(i, swingTime === -1 && !!appManager.equippedObjects[i]);
+    }
+    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
@@ -578,6 +592,7 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
+    this.localRig.swingTime = swingTime;
     {
       this.localRig.update(timeDiff);
       this.localRig.aux.update(timeDiff);

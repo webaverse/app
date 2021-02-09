@@ -22,6 +22,7 @@ import * as popovers from './popovers.js';
 import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import fx from './fx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -33,11 +34,15 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
-const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
-const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
+const equipArmQuaternions = [
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
+];
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -217,6 +222,9 @@ const _selectLoadout = index => {
 
   (async () => {
     if (selectedLoadoutObject) {
+      if (appManager.equippedObjects[0] === selectedLoadoutObject) {
+        _unequip();
+      }
       if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
         _ungrab();
       }
@@ -234,21 +242,33 @@ const _selectLoadout = index => {
         id = contentId;
       }
       selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      selectedLoadoutObject.position.copy(position);
-      selectedLoadoutObject.quaternion.copy(quaternion);
 
-      if (selectedLoadoutObject.getPhysicsIds) {
-        const physicsIds = selectedLoadoutObject.getPhysicsIds();
-        for (const physicsId of physicsIds) {
-          physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+      if (selectedLoadoutObject.getComponents().some(component => component.type === 'swing')) {
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.disableGeometry(physicsId);
+          }
         }
+        
+        _equip(selectedLoadoutObject);
+      } else {
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        selectedLoadoutObject.position.copy(position);
+        selectedLoadoutObject.quaternion.copy(quaternion);
+
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+          }
+        }
+
+        _grab(selectedLoadoutObject);
+
+        weaponsManager.setMenu(0);
       }
-
-      _grab(selectedLoadoutObject);
-
-      weaponsManager.setMenu(0);
     }
   })().catch(console.warn);
 };
@@ -392,32 +412,25 @@ const _click = () => {
     }
   }
 };
-
-/* const _equip = async () => {
-  if (highlightedObject) {
-    const {contentId} = highlightedObject;
+const _mousedown = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.triggerAux && o.triggerAux();
     
-    const notification = notifications.addNotification(`\
-      <i class="icon fa fa-user-ninja"></i>
-      <div class=wrap>
-        <div class=label>Getting changed</div>
-        <div class=text>
-          The system is updating your avatar...
-        </div>
-        <div class=close-button>✕</div>
-      </div>
-    `, {
-      timeout: Infinity,
-    });
-    try {
-      await loginManager.setAvatar(contentId);
-    } catch(err) {
-      console.warn(err);
-    } finally {
-      notifications.removeNotification(notification);
-    }
+    const effect = new THREE.Object3D();
+    effect.position.copy(o.position)
+      .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
+    effect.quaternion.copy(o.quaternion);
+    fx.add('bullet', effect);
   }
-}; */
+};
+const _mouseup = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.untriggerAux && o.untriggerAux();
+  }
+};
+
 const _try = async () => {
   const o = appManager.grabbedObjects[0];
   if (o) {
@@ -499,10 +512,19 @@ const _ungrab = () => {
   _updateMenu();
 };
 
+const _equip = object => {
+  appManager.equippedObjects[0] = object;
+};
+const _unequip = () => {
+  appManager.equippedObjects[0] = null;
+};
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
+
+  fx.update();
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -520,19 +542,21 @@ const _updateWeapons = () => {
       if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
         const objects = world.getObjects();
         for (const candidate of objects) {
-          const {position, quaternion} = transforms[0];
-          localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-            .premultiply(
-              localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-                .invert()
-            )
-            .decompose(localVector, localQuaternion, localVector2);
-          if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
-            highlightMesh.position.copy(candidate.position);
-            highlightMesh.quaternion.copy(candidate.quaternion);
-            highlightMesh.visible = true;
-            highlightedObject = candidate;
-            break;
+          if (!appManager.equippedObjects.includes(candidate)) {
+            const {position, quaternion} = transforms[0];
+            localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+              .premultiply(
+                localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+                  .invert()
+              )
+              .decompose(localVector, localQuaternion, localVector2);
+            if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
+              highlightMesh.position.copy(candidate.position);
+              highlightMesh.quaternion.copy(candidate.quaternion);
+              highlightMesh.visible = true;
+              highlightedObject = candidate;
+              break;
+            }
           }
         }
       } else if (weaponsManager.getMenu() === 4) {
@@ -648,6 +672,20 @@ const _updateWeapons = () => {
     }
   };
   _updateGrab();
+  
+  const _updateEquip = () => {
+    for (let i = 0; i < 2; i++) {
+      const equippedObject = appManager.equippedObjects[i];
+      if (equippedObject) {
+        rigManager.localRig.modelBones.Right_wrist.getWorldPosition(localVector);
+        rigManager.localRig.modelBones.Right_wrist.getWorldQuaternion(localQuaternion)
+          .multiply(equipArmQuaternions[i]);
+        equippedObject.position.copy(localVector);
+        equippedObject.quaternion.copy(localQuaternion);
+      }
+    }
+  };
+  _updateEquip();
 
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
@@ -1189,6 +1227,18 @@ const itemSpecs3 = [
     "start_url": "https://avaer.github.io/dragon-fly/manifest.json"
   },
   {
+    "name": "pistol",
+    "start_url": "https://avaer.github.io/pistol/manifest.json"
+  },
+  {
+    "name": "rifle",
+    "start_url": "https://avaer.github.io/rifle/manifest.json"
+  },
+  {
+    "name": "pickaxe",
+    "start_url": "https://avaer.github.io/pickaxe/manifest.json"
+  },
+  {
     "name": "cityscape",
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
@@ -1658,12 +1708,12 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
-  /* canEquip() {
-    return highlightMesh.visible;
+  menuMouseDown() {
+    _mousedown();
   },
-  menuEquip() {
-    _equip();
-  }, */
+  menuMouseUp() {
+    _mouseup();
+  },
   canTry() {
     return !!appManager.grabbedObjects[0];
   },
