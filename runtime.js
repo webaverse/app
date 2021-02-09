@@ -566,7 +566,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -637,6 +637,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
   };
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
+  o.getComponents = () => components;
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
@@ -924,7 +925,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  // mesh.components = components;
+  mesh.getComponents = () => components;
   // mesh.used = false;
 
   const app = appManager.createApp(appId);
