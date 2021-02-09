@@ -1861,6 +1861,9 @@ const weaponsManager = {
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
   },
+  getSpeed() {
+    return 0.1;
+  },
   update() {
     _updateWeapons();
   },
