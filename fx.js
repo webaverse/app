@@ -5,9 +5,12 @@ import {epochStartTime} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localLine = new THREE.Line3();
 
 const size = 2048;
 const tileSize = 512;
@@ -267,15 +270,15 @@ const _updateEffects = () => {
 
       let geometry, index;
       if (effect.fxType === 'bullet') {
-        effect.position.add(new THREE.Vector3(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
+        effect.position.add(localVector.set(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
         effect.updateMatrixWorld();
         
-        const line = new THREE.Line3(
-          effect.position.clone(),
-          effect.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(effect.quaternion))
+        const line = localLine.set(
+          effect.position,
+          localVector.copy(effect.position).add(localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion))
         );
-        const closestPoint = line.closestPointToPoint(camera.position, false, new THREE.Vector3());
-        const normal = camera.position.clone().sub(closestPoint).normalize();
+        const closestPoint = line.closestPointToPoint(camera.position, false, localVector3);
+        const normal = localVector4.copy(camera.position).sub(closestPoint).normalize();
         
         effect.matrixWorld
           .decompose(localVector, localQuaternion, localVector2);
@@ -284,8 +287,8 @@ const _updateEffects = () => {
           .multiply(
             localMatrix2.lookAt(
               effect.position,
-              effect.position.clone().sub(normal),
-              new THREE.Vector3(0, 0, -1).applyQuaternion(effect.quaternion)
+              localVector.copy(effect.position).sub(normal),
+              localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion)
                 .cross(normal)
             )
           );
