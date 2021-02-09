@@ -599,14 +599,16 @@ class RigManager {
 
       let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
       if (sitState) {
-        const {sitBone = 'Spine'} = this.localRig.aux.sittables[0].component;
-        const spineBone = this.localRig.aux.sittables[0].model.getObjectByName(sitBone);
+        const sittable = this.localRig.aux.sittables[0];
+        const {sitBone = 'Spine', sitOffset = [0, 0, 0]} = sittable.component;
+        physicsManager.setSitController(sittable.model);
+        const spineBone = sittable.model.getObjectByName(sitBone);
         if (spineBone) {
-          physicsManager.setSitController(this.localRig.aux.sittables[0].model);
           physicsManager.setSitTarget(spineBone);
         } else {
-          sitState = false;
+          physicsManager.setSitTarget(sittable.model);
         }
+        physicsManager.setSitOffset(sitOffset);
       }
       rigManager.localRig.sitState = sitState;
       physicsManager.setSitState(sitState);
