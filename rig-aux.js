@@ -132,71 +132,61 @@ export class RigAux {
       this.scene.add(o);
 
       const root = o;
-      
-      let skinnedMesh = null;
-      root.traverse(o => {
-        if (o.isSkinnedMesh && !skinnedMesh) {
-          skinnedMesh = o;
+      const animations = o.getAnimations();
+      let {walkAnimation = ['walk'], idleAnimation = ['idle']} = component;
+      if (walkAnimation) {
+        if (!Array.isArray(walkAnimation)) {
+          walkAnimation = [walkAnimation];
         }
-      });
-      if (skinnedMesh) {
-        const animations = o.getAnimations();
-
-        let {walkAnimation = ['walk'], idleAnimation = ['idle']} = component;
-        if (walkAnimation) {
-          if (!Array.isArray(walkAnimation)) {
-            walkAnimation = [walkAnimation];
-          }
-        } else {
-          walkAnimation = [];
-        }
-        if (idleAnimation) {
-          if (!Array.isArray(idleAnimation)) {
-            idleAnimation = [idleAnimation];
-          }
-        } else {
-          idleAnimation = [];
-        }
-        const walkAnimationClips = walkAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-        const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-
-        if (walkAnimationClips.length > 0 || idleAnimationClips.length > 0) {
-          // hacks
-          {
-            root.position.y = 0;
-            localEuler.setFromQuaternion(root.quaternion, 'YXZ');
-            localEuler.x = 0;
-            localEuler.z = 0;
-            root.quaternion.setFromEuler(localEuler);
-          }
-          
-          const mixer = new THREE.AnimationMixer(root);
-          const walkActions = walkAnimationClips.map(walkAnimationClip => mixer.clipAction(walkAnimationClip));
-          for (const walkAction of walkActions) {
-            walkAction.play();
-          }
-          const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
-          for (const idleAction of idleActions) {
-            idleAction.play();
-          }
-
-          sittable.update = timeDiff => {
-            timeDiff *= 1000;
-            
-            for (const walkAction of walkActions) {
-              walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1);
-            }
-            for (const idleAction of idleActions) {
-              idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
-            }
-
-            const deltaSeconds = timeDiff / 1000;
-            mixer.update(deltaSeconds);
-          };
-        } /* else {
-          console.warn('could not find walk animation in model: ' + JSON.stringify(walkAnimation) + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
-        } */
+      } else {
+        walkAnimation = [];
       }
+      if (idleAnimation) {
+        if (!Array.isArray(idleAnimation)) {
+          idleAnimation = [idleAnimation];
+        }
+      } else {
+        idleAnimation = [];
+      }
+      const walkAnimationClips = walkAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+      const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+
+      if (walkAnimationClips.length > 0 || idleAnimationClips.length > 0) {
+        // hacks
+        {
+          root.position.y = 0;
+          localEuler.setFromQuaternion(root.quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          root.quaternion.setFromEuler(localEuler);
+        }
+        
+        const mixer = new THREE.AnimationMixer(root);
+        const walkActions = walkAnimationClips.map(walkAnimationClip => mixer.clipAction(walkAnimationClip));
+        for (const walkAction of walkActions) {
+          walkAction.play();
+        }
+        const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
+        for (const idleAction of idleActions) {
+          idleAction.play();
+        }
+
+        sittable.update = timeDiff => {
+          timeDiff *= 1000;
+          
+          for (const walkAction of walkActions) {
+            walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * 10, 0), 1);
+          }
+          for (const idleAction of idleActions) {
+            idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
+          }
+
+          const deltaSeconds = timeDiff / 1000;
+          mixer.update(deltaSeconds);
+        };
+      } /* else {
+        console.warn('could not find walk animation in model: ' + JSON.stringify(walkAnimation) + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
+      } */
     }
     
     return sittable;
