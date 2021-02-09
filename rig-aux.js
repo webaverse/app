@@ -218,15 +218,34 @@ export class RigAux {
 
       const mesh = o;
       const animations = mesh.getAnimations();
-        
-      // const component = mesh.components.find(c => c.type === 'pet');
-      const {walkAnimation = 'walk', flyAnimation = 'fly', idleAnimation = 'idle'} = component;
-      
-      const walkAnimationClip = animations.find(a => a.name === walkAnimation);
-      const flyAnimationClip = animations.find(a => a.name === flyAnimation);
-      const idleAnimationClip = animations.find(a => a.name === idleAnimation);
-      const moveAnimationClip = walkAnimationClip || flyAnimationClip;
-      if (moveAnimationClip || idleAnimationClip) {
+      let  {walkAnimation = ['walk'], flyAnimation = ['fly'], idleAnimation = ['idle']} = component;
+      if (walkAnimation) {
+        if (!Array.isArray(walkAnimation)) {
+          walkAnimation = [walkAnimation];
+        }
+      } else {
+        walkAnimation = [];
+      }
+      if (flyAnimation) {
+        if (!Array.isArray(flyAnimation)) {
+          flyAnimation = [flyAnimation];
+        }
+      } else {
+        flyAnimation = [];
+      }
+      if (idleAnimation) {
+        if (!Array.isArray(idleAnimation)) {
+          idleAnimation = [idleAnimation];
+        }
+      } else {
+        idleAnimation = [];
+      }
+
+      const walkAnimationClips = walkAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+      const flyAnimationClips = flyAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+      const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+      const moveAnimationClips = walkAnimationClips.concat(flyAnimationClips);
+      if (moveAnimationClips.length > 0 || idleAnimationClips.length > 0) {
         // hacks
         {
           mesh.position.y = 0;
@@ -237,10 +256,18 @@ export class RigAux {
         }
         
         const mixer = new THREE.AnimationMixer(mesh);
-        const moveAction = moveAnimationClip && mixer.clipAction(moveAnimationClip);
-        moveAction && moveAction.play();
-        const idleAction = idleAnimationClip && mixer.clipAction(idleAnimationClip);
-        idleAction && idleAction.play();
+        const walkActions = walkAnimationClips.map(walkAnimationClip => mixer.clipAction(walkAnimationClip));
+        for (const walkAction of walkActions) {
+          walkAction.play();
+        }
+        const flyActions = flyAnimationClips.map(flyAnimationClip => mixer.clipAction(flyAnimationClip));
+        for (const flyAction of flyActions) {
+          flyAction.play();
+        }
+        const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
+        for (const idleAction of idleActions) {
+          idleAction.play();
+        }
 
         const smoothVelocity = new THREE.Vector3();
         pet.update = timeDiff => {
@@ -264,17 +291,19 @@ export class RigAux {
             moveDelta = new THREE.Vector3();
           }
           smoothVelocity.lerp(moveDelta, 0.3);
-          if (moveAnimationClip === walkAnimationClip) {
-            moveAction && (moveAction.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1));
+          for (const walkAction of walkActions) {
+            walkAction.weight = Math.min(Math.max(smoothVelocity.length() * 100, 0), 1);
           }
-          idleAction && (idleAction.weight = moveAction ? (1 - moveAction.weight) : 1);
+          for (const idleAction of idleActions) {
+            idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
+          }
 
           const deltaSeconds = timeDiff / 1000;
           mixer.update(deltaSeconds);
         };
-      } else {
+      } /* else {
         console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
-      }
+      } */
     }
     
     return pet;
