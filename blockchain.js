@@ -6,8 +6,8 @@ import ethereumJsTx from './ethereumjs-tx.js';
 import {makePromise} from './util.js';
 import {storageHost, web3MainnetSidechainEndpoint, web3RinkebySidechainEndpoint} from './constants.js';
 const {Transaction, Common} = ethereumJsTx;
-import addresses from 'https://contracts.webaverse.com/config/addresses.js';
-import abis from 'https://contracts.webaverse.com/config/abi.js';
+import addresses from './contracts/addresses.js';
+import abis from './contracts/abi.js';
 
 const injectedWeb3 = new Web3(window.ethereum);
 const web3 = {

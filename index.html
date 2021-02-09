@@ -3,7 +3,7 @@
 
 <head>
   <title>山</title>
-  <link href="/index.css" rel=stylesheet>
+  <link href="./index.css" rel=stylesheet>
 
   <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
@@ -13,7 +13,7 @@
   <header class=header id=header>
     <div id=progress-bar class=progress-bar></div>
     <div class="nav icon openable open" id=location-icon>
-      <img class="img primary" src="assets/logo-circle.svg">
+      <img class="img primary" src="./assets/logo-circle.svg">
       <div class="name primary" id=location-label>Unknown @0,0</div>
     </div>
     <div class="navs openable" id=profile-icon>
@@ -58,35 +58,35 @@
         <section class=equip-slots id=equip-slots>
           <div class=row>
             <div class=slot slot=leftHand draggable>
-              <img src="assets/noun_glove_937033.svg" class=placeholder>
+              <img src="./assets/noun_glove_937033.svg" class=placeholder>
             </div>
             <div class=slot slot=rightHand draggable>
-              <img src="assets/noun_glove_937033.svg" class="placeholder flip-horizontal">
+              <img src="./assets/noun_glove_937033.svg" class="placeholder flip-horizontal">
             </div>
           </div>
           <div class=row>
             <div class=slot slot=head draggable>
-              <img src="assets/noun_Helmet_937034.svg" class=placeholder>
+              <img src="./assets/noun_Helmet_937034.svg" class=placeholder>
             </div>
           </div>
           <div class=row>
             <div class=slot slot=body draggable>
-              <img src="assets/noun_body armor_937041.svg" class=placeholder>
+              <img src="./assets/noun_body armor_937041.svg" class=placeholder>
             </div>
           </div>
           <div class=row>
             <div class=slot slot=legs draggable>
-              <img src="assets/noun_Boots_937032.svg" class=placeholder>
+              <img src="./assets/noun_Boots_937032.svg" class=placeholder>
             </div>
           </div>
           <div class=row>
             <div class=slot slot=pet draggable>
-              <img src="assets/noun_Pet_1307711.svg" class=placeholder>
+              <img src="./assets/noun_Pet_1307711.svg" class=placeholder>
             </div>
           </div>
           <div class=row>
             <div class=slot slot=mount draggable>
-              <img src="assets/noun_Seat_2522171.svg" class=placeholder>
+              <img src="./assets/noun_Seat_2522171.svg" class=placeholder>
             </div>
           </div>
         </section>
@@ -523,8 +523,8 @@
   </div>
 
   <script src="./bin/geometry.js"></script>
-  <script type=module>
-    import App from '/app.js';
+  <!-- <script type=module>
+    import App from './dev/bundle.js';
     const app = new App();
 
     app.bootstrapFromUrl(location);
@@ -555,7 +555,7 @@
       .then(() => {
         app.startLoop();
       });
-  </script>
+  </script> -->
 </body>
 
 </html>

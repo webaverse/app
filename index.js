@@ -2,6 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
+const path = require('path');
 
 const CERT = fs.readFileSync('./certs/fullchain.pem');
 const PRIVKEY = fs.readFileSync('./certs/privkey.pem');
@@ -11,7 +12,7 @@ app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   next();
 });
-const appStatic = express.static(__dirname);
+const appStatic = express.static(path.resolve(__dirname, 'dev'));
 app.use(appStatic);
 app.get('*', (req, res, next) => {
   req.url = '404.html';
