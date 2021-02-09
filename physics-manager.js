@@ -83,6 +83,13 @@ const setSitState = newSitState => {
 };
 physicsManager.setSitState = setSitState;
 
+let damping;
+const setDamping = (newDamping = 0.7) => {
+  damping = newDamping;
+};
+setDamping();
+physicsManager.setDamping = setDamping;
+
 let sitTarget = null;
 const getSitTarget = () => sitTarget;
 physicsManager.getSitTarget = getSitTarget;
@@ -239,8 +246,8 @@ const _applyGravity = timeDiff => {
   }
   
   if (!jumpState || gliding) {
-    physicsManager.velocity.x *= 0.7;
-    physicsManager.velocity.z *= 0.7;
+    physicsManager.velocity.x *= damping;
+    physicsManager.velocity.z *= damping;
   }
 
   const terminalVelocity = 50;
