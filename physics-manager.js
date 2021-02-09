@@ -250,11 +250,11 @@ const _applyGravity = timeDiff => {
     physicsManager.velocity.z *= damping;
   }
 
-  const terminalVelocity = 50;
+  /* const terminalVelocity = 50;
   const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
   physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
   physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
-  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
+  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y); */
 };
 const _getAvatarWorldObject = o => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
