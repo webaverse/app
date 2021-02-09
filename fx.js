@@ -200,7 +200,7 @@ const loadPromise = Promise.all([
 
   const v = document.createElement('video');
   v.setAttribute('muted', '');
-  v.src = `./rtfx/2. Prerendered animations/FX elements/webm/${name}.webm`;
+  v.src = `https://webaverse.github.io/assets/${name}.webm`;
   
   // v.currentTime = 0;
   await new Promise((accept, reject) => {
