@@ -151,7 +151,6 @@ const _updateIo = timeDiff => {
       }
     }
   } else if (document.pointerLockElement) {
-    const speed = 0.1 * (ioManager.keys.shift ? 3 : 1);
     localVector.set(0, 0, 0);
     const direction = new THREE.Vector3(0, 0, 0);
     if (ioManager.keys.left) {
@@ -184,6 +183,7 @@ const _updateIo = timeDiff => {
     }
     localVector.add(direction);
     if (localVector.length() > 0) {
+      const speed = weaponsManager.getSpeed() * (ioManager.keys.shift ? 3 : 1);
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
       physicsManager.velocity.add(localVector);
