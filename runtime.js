@@ -408,7 +408,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const component = components.find(component => component.type === componentType);
       if (component) {
         const componentHandler = componentHandlers[component.type];
-        componentHandler.trigger(mesh, component, rigAux);
+        componentHandler.load(mesh, component, rigAux);
       }
     }
     return used;
