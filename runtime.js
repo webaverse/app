@@ -96,7 +96,7 @@ const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
-  'swing': {
+  swing: {
     trigger(o, component, rigAux) {
       physicsManager.startSwing();
     },
@@ -104,7 +104,7 @@ const componentHandlers = {
       physicsManager.stopSwing();
     },
   },
-  'wear': {
+  wear: {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
       const wearable = {
@@ -121,7 +121,7 @@ const componentHandlers = {
       };
     },
   },
-  'sit': {
+  sit: {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.sittables.length = 0;
@@ -142,7 +142,7 @@ const componentHandlers = {
       o.parent.remove(o);
     },
   },
-  'pet': {
+  pet: {
     load(o, component, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.pets.length = 0;
