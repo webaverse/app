@@ -225,6 +225,9 @@ const _selectLoadout = index => {
       if (appManager.equippedObjects[0] === selectedLoadoutObject) {
         _unequip();
       }
+      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+        _ungrab();
+      }
       
       world.removeObject(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
@@ -247,7 +250,11 @@ const _selectLoadout = index => {
         }
       }
 
-      _equip(selectedLoadoutObject);
+      if (selectedLoadoutObject.getComponents().some(component => component.type === 'swing')) {
+        _equip(selectedLoadoutObject);
+      } else {
+        _grab(selectedLoadoutObject);
+      }
     }
   })().catch(console.warn);
 };
