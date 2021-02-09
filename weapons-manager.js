@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -9,16 +10,19 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
+// import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
 import messages from './messages.js';
-import {getExt, bindUploadFileButton} from './util.js';
-import {storageHost, worldsHost} from './constants.js';
+import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
+import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import fx from './fx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -28,8 +32,17 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localColor = new THREE.Color();
+const localMatrix3 = new THREE.Matrix4();
+const localMatrix4 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
+
+const gltfLoader = new GLTFLoader();
+const equipArmQuaternions = [
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
+];
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -69,7 +82,6 @@ const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const gridSnapEl = document.getElementById('grid-snap');
 const tabs = Array.from(document.querySelectorAll('#profile-icon > .nav'));
-const uploadFileInput = document.getElementById('upload-file-input');
 const chatEl = document.getElementById('chat');
 const chatInputEl = document.getElementById('chat-input');
 const chatMessagesEl = document.getElementById('chat-messages');
@@ -184,8 +196,8 @@ editMesh.visible = false;
 scene.add(editMesh);
 let editedObject = null;
 
-const coord = new THREE.Vector3();
-const lastCoord = coord.clone();
+// const coord = new THREE.Vector3();
+// const lastCoord = coord.clone();
 let highlightedWorld = null;
 
 const moveMesh = _makeTargetMesh();
@@ -210,6 +222,9 @@ const _selectLoadout = index => {
 
   (async () => {
     if (selectedLoadoutObject) {
+      if (appManager.equippedObjects[0] === selectedLoadoutObject) {
+        _unequip();
+      }
       if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
         _ungrab();
       }
@@ -227,14 +242,33 @@ const _selectLoadout = index => {
         id = contentId;
       }
       selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      selectedLoadoutObject.position.copy(position);
-      selectedLoadoutObject.quaternion.copy(quaternion);
 
-      _grab(selectedLoadoutObject);
+      if (selectedLoadoutObject.getComponents().some(component => component.type === 'swing')) {
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.disableGeometry(physicsId);
+          }
+        }
+        
+        _equip(selectedLoadoutObject);
+      } else {
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        selectedLoadoutObject.position.copy(position);
+        selectedLoadoutObject.quaternion.copy(quaternion);
 
-      weaponsManager.setMenu(0);
+        if (selectedLoadoutObject.getPhysicsIds) {
+          const physicsIds = selectedLoadoutObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+          }
+        }
+
+        _grab(selectedLoadoutObject);
+
+        weaponsManager.setMenu(0);
+      }
     }
   })().catch(console.warn);
 };
@@ -364,114 +398,133 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  if (editedObject && editedObject.isBuild) {
+  if (weaponsManager.canBuild()) {
     editedObject.place();
+  } else if (appManager.grabbedObjects[0]) {
+    _deselectLoadout();
+    _ungrab();
+  } else {
+    if (highlightedPhysicsObject) {
+      if (world.getObjects().includes(highlightedPhysicsObject)) {
+        _grab(highlightedPhysicsObject);
+        _updateMenu();
+      }
+    }
+  }
+};
+const _mousedown = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.triggerAux && o.triggerAux();
+    
+    const effect = new THREE.Object3D();
+    effect.position.copy(o.position)
+      .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
+    effect.quaternion.copy(o.quaternion);
+    fx.add('bullet', effect);
+  }
+};
+const _mouseup = () => {
+  if (appManager.equippedObjects[0]) {
+    const o = appManager.equippedObjects[0];
+    o.untriggerAux && o.untriggerAux();
   }
 };
 
-const _equip = async () => {
-  if (highlightedObject) {
-    const {contentId} = highlightedObject;
-    
-    const notification = notifications.addNotification(`\
-      <i class="icon fa fa-user-ninja"></i>
-      <div class=wrap>
-        <div class=label>Getting changed</div>
-        <div class=text>
-          The system is updating your avatar...
+const _try = async () => {
+  const o = appManager.grabbedObjects[0];
+  if (o) {
+    _ungrab();
+
+    const used = o.useAux ? o.useAux(rigManager.localRig.aux) : false;
+    if (!used) {
+      const notification = notifications.addNotification(`\
+        <i class="icon fa fa-user-ninja"></i>
+        <div class=wrap>
+          <div class=label>Getting changed</div>
+          <div class=text>
+            The system is updating your avatar...
+          </div>
+          <div class=close-button>✕</div>
         </div>
-        <div class=close-button>✕</div>
-      </div>
-    `, {
-      timeout: Infinity,
-    });
-    try {
-      await loginManager.setAvatar(contentId);
-    } catch(err) {
-      console.warn(err);
-    } finally {
-      notifications.removeNotification(notification);
+      `, {
+        timeout: Infinity,
+      });
+      try {
+        await loginManager.setAvatar(o.contentId);
+      } catch(err) {
+        console.warn(err);
+      } finally {
+        notifications.removeNotification(notification);
+      }
     }
   }
 };
 
+const _handleUpload = async file => {
+  const {name, hash} = await loginManager.uploadFile(file);
+  console.log('uploaded', {name, hash});
+  
+  const transforms = rigManager.getRigTransforms();
+  let {position, quaternion} = transforms[0];
+  position = position.clone()
+    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+  quaternion = quaternion.clone();
+
+  const u = `${storageHost}/ipfs/${hash}/${name}`;
+  world.addObject(u, null, position, quaternion);
+};
 const bindUploadFileInput = uploadFileInput => {
-  bindUploadFileButton(uploadFileInput, async file => {
-    const transforms = rigManager.getRigTransforms();
-    let {position, quaternion} = transforms[0];
-    position = position.clone()
-      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    quaternion = quaternion.clone();
-
-    const {name, hash, id} = await loginManager.uploadFile(file);
-    console.log('uploaded', {name, hash, id});
-
-    const u = `${storageHost}/${hash}.${getExt(name)}`;
-    world.addObject(u, null, position, quaternion);
-  });
+  bindUploadFileButton(uploadFileInput, _handleUpload);
 };
 
 const _upload = () => {
+  const uploadFileInput = document.getElementById('upload-file-input');
   uploadFileInput.click();
 };
 
-const maxDistance = 10;
-const maxGrabDistance = 1.5;
 const _grab = object => {
-  const transforms = rigManager.getRigTransforms();
-  const {position, quaternion} = transforms[0];
+  const {position, quaternion} = renderer.xr.getSession() ? rigManager.getRigTransforms()[0] : camera;
 
   appManager.grabbedObjects[0] = object;
+  weaponsManager.gridSnap = 0;
 
+  object.updateMatrixWorld();
   object.savedRotation.copy(object.rotation);
   object.startQuaternion.copy(quaternion);
 
-  const distance = object.position.distanceTo(position);
+  appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
+    .premultiply(localMatrix.compose(position, quaternion, localVector.set(1, 1, 1)).invert());
+
+  weaponsManager.editMode = false;
+
+  /* const distance = object.position.distanceTo(position);
   if (distance < maxGrabDistance) {
     appManager.grabbedObjectOffsets[0] = 0;
   } else {
     appManager.grabbedObjectOffsets[0] = distance;
-  }
+  } */
 };
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
   appManager.grabbedObjects[0] = null;
+  editedObject = null
   _updateMenu();
+};
+
+const _equip = object => {
+  appManager.equippedObjects[0] = object;
+};
+const _unequip = () => {
+  appManager.equippedObjects[0] = null;
 };
 
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
+  const now = Date.now();
 
-  const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
-    const {position, quaternion} = transform;
-
-    let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-    if (collision) {
-      const {point} = collision;
-      o.position.fromArray(point)
-        .add(localVector2.set(0, 0.01, 0));
-
-      if (o.position.distanceTo(position) > offset) {
-        collision = null;
-      }
-    }
-    if (!collision) {
-      o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
-    }
-
-    const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
-    if (handSnap) {
-      _snapPosition(o, weaponsManager.getGridSnap());
-      o.quaternion.setFromEuler(o.savedRotation);
-    } else {
-      o.quaternion.copy(quaternion);
-    }
-
-    return {
-      handSnap,
-    };
-  };
+  fx.update();
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -489,19 +542,21 @@ const _updateWeapons = () => {
       if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
         const objects = world.getObjects();
         for (const candidate of objects) {
-          const {position, quaternion} = transforms[0];
-          localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-            .premultiply(
-              localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-                .invert()
-            )
-            .decompose(localVector, localQuaternion, localVector2);
-          if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
-            highlightMesh.position.copy(candidate.position);
-            highlightMesh.quaternion.copy(candidate.quaternion);
-            highlightMesh.visible = true;
-            highlightedObject = candidate;
-            break;
+          if (!appManager.equippedObjects.includes(candidate)) {
+            const {position, quaternion} = transforms[0];
+            localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+              .premultiply(
+                localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+                  .invert()
+              )
+              .decompose(localVector, localQuaternion, localVector2);
+            if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
+              highlightMesh.position.copy(candidate.position);
+              highlightMesh.quaternion.copy(candidate.quaternion);
+              highlightMesh.visible = true;
+              highlightedObject = candidate;
+              break;
+            }
           }
         }
       } else if (weaponsManager.getMenu() === 4) {
@@ -524,11 +579,125 @@ const _updateWeapons = () => {
   };
   _handleHighlight();
 
+  const _handleEdit = () => {
+    editMesh.visible = false;
+    
+    buildTool.update();
+
+    if (editedObject) {
+      editMesh.position.copy(editedObject.position);
+      editMesh.quaternion.copy(editedObject.quaternion);
+      editMesh.visible = true;
+
+      if (editedObject.isBuild) {
+        editedObject.update(transforms[0], weaponsManager.getGridSnap());
+      }
+    }
+  };
+  _handleEdit();
+
+  const _handlePush = () => {
+    if (ioManager.keys.forward) {
+      weaponsManager.menuPush(-1);
+    } else if (ioManager.keys.backward) {
+      weaponsManager.menuPush(1);
+    }
+  };
+  _handlePush();
+
+  const _handleGrab = () => {
+    let changed = false;
+
+    if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
+      if (highlightedObject) {
+        _grab(highlightedObject);
+        highlightedObject = null;
+        changed = true;
+      }
+    }
+    if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
+      appManager.grabbedObjects[0] = null;
+      changed = true;
+    }
+    if (changed) {
+      _updateMenu();
+    }
+  };
+  _handleGrab();
+
+  const _updateGrab = () => {
+    moveMesh.visible = false;
+
+    for (let i = 0; i < 2; i++) {
+      const grabbedObject = appManager.grabbedObjects[i];
+      if (grabbedObject) {
+        const {position, quaternion} = transforms[i];
+        localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+        
+        grabbedObject.updateMatrixWorld();
+        const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
+        
+        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
+          collisionEnabled: true,
+          handSnapEnabled: true,
+          appManager,
+          geometryManager,
+          gridSnap: weaponsManager.getGridSnap(),
+        });
+
+        grabbedObject.updateMatrixWorld();
+        const newMatrix = localMatrix3.copy(grabbedObject.matrixWorld);
+        
+        if (grabbedObject.getPhysicsIds) {
+          const physicsIds = grabbedObject.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+            const oldTransformMatrix = localMatrix4.compose(physicsTransform.position, physicsTransform.quaternion, localVector2.set(1, 1, 1));
+            oldTransformMatrix.clone()
+              .premultiply(oldMatrix.invert())
+              .premultiply(newMatrix)
+              .decompose(localVector, localQuaternion, localVector2);
+            physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion);
+          }
+        }
+        
+        grabbedObject.setPose(localVector.copy(grabbedObject.position), localQuaternion.copy(grabbedObject.quaternion), localVector2.copy(grabbedObject.scale));
+
+        if (handSnap) {
+          moveMesh.position.copy(grabbedObject.position);
+          moveMesh.quaternion.copy(grabbedObject.quaternion);
+          moveMesh.visible = true;
+        }
+      }
+    }
+  };
+  _updateGrab();
+  
+  const _updateEquip = () => {
+    for (let i = 0; i < 2; i++) {
+      const equippedObject = appManager.equippedObjects[i];
+      if (equippedObject) {
+        rigManager.localRig.modelBones.Right_wrist.getWorldPosition(localVector);
+        rigManager.localRig.modelBones.Right_wrist.getWorldQuaternion(localQuaternion)
+          .multiply(equipArmQuaternions[i]);
+        equippedObject.position.copy(localVector);
+        equippedObject.quaternion.copy(localQuaternion);
+      }
+    }
+  };
+  _updateEquip();
+
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
     if (weaponsManager.editMode) {
-      const {position, quaternion} = transforms[0];
+      const grabbedObject = appManager.grabbedObjects[0];
+      const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
+      for (const physicsId of grabbedPhysicsIds) {
+        geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+      }
+
+      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const objects = world.getObjects().concat(world.getStaticObjects());
@@ -542,6 +711,10 @@ const _updateWeapons = () => {
             }
           }
         }
+      }
+
+      for (const physicsId of grabbedPhysicsIds) {
+        geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
       }
     }
   };
@@ -579,95 +752,17 @@ const _updateWeapons = () => {
   };
   _updatePhysicsHighlight();
 
-  const _handleEdit = () => {
-    editMesh.visible = false;
-    buildTool.mesh.visible = false;
-
-    if (editedObject) {
-      editMesh.position.copy(editedObject.position);
-      editMesh.quaternion.copy(editedObject.quaternion);
-      editMesh.visible = true;
-
-      if (editedObject.isBuild) {
-        _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
-          collisionEnabled: true,
-          handSnapEnabled: false,
-        });
-
-        localEuler.setFromQuaternion(buildTool.mesh.startQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        buildTool.mesh.quaternion.premultiply(localQuaternion.setFromEuler(localEuler).invert());
-
-        localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        localQuaternion.setFromEuler(localEuler);
-        buildTool.mesh.quaternion.premultiply(localQuaternion);
-
-        buildTool.mesh.visible = true;
-      }
-    }
-  };
-  _handleEdit();
-
-  const _handlePush = () => {
-    if (ioManager.keys.forward) {
-      weaponsManager.menuPush(1);
-    } else if (ioManager.keys.backward) {
-      weaponsManager.menuPush(-1);
-    }
-  };
-  _handlePush();
-
-  const _handleGrab = () => {
-    let changed = false;
-
-    if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
-      if (highlightedObject) {
-        _grab(highlightedObject);
-        highlightedObject = null;
-        changed = true;
-      }
-    }
-    if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
-      appManager.grabbedObjects[0] = null;
-      changed = true;
-    }
-    if (changed) {
-      _updateMenu();
-    }
-  };
-  _handleGrab();
-
-  const _updateGrab = () => {
-    moveMesh.visible = false;
-
-    for (let i = 0; i < 2; i++) {
-      const grabbedObject = appManager.grabbedObjects[i];
-      if (grabbedObject) {
-        const {handSnap} = _updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
-          collisionEnabled: true,
-          handSnapEnabled: true,
-        });
-
-        if (handSnap) {
-          moveMesh.position.copy(grabbedObject.position);
-          moveMesh.quaternion.copy(grabbedObject.quaternion);
-          moveMesh.visible = true;
-        }
-      }
-    }
-  };
-  _updateGrab();
-
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      _updateGrabbedObject(deployMesh, transforms[0], maxGrabDistance, {
+      const {position, quaternion} = transforms[0];
+      localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+      localMatrix2.compose(localVector.set(0, 0, -maxGrabDistance), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+      updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
         collisionEnabled: true,
         handSnapEnabled: false,
+        appManager,
+        geometryManager,
+        gridSnap: weaponsManager.getGridSnap(),
       });
 
       localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
@@ -764,9 +859,17 @@ const _updateWeapons = () => {
   _handleUseAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) && !appManager.grabbedObjects[0]);
-  
+
   popovers.update();
+
+  inventoryUpdate();
 };
+
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+  side: THREE.DoubleSide,
+}));
+inventoryAvatarScene.add(cubeMesh); */
 
 /* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
@@ -864,19 +967,7 @@ const _renderWheel = (() => {
   };
 })(); */
 
-const _snapPosition = (o, positionSnap) => {
-  if (positionSnap > 0) {
-    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
-    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
-    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
-  }
-};
 const rotationSnap = Math.PI/6;
-const _snapRotation = (o, rotationSnap) => {
-  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
-  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
-  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
-};
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
@@ -1031,7 +1122,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   }
 
-  locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
+  locationLabel.innerText = `Overworld`;
 };
 
 const _loadItemSpec1 = async u => {
@@ -1045,10 +1136,15 @@ const _loadItemSpec1 = async u => {
 
   const object = await p;
   editedObject = object;
+  if (editedObject.isBuild) {
+    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+  }
 
   weaponsManager.setMenu(0);
-  appManager.grabbedObjectOffsets[0] = maxGrabDistance;
+  // appManager.grabbedObjectOffsets[0] = maxGrabDistance;
   cameraManager.requestPointerLock();
+
+  return object;
 };
 const itemSpecs3 = [
   {
@@ -1109,6 +1205,38 @@ const itemSpecs3 = [
   {
     "name": "camera",
     "start_url": "https://avaer.github.io/camera/index.js"
+  },
+  {
+    "name": "cat-in-hat",
+    "start_url": "https://avaer.github.io/cat-in-hat/manifest.json"
+  },
+  {
+    "name": "sword",
+    "start_url": "https://avaer.github.io/sword/manifest.json"
+  },
+  {
+    "name": "dragon-pet",
+    "start_url": "https://avaer.github.io/dragon-pet/manifest.json"
+  },
+  {
+    "name": "dragon-mount",
+    "start_url": "https://avaer.github.io/dragon-mount/manifest.json"
+  },
+  {
+    "name": "dragon-fly",
+    "start_url": "https://avaer.github.io/dragon-fly/manifest.json"
+  },
+  {
+    "name": "pistol",
+    "start_url": "https://avaer.github.io/pistol/manifest.json"
+  },
+  {
+    "name": "rifle",
+    "start_url": "https://avaer.github.io/rifle/manifest.json"
+  },
+  {
+    "name": "pickaxe",
+    "start_url": "https://avaer.github.io/pickaxe/manifest.json"
   },
   {
     "name": "cityscape",
@@ -1456,7 +1584,28 @@ const bindInterface = () => {
       }
     }
   });
+  chatInputEl.addEventListener('blur', e => {
+    chatInputEl.classList.remove('open');
+    chatInputEl.value = '';
+  });
 };
+
+renderer.domElement.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+renderer.domElement.addEventListener('drop', async e => {
+  e.preventDefault();
+  
+  const files = Array.from(e.dataTransfer.files);
+  for (const file of files) {
+    await _handleUpload(file);
+  }
+});
+
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+}));
+scene.add(cubeMesh); */
 
 const weaponsManager = {
   // weapons,
@@ -1559,11 +1708,17 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
-  canEquip() {
-    return highlightMesh.visible;
+  menuMouseDown() {
+    _mousedown();
   },
-  menuEquip() {
-    _equip();
+  menuMouseUp() {
+    _mouseup();
+  },
+  canTry() {
+    return !!appManager.grabbedObjects[0];
+  },
+  menuTry() {
+    _try();
   },
   menuKey(c) {
     menuMesh.key(c);
@@ -1591,7 +1746,9 @@ const weaponsManager = {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
   },
   menuPush(direction) {
-    appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
+    appManager.grabbedObjectMatrices[0].decompose(localVector, localQuaternion, localVector2);
+    localVector.z += direction * 0.1;
+    appManager.grabbedObjectMatrices[0].compose(localVector, localQuaternion, localVector2);
   },
   menuDrop() {
     console.log('menu drop');
@@ -1645,10 +1802,25 @@ const weaponsManager = {
   },
   toggleEditMode() {
     this.editMode = !this.editMode;
+    if (this.editMode) {
+      let changed = false;
+      if (appManager.grabbedObjects[0]) {
+        _deselectLoadout();
+        _ungrab();
+        changed = true;
+      }
+      if (editedObject) {
+        editedObject = null;
+        changed = true;
+      }
+      if (changed) {
+        _updateMenu();
+      }
+    }
   },
-  canUpload() {
+  /* canUpload() {
     return this.menuOpen === 1;
-  },
+  }, */
   menuUpload() {
     _upload();
   },
@@ -1665,6 +1837,29 @@ const weaponsManager = {
         chatInputEl.value = '';
       }
     }
+  },
+  canBuild() {
+    return !!editedObject && editedObject.isBuild;
+  },
+  canStartBuild() {
+    return !appManager.grabbedObjects[0] && !highlightedObject;
+  },
+  async startBuild(mode) {
+    const object = await _loadItemSpec1('./assets/type/object.geo');
+    object.setMode(mode);
+    this.gridSnap = 1;
+    this.editMode = false;
+  },
+  setBuildMode(mode) {
+    editedObject.setMode(mode);
+  },
+  canJumpOff() {
+    return rigManager.localRig.aux.sittables.length > 0;
+  },
+  jumpOff() {
+    const auxPose = rigManager.localRig.aux.getPose();
+    auxPose.sittables.length = 0;
+    rigManager.localRig.aux.setPose(auxPose);
   },
   update() {
     _updateWeapons();

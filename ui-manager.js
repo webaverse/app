@@ -227,8 +227,8 @@ const _makeInventoryShapesMesh = () => {
 }); */
 
 const popupMesh = makePopupMesh();
-  popupMesh.visible = false;
-  scene.add(popupMesh);
-  uiManager.popupMesh = popupMesh;
+popupMesh.visible = false;
+scene.add(popupMesh);
+uiManager.popupMesh = popupMesh;
 
 export default uiManager;

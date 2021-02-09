@@ -2,49 +2,139 @@ import * as THREE from './three.module.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import {buildMaterial} from './shaders.js';
+import geometryManager from './geometry-manager.js';
+import {updateGrabbedObject, snapPosition, snapRotation} from './util.js';
+import {baseUnit} from './constants.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 
 const texBase = 'vol_2_2';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 
-const mesh = (() => {
-  let geometry = new THREE.BoxBufferGeometry(1, 0.1, 1, 10, 1, 10);
-  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+const planeGeometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit, baseUnit, 1, baseUnit)
+  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
+for (let i = 0, j = 0; i < planeGeometry.attributes.position.array.length; i += 3, j += 2) {
+  if (planeGeometry.attributes.normal.array[i+1] === 0) {
+    planeGeometry.attributes.uv.array[j+1] = planeGeometry.attributes.position.array[i+1];
+  } else {
+    planeGeometry.attributes.uv.array[j+0] = planeGeometry.attributes.position.array[i+0]/4;
+    planeGeometry.attributes.uv.array[j+2] = planeGeometry.attributes.position.array[i+2]/4;
+  }
+}
+// planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
+const modeMeshes = {
+  floor: (() => {
+    const offset = new THREE.Vector3(0, -baseUnit/2, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, 1);
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
-  for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-    if (geometry.attributes.normal.array[i+1] === 0) {
-      geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
+    geometry = geometry.toNonIndexed();
+
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
     }
-  }
-  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
 
-  geometry = geometry.toNonIndexed();
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.order = 'YXZ';
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+  wall: (() => {
+    const offset = new THREE.Vector3(0, -baseUnit/2, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, 1);
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
-  /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-  let barycentricIndex = 0;
-  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-  }
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+    geometry = geometry.toNonIndexed();
 
-  const material = buildMaterial;
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.order = 'YXZ';
-  mesh.savedRotation = mesh.rotation.clone();
-  mesh.startQuaternion = mesh.quaternion.clone();
-  return mesh;
-})();
-mesh.visible = false;
-scene.add(mesh);
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+    }
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    mesh.rotation.order = 'YXZ';
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+  stair: (() => {
+    const offset = new THREE.Vector3(0, 0, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, Math.sqrt(2));
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
+
+    geometry = geometry.toNonIndexed();
+
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+    }
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4);
+    mesh.rotation.order = 'YXZ';
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+};
+for (const k in modeMeshes) {
+  const mesh = modeMeshes[k];
+  mesh.visible = false;
+  scene.add(mesh);
+}
 
 const shapeMaterial = (() => {
   const map = new THREE.Texture();
@@ -349,9 +439,7 @@ const shapeMaterial = (() => {
 
       '}'
     ].join('\n'),
-    
-    
-    
+
     /* uniforms: {
       uTex: {
         type: 't',
@@ -410,18 +498,6 @@ const shapeMaterial = (() => {
   return material;
 })();
 
-/* const positionSnap = 0.1;
-const rotationSnap = Math.PI/10;
-const _snap = o => {
-  o.position.x = Math.floor(o.position.x/positionSnap)*positionSnap;
-  o.position.y = Math.floor(o.position.y/positionSnap)*positionSnap;
-  o.position.z = Math.floor(o.position.z/positionSnap)*positionSnap;
-
-  o.rotation.x = Math.round(o.rotation.x/rotationSnap)*rotationSnap;
-  o.rotation.y = Math.round(o.rotation.y/rotationSnap)*rotationSnap;
-  o.rotation.z = Math.round(o.rotation.z/rotationSnap)*rotationSnap;
-}; */
-
 const makeShapeMesh = () => {
   const object = new THREE.Object3D();
   const physicsIds = [];
@@ -435,17 +511,48 @@ const makeShapeMesh = () => {
     physicsIds.length = 0;
   };
   object.isBuild = true;
+  let mode = 'floor';
+  object.setMode = newMode => {
+    mode = newMode;
+  };
+  object.getPhysicsIds = () => physicsIds;
+  object.update = (transform, gridSnap) => {
+    const modeMesh = modeMeshes[mode];
+    modeMesh.visible = true;
+
+    const {position, quaternion} = transform;
+    localMatrix.compose(localVector.copy(position).add(localVector2.set(0, baseUnit/2, 0)), quaternion, localVector3.set(1, 1, 1));
+    updateGrabbedObject(modeMesh, localMatrix, appManager.grabbedObjectMatrices[0], {
+      collisionEnabled: true,
+      handSnapEnabled: false,
+      appManager,
+      geometryManager,
+      gridSnap,
+    });
+
+    localEuler.setFromQuaternion(modeMesh.startQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+    modeMesh.quaternion.premultiply(localQuaternion.setFromEuler(localEuler).invert());
+
+    localEuler.setFromQuaternion(transform.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+    localQuaternion.setFromEuler(localEuler);
+    modeMesh.quaternion.premultiply(localQuaternion);
+
+    // modeMesh.visible = true;
+  };
   const shapes = [];
   object.place = () => {
-    const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1);
-    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-      if (geometry.attributes.normal.array[i+1] === 0) {
-        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
-      }
-    }
+    const modeMesh = modeMeshes[mode];
+    
+    const geometry = modeMesh.geometry.clone();
     const shapeMesh = new THREE.Mesh(geometry, shapeMaterial);
-    shapeMesh.position.copy(mesh.position);
-    shapeMesh.quaternion.copy(mesh.quaternion);
+    shapeMesh.position.copy(modeMesh.position);
+    shapeMesh.quaternion.copy(modeMesh.quaternion);
     shapeMesh.updateMatrix();
     shapeMesh.matrix
       .premultiply(object.matrixWorld.clone().invert())
@@ -453,26 +560,35 @@ const makeShapeMesh = () => {
     object.add(shapeMesh);
     shapes.push(shapeMesh);
     
-    const physicsId = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
+    const physicsId = physicsManager.addBoxGeometry(
+      localVector.copy(modeMesh.position)
+        .add(
+          localVector2.set(0, 1/baseUnit/2, 0)
+            .applyQuaternion(modeMesh.quaternion)
+        )
+        .add(
+          localVector2.copy(modeMesh.offset)
+            .applyQuaternion(modeMesh.quaternion)
+        ),
+        modeMesh.quaternion,
+        localVector3.set(baseUnit/2 * modeMesh.scaleFactor.x, 1/baseUnit/2 * modeMesh.scaleFactor.y, baseUnit/2 * modeMesh.scaleFactor.z),
+        false
+      );
     physicsIds.push(physicsId);
   };
   object.getShapes = () => shapes;
   return object;
 };
 
-/* const update = () => {
-  const transforms = rigManager.getRigTransforms();
-  const [{position, quaternion}] = transforms;
-
-  mesh.position.copy(position)
-    .add(localVector.set(0, -0.5, -1).applyQuaternion(quaternion));
-  mesh.rotation.setFromQuaternion(quaternion, 'YXZ');
-  // _snap(mesh);
-}; */
+const update = () => {
+  for (const k in modeMeshes) {
+    modeMeshes[k].visible = false;
+  }
+};
 
 const geometryTool = {
-  mesh,
+  // mesh,
   makeShapeMesh,
-  // update,
+  update,
 };
 export default geometryTool;

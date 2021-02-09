@@ -52,6 +52,88 @@
     <div class=early-access-label>Webaverse Season 0 [Early Access] | <span id=network-name></span></div>
     <form id=login-form></form>
     <div class=notifications id=notifications></div>
+    <div class=inventory-menu id=inventory-menu>
+      <div class=wrap>
+        <canvas id=inventory-avatar></canvas>
+        <section class=equip-slots id=equip-slots>
+          <div class=row>
+            <div class=slot slot=leftHand draggable>
+              <img src="assets/noun_glove_937033.svg" class=placeholder>
+            </div>
+            <div class=slot slot=rightHand draggable>
+              <img src="assets/noun_glove_937033.svg" class="placeholder flip-horizontal">
+            </div>
+          </div>
+          <div class=row>
+            <div class=slot slot=head draggable>
+              <img src="assets/noun_Helmet_937034.svg" class=placeholder>
+            </div>
+          </div>
+          <div class=row>
+            <div class=slot slot=body draggable>
+              <img src="assets/noun_body armor_937041.svg" class=placeholder>
+            </div>
+          </div>
+          <div class=row>
+            <div class=slot slot=legs draggable>
+              <img src="assets/noun_Boots_937032.svg" class=placeholder>
+            </div>
+          </div>
+          <div class=row>
+            <div class=slot slot=pet draggable>
+              <img src="assets/noun_Pet_1307711.svg" class=placeholder>
+            </div>
+          </div>
+          <div class=row>
+            <div class=slot slot=mount draggable>
+              <img src="assets/noun_Seat_2522171.svg" class=placeholder>
+            </div>
+          </div>
+        </section>
+        <section class=inventory-slots id=inventory-slots>
+          <div class=row>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+          </div>
+          <div class=row>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+          </div>
+          <div class=row>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+          </div>
+          <div class=row>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+            <div class=slot draggable></div>
+          </div>
+        </section>
+      </div>
+    </div>
   </header>
 
   <footer>
@@ -136,6 +218,13 @@
       <div class="keys">
         <div class="row"></div>
         <div class="row">
+          <div class="label center">Upload</div>
+          <div class="key" id="key-t">U</div>
+        </div>
+      </div>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
           <div class="label center">Text chat</div>
           <div class="key" id="key-enter">Enter</div>
           <!-- <div class="key" id="key-b" function="thirdperson">B</div>
@@ -147,17 +236,14 @@
       <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
     </div>
   </footer>
+  
+  <input type=file class=hidden id=upload-file-input>
 
   <div class="menu wide primary" id=menu-1>
     <div class="tabs">
       <div class="key-helper">
         <div class=key id=key-tab-1>← Tab</div>
         <div class=label>Close</div>
-      </div>
-      <div class="key-helper">
-        <div class=key>U</div>
-        <div class=label>Upload File...</div>
-        <input type=file class=hidden id=upload-file-input>
       </div>
     </div>
     <div class=items id=items-1></div>
@@ -201,10 +287,6 @@
         <div class=label>Grab</div>
       </div>
       <div class="key-helper">
-        <div class=key>R</div>
-        <div class=label>Equip</div>
-      </div>
-      <div class="key-helper">
         <div class=key>X</div>
         <div class=label>Delete</div>
       </div>
@@ -237,16 +319,16 @@
         <div class=label>Rotate Counter-clockwise</div>
       </div>
       <div class="key-helper">
-        <div class=key>G</div>
-        <div class=label>Drops [off]</div>
-      </div>
-      <div class="key-helper">
         <div class=key>Z</div>
         <div class=label>Rotation Axis [All]</div>
       </div>
       <div class="key-helper">
         <div class=key>Z</div>
         <div class=label>Rotation Reset (Hold)</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>G</div>
+        <div class=label>Equip</div>
       </div>
       <div class="key-helper">
         <div class=key>V</div>
@@ -469,7 +551,10 @@
       },
     });
     
-    app.startLoop();
+    app.waitForLoad()
+      .then(() => {
+        app.startLoop();
+      });
   </script>
 </body>
 

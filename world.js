@@ -8,7 +8,9 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {appManager, scene, scene3} from './app-object.js';
+import {camera, appManager, scene, scene3} from './app-object.js';
+import {baseUnit} from './constants.js';
+import {contentIdToFile} from './util.js';
 import {
   storageHost,
   // worldsHost,
@@ -124,37 +126,44 @@ world.connectRoom = async (roomName, worldURL) => {
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
 
-      world.dispatchEvent(new MessageEvent('peersupdate', {
+      /* world.dispatchEvent(new MessageEvent('peersupdate', {
         data: Array.from(rigManager.peerRigs.values()),
-      }));
+      })); */
     });
 
     peerConnection.addEventListener('status', e => {
-      const {peerId, status: {name, avatarUrl, avatarExt, address}} = e.data;
+      const {peerId, status: {name, avatarUrl, avatarExt, address, aux}} = e.data;
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
       peerConnection.address = address;
 
-      let updated = false;
+      // let updated = false;
 
       const currentPeerName = peerRig.textMesh.text;
       if (currentPeerName !== name) {
         rigManager.setPeerAvatarName(name, peerId);
-        updated = true;
+        // updated = true;
       }
 
       const newAvatarUrl = avatarUrl || null;
       const currentAvatarUrl = peerRig.avatarUrl;
       if (currentAvatarUrl !== newAvatarUrl) {
         rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
-        updated = true;
+        // updated = true;
       }
 
-      if (updated) {
+      if (currentAvatarUrl !== newAvatarUrl) {
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
+        // updated = true;
+      }
+      
+      rigManager.setPeerAvatarAux(aux, peerId);
+
+      /* if (updated) {
         world.dispatchEvent(new MessageEvent('peersupdate', {
           data: Array.from(rigManager.peerRigs.values()),
         }));
-      }
+      } */
     });
     peerConnection.addEventListener('pose', e => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
@@ -199,6 +208,7 @@ world.connectRoom = async (roomName, worldURL) => {
         const avatarUrl = avatarSpec && avatarSpec.url;
         const avatarExt = avatarSpec && avatarSpec.ext;
         const address = loginManager.getAddress();
+        const aux = rigManager.localRig.aux.getPose();
         channelConnection.send(JSON.stringify({
           method: 'status',
           data: {
@@ -207,7 +217,8 @@ world.connectRoom = async (roomName, worldURL) => {
               name,
               avatarUrl,
               avatarExt,
-              address
+              address,
+              aux,
             },
           },
         }));
@@ -221,9 +232,9 @@ world.connectRoom = async (roomName, worldURL) => {
       }, 10);
     }
 
-    world.dispatchEvent(new MessageEvent('peersupdate', {
+    /* world.dispatchEvent(new MessageEvent('peersupdate', {
       data: Array.from(rigManager.peerRigs.values()),
-    }));
+    })); */
   });
   channelConnection.close = (close => function() {
     close.apply(this, arguments);
@@ -267,6 +278,7 @@ const _addObject = dynamic => (contentId, parentId = null, position = new THREE.
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
+    trackedObject.set('scale', [1, 1, 1]);
     trackedObject.set('options', JSON.stringify(options));
   });
   if (pendingAddPromise) {
@@ -329,51 +341,19 @@ world.addEventListener('trackedobjectadd', async e => {
     const trackedObjectJson = trackedObject.toJSON();
     const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
     const options = JSON.parse(optionsString);
-    let token = null;
 
-    const file = await (async () => {
-      if (typeof contentId === 'number') {
-        const res = await fetch(`${tokensHost}/${contentId}`);
-        token = await res.json();
-        const {hash, name, ext} = token.properties;
-
-        const res2 = await fetch(`${storageHost}/${hash}`);
-        const file = await res2.blob();
-        file.name = `${name}.${ext}`;
-        return file;
-      } else if (typeof contentId === 'string') {
-        let url, name;
-        if (/blob:/.test(contentId)) {
-          const match = contentId.match(/^(.+)\/([^\/]+)$/);
-          if (match) {
-            url = match[1];
-            name = match[2];
-          } else {
-            console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
-            return null;
-          }
-        } else {
-          url = contentId;
-          name = contentId;
-        }
-        return {
-          url,
-          name,
-        };
-      } else {
-        console.warn('unknown content id type', contentId);
-        return null;
-      }
-    })();
+    const file = await contentIdToFile(contentId);
     let mesh;
     if (file) {
       mesh = await runtime.loadFile(file, {
         instanceId: instanceId,
         physics: options.physics,
         physics_url: options.physics_url,
+        autoScale: options.autoScale,
+        autoRun: options.autoRun,
         dynamic,
-        monetizationPointer: token ? token.owner.monetizationPointer : "",
-        ownerAddress: token ? token.owner.address : ""
+        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+        ownerAddress: file.token ? file.token.owner.address : ""
       });
       if (mesh) {
         mesh.position.fromArray(position);
@@ -391,12 +371,12 @@ world.addEventListener('trackedobjectadd', async e => {
         }
 
         mesh.run && await mesh.run();
-        if (mesh.getStaticPhysicsIds) {
+        /* if (mesh.getStaticPhysicsIds) {
           const staticPhysicsIds = mesh.getStaticPhysicsIds();
           for (const physicsId of staticPhysicsIds) {
             physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
           }
-        }
+        } */
       } else {
         console.warn('failed to load object', file);
 
@@ -404,21 +384,23 @@ world.addEventListener('trackedobjectadd', async e => {
         scene.add(mesh);
       }
 
-      mesh.setPose = (position, quaternion) => {
+      mesh.setPose = (position, quaternion, scale) => {
         trackedObject.set('position', position.toArray());
         trackedObject.set('quaternion', quaternion.toArray());
+        trackedObject.set('scale', scale.toArray());
       };
 
       const _observe = () => {
         mesh.position.fromArray(trackedObject.get('position'));
         mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+        mesh.scale.fromArray(trackedObject.get('scale'));
       };
       trackedObject.observe(_observe);
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
 
-      if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = token.owner.monetizationPointer;
-        const ownerAddress = token.owner.address.toLowerCase();
+      if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = file.token.owner.monetizationPointer;
+        const ownerAddress = file.token.owner.address.toLowerCase();
         pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
       }
 
@@ -500,13 +482,17 @@ world.getWorldJson = async q => {
     }
     for (const object of spec.objects) {
       object.dynamic = true;
+      object.autoScale = false;
+      object.autoRun = true;
     }
     spec.objects.splice(0, 0, {
       start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
-    for (const object of spec.objects) {
+    /* for (const object of spec.objects) {
       object.position = [0, 0, -2];
-    }
+    } */
+    camera.position.set(0, 0, baseUnit);
+    // camera.updateMatrixWorld();
   } else {
     spec = _getDefault();
   }

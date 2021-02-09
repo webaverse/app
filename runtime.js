@@ -92,11 +92,87 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
     return new URL(p, srcUrl).href;
   },
 });
-const _isResolvableUrl = u => !/^[a-z]+:/.test(u);
+const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
-// const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const componentHandlers = {
+  swing: {
+    trigger(o, component, rigAux) {
+      physicsManager.startSwing();
+    },
+    untrigger(o, component, rigAux) {
+      physicsManager.stopSwing();
+    },
+  },
+  wear: {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      const wearable = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      };
+      auxPose.wearables.push(wearable);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.wearables = auxPose.wearables.filter(w => w.id !== wearable.id);
+        rigAux.setPose(auxPose);
+      };
+    },
+  },
+  sit: {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.sittables.length = 0;
+      const sittable = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component
+      };
+      auxPose.sittables.push(sittable);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.sittables = auxPose.sittables.filter(w => w.id !== sittable.id);
+        rigAux.setPose(auxPose);
+      };
+    },
+    unload(o, component) {
+      o.parent.remove(o);
+    },
+  },
+  pet: {
+    load(o, component, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.pets.length = 0;
+      const pet = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        component,
+      };
+      auxPose.pets.push(pet);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        // console.log('filter 1', auxPose.pets.slice());
+        auxPose.pets = auxPose.pets.filter(w => w.id !== pet.id);
+        // console.log('filter 2', auxPose.pets.slice());
+        rigAux.setPose(auxPose);
+      };
+    },
+  },
+};
+const triggerComponentTypes = [
+  'swing',
+];
+const loadComponentTypes = [
+  'wear',
+  'sit',
+  'pet',
+];
+
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -150,7 +226,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
       });
     };
-    _loadAnimations();
+    if (!components.some(c => ['sit', 'pet'].includes(c.type))) {
+      _loadAnimations();
+    }
 
     const _loadLightmaps = () => {
       const _loadLightmap = async (parser, materialIndex) => {
@@ -286,22 +364,19 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  if (dynamic && autoScale) {
+  /* if (dynamic && autoScale) {
     localBox.setFromObject(o);
     const size = localBox.getSize(localVector);
     const maxSizeDim = Math.max(size.x, size.y, size.z);
     if (maxSizeDim > 4) {
       o.scale.multiplyScalar(4/maxSizeDim);
     }
-  }
+  } */
 
   let physicsMesh = null;
   let physicsBuffer = null;
   let physicsIds = [];
   let staticPhysicsIds = [];
-  if (physics) {
-    physicsMesh = convertMeshToPhysicsMesh(mesh);
-  }
   if (physics_url) {
     if (files && _isResolvableUrl(physics_url)) {
       physics_url = files[_dotifyUrl(physics_url)];
@@ -309,10 +384,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     const res = await fetch(physics_url);
     const arrayBuffer = await res.arrayBuffer();
     physicsBuffer = new Uint8Array(arrayBuffer);
+  } else {
+    physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
 
   mesh.run = async () => {
     if (physicsMesh) {
+      physicsMesh.position.copy(mesh.position);
+      physicsMesh.quaternion.copy(mesh.quaternion);
       const physicsId = physicsManager.addGeometry(physicsMesh);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
@@ -323,15 +402,60 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
   };
+  mesh.triggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.trigger(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
+  const componentUnloadFns = [];
+  mesh.useAux = rigAux => {
+    let used = false;
+    for (const componentType of loadComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.load(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
     staticPhysicsIds.length = 0;
+    
+    for (const fn of componentUnloadFns) {
+      fn();
+    }
+    componentUnloadFns.length = 0;
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  mesh.getAnimations = () => animations;
+  mesh.getComponents = () => components;
+  // mesh.used = false;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -445,7 +569,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -476,7 +600,14 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
     }
   });
   o.isVrm = true;
-  o.run = () => {
+
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  o.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+    
     // elide expensive bone updates; this should not be called if wearing the avatar
     const skinnedMeshes = [];
     o.traverse(o => {
@@ -500,6 +631,16 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
       }
     }
   };
+  o.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  o.getPhysicsIds = () => physicsIds;
+  o.getStaticPhysicsIds = () => staticPhysicsIds;
+  o.getComponents = () => components;
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
@@ -712,7 +853,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -749,6 +890,30 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
         }
       });
   };
+  mesh.triggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.trigger(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
+  mesh.untriggerAux = rigAux => {
+    let used = false;
+    for (const componentType of triggerComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.untrigger(mesh, component, rigAux);
+        used = true;
+      }
+    }
+    return used;
+  };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
 
@@ -765,6 +930,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
+  mesh.getComponents = () => components;
+  // mesh.used = false;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
@@ -833,7 +1000,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -848,8 +1015,10 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics, physics_url} = j;
-  const u = _dotifyUrl(start_url);
+  let {start_url, physics, physics_url, components} = j;
+  if (typeof j.autoScale === 'boolean') {
+    autoScale = j.autoScale;
+  }
 
   /* if (physics_url) {
     if (files && _isResolvableUrl(physics_url)) {
@@ -857,6 +1026,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     }
   } */
 
+  const u = _dotifyUrl(start_url);
   return await runtime.loadFile({
     url: u,
     name: u,
@@ -865,13 +1035,15 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     parentUrl: srcUrl,
     physics,
     physics_url,
+    components,
+    autoScale,
     instanceId,
     ownerAddress,
     monetizationPointer,
   });
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null}) => {
+const _loadWebBundle = async (file, {instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -910,6 +1082,7 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
   }, {
     files,
     instanceId,
+    autoScale,
     ownerAddress,
     monetizationPointer,
   });
@@ -1288,6 +1461,7 @@ const typeHandlers = {
   'vox': _loadVox,
   'png': _loadImg,
   'gif': _loadImg,
+  'jpeg': _loadImg,
   'jpg': _loadImg,
   'js': _loadScript,
   'json': _loadManifestJson,

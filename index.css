@@ -1330,6 +1330,7 @@ input[type=file].hidden {
   position: absolute;
   top: 0;
   left: -300px;
+  z-index: -1;
   width: calc(100% + 300px);
   height: 100%;
   cursor: pointer;
@@ -2876,4 +2877,62 @@ progress::-webkit-progress-value {
 
 #network-name {
   text-transform: capitalize;
+}
+
+.inventory-menu {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  align-items: center;
+}
+.inventory-menu:not(.open) {
+  display: none;
+}
+.inventory-menu > .wrap {
+  display: flex;
+  position: relative;
+  width: 1000px;
+  height: 600px;
+  background: radial-gradient(#00B3DB, #003743);
+  border: 5px solid #003743;
+}
+.inventory-menu .wrap .equip-slots {
+  display: flex;
+  padding: 30px 0;
+  align-items: center;
+  flex-direction: column;
+}
+.inventory-menu .wrap .slot {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  margin: 3px;
+  padding: 5px;
+  border: 3px solid #00000020;
+  cursor: pointer;
+}
+.inventory-menu .wrap .slot:hover {
+  background-color: #00B3DB;
+  fill: #FF0000;
+}
+.inventory-menu .wrap .slot .placeholder,
+.inventory-menu .wrap .slot .item
+{
+  position: absolute;
+  width: calc(50px - 5px * 2 - 3px * 2);
+  height: calc(50px - 5px * 2 - 3px * 2);
+}
+.inventory-menu .wrap .slot .placeholder {
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+.inventory-menu .wrap .slot .flip-horizontal {
+  transform: scalex(-1);
+}
+.inventory-menu .wrap .inventory-slots {
+  padding: 30px;
 }

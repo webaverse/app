@@ -4,6 +4,7 @@ import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
+import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 
@@ -130,7 +131,8 @@ const _updateIo = timeDiff => {
           if (
             buttons[3] >= 0.5 && ioManager.lastButtons[index][3] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !physicsManager.getJumpState()
+            !physicsManager.getJumpState() &&
+            !physicsManager.getSitState()
           ) {
             physicsManager.jump();
           }
@@ -274,9 +276,7 @@ ioManager.bindInput = () => {
       }
       case 82: { // R
         if (document.pointerLockElement) {
-          if (weaponsManager.canEquip()) {
-            weaponsManager.menuEquip();
-          } else if (weaponsManager.canRotate()) {
+          if (weaponsManager.canRotate()) {
             weaponsManager.menuRotate(1);
           }
           // pe.equip('back');
@@ -292,39 +292,66 @@ ioManager.bindInput = () => {
         e.stopPropagation();
         if (weaponsManager.canPush()) {
           ioManager.keys.forward = true;
-          // weaponsManager.menuPush(-1);
         } else {
+          if (weaponsManager.canJumpOff()) {
+            weaponsManager.jumpOff();
+          }
           physicsManager.setFlyState(!physicsManager.getFlyState());
         }
         break;
       }
-      case 67: { // C
-        if (weaponsManager.canPush()) {
-          ioManager.keys.backward = true;
-          // weaponsManager.menuPush(1);
-        } /* else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
-          e.preventDefault();
-          e.stopPropagation();
-          document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
-            which: e.which,
-            shiftKey: e.shiftKey,
-            ctrlKey: e.ctrlKey,
-            altKey: e.altKey,
-            metaKey: e.metaKey,
-          }));
-        } */
+      case 71: { // G
+        if (document.pointerLockElement) {
+          if (weaponsManager.canTry()) {
+            weaponsManager.menuTry();
+          }
+        }
         break;
       }
-      case 82: { // R
+      case 90: { // Z
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('wall');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('wall');
+          }
+        }
+        break;
+      }
+      case 88: { // X
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('floor');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('floor');
+          } else {
+            weaponsManager.menuDelete();
+          }
+        }
+        break;
+      }
+      case 67: { // C
+        if (!e.ctrlKey) {
+          if (weaponsManager.canStartBuild()) {
+            weaponsManager.startBuild('stair');
+          } else if (weaponsManager.canBuild()) {
+            weaponsManager.setBuildMode('stair');
+          } else if (weaponsManager.canPush()) {
+            ioManager.keys.backward = true;
+          }
+        }
+        break;
+      }
+      case 73: { // I
+        inventoryToggle();
+        break;
+      }
+      /* case 82: { // R
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-r').click(); // equip
         break;
-      }
-      case 88: { // X
-        weaponsManager.menuDelete();
-        break
-      }
+      } */
       case 71: { // G
         weaponsManager.menuDrop();
         break;
@@ -347,11 +374,11 @@ ioManager.bindInput = () => {
         break;
       }
       case 85: { // U
-        if (weaponsManager.canUpload()) {
+        // if (weaponsManager.canUpload()) {
           e.preventDefault();
           e.stopPropagation();
           weaponsManager.menuUpload();
-        }
+        // }
         break;
       }
       case 80: { // P
@@ -372,6 +399,9 @@ ioManager.bindInput = () => {
         if (document.pointerLockElement) {
           ioManager.keys.space = true;
           if (!physicsManager.getJumpState()) {
+            if (weaponsManager.canJumpOff()) {
+              weaponsManager.jumpOff();
+            }
             physicsManager.jump();
           } else {
             physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
@@ -412,6 +442,9 @@ ioManager.bindInput = () => {
     }
   });
   window.addEventListener('keyup', e => {
+    if (_inputFocused() || e.repeat) {
+      return;
+    }
     switch (e.which) {
       /* case 81: { // Q
         weaponsManager.setWeaponWheel(false);
@@ -517,6 +550,16 @@ ioManager.bindInput = () => {
     if (!document.pointerLockElement && e.buttons === 0) {
       weaponsManager.setMenu(0);
       cameraManager.requestPointerLock();
+    }
+  });
+  renderer.domElement.addEventListener('mousedown', e => {
+    if (document.pointerLockElement && e.buttons === 1) {
+      weaponsManager.menuMouseDown();
+    }
+  });
+  renderer.domElement.addEventListener('mouseup', e => {
+    if (document.pointerLockElement && e.buttons === 0) {
+      weaponsManager.menuMouseUp();
     }
   });
   window.addEventListener('resize', e => {

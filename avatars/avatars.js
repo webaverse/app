@@ -8,21 +8,20 @@ import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
-import animationsJson from '../animations/animations.js';
+import CBOR from '../cbor.js';
 
-/* import {FBXLoader} from '../FBXLoader.js';
-import {downloadFile} from '../util.js'; */
+// import {FBXLoader} from '../FBXLoader.js';
+// import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
-const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
-const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.4);
-const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.4);
+const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
+const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
 
 const animationsSelectMap = {
@@ -51,6 +50,20 @@ const animationsSelectMap = {
   
   // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
+  'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
+  'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
+  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -78,180 +91,245 @@ const animationsDistanceMap = {
   
   // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Pistol Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
+  'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
+  'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
+  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
 };
-let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
-/* // bake animations
-(async () => {
-  animations = [];
-  const fbxLoader = new FBXLoader();
-  const animationFileNames = [
-    `idle.fbx`,
-    `jump.fbx`,
-    `left strafe walking.fbx`,
-    `left strafe.fbx`,
-    // `left turn 90.fbx`,
-    // `left turn.fbx`,
-    `right strafe walking.fbx`,
-    `right strafe.fbx`,
-    // `right turn 90.fbx`,
-    // `right turn.fbx`,
-    `running.fbx`,
-    `walking.fbx`,
-    // `ybot.fbx`,
-    `running backwards.fbx`,
-    `walking backwards.fbx`,
-    // `falling.fbx`,
-    // `falling idle.fbx`,
-    // `falling landing.fbx`,
-    // `floating.fbx`,
-    `treading water.fbx`,
-  ];
-  for (const name of animationFileNames) {
-    const u = './animations/' + name;
-    let o = await new Promise((accept, reject) => {
-      fbxLoader.load(u, accept, function progress() {}, reject);
-    });
-    o = o.animations[0];
-    o.name = name;
-    animations.push(o);
-  }
-  const _reverseAnimation = animation => {
-    animation = animation.clone();
-    const {tracks} = animation;
-    for (const track of tracks) {
-      track.times.reverse();
-      for (let i = 0; i < track.times.length; i++) {
-        track.times[i] = animation.duration - track.times[i];
-      }
+let animations;
 
-      const values2 = new track.values.constructor(track.values.length);
-      const valueSize = track.getValueSize();
-      const numValues = track.values.length / valueSize;
-      for (let i = 0; i < numValues; i++) {
-        const aIndex = i;
-        const bIndex = numValues - 1 - i;
-        for (let j = 0; j < valueSize; j++) {
-          values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+let walkingAnimations;
+let walkingBackwardAnimations;
+let runningAnimations;
+let runningBackwardAnimations;
+let jumpAnimation;
+let sittingAnimation;
+let floatAnimation;
+let rifleAnimation;
+let hitAnimation;
+const loadPromise = (async () => {
+  const res = await fetch('../animations/animations.cbor');
+  const arrayBuffer = await res.arrayBuffer();
+  animations = CBOR.decode(arrayBuffer).animations
+    .map(a => THREE.AnimationClip.parse(a));
+
+  const _normalizeAnimationDurations = (animations, baseAnimation) => {
+    for (let i = 1; i < animations.length; i++) {
+      const animation = animations[i];
+      const oldDuration = animation.duration;
+      const newDuration = baseAnimation.duration;
+      for (const track of animation.tracks) {
+        const {times} = track;
+        for (let j = 0; j < times.length; j++) {
+          // times[i] *= newDuration/oldDuration;
         }
       }
-      track.values = values2;
+      animation.duration = newDuration;
     }
-    return animation;
   };
-  const reversibleAnimationNames = [
+  const walkingAnimations = [
+    `walking.fbx`,
     `left strafe walking.fbx`,
-    `left strafe.fbx`,
     `right strafe walking.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+  const walkingBackwardAnimations = [
+    `walking backwards.fbx`,
+    `left strafe walking reverse.fbx`,
+    `right strafe walking reverse.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+  const runningAnimations = [
+    `running.fbx`,
+    `left strafe.fbx`,
     `right strafe.fbx`,
-  ];
-  for (const name of reversibleAnimationNames) {
-    const animation = animations.find(a => a.name === name);
-    const reverseAnimation = _reverseAnimation(animation);
-    reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
-    animations.push(reverseAnimation);
-  }
-  const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
-  animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-  console.log('exporting', animations);
-  downloadFile(new Blob(['export default ' + animationsString], {
-    type: 'text/javascript',
-  }), 'animations.js');
-})().catch(err => {
-  console.warn(err);
-}); */
-
-const _normalizeAnimationDurations = (animations, baseAnimation) => {
-  for (let i = 1; i < animations.length; i++) {
-    const animation = animations[i];
-    const oldDuration = animation.duration;
-    const newDuration = baseAnimation.duration;
-    for (const track of animation.tracks) {
-      const {times} = track;
-      for (let j = 0; j < times.length; j++) {
-        // times[i] *= newDuration/oldDuration;
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+  const runningBackwardAnimations = [
+    `running backwards.fbx`,
+    `left strafe reverse.fbx`,
+    `right strafe reverse.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+  animations.forEach(animation => {
+    animation.direction = (() => {
+      switch (animation.name) {
+        case 'running.fbx':
+        case 'walking.fbx':
+          return 'forward';
+        case 'running backwards.fbx':
+        case 'walking backwards.fbx':
+          return 'backward';
+        case 'left strafe walking.fbx':
+        case 'left strafe.fbx':
+        case 'left strafe walking reverse.fbx':
+        case 'left strafe reverse.fbx':
+          return 'left';
+        case 'right strafe walking.fbx':
+        case 'right strafe.fbx':
+        case 'right strafe walking reverse.fbx':
+        case 'right strafe reverse.fbx':
+          return 'right';
+        case 'jump.fbx':
+        /* case 'falling.fbx':
+        case 'falling idle.fbx':
+        case 'falling landing.fbx': */
+          return 'jump';
+        // case 'floating.fbx':
+        case 'treading water.fbx':
+          return 'float';
+        default:
+          return null;
       }
-    }
-    animation.duration = newDuration;
-  }
-};
-const walkingAnimations = [
-  `walking.fbx`,
-  `left strafe walking.fbx`,
-  `right strafe walking.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
-const walkingBackwardAnimations = [
-  `walking backwards.fbx`,
-  `left strafe walking reverse.fbx`,
-  `right strafe walking reverse.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
-const runningAnimations = [
-  `running.fbx`,
-  `left strafe.fbx`,
-  `right strafe.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
-const runningBackwardAnimations = [
-  `running backwards.fbx`,
-  `left strafe reverse.fbx`,
-  `right strafe reverse.fbx`,
-].map(name => animations.find(a => a.name === name));
-_normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
-animations.forEach(animation => {
-  animation.direction = (() => {
-    switch (animation.name) {
-      case 'running.fbx':
-      case 'walking.fbx':
-        return 'forward';
-      case 'running backwards.fbx':
-      case 'walking backwards.fbx':
-        return 'backward';
-      case 'left strafe walking.fbx':
-      case 'left strafe.fbx':
-      case 'left strafe walking reverse.fbx':
-      case 'left strafe reverse.fbx':
-        return 'left';
-      case 'right strafe walking.fbx':
-      case 'right strafe.fbx':
-      case 'right strafe walking reverse.fbx':
-      case 'right strafe reverse.fbx':
-        return 'right';
-      case 'jump.fbx':
-      /* case 'falling.fbx':
-      case 'falling idle.fbx':
-      case 'falling landing.fbx': */
-        return 'jump';
-      // case 'floating.fbx':
-      case 'treading water.fbx':
-        return 'float';
-      default:
-        return null;
-    }
-  })();
-  animation.isIdle = /idle/i.test(animation.name);
-  animation.isJump = /jump/i.test(animation.name);
-  // animation.isFalling  = /falling/i.test(animation.name);
-  animation.isFloat  = /treading/i.test(animation.name);
-  animation.isForward = /forward/i.test(animation.name);
-  animation.isBackward = /backward/i.test(animation.name);
-  animation.isLeft = /left/i.test(animation.name);
-  animation.isRight = /right/i.test(animation.name);
-  animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-  animation.isReverse = /reverse/i.test(animation.name);
-  animation.interpolants = {};
-  animation.tracks.forEach(track => {
-    const i = track.createInterpolant();
-    i.name = track.name;
-    animation.interpolants[track.name] = i;
-    return i;
+    })();
+    animation.isIdle = /idle/i.test(animation.name);
+    animation.isJump = /jump/i.test(animation.name);
+    animation.isSitting = /sitting/i.test(animation.name);
+    // animation.isFalling  = /falling/i.test(animation.name);
+    animation.isFloat  = /treading/i.test(animation.name);
+    animation.isPistol  = /pistol aiming/i.test(animation.name);
+    animation.isRifle  = /rifle aiming/i.test(animation.name);
+    // animation.isHit  = /downward/i.test(animation.name);
+    // animation.isHit  = /slash/i.test(animation.name);
+    // animation.isHit  = /attack/i.test(animation.name);
+    animation.isHit  = /combo/i.test(animation.name);
+    // animation.isHit = /sword and shield idle/i.test(animation.name);
+    // animation.isMagic = /magic/i.test(animation.name);
+    animation.isForward = /forward/i.test(animation.name);
+    animation.isBackward = /backward/i.test(animation.name);
+    animation.isLeft = /left/i.test(animation.name);
+    animation.isRight = /right/i.test(animation.name);
+    animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+    animation.isReverse = /reverse/i.test(animation.name);
+    animation.interpolants = {};
+    animation.tracks.forEach(track => {
+      const i = track.createInterpolant();
+      i.name = track.name;
+      animation.interpolants[track.name] = i;
+      return i;
+    });
+    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+    } */
   });
-  /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-  } */
+  jumpAnimation = animations.find(a => a.isJump);
+  sittingAnimation = animations.find(a => a.isSitting);
+  floatAnimation = animations.find(a => a.isFloat);
+  rifleAnimation = animations.find(a => a.isRifle);
+  hitAnimation = animations.find(a => a.isHit);
+  
+  /* // bake animations
+  (async () => {
+    animations = [];
+    const fbxLoader = new FBXLoader();
+    const animationFileNames = [
+      `idle.fbx`,
+      `jump.fbx`,
+      `left strafe walking.fbx`,
+      `left strafe.fbx`,
+      // `left turn 90.fbx`,
+      // `left turn.fbx`,
+      `right strafe walking.fbx`,
+      `right strafe.fbx`,
+      // `right turn 90.fbx`,
+      // `right turn.fbx`,
+      `running.fbx`,
+      `walking.fbx`,
+      // `ybot.fbx`,
+      `running backwards.fbx`,
+      `walking backwards.fbx`,
+      // `falling.fbx`,
+      // `falling idle.fbx`,
+      // `falling landing.fbx`,
+      // `floating.fbx`,
+      `treading water.fbx`,
+      `sitting idle.fbx`,
+      `Pistol Aiming Idle.fbx`,
+      `Pistol Idle.fbx`,
+      `Rifle Aiming Idle.fbx`,
+      `Rifle Idle.fbx`,
+      `Standing Torch Idle 01.fbx`,
+      `standing melee attack downward.fbx`,
+      `sword and shield idle (4).fbx`,
+      `sword and shield slash.fbx`,
+      `sword and shield attack (4).fbx`,
+      `One Hand Sword Combo.fbx`,
+      `magic standing idle.fbx`,
+      `Skateboarding.fbx`,
+      `Throw.fbx`,
+    ];
+    for (const name of animationFileNames) {
+      const u = './animations/' + name;
+      let o = await new Promise((accept, reject) => {
+        fbxLoader.load(u, accept, function progress() {}, reject);
+      });
+      o = o.animations[0];
+      o.name = name;
+      animations.push(o);
+    }
+    const _reverseAnimation = animation => {
+      animation = animation.clone();
+      const {tracks} = animation;
+      for (const track of tracks) {
+        track.times.reverse();
+        for (let i = 0; i < track.times.length; i++) {
+          track.times[i] = animation.duration - track.times[i];
+        }
+
+        const values2 = new track.values.constructor(track.values.length);
+        const valueSize = track.getValueSize();
+        const numValues = track.values.length / valueSize;
+        for (let i = 0; i < numValues; i++) {
+          const aIndex = i;
+          const bIndex = numValues - 1 - i;
+          for (let j = 0; j < valueSize; j++) {
+            values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+          }
+        }
+        track.values = values2;
+      }
+      return animation;
+    };
+    const reversibleAnimationNames = [
+      `left strafe walking.fbx`,
+      `left strafe.fbx`,
+      `right strafe walking.fbx`,
+      `right strafe.fbx`,
+    ];
+    for (const name of reversibleAnimationNames) {
+      const animation = animations.find(a => a.name === name);
+      const reverseAnimation = _reverseAnimation(animation);
+      reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+      animations.push(reverseAnimation);
+    }
+    const animationsJson = animations.map(a => a.toJSON());
+    const animationsString = JSON.stringify(animationsJson);
+    const animationsCborBuffer = CBOR.encode({
+      animations: animationsJson,
+    });
+    console.log('decoding 1', animationsCborBuffer);
+    console.log('decoding 2', CBOR.decode(animationsCborBuffer));
+    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+    console.log('exporting', animations);
+    downloadFile(new Blob([animationsCborBuffer], {
+      type: 'application/cbor',
+    }), 'animations.cbor');
+  })().catch(err => {
+    console.warn(err);
+  }); */
+})().catch(err => {
+  console.log('load avatar animations error', err);
 });
-const jumpAnimation = animations.find(a => a.isJump);
-const floatAnimation = animations.find(a => a.isFloat);
 
 const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
@@ -649,6 +727,14 @@ const _importSkeleton = s => {
   return new THREE.Skeleton(armature.children);
 };
 
+class AnimationMapping {
+  constructor(quaternionKey, quaternion, isTop) {
+    this.quaternionKey = quaternionKey;
+    this.quaternion = quaternion;
+    this.isTop = isTop;
+  }
+}
+
 class Avatar {
 	constructor(object, options = {}) {
     this.object = object;
@@ -731,38 +817,38 @@ class Avatar {
 	  const Spine = _findSpine(Chest, Hips);
 	  const Left_shoulder = _findShoulder(tailBones, true);
 	  const Left_wrist = _findHand(Left_shoulder);
-    const Left_thumb2 = _ensureParent(_getOptional(_findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i, true)));
+    const Left_thumb2 = _getOptional(_findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i));
     const Left_thumb1 = _ensureParent(Left_thumb2);
     const Left_thumb0 = _ensureParent(Left_thumb1, Left_wrist);
-    const Left_indexFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l|indexfinger2_l|index002l/i)));
+    const Left_indexFinger3 = _getOptional(_findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l|indexfinger3_l|index002l/i));
     const Left_indexFinger2 = _ensureParent(Left_indexFinger3);
     const Left_indexFinger1 = _ensureParent(Left_indexFinger2, Left_wrist);
-    const Left_middleFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i)));
+    const Left_middleFinger3 = _getOptional(_findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i));
     const Left_middleFinger2 = _ensureParent(Left_middleFinger3);
     const Left_middleFinger1 = _ensureParent(Left_middleFinger2, Left_wrist);
-    const Left_ringFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l|ringfinger2_l|ring002l/i)));
+    const Left_ringFinger3 = _getOptional(_findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l|ringfinger3_l|ring002l/i));
     const Left_ringFinger2 = _ensureParent(Left_ringFinger3);
     const Left_ringFinger1 = _ensureParent(Left_ringFinger2, Left_wrist);
-    const Left_littleFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger2_l|little002l/i)));
+    const Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
     const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
     const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
 	  const Left_elbow = Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
-    const Right_thumb2 = _ensureParent(_getOptional(_findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i)));
+    const Right_thumb2 = _getOptional(_findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i));
     const Right_thumb1 = _ensureParent(Right_thumb2);
     const Right_thumb0 = _ensureParent(Right_thumb1, Right_wrist);
-    const Right_indexFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r|indexfinger2_r|index002r/i)));
+    const Right_indexFinger3 = _getOptional(_findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r|indexfinger3_r|index002r/i));
     const Right_indexFinger2 = _ensureParent(Right_indexFinger3);
     const Right_indexFinger1 = _ensureParent(Right_indexFinger2, Right_wrist);
-    const Right_middleFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i)));
+    const Right_middleFinger3 = _getOptional(_findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i));
     const Right_middleFinger2 = _ensureParent(Right_middleFinger3);
     const Right_middleFinger1 = _ensureParent(Right_middleFinger2, Right_wrist);
-    const Right_ringFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r|ringfinger2_r|ring002r/i)));
+    const Right_ringFinger3 = _getOptional(_findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r|ringfinger3_r|ring002r/i));
     const Right_ringFinger2 = _ensureParent(Right_ringFinger3);
     const Right_ringFinger1 = _ensureParent(Right_ringFinger2, Right_wrist);
-    const Right_littleFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger2_r|little002r/i)));
+    const Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
     const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
     const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
 	  const Right_elbow = Right_wrist.parent;
@@ -1449,65 +1535,64 @@ class Avatar {
       }
     } */
 
-    this.animationMapping = {
-      // 'mixamorigHips.position': this.outputs.hips.position,
-      'mixamorigHips.quaternion': this.outputs.hips.quaternion,
-      'mixamorigSpine.quaternion': this.outputs.spine.quaternion,
-      'mixamorigSpine1.quaternion': null,
-      'mixamorigSpine2.quaternion': this.outputs.chest.quaternion,
-      'mixamorigNeck.quaternion': this.outputs.neck.quaternion,
-      'mixamorigHead.quaternion': this.outputs.head.quaternion,
+    this.animationMappings = [
+      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false),
+      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false),
+      // new AnimationMapping('mixamorigSpine1.quaternion', null, false),
+      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.chest.quaternion, false),
+      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false),
+      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false),
 
-      'mixamorigLeftShoulder.quaternion': this.outputs.rightShoulder.quaternion,
-      'mixamorigLeftArm.quaternion': this.outputs.rightUpperArm.quaternion,
-      'mixamorigLeftForeArm.quaternion': this.outputs.rightLowerArm.quaternion,
-      'mixamorigLeftHand.quaternion': this.outputs.leftHand.quaternion,
-      'mixamorigLeftHandMiddle1.quaternion': this.outputs.leftMiddleFinger1.quaternion,
-      'mixamorigLeftHandMiddle2.quaternion': this.outputs.leftMiddleFinger2.quaternion,
-      'mixamorigLeftHandMiddle3.quaternion': this.outputs.leftMiddleFinger3.quaternion,
-      'mixamorigLeftHandThumb1.quaternion': this.outputs.leftThumb0.quaternion,
-      'mixamorigLeftHandThumb2.quaternion': this.outputs.leftThumb1.quaternion,
-      'mixamorigLeftHandThumb3.quaternion': this.outputs.leftThumb2.quaternion,
-      'mixamorigLeftHandIndex1.quaternion': this.outputs.leftIndexFinger1.quaternion,
-      'mixamorigLeftHandIndex2.quaternion': this.outputs.leftIndexFinger2.quaternion,
-      'mixamorigLeftHandIndex3.quaternion': this.outputs.leftIndexFinger3.quaternion,
-      'mixamorigLeftHandRing1.quaternion': this.outputs.leftRingFinger1.quaternion,
-      'mixamorigLeftHandRing2.quaternion': this.outputs.leftRingFinger2.quaternion,
-      'mixamorigLeftHandRing3.quaternion': this.outputs.leftRingFinger3.quaternion,
-      'mixamorigLeftHandPinky1.quaternion': this.outputs.leftLittleFinger1.quaternion,
-      'mixamorigLeftHandPinky2.quaternion': this.outputs.leftLittleFinger2.quaternion,
-      'mixamorigLeftHandPinky3.quaternion': this.outputs.leftLittleFinger3.quaternion,
+      new AnimationMapping('mixamorigLeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
+      new AnimationMapping('mixamorigLeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
+      new AnimationMapping('mixamorigLeftForeArm.quaternion', this.outputs.rightLowerArm.quaternion, true),
+      new AnimationMapping('mixamorigLeftHand.quaternion', this.outputs.leftHand.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandMiddle1.quaternion', this.outputs.leftMiddleFinger1.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandMiddle2.quaternion', this.outputs.leftMiddleFinger2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandMiddle3.quaternion', this.outputs.leftMiddleFinger3.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandThumb1.quaternion', this.outputs.leftThumb0.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandThumb2.quaternion', this.outputs.leftThumb1.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandThumb3.quaternion', this.outputs.leftThumb2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandIndex1.quaternion', this.outputs.leftIndexFinger1.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandIndex2.quaternion', this.outputs.leftIndexFinger2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandIndex3.quaternion', this.outputs.leftIndexFinger3.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandRing1.quaternion', this.outputs.leftRingFinger1.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandRing2.quaternion', this.outputs.leftRingFinger2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandRing3.quaternion', this.outputs.leftRingFinger3.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandPinky1.quaternion', this.outputs.leftLittleFinger1.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandPinky2.quaternion', this.outputs.leftLittleFinger2.quaternion, true),
+      new AnimationMapping('mixamorigLeftHandPinky3.quaternion', this.outputs.leftLittleFinger3.quaternion, true),
 
-      'mixamorigRightShoulder.quaternion': this.outputs.leftShoulder.quaternion,
-      'mixamorigRightArm.quaternion': this.outputs.leftUpperArm.quaternion,
-      'mixamorigRightForeArm.quaternion': this.outputs.leftLowerArm.quaternion,
-      'mixamorigRightHand.quaternion': this.outputs.rightHand.quaternion,
-      'mixamorigRightHandMiddle1.quaternion': this.outputs.rightMiddleFinger1.quaternion,
-      'mixamorigRightHandMiddle2.quaternion': this.outputs.rightMiddleFinger2.quaternion,
-      'mixamorigRightHandMiddle3.quaternion': this.outputs.rightMiddleFinger3.quaternion,
-      'mixamorigRightHandThumb1.quaternion': this.outputs.rightThumb0.quaternion,
-      'mixamorigRightHandThumb2.quaternion': this.outputs.rightThumb1.quaternion,
-      'mixamorigRightHandThumb3.quaternion': this.outputs.rightThumb2.quaternion,
-      'mixamorigRightHandIndex1.quaternion': this.outputs.rightIndexFinger1.quaternion,
-      'mixamorigRightHandIndex2.quaternion': this.outputs.rightIndexFinger2.quaternion,
-      'mixamorigRightHandIndex3.quaternion': this.outputs.rightIndexFinger3.quaternion,
-      'mixamorigRightHandRing1.quaternion': this.outputs.rightRingFinger1.quaternion,
-      'mixamorigRightHandRing2.quaternion': this.outputs.rightRingFinger2.quaternion,
-      'mixamorigRightHandRing3.quaternion': this.outputs.rightRingFinger3.quaternion,
-      'mixamorigRightHandPinky1.quaternion': this.outputs.rightLittleFinger1.quaternion,
-      'mixamorigRightHandPinky2.quaternion': this.outputs.rightLittleFinger2.quaternion,
-      'mixamorigRightHandPinky3.quaternion': this.outputs.rightLittleFinger3.quaternion,
+      new AnimationMapping('mixamorigRightShoulder.quaternion', this.outputs.leftShoulder.quaternion, true),
+      new AnimationMapping('mixamorigRightArm.quaternion', this.outputs.leftUpperArm.quaternion, true),
+      new AnimationMapping('mixamorigRightForeArm.quaternion', this.outputs.leftLowerArm.quaternion, true),
+      new AnimationMapping('mixamorigRightHand.quaternion', this.outputs.rightHand.quaternion, true),
+      new AnimationMapping('mixamorigRightHandMiddle1.quaternion', this.outputs.rightMiddleFinger1.quaternion, true),
+      new AnimationMapping('mixamorigRightHandMiddle2.quaternion', this.outputs.rightMiddleFinger2.quaternion, true),
+      new AnimationMapping('mixamorigRightHandMiddle3.quaternion', this.outputs.rightMiddleFinger3.quaternion, true),
+      new AnimationMapping('mixamorigRightHandThumb1.quaternion', this.outputs.rightThumb0.quaternion, true),
+      new AnimationMapping('mixamorigRightHandThumb2.quaternion', this.outputs.rightThumb1.quaternion, true),
+      new AnimationMapping('mixamorigRightHandThumb3.quaternion', this.outputs.rightThumb2.quaternion, true),
+      new AnimationMapping('mixamorigRightHandIndex1.quaternion', this.outputs.rightIndexFinger1.quaternion, true),
+      new AnimationMapping('mixamorigRightHandIndex2.quaternion', this.outputs.rightIndexFinger2.quaternion, true),
+      new AnimationMapping('mixamorigRightHandIndex3.quaternion', this.outputs.rightIndexFinger3.quaternion, true),
+      new AnimationMapping('mixamorigRightHandRing1.quaternion', this.outputs.rightRingFinger1.quaternion, true),
+      new AnimationMapping('mixamorigRightHandRing2.quaternion', this.outputs.rightRingFinger2.quaternion, true),
+      new AnimationMapping('mixamorigRightHandRing3.quaternion', this.outputs.rightRingFinger3.quaternion, true),
+      new AnimationMapping('mixamorigRightHandPinky1.quaternion', this.outputs.rightLittleFinger1.quaternion, true),
+      new AnimationMapping('mixamorigRightHandPinky2.quaternion', this.outputs.rightLittleFinger2.quaternion, true),
+      new AnimationMapping('mixamorigRightHandPinky3.quaternion', this.outputs.rightLittleFinger3.quaternion, true),
 
-      'mixamorigRightUpLeg.quaternion': this.outputs.leftUpperLeg.quaternion,
-      'mixamorigRightLeg.quaternion': this.outputs.leftLowerLeg.quaternion,
-      'mixamorigRightFoot.quaternion': this.outputs.leftFoot.quaternion,
-      'mixamorigRightToeBase.quaternion': null,
+      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false),
+      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false),
+      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false),
+      // new AnimationMapping('mixamorigRightToeBase.quaternion', null, false),
 
-      'mixamorigLeftUpLeg.quaternion': this.outputs.rightUpperLeg.quaternion,
-      'mixamorigLeftLeg.quaternion': this.outputs.rightLowerLeg.quaternion,
-      'mixamorigLeftFoot.quaternion': this.outputs.rightFoot.quaternion,
-      'mixamorigLeftToeBase.quaternion': null,
-    };
+      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false),
+      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false),
+      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
+      // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
+    ];
 
     this.direction = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -1515,6 +1600,9 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swingTime = NaN;
+    this.sitState = false;
+    this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1572,6 +1660,12 @@ class Avatar {
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
 
     this.shoulderTransforms.hips.updateMatrixWorld();
+  }
+  setHandEnabled(i, enabled) {
+    this.shoulderTransforms.handsEnabled[i] = enabled;
+  }
+  getHandEnabled(i) {
+    return this.shoulderTransforms.handsEnabled[i];
   }
   setTopEnabled(enabled) {
     this.shoulderTransforms.enabled = enabled;
@@ -1634,8 +1728,12 @@ class Avatar {
       // let factor1 = 1 - distance1/totalDistance;
       let factor2 = 1 - distance2/totalDistance;
 
-      for (const k in this.animationMapping) {
-        const dst = this.animationMapping[k];
+      for (const spec of this.animationMappings) {
+        const {
+          quaternionKey: k,
+          quaternion: dst,
+          isTop
+        } = spec;
         if (dst) {
           const t1 = (now/1000) % selectedAnimations[0].duration;
           const src1 = selectedAnimations[0].interpolants[k];
@@ -1656,6 +1754,11 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+          } else if (this.sitState) {
+            const src2 = sittingAnimation.interpolants[k];
+            const v2 = src2.evaluate(1);
+
+            dst.fromArray(v2);
           }
           if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
             const t2 = this.flyTime/1000;
@@ -1664,6 +1767,13 @@ class Avatar {
             const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
             dst.slerp(localQuaternion.fromArray(v2), f);
+          }
+          if (this.swingTime >= 0 && isTop) {
+            const t2 = (this.swingTime/1000) % hitAnimation.duration;
+            const src2 = hitAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
           }
         }
       }
@@ -1756,9 +1866,13 @@ class Avatar {
 
       if (this.getTopEnabled()) {
         if (k === 'Left_wrist') {
-          modelBone.quaternion.multiply(leftRotation); // center
+          if (this.getHandEnabled(1)) {
+            modelBone.quaternion.multiply(leftRotation); // center
+          }
         } else if (k === 'Right_wrist') {
-          modelBone.quaternion.multiply(rightRotation); // center
+          if (this.getHandEnabled(0)) {
+            modelBone.quaternion.multiply(rightRotation); // center
+          }
         }
       }
       if (this.getBottomEnabled()) {
@@ -1806,9 +1920,9 @@ class Avatar {
 
     if (this.debugMeshes) {
       if (this.getTopEnabled()) {
-        this.outputs.leftHand.quaternion.multiply(rightRotation); // center
+        this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
-        this.outputs.rightHand.quaternion.multiply(leftRotation); // center
+        this.getHandEnabled(1) && this.outputs.rightHand.quaternion.multiply(leftRotation); // center
         this.outputs.rightHand.updateMatrixWorld();
       }
 
@@ -1887,4 +2001,5 @@ class Avatar {
     this.setMicrophoneMediaStream(null);
   }
 }
+Avatar.waitForLoad = () => loadPromise;
 export default Avatar;
