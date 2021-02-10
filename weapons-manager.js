@@ -524,8 +524,6 @@ const _updateWeapons = () => {
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
 
-  fx.update();
-
   const _handleHighlight = () => {
     if (!editedObject) {
       const width = 1;
