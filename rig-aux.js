@@ -172,8 +172,6 @@ export class RigAux {
         }
 
         sittable.update = timeDiff => {
-          timeDiff *= 1000;
-          
           for (const walkAction of walkActions) {
             walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * walkAnimationSpeedFactor, 0), 1);
             if (walkAnimationHoldTime) {
@@ -184,8 +182,7 @@ export class RigAux {
             idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
           }
 
-          const deltaSeconds = timeDiff / 1000;
-          mixer.update(deltaSeconds);
+          mixer.update(timeDiff);
         };
       } /* else {
         console.warn('could not find walk animation in model: ' + JSON.stringify(walkAnimation) + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
