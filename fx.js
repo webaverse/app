@@ -143,7 +143,6 @@ const loadPromise = Promise.all([
   v.style.display = 'none';
   document.body.appendChild(v);
   
-  // v.currentTime = 0;
   await new Promise((accept, reject) => {
     const loadedmetadata = e => {
       accept();
