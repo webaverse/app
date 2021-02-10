@@ -7,6 +7,7 @@ import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
+import {MenuUI} from './ui/menu/menu.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -437,6 +438,10 @@ ioManager.bindInput = () => {
       }
       case 13: { // enter
         weaponsManager.enter();
+        break;
+      }
+      case 77: { // M
+        MenuUI.toggle();
         break;
       }
     }
