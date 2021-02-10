@@ -39,79 +39,9 @@ const _makeFxGeometry = () => {
 };
 const hitFxGeometry = _makeFxGeometry();
 const bulletFxGeometry = _makeFxGeometry();
+const fireFxGeometry = _makeFxGeometry();
 
-const hitFxMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-    uTex: {
-      type: 't',
-      value: new THREE.Texture(),
-      needsUpdate: true,
-    },
-    uEpochTime: {
-      type: 'f',
-      value: 0,
-      needsUpdate: true,
-    },
-    uTileSize: {
-      type: 'f',
-      value: 1/numTilesPerRow,
-      needsUpdate: true,
-    },
-  },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-    
-    attribute float epochStartTime;
-    attribute float speed;
-
-    uniform float uEpochTime;
-    uniform float uTileSize;
-
-    varying vec2 vUv;
-
-    float numTiles = ${numTiles.toFixed(8)};
-    float numTilesPerRow = ${numTilesPerRow.toFixed(8)};
-
-    void main() {
-      vUv = uv;
-      vUv.x *= uTileSize;
-      vUv.y = 1.0 - (1.0 - vUv.y) * uTileSize;
-
-      float time = mod(uEpochTime - epochStartTime, speed) / speed;
-      float tile = mod(floor(time * numTiles), numTiles);
-      float col = mod(tile, numTilesPerRow);
-      float row = floor(tile / numTilesPerRow);
-      vUv += vec2(
-        col / numTilesPerRow,
-        row / numTilesPerRow
-      );
-
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-    
-    uniform sampler2D uTex;
-    
-    varying vec2 vUv;
-
-    void main() {
-      vec4 diffuse = texture2D(uTex, vUv);
-      if (diffuse.a > 0.15) {
-        gl_FragColor = diffuse;
-      } else {
-        discard;
-      }
-    }
-  `,
-  side: THREE.DoubleSide,
-  transparent: true,
-});
-
-const bulletFxMaterial = new THREE.ShaderMaterial({
+const _makeFxMaterial = () => new THREE.ShaderMaterial({
   uniforms: {
     uTex: {
       type: 't',
@@ -181,11 +111,15 @@ const bulletFxMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
   transparent: true,
 });
+const hitFxMaterial = _makeFxMaterial();
+const bulletFxMaterial = _makeFxMaterial();
+const fireFxMaterial = _makeFxMaterial();
 
-let hitMesh, bulletMesh;
+let hitMesh, bulletMesh, fireMesh;
 const loadPromise = Promise.all([
   `Elements - Sparks 104 Hit Radial noCT noRSZ`,
   `Elements - Energy 023 Projectile Right Loop noCT noRSZ`,
+  `Elements - Fire 067 Right Projectile Loop noCT noRSZ`,
 ].map(async name => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -205,8 +139,10 @@ const loadPromise = Promise.all([
   v.setAttribute('muted', '');
   v.setAttribute('crossorigin', 'Anonymous');
   v.src = `https://webaverse.github.io/assets/fx/${name}.webm`;
+  // v.load();
+  v.style.display = 'none';
+  document.body.appendChild(v);
   
-  // v.currentTime = 0;
   await new Promise((accept, reject) => {
     const loadedmetadata = e => {
       accept();
@@ -247,7 +183,11 @@ const loadPromise = Promise.all([
   // console.log('done');
 
   return canvas;
-})).then(([hitCanvas, bulletCanvas]) => {
+})).then(([
+  hitCanvas,
+  bulletCanvas,
+  fireCanvas,
+]) => {
   hitFxMaterial.uniforms.uTex.value.image = hitCanvas;
   hitFxMaterial.uniforms.uTex.value.needsUpdate = true;
   hitMesh = new THREE.Mesh(hitFxGeometry, hitFxMaterial);
@@ -259,50 +199,79 @@ const loadPromise = Promise.all([
   bulletMesh = new THREE.Mesh(bulletFxGeometry, bulletFxMaterial);
   bulletMesh.frustumCulled = false;
   scene.add(bulletMesh);
+  
+  fireFxMaterial.uniforms.uTex.value.image = fireCanvas;
+  fireFxMaterial.uniforms.uTex.value.needsUpdate = true;
+  fireMesh = new THREE.Mesh(fireFxGeometry, fireFxMaterial);
+  fireMesh.frustumCulled = false;
+  scene.add(fireMesh);
 });
 
 const _updateEffects = () => {
   let numHitFx = 0;
   let numBulletFx = 0;
+  let numFireFx = 0;
   if (effects.length > 0) {
     for (let i = 0; i < effects.length; i++) {
       const effect = effects[i];
 
       let geometry, index;
-      if (effect.fxType === 'bullet') {
-        effect.position.add(localVector.set(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
-        effect.updateMatrixWorld();
-        
-        const line = localLine.set(
-          effect.position,
-          localVector.copy(effect.position).add(localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion))
-        );
-        const closestPoint = line.closestPointToPoint(camera.position, false, localVector3);
-        const normal = localVector4.copy(camera.position).sub(closestPoint).normalize();
-        
-        effect.matrixWorld
-          .decompose(localVector, localQuaternion, localVector2);
-        localMatrix
-          .compose(localVector, localQuaternion.set(0, 0, 0, 1), localVector2)
-          .multiply(
-            localMatrix2.lookAt(
-              effect.position,
-              localVector.copy(effect.position).sub(normal),
-              localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion)
-                .cross(normal)
-            )
+      switch (effect.fxType) {
+        case 'bullet': {
+          effect.position.add(localVector.set(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
+          effect.updateMatrixWorld();
+          
+          const line = localLine.set(
+            effect.position,
+            localVector.copy(effect.position).add(localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion))
           );
+          const closestPoint = line.closestPointToPoint(camera.position, false, localVector3);
+          const normal = localVector4.copy(camera.position).sub(closestPoint).normalize();
+          
+          effect.matrixWorld
+            .decompose(localVector, localQuaternion, localVector2);
+          localMatrix
+            .compose(localVector, localQuaternion.set(0, 0, 0, 1), localVector2)
+            .multiply(
+              localMatrix2.lookAt(
+                effect.position,
+                localVector.copy(effect.position).sub(normal),
+                localVector2.set(0, 0, -1).applyQuaternion(effect.quaternion)
+                  .cross(normal)
+              )
+            );
 
-        geometry = bulletFxGeometry;
-        index = numBulletFx++;
-      } else {
-        effect.updateMatrixWorld();
-        localMatrix.copy(effect.matrixWorld);
-        geometry = hitFxGeometry;
-        index = numHitFx++;
+          geometry = bulletFxGeometry;
+          index = numBulletFx++;
+
+          break;
+        }
+        case 'hit': {
+          effect.updateMatrixWorld();
+          localMatrix.copy(effect.matrixWorld);
+          geometry = hitFxGeometry;
+          index = numHitFx++;
+
+          break;
+        }
+        case 'fire': {
+          effect.updateMatrixWorld();
+          localMatrix.copy(effect.matrixWorld);
+          geometry = fireFxGeometry;
+          index = numFireFx++;
+
+          break;
+        }
+        default: {
+          console.warn('unknown fx type: ' + effect.fxType);
+          break;
+        }
       }
       const planeGeometryClone = planeGeometry.clone()
         .applyMatrix4(localMatrix);
+      if (effect.offsetParent) {
+        planeGeometryClone.applyMatrix4(effect.offsetParent.matrixWorld);
+      }
 
       geometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, index * planeGeometryClone.attributes.position.array.length);
       geometry.attributes.position.needsUpdate = true;
@@ -330,25 +299,38 @@ const _updateEffects = () => {
   bulletMesh.visible = numBulletFx > 0;
   bulletMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
   bulletMesh.material.uniforms.uEpochTime.needsUpdate = true;
+  
+  fireFxGeometry.setDrawRange(0, numFireFx * planeGeometry.index.array.length);
+  fireMesh.visible = numFireFx > 0;
+  fireMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
+  fireMesh.material.uniforms.uEpochTime.needsUpdate = true;
 };
-const _makeEffect = (fxType, effect) => {
+const _makeEffect = (fxType, effect, offsetParent) => {
   effect.fxType = fxType;
+  effect.offsetParent = offsetParent;
   const now = Date.now();
   effect.epochStartTime = now - epochStartTime;
-  effect.endTime = fxType === 'bullet' ? (now + bulletTimeout) : (now + speed);
+  effect.endTime = (() => {
+    switch (fxType) {
+      case 'bullet': return now + bulletTimeout;
+      case 'fire': return Infinity;
+      case 'hit': return now + speed;
+      default: throw new Error('unknown fx type: ' + fxType);
+    }
+  })();
   effect.speed = speed;
   return effect;
 };
 const fx = {
-  add(fxType, effect) {
-    effect = _makeEffect(fxType, effect);
+  add(fxType, effect, offsetParent) {
+    effect = _makeEffect(fxType, effect, offsetParent);
     effects.push(effect);
   },
   remove(effect) {
     effects.splice(effects.indexOf(effect), 1);
   },
   update() {
-    if (hitMesh && bulletMesh) {
+    if (hitMesh && bulletMesh && fireMesh) {
       if (effects.length > 0) {
         const now = Date.now();
         const newEffects = [];
@@ -360,7 +342,7 @@ const fx = {
                 let newEffect = new THREE.Object3D();
                 newEffect.position.fromArray(collision.point);
                 newEffect.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localVector.fromArray(collision.normal));
-                newEffect = _makeEffect('hit', newEffect);
+                newEffect = _makeEffect('hit', newEffect, null);
                 newEffects.push(newEffect);
                 return false;
               } else {

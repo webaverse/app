@@ -524,8 +524,6 @@ const _updateWeapons = () => {
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
 
-  fx.update();
-
   const _handleHighlight = () => {
     if (!editedObject) {
       const width = 1;
@@ -1237,6 +1235,14 @@ const itemSpecs3 = [
   {
     "name": "pickaxe",
     "start_url": "https://avaer.github.io/pickaxe/manifest.json"
+  },
+  {
+    "name": "hoverboard",
+    "start_url": "https://avaer.github.io/hoverboard/manifest.json"
+  },
+  {
+    "name": "hovercraft",
+    "start_url": "https://avaer.github.io/hovercraft/manifest.json"
   }, */
   {
     "name": "cityscape",
@@ -1860,6 +1866,17 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
+  },
+  getSpeed() {
+    const defaultSpeed = 0.1;
+    const sittable = rigManager.localRig.aux.sittables[0];
+    if (sittable) {
+      const {component} = sittable;
+      const {speed = defaultSpeed} = component;
+      return speed;
+    } else {
+      return defaultSpeed;
+    }
   },
   update() {
     _updateWeapons();

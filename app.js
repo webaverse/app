@@ -16,6 +16,7 @@ import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
+import fx from './fx.js';
 import {parseCoord} from './util.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 
@@ -340,9 +341,10 @@ export default class App {
       _updateRig();
 
       weaponsManager.update();
+      fx.update();
 
       appManager.tick(timestamp, frame);
-      
+
       ioManager.updatePost();
 
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;

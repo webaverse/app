@@ -18,12 +18,15 @@ import {makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
+import fx from './fx.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+
+const gcFiles = true;
 
 const runtime = {};
 
@@ -138,9 +141,6 @@ const componentHandlers = {
         rigAux.setPose(auxPose);
       };
     },
-    unload(o, component) {
-      o.parent.remove(o);
-    },
   },
   pet: {
     load(o, component, rigAux) {
@@ -162,6 +162,23 @@ const componentHandlers = {
       };
     },
   },
+  effect: {
+    run(o, component) {
+      const {effects = []} = component;
+      const effectInstances = effects.map(effect => {
+        const {type, position = [0, 0, 0], quaternion = [0, 0, 0, 1]} = effect;
+        const object = new THREE.Object3D();
+        object.position.fromArray(position);
+        object.quaternion.fromArray(quaternion);
+        return fx.add(type, object, o);
+      });
+      return () => {
+        for (const e of effectInstances) {
+          fx.remove(e);
+        }
+      };
+    },
+  },
 };
 const triggerComponentTypes = [
   'swing',
@@ -170,6 +187,9 @@ const loadComponentTypes = [
   'wear',
   'sit',
   'pet',
+];
+const runComponentTypes = [
+  'effect',
 ];
 
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
@@ -191,7 +211,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(srcUrl);
+      gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
   const {parser, animations} = o;
@@ -401,6 +421,13 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
     }
+    for (const componentType of runComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.run(mesh, component);
+      }
+    }
   };
   mesh.triggerAux = rigAux => {
     let used = false;
@@ -496,7 +523,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(srcUrl);
+      gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
   o.scene.raw = o;
@@ -593,7 +620,7 @@ const _loadImg = async (file, {files = null, instanceId = null, monetizationPoin
       _cleanup();
     }
     const _cleanup = () => {
-      URL.revokeObjectURL(u);
+      gcFiles && URL.revokeObjectURL(u);
     };
     img.crossOrigin = '';
     img.src = u;
@@ -794,7 +821,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       })
       .finally(() => {
         for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
+          gcFiles && URL.revokeObjectURL(u);
         }
       });
   };

@@ -83,6 +83,13 @@ const setSitState = newSitState => {
 };
 physicsManager.setSitState = setSitState;
 
+let damping;
+const setDamping = (newDamping = 0.7) => {
+  damping = newDamping;
+};
+setDamping();
+physicsManager.setDamping = setDamping;
+
 let sitTarget = null;
 const getSitTarget = () => sitTarget;
 physicsManager.getSitTarget = getSitTarget;
@@ -239,15 +246,15 @@ const _applyGravity = timeDiff => {
   }
   
   if (!jumpState || gliding) {
-    physicsManager.velocity.x *= 0.7;
-    physicsManager.velocity.z *= 0.7;
+    physicsManager.velocity.x *= damping;
+    physicsManager.velocity.z *= damping;
   }
 
-  const terminalVelocity = 50;
+  /* const terminalVelocity = 50;
   const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
   physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
   physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
-  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
+  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y); */
 };
 const _getAvatarWorldObject = o => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;

@@ -170,6 +170,8 @@ async function tryLogin() {
 };
 async function bindLogin() {
   const loginForm = document.getElementById('login-form');
+  const loginEmail = document.getElementById('login-email');
+  
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
     <div class=phase-content>
