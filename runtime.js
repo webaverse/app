@@ -172,12 +172,9 @@ const componentHandlers = {
         object.quaternion.fromArray(quaternion);
         return fx.add(type, object);
       });
-      for (const e of effectInstances) {
-        scene.add(e);
-      }
       return () => {
         for (const e of effectInstances) {
-          scene.remove(e);
+          fx.remove(e);
         }
       };
     },
