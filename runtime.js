@@ -140,9 +140,6 @@ const componentHandlers = {
         rigAux.setPose(auxPose);
       };
     },
-    unload(o, component) {
-      o.parent.remove(o);
-    },
   },
   pet: {
     load(o, component, rigAux) {
