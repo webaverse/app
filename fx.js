@@ -328,7 +328,7 @@ const fx = {
     effects.splice(effects.indexOf(effect), 1);
   },
   update() {
-    if (hitMesh && bulletMesh) {
+    if (hitMesh && bulletMesh && fireMesh) {
       if (effects.length > 0) {
         const now = Date.now();
         const newEffects = [];
