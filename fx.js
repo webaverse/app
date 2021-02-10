@@ -267,6 +267,9 @@ const _updateEffects = () => {
       }
       const planeGeometryClone = planeGeometry.clone()
         .applyMatrix4(localMatrix);
+      if (effect.offsetParent) {
+        planeGeometryClone.applyMatrix4(effect.offsetParent.matrixWorld);
+      }
 
       geometry.attributes.position.array.set(planeGeometryClone.attributes.position.array, index * planeGeometryClone.attributes.position.array.length);
       geometry.attributes.position.needsUpdate = true;
@@ -300,8 +303,9 @@ const _updateEffects = () => {
   fireMesh.material.uniforms.uEpochTime.value = now - epochStartTime;
   fireMesh.material.uniforms.uEpochTime.needsUpdate = true;
 };
-const _makeEffect = (fxType, effect) => {
+const _makeEffect = (fxType, effect, offsetParent) => {
   effect.fxType = fxType;
+  effect.offsetParent = offsetParent;
   const now = Date.now();
   effect.epochStartTime = now - epochStartTime;
   effect.endTime = (() => {
@@ -316,8 +320,8 @@ const _makeEffect = (fxType, effect) => {
   return effect;
 };
 const fx = {
-  add(fxType, effect) {
-    effect = _makeEffect(fxType, effect);
+  add(fxType, effect, offsetParent) {
+    effect = _makeEffect(fxType, effect, offsetParent);
     effects.push(effect);
   },
   remove(effect) {
@@ -336,7 +340,7 @@ const fx = {
                 let newEffect = new THREE.Object3D();
                 newEffect.position.fromArray(collision.point);
                 newEffect.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localVector.fromArray(collision.normal));
-                newEffect = _makeEffect('hit', newEffect);
+                newEffect = _makeEffect('hit', newEffect, null);
                 newEffects.push(newEffect);
                 return false;
               } else {
