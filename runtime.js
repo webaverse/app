@@ -163,7 +163,7 @@ const componentHandlers = {
     },
   },
   effect: {
-    load(o, component, rigAux) {
+    run(o, component) {
       const {effects = []} = component;
       const effectInstances = effects.map(effect => {
         const {type, position = [0, 0, 0], quaternion = [0, 0, 0, 1]} = effect;
@@ -187,6 +187,8 @@ const loadComponentTypes = [
   'wear',
   'sit',
   'pet',
+];
+const runComponentTypes = [
   'effect',
 ];
 
@@ -418,6 +420,13 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const physicsId = physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
+    }
+    for (const componentType of runComponentTypes) {
+      const component = components.find(component => component.type === componentType);
+      if (component) {
+        const componentHandler = componentHandlers[component.type];
+        componentHandler.run(mesh, component);
+      }
     }
   };
   mesh.triggerAux = rigAux => {
