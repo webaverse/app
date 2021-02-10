@@ -170,7 +170,7 @@ const componentHandlers = {
         const object = new THREE.Object3D();
         object.position.fromArray(position);
         object.quaternion.fromArray(quaternion);
-        return fx.add(type, object);
+        return fx.add(type, object, o);
       });
       return () => {
         for (const e of effectInstances) {
