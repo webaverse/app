@@ -25,6 +25,8 @@ const localVector2 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
+const gcFiles = true;
+
 const runtime = {};
 
 let geometryManager = null;
@@ -191,7 +193,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(srcUrl);
+      gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
   const {parser, animations} = o;
@@ -496,7 +498,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(srcUrl);
+      gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
   o.scene.raw = o;
@@ -593,7 +595,7 @@ const _loadImg = async (file, {files = null, instanceId = null, monetizationPoin
       _cleanup();
     }
     const _cleanup = () => {
-      URL.revokeObjectURL(u);
+      gcFiles && URL.revokeObjectURL(u);
     };
     img.crossOrigin = '';
     img.src = u;
@@ -794,7 +796,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       })
       .finally(() => {
         for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
+          gcFiles && URL.revokeObjectURL(u);
         }
       });
   };
