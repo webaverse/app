@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
+import fx from './fx.js';
 import {contentIdToFile} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -187,6 +188,15 @@ export class RigAux {
       } /* else {
         console.warn('could not find walk animation in model: ' + JSON.stringify(walkAnimation) + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
       } */
+      
+      const {effects = []} = component;
+      const effectInstances = effects.map(effect => {
+        const {type, position = [0, 0, 0], quaternion = [0, 0, 0, 1]} = effect;
+        const object = new THREE.Object3D();
+        object.position.fromArray(position);
+        object.quaternion.fromArray(quaternion);
+        return fx.add(type, object);
+      });
     }
     
     return sittable;
