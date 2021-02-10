@@ -139,6 +139,9 @@ const loadPromise = Promise.all([
   v.setAttribute('muted', '');
   v.setAttribute('crossorigin', 'Anonymous');
   v.src = `https://webaverse.github.io/assets/fx/${name}.webm`;
+  // v.load();
+  v.style.display = 'none';
+  document.body.appendChild(v);
   
   // v.currentTime = 0;
   await new Promise((accept, reject) => {
