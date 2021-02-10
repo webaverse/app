@@ -18,6 +18,7 @@ import {makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
+import fx from './fx.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -161,6 +162,26 @@ const componentHandlers = {
       };
     },
   },
+  effect: {
+    load(o, component, rigAux) {
+      const {effects = []} = component;
+      const effectInstances = effects.map(effect => {
+        const {type, position = [0, 0, 0], quaternion = [0, 0, 0, 1]} = effect;
+        const object = new THREE.Object3D();
+        object.position.fromArray(position);
+        object.quaternion.fromArray(quaternion);
+        return fx.add(type, object);
+      });
+      for (const e of effectInstances) {
+        scene.add(e);
+      }
+      return () => {
+        for (const e of effectInstances) {
+          scene.remove(e);
+        }
+      };
+    },
+  },
 };
 const triggerComponentTypes = [
   'swing',
@@ -169,6 +190,7 @@ const loadComponentTypes = [
   'wear',
   'sit',
   'pet',
+  'effect',
 ];
 
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
