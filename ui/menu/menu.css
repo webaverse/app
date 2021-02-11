@@ -5,10 +5,80 @@
   height: 100%;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
 
-#MenuUI #MenuUI-container {
-  width: 500px;
-  height: 500px;
-  background-color: brown;
+#MenuUI-container {
+  width: 90vw;
+  height: 80vh;
+  background-color: #354fbd;
+  max-width: 1400px;
+  border-radius: 5px;
 }
+
+.MenuUI-header {
+  display: flex;
+  padding: 10px 15px;
+}
+
+.MenuUI-header-item {
+  font-size: 30px;
+  padding: 10px 15px;
+  margin: 15px;
+  min-width: 200px;
+  text-align: center;
+  color: #e6fdfdb5;
+  font-weight: 600;
+  border: 5px transparent solid;
+  clip-path: polygon(2% 5%, 100% 0, 98% 94%, 0 100%);
+  border-radius: 5px;
+  background-color: #1b7edc;
+}
+
+.MenuUI-header-item.selected {
+  background-color: #45b5ff;
+  color: #e5fdfd;
+  border: 5px #d9d9ff solid;
+}
+
+.MenuUI-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 50%;
+  height: calc(100% - 125px);
+  padding: 0px 22px;
+}
+
+.MenuUI-content section {
+  margin: 7px;
+  padding: 20px;
+  border-radius: 3px;
+}
+
+.MenuUI-items  {
+  background-color: #1b7edc;
+  overflow-y: scroll;
+}
+
+.MenuUI-items-searchInput  {
+  width: 100%;
+  padding: 10px;
+}
+
+#MenuUI-items-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.MenuUI-items-list-card {
+  width: 20%;
+  background-color: #3f62d4;
+  margin: 15px;
+  text-align: center;
+}
+
+.MenuUI-items-list-card-image {
+  height: 90%;
+  width: 90%;
+}
+
