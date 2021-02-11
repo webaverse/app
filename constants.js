@@ -24,4 +24,4 @@ export const tokensHost = `https://${mainChainName}all-tokens.webaverse.com`;
 export const landHost = `https://${mainChainName}sidechain-land.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3RinkebySidechainEndpoint = 'https://rinkebysidechain.exokit.org';
-export const homeScnUrl = `https://127.0.0.1:3001/street/street.scn`;
+export const homeScnUrl = `https://webaverse.github.io/street/street.scn`;
