@@ -4,7 +4,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 // import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
-import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
+import {makePromise, /*WaitQueue, */downloadFile, unFrustumCull} from './util.js';
 import {appManager, renderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
@@ -37,6 +37,7 @@ class RigManager {
       rig: this.localRig,
       scene: avatarScene,
     });
+    unFrustumCull(this.localRig.model);
     scene.add(this.localRig.model);
 
     this.localRig.avatarUrl = null;
@@ -255,6 +256,7 @@ class RigManager {
           localRig.aux = oldRig.aux;
           localRig.aux.rig = localRig;
         }
+        unFrustumCull(localRig.model);
         scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
         localRig.avatarUrl = oldRig.url;
@@ -285,6 +287,7 @@ class RigManager {
       rig: peerRig,
       scene: avatarScene,
     });
+    unFrustumCull(peerRig.model);
     this.scene.add(peerRig.model);
 
     peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
