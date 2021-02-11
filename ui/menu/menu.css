@@ -33,6 +33,12 @@
   clip-path: polygon(2% 5%, 100% 0, 98% 94%, 0 100%);
   border-radius: 5px;
   background-color: #1b7edc;
+  cursor: pointer;
+}
+
+.MenuUI-header-item:hover {
+  color: #e7ffff;
+  background-color: #3991e4;
 }
 
 .MenuUI-header-item.selected {
