@@ -12,8 +12,8 @@ function procgen(seed) {
   const rng = alea(seed);
   const art = {
     color: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
-    color2: '#' +Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
-    color3: '#' +Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
+    color2: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
+    color3: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
     details: makeRandom(rng, 32),
   };
   const stats = {
