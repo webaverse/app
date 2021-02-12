@@ -553,7 +553,7 @@ const _countCharacters = (name, regex) => {
   }
   return result;
 };
-const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
+const _findHips = skeleton => skeleton.bones.find(bone => /hip|rootx/i.test(bone.name));
 const _findHead = tailBones => {
   const headBones = tailBones.map(tailBone => {
     const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
