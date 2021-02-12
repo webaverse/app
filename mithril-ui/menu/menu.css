@@ -1,0 +1,15 @@
+.Menu-container {
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.Menu-container .Menu-content {
+  background: aqua;
+  height: 80vh;
+  width: 80vw;
+}
