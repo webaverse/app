@@ -1,4 +1,4 @@
-.Menu-container {
+#mithril-root .Menu-container {
   display: flex;
   position: absolute;
   z-index: 999;
@@ -6,10 +6,33 @@
   width: 100%;
   justify-content: center;
   align-items: center;
+  background: #003b92cc;
 }
 
-.Menu-container .Menu-content {
-  background: aqua;
-  height: 80vh;
-  width: 80vw;
+#mithril-root .Menu-container .Menu-content {
+  height: 80%;
+  width: 80%;
+  max-width: 1200px;
+  background: #002863eb;
+}
+
+#mithril-root .Menu-container .Menu-content .MenuNav {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#mithril-root .Menu-container .Menu-content .MenuNav-item {
+  color: white;
+  font-size: 35px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+#mithril-root .Menu-container .Menu-content .MenuNav-item.active {
+  background-color: #0150c5eb;
+}
+
+#mithril-root .Menu-container .Menu-content .MenuNav-item:hover {
+  background-color: #035bdc;
 }
