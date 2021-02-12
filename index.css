@@ -2148,7 +2148,8 @@ footer {
   right: 0;
   z-index: 1;
   pointer-events: none;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
+  overflow: hidden;
 }
 .helper {
   position: relative;
