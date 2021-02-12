@@ -10,28 +10,52 @@ const localRaycaster = new THREE.Raycaster();
 
 export const inventorySpecs = [
   {
-    "start_url": "https://ipfs.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF/model.vrm",
-    "preview_url": "https://preview.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF.vrm/preview.png",
+    id: 1,
+    start_url: "https://ipfs.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF/model.vrm",
+    preview_url: "https://preview.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF.vrm/preview.png",
+    title: "Anime Flowrider Custom 2012 Edition",
+    description: "The flyest specs in the new world for a space crusier.",
+    hash: "Qmc9ZW6gbbWQ5MFxYCcmX1FSyPaL5DjDWCKZmw7aQJD8k9"
   },
   {
-    "start_url": "https://avaer.github.io/cat-in-hat/manifest.json",
-    "preview_url": "https://preview.exokit.org/[https://avaer.github.io/cat-in-hat/cat-in-hat.glb]/preview.png",
+    id: 2,
+    start_url: "https://avaer.github.io/cat-in-hat/manifest.json",
+    preview_url: "https://preview.exokit.org/[https://avaer.github.io/cat-in-hat/cat-in-hat.glb]/preview.png",
+    title: "The Darkest Path down the Mountain",
+    description: "Not as safe place for any traveler to be walking.",
+    hash: "QmRhfxErxohS6igkWMZdci2drLnyU6EBDZig2NuDEM7Mck"
   },
   {
-    "start_url": "https://avaer.github.io/sword/manifest.json",
-    "preview_url": "https://preview.exokit.org/[https://avaer.github.io/sword/sword.glb]/preview.png",
+    id: 3,
+    start_url: "https://avaer.github.io/sword/manifest.json",
+    preview_url: "https://preview.exokit.org/[https://avaer.github.io/sword/sword.glb]/preview.png",
+    title: "Where the Wild Ones go.",
+    description: "Take yourself out on a medieval cruise liner with many fancy feasts.",
+    hash: "QmVmVnFEZqoUvQLAcc4h71rEVeSSj4REFQZrBRqVBTgVSp"
   },
   {
-    "start_url": "https://avaer.github.io/dragon-pet/manifest.json",
-    "preview_url": "https://preview.exokit.org/[https://avaer.github.io/dragon-pet/dragon.glb]/preview.png",
+    id: 4,
+    start_url: "https://avaer.github.io/dragon-pet/manifest.json",
+    preview_url: "https://preview.exokit.org/[https://avaer.github.io/dragon-pet/dragon.glb]/preview.png",
+    title: "From Here to Nowhere.",
+    description: "derp derp da derp is the lerp mang.",
+    hash: "Qmc9ZW6gbbWQ5MFxYCcmX1FSyPaL5DjDWCKZmw7aQJD8k9"
   },
   {
-    "start_url": "https://avaer.github.io/dragon-mount/manifest.json",
-    "preview_url": "https://preview.exokit.org/[https://avaer.github.io/dragon-mount/dragon.glb]/preview.png",
+    id: 5,
+    start_url: "https://avaer.github.io/dragon-mount/manifest.json",
+    preview_url: "https://preview.exokit.org/[https://avaer.github.io/dragon-mount/dragon.glb]/preview.png",
+    title: "Webaverse Crystal of Destiny",
+    description: "Only the legendary have access to such a device.",
+    hash: "QmRhfxErxohS6igkWMZdci2drLnyU6EBDZig2NuDEM7Mck"
   },
   {
-    "start_url": "https://avaer.github.io/dragon-fly/manifest.json",
-    "preview_url": "https://preview.exokit.org/[https://avaer.github.io/dragon-fly/dragon-fly.glb]/preview.png",
+    id: 6,
+    start_url: "https://avaer.github.io/dragon-fly/manifest.json",
+    preview_url: "https://preview.exokit.org/[https://avaer.github.io/dragon-fly/dragon-fly.glb]/preview.png",
+    title: "Cat",
+    description: "A feline.",
+    hash: "QmVmVnFEZqoUvQLAcc4h71rEVeSSj4REFQZrBRqVBTgVSp"
   },
 ];
 

@@ -18,5 +18,9 @@ export const menuActions = {
   setInventory: (items) => {
     menuState.inventory = items;
     m.redraw();
+  },
+  setSelectedItem: (item) => {
+    menuState.selectedItem = item;
+    m.redraw();
   }
 };
