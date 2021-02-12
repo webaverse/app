@@ -8,7 +8,7 @@ import {addDefaultLights} from './util.js';
 const localVector = new THREE.Vector3();
 const localRaycaster = new THREE.Raycaster();
 
-const inventorySpecs = [
+export const inventorySpecs = [
   {
     "start_url": "https://ipfs.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF/model.vrm",
     "preview_url": "https://preview.exokit.org/QmWgij93j5oU9SHGtGcKATJVsQ5ZEarqjg3bZDZMxXLdjF.vrm/preview.png",
