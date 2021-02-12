@@ -22,7 +22,7 @@ function procgen(seed) {
     })(),
     level: Math.floor(rng() * 100),
     hp: Math.floor(rng() * 0xFF),
-    mp: Math.floor(rng(), 0xFF),
+    mp: Math.floor(rng() * 0xFF),
     attack: Math.floor(rng() * 0xFF),
     defense: Math.floor(rng() * 0xFF),
     magic: Math.floor(rng() * 0xFF),
