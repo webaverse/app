@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
-import {contentIdToFile} from './util.js';
+import {contentIdToFile, unFrustumCull} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -91,6 +91,7 @@ export class RigAux {
       local: true,
     });
     wearable.model = o;
+    unFrustumCull(o);
     if (this.wearables.includes(wearable)) {
       this.scene.add(o);
       
@@ -128,6 +129,7 @@ export class RigAux {
       local: true,
     });
     sittable.model = o;
+    unFrustumCull(o);
     if (this.sittables.includes(sittable)) {
       this.scene.add(o);
 
@@ -213,6 +215,7 @@ export class RigAux {
       local: true,
     });
     pet.model = o;
+    unFrustumCull(o);
     if (this.pets.includes(pet)) {
       this.scene.add(o);
 

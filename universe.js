@@ -235,7 +235,7 @@ const enterWorld = async worldSpec => {
           autoScale,
         });
         if (autoRun && o.useAux) {
-          o.useAux();
+          o.useAux(rigManager.localRig.aux);
         }
       });
       promises.push.apply(promises, ps);
