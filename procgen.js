@@ -35,7 +35,6 @@ function procgen(seed) {
     speed: Math.floor(rng() * 0xFF),
     accuracy: Math.floor(rng() * 0xFF),
     evasion: Math.floor(rng() * 0xFF),
-    charisma: Math.floor(rng() * 0xFF),
     luck:  Math.floor(rng() * 0xFF),
     details: makeRandom(rng, 32),
   };
