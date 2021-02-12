@@ -1,7 +1,7 @@
 #mithril-root .Menu-container {
   display: flex;
   position: absolute;
-  z-index: 999;
+  z-index: 1;
   height: 100%;
   width: 100%;
   justify-content: center;
@@ -57,8 +57,8 @@
 }
 
 #mithril-root .Menu-content .Inventory-list-card {
-  height: 150px;
-  width: 150px;
+  height: 100px;
+  width: 100px;
   background: radial-gradient(#7986cb, #3949ab);
   border: 2px solid #3949ab;
   margin: 15px;
