@@ -1,9 +1,14 @@
 export const appState = {
-  username: "",
-  password: "",
+  isLoading: false,
+  is3D: false,
 };
 
 export const menuState = {
-  isOpen: false,
-  activeTab: "inventory"
+  isOpen: true,
+  activeTab: "Inventory",
+  inventory: [],
+};
+
+export const userState = {
+  name: "Anonymous",
 };
