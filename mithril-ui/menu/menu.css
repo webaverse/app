@@ -1,0 +1,70 @@
+#mithril-root .Menu-container {
+  display: flex;
+  position: absolute;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  background: #003b92cc;
+}
+
+#mithril-root .Menu-content {
+  height: 80%;
+  width: 80%;
+  max-width: 1200px;
+  background: #002863eb;
+}
+
+#mithril-root .Menu-content .MenuNav {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px #0093ff2e solid;
+}
+
+#mithril-root .Menu-content .MenuNav-item {
+  color: #ffffffb0;
+  font-size: 35px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+#mithril-root .Menu-content .MenuNav-item.active {
+  color: white;
+  background-color: #0150c5eb;
+}
+
+#mithril-root .Menu-content .MenuNav-item:hover {
+  color: white;
+  background-color: #035bdc;
+}
+
+#mithril-root .Menu-content .Inventory {
+  height: 100%;
+  width: 100%;
+}
+
+#mithril-root .Menu-content .Inventory-list {
+  color: white;
+  height: 50%;
+  width: 100%;
+  overflow-y: scroll;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 35px;
+  border-bottom: 1px #0093ff2e solid;
+}
+
+#mithril-root .Menu-content .Inventory-list-card {
+  height: 100px;
+  width: 100px;
+  background: radial-gradient(#7986cb, #3949ab);
+  border: 2px solid #3949ab;
+  margin: 15px;
+}
+
+#mithril-root .Menu-content .Inventory-list-card-image {
+  height: 100%;
+  width: 100%;
+}
