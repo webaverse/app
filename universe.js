@@ -267,17 +267,17 @@ const enterWorld = async worldSpec => {
 
     // world.initializeIfEmpty(universeSpecs.initialScene);
   };
-  _doLoad().catch(err => {
+  await _doLoad().catch(err => {
     console.warn(err);
   });
 
   const _post = () => {
     if (currentWorld) {
-      setTimeout(() => {
+      // setTimeout(() => {
         warpMesh.visible = false;
 
         physicsManager.removeGeometry(warpPhysicsId);
-      }, 3000);
+      // }, 3000);
     }
   };
   _post();
