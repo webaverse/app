@@ -10,7 +10,7 @@ import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import {camera, appManager, scene, scene3} from './app-object.js';
 import {baseUnit} from './constants.js';
-import {contentIdToFile} from './util.js';
+import {contentIdToFile, unFrustumCull} from './util.js';
 import {
   storageHost,
   // worldsHost,
@@ -358,6 +358,8 @@ world.addEventListener('trackedobjectadd', async e => {
       if (mesh) {
         mesh.position.fromArray(position);
         mesh.quaternion.fromArray(quaternion);
+
+        unFrustumCull(mesh);
         
         // mesh.name = file.name;
         mesh.contentId = contentId;
