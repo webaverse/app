@@ -7,6 +7,7 @@ export const menuState = {
   isOpen: false,
   activeTab: "Inventory",
   inventory: [],
+  selectedItem: {},
 };
 
 export const userState = {
