@@ -525,14 +525,16 @@ ioManager.bindInput = () => {
     const {movementX, movementY} = e;
     camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-    camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-    camera.quaternion.setFromEuler(camera.rotation);
+    if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+      camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+      camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+      camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+      camera.quaternion.setFromEuler(camera.rotation);
 
-    camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+      camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-    camera.updateMatrixWorld();
+      camera.updateMatrixWorld();
+    }
   };
   renderer.domElement.addEventListener('mousemove', e => {
     if (weaponsManager.weaponWheel) {

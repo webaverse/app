@@ -173,7 +173,6 @@ async function tryLogin() {
 };
 async function bindLogin() {
   const loginForm = document.getElementById('login-form');
-  const loginEmail = document.getElementById('login-email');
   
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
@@ -232,6 +231,9 @@ async function bindLogin() {
       <div>Working...</div>
     </div>
   `;
+  const loginEmail = loginForm.querySelector('#login-email');
+  const loginNotice = loginForm.querySelector('#login-notice');
+  const loginError = loginForm.querySelector('#login-error');
 
   const userButton = document.getElementById('user-button');
   userButton.addEventListener('click', e => {
