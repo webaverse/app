@@ -273,11 +273,11 @@ const enterWorld = async worldSpec => {
 
   const _post = () => {
     if (currentWorld) {
-      setTimeout(() => {
+      // setTimeout(() => {
         warpMesh.visible = false;
 
         physicsManager.removeGeometry(warpPhysicsId);
-      }, 3000);
+      // }, 3000);
     }
   };
   _post();
