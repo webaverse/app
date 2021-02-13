@@ -4,7 +4,7 @@ export const appState = {
 };
 
 export const menuState = {
-  isOpen: true,
+  isOpen: false,
   activeTab: "Inventory",
   inventory: [],
   selectedItem: {},
