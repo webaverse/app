@@ -113,7 +113,7 @@ const componentHandlers = {
       const wearable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
-        component
+        component,
       };
       auxPose.wearables.push(wearable);
       rigAux.setPose(auxPose);
@@ -131,7 +131,7 @@ const componentHandlers = {
       const sittable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
-        component
+        component,
       };
       auxPose.sittables.push(sittable);
       rigAux.setPose(auxPose);
@@ -192,7 +192,7 @@ const runComponentTypes = [
   'effect',
 ];
 
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -408,6 +408,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
 
+  mesh.contentId = contentId;
   mesh.run = async () => {
     if (physicsMesh) {
       physicsMesh.position.copy(mesh.position);
@@ -504,7 +505,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   
   return mesh;
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, components = [], instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -529,6 +530,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   o.scene.raw = o;
   o = o.scene;
   o.isVrm = true;
+  o.contentId = contentId;
   o.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
@@ -581,7 +583,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   };
   return o;
 };
-const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVox = async (file, {files = null, contentId = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -601,9 +603,10 @@ const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null
   } catch(err) {
     console.warn(err);
   }
+  o.contentId = contentId;
   return o;
 };
-const _loadImg = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadImg = async (file, {files = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   const img = new Image();
   await new Promise((accept, reject) => {
     let u = file.url || URL.createObjectURL(file);
@@ -658,6 +661,7 @@ const _loadImg = async (file, {files = null, instanceId = null, monetizationPoin
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.contentId = contentId;
   return mesh;
 };
 const _makeAppUrl = appId => {
@@ -788,7 +792,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, contentId = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -870,6 +874,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   const app = appManager.createApp(appId);
   app.object = mesh;
+  app.contentId = contentId;
   const localImportMap = _clone(importMap);
   localImportMap.app = _makeAppUrl(appId);
   app.files = files || _makeFilesProxy(srcUrl);
@@ -935,7 +940,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -972,13 +977,14 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, autoSca
     physics_url,
     components,
     autoScale,
+    contentId,
     instanceId,
     ownerAddress,
     monetizationPointer,
   });
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadWebBundle = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -1016,13 +1022,14 @@ const _loadWebBundle = async (file, {instanceId = null, autoScale = true, moneti
     name: u,
   }, {
     files,
+    contentId,
     instanceId,
     autoScale,
     ownerAddress,
     monetizationPointer,
   });
 };
-const _loadScene = async (file, {files = null}) => {
+const _loadScene = async (file, {contentId = null, files = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -1036,6 +1043,7 @@ const _loadScene = async (file, {files = null}) => {
   const {objects} = j;
   
   const scene = new THREE.Object3D();
+  scene.contentId = contentId;
 
   const promises = objects.map(async object => {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
@@ -1084,7 +1092,7 @@ const _loadScene = async (file, {files = null}) => {
   };
   return scene;
 };
-const _loadPortal = async file => {
+const _loadPortal = async (file, {contentId = null}) => {
   let json;
   if (file.url) {
     const res = await fetch(file.url);
@@ -1263,6 +1271,7 @@ const _loadPortal = async file => {
   );
   portalMesh.frustumCulled = false;
   portalMesh.isPortal = true;
+  portalMesh.contentId = contentId;
   portalMesh.json = json;
   portalMesh.update = () => {
     const transforms = rigManager.getRigTransforms();
@@ -1287,7 +1296,7 @@ const _loadPortal = async file => {
 
   return portalMesh;
 };
-const _loadIframe = async (file, opts) => {
+const _loadIframe = async (file, {contentId = null}) => {
   let href;
   if (file.url) {
     const res = await fetch(file.url);
@@ -1334,6 +1343,7 @@ const _loadIframe = async (file, opts) => {
     object.matrix.copy(object2.matrix);
     object.matrixWorld.copy(object2.matrixWorld);
   };
+  object2.contentId = contentId;
   object2.run = async () => {
     scene2.add(object);
   };
@@ -1343,7 +1353,7 @@ const _loadIframe = async (file, opts) => {
   
   return object2;
 };
-const _loadMediaStream = async (file, opts) => {
+const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
     const res = await fetch(file.url);
@@ -1358,11 +1368,11 @@ const _loadMediaStream = async (file, opts) => {
       color: 0xFFFFFF,
     }),
   );
-  
+  object.contentId = contentId;
   return object;
 };
 
-const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadAudio = async (file, {contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   
   const audio = document.createElement('audio');
@@ -1370,6 +1380,7 @@ const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, 
   audio.loop = true;
 
   const object = new THREE.Object3D();
+  object.contentId = contentId;
   object.run = async () => {
     audio.play();
     startMonetization(instanceId, monetizationPointer, ownerAddress);
@@ -1384,8 +1395,9 @@ const _loadVideo = () => {
   throw new Error('not implemented');
 };
 
-const _loadGeo = async (file, opts) => {
+const _loadGeo = async (file, {contentId = null}) => {
   const object = buildTool.makeShapeMesh();
+  object.contentId = contentId;
   return object;
 };
 

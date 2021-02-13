@@ -133,10 +133,13 @@ const _makeInventoryShapesMesh = () => {
       const dy = (i-dx)/3;
 
       {
-        const res = await fetch(`${storageHost}/${hash}`);
+        const u = `${storageHost}/${hash}`;
+        const res = await fetch(u);
         const blob = await res.blob();
         blob.name = filename;
-        const mesh = await runtime.loadFile(blob);
+        const mesh = await runtime.loadFile(blob, {
+          contentId: u,
+        });
 
         mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
         mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
