@@ -1,4 +1,4 @@
-import {appState, menuState} from './state.js';
+import {actionSlotsState, appState, menuState} from './state.js';
 import cameraManager from '../../camera-manager.js';
 
 export const appActions = {
@@ -22,5 +22,13 @@ export const menuActions = {
   setSelectedItem: (item) => {
     menuState.selectedItem = item;
     m.redraw();
-  }
+  },
 };
+
+export const actionSlotsActions = {
+  setActionSlot: (slot) => {
+    const slotIndex = actionSlotsState.slots.findIndex(s => s.id === slot.id);
+    actionSlotsState.slots[slotIndex] = slot;
+    m.redraw();
+  },
+}

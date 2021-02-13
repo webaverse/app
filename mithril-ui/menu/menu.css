@@ -10,8 +10,8 @@
 }
 
 #mithril-root .Menu-content {
-  height: 80%;
-  width: 80%;
+  height: 90%;
+  width: 95%;
   max-width: 1200px;
   background: #002863eb;
   border: 1px #7698f985 solid;
@@ -58,12 +58,17 @@
 }
 
 #mithril-root .Menu-content .Inventory-list-card {
-  height: 100px;
-  width: 100px;
+  height: 80px;
+  width: 80px;
   background: radial-gradient(#7986cb, #3949ab);
   border: 2px solid #3949ab;
-  margin: 15px;
+  margin: 10px;
   cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+#mithril-root .Menu-content .Inventory-list-card:hover {
+  border: 2px solid white;
 }
 
 #mithril-root .Menu-content .Inventory-list-card.selected {
@@ -86,7 +91,7 @@
 
 #mithril-root .Menu-content .Inventory-inspect-preview {
   height: 100%;
-  width: 160px;
+  width: 200px;
   background: radial-gradient(#7986cb, #3949ab);
   border: 2px solid #3949ab;
 }
@@ -102,15 +107,14 @@
 
 #mithril-root .Menu-content .Inventory-inspect-actions {
   padding: 20px;
-  display: flex;
-  flex-wrap: wrap;
 }
 
 #mithril-root .Menu-content .Inventory-inspect-button {
   width: 100%;
-  margin: 10px;
+  height: 40px;
   font-weight: 600;
   cursor: pointer;
+  margin: 5px 0px;
 }
 
 #mithril-root .Menu-content .Inventory-inspect-button.wear {
@@ -129,14 +133,14 @@
 }
 
 #mithril-root .Menu-content .Inventory-actionslots {
-  min-height: 15%;
+  min-height: 13%;
   width: 100%;
   border-bottom: 1px #0093ff2e solid;
 }
 
 #mithril-root .Menu-content .Inventory-actionslots-header {
   color: white;
-  padding: 5px 40px;
+  padding: 5px 40px 0px 40px;
 }
 
 #mithril-root .Menu-content .Inventory-actionslots-container {
@@ -148,17 +152,31 @@
 }
 
 #mithril-root .Menu-content .Inventory-actionslots-slot {
-  height: 100px;
-  width: 100px;
+  height: 70px;
+  width: 70px;
   background: radial-gradient(#7986cb, #3949ab);
   border: 2px solid #3949ab;
   margin: 10px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  cursor: pointer;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-slot:hover {
+  border: 2px solid white;
 }
 
 #mithril-root .Menu-content .Inventory-actionslots-slot-number {
   color: white;
-  font-size: 20px;
+  font-size: 16px;
   position: relative;
-  top: -15px;
-  right: -15px;
+  top: -12px;
+  right: -10px;
+  z-index: 1;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-slot-image {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  top: -52px;
 }
