@@ -19,6 +19,7 @@ import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
+// import procgen from './procgen.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
