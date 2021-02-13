@@ -1,4 +1,5 @@
 import alea from './alea.js';
+import colorScheme from './color-scheme.js';
 
 const rarities = [
   'common',
@@ -16,14 +17,28 @@ function makeRandom(rng, n) {
   }
   return raw;
 }
+const makeColors = rng => {
+  const colors = colorScheme
+    .from_hue(rng() * 360)
+    .scheme('triade')
+    .variation('default')
+    .colors()
+    .map(c => '#' + c);
+  return [
+    colors[0],
+    colors[4],
+    colors[8],
+  ];
+};
 function procgen(seed = '', count = 1) {
   const result = Array(count);
   const rng = alea(seed);
   for (let i = 0; i < count; i++) {
+    const [color, color2, color3] = makeColors(rng);
     const art = {
-      color: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
-      color2: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
-      color3: '#' + Math.floor(rng() * 0xFFFFFF).toString(16).padStart(6, '0'),
+      color,
+      color2,
+      color3,
       details: makeRandom(rng, 32),
     };
     const stats = {
