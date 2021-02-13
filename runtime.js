@@ -86,6 +86,7 @@ const importMap = {
   notifications: _importMapUrl('./notifications.js'),
   popovers: _importMapUrl('./popovers.js'),
   crypto: _importMapUrl('./crypto.js'),
+  procgen: _importMapUrl('./procgen.js'),
   constants: _importMapUrl('./constants.js'),
 };
 
@@ -677,6 +678,7 @@ const _makeAppUrl = appId => {
     import * as notifications from ${JSON.stringify(importMap.notifications)};
     import * as _popovers from ${JSON.stringify(importMap.popovers)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
+    import procgen from ${JSON.stringify(importMap.procgen)};
     import * as constants from ${JSON.stringify(importMap.constants)};
 
     const renderer = Object.create(_renderer);
@@ -770,6 +772,7 @@ const _makeAppUrl = appId => {
     })(popovers.removePopover);
 
     const app = appManager.getApp(${appId});
+    app.specification = procgen(app.contentId)[0];
     let recursion = 0;
     app.onBeforeRender = () => {
       recursion++;

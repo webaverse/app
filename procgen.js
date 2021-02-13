@@ -58,4 +58,4 @@ function procgen(seed = '', count = 1) {
   }
   return result;
 }
-window.procgen = procgen;
+export default procgen;
