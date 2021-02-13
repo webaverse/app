@@ -354,6 +354,8 @@ world.addEventListener('trackedobjectadd', async e => {
         dynamic,
         monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
         ownerAddress: file.token ? file.token.owner.address : ""
+      }, {
+        contentId,
       });
       if (mesh) {
         mesh.position.fromArray(position);

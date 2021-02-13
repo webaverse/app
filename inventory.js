@@ -81,11 +81,13 @@ const _loadEquipPreview = async key => {
   const inventorySpec = equipSpecs[key];
   const {start_url} = inventorySpec;
 
+  const contentId = start_url;
   const o = await runtime.loadFile({
     url: start_url,
     name: start_url,
+  }, {
+    contentId,
   });
-  o.contentId = start_url;
   o.useAux && o.useAux(avatarMesh.rig.aux);
   equipPreviewObjects[key] = o;
 
@@ -209,6 +211,8 @@ const _loadAvatarMesh = async () => {
   avatarMesh = await runtime.loadFile({
     url,
     name,
+  }, {
+    contentId: url,
   });
   if (mesh) {
     avatarMesh.name = 'avatarMesh';

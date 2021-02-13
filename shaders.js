@@ -1085,6 +1085,8 @@ const addItem = async (position, quaternion) => {
   file.name = u;
   let mesh = await runtime.loadFile(file, {
     optimize: false,
+  }, {
+    contentId: u,
   });
   for (let i = 0; i < mesh.children.length; i++) {
     const child = mesh.children[i];

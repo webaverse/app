@@ -89,6 +89,8 @@ export class RigAux {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
+    }, {
+      contentId,
     });
     wearable.model = o;
     unFrustumCull(o);
@@ -127,6 +129,8 @@ export class RigAux {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
+    }, {
+      contentId,
     });
     sittable.model = o;
     unFrustumCull(o);
@@ -213,6 +217,8 @@ export class RigAux {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
+    }, {
+      contentId,
     });
     pet.model = o;
     unFrustumCull(o);

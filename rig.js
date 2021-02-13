@@ -216,6 +216,8 @@ class RigManager {
         o = await runtime.loadFile({
           url,
           ext,
+        }, {
+          contentId: url,
         });
         if (!o.isVrm && o.run) {
           o.run();
