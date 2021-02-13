@@ -127,3 +127,38 @@
   border: #00ffb438 3px solid;
   color: white;
 }
+
+#mithril-root .Menu-content .Inventory-actionslots {
+  min-height: 15%;
+  width: 100%;
+  border-bottom: 1px #0093ff2e solid;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-header {
+  color: white;
+  padding: 5px 40px;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-slot {
+  height: 100px;
+  width: 100px;
+  background: radial-gradient(#7986cb, #3949ab);
+  border: 2px solid #3949ab;
+  margin: 10px;
+}
+
+#mithril-root .Menu-content .Inventory-actionslots-slot-number {
+  color: white;
+  font-size: 20px;
+  position: relative;
+  top: -15px;
+  right: -15px;
+}
