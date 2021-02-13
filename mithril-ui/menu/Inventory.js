@@ -1,4 +1,4 @@
-import {menuActions} from '../store/actions.js';
+import {menuActions, actionSlotsActions} from '../store/actions.js';
 import {menuState, actionSlotsState} from '../store/state.js';
 import {inventorySpecs} from '../../inventory.js';
 
@@ -47,14 +47,27 @@ const InspectPanel = (initialVnode) => {
 };
 
 const ActionSlots = (initialVnode) => {
+  const onSlotClick = (slot) => {
+    actionSlotsActions.setActionSlot({
+      id: slot.id,
+      image: !slot.image ? menuState.selectedItem.preview_url : null
+    })
+  };
   return {
     view: (vnode) => {
       return m("div", { class: "Inventory-actionslots" }, [
-        m("h1", { class: "Inventory-actionslots-header" }, "Action Slots"),
+        m("h2", { class: "Inventory-actionslots-header" }, "Action Slots"),
         m("div", { class: "Inventory-actionslots-container" }, [
           actionSlotsState.slots.map(slot => {
-            return m("div", { class: "Inventory-actionslots-slot" }, [
-              m("p", { class: "Inventory-actionslots-slot-number" }, slot.id)
+            return m("div", { 
+              class: "Inventory-actionslots-slot",
+              onclick: () => onSlotClick(slot),
+            }, [
+              m("p", { class: "Inventory-actionslots-slot-number" }, slot.id),
+              slot.image && m("img", {
+                src: slot.image,
+                class: "Inventory-actionslots-slot-image"
+              }),
             ])
           })
         ]),
