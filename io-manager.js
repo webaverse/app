@@ -560,13 +560,23 @@ ioManager.bindInput = () => {
     }
   });
   renderer.domElement.addEventListener('mousedown', e => {
-    if (document.pointerLockElement && !!(e.buttons & 1)) {
-      weaponsManager.menuMouseDown();
+    if (document.pointerLockElement) {
+      if (e.buttons & 1) {
+        weaponsManager.menuMouseDown();
+      }
+      if (e.buttons & 2) {
+        weaponsManager.menuAim();
+      }
     }
   });
   renderer.domElement.addEventListener('mouseup', e => {
-    if (document.pointerLockElement && !(e.buttons & 1)) {
-      weaponsManager.menuMouseUp();
+    if (document.pointerLockElement) {
+      if (!(e.buttons & 1)) {
+        weaponsManager.menuMouseUp();
+      }
+      if (!(e.buttons & 2)) {
+        weaponsManager.menuUnaim();
+      }
     }
   });
   window.addEventListener('resize', e => {
