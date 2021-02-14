@@ -624,39 +624,39 @@ class RigManager {
       }
     })();
     this.localRig.useAnimation = useAnimation;
-    {
-      this.localRig.update(timeDiff);
-      this.localRig.aux.update(timeDiff);
 
-      let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
-      let sitAnimation;
-      if (sitState) {
-        const sittable = this.localRig.aux.sittables[0];
-        const {model, componentIndex} = sittable;
-        const component = model.getComponents()[componentIndex];
-        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
-        physicsManager.setSitController(sittable.model);
-        sitAnimation = subtype;
-        const spineBone = sittable.model.getObjectByName(sitBone);
-        if (spineBone) {
-          physicsManager.setSitTarget(spineBone);
-        } else {
-          physicsManager.setSitTarget(sittable.model);
-        }
-        physicsManager.setSitOffset(sitOffset);
-        if (typeof damping === 'number') {
-          physicsManager.setDamping(damping);
-        } else {
-          physicsManager.setDamping();
-        }
+    this.localRig.update(timeDiff);
+    this.localRig.aux.update(timeDiff);
+
+    let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+    let sitAnimation;
+    if (sitState) {
+      const sittable = this.localRig.aux.sittables[0];
+      const {model, componentIndex} = sittable;
+      const component = model.getComponents()[componentIndex];
+      const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
+      physicsManager.setSitController(sittable.model);
+      sitAnimation = subtype;
+      const spineBone = sittable.model.getObjectByName(sitBone);
+      if (spineBone) {
+        physicsManager.setSitTarget(spineBone);
       } else {
-        sitAnimation = null;
+        physicsManager.setSitTarget(sittable.model);
+      }
+      physicsManager.setSitOffset(sitOffset);
+      if (typeof damping === 'number') {
+        physicsManager.setDamping(damping);
+      } else {
         physicsManager.setDamping();
       }
-      rigManager.localRig.sitState = sitState;
-      rigManager.localRig.sitAnimation = sitAnimation;
-      physicsManager.setSitState(sitState);
+    } else {
+      sitAnimation = null;
+      physicsManager.setDamping();
     }
+    rigManager.localRig.sitState = sitState;
+    rigManager.localRig.sitAnimation = sitAnimation;
+    physicsManager.setSitState(sitState);
+
     this.peerRigs.forEach(rig => {
       rig.update(timeDiff);
       rig.aux.update(timeDiff);
