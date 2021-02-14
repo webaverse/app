@@ -454,7 +454,7 @@ const _updatePhysics = timeDiff => {
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (/*selectedTool === 'thirdperson'*/appManager.aimed) {
+      } else if (/*selectedTool === 'thirdperson'*/appManager.aimed || !!appManager.grabbedObjects[0]) {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
