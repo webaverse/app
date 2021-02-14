@@ -165,9 +165,7 @@ const componentHandlers = {
       rigAux.setPose(auxPose);
       return () => {
         const auxPose = rigAux.getPose();
-        // console.log('filter 1', auxPose.pets.slice());
         auxPose.pets = auxPose.pets.filter(w => w.id !== pet.id);
-        // console.log('filter 2', auxPose.pets.slice());
         rigAux.setPose(auxPose);
       };
     },
