@@ -23,6 +23,7 @@ const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
+const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 
 const animationsSelectMap = {
@@ -114,11 +115,12 @@ let walkingBackwardAnimations;
 let runningAnimations;
 let runningBackwardAnimations;
 let jumpAnimation;
-let sittingAnimation;
+// let sittingAnimation;
 let floatAnimation;
 // let rifleAnimation;
 // let hitAnimation;
 let useAnimations;
+let sitAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -207,6 +209,7 @@ const loadPromise = (async () => {
     animation.isCombo  = /combo/i.test(animation.name);
     // animation.isHit = /sword and shield idle/i.test(animation.name);
     animation.isMagic = /magic/i.test(animation.name);
+    animation.isSkateboarding = /skateboarding/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -225,7 +228,7 @@ const loadPromise = (async () => {
     } */
   });
   jumpAnimation = animations.find(a => a.isJump);
-  sittingAnimation = animations.find(a => a.isSitting);
+  // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
@@ -235,6 +238,11 @@ const loadPromise = (async () => {
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),
     magic: animations.find(a => a.isMagic),
+  };
+  sitAnimations = {
+    chair: animations.find(a => a.isSitting),
+    saddle: animations.find(a => a.isSitting),
+    stand: animations.find(a => a.isSkateboarding),
   };
 
   /* // bake animations
@@ -1612,6 +1620,7 @@ class Avatar {
     this.useTime = NaN;
     this.useAnimation = null;
     this.sitState = false;
+    this.sitAnimation = null;
     this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
@@ -1765,7 +1774,8 @@ class Avatar {
 
             dst.fromArray(v2);
           } else if (this.sitState) {
-            const src2 = sittingAnimation.interpolants[k];
+            const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
+            const src2 = sitAnimation.interpolants[k];
             const v2 = src2.evaluate(1);
 
             dst.fromArray(v2);

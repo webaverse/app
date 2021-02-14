@@ -617,10 +617,12 @@ class RigManager {
       this.localRig.aux.update(timeDiff);
 
       let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      let sitAnimation;
       if (sitState) {
         const sittable = this.localRig.aux.sittables[0];
-        const {sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = sittable.component;
+        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = sittable.component;
         physicsManager.setSitController(sittable.model);
+        sitAnimation = subtype;
         const spineBone = sittable.model.getObjectByName(sitBone);
         if (spineBone) {
           physicsManager.setSitTarget(spineBone);
@@ -634,9 +636,11 @@ class RigManager {
           physicsManager.setDamping();
         }
       } else {
+        sitAnimation = null;
         physicsManager.setDamping();
       }
       rigManager.localRig.sitState = sitState;
+      rigManager.localRig.sitAnimation = sitAnimation;
       physicsManager.setSitState(sitState);
     }
     this.peerRigs.forEach(rig => {
