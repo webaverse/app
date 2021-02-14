@@ -111,17 +111,17 @@ const setSitController = newSitController => {
 };
 physicsManager.setSitController = setSitController;
 
-let swingTime = -1;
-const getSwingTime = () => swingTime;
-physicsManager.getSwingTime = getSwingTime;
-const startSwing = () => {
-  swingTime = 0;
+let useTime = -1;
+const getUseTime = () => useTime;
+physicsManager.getUseTime = getUseTime;
+const startUse = () => {
+  useTime = 0;
 };
-physicsManager.startSwing = startSwing;
-const stopSwing = () => {
-  swingTime = -1;
+physicsManager.startUse = startUse;
+const stopUse = () => {
+  useTime = -1;
 };
-physicsManager.stopSwing = stopSwing;
+physicsManager.stopUse = stopUse;
 
 const physicsObjects = {};
 const physicsUpdates = [];
@@ -344,9 +344,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
-  // swing animation
-  if (swingTime !== -1) {
-    swingTime += timeDiff * 1000;
+  // use animation
+  if (useTime !== -1) {
+    useTime += timeDiff * 1000;
   }
 
   // apply
