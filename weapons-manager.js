@@ -416,12 +416,6 @@ const _mousedown = () => {
   if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.triggerAux && o.triggerAux();
-    
-    const effect = new THREE.Object3D();
-    effect.position.copy(o.position)
-      .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
-    effect.quaternion.copy(o.quaternion);
-    fx.add('bullet', effect);
   }
 };
 const _mouseup = () => {
