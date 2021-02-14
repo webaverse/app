@@ -424,6 +424,12 @@ const _mouseup = () => {
     o.untriggerAux && o.untriggerAux();
   }
 };
+const _aim = () => {
+  appManager.aimed = true;
+};
+const _unaim = () => {
+  appManager.aimed = false;
+};
 
 const _try = async () => {
   const o = appManager.grabbedObjects[0];
@@ -1713,6 +1719,12 @@ const weaponsManager = {
   },
   menuMouseUp() {
     _mouseup();
+  },
+  menuAim() {
+    _aim();
+  },
+  menuUnaim() {
+    _unaim();
   },
   canTry() {
     return !!appManager.grabbedObjects[0];
