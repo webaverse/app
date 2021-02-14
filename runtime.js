@@ -104,6 +104,14 @@ const componentHandlers = {
   use: {
     trigger(o, component, rigAux) {
       physicsManager.startUse();
+
+      if (component.subtype === 'gun') {
+        const effect = new THREE.Object3D();
+        effect.position.copy(o.position)
+          .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));
+        effect.quaternion.copy(o.quaternion);
+        fx.add('bullet', effect);
+      }
     },
     untrigger(o, component, rigAux) {
       physicsManager.stopUse();
