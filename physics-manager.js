@@ -6,6 +6,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
+import {appManager} from './app-object.js';
 import {getNextPhysicsId} from './util.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
@@ -453,7 +454,7 @@ const _updatePhysics = timeDiff => {
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (selectedTool === 'thirdperson') {
+      } else if (/*selectedTool === 'thirdperson'*/appManager.aimed) {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
