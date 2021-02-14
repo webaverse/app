@@ -102,9 +102,10 @@ const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
   use: {
-    trigger(o, component, rigAux) {
+    trigger(o, componentIndex, rigAux) {
       physicsManager.startUse();
 
+      const component = o.getComponents()[componentIndex];
       if (component.subtype === 'gun') {
         const effect = new THREE.Object3D();
         effect.position.copy(o.position)
@@ -113,17 +114,17 @@ const componentHandlers = {
         fx.add('bullet', effect);
       }
     },
-    untrigger(o, component, rigAux) {
+    untrigger(o, componentIndex, rigAux) {
       physicsManager.stopUse();
     },
   },
   wear: {
-    load(o, component, rigAux) {
+    load(o, componentIndex, rigAux) {
       const auxPose = rigAux.getPose();
       const wearable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
-        component,
+        componentIndex,
       };
       auxPose.wearables.push(wearable);
       rigAux.setPose(auxPose);
@@ -135,13 +136,13 @@ const componentHandlers = {
     },
   },
   sit: {
-    load(o, component, rigAux) {
+    load(o, componentIndex, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.sittables.length = 0;
       const sittable = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
-        component,
+        componentIndex,
       };
       auxPose.sittables.push(sittable);
       rigAux.setPose(auxPose);
@@ -153,13 +154,13 @@ const componentHandlers = {
     },
   },
   pet: {
-    load(o, component, rigAux) {
+    load(o, componentIndex, rigAux) {
       const auxPose = rigAux.getPose();
       auxPose.pets.length = 0;
       const pet = {
         id: rigAux.getNextId(),
         contentId: o.contentId,
-        component,
+        componentIndex,
       };
       auxPose.pets.push(pet);
       rigAux.setPose(auxPose);
@@ -171,7 +172,8 @@ const componentHandlers = {
     },
   },
   effect: {
-    run(o, component) {
+    run(o, componentIndex) {
+      const component = o.getComponents()[componentIndex];
       const {effects = []} = component;
       const effectInstances = effects.map(effect => {
         const {type, position = [0, 0, 0], quaternion = [0, 0, 0, 1]} = effect;
@@ -431,10 +433,11 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
     for (const componentType of runComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        const unloadFn = componentHandler.run(mesh, component);
+        const unloadFn = componentHandler.run(mesh, componentIndex);
         componentUnloadFns.push(unloadFn);
       }
     }
@@ -442,10 +445,11 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.triggerAux = rigAux => {
     let used = false;
     for (const componentType of triggerComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        componentHandler.trigger(mesh, component, rigAux);
+        componentHandler.trigger(mesh, componentIndex, rigAux);
         used = true;
       }
     }
@@ -454,10 +458,11 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.untriggerAux = rigAux => {
     let used = false;
     for (const componentType of triggerComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        componentHandler.untrigger(mesh, component, rigAux);
+        componentHandler.untrigger(mesh, componentIndex, rigAux);
         used = true;
       }
     }
@@ -467,10 +472,11 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.useAux = rigAux => {
     let used = false;
     for (const componentType of loadComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        const unloadFn = componentHandler.load(mesh, component, rigAux);
+        const unloadFn = componentHandler.load(mesh, componentIndex, rigAux);
         componentUnloadFns.push(unloadFn);
         used = true;
       }
@@ -844,10 +850,11 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.triggerAux = rigAux => {
     let used = false;
     for (const componentType of triggerComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        componentHandler.trigger(mesh, component, rigAux);
+        componentHandler.trigger(mesh, componentIndex, rigAux);
         used = true;
       }
     }
@@ -856,10 +863,11 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.untriggerAux = rigAux => {
     let used = false;
     for (const componentType of triggerComponentTypes) {
-      const component = components.find(component => component.type === componentType);
-      if (component) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
-        componentHandler.untrigger(mesh, component, rigAux);
+        componentHandler.untrigger(mesh, componentIndex, rigAux);
         used = true;
       }
     }
