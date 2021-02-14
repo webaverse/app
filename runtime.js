@@ -101,12 +101,12 @@ const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 const componentHandlers = {
-  swing: {
+  use: {
     trigger(o, component, rigAux) {
-      physicsManager.startSwing();
+      physicsManager.startUse();
     },
     untrigger(o, component, rigAux) {
-      physicsManager.stopSwing();
+      physicsManager.stopUse();
     },
   },
   wear: {
@@ -183,7 +183,7 @@ const componentHandlers = {
   },
 };
 const triggerComponentTypes = [
-  'swing',
+  'use',
 ];
 const loadComponentTypes = [
   'wear',

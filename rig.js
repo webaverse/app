@@ -363,7 +363,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
-      swingTime,
+      useTime,
     } = this.localRig;
 
     return [
@@ -380,7 +380,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
-      swingTime,
+      useTime,
     ];
   }
 
@@ -459,7 +459,7 @@ class RigManager {
       jumpTime,
       flyState,
       flyTime,
-      swingTime,
+      useTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -490,7 +490,7 @@ class RigManager {
       peerRig.jumpTime = jumpTime;
       peerRig.flyState = flyState;
       peerRig.flyTime = flyTime;
-      peerRig.swingTime = swingTime;
+      peerRig.useTime = useTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -585,9 +585,9 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    const swingTime = physicsManager.getSwingTime();
+    const useTime = physicsManager.getUseTime();
     for (let i = 0; i < 2; i++) {
-      this.localRig.setHandEnabled(i, swingTime === -1 && !!appManager.equippedObjects[i]);
+      this.localRig.setHandEnabled(i, useTime === -1 && !!appManager.equippedObjects[i]);
     }
     this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
@@ -597,13 +597,13 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.useTime = swingTime;
+    this.localRig.useTime = useTime;
     const useAnimation = (() => {
       if (appManager.equippedObjects[0]) {
         const components = appManager.equippedObjects[0].getComponents();
-        const swingComponent = components.find(c => c.type === 'swing');
-        if (swingComponent) {
-          return swingComponent.swingAnimation || null;
+        const useComponent = components.find(c => c.type === 'use');
+        if (useComponent) {
+          return useComponent.useAnimation || null;
         } else {
           return null;
         }

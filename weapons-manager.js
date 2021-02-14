@@ -243,7 +243,7 @@ const _selectLoadout = index => {
       }
       selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
 
-      if (selectedLoadoutObject.getComponents().some(component => component.type === 'swing')) {
+      if (selectedLoadoutObject.getComponents().some(component => component.type === 'use')) {
         if (selectedLoadoutObject.getPhysicsIds) {
           const physicsIds = selectedLoadoutObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
