@@ -23,6 +23,7 @@ const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
+const defaultUseAnimation = 'combo';
 
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -115,8 +116,9 @@ let runningBackwardAnimations;
 let jumpAnimation;
 let sittingAnimation;
 let floatAnimation;
-let rifleAnimation;
-let hitAnimation;
+// let rifleAnimation;
+// let hitAnimation;
+let useAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -200,11 +202,11 @@ const loadPromise = (async () => {
     animation.isPistol  = /pistol aiming/i.test(animation.name);
     animation.isRifle  = /rifle aiming/i.test(animation.name);
     // animation.isHit  = /downward/i.test(animation.name);
-    // animation.isHit  = /slash/i.test(animation.name);
+    animation.isSlash  = /slash/i.test(animation.name);
     // animation.isHit  = /attack/i.test(animation.name);
-    animation.isHit  = /combo/i.test(animation.name);
+    animation.isCombo  = /combo/i.test(animation.name);
     // animation.isHit = /sword and shield idle/i.test(animation.name);
-    // animation.isMagic = /magic/i.test(animation.name);
+    animation.isMagic = /magic/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -225,9 +227,16 @@ const loadPromise = (async () => {
   jumpAnimation = animations.find(a => a.isJump);
   sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
-  rifleAnimation = animations.find(a => a.isRifle);
-  hitAnimation = animations.find(a => a.isHit);
-  
+  // rifleAnimation = animations.find(a => a.isRifle);
+  // hitAnimation = animations.find(a => a.isHit);
+  useAnimations = {
+    combo: animations.find(a => a.isCombo),
+    slash: animations.find(a => a.isSlash),
+    rifle: animations.find(a => a.isRifle),
+    pistol: animations.find(a => a.isPistol),
+    magic: animations.find(a => a.isMagic),
+  };
+
   /* // bake animations
   (async () => {
     animations = [];
@@ -1600,7 +1609,8 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
-    this.swingTime = NaN;
+    this.useTime = NaN;
+    this.useAnimation = null;
     this.sitState = false;
     this.sitTarget = new THREE.Object3D();
 	}
@@ -1768,9 +1778,10 @@ class Avatar {
 
             dst.slerp(localQuaternion.fromArray(v2), f);
           }
-          if (this.swingTime >= 0 && isTop) {
-            const t2 = (this.swingTime/1000) % hitAnimation.duration;
-            const src2 = hitAnimation.interpolants[k];
+          if (this.useTime >= 0 && isTop) {
+            const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
+            const t2 = (this.useTime/1000) % useAnimation.duration;
+            const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);

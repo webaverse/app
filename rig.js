@@ -597,7 +597,21 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.swingTime = swingTime;
+    this.localRig.useTime = swingTime;
+    const useAnimation = (() => {
+      if (appManager.equippedObjects[0]) {
+        const components = appManager.equippedObjects[0].getComponents();
+        const swingComponent = components.find(c => c.type === 'swing');
+        if (swingComponent) {
+          return swingComponent.swingAnimation || null;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    })();
+    this.localRig.useAnimation = useAnimation;
     {
       this.localRig.update(timeDiff);
       this.localRig.aux.update(timeDiff);
