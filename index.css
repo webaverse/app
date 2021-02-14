@@ -2147,6 +2147,7 @@ footer {
   left: 0;
   right: 0;
   z-index: 1;
+  padding-top: 10px;
   pointer-events: none;
   /* flex-wrap: wrap; */
   overflow: hidden;
