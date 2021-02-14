@@ -620,7 +620,9 @@ class RigManager {
       let sitAnimation;
       if (sitState) {
         const sittable = this.localRig.aux.sittables[0];
-        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = sittable.component;
+        const {model, componentIndex} = sittable;
+        const component = model.getComponents()[componentIndex];
+        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
         physicsManager.setSitController(sittable.model);
         sitAnimation = subtype;
         const spineBone = sittable.model.getObjectByName(sitBone);

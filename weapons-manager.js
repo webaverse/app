@@ -1876,8 +1876,9 @@ const weaponsManager = {
   getSpeed() {
     const defaultSpeed = 0.1;
     const sittable = rigManager.localRig.aux.sittables[0];
-    if (sittable) {
-      const {component} = sittable;
+    if (sittable && !!sittable.model) {
+      const {componentIndex} = sittable;
+      const component = sittable.model.getComponents()[componentIndex];
       const {speed = defaultSpeed} = component;
       return speed;
     } else {

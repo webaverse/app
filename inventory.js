@@ -93,14 +93,15 @@ const _loadEquipPreview = async key => {
 
   const components = o.getComponents ? o.getComponents() : [];
   equipComponents[key] = [];
-  for (const component of components) {
+  for (let componentIndex = 0; componentIndex < components.length; componentIndex++) {
+    const component = components[componentIndex];
     const {type} = component;
     switch (type) {
       case 'wear': {
         const auxComponent = await rigManager.localRig.aux.addWearable({
           id: rigManager.localRig.aux.getNextId(),
           contentId: start_url,
-          component,
+          componentIndex,
         });
         equipComponents[key].push({
           type,
@@ -112,7 +113,7 @@ const _loadEquipPreview = async key => {
         const auxComponent = await rigManager.localRig.aux.addPet({
           id: rigManager.localRig.aux.getNextId(),
           contentId: start_url,
-          component,
+          componentIndex,
         });
         equipComponents[key].push({
           type,
@@ -124,7 +125,7 @@ const _loadEquipPreview = async key => {
         const auxComponent = await rigManager.localRig.aux.addSittable({
           id: rigManager.localRig.aux.getNextId(),
           contentId: start_url,
-          component,
+          componentIndex,
         });
         equipComponents[key].push({
           type,

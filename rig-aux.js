@@ -24,7 +24,7 @@ export class RigAux {
     const _formatAuxObject = o => ({
       id: o.id,
       contentId: o.contentId,
-      component: o.component,
+      componentIndex: o.componentIndex,
     });
     return {
       wearables: this.wearables.map(_formatAuxObject),
@@ -76,11 +76,11 @@ export class RigAux {
       }
     }
   }
-  async addWearable({id, contentId, component}) {
+  async addWearable({id, contentId, componentIndex}) {
     const wearable = {
       id,
       contentId,
-      component,
+      componentIndex,
       model: null,
       update: () => {},
     };
@@ -97,7 +97,7 @@ export class RigAux {
     if (this.wearables.includes(wearable)) {
       this.scene.add(o);
       
-      // const component = o.components.find(c => c.type === 'wear');
+      const component = o.getComponents()[componentIndex];
       const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
       wearable.update = now => {
         const chest = this.rig.model.isVrm ? this.rig.modelBones[bone] : this.rig.model;
@@ -116,11 +116,11 @@ export class RigAux {
       this.wearables.splice(index, 1);
     }
   }
-  async addSittable({id, contentId, component}) {
+  async addSittable({id, contentId, componentIndex}) {
     const sittable = {
       id,
       contentId,
-      component,
+      componentIndex,
       model: null,
       update: () => {},
     };
@@ -139,6 +139,7 @@ export class RigAux {
 
       const root = o;
       const animations = o.getAnimations();
+      const component = o.getComponents()[componentIndex];
       let {walkAnimation = ['walk'], idleAnimation = ['idle'], walkAnimationHoldTime = 0, walkAnimationSpeedFactor = 100} = component;
       if (walkAnimation) {
         if (!Array.isArray(walkAnimation)) {
@@ -204,11 +205,11 @@ export class RigAux {
       this.sittables.splice(index, 1);
     }
   }
-  async addPet({id, contentId, component}) {
+  async addPet({id, contentId, componentIndex}) {
     const pet = {
       id,
       contentId,
-      component,
+      componentIndex,
       model: null,
       update: () => {},
     };
@@ -227,6 +228,7 @@ export class RigAux {
 
       const mesh = o;
       const animations = mesh.getAnimations();
+      const component = mesh.getComponents()[componentIndex];
       let  {walkAnimation = ['walk'], flyAnimation = ['fly'], idleAnimation = ['idle']} = component;
       if (walkAnimation) {
         if (!Array.isArray(walkAnimation)) {
