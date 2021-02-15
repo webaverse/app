@@ -32,7 +32,8 @@
     import {GLTFLoader} from './GLTFLoader.js';
     import {VOXLoader} from './VOXLoader.js';
     import {bake, toggleElements} from './bakeUtils.js';
-    import {parseQuery} from './util.js';
+    import {getExt, parseQuery} from './util.js';
+    import wbn from './wbn.js';
     import * as icons from './icons.js';
     import './gif.js';
 
@@ -247,7 +248,7 @@
       toggleElements(false);
       const screenshotResult = document.getElementById('screenshot-result');
 
-      const {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+      let {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
         const _loadGltf = async () => {
@@ -280,6 +281,49 @@
           } */
           return o;
         };
+        const _loadWbn = async () => {
+          let arrayBuffer;
+
+          if (url) {
+            const res = await fetch(url);
+            arrayBuffer = await res.arrayBuffer();
+          } else {
+            arrayBuffer = await new Promise((accept, reject) => {
+              const fr = new FileReader();
+              fr.onload = function() {
+                accept(this.result);
+              };
+              fr.onerror = reject;
+              fr.readAsArrayBuffer(file);
+            });
+          }
+
+          const files = {};
+          const bundle = new wbn.Bundle(arrayBuffer);
+          const {urls} = bundle;
+
+          for (const u of urls) {
+            const response = bundle.getResponse(u);
+            const {headers} = response;
+            const contentType = headers['content-type'] || 'application/octet-stream';
+            const b = new Blob([response.body], {
+              type: contentType,
+            });
+            const blobUrl = URL.createObjectURL(b);
+            const {pathname} = new URL(u);
+            files['.' + pathname] = blobUrl;
+          }
+          const u = './manifest.json';
+
+          for (const [key, value] of Object.entries(files)) {
+            if (getExt(key) === "glb") {
+              url = files[key];
+              return _loadGltf();
+            }
+          }
+          return;
+        };
+
 
         if (type === 'png' || type === 'jpg' || type === 'jpeg') {
           const canvas = await (async () => {
@@ -297,7 +341,7 @@
               return canvas;
             };
 
-            if (['glb', 'vrm', 'vox'].includes(ext)) {
+            if (['glb', 'vrm', 'vox', 'wbn'].includes(ext)) {
               const {renderer, scene, camera} = _makeRenderer();
 
               let o;
@@ -310,6 +354,10 @@
                   }
                   case 'vox': {
                     o = await _loadVox();
+                    break;
+                  }
+                  case 'wbn': {
+                    o = await _loadWbn();
                     break;
                   }
                 }
