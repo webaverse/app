@@ -12,7 +12,7 @@ const {Transaction, Common} = ethereumJsTx;
 import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import * as notifications from './notifications.js';
 import {makePromise, jsonParse} from './util.js';
-import {menuActions} from './mithril-ui/store/actions.js';
+// import {menuActions} from './mithril-ui/store/actions.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
 
@@ -50,7 +50,7 @@ async function pullUserObject() {
     return tokens;
   })();
 
-  menuActions.setInventory(inventory);
+  // menuActions.setInventory(inventory);
   
   userObject = {
     name,
