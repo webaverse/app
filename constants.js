@@ -10,7 +10,7 @@ export const rarityColors = {
   legendary: [0xAD00EA, 0x32002D],
 };
 
-const isMainChain = true;
+export const isMainChain = true;
 const mainChainName = isMainChain ? 'mainnet' : 'rinkeby';
 
 export const storageHost = 'https://ipfs.exokit.org';
