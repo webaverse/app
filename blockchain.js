@@ -120,7 +120,7 @@ const runSidechainTransaction = mnemonic => async (contractName, method, ...args
       {
         name: 'geth',
         networkId: 1,
-        chainId: 1337,
+        chainId: isMainChain ? 1338 : 1337,
       },
       'petersburg',
     ),
