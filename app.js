@@ -20,7 +20,7 @@ import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
-import {mithrilInit} from './mithril-ui/index.js'
+// import {mithrilInit} from './mithril-ui/index.js'
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -119,7 +119,7 @@ export default class App {
     universe.bindInterface();
     weaponsManager.bindInterface();
     inventoryBindInterface();
-    mithrilInit();
+    // mithrilInit();
   }
   bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
