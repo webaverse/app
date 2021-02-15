@@ -248,17 +248,14 @@
       toggleElements(false);
       const screenshotResult = document.getElementById('screenshot-result');
 
-      const {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+      let {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
-        const _loadGltf = async (passedUrl) => {
-          if (!passedUrl) {
-            passedUrl = url;
-          }
+        const _loadGltf = async () => {
           let o;
           try {
             o = await new Promise((accept, reject) => {
-              new GLTFLoader().load(passedUrl, accept, function onprogress() {}, reject);
+              new GLTFLoader().load(url, accept, function onprogress() {}, reject);
             });
           } catch(err) {
             console.warn(err);
@@ -320,7 +317,8 @@
 
           for (const [key, value] of Object.entries(files)) {
             if (getExt(key) === "glb") {
-              return _loadGltf(files[key]);
+              url = files[key];
+              return _loadGltf();
             }
           }
           return;
