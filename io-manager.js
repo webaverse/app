@@ -7,8 +7,8 @@ import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
-import {menuActions} from './mithril-ui/store/actions.js';
-import {menuState} from './mithril-ui/store/state.js';
+/* import {menuActions} from './mithril-ui/store/actions.js';
+import {menuState} from './mithril-ui/store/state.js'; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
