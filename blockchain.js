@@ -4,7 +4,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import {makePromise} from './util.js';
-import {storageHost, web3MainnetSidechainEndpoint, web3RinkebySidechainEndpoint} from './constants.js';
+import {isMainChain, storageHost, web3MainnetSidechainEndpoint, web3RinkebySidechainEndpoint} from './constants.js';
 const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
@@ -37,7 +37,7 @@ function _setMainChain(isMainChain) {
   }
 }
 // _setMainChain(!/^test\./.test(location.hostname));
-_setMainChain(true);
+_setMainChain(isMainChain);
 
 const contracts = {
   front: {
