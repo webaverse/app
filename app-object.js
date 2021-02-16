@@ -82,7 +82,7 @@ class AppManager {
       new THREE.Matrix4(),
       new THREE.Matrix4(),
     ];
-    this.useAnimation = null;
+    this.used = false;
     this.aimed = false;
   }
   createApp(appId) {

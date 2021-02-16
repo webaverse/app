@@ -1542,7 +1542,7 @@ const geometryWorker = (() => {
     return scratchStack.u32[14] ? {
       direction: scratchStack.f32.slice(15, 18),
       grounded: !!scratchStack.u32[18],
-      id: scratchStack.u32[19],
+      objectId: scratchStack.u32[19],
     } : null;
   };
   /* w.getSubparcelArenaSpec = subparcelOffset => {

@@ -3,7 +3,7 @@ import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {damageMaterial} from './shaders.js';
-import {scene} from './app-object.js';
+import {scene, appManager} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -20,13 +20,25 @@ const _makeDamagePhysicsMesh = () => {
 const damagePhysicsMesh = _makeDamagePhysicsMesh();
 damagePhysicsMesh.visible = false;
 scene.add(damagePhysicsMesh);
+let damagePhysicsId = 0;
 
-const hitMelee = () => {
-  if (document.pointerLockElement) {
+const radius = 1/2;
+const height = 1;
+const halfHeight = height/2;
+const offsetDistance = 0.3;
+const cylinderMesh = new THREE.Mesh(
+  new THREE.CylinderBufferGeometry(radius, radius, height),
+  new THREE.MeshBasicMaterial({
+    color: 0x00FFFF,
+  })
+);
+// scene.add(cylinderMesh);
+const update = () => {
+  if (document.pointerLockElement && appManager.using) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       if (damagePhysicsMesh) {
-        const collisionId = collision.id;
+        const collisionId = collision.objectId;
         const physics = physicsManager.getGeometry(collisionId);
 
         if (physics) {
@@ -50,21 +62,9 @@ const hitMelee = () => {
         }
       }
     }
+    
   }
-};
-
-const radius = 1/2;
-const height = 1;
-const halfHeight = height/2;
-const offsetDistance = 0.3;
-const cylinderMesh = new THREE.Mesh(
-  new THREE.CylinderBufferGeometry(radius, radius, height),
-  new THREE.MeshBasicMaterial({
-    color: 0x00FFFF,
-  })
-);
-// scene.add(cylinderMesh);
-const update = () => {
+  
   const transforms = rigManager.getRigTransforms();
   const {position, quaternion} = transforms[0];
   const outPosition = localVector.copy(position)
@@ -74,7 +74,6 @@ const update = () => {
 };
 
 const hpManager = {
-  hitMelee,
   update,
 };
 export default hpManager;
