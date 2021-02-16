@@ -1695,12 +1695,61 @@ const _addSphere = () => {
   tickers.push(ticker);
 };
 _addSphere();
+const glowHeight = 5;
+const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
+  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
+const glowMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    varying vec2 vUv;
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+
+      vUv = uv;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform float uTime;
+
+    varying vec2 vUv;
+
+    void main() {
+      vec3 c = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+      gl_FragColor = vec4(c, 1. - vUv.y);
+    }
+  `,
+  transparent: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
+});
 (async () => {
   const u = `./card-placeholder.glb`; // `https://webaverse.github.io/assets/card-placeholder.glb`;
   let o = await new Promise((accept, reject) => {
     gltfLoader.load(u, accept, function onprogress() {}, reject);
   });
   o = o.scene;
+  
+  const glowMesh = new THREE.Mesh(
+    glowGeometry,
+    glowMaterial
+  );
+  o.add(glowMesh);
+  
   const _addCard = () => {
     o.position.set(-1, 0.4, 0.5);
     o.rotation.order = 'YXZ';
@@ -1737,6 +1786,9 @@ _addSphere();
               rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
                 .add(localVector2.set(0, headOffset, 0));
               o.position.copy(animation.startPosition).lerp(localVector, f);
+              
+              const f2 = cubicBezier(timeFactor / tailTimeFactorCutoff);
+              glowMesh.scale.setScalar(1 - f2);
             } else {
               {
                 const f = cubicBezier(tailTimeFactorCutoff);
