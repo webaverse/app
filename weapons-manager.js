@@ -1779,12 +1779,9 @@ _addSphere();
   o.position.y = 0;
   scene.add(o);
   
-  console.log('got animations', animations);
-  
   const mixer = new THREE.AnimationMixer(o);
   const actions = animations.map(animationClip => mixer.clipAction(animationClip));
   for (const action of actions) {
-    // action.loop = THREE.LoopRepeat;
     action.play();
   }
   let maxDuration = -Infinity;
@@ -1793,34 +1790,12 @@ _addSphere();
   }
   
   let timeAcc = 0;
-  let startTime = Date.now();
   let lastTimeStamp = Date.now();
   const ticker = {
     update() {
       const now = Date.now();
       const timeDiff = (now - lastTimeStamp) / 1000;
       lastTimeStamp = now;
-
-      const f = (now - startTime) / maxDuration;
-      // console.log('got f', f, actions);
-      for (const action of actions) {
-        // action.time = f;
-        // action.play();
-      }
-      if (f < 1) {
-      } else {
-        startTime = now;
-        /* for (const action of actions) {
-          action.reset();
-          action.play();
-        } */
-      }
-      /* window.animations = animations;
-      window.actions = actions; */
-      
-      /* for (const action of actions) {
-        action.time = (now - startTime) / 1000;
-      } */
 
       mixer.update(timeDiff);
       
