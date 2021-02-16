@@ -520,7 +520,7 @@ const _unequip = () => {
 };
 
 const crosshairEl = document.querySelector('.crosshair');
-const _updateWeapons = () => {  
+const _updateWeapons = () => {
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
 
