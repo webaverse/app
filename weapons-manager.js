@@ -23,6 +23,7 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
+import easing from './easing.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -43,6 +44,7 @@ const equipArmQuaternions = [
   new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
 ];
+const cubicBezier = easing(0, 1, 0, 1);
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -1621,7 +1623,7 @@ const tickers = [];
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-  sphere.position.set(0, 0.4, 1);
+  sphere.position.set(0, 0.4, 0.5);
   sphere.scale.y = 0.3;
   sphere.scale.multiplyScalar(0.5);
   scene.add(sphere);
@@ -1649,22 +1651,48 @@ const _addSphere = () => {
 };
 _addSphere();
 (async () => {
-  const u = `https://webaverse.github.io/assets/card-placeholder.glb`;
+  const u = `./card-placeholder.glb`; // `https://webaverse.github.io/assets/card-placeholder.glb`;
   let o = await new Promise((accept, reject) => {
     gltfLoader.load(u, accept, function onprogress() {}, reject);
   });
   o = o.scene;
   const _addCard = () => {
-    o.position.set(-1, 0.4, 1);
+    o.position.set(-1, 0.4, 0.5);
     o.rotation.order = 'YXZ';
     o.scale.multiplyScalar(0.6);
     scene.add(o);
+    
+    let animation = null;
     const ticker = {
       update() {
-        // change '0.003' for more aggressive animation
-        var time = performance.now() * 0.0005;
-        //console.log(time)
+        const now = Date.now();
+        if (!animation) {
+          rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
+          localVector.y = 0;
+          const distance = localVector.distanceTo(o.position);
+          if (distance < 1) {
+            animation = {
+              startPosition: o.position.clone(),
+              startTime: now,
+              endTime: now + 800,
+            };
+          }
+        }
+        if (animation) {
+          const timeDiff = now - animation.startTime;
+          const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
+          if (timeFactor < 1) {
+            const f = cubicBezier(timeFactor);
+            rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+              .add(localVector2.set(0, 0.5, 0));
+            o.position.copy(animation.startPosition).lerp(localVector, f);
+          } else {
+            scene.remove(o);
+            tickers.splice(tickers.indexOf(ticker), 1);
+          }
+        }
 
+        const time = performance.now() * 0.0005;
         o.rotation.y = time * Math.PI*2;
       },
     };
