@@ -861,7 +861,9 @@ const _updateWeapons = () => {
 
   inventoryUpdate();
   
-  updateSphere();
+  for (const ticker of tickers) {
+    ticker.update();
+  }
 };
 
 /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
@@ -1615,30 +1617,37 @@ renderer.domElement.addEventListener('drop', async e => {
 scene.add(cubeMesh); */
 
 import Simplex from './simplex-noise.js';
+const tickers = [];
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
-const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-sphere.position.set(0, 1.4, 1);
-sphere.scale.y = 0.3;
-sphere.scale.multiplyScalar(0.5);
-scene.add(sphere);
-function updateSphere() {
-  // change '0.003' for more aggressive animation
-  var time = performance.now() * 0.002;
-  //console.log(time)
+const _addSphere = () => {
+  const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
+  sphere.position.set(0, 1.4, 1);
+  sphere.scale.y = 0.3;
+  sphere.scale.multiplyScalar(0.5);
+  scene.add(sphere);
+  const ticker = {
+    update() {
+      // change '0.003' for more aggressive animation
+      var time = performance.now() * 0.002;
+      //console.log(time)
 
-  //go through vertices here and reposition them
-  
-  // change 'k' value for more spikes
-  var k = 1;
-  for (var i = 0; i < sphere.geometry.vertices.length; i++) {
-      var p = sphere.geometry.vertices[i];
-      const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
-      p.normalize().multiplyScalar(f);
-  }
-  sphere.geometry.computeVertexNormals();
-  sphere.geometry.normalsNeedUpdate = true;
-  sphere.geometry.verticesNeedUpdate = true;
+      //go through vertices here and reposition them
+      
+      // change 'k' value for more spikes
+      var k = 1;
+      for (var i = 0; i < sphere.geometry.vertices.length; i++) {
+          var p = sphere.geometry.vertices[i];
+          const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
+          p.normalize().multiplyScalar(f);
+      }
+      sphere.geometry.computeVertexNormals();
+      sphere.geometry.normalsNeedUpdate = true;
+      sphere.geometry.verticesNeedUpdate = true;
+    },
+  };
+  tickers.push(ticker);
 };
+_addSphere();
 
 const weaponsManager = {
   // weapons,
