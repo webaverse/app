@@ -1649,7 +1649,32 @@ const _handleDamageCick = () => {
     /* _getAvatarCapsule(localVector);
     localVector.add(p); */
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-    console.log('got collision', collision);
+    if (collision) {
+      if (damagePhysicsMesh) {
+        const collisionId = collision.id;
+        const physics = physicsManager.getGeometry(collisionId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          damagePhysicsMesh.geometry.dispose();
+          damagePhysicsMesh.geometry = geometry;
+          // damagePhysicsMesh.scale.setScalar(1.05);
+          damagePhysicsMesh.physicsId = collisionId;
+
+          const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
+          damagePhysicsMesh.position.copy(physicsTransform.position);
+          damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+          damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+          damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          damagePhysicsMesh.visible = true;
+        }
+      }
+    }
     /* if (highlightedPhysicsObject) {
       if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
         const physics = physicsManager.getGeometry(highlightedPhysicsId);
