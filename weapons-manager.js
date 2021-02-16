@@ -752,7 +752,6 @@ const _updateWeapons = () => {
       }
 
       const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
@@ -1694,7 +1693,6 @@ const _handleDamageCick = () => {
       }
 
       const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
