@@ -1819,49 +1819,6 @@ const glowMaterial = new THREE.ShaderMaterial({
   };
   _addCard();
 })();
-(async () => {
-  const u = `./chest.glb`;
-  let o = await new Promise((accept, reject) => {
-    gltfLoader.load(u, accept, function onprogress() {}, reject);
-  });
-  const {animations} = o;
-  o = o.scene;
-  o.position.x = -2;
-  o.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2);
-  o.position.y = 0;
-  scene.add(o);
-  
-  const mixer = new THREE.AnimationMixer(o);
-  const actions = animations.map(animationClip => mixer.clipAction(animationClip));
-  for (const action of actions) {
-    action.play();
-  }
-  let maxDuration = -Infinity;
-  for (const animation of animations) {
-    maxDuration = Math.max(maxDuration, animation.duration);
-  }
-  
-  let timeAcc = 0;
-  let lastTimeStamp = Date.now();
-  const ticker = {
-    update() {
-      const now = Date.now();
-      const timeDiff = (now - lastTimeStamp) / 1000;
-      lastTimeStamp = now;
-
-      mixer.update(timeDiff);
-      
-      timeAcc += timeDiff;
-      if (timeAcc >= maxDuration) {
-        timeAcc = 0;
-        for (const action of actions) {
-          action.time = 0;
-        }
-      }
-    },
-  };
-  tickers.push(ticker);
-})();
 
 const weaponsManager = {
   // weapons,
