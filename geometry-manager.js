@@ -1500,6 +1500,7 @@ const geometryWorker = (() => {
     const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
     const directionOffset = scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT;
     const groundedOffset = scratchStack.f32.byteOffset + 18 * Float32Array.BYTES_PER_ELEMENT;
+    const idOffset = scratchStack.f32.byteOffset + 19 * Float32Array.BYTES_PER_ELEMENT;
 
     /* const collideArgs = {
       position: allocator.alloc(Float32Array, 3),
@@ -1535,11 +1536,13 @@ const geometryWorker = (() => {
       hitOffset,
       directionOffset,
       groundedOffset,
+      idOffset,
     );
 
     return scratchStack.u32[14] ? {
       direction: scratchStack.f32.slice(15, 18),
       grounded: !!scratchStack.u32[18],
+      id: scratchStack.u32[19],
     } : null;
   };
   /* w.getSubparcelArenaSpec = subparcelOffset => {

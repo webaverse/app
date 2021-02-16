@@ -19,7 +19,7 @@ import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
-// import procgen from './procgen.js';
+import hpManager from './hp-manager.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -106,7 +106,9 @@ const componentHandlers = {
       physicsManager.startUse();
 
       const component = o.getComponents()[componentIndex];
-      if (component.subtype === 'gun') {
+      if (component.subtype === 'swing' || component.subtype === 'combo') {
+        hpManager.hitMelee();
+      } else if (component.subtype === 'gun') {
         const effect = new THREE.Object3D();
         effect.position.copy(o.position)
           .add(localVector.set(0, 0, -1).applyQuaternion(o.quaternion));

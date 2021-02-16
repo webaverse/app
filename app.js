@@ -15,6 +15,7 @@ import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import hpManager from './hp-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
@@ -344,6 +345,7 @@ export default class App {
       _updateRig();
 
       weaponsManager.update();
+      hpManager.update();
       fx.update();
 
       appManager.tick(timestamp, frame);
