@@ -1623,19 +1623,43 @@ const tickers = [];
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-  sphere.position.set(0, 0.4, 0.5);
+  sphere.position.set(1.5, 0.4, 0.5);
   sphere.scale.y = 0.3;
   sphere.scale.multiplyScalar(0.5);
   scene.add(sphere);
+  const o = sphere;
+
+  let animation = null;
   const ticker = {
     update() {
-      // change '0.003' for more aggressive animation
-      var time = performance.now() * 0.002;
-      //console.log(time)
+      const now = Date.now();
+      if (!animation) {
+        rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
+        localVector.y = 0;
+        const distance = localVector.distanceTo(o.position);
+        if (distance < 1) {
+          animation = {
+            startPosition: o.position.clone(),
+            startTime: now,
+            endTime: now + 1000,
+          };
+        }
+      }
+      if (animation) {
+        const timeDiff = now - animation.startTime;
+        const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
+        if (timeFactor < 1) {
+          const f = cubicBezier(timeFactor);
+          rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+            .add(localVector2.set(0, 0.5, 0));
+          o.position.copy(animation.startPosition).lerp(localVector, f);
+        } else {
+          scene.remove(o);
+          tickers.splice(tickers.indexOf(ticker), 1);
+        }
+      }
 
-      //go through vertices here and reposition them
-      
-      // change 'k' value for more spikes
+      var time = performance.now() * 0.002;
       var k = 1;
       for (var i = 0; i < sphere.geometry.vertices.length; i++) {
           var p = sphere.geometry.vertices[i];
@@ -1674,7 +1698,7 @@ _addSphere();
             animation = {
               startPosition: o.position.clone(),
               startTime: now,
-              endTime: now + 800,
+              endTime: now + 1000,
             };
           }
         }
