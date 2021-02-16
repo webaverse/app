@@ -740,7 +740,6 @@ const _updateWeapons = () => {
       }
 
       const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
@@ -1833,9 +1832,7 @@ const weaponsManager = {
   /* canUpload() {
     return this.menuOpen === 1;
   }, */
-  menuUpload() {
-    _upload();
-  },
+  menuUpload: _upload,
   enter() {
     chatInputEl.classList.toggle('open');
     if (chatInputEl.classList.contains('open')) {
@@ -1885,8 +1882,6 @@ const weaponsManager = {
       return defaultSpeed;
     }
   },
-  update() {
-    _updateWeapons();
-  },
+  update: _updateWeapons,
 };
 export default weaponsManager;
