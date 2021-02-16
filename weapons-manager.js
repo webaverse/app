@@ -1635,22 +1635,23 @@ import Simplex from './simplex-noise.js';
 } */
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 
-const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.01, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-sphere.position.set(0, 1, 1);
-sphere.scale.y = 0.5;
+const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
+sphere.position.set(0, 1.4, 1);
+sphere.scale.y = 0.3;
+sphere.scale.multiplyScalar(0.5);
 scene.add(sphere);
 function updateSphere() {
   // change '0.003' for more aggressive animation
-  var time = performance.now() * 0.003;
+  var time = performance.now() * 0.002;
   //console.log(time)
 
   //go through vertices here and reposition them
   
   // change 'k' value for more spikes
-  var k = 2;
+  var k = 1;
   for (var i = 0; i < sphere.geometry.vertices.length; i++) {
       var p = sphere.geometry.vertices[i];
-      const f = (0.5 + 0.3 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k)) * 0.5;
+      const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
       p.normalize().multiplyScalar(f);
   }
   sphere.geometry.computeVertexNormals();
