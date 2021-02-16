@@ -1767,6 +1767,112 @@ _addSphere();
   };
   _addCard();
 })();
+(async () => {
+  const u = `./chest.glb`;
+  let o = await new Promise((accept, reject) => {
+    gltfLoader.load(u, accept, function onprogress() {}, reject);
+  });
+  const {animations} = o;
+  o = o.scene;
+  o.position.x = -2;
+  o.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2);
+  o.position.y = 0;
+  scene.add(o);
+  
+  console.log('got animations', animations);
+  
+  const mixer = new THREE.AnimationMixer(o);
+  const actions = animations.map(animationClip => mixer.clipAction(animationClip));
+  for (const action of actions) {
+    // action.loop = THREE.LoopRepeat;
+    action.play();
+  }
+  let maxDuration = -Infinity;
+  for (const animation of animations) {
+    maxDuration = Math.max(maxDuration, animation.duration);
+  }
+  
+  let timeAcc = 0;
+  let startTime = Date.now();
+  let lastTimeStamp = Date.now();
+  const ticker = {
+    update() {
+      const now = Date.now();
+      const timeDiff = (now - lastTimeStamp) / 1000;
+      lastTimeStamp = now;
+
+      const f = (now - startTime) / maxDuration;
+      // console.log('got f', f, actions);
+      for (const action of actions) {
+        // action.time = f;
+        // action.play();
+      }
+      if (f < 1) {
+      } else {
+        startTime = now;
+        /* for (const action of actions) {
+          action.reset();
+          action.play();
+        } */
+      }
+      /* window.animations = animations;
+      window.actions = actions; */
+      
+      /* for (const action of actions) {
+        action.time = (now - startTime) / 1000;
+      } */
+
+      mixer.update(timeDiff);
+      
+      timeAcc += timeDiff;
+      if (timeAcc >= maxDuration) {
+        timeAcc = 0;
+        for (const action of actions) {
+          action.time = 0;
+        }
+      }
+    },
+  };
+  tickers.push(ticker);
+
+  /* const walkAnimationClips = walkAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+  const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+
+  if (walkAnimationClips.length > 0 || idleAnimationClips.length > 0) {
+    // hacks
+    {
+      root.position.y = 0;
+      localEuler.setFromQuaternion(root.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      root.quaternion.setFromEuler(localEuler);
+    }
+
+    const mixer = new THREE.AnimationMixer(root);
+    const walkActions = walkAnimationClips.map(walkAnimationClip => mixer.clipAction(walkAnimationClip));
+    for (const walkAction of walkActions) {
+      walkAction.play();
+    }
+    const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
+    for (const idleAction of idleActions) {
+      idleAction.play();
+    }
+
+    sittable.update = timeDiff => {
+      for (const walkAction of walkActions) {
+        walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * walkAnimationSpeedFactor, 0), 1);
+        if (walkAnimationHoldTime) {
+          walkAction.time = walkAnimationHoldTime;
+        }
+      }
+      for (const idleAction of idleActions) {
+        idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
+      }
+
+      mixer.update(timeDiff);
+    };
+  } */
+})();
 
 const weaponsManager = {
   // weapons,
