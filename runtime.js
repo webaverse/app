@@ -107,7 +107,7 @@ const componentHandlers = {
 
       const component = o.getComponents()[componentIndex];
       if (component.subtype === 'swing' || component.subtype === 'combo') {
-        hpManager.hitMelee();
+        appManager.using = true;
       } else if (component.subtype === 'gun') {
         const effect = new THREE.Object3D();
         effect.position.copy(o.position)
@@ -118,6 +118,7 @@ const componentHandlers = {
     },
     untrigger(o, componentIndex, rigAux) {
       physicsManager.stopUse();
+      appManager.using = false;
     },
   },
   wear: {
