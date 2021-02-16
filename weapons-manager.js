@@ -11,7 +11,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial} from './shaders.js';
+import {buildMaterial, damageMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
@@ -179,6 +179,14 @@ const _makeHighlightPhysicsMesh = () => {
   mesh.physicsId = 0;
   return mesh;
 };
+const _makeDamagePhysicsMesh = () => {
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  const material = damageMaterial.clone();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.physicsId = 0;
+  return mesh;
+};
 
 const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
@@ -190,6 +198,10 @@ highlightPhysicsMesh.visible = false;
 scene.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
+
+const damagePhysicsMesh = _makeDamagePhysicsMesh();
+damagePhysicsMesh.visible = false;
+scene.add(damagePhysicsMesh);
 
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
