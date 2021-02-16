@@ -63,7 +63,7 @@ const cylinderMesh = new THREE.Mesh(
     color: 0x00FFFF,
   })
 );
-scene.add(cylinderMesh);
+// scene.add(cylinderMesh);
 const update = () => {
   const transforms = rigManager.getRigTransforms();
   const {position, quaternion} = transforms[0];
