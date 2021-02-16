@@ -1615,7 +1615,7 @@ renderer.domElement.addEventListener('drop', async e => {
 scene.add(cubeMesh); */
 
 import Simplex from './simplex-noise.js';
-class MultiSimplex {
+/* class MultiSimplex {
   constructor(seed, octaves) {
     const simplexes = Array(octaves);
     for (let i = 0; i < octaves; i++) {
@@ -1632,8 +1632,7 @@ class MultiSimplex {
     // result /= this.simplexes.length;
     return result;
   }
-}
-
+} */
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 
 const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.01, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
