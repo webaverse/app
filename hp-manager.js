@@ -1,26 +1,4 @@
 import * as THREE from './three.module.js';
-/* import {GLTFLoader} from './GLTFLoader.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import cameraManager from './camera-manager.js';
-import uiManager from './ui-manager.js';
-import ioManager from './io-manager.js';
-import {loginManager} from './login.js';
-import {world} from './world.js';
-import * as universe from './universe.js';
-import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial, damageMaterial} from './shaders.js';
-import {makeTextMesh} from './vr-ui.js';
-import {teleportMeshes} from './teleport.js';
-import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
-import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
-import buildTool from './build-tool.js';
-import * as notifications from './notifications.js';
-import * as popovers from './popovers.js';
-import messages from './messages.js';
-import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
-import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
-import fx from './fx.js'; */
 import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
@@ -45,9 +23,6 @@ scene.add(damagePhysicsMesh);
 
 const hitMelee = () => {
   if (document.pointerLockElement) {
-    // cylinderMesh.position
-    /* _getAvatarCapsule(localVector);
-    localVector.add(p); */
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       if (damagePhysicsMesh) {
@@ -75,31 +50,6 @@ const hitMelee = () => {
         }
       }
     }
-    /* if (highlightedPhysicsObject) {
-      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
-        const physics = physicsManager.getGeometry(highlightedPhysicsId);
-
-        if (physics) {
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          highlightPhysicsMesh.geometry.dispose();
-          highlightPhysicsMesh.geometry = geometry;
-          // highlightPhysicsMesh.scale.setScalar(1.05);
-          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
-        }
-      }
-
-      const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-      highlightPhysicsMesh.position.copy(physicsTransform.position);
-      highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      highlightPhysicsMesh.visible = true;
-    } */
   }
 };
 
