@@ -855,7 +855,7 @@ const _updateWeapons = () => {
   };
   _handleUseAnimation();
 
-  crosshairEl.classList.toggle('visible', !!document.pointerLockElement && ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) && !appManager.grabbedObjects[0]);
+  crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
 
   popovers.update();
 
