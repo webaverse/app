@@ -25,6 +25,7 @@ const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(
 const cubicBezier = easing(0, 1, 0, 1);
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
+const useAnimationRate = 750;
 
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -1790,7 +1791,7 @@ class Avatar {
           }
           if (this.useTime >= 0 && isTop) {
             const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
-            const t2 = (this.useTime/1000) % useAnimation.duration;
+            const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
