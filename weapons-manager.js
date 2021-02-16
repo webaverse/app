@@ -1861,44 +1861,6 @@ const glowMaterial = new THREE.ShaderMaterial({
     },
   };
   tickers.push(ticker);
-
-  /* const walkAnimationClips = walkAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-  const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-
-  if (walkAnimationClips.length > 0 || idleAnimationClips.length > 0) {
-    // hacks
-    {
-      root.position.y = 0;
-      localEuler.setFromQuaternion(root.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      root.quaternion.setFromEuler(localEuler);
-    }
-
-    const mixer = new THREE.AnimationMixer(root);
-    const walkActions = walkAnimationClips.map(walkAnimationClip => mixer.clipAction(walkAnimationClip));
-    for (const walkAction of walkActions) {
-      walkAction.play();
-    }
-    const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
-    for (const idleAction of idleActions) {
-      idleAction.play();
-    }
-
-    sittable.update = timeDiff => {
-      for (const walkAction of walkActions) {
-        walkAction.weight = Math.min(Math.max(physicsManager.velocity.length() * walkAnimationSpeedFactor, 0), 1);
-        if (walkAnimationHoldTime) {
-          walkAction.time = walkAnimationHoldTime;
-        }
-      }
-      for (const idleAction of idleActions) {
-        idleAction.weight = walkActions.length > 0 ? (1 - walkActions[0].weight) : 1;
-      }
-
-      mixer.update(timeDiff);
-    };
-  } */
 })();
 
 const weaponsManager = {
