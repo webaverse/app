@@ -11,7 +11,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial, damageMaterial} from './shaders.js';
+import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
@@ -179,14 +179,6 @@ const _makeHighlightPhysicsMesh = () => {
   mesh.physicsId = 0;
   return mesh;
 };
-const _makeDamagePhysicsMesh = () => {
-  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  const material = damageMaterial.clone();
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.physicsId = 0;
-  return mesh;
-};
 
 const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
@@ -198,10 +190,6 @@ highlightPhysicsMesh.visible = false;
 scene.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
-
-const damagePhysicsMesh = _makeDamagePhysicsMesh();
-damagePhysicsMesh.visible = false;
-scene.add(damagePhysicsMesh);
 
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -1624,84 +1612,6 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
-const radius = 1/2;
-const height = 1;
-const halfHeight = height/2;
-const cylinderMesh = new THREE.Mesh(
-  new THREE.CylinderBufferGeometry(radius, radius, height),
-  new THREE.MeshBasicMaterial({
-    color: 0x00FFFF,
-  })
-);
-scene.add(cylinderMesh);
-const _handleDamageUpdate = () => {
-  const transforms = rigManager.getRigTransforms();
-  const {position, quaternion} = transforms[0];
-  const outPosition = position.clone()
-    .add(new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion));
-  cylinderMesh.position.copy(outPosition);
-  cylinderMesh.quaternion.copy(quaternion);
-};
-const _handleDamageCick = () => {
-  if (document.pointerLockElement) {
-    // cylinderMesh.position
-    /* _getAvatarCapsule(localVector);
-    localVector.add(p); */
-    const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-    if (collision) {
-      if (damagePhysicsMesh) {
-        const collisionId = collision.id;
-        const physics = physicsManager.getGeometry(collisionId);
-
-        if (physics) {
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          damagePhysicsMesh.geometry.dispose();
-          damagePhysicsMesh.geometry = geometry;
-          // damagePhysicsMesh.scale.setScalar(1.05);
-          damagePhysicsMesh.physicsId = collisionId;
-
-          const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-          damagePhysicsMesh.position.copy(physicsTransform.position);
-          damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-          damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-          damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-          damagePhysicsMesh.visible = true;
-        }
-      }
-    }
-    /* if (highlightedPhysicsObject) {
-      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
-        const physics = physicsManager.getGeometry(highlightedPhysicsId);
-
-        if (physics) {
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          highlightPhysicsMesh.geometry.dispose();
-          highlightPhysicsMesh.geometry = geometry;
-          // highlightPhysicsMesh.scale.setScalar(1.05);
-          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
-        }
-      }
-
-      const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
-      highlightPhysicsMesh.position.copy(physicsTransform.position);
-      highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      highlightPhysicsMesh.visible = true;
-    } */
-  }
-};
-
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1802,7 +1712,6 @@ const weaponsManager = {
   },
   menuClick() {
     _click();
-    _handleDamageCick();
   },
   menuMouseDown() {
     _mousedown();
@@ -1923,9 +1832,7 @@ const weaponsManager = {
   /* canUpload() {
     return this.menuOpen === 1;
   }, */
-  menuUpload() {
-    _upload();
-  },
+  menuUpload: _upload,
   enter() {
     chatInputEl.classList.toggle('open');
     if (chatInputEl.classList.contains('open')) {
@@ -1975,9 +1882,6 @@ const weaponsManager = {
       return defaultSpeed;
     }
   },
-  update() {
-    _updateWeapons();
-    _handleDamageUpdate();
-  },
+  update: _updateWeapons,
 };
 export default weaponsManager;
