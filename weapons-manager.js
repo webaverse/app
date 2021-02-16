@@ -1621,7 +1621,7 @@ const tickers = [];
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-  sphere.position.set(0, 1.4, 1);
+  sphere.position.set(0, 0.4, 1);
   sphere.scale.y = 0.3;
   sphere.scale.multiplyScalar(0.5);
   scene.add(sphere);
@@ -1648,6 +1648,30 @@ const _addSphere = () => {
   tickers.push(ticker);
 };
 _addSphere();
+(async () => {
+  const u = `https://webaverse.github.io/assets/card-placeholder.glb`;
+  let o = await new Promise((accept, reject) => {
+    gltfLoader.load(u, accept, function onprogress() {}, reject);
+  });
+  o = o.scene;
+  const _addCard = () => {
+    o.position.set(-1, 0.4, 1);
+    o.rotation.order = 'YXZ';
+    o.scale.multiplyScalar(0.6);
+    scene.add(o);
+    const ticker = {
+      update() {
+        // change '0.003' for more aggressive animation
+        var time = performance.now() * 0.0005;
+        //console.log(time)
+
+        o.rotation.y = time * Math.PI*2;
+      },
+    };
+    tickers.push(ticker);
+  };
+  _addCard();
+})();
 
 const weaponsManager = {
   // weapons,
