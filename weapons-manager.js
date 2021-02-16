@@ -45,6 +45,7 @@ const equipArmQuaternions = [
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
 ];
 const cubicBezier = easing(0, 1, 0, 1);
+const cubicBezier2 = easing(0, 1, 1, 1);
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -1624,8 +1625,8 @@ const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   sphere.position.set(1.5, 0.4, 0.5);
-  sphere.scale.y = 0.3;
-  sphere.scale.multiplyScalar(0.5);
+  const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
+  sphere.scale.copy(defaultScale);
   scene.add(sphere);
   const o = sphere;
 
@@ -1646,25 +1647,45 @@ const _addSphere = () => {
         }
       }
       if (animation) {
-        const timeDiff = now - animation.startTime;
-        const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
-        if (timeFactor < 1) {
-          const f = cubicBezier(timeFactor);
-          rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
-            .add(localVector2.set(0, 0.5, 0));
-          o.position.copy(animation.startPosition).lerp(localVector, f);
-        } else {
-          scene.remove(o);
-          tickers.splice(tickers.indexOf(ticker), 1);
+          const headOffset = 0.5;
+          const bodyOffset = -0.3;
+          const tailTimeFactorCutoff = 0.8;
+          const timeDiff = now - animation.startTime;
+          const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
+          if (timeFactor < 1) {
+            if (timeFactor < tailTimeFactorCutoff) {
+              const f = cubicBezier(timeFactor);
+              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                .add(localVector2.set(0, headOffset, 0));
+              o.position.copy(animation.startPosition).lerp(localVector, f);
+            } else {
+              {
+                const f = cubicBezier(tailTimeFactorCutoff);
+                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, headOffset, 0));
+                o.position.copy(animation.startPosition).lerp(localVector, f);
+              }
+              {
+                const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
+                const f = cubicBezier2(tailTimeFactor);
+                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, bodyOffset, 0));
+                o.position.lerp(localVector, f);
+                o.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
+              }
+            }
+          } else {
+            scene.remove(o);
+            tickers.splice(tickers.indexOf(ticker), 1);
+          }
         }
-      }
 
-      var time = performance.now() * 0.002;
-      var k = 1;
+      const time = performance.now() * 0.002;
+      const k = 1;
       for (var i = 0; i < sphere.geometry.vertices.length; i++) {
-          var p = sphere.geometry.vertices[i];
-          const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
-          p.normalize().multiplyScalar(f);
+        const p = sphere.geometry.vertices[i];
+        const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
+        p.normalize().multiplyScalar(f);
       }
       sphere.geometry.computeVertexNormals();
       sphere.geometry.normalsNeedUpdate = true;
@@ -1683,7 +1704,9 @@ _addSphere();
   const _addCard = () => {
     o.position.set(-1, 0.4, 0.5);
     o.rotation.order = 'YXZ';
-    o.scale.multiplyScalar(0.6);
+    const s = 0.6;
+    const defaultScale = new THREE.Vector3(s, s, s);
+    o.scale.copy(defaultScale);
     scene.add(o);
     
     let animation = null;
@@ -1698,18 +1721,38 @@ _addSphere();
             animation = {
               startPosition: o.position.clone(),
               startTime: now,
-              endTime: now + 1000,
+              endTime: now + 1200,
             };
           }
         }
         if (animation) {
+          const headOffset = 0.5;
+          const bodyOffset = -0.3;
+          const tailTimeFactorCutoff = 0.8;
           const timeDiff = now - animation.startTime;
           const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
           if (timeFactor < 1) {
-            const f = cubicBezier(timeFactor);
-            rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
-              .add(localVector2.set(0, 0.5, 0));
-            o.position.copy(animation.startPosition).lerp(localVector, f);
+            if (timeFactor < tailTimeFactorCutoff) {
+              const f = cubicBezier(timeFactor);
+              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                .add(localVector2.set(0, headOffset, 0));
+              o.position.copy(animation.startPosition).lerp(localVector, f);
+            } else {
+              {
+                const f = cubicBezier(tailTimeFactorCutoff);
+                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, headOffset, 0));
+                o.position.copy(animation.startPosition).lerp(localVector, f);
+              }
+              {
+                const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
+                const f = cubicBezier2(tailTimeFactor);
+                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, bodyOffset, 0));
+                o.position.lerp(localVector, f);
+                o.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
+              }
+            }
           } else {
             scene.remove(o);
             tickers.splice(tickers.indexOf(ticker), 1);
