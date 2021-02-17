@@ -20,7 +20,6 @@ const _makeDamagePhysicsMesh = () => {
 const damagePhysicsMesh = _makeDamagePhysicsMesh();
 damagePhysicsMesh.visible = false;
 scene.add(damagePhysicsMesh);
-let damagePhysicsId = 0;
 
 const radius = 0.8;
 const height = 0;
@@ -50,7 +49,6 @@ const update = () => {
 
           damagePhysicsMesh.geometry.dispose();
           damagePhysicsMesh.geometry = geometry;
-          // damagePhysicsMesh.scale.setScalar(1.05);
           damagePhysicsMesh.physicsId = collisionId;
 
           const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
@@ -63,7 +61,6 @@ const update = () => {
         }
       }
     }
-    
   }
   
   const transforms = rigManager.getRigTransforms();
