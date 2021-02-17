@@ -756,10 +756,10 @@ const _makeAppUrl = appId => {
         .decompose(position, quaternion, localVector2);
       return transform;
     })(physics.getPhysicsTransform);
-    physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion) {
+    physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
       app.object.updateMatrixWorld();
       localMatrix
-        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .compose(position, quaternion, scale)
         .premultiply(app.object.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
       position = localVector;
