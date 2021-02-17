@@ -40,7 +40,7 @@ const update = () => {
       const physics = physicsManager.getGeometry(collisionId);
 
       if (physics) {
-        let geometry = new THREE.BufferGeometry();
+        /* let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
         geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
         geometry = geometry.toNonIndexed();
@@ -56,7 +56,7 @@ const update = () => {
         activatePhysicsMesh.scale.copy(physicsTransform.scale);
         activatePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
         activatePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        activatePhysicsMesh.visible = true;
+        activatePhysicsMesh.visible = true; */
       }
     }
   }
