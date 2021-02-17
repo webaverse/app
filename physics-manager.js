@@ -126,9 +126,10 @@ physicsManager.stopUse = stopUse;
 
 const physicsObjects = {};
 const physicsUpdates = [];
-const _makePhysicsObject = (position, quaternion) => ({
+const _makePhysicsObject = (position, quaternion, scale) => ({
   position: position.clone(),
   quaternion: quaternion.clone(),
+  scale: scale.clone(),
 });
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
@@ -144,28 +145,28 @@ physicsManager.addGeometry = mesh => {
   
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
-  physicsObjects[physicsId] = _makePhysicsObject(localVector, localQuaternion);
+  physicsObjects[physicsId] = _makePhysicsObject(localVector, localQuaternion, localVector2);
   return physicsId;
 };
 physicsManager.cookGeometry = mesh => geometryManager.geometryWorker.cookGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
-  physicsObjects[physicsId] = _makePhysicsObject(position, quaternion);
+  physicsObjects[physicsId] = _makePhysicsObject(position, quaternion, scale);
   return physicsId;
 };
 
 physicsManager.addConvexGeometry = mesh => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, mesh, physicsId);
-  physicsObjects[physicsId] = _makePhysicsObject(mesh.position, mesh.quaternion);
+  physicsObjects[physicsId] = _makePhysicsObject(mesh.position, mesh.quaternion, mesh.scale);
   return physicsId;
 };
 physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
-  physicsObjects[physicsId] = _makePhysicsObject(position, quaternion);
+  physicsObjects[physicsId] = _makePhysicsObject(position, quaternion, scale);
   return physicsId;
 };
 
@@ -189,25 +190,28 @@ physicsManager.removeGeometry = physicsId => {
 
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
 physicsManager.getPhysicsTransform = physicsId => physicsObjects[physicsId];
-physicsManager.setPhysicsTransform = (physicsId, position, quaternion) => {
+physicsManager.setPhysicsTransform = (physicsId, position, quaternion, scale) => {
   const physicsObject = physicsObjects[physicsId];
   physicsObject.position.copy(position);
   physicsObject.quaternion.copy(quaternion);
+  physicsObject.scale.copy(scale);
   
   physicsUpdates.push({
     id: physicsId,
     position: physicsObject.position,
     quaternion: physicsObject.quaternion,
+    scale: physicsObject.scale,
   });
 };
 physicsManager.simulatePhysics = timeDiff => {
   const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, physicsUpdates, timeDiff);
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
-    const {id, position, quaternion} = updateOut;
+    const {id, position, quaternion, scale} = updateOut;
     const physicsObject = physicsObjects[id];
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
+    physicsObject.scale.copy(scale);
   }
 };
 
