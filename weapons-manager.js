@@ -374,7 +374,11 @@ const _useHold = () => {
   if (activePhysicsId) {
     const activeObject = world.getObjectFromPhysicsId(activePhysicsId);
     if (activeObject) {
-      console.log('use active object', activeObject);
+      const components = activeObject.getComponents();
+      const activateComponent = components.find(c => c.type === 'activate');
+      if (activateComponent) {
+        console.log('use active object', activeObject, activateComponent);
+      }
     }
   }
 };
