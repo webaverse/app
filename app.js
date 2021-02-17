@@ -17,6 +17,7 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
+import dropManager from './drop-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
@@ -348,6 +349,7 @@ export default class App {
       weaponsManager.update();
       hpManager.update();
       activateManager.update();
+      dropManager.update();
       fx.update();
 
       appManager.tick(timestamp, frame);
