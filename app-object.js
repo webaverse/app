@@ -97,7 +97,7 @@ class AppManager {
       app.dispatchEvent(new MessageEvent('unload'));
       this.apps.splice(appIndex, 1);
     }
-    this.removeAnimationLoop(appId);
+    this.setAnimationLoop(appId, null);
   }
   getApp(appId) {
     return this.apps.find(app => app.appId === appId);
@@ -120,12 +120,6 @@ class AppManager {
       }
     }
   }
-  /* removeAnimationLoop(appId) {
-    const index = this.animationLoops.findIndex(al => al.appId === appId);
-    if (index !== -1) {
-      this.animationLoops.splice(index, 1);
-    }
-  } */
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
