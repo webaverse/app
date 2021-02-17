@@ -1621,7 +1621,7 @@ scene.add(cubeMesh); */
 
 /* import Simplex from './simplex-noise.js';
 const tickers = [];
-const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
+const simplex = new Simplex('lol');
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   sphere.position.set(1.5, 0.4, 0.5);
