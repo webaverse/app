@@ -103,22 +103,29 @@ class AppManager {
     return this.apps.find(app => app.appId === appId);
   }
   setAnimationLoop(appId, fn) {
-    let animationLoop = this.animationLoops.find(al => al.appId === appId);
-    if (!animationLoop) {
-      animationLoop = {
-        appId,
-        fn: null,
-      };
-      this.animationLoops.push(animationLoop);
+    if (fn) {
+      let animationLoop = this.animationLoops.find(al => al.appId === appId);
+      if (!animationLoop) {
+        animationLoop = {
+          appId,
+          fn: null,
+        };
+        this.animationLoops.push(animationLoop);
+      }
+      animationLoop.fn = fn;
+    } else {
+      const index = this.animationLoops.findIndex(al => al.appId === appId);
+      if (index !== -1) {
+        this.animationLoops.splice(index, 1);
+      }
     }
-    animationLoop.fn = fn;
   }
-  removeAnimationLoop(appId) {
+  /* removeAnimationLoop(appId) {
     const index = this.animationLoops.findIndex(al => al.appId === appId);
     if (index !== -1) {
       this.animationLoops.splice(index, 1);
     }
-  }
+  } */
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
