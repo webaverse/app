@@ -745,6 +745,7 @@ const _updateWeapons = () => {
       const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+      highlightPhysicsMesh.scale.copy(physicsTransform.scale);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       highlightPhysicsMesh.visible = true;

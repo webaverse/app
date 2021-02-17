@@ -1388,12 +1388,15 @@ const geometryWorker = (() => {
     index += maxNumUpdates*3;
     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
     index += maxNumUpdates*4;
+    const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+    index += maxNumUpdates*7;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
       ids[i] = update.id;
       update.position.toArray(positions, i*3);
       update.quaternion.toArray(quaternions, i*4);
+      update.scale.toArray(scales, i*3);
     }
 
     const numNewUpdates = moduleInstance._simulatePhysics(
@@ -1401,6 +1404,7 @@ const geometryWorker = (() => {
       ids.byteOffset,
       positions.byteOffset,
       quaternions.byteOffset,
+      scales.byteOffset,
       updates.length,
       elapsedTime
     );
@@ -1411,6 +1415,7 @@ const geometryWorker = (() => {
         id: ids[i],
         position: new THREE.Vector3().fromArray(positions, i*3),
         quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
+        scale: new THREE.Vector3().fromArray(scales, i*3),
       };
     }
     
