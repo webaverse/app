@@ -2192,6 +2192,8 @@ const geometryWorker = (() => {
     mesh.getWorldPosition(localVector).toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(6, 10);
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer);
+    const scaleBuffer = scratchStack.f32.subarray(10, 13);
+    mesh.getWorldScale(localVector2).toArray(scaleBuffer);
 
     moduleInstance._addGeometryPhysics(
       physics,
@@ -2199,6 +2201,7 @@ const geometryWorker = (() => {
       dataLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
       id,
       streamPtr,
     );
@@ -2232,7 +2235,7 @@ const geometryWorker = (() => {
     allocator.freeAll();
     return result;
   };
-  w.addCookedGeometryPhysics = (physics, buffer, position, quaternion, id) => {
+  w.addCookedGeometryPhysics = (physics, buffer, position, quaternion, scale, id) => {
     const allocator = new Allocator();
     const buffer2 = allocator.alloc(Uint8Array, buffer.length);
     buffer2.set(buffer);
@@ -2241,6 +2244,8 @@ const geometryWorker = (() => {
     position.toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(3, 7);
     quaternion.toArray(quaternionBuffer);
+    const scaleBuffer = scratchStack.f32.subarray(7, 10);
+    scale.toArray(scaleBuffer);
 
     moduleInstance._addGeometryPhysics(
       physics,
@@ -2248,6 +2253,7 @@ const geometryWorker = (() => {
       buffer2.byteLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
       id,
       0,
     );
@@ -2283,6 +2289,8 @@ const geometryWorker = (() => {
     mesh.getWorldPosition(localVector).toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(6, 10);
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer);
+    const scaleBuffer = scratchStack.f32.subarray(10, 13);
+    mesh.getWorldScale(localVector2).toArray(scaleBuffer);
 
     moduleInstance._addConvexGeometryPhysics(
       physics,
@@ -2290,6 +2298,7 @@ const geometryWorker = (() => {
       dataLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
       id,
       streamPtr,
     );
@@ -2323,7 +2332,7 @@ const geometryWorker = (() => {
     allocator.freeAll();
     return result;
   };
-  w.addCookedConvexGeometryPhysics = (physics, buffer, position, quaternion, id) => {
+  w.addCookedConvexGeometryPhysics = (physics, buffer, position, quaternion, scale, id) => {
     const allocator = new Allocator();
     const buffer2 = allocator.alloc(Uint8Array, buffer.length);
     buffer2.set(buffer);
@@ -2332,6 +2341,8 @@ const geometryWorker = (() => {
     position.toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(3, 7);
     quaternion.toArray(quaternionBuffer);
+    const scaleBuffer = scratchStack.f32.subarray(7, 10);
+    scale.toArray(scaleBuffer);
 
     moduleInstance._addConvexGeometryPhysics(
       physics,
@@ -2339,6 +2350,7 @@ const geometryWorker = (() => {
       buffer2.byteLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
       id,
       0,
     );
