@@ -56,6 +56,7 @@ const update = () => {
           const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
           damagePhysicsMesh.position.copy(physicsTransform.position);
           damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+          damagePhysicsMesh.scale.copy(physicsTransform.scale);
           damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
           damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
           damagePhysicsMesh.visible = true;
