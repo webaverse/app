@@ -1619,8 +1619,8 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
-/* import Simplex from './simplex-noise.js';
 const tickers = [];
+/* import Simplex from './simplex-noise.js';
 const simplex = new Simplex('lol');
 const _addSphere = () => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
