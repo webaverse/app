@@ -145,7 +145,6 @@ const loadPromise = (async () => {
     };
     tickers.push(ticker);
   };
-  addSilk(new THREE.Vector3(1.5, 0.4, 0.5));
   
   const addDrop = p => {
     const o = new THREE.Mesh(cardModel.geometry, cardModel.material);
@@ -222,7 +221,6 @@ const loadPromise = (async () => {
     };
     tickers.push(ticker);
   };
-  addDrop(new THREE.Vector3(-1, 0.4, 0.5));
   
   return {
     addSilk,
@@ -233,6 +231,8 @@ const loadPromise = (async () => {
 const drop = async o => {
   const {addSilk, addDrop} = await loadPromise;
   console.log('drop', o);
+  addDrop(new THREE.Vector3(-1, 0.4, 0.5));
+  addSilk(new THREE.Vector3(1.5, 0.4, 0.5));
 };
 const update = () => {
   for (const ticker of tickers) {
