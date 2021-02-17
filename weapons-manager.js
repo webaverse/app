@@ -1619,7 +1619,7 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
-import Simplex from './simplex-noise.js';
+/* import Simplex from './simplex-noise.js';
 const tickers = [];
 const simplex = new Simplex('lol'); // new MultiSimplex('lol', 6);
 const _addSphere = () => {
@@ -1818,7 +1818,7 @@ const glowMaterial = new THREE.ShaderMaterial({
     tickers.push(ticker);
   };
   _addCard();
-})();
+})(); */
 
 const weaponsManager = {
   // weapons,
