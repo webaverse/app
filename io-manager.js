@@ -425,9 +425,7 @@ ioManager.bindInput = () => {
         break;
       }
       case 69: { // E
-        if (weaponsManager.canUseHold()) {
-          weaponsManager.menuUseHold();
-        }
+        weaponsManager.menuUseHold();
         if (weaponsManager.canRotate()) {
           weaponsManager.menuRotate(-1);
         }
