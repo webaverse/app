@@ -377,7 +377,7 @@ world.addEventListener('trackedobjectadd', async e => {
         /* if (mesh.getStaticPhysicsIds) {
           const staticPhysicsIds = mesh.getStaticPhysicsIds();
           for (const physicsId of staticPhysicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
+            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
           }
         } */
       } else {
