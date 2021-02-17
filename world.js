@@ -505,6 +505,19 @@ world.getWorldJson = async q => {
   return spec;
 };
 
+world.getObjectFromPhysicsId = physicsId => {
+  const objects = world.getObjects().concat(world.getStaticObjects());
+  for (const object of objects) {
+    if (object.getPhysicsIds) {
+      const physicsIds = object.getPhysicsIds();
+      if (physicsIds.includes(physicsId)) {
+        return object;
+      }
+    }
+  }
+  return null;
+};
+
 let animationMediaStream = null
 let networkMediaStream = null;
 const _latchMediaStream = async () => {
