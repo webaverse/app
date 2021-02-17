@@ -377,7 +377,11 @@ const _useHold = () => {
       const components = activeObject.getComponents();
       const activateComponent = components.find(c => c.type === 'activate');
       if (activateComponent) {
-        console.log('use active object', activeObject, activateComponent);
+        const app = activeObject.getApp ? activeObject.getApp() : null;
+        if (app) {
+          console.log('use active object', app);
+          app.dispatchEvent(new MessageEvent('activate'));
+        }
       }
     }
   }
