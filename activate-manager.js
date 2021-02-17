@@ -32,15 +32,20 @@ const cylinderMesh = new THREE.Mesh(
   })
 );
 // scene.add(cylinderMesh);
+let currentCollisionId = null;
+const getCurrentPhysicsId = () => currentCollisionId;
 const update = () => {
   if (document.pointerLockElement) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
-      const physics = physicsManager.getGeometry(collisionId);
-
+      currentCollisionId = collisionId;
+      
+      /* const physics = physicsManager.getGeometry(collisionId);
       if (physics) {
-        /* let geometry = new THREE.BufferGeometry();
+        console.log('got physics', physics);
+        
+        let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
         geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
         geometry = geometry.toNonIndexed();
@@ -56,8 +61,10 @@ const update = () => {
         activatePhysicsMesh.scale.copy(physicsTransform.scale);
         activatePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
         activatePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        activatePhysicsMesh.visible = true; */
-      }
+        activatePhysicsMesh.visible = true;
+      } */
+    } else {
+      currentCollisionId = null;
     }
   }
   
@@ -70,6 +77,7 @@ const update = () => {
 };
 
 const activateManager = {
+  getCurrentPhysicsId,
   update,
 };
 export default activateManager;
