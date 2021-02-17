@@ -260,11 +260,12 @@ const _selectLoadout = index => {
         const {position, quaternion} = transforms[0];
         selectedLoadoutObject.position.copy(position);
         selectedLoadoutObject.quaternion.copy(quaternion);
+        const scale = localVector.set(1, 1, 1);
 
         if (selectedLoadoutObject.getPhysicsIds) {
           const physicsIds = selectedLoadoutObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, position, quaternion);
+            physicsManager.setPhysicsTransform(physicsId, position, quaternion, scale);
           }
         }
 
@@ -658,7 +659,7 @@ const _updateWeapons = () => {
               .premultiply(oldMatrix.invert())
               .premultiply(newMatrix)
               .decompose(localVector, localQuaternion, localVector2);
-            physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion);
+            physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion, localVector2);
           }
         }
         
