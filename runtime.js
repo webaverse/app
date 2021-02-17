@@ -431,7 +431,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       staticPhysicsIds.push(physicsId);
     }
     if (physicsBuffer) {
-      const physicsId = physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
+      const physicsId = physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion, mesh.scale);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
     }
