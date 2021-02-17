@@ -14,9 +14,9 @@ const cubicBezier2 = easing(0, 1, 1, 1);
 const tickers = [];
 
 const simplex = new Simplex('lol');
-const _addSphere = () => {
+const _addSphere = p => {
   const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
-  sphere.position.set(1.5, 0.4, 0.5);
+  sphere.position.copy(p);
   const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
   sphere.scale.copy(defaultScale);
   scene.add(sphere);
@@ -86,7 +86,7 @@ const _addSphere = () => {
   };
   tickers.push(ticker);
 };
-_addSphere();
+_addSphere(new THREE.Vector3(1.5, 0.4, 0.5));
 const glowHeight = 5;
 const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
   .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
@@ -142,8 +142,8 @@ const glowMaterial = new THREE.ShaderMaterial({
   );
   o.add(glowMesh);
   
-  const _addCard = () => {
-    o.position.set(-1, 0.4, 0.5);
+  const _addCard = p => {
+    o.position.copy(p);
     o.rotation.order = 'YXZ';
     const s = 0.6;
     const defaultScale = new THREE.Vector3(s, s, s);
@@ -209,7 +209,7 @@ const glowMaterial = new THREE.ShaderMaterial({
     };
     tickers.push(ticker);
   };
-  _addCard();
+  _addCard(new THREE.Vector3(-1, 0.4, 0.5));
 })();
 
 const drop = o => {
