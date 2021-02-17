@@ -36,29 +36,27 @@ const update = () => {
   if (document.pointerLockElement && appManager.using) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
-      if (damagePhysicsMesh) {
-        const collisionId = collision.objectId;
-        const physics = physicsManager.getGeometry(collisionId);
+      const collisionId = collision.objectId;
+      const physics = physicsManager.getGeometry(collisionId);
 
-        if (physics) {
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
+      if (physics) {
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+        geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+        geometry = geometry.toNonIndexed();
+        geometry.computeVertexNormals();
 
-          damagePhysicsMesh.geometry.dispose();
-          damagePhysicsMesh.geometry = geometry;
-          damagePhysicsMesh.physicsId = collisionId;
+        damagePhysicsMesh.geometry.dispose();
+        damagePhysicsMesh.geometry = geometry;
+        damagePhysicsMesh.physicsId = collisionId;
 
-          const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-          damagePhysicsMesh.position.copy(physicsTransform.position);
-          damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-          damagePhysicsMesh.scale.copy(physicsTransform.scale);
-          damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-          damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-          damagePhysicsMesh.visible = true;
-        }
+        const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
+        damagePhysicsMesh.position.copy(physicsTransform.position);
+        damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+        damagePhysicsMesh.scale.copy(physicsTransform.scale);
+        damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+        damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+        damagePhysicsMesh.visible = true;
       }
     }
   }
