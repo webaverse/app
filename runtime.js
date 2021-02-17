@@ -894,6 +894,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   };
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.getComponents = () => components;
+  mesh.getApp = () => app;
   // mesh.used = false;
 
   const app = appManager.createApp(appId);
