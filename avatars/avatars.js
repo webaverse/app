@@ -67,6 +67,7 @@ const animationsSelectMap = {
   'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Hip Hop Dancing.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -108,6 +109,7 @@ const animationsDistanceMap = {
   'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
   'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
   'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
+  'Hip Hop Dancing.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 let animations;
 
@@ -211,6 +213,7 @@ const loadPromise = (async () => {
     // animation.isHit = /sword and shield idle/i.test(animation.name);
     animation.isMagic = /magic/i.test(animation.name);
     animation.isSkateboarding = /skateboarding/i.test(animation.name);
+    animation.isDancing = /dancing/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
