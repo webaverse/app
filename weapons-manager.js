@@ -13,6 +13,7 @@ import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
+import activateManager from './activate-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
@@ -368,6 +369,14 @@ const _useHold = () => {
     start: now,
     end: now + 1000,
   };
+  
+  const activePhysicsId = activateManager.getCurrentPhysicsId();
+  if (activePhysicsId) {
+    const activeObject = world.getObjectFromPhysicsId(activePhysicsId);
+    if (activeObject) {
+      console.log('use active object', activeObject);
+    }
+  }
 };
 const _useRelease = () => {
   useAnimation = null;
@@ -702,17 +711,8 @@ const _updateWeapons = () => {
       const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
-        const objects = world.getObjects().concat(world.getStaticObjects());
-        for (const object of objects) {
-          if (object.getPhysicsIds) {
-            const physicsIds = object.getPhysicsIds();
-            if (physicsIds.includes(collision.objectId)) {
-              highlightedPhysicsObject = object;
-              highlightedPhysicsId = collision.objectId;
-              break;
-            }
-          }
-        }
+        highlightedPhysicsObject = world.getObjectFromPhysicsId(collision.objectId);
+        highlightedPhysicsId = collision.objectId;
       }
 
       for (const physicsId of grabbedPhysicsIds) {
@@ -1951,9 +1951,6 @@ const weaponsManager = {
     menuMesh.paste(s);
   },
   canGrab() {
-    return !!highlightedObject && !editedObject;
-  },
-  canUseHold() {
     return !!highlightedObject && !editedObject;
   },
   canRotate() {
