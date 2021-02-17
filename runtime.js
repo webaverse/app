@@ -546,6 +546,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
       gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
+  // console.log('load vrm raw', file, o);
   o.scene.raw = o;
   o = o.scene;
   o.isVrm = true;
@@ -730,7 +731,7 @@ const _makeAppUrl = appId => {
       app.physicsIds.push(physicsId);
       return physicsId;
     })(physics.addGeometry);
-    physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion) {
+    physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
       const physicsId = addCookedGeometry.apply(this, arguments);
       app.physicsIds.push(physicsId);
       return physicsId;
@@ -740,7 +741,7 @@ const _makeAppUrl = appId => {
       app.physicsIds.push(physicsId);
       return physicsId;
     })(physics.addConvexGeometry);
-    physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion) {
+    physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
       const physicsId = addCookedConvexGeometry.apply(this, arguments);
       app.physicsIds.push(physicsId);
       return physicsId;
