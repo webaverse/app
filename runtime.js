@@ -88,6 +88,7 @@ const importMap = {
   popovers: _importMapUrl('./popovers.js'),
   crypto: _importMapUrl('./crypto.js'),
   procgen: _importMapUrl('./procgen.js'),
+  drop: _importMapUrl('./drop-manager.js'),
   constants: _importMapUrl('./constants.js'),
 };
 
@@ -698,6 +699,7 @@ const _makeAppUrl = appId => {
     import * as _popovers from ${JSON.stringify(importMap.popovers)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
     import procgen from ${JSON.stringify(importMap.procgen)};
+    import drop from ${JSON.stringify(importMap.drop)};
     import * as constants from ${JSON.stringify(importMap.constants)};
 
     const renderer = Object.create(_renderer);
@@ -807,7 +809,7 @@ const _makeAppUrl = appId => {
         rig.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, constants, rig, app, appManager};
+    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, drop, constants, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
