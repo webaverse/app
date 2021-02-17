@@ -331,24 +331,30 @@ export class RigAux {
   }
   decapitate() {
     for (const wearable of this.wearables) {
-      if (wearable.component && wearable.component.bone === 'Head') {
-        wearable.model && wearable.model.traverse(o => {
-          if (o.isMesh) {
-            o.savedVisible = o.visible;
-            o.visible = false;
-          }
-        });
+      if (wearable.model) {
+        const component = wearable.model.getComponents()[wearable.componentIndex];
+        if (component.bone === 'Head') {
+          wearable.model.traverse(o => {
+            if (o.isMesh) {
+              o.savedVisible = o.visible;
+              o.visible = false;
+            }
+          });
+        }
       }
     }
   }
   undecapitate() {
     for (const wearable of this.wearables) {
-      if (wearable.component && wearable.component.bone === 'Head') {
-        wearable.model && wearable.model.traverse(o => {
-          if (o.isMesh) {
-            o.visible = o.savedVisible;
-          }
-        });
+      if (wearable.model) {
+        const component = wearable.model.getComponents()[wearable.componentIndex];
+        if (component.bone === 'Head') {
+          wearable.model.traverse(o => {
+            if (o.isMesh) {
+              o.visible = o.savedVisible;
+            }
+          });
+        }
       }
     }
   }
