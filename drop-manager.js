@@ -289,7 +289,7 @@ const drop = async o => {
     const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
     const r = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
     const fn = Math.random() < 0.5 ? addSilk : addDrop;
-    fn(o.position.clone().add(new THREE.Vector3(0, 0.5, 0)), v, r);
+    fn(o.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.5, 0)), v, r);
   }
 };
 const update = () => {
