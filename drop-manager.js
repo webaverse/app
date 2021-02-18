@@ -5,6 +5,7 @@ import {rigManager} from './rig.js';
 import Simplex from './simplex-noise.js';
 import physicsManager from './physics-manager.js';
 import easing from './easing.js';
+import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -14,6 +15,7 @@ const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const simplex = new Simplex('lol');
 const dropRadius = 0.4;
+const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 
 const tickers = [];
 const loadPromise = (async () => {
@@ -35,6 +37,8 @@ const loadPromise = (async () => {
   const glowHeight = 5;
   const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
+  const colors = new Float32Array(glowGeometry.attributes.position.array.length);
+  glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   const glowMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uTime: {
@@ -46,14 +50,18 @@ const loadPromise = (async () => {
     vertexShader: `\
       precision highp float;
       precision highp int;
+      
+      attribute vec3 color;
 
       varying vec2 vUv;
+      varying vec3 vColor;
 
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
 
         vUv = uv;
+        vColor = color;
       }
     `,
     fragmentShader: `\
@@ -63,10 +71,10 @@ const loadPromise = (async () => {
       uniform float uTime;
 
       varying vec2 vUv;
+      varying vec3 vColor;
 
       void main() {
-        vec3 c = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-        gl_FragColor = vec4(c, 1. - vUv.y);
+        gl_FragColor = vec4(vColor, 1. - vUv.y);
       }
     `,
     transparent: true,
@@ -176,8 +184,13 @@ const loadPromise = (async () => {
     o.scale.copy(defaultScale);
     scene.add(o);
     
+    const geometry = glowGeometry.clone();
+    const color = new THREE.Color(rarityColorsArray[Math.floor(Math.random() * rarityColorsArray.length)]);
+    for (let i = 0; i < geometry.attributes.color.array.length; i += 3) {
+      color.toArray(geometry.attributes.color.array, i);
+    }
     const glowMesh = new THREE.Mesh(
-      glowGeometry,
+      geometry,
       glowMaterial
     );
     o.add(glowMesh);
