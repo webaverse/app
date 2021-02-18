@@ -729,10 +729,10 @@ const _makeAppUrl = appId => {
     const localMatrix = new THREE.Matrix4();
     const localMatrix2 = new THREE.Matrix4();
     physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
-      app.object.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
-        .premultiply(app.object.matrixWorld)
+        .premultiply(app.rootObject.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
       position = localVector;
       quaternion = localQuaternion;
@@ -763,18 +763,18 @@ const _makeAppUrl = appId => {
     physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
       const transform = getPhysicsTransform.apply(this, arguments);
       const {position, quaternion} = transform;
-      app.object.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2.copy(app.object.matrixWorld).invert())
+        .premultiply(localMatrix2.copy(app.rootObject.matrixWorld).invert())
         .decompose(position, quaternion, localVector2);
       return transform;
     })(physics.getPhysicsTransform);
     physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
-      app.object.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, scale)
-        .premultiply(app.object.matrixWorld)
+        .premultiply(app.rootObject.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
       position = localVector;
       quaternion = localQuaternion;
