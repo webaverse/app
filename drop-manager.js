@@ -12,6 +12,7 @@ const gltfLoader = new GLTFLoader();
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const simplex = new Simplex('lol');
+const gravity = new THREE.Vector3(0, -9.8, 0);
 
 const tickers = [];
 const loadPromise = (async () => {
@@ -73,7 +74,10 @@ const loadPromise = (async () => {
     // polygonOffsetUnits: 1,
   });
 
-  const addSilk = p => {
+  const addSilk = (p, v) => {
+    const velocity = v.clone();
+    let grounded = false;
+    
     const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
     sphere.position.copy(p);
     const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
@@ -81,9 +85,23 @@ const loadPromise = (async () => {
     scene.add(sphere);
     const o = sphere;
 
+    let lastTimestamp = Date.now();
     let animation = null;
     o.update = () => {
-      const now = Date.now(); 
+      const now = Date.now();
+      const timeDiff = (now - lastTimestamp) / 1000;
+      lastTimestamp = now;
+
+      if (!grounded) {
+        o.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
+        if (o.position.y < 0) {
+          o.position.y = 0;
+          grounded = true;
+        } else {
+          velocity.add(localVector.copy(gravity).multiplyScalar(timeDiff));
+        }
+      }
+      
       if (!animation) {
         rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
         localVector.y = 0;
@@ -144,8 +162,11 @@ const loadPromise = (async () => {
     tickers.push(o);
   };
   
-  const addDrop = p => {
+  const addDrop = (p, v) => {
     const o = new THREE.Mesh(cardModel.geometry, cardModel.material);
+    
+    const velocity = v.clone();
+    let grounded = false;
     
     o.position.copy(p);
     o.rotation.order = 'YXZ';
@@ -160,9 +181,23 @@ const loadPromise = (async () => {
     );
     o.add(glowMesh);
     
+    let lastTimestamp = Date.now();
     let animation = null;
     o.update = () => {
       const now = Date.now();
+      const timeDiff = (now - lastTimestamp) / 1000;
+      lastTimestamp = now;
+
+      if (!grounded) {
+        o.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
+        if (o.position.y < 0) {
+          o.position.y = 0;
+          grounded = true;
+        } else {
+          velocity.add(localVector.copy(gravity).multiplyScalar(timeDiff));
+        }
+      }
+      
       if (!animation) {
         rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
         localVector.y = 0;
@@ -224,11 +259,14 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
+const dropExplosionSpeed = 5;
 const drop = async o => {
   const {addSilk, addDrop} = await loadPromise;
-  console.log('drop', o);
-  addDrop(new THREE.Vector3(-1, 0.4, 0.5));
-  addSilk(new THREE.Vector3(1.5, 0.4, 0.5));
+  for (let i = 0; i < 10; i++) {
+    const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 2, 0)).multiplyScalar((0.3 + Math.random() * 0.7) * dropExplosionSpeed);
+    const fn = Math.random() < 0.5 ? addSilk : addDrop;
+    fn(o.position.clone().add(new THREE.Vector3(0, 0.5, 0)), v);
+  }
 };
 const update = () => {
   const localTickers = tickers.slice();
