@@ -912,9 +912,14 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.hit = () => {
     console.log('hit', mesh);
   };
+  
+  const jitterObject = new THREE.Object3D();
+  mesh.add(jitterObject);
+  const appObject = new THREE.Object3D()
+  jitterObject.add(appObject);
 
   const app = appManager.createApp(appId);
-  app.object = mesh;
+  app.object = appObject;
   app.contentId = contentId;
   const localImportMap = _clone(importMap);
   localImportMap.app = _makeAppUrl(appId);
