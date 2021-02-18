@@ -124,6 +124,7 @@ let floatAnimation;
 // let hitAnimation;
 let useAnimations;
 let sitAnimations;
+let danceAnimation;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -248,6 +249,7 @@ const loadPromise = (async () => {
     saddle: animations.find(a => a.isSitting),
     stand: animations.find(a => a.isSkateboarding),
   };
+  danceAnimation = animations.find(a => a.isDancing);
 
   /* // bake animations
   (async () => {
