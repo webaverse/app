@@ -1100,6 +1100,7 @@ const _loadScene = async (file, {contentId = null, files = null}) => {
       physics,
       physics_url,
       files,
+      contentId: start_url,
     });
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
