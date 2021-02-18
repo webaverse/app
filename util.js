@@ -557,7 +557,9 @@ export const makeHitTracker = () => {
   const jitterObject = new THREE.Object3D();
   let hitTime = -1;
   jitterObject.startHit = () => {
-    hitTime = 0;
+    if (hitTime === -1) {
+      hitTime = 0;
+    }
   };
   jitterObject.update = timeDiff => {
     if (hitTime !== -1) {
