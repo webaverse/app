@@ -909,8 +909,10 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
+  let hitTime = -1;
   mesh.hit = () => {
     console.log('hit', mesh);
+    hitTime = 0;
   };
   
   const jitterObject = new THREE.Object3D();
@@ -985,6 +987,20 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
     return script;
   };
   const u = await _mapUrl(srcUrl);
+
+  const hitAnimationLength = 300;
+  app.addEventListener('frame', e => {
+    if (hitTime !== -1) {
+      hitTime += e.data.timeDiff;
+      
+      const scale = (1-hitTime/hitAnimationLength) * 0.1;
+      jitterObject.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+
+      if (hitTime > hitAnimationLength) {
+        hitTime = -1;
+      }
+    }
+  });
 
   return mesh;
 };
