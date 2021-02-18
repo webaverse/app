@@ -400,6 +400,7 @@ const _collideItems = matrix => {
   geometryManager.currentChunkMesh.update(localVector3);
 }; */
 
+physicsManager.getGravity = () => gravity;
 physicsManager.setGravity = g => {
   if (g === true) {
     gravity.set(0, -9.8, 0);
