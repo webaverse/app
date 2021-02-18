@@ -509,7 +509,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
-  appManager.setAnimationLoop(appId, () => {
+  app.addEventListener('frame', () => {
     const now = Date.now();
     const _updateAnimations = () => {
       for (const mixer of animationMixers) {
@@ -714,9 +714,10 @@ const _makeAppUrl = appId => {
     import * as constants from ${JSON.stringify(importMap.constants)};
 
     const renderer = Object.create(_renderer);
-    renderer.setAnimationLoop = function(fn) {
+    /* renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
-    };
+    }; */
+    renderer.setAnimationLoop = null;
 
     const physics = {};
     for (const k in _physics) {
@@ -1340,7 +1341,7 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
-  appManager.setAnimationLoop(appId, () => {
+  app.addEventListener('frame', () => {
     o.update();
   });
 
