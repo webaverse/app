@@ -402,6 +402,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   const jitterObject = makeHitTracker();
   mesh.add(jitterObject);
   jitterObject.add(gltfObject);
+  jitterObject.addEventListener('die', () => {
+    console.log('die', jitterObject);
+  });
 
   /* if (dynamic && autoScale) {
     localBox.setFromObject(o);
@@ -511,7 +514,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getAnimations = () => animations;
   mesh.getComponents = () => components;
   mesh.hit = () => {
-    jitterObject.startHit();
+    jitterObject.hit();
   };
 
   const appId = ++appIds;
@@ -564,6 +567,9 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   const jitterObject = makeHitTracker();
   o.add(jitterObject);
   jitterObject.add(vrmObject.scene);
+  jitterObject.addEventListener('die', () => {
+    console.log('die', jitterObject);
+  });
 
   o.isVrm = true;
   o.contentId = contentId;
@@ -616,7 +622,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   o.getStaticPhysicsIds = () => staticPhysicsIds;
   o.getComponents = () => components;
   o.hit = () => {
-    jitterObject.startHit();
+    jitterObject.hit();
   };
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
@@ -878,7 +884,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
         startMonetization(instanceId, monetizationPointer, ownerAddress);
       })
       .catch(err => {
-        console.error('load script failed', u, err);
+        console.error('load script failed', contentId, u, err);
+        debugger;
       })
       .finally(() => {
         for (const u of cachedUrls) {
@@ -931,13 +938,16 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
   mesh.hit = () => {
-    jitterObject.startHit();
+    jitterObject.hit();
   };
   
   const jitterObject = makeHitTracker();
   mesh.add(jitterObject);
   const appObject = new THREE.Object3D();
   jitterObject.add(appObject);
+  jitterObject.addEventListener('die', () => {
+    console.log('die', jitterObject);
+  });
 
   const app = appManager.createApp(appId);
   app.rootObject = mesh;
