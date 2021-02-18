@@ -71,6 +71,15 @@ if (canvas.parentNode) {
 const scene2 = new THREE.Scene();
 const scene3 = new THREE.Scene();
 
+const localData = {
+  timestamp: 0,
+  frame: null,
+  timeDiff: 0,
+};
+const localFrameOpts = {
+  data: localData,
+};
+
 class AppManager {
   constructor() {
     this.apps = [];
@@ -83,6 +92,7 @@ class AppManager {
     ];
     this.used = false;
     this.aimed = false;
+    this.lastTimestamp = Date.now();
   }
   createApp(appId) {
     const app = new App(appId);
@@ -103,9 +113,15 @@ class AppManager {
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
-  tick() {
-    for (const app of this.apps) {
-      app.dispatchEvent(new MessageEvent('frame'));
+  tick(timestamp, frame) {
+    if (this.apps.length > 0) {
+      localData.timestamp = timestamp;
+      localData.frame = frame;
+      localData.timeDiff = timestamp - this.lastTimestamp;
+      this.lastTimestamp = timestamp;
+      for (const app of this.apps) {
+        app.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+      }
     }
   }
 }
