@@ -825,14 +825,14 @@ const damageMaterial = new THREE.ShaderMaterial({
       // float f = edgeFactor();
       // float f = max(normalTex.x, normalTex.y, normalTex.z);
 
-      if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
+      /* if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
         f = 1.0;
-      }
+      } */
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
       float f2 = 1. + d/10.0;
-      gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5);
+      gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5 * uTime);
     }
   `,
   transparent: true,
