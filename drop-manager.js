@@ -13,6 +13,7 @@ const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const simplex = new Simplex('lol');
 const gravity = new THREE.Vector3(0, -9.8, 0);
+const dropRadius = 0.4;
 
 const tickers = [];
 const loadPromise = (async () => {
@@ -190,8 +191,8 @@ const loadPromise = (async () => {
 
       if (!grounded) {
         o.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
-        if (o.position.y < 0) {
-          o.position.y = 0;
+        if (o.position.y < dropRadius) {
+          o.position.y = dropRadius;
           grounded = true;
         } else {
           velocity.add(localVector.copy(gravity).multiplyScalar(timeDiff));
