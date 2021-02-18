@@ -553,7 +553,9 @@ export const unFrustumCull = o => {
 };
 
 const hitAnimationLength = 300;
-export const makeHitTracker = () => {
+export const makeHitTracker = ({
+  hp = 100,
+} = {}) => {
   const jitterObject = new THREE.Object3D();
   let hitTime = -1;
   jitterObject.startHit = () => {
