@@ -7,7 +7,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh, makeHitTracker} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import buildTool from './build-tool.js';
@@ -359,7 +359,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   };
   _loadHubsComponents();
 
-  const mesh = (() => {
+  const gltfObject = (() => {
     if (optimize) {
       const specs = [];
       o.traverse(o => {
@@ -397,6 +397,11 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
+
+  const mesh = new THREE.Object3D();
+  const jitterObject = makeHitTracker();
+  mesh.add(jitterObject);
+  jitterObject.add(gltfObject);
 
   /* if (dynamic && autoScale) {
     localBox.setFromObject(o);
@@ -504,12 +509,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getAnimations = () => animations;
   mesh.getComponents = () => components;
   mesh.hit = () => {
-    console.log('hit', mesh);
+    jitterObject.startHit();
   };
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
-  app.addEventListener('frame', () => {
+  app.addEventListener('frame', e => {
     const now = Date.now();
     const _updateAnimations = () => {
       for (const mixer of animationMixers) {
@@ -523,6 +528,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }
     };
     _updateUvScroll();
+
+    jitterObject.update(e.data.timeDiff);
   });
   
   return mesh;
@@ -909,13 +916,11 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
-  let hitTime = -1;
   mesh.hit = () => {
-    console.log('hit', mesh);
-    hitTime = 0;
+    jitterObject.startHit();
   };
   
-  const jitterObject = new THREE.Object3D();
+  const jitterObject = makeHitTracker();
   mesh.add(jitterObject);
   const appObject = new THREE.Object3D();
   jitterObject.add(appObject);
@@ -988,18 +993,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   };
   const u = await _mapUrl(srcUrl);
 
-  const hitAnimationLength = 300;
   app.addEventListener('frame', e => {
-    if (hitTime !== -1) {
-      hitTime += e.data.timeDiff;
-      
-      const scale = (1-hitTime/hitAnimationLength) * 0.1;
-      jitterObject.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
-
-      if (hitTime > hitAnimationLength) {
-        hitTime = -1;
-      }
-    }
+    jitterObject.update(e.data.timeDiff);
   });
 
   return mesh;
