@@ -919,6 +919,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   jitterObject.add(appObject);
 
   const app = appManager.createApp(appId);
+  app.rootObject = mesh;
+  app.jitterObject = jitterObject;
   app.object = appObject;
   app.contentId = contentId;
   const localImportMap = _clone(importMap);
