@@ -5,6 +5,7 @@ import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene, appManager} from './app-object.js';
+import dropManager from './drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -42,8 +43,16 @@ const update = () => {
       const collisionId = collision.objectId;
       const object = world.getObjectFromPhysicsId(collisionId);
       if (object) {
-        const didHit = object.hit();
-        if (didHit) {
+        const worldPosition = object.getWorldPosition(localVector);
+        const {hit, died} = object.hit();
+        if (died) {
+          const deadObject = new THREE.Object3D();
+          deadObject.position.copy(worldPosition);
+          deadObject.position.y += 0.5;
+          dropManager.drop(deadObject, {
+            type: 'card',
+          });
+        } else if (hit) {
           const physics = physicsManager.getGeometry(collisionId);
           if (physics) {
             let geometry = new THREE.BufferGeometry();

@@ -283,13 +283,20 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
-const drop = async o => {
+const drop = async (o, {type = null, count = 1} = {}) => {
   const {addSilk, addDrop} = await loadPromise;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < count; i++) {
     const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
     const r = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
-    const fn = Math.random() < 0.5 ? addSilk : addDrop;
-    fn(o.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.5, 0)), v, r);
+    let fn;
+    if (type === 'silk') {
+      fn = addSilk;
+    } else if (type === 'card') {
+      fn = addDrop;
+    } else {
+      fn = Math.random() < 0.5 ? addSilk : addDrop;
+    }
+    fn(o.getWorldPosition(new THREE.Vector3()), v, r);
   }
 };
 const update = () => {
