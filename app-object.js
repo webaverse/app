@@ -74,7 +74,6 @@ const scene3 = new THREE.Scene();
 class AppManager {
   constructor() {
     this.apps = [];
-    this.animationLoops = [];
     this.grabbedObjects = [null, null];
     this.equippedObjects = [null, null];
     // this.grabbedObjectOffsets = [0, 0];
@@ -97,35 +96,16 @@ class AppManager {
       app.dispatchEvent(new MessageEvent('unload'));
       this.apps.splice(appIndex, 1);
     }
-    this.setAnimationLoop(appId, null);
   }
   getApp(appId) {
     return this.apps.find(app => app.appId === appId);
-  }
-  setAnimationLoop(appId, fn) {
-    if (fn) {
-      let animationLoop = this.animationLoops.find(al => al.appId === appId);
-      if (!animationLoop) {
-        animationLoop = {
-          appId,
-          fn: null,
-        };
-        this.animationLoops.push(animationLoop);
-      }
-      animationLoop.fn = fn;
-    } else {
-      const index = this.animationLoops.findIndex(al => al.appId === appId);
-      if (index !== -1) {
-        this.animationLoops.splice(index, 1);
-      }
-    }
   }
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
   tick() {
-    for (const al of this.animationLoops) {
-      al.fn.apply(null, arguments);
+    for (const app of this.apps) {
+      app.dispatchEvent(new MessageEvent('frame'));
     }
   }
 }
