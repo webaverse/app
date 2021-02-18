@@ -552,4 +552,26 @@ export const unFrustumCull = o => {
   });
 };
 
+const hitAnimationLength = 300;
+export const makeHitTracker = () => {
+  const jitterObject = new THREE.Object3D();
+  let hitTime = -1;
+  jitterObject.startHit = () => {
+    hitTime = 0;
+  };
+  jitterObject.update = timeDiff => {
+    if (hitTime !== -1) {
+      hitTime += timeDiff;
+      
+      const scale = (1-hitTime/hitAnimationLength) * 0.1;
+      jitterObject.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+
+      if (hitTime > hitAnimationLength) {
+        hitTime = -1;
+      }
+    }
+  };
+  return jitterObject;
+};
+
 export const epochStartTime = Date.now();
