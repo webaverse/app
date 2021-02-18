@@ -575,6 +575,9 @@ export const makeHitTracker = ({
           type: 'die',
         });
       }
+      return true;
+    } else {
+      return false;
     }
   };
   jitterObject.update = timeDiff => {

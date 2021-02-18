@@ -42,29 +42,31 @@ const update = () => {
       const collisionId = collision.objectId;
       const object = world.getObjectFromPhysicsId(collisionId);
       if (object) {
-        object.hit();
-      }
-      const physics = physicsManager.getGeometry(collisionId);
-      if (physics) {
-        let geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-        geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-        geometry = geometry.toNonIndexed();
-        geometry.computeVertexNormals();
+        const didHit = object.hit();
+        if (didHit) {
+          const physics = physicsManager.getGeometry(collisionId);
+          if (physics) {
+            let geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+            geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+            geometry = geometry.toNonIndexed();
+            geometry.computeVertexNormals();
 
-        damagePhysicsMesh.geometry.dispose();
-        damagePhysicsMesh.geometry = geometry;
-        damagePhysicsMesh.physicsId = collisionId;
-        
-        const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-        damagePhysicsMesh.position.copy(physicsTransform.position);
-        damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-        damagePhysicsMesh.scale.copy(physicsTransform.scale);
-        
-        damageAnimation = {
-          startTime: now,
-          endTime: now + 300,
-        };
+            damagePhysicsMesh.geometry.dispose();
+            damagePhysicsMesh.geometry = geometry;
+            damagePhysicsMesh.physicsId = collisionId;
+            
+            const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
+            damagePhysicsMesh.position.copy(physicsTransform.position);
+            damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+            damagePhysicsMesh.scale.copy(physicsTransform.scale);
+            
+            damageAnimation = {
+              startTime: now,
+              endTime: now + 300,
+            };
+          }
+        }
       }
     }
   }
