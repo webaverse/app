@@ -545,6 +545,9 @@ const makeShapeMesh = () => {
 
     // modeMesh.visible = true;
   };
+  object.hit = () => {
+    console.log('hit', object); // XXX
+  };
   const shapes = [];
   object.place = () => {
     const modeMesh = modeMeshes[mode];
