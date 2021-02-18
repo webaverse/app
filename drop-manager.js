@@ -95,8 +95,8 @@ const loadPromise = (async () => {
 
       if (!grounded) {
         o.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
-        if (o.position.y < 0) {
-          o.position.y = 0;
+        if (o.position.y < dropRadius) {
+          o.position.y = dropRadius;
           grounded = true;
         } else {
           velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
