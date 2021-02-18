@@ -572,7 +572,6 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
       o.frustumCulled = false;
     }
   });
-  o.isVrm = true;
 
   let physicsIds = [];
   let staticPhysicsIds = [];
