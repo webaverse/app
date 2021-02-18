@@ -570,14 +570,24 @@ export const makeHitTracker = ({
           hp,
           totalHp,
         });
+        return {
+          hit: true,
+          died: false,
+        };
       } else {
         jitterObject.dispatchEvent({
           type: 'die',
         });
+        return {
+          hit: true,
+          died: true,
+        };
       }
-      return true;
     } else {
-      return false;
+      return {
+        hit: false,
+        died: false,
+      };
     }
   };
   jitterObject.update = timeDiff => {
