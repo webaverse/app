@@ -33,11 +33,17 @@ const cylinderMesh = new THREE.Mesh(
   })
 );
 // scene.add(cylinderMesh);
+let damageAnimation = null;
 const update = () => {
+  const now = Date.now();
   if (document.pointerLockElement && appManager.using) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
+      const object = world.getObjectFromPhysicsId(collisionId);
+      if (object) {
+        object.hit();
+      }
       const physics = physicsManager.getGeometry(collisionId);
       if (physics) {
         let geometry = new THREE.BufferGeometry();
@@ -49,21 +55,31 @@ const update = () => {
         damagePhysicsMesh.geometry.dispose();
         damagePhysicsMesh.geometry = geometry;
         damagePhysicsMesh.physicsId = collisionId;
-
+        
         const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
         damagePhysicsMesh.position.copy(physicsTransform.position);
         damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
         damagePhysicsMesh.scale.copy(physicsTransform.scale);
-        damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-        damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        damagePhysicsMesh.visible = true;
-      }
-      const object = world.getObjectFromPhysicsId(collisionId);
-      if (object) {
-        object.hit();
+        
+        damageAnimation = {
+          startTime: now,
+          endTime: now + 300,
+        };
       }
     }
   }
+
+  if (damageAnimation) {
+    if (now < damageAnimation.endTime) {
+      const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
+      const f = (now - damageAnimation.startTime) / animationDuration;
+      damagePhysicsMesh.material.uniforms.uTime.value = 1-f;
+      damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+    } else {
+      damageAnimation = null;
+    }
+  }
+  damagePhysicsMesh.visible = !!damageAnimation;
   
   const transforms = rigManager.getRigTransforms();
   const {position, quaternion} = transforms[0];

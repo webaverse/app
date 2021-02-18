@@ -380,6 +380,15 @@ world.addEventListener('trackedobjectadd', async e => {
             physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
           }
         } */
+        
+        mesh.addEventListener('die', () => {
+          console.log('remove', mesh, mesh.instanceId);
+          if (dynamic) {
+            world.removeObject(mesh.instanceId);
+          } else {
+            world.removeStaticObject(mesh.instanceId);
+          }
+        });
       } else {
         console.warn('failed to load object', file);
 
