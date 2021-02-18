@@ -286,7 +286,11 @@ const loadPromise = (async () => {
 const drop = async (o, {type = null, count = 1} = {}) => {
   const {addSilk, addDrop} = await loadPromise;
   for (let i = 0; i < count; i++) {
-    const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
+    const v = new THREE.Vector3(
+      count > 1 ? (-1 + Math.random() * 2) : 0,
+      0,
+      count > 1 ? (-1 + Math.random() * 2) : 0
+    ).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
     const r = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
     let fn;
     if (type === 'silk') {
