@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene, appManager} from './app-object.js';
 
@@ -38,7 +39,6 @@ const update = () => {
     if (collision) {
       const collisionId = collision.objectId;
       const physics = physicsManager.getGeometry(collisionId);
-
       if (physics) {
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
@@ -57,6 +57,10 @@ const update = () => {
         damagePhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
         damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         damagePhysicsMesh.visible = true;
+      }
+      const object = world.getObjectFromPhysicsId(collisionId);
+      if (object) {
+        object.hit();
       }
     }
   }

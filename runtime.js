@@ -503,7 +503,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
   mesh.getComponents = () => components;
-  // mesh.used = false;
+  mesh.hit = () => {
+    console.log('hit', mesh);
+  };
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -599,6 +601,9 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
   o.getComponents = () => components;
+  o.hit = () => {
+    console.log('hit', o);
+  };
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
@@ -625,6 +630,9 @@ const _loadVox = async (file, {files = null, contentId = null, parentUrl = null,
     console.warn(err);
   }
   o.contentId = contentId;
+  o.hit = () => {
+    console.log('hit', o);
+  };
   return o;
 };
 const _loadImg = async (file, {files = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
@@ -683,6 +691,9 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.contentId = contentId;
+  mesh.hit = () => {
+    console.log('hit', mesh);
+  };
   return mesh;
 };
 const _makeAppUrl = appId => {
@@ -897,7 +908,9 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
-  // mesh.used = false;
+  mesh.hit = () => {
+    console.log('hit', mesh);
+  };
 
   const app = appManager.createApp(appId);
   app.object = mesh;
@@ -1118,6 +1131,9 @@ const _loadScene = async (file, {contentId = null, files = null}) => {
       child.destroy && child.destroy();
     }
   };
+  scene.hit = () => {
+    console.log('hit', scene); // XXX
+  };
   return scene;
 };
 const _loadPortal = async (file, {contentId = null}) => {
@@ -1299,9 +1315,12 @@ const _loadPortal = async (file, {contentId = null}) => {
   );
   portalMesh.frustumCulled = false;
   portalMesh.isPortal = true;
-  portalMesh.contentId = contentId;
-  portalMesh.json = json;
-  portalMesh.update = () => {
+  
+  const o = new THREE.Object3D();
+  o.add(portalMesh);
+  o.contentId = contentId;
+  o.json = json;
+  o.update = () => {
     const transforms = rigManager.getRigTransforms();
     const {position} = transforms[0];
 
@@ -1312,17 +1331,20 @@ const _loadPortal = async (file, {contentId = null}) => {
       .distanceToPoint(position);
     portalMesh.material.uniforms.uUserPosition.value.copy(position);
   };
-  portalMesh.destroy = () => {
+  o.destroy = () => {
     appManager.destroyApp(appId);
+  };
+  o.hit = () => {
+    console.log('hit', o); // XXX
   };
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
   appManager.setAnimationLoop(appId, () => {
-    portalMesh.update();
+    o.update();
   });
 
-  return portalMesh;
+  return o;
 };
 const _loadIframe = async (file, {contentId = null}) => {
   let href;
@@ -1378,6 +1400,9 @@ const _loadIframe = async (file, {contentId = null}) => {
   object2.destroy = () => {
     scene2.remove(object);
   };
+  object2.hit = () => {
+    console.log('hit', object2); // XXX
+  };
   
   return object2;
 };
@@ -1397,6 +1422,9 @@ const _loadMediaStream = async (file, {contentId = null}) => {
     }),
   );
   object.contentId = contentId;
+  object.hit = () => {
+    console.log('hit', object);
+  };
   return object;
 };
 
@@ -1415,6 +1443,9 @@ const _loadAudio = async (file, {contentId = null, instanceId = null, monetizati
   };
   object.destroy = () => {
     audio.pause();
+  };
+  object.hit = () => {
+    console.log('hit', object);
   };
   return object;
 };
