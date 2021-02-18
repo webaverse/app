@@ -3,6 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {scene} from './app-object.js';
 import {rigManager} from './rig.js';
 import Simplex from './simplex-noise.js';
+import physicsManager from './physics-manager.js';
 import easing from './easing.js';
 
 const localVector = new THREE.Vector3();
@@ -12,7 +13,6 @@ const gltfLoader = new GLTFLoader();
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const simplex = new Simplex('lol');
-const gravity = new THREE.Vector3(0, -9.8, 0);
 const dropRadius = 0.4;
 
 const tickers = [];
@@ -99,7 +99,7 @@ const loadPromise = (async () => {
           o.position.y = 0;
           grounded = true;
         } else {
-          velocity.add(localVector.copy(gravity).multiplyScalar(timeDiff));
+          velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
         }
       }
       
@@ -195,7 +195,7 @@ const loadPromise = (async () => {
           o.position.y = dropRadius;
           grounded = true;
         } else {
-          velocity.add(localVector.copy(gravity).multiplyScalar(timeDiff));
+          velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
         }
       }
       
