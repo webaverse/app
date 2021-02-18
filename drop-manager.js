@@ -83,7 +83,7 @@ const loadPromise = (async () => {
     // polygonOffsetUnits: 1,
   });
 
-  const addSilk = (p, v) => {
+  const addSilk = (p, v, r) => {
     const velocity = v.clone();
     let grounded = false;
     
@@ -109,6 +109,10 @@ const loadPromise = (async () => {
           grounded = true;
         } else {
           velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
+
+          // o.rotation.x += r.x;
+          o.rotation.y += r.y;
+          // o.rotation.z += r.z;
         }
       }
       
@@ -172,7 +176,7 @@ const loadPromise = (async () => {
     tickers.push(o);
   };
   
-  const addDrop = (p, v) => {
+  const addDrop = (p, v, r) => {
     const o = new THREE.Mesh(cardModel.geometry, cardModel.material);
     
     const velocity = v.clone();
@@ -211,6 +215,10 @@ const loadPromise = (async () => {
           grounded = true;
         } else {
           velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
+          
+          /* o.rotation.x += r.x;
+          o.rotation.y += r.y;
+          o.rotation.z += r.z; */
         }
       }
       
@@ -279,8 +287,9 @@ const drop = async o => {
   const {addSilk, addDrop} = await loadPromise;
   for (let i = 0; i < 10; i++) {
     const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
+    const r = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
     const fn = Math.random() < 0.5 ? addSilk : addDrop;
-    fn(o.position.clone().add(new THREE.Vector3(0, 0.5, 0)), v);
+    fn(o.position.clone().add(new THREE.Vector3(0, 0.5, 0)), v, r);
   }
 };
 const update = () => {
