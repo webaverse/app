@@ -402,8 +402,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   const jitterObject = makeHitTracker();
   mesh.add(jitterObject);
   jitterObject.add(gltfObject);
-  jitterObject.addEventListener('die', () => {
-    console.log('die', jitterObject);
+  jitterObject.addEventListener('die', e => {
+    mesh.dispatchEvent(e);
   });
 
   /* if (dynamic && autoScale) {
@@ -567,8 +567,8 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   const jitterObject = makeHitTracker();
   o.add(jitterObject);
   jitterObject.add(vrmObject.scene);
-  jitterObject.addEventListener('die', () => {
-    console.log('die', jitterObject);
+  jitterObject.addEventListener('die', e => {
+    o.dispatchEvent(e);
   });
 
   o.isVrm = true;
@@ -945,8 +945,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.add(jitterObject);
   const appObject = new THREE.Object3D();
   jitterObject.add(appObject);
-  jitterObject.addEventListener('die', () => {
-    console.log('die', jitterObject);
+  jitterObject.addEventListener('die', e => {
+    mesh.dispatchEvent(e);
   });
 
   const app = appManager.createApp(appId);
