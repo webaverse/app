@@ -260,11 +260,10 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
-const dropExplosionSpeed = 5;
 const drop = async o => {
   const {addSilk, addDrop} = await loadPromise;
   for (let i = 0; i < 10; i++) {
-    const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 2, 0)).multiplyScalar((0.3 + Math.random() * 0.7) * dropExplosionSpeed);
+    const v = new THREE.Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
     const fn = Math.random() < 0.5 ? addSilk : addDrop;
     fn(o.position.clone().add(new THREE.Vector3(0, 0.5, 0)), v);
   }
