@@ -545,9 +545,9 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
   }
 
-  let o;
+  let vrmObject;
   try {
-    o = await new Promise((accept, reject) => {
+    vrmObject = await new Promise((accept, reject) => {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
     startMonetization(instanceId, monetizationPointer, ownerAddress);
@@ -558,9 +558,13 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
       gcFiles && URL.revokeObjectURL(srcUrl);
     }
   }
-  // console.log('load vrm raw', file, o);
-  o.scene.raw = o;
-  o = o.scene;
+
+  const o = new THREE.Object3D();
+  o.raw = vrmObject;
+  const jitterObject = makeHitTracker();
+  o.add(jitterObject);
+  jitterObject.add(vrmObject.scene);
+
   o.isVrm = true;
   o.contentId = contentId;
   o.traverse(o => {
@@ -613,11 +617,18 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   o.getStaticPhysicsIds = () => staticPhysicsIds;
   o.getComponents = () => components;
   o.hit = () => {
-    console.log('hit', o);
+    jitterObject.startHit();
   };
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    jitterObject.update(e.data.timeDiff);
+  });
+  
   return o;
 };
 const _loadVox = async (file, {files = null, contentId = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
