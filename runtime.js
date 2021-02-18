@@ -915,7 +915,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   
   const jitterObject = new THREE.Object3D();
   mesh.add(jitterObject);
-  const appObject = new THREE.Object3D()
+  const appObject = new THREE.Object3D();
   jitterObject.add(appObject);
 
   const app = appManager.createApp(appId);
