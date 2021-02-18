@@ -3,8 +3,18 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 
-const CERT = fs.readFileSync('./certs/fullchain.pem');
-const PRIVKEY = fs.readFileSync('./certs/privkey.pem');
+let CERT = null;
+let PRIVKEY = null;
+try {
+  CERT = fs.readFileSync('./certs/fullchain.pem');
+} catch (err) {
+  console.warn(err);
+}
+try {
+  PRIVKEY = fs.readFileSync('./certs/privkey.pem');
+} catch (err) {
+  console.warn(err);
+}
 
 const app = express();
 app.use((req, res, next) => {
@@ -22,11 +32,12 @@ app.use(appStatic);
 
 http.createServer(app)
   .listen(3000);
-https.createServer({
-  cert: CERT,
-  key: PRIVKEY,
-}, app)
-  .listen(3001);
-
 console.log('http://localhost:3000');
-console.log('https://localhost:3001');
+if (CERT && PRIVKEY) {
+  https.createServer({
+    cert: CERT,
+    key: PRIVKEY,
+  }, app)
+    .listen(3001);
+  console.log('https://localhost:3001');
+}
