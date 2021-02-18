@@ -554,13 +554,27 @@ export const unFrustumCull = o => {
 
 const hitAnimationLength = 300;
 export const makeHitTracker = ({
-  hp = 100,
+  totalHp = 100,
 } = {}) => {
+  let hp = totalHp;
   const jitterObject = new THREE.Object3D();
   let hitTime = -1;
-  jitterObject.startHit = () => {
+  jitterObject.hit = (damage = 30) => {
     if (hitTime === -1) {
-      hitTime = 0;
+      hp = Math.max(hp - damage, 0);
+      if (hp > 0) {
+        hitTime = 0;
+        
+        jitterObject.dispatchEvent({
+          type: 'hit',
+          hp,
+          totalHp,
+        });
+      } else {
+        jitterObject.dispatchEvent({
+          type: 'die',
+        });
+      }
     }
   };
   jitterObject.update = timeDiff => {
