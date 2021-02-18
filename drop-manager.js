@@ -96,6 +96,7 @@ const loadPromise = (async () => {
 
     let lastTimestamp = Date.now();
     let animation = null;
+    const timeOffset = Math.random() * 10;
     o.update = () => {
       const now = Date.now();
       const timeDiff = (now - lastTimestamp) / 1000;
@@ -157,7 +158,7 @@ const loadPromise = (async () => {
         }
       }
 
-      const time = performance.now() * 0.002;
+      const time = timeOffset + performance.now() * 0.002;
       const k = 1;
       for (var i = 0; i < sphere.geometry.vertices.length; i++) {
         const p = sphere.geometry.vertices[i];
@@ -197,6 +198,7 @@ const loadPromise = (async () => {
     
     let lastTimestamp = Date.now();
     let animation = null;
+    const timeOffset = Math.random() * 10;
     o.update = () => {
       const now = Date.now();
       const timeDiff = (now - lastTimestamp) / 1000;
@@ -262,7 +264,7 @@ const loadPromise = (async () => {
       }
 
       const time = performance.now() * 0.0005;
-      o.rotation.y = time * Math.PI*2;
+      o.rotation.y = (timeOffset + time * Math.PI*2) % Math.PI*2;
     };
     tickers.push(o);
   };
