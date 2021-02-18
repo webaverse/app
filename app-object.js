@@ -1,6 +1,9 @@
 import * as THREE from './three.module.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
+import {EffectComposer} from './EffectComposer.js';
+import {RenderPass} from './RenderPass.js';
+import {GlitchPass} from './GlitchPass.js';
 
 let canvas = document.getElementById('canvas') || undefined;
 let context = canvas && canvas.getContext('webgl2', {
@@ -34,6 +37,8 @@ if (!context) {
 context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
 renderer.xr.enabled = true;
 
+const effectComposer = new EffectComposer(renderer);
+
 const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
 const avatarScene = new THREE.Scene();
@@ -41,6 +46,15 @@ const avatarScene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
+
+{
+  const renderPass = new RenderPass(scene, camera);
+  effectComposer.addPass(renderPass);
+}
+{
+  const glitchPass = new GlitchPass();
+  effectComposer.addPass(glitchPass);
+}
 
 const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
@@ -141,4 +155,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};
+export {renderer, effectComposer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};
