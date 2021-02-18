@@ -513,9 +513,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.getAnimations = () => animations;
   mesh.getComponents = () => components;
-  mesh.hit = () => {
-    jitterObject.hit();
-  };
+  mesh.hit = jitterObject.hit;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -621,9 +619,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
   o.getComponents = () => components;
-  o.hit = () => {
-    jitterObject.hit();
-  };
+  o.hit = jitterObject.hit;
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
@@ -937,9 +933,6 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
-  mesh.hit = () => {
-    jitterObject.hit();
-  };
   
   const jitterObject = makeHitTracker();
   mesh.add(jitterObject);
@@ -948,6 +941,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   jitterObject.addEventListener('die', e => {
     mesh.dispatchEvent(e);
   });
+  
+  mesh.hit = jitterObject.hit;
 
   const app = appManager.createApp(appId);
   app.rootObject = mesh;
