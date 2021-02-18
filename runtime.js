@@ -493,6 +493,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     return used;
   };
   mesh.destroy = () => {
+    appManager.destroyApp(appId);
+    
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
     }
@@ -599,6 +601,8 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     }
   };
   o.destroy = () => {
+    appManager.destroyApp(appId);
+    
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
     }
