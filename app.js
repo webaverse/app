@@ -18,6 +18,7 @@ import cameraManager from './camera-manager.js';
 import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
+import npcManager from './npc-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
@@ -217,17 +218,18 @@ export default class App {
     const startTime = Date.now();
     const animate = (timestamp, frame) => {      
       timestamp = timestamp || performance.now();
-      const timeDiff = Math.min(Math.max(timestamp - lastTimestamp, 5), 100);
+      const timeDiff = timestamp - lastTimestamp;
+      const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);
       lastTimestamp = timestamp;
 
       const session = renderer.xr.getSession();
       const now = Date.now();
 
-      ioManager.update(timeDiff);
+      ioManager.update(timeDiffCapped);
       universe.update();
       if (this.contentLoaded) {
-        physicsManager.update(timeDiff);
-        physicsManager.simulatePhysics(timeDiff);
+        physicsManager.update(timeDiffCapped);
+        physicsManager.simulatePhysics(timeDiffCapped);
       }
 
       const _updateRig = () => {
@@ -350,6 +352,7 @@ export default class App {
       hpManager.update();
       activateManager.update();
       dropManager.update();
+      npcManager.update(timeDiffCapped);
       fx.update();
 
       appManager.tick(timestamp, frame);
