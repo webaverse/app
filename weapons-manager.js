@@ -1814,6 +1814,14 @@ const weaponsManager = {
   menuVUp() {
     physicsManager.setDanceState(null);
   },
+  menuBDown() {
+    if (!appManager.grabbedObjects[0]) {
+      physicsManager.setThrowState({});
+    }
+  },
+  menuBUp() {
+    physicsManager.setThrowState(null);
+  },
   /* setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
     coord.copy(newCoord);

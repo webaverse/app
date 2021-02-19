@@ -138,6 +138,20 @@ const setDanceState = newDanceState => {
 };
 physicsManager.setDanceState = setDanceState;
 
+let throwState = null;
+let throwTime = 0;
+const getThrowState = () => throwState;
+physicsManager.getThrowState = getThrowState;
+const getThrowTime = () => throwTime;
+physicsManager.getThrowTime = getThrowTime;
+const setThrowState = newThrowState => {
+  throwState = newThrowState;
+  if (throwState) {
+    throwTime = 0;
+  }
+};
+physicsManager.setThrowState = setThrowState;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion, scale) => ({
@@ -444,6 +458,9 @@ const _updatePhysics = timeDiff => {
   }
   if (danceState) {
     danceTime += timeDiff;
+  }
+  if (throwState) {
+    throwTime += timeDiff;
   }
 
   timeDiff /= 1000; // XXX
