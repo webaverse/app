@@ -336,9 +336,9 @@ const loadPromise = (async () => {
         } else {
           velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
 
-          // o.rotation.x += r.x;
+          o.rotation.x += r.x;
           o.rotation.y += r.y;
-          // o.rotation.z += r.z;
+          o.rotation.z += r.z;
         }
       }
       
@@ -401,7 +401,7 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
-const drop = async (o, {type = null, count = 1, velocity = null} = {}) => {
+const drop = async (o, {type = null, count = 1, velocity = null, angularVelocity = null} = {}) => {
   const {addSilk, addDrop, addFruit} = await loadPromise;
   for (let i = 0; i < count; i++) {
     const v = velocity || new THREE.Vector3(
@@ -409,7 +409,7 @@ const drop = async (o, {type = null, count = 1, velocity = null} = {}) => {
       0,
       count > 1 ? (-1 + Math.random() * 2) : 0
     ).normalize().multiplyScalar((0.3 + Math.random() * 0.7) * 4).add(new THREE.Vector3(0, (0.5 + Math.random() * 0.5) * 6, 0));
-    const r = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
+    const r = angularVelocity || new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.03);
     let fn;
     if (type === 'silk') {
       fn = addSilk;
