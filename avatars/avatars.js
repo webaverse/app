@@ -293,6 +293,7 @@ const loadPromise = (async () => {
       `magic standing idle.fbx`,
       `Skateboarding.fbx`,
       `Throw.fbx`,
+      `Hip Hop Dancing.fbx`,
     ];
     for (const name of animationFileNames) {
       const u = './animations/' + name;
