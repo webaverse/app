@@ -82,7 +82,16 @@ class NpcManager {
             const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
             const moveDelta = direction.clone().multiplyScalar(moveDistance);
             mesh.position.add(moveDelta);
-            mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+            
+            const closestNpc = this.npcs.filter(n => n !== npc).sort((a, b) => {
+              return a.position.distanceTo(npc.position) - b.position.distanceTo(npc.position);
+            })[0];
+            const moveBufferDistance = 1;
+            if (closestNpc && closestNpc.position.distanceTo(npc.position) >= (moveDistance + moveBufferDistance)) {
+              mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+            } else {
+              mesh.position.sub(moveDelta);
+            }
             
             _updatePhysics();
           }
@@ -112,19 +121,6 @@ class NpcManager {
   update(timeDiff) {
     for (const npc of this.npcs) {
       npc.update(timeDiff);
-    }
-    for (const npc of this.npcs) {
-      const closestNpc = this.npcs.filter(n => n !== npc).sort((a, b) => {
-        return a.position.distanceTo(npc.position) - b.position.distanceTo(npc.position);
-      })[0];
-      if (closestNpc) {
-        const restitutionVector = localVector.copy(npc.position).sub(closestNpc.position);
-        const restitutionDistance = restitutionVector.length();
-        const minRestitutionDistance = 0.5;
-        if (restitutionDistance < minRestitutionDistance) {
-          npc.position.add(localVector2.copy(restitutionVector).normalize().multiplyScalar(restitutionDistance - minRestitutionDistance));
-        }
-      }
     }
   }
 }
