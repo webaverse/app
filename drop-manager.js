@@ -83,6 +83,7 @@ const loadPromise = (async () => {
     // polygonOffsetUnits: 1,
   });
 
+  const gracePickupTime = 1000;
   const addSilk = (p, v, r) => {
     const velocity = v.clone();
     let grounded = false;
@@ -94,7 +95,8 @@ const loadPromise = (async () => {
     scene.add(sphere);
     const o = sphere;
 
-    let lastTimestamp = Date.now();
+    const startTime = Date.now();
+    let lastTimestamp = startTime;
     let animation = null;
     const timeOffset = Math.random() * 10;
     o.update = () => {
@@ -121,11 +123,14 @@ const loadPromise = (async () => {
         localVector.y = 0;
         const distance = localVector.distanceTo(o.position);
         if (distance < 1) {
-          animation = {
-            startPosition: o.position.clone(),
-            startTime: now,
-            endTime: now + 1000,
-          };
+          const timeSinceStart = now - startTime;
+          if (timeSinceStart > gracePickupTime) {
+            animation = {
+              startPosition: o.position.clone(),
+              startTime: now,
+              endTime: now + 1000,
+            };
+          }
         }
       }
       if (animation) {
@@ -175,7 +180,6 @@ const loadPromise = (async () => {
     };
     tickers.push(o);
   };
-  
   const addDrop = (p, v, r) => {
     const o = new THREE.Mesh(cardModel.geometry, cardModel.material);
     
@@ -200,7 +204,8 @@ const loadPromise = (async () => {
     );
     o.add(glowMesh);
     
-    let lastTimestamp = Date.now();
+    const startTime = Date.now();
+    let lastTimestamp = startTime;
     let animation = null;
     const timeOffset = Math.random() * 10;
     o.update = () => {
@@ -227,11 +232,14 @@ const loadPromise = (async () => {
         localVector.y = 0;
         const distance = localVector.distanceTo(o.position);
         if (distance < 1) {
-          animation = {
-            startPosition: o.position.clone(),
-            startTime: now,
-            endTime: now + 1200,
-          };
+          const timeSinceStart = now - startTime;
+          if (timeSinceStart > gracePickupTime) {
+            animation = {
+              startPosition: o.position.clone(),
+              startTime: now,
+              endTime: now + 1200,
+            };
+          }
         }
       }
       if (animation) {
