@@ -1793,9 +1793,9 @@ class Avatar {
 
             dst.fromArray(v2);
           } else if (this.danceState) {
-            const t2 = this.danceTime/1000;
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
+            const t2 = (this.danceTime/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
