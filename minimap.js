@@ -54,12 +54,12 @@ const init = mapCanvas => {
   })();
   mapScene.add(planeMesh);
   
-  world.addEventListener('objectadd', e => {
+  world.addEventListener('objectsadd', e => {
     const mesh = e.data;
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
   });
-  world.addEventListener('objectremove', e => {
+  world.addEventListener('objectsremove', e => {
     const mesh = e.data;
     minimap.removeObject(mesh.minimapObject);
   });
