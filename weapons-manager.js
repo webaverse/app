@@ -376,7 +376,7 @@ const _useHold = () => {
       if (activateComponent) {
         const app = activeObject.getApp ? activeObject.getApp() : null;
         if (app) {
-          console.log('use active object', app);
+          // console.log('use active object', app);
           app.dispatchEvent(new MessageEvent('activate'));
         }
       }
