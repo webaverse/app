@@ -90,6 +90,7 @@ const importMap = {
   crypto: _importMapUrl('./crypto.js'),
   procgen: _importMapUrl('./procgen.js'),
   drop: _importMapUrl('./drop-manager.js'),
+  npc: _importMapUrl('./npc-manager.js'),
   constants: _importMapUrl('./constants.js'),
 };
 
@@ -762,6 +763,7 @@ const _makeAppUrl = appId => {
     import * as crypto from ${JSON.stringify(importMap.crypto)};
     import procgen from ${JSON.stringify(importMap.procgen)};
     import drop from ${JSON.stringify(importMap.drop)};
+    import npc from ${JSON.stringify(importMap.npc)};
     import * as constants from ${JSON.stringify(importMap.constants)};
 
     const renderer = Object.create(_renderer);
@@ -872,7 +874,7 @@ const _makeAppUrl = appId => {
         rig.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, drop, constants, rig, app, appManager};
+    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, drop, npc, constants, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
