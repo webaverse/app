@@ -321,11 +321,11 @@ const loadPromise = (async () => {
       (-1 + Math.random() * 2) * Math.PI*2,
       (-1 + Math.random() * 2) * Math.PI*2
     ).normalize();
+    const defaultScale = o.scale.clone();
     o.isFruit = true;
     scene.add(o);
 
     const startTime = Date.now();
-    const defaultScale = new THREE.Vector3(1, 1, 1);
     let lastTimestamp = startTime;
     let animation = null;
     const timeOffset = Math.random() * 10;
