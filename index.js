@@ -14,7 +14,7 @@ try {
   console.warn(`failed to load ${fullchainPath}`);
 }
 try {
-  PRIVKEY = fs.readFileSync('./certs/privkey.pem');
+  PRIVKEY = fs.readFileSync(privkeyPath);
 } catch (err) {
   console.warn(`failed to load ${privkeyPath}`);
 }
