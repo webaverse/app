@@ -62,7 +62,6 @@ class NpcManager {
 
       if (animation) {
         mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff/1000));
-        console.log('velo update', timeDiff, mesh.position.toArray(), animation.velocity.toArray());
         animation.velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff/1000));
         if (mesh.position.y < 0) {
           animation = null;
