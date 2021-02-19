@@ -236,9 +236,8 @@ const _selectLoadout = index => {
     }
 
     const loadout = loginManager.getLoadout();
-    // XXX
     let item;
-    if (selectedLoadoutIndex === 1) {
+    /* if (selectedLoadoutIndex === 1) {
       item = ['./pistol/manifest.json'];
     } else if (selectedLoadoutIndex === 2) {
       item = ['./rifle/manifest.json'];
@@ -254,7 +253,7 @@ const _selectLoadout = index => {
       item = ['./dragon-pet/manifest.json'];
     } else {
       item = loadout[selectedLoadoutIndex];
-    }
+    } */
     if (item) {
       const [contentId] = item;
       let id = parseInt(contentId, 10);
