@@ -321,6 +321,7 @@ const loadPromise = (async () => {
       (-1 + Math.random() * 2) * Math.PI*2,
       (-1 + Math.random() * 2) * Math.PI*2
     ).normalize();
+    o.isFruit = true;
     scene.add(o);
 
     const startTime = Date.now();
@@ -406,6 +407,7 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
+const getDrops = () => tickers;
 const drop = async (o, {type = null, count = 1, velocity = null, angularVelocity = null} = {}) => {
   const {addSilk, addDrop, addFruit} = await loadPromise;
   for (let i = 0; i < count; i++) {
@@ -436,6 +438,7 @@ const update = () => {
 };
 
 const dropManager = {
+  getDrops,
   drop,
   update,
 };

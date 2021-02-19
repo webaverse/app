@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
+import dropManager from './drop-manager.js';
 import {contentIdToFile, unFrustumCull} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -285,7 +286,18 @@ export class RigAux {
           const speed = 0.003;
           timeDiff *= 1000;
 
-          const head = this.rig.model.isVrm ? this.rig.modelBones.Head : this.rig.model;
+          const head = (() => {
+            const drop = component.attractedTo === 'fruit' ? dropManager.getDrops().find(d => d.isFruit): null;
+            if (drop) {
+              return drop;
+            } else {
+              if (this.rig.model.isVrm) {
+                return this.rig.modelBones.Head;
+              } else {
+                return this.rig.model;
+              }
+            }
+          })();
           const position = head.getWorldPosition(localVector);
           position.y = 0;
           const distance = mesh.position.distanceTo(position);

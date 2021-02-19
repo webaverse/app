@@ -250,6 +250,8 @@ const _selectLoadout = index => {
       item = ['./hovercraft/manifest.json'];
     } else if (selectedLoadoutIndex === 6) {
       item = ['./hoverboard/manifest.json'];
+    } else if (selectedLoadoutIndex === 7) {
+      item = ['./dragon-pet/manifest.json'];
     } else {
       item = loadout[selectedLoadoutIndex];
     }
