@@ -1949,3 +1949,4 @@ const weaponsManager = {
   update: _updateWeapons,
 };
 export default weaponsManager;
+export {_loadItemSpec1};
