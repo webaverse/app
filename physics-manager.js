@@ -125,10 +125,16 @@ const stopUse = () => {
 physicsManager.stopUse = stopUse;
 
 let danceState = null;
+let danceTime = 0;
 const getDanceState = () => danceState;
 physicsManager.getDanceState = getDanceState;
+const getDanceTime = () => danceTime;
+physicsManager.getDanceTime = getDanceTime;
 const setDanceState = newDanceState => {
   danceState = newDanceState;
+  if (danceState) {
+    danceTime = 0;
+  }
 };
 physicsManager.setDanceState = setDanceState;
 
@@ -435,6 +441,9 @@ const _updatePhysics = timeDiff => {
   }
   if (flyState) {
     flyTime += timeDiff;
+  }
+  if (danceState) {
+    danceTime += timeDiff;
   }
 
   timeDiff /= 1000; // XXX

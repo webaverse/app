@@ -371,6 +371,7 @@ class RigManager {
       sitState,
       sitAnimation,
       danceState,
+      danceTime,
       danceAnimation,      
     } = this.localRig;
 
@@ -393,6 +394,7 @@ class RigManager {
       sitState,
       sitAnimation,
       danceState,
+      danceTime,
       danceAnimation,
     ];
   }
@@ -665,10 +667,12 @@ class RigManager {
       physicsManager.setDamping();
     }
     const danceState = !!physicsManager.getDanceState();
+    const danceTime = physicsManager.getDanceTime();
     const danceAnimation = physicsManager.getDanceState();
     rigManager.localRig.sitState = sitState;
     rigManager.localRig.sitAnimation = sitAnimation;
     rigManager.localRig.danceState = danceState;
+    rigManager.localRig.danceTime = danceTime;
     rigManager.localRig.danceAnimation = danceAnimation;
     physicsManager.setSitState(sitState);
 
