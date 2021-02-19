@@ -1134,7 +1134,7 @@ const _updateMenu = () => {
 
 const _loadItemSpec1 = async u => {
   const p = new Promise((accept, reject) => {
-    world.addEventListener('objectadd', async e => {
+    world.addEventListener('objectsadd', async e => {
       accept(e.data);
     }, {once: true});
   });
@@ -1542,7 +1542,7 @@ const bindInterface = () => {
     }
   })();
   
-  world.addEventListener('trackedobjectadd', async e => {
+  world.addEventListener('trackedobjectsadd', async e => {
     const {trackedObject, dynamic} = e.data;
     if (dynamic) {
       const trackedObjectJson = trackedObject.toJSON();
@@ -1582,7 +1582,7 @@ const bindInterface = () => {
       items4El.appendChild(div);
     }
   });
-  world.addEventListener('trackedobjectremove', async e => {
+  world.addEventListener('trackedobjectsremove', async e => {
     const {trackedObject, dynamic} = e.data;
     if (dynamic) {
       const instanceId = trackedObject.get('instanceId');
