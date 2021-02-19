@@ -20,11 +20,11 @@ import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
 import hpManager from './hp-manager.js';
+import npcManager from './npc-manager.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localEuler = new THREE.Euler();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
@@ -178,69 +178,7 @@ const componentHandlers = {
   },
   npc: {
     load(o, componentIndex, rigAux) {
-      (async () => {
-        const npc = await world.addNpc(o.contentId, null, o.position, o.quaternion);
-        
-        const animations = npc.getAnimations();
-        const component = npc.getComponents()[componentIndex];
-        let  {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = component;
-        if (idleAnimation) {
-          if (!Array.isArray(idleAnimation)) {
-            idleAnimation = [idleAnimation];
-          }
-        } else {
-          idleAnimation = [];
-        }
-
-        const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-        console.log('got npc', npc, idleAnimationClips);
-        if (idleAnimationClips.length > 0) {
-          // hacks
-          {
-            mesh.position.y = 0;
-            localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
-            localEuler.x = 0;
-            localEuler.z = 0;
-            mesh.quaternion.setFromEuler(localEuler);
-          }
-          
-          const mixer = new THREE.AnimationMixer(mesh);
-          const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
-          for (const idleAction of idleActions) {
-            idleAction.play();
-          }
-          
-          npc.addEventListener('frame', e => {
-            const deltaSeconds = e.data.timeDiff / 1000;
-            mixer.update(deltaSeconds);
-          });
-        }
-
-        const smoothVelocity = new THREE.Vector3();
-        npc.addEventListener('frame', e => {
-          const {timeDiff} = e.data;
-          const speed = 0.003;
-          timeDiff *= 1000;
-
-          const head = this.rig.model.isVrm ? this.rig.modelBones.Head : this.rig.model;
-          const position = head.getWorldPosition(localVector);
-          position.y = 0;
-          const distance = mesh.position.distanceTo(position);
-          const minDistance = 1;
-          let moveDelta;
-          if (distance > minDistance) {
-            const direction = position.clone().sub(mesh.position).normalize();
-            const maxMoveDistance = distance - minDistance;
-            const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
-            moveDelta = direction.clone().multiplyScalar(moveDistance);
-            mesh.position.add(moveDelta);
-            mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
-          } else {
-            moveDelta = new THREE.Vector3();
-          }
-          smoothVelocity.lerp(moveDelta, 0.3);
-        });
-      })();
+      npcManager.addNpc(o, componentIndex);
       return () => {
         /* let npcs = npcManager.getNpcs();
         npcs = auxPose.pets.filter(w => w.id !== npc.id);
