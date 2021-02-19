@@ -415,23 +415,24 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   } */
 
-  let physicsMesh = null;
-  let physicsBuffer = null;
   let physicsIds = [];
   let staticPhysicsIds = [];
-  if (physics_url) {
-    if (files && _isResolvableUrl(physics_url)) {
-      physics_url = files[_dotifyUrl(physics_url)];
-    }
-    const res = await fetch(physics_url);
-    const arrayBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(arrayBuffer);
-  } else {
-    physicsMesh = convertMeshToPhysicsMesh(mesh);
-  }
-
   mesh.contentId = contentId;
   mesh.run = async () => {
+    let physicsMesh = null;
+    let physicsBuffer = null;
+    if (physics_url) {
+      if (files && _isResolvableUrl(physics_url)) {
+        physics_url = files[_dotifyUrl(physics_url)];
+      }
+      const res = await fetch(physics_url);
+      const arrayBuffer = await res.arrayBuffer();
+      physicsBuffer = new Uint8Array(arrayBuffer);
+    } else {
+      mesh.updateMatrixWorld();
+      physicsMesh = convertMeshToPhysicsMesh(mesh);
+    }
+    
     if (physicsMesh) {
       physicsMesh.position.copy(mesh.position);
       physicsMesh.quaternion.copy(mesh.quaternion);
