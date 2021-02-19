@@ -317,10 +317,10 @@ export class RigAux {
           } else {
             moveDelta = new THREE.Vector3();
             
-            console.log('check', head === drop, component.attractedTo === 'fruit', typeof component.eatSpeed === 'number');
+            // console.log('check', head === drop, component.attractedTo === 'fruit', typeof component.eatSpeed === 'number');
             if (head === drop && component.attractedTo === 'fruit' && typeof component.eatSpeed === 'number') {
               drop.scale.subScalar(1/component.eatSpeed*timeDiff);
-              console.log('new scale', drop.scale.toArray());
+              // console.log('new scale', drop.scale.toArray());
               if (drop.scale.x <= 0 || drop.scale.y <= 0 || drop.scale.z <= 0) {
                 dropManager.removeDrop(drop);
               }
