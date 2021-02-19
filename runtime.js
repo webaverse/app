@@ -429,7 +429,6 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const arrayBuffer = await res.arrayBuffer();
       physicsBuffer = new Uint8Array(arrayBuffer);
     } else {
-      mesh.updateMatrixWorld();
       physicsMesh = convertMeshToPhysicsMesh(mesh);
     }
     
