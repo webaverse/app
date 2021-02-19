@@ -26,6 +26,7 @@ const cubicBezier = easing(0, 1, 0, 1);
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
+const defaultThrowAnimation = 'throw';
 const useAnimationRate = 750;
 
 const animationsSelectMap = {
@@ -126,6 +127,7 @@ let floatAnimation;
 let useAnimations;
 let sitAnimations;
 let danceAnimations;
+let throwAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -215,6 +217,7 @@ const loadPromise = (async () => {
     // animation.isHit = /sword and shield idle/i.test(animation.name);
     animation.isMagic = /magic/i.test(animation.name);
     animation.isSkateboarding = /skateboarding/i.test(animation.name);
+    animation.isThrow = /throw/i.test(animation.name);
     animation.isDancing = /dancing/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
@@ -252,6 +255,9 @@ const loadPromise = (async () => {
   };
   danceAnimations = {
     dansu: animations.find(a => a.isDancing),
+  };
+  throwAnimations = {
+    throw: animations.find(a => a.isThrow),
   };
 
   /* // bake animations
@@ -1634,6 +1640,8 @@ class Avatar {
     this.danceState = false;
     this.danceTime = 0;
     this.danceAnimation = null;
+    this.throwState = null;
+    this.throwTime = 0;
     this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
@@ -1796,6 +1804,13 @@ class Avatar {
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          } else if (this.throwState) {
+            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
+            const src2 = throwAnimation.interpolants[k];
+            const t2 = this.throwTime/1000;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);

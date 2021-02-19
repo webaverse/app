@@ -373,6 +373,8 @@ class RigManager {
       danceState,
       danceTime,
       danceAnimation,
+      throwState,
+      throwTime,
     } = this.localRig;
 
     return [
@@ -396,6 +398,8 @@ class RigManager {
       danceState,
       danceTime,
       danceAnimation,
+      throwState,
+      throwTime,
     ];
   }
 
@@ -481,6 +485,8 @@ class RigManager {
       danceState,
       danceTime,
       danceAnimation,
+      throwState,
+      throwTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -518,6 +524,8 @@ class RigManager {
       peerRig.danceState = danceState;
       peerRig.danceTime = danceTime;
       peerRig.danceAnimation = danceAnimation;
+      peerRig.throwState = throwState;
+      peerRig.throwTime = throwTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -671,11 +679,15 @@ class RigManager {
     const danceState = !!physicsManager.getDanceState();
     const danceTime = physicsManager.getDanceTime();
     const danceAnimation = physicsManager.getDanceState();
+    const throwState = physicsManager.getThrowState();
+    const throwTime = physicsManager.getThrowTime();
     rigManager.localRig.sitState = sitState;
     rigManager.localRig.sitAnimation = sitAnimation;
     rigManager.localRig.danceState = danceState;
     rigManager.localRig.danceTime = danceTime;
     rigManager.localRig.danceAnimation = danceAnimation;
+    rigManager.localRig.throwState = throwState;
+    rigManager.localRig.throwTime = throwTime;
     physicsManager.setSitState(sitState);
 
     this.peerRigs.forEach(rig => {

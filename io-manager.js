@@ -366,6 +366,14 @@ ioManager.bindInput = () => {
         // }
         break;
       }
+      case 66: { // B
+        // if (!_inputFocused()) {
+          e.preventDefault();
+          e.stopPropagation();
+          weaponsManager.menuBDown();
+        // }
+        break;
+      }
       case 84: { // T
         // if (!_inputFocused()) {
           e.preventDefault();
@@ -516,6 +524,14 @@ ioManager.bindInput = () => {
           e.preventDefault();
           e.stopPropagation();
           weaponsManager.menuVUp();
+        // }
+        break;
+      }
+      case 66: { // B
+        // if (!_inputFocused()) {
+          e.preventDefault();
+          e.stopPropagation();
+          weaponsManager.menuBUp();
         // }
         break;
       }
