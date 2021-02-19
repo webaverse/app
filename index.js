@@ -3,17 +3,20 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 
+const fullchainPath = './certs/fullchain.pem';
+const privkeyPath = './certs/privkey.pem';
+
 let CERT = null;
 let PRIVKEY = null;
 try {
-  CERT = fs.readFileSync('./certs/fullchain.pem');
+  CERT = fs.readFileSync(fullchainPath);
 } catch (err) {
-  console.warn(err);
+  console.warn(`failed to load ${fullchainPath}`);
 }
 try {
   PRIVKEY = fs.readFileSync('./certs/privkey.pem');
 } catch (err) {
-  console.warn(err);
+  console.warn(`failed to load ${privkeyPath}`);
 }
 
 const app = express();
