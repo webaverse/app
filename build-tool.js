@@ -547,6 +547,10 @@ const makeShapeMesh = () => {
   };
   object.hit = () => {
     console.log('hit', object); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   const shapes = [];
   object.place = () => {
