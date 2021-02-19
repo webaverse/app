@@ -73,19 +73,18 @@ class NpcManager {
         const position = head.getWorldPosition(localVector);
         position.y = 0;
         const distance = mesh.position.distanceTo(position);
-        const minDistance = 1;
-        let moveDelta;
-        if (distance > minDistance) {
-          const direction = position.clone().sub(mesh.position).normalize();
-          const maxMoveDistance = distance - minDistance;
-          const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
-          moveDelta = direction.clone().multiplyScalar(moveDistance);
-          mesh.position.add(moveDelta);
-          mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
-          
-          _updatePhysics();
-        } else {
-          moveDelta = new THREE.Vector3();
+        if (distance < aggroDistance) {
+          const minDistance = 1;
+          if (distance > minDistance) {
+            const direction = position.clone().sub(mesh.position).normalize();
+            const maxMoveDistance = distance - minDistance;
+            const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
+            const moveDelta = direction.clone().multiplyScalar(moveDistance);
+            mesh.position.add(moveDelta);
+            mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+            
+            _updatePhysics();
+          }
         }
       }
     });
