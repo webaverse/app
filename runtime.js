@@ -677,7 +677,11 @@ const _loadVox = async (file, {files = null, contentId = null, parentUrl = null,
   }
   o.contentId = contentId;
   o.hit = () => {
-    console.log('hit', o);
+    console.log('hit', o); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   return o;
 };
@@ -738,7 +742,11 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
   mesh.frustumCulled = false;
   mesh.contentId = contentId;
   mesh.hit = () => {
-    console.log('hit', mesh);
+    console.log('hit', mesh); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   return mesh;
 };
@@ -1194,6 +1202,10 @@ const _loadScene = async (file, {contentId = null, files = null}) => {
   };
   scene.hit = () => {
     console.log('hit', scene); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   return scene;
 };
@@ -1397,6 +1409,10 @@ const _loadPortal = async (file, {contentId = null}) => {
   };
   o.hit = () => {
     console.log('hit', o); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
 
   const appId = ++appIds;
@@ -1463,6 +1479,10 @@ const _loadIframe = async (file, {contentId = null}) => {
   };
   object2.hit = () => {
     console.log('hit', object2); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   
   return object2;
@@ -1484,7 +1504,11 @@ const _loadMediaStream = async (file, {contentId = null}) => {
   );
   object.contentId = contentId;
   object.hit = () => {
-    console.log('hit', object);
+    console.log('hit', object); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   return object;
 };
@@ -1506,7 +1530,11 @@ const _loadAudio = async (file, {contentId = null, instanceId = null, monetizati
     audio.pause();
   };
   object.hit = () => {
-    console.log('hit', object);
+    console.log('hit', object); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
   };
   return object;
 };
