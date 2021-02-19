@@ -479,6 +479,7 @@ class RigManager {
       sitState,
       sitAnimation,
       danceState,
+      danceTime,
       danceAnimation,
     ] = poseArray;
 
@@ -515,6 +516,7 @@ class RigManager {
       peerRig.sitState = sitState;
       peerRig.sitAnimation = sitAnimation;
       peerRig.danceState = danceState;
+      peerRig.danceTime = danceTime;
       peerRig.danceAnimation = danceAnimation;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
