@@ -24,7 +24,7 @@ const _flipUvs = geometry => {
   return geometry;
 };
 
-const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
+const makeTextMesh = (text = '', font = './fonts/GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
   textMesh.text = text;
   textMesh.font = font;
@@ -1405,7 +1405,7 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
   const canvasHeight = uiSize;
   const worldWidth = 2;
   const worldHeight = 2;
-  
+
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
@@ -2438,7 +2438,7 @@ const intersectUi = (raycaster, meshes) => {
 
 const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
 const blueMaterial = new THREE.MeshBasicMaterial({color: 0x42a5f5});
-const makeButtonMesh = (text, font = './GeosansLight.ttf', size = 0.1) => {  
+const makeButtonMesh = (text, font = './fonts/GeosansLight.ttf', size = 0.1) => {
   const textMesh = makeTextMesh(text, font, size);
   textMesh._needsSync = true;
   textMesh.sync(() => {
@@ -2446,7 +2446,7 @@ const makeButtonMesh = (text, font = './GeosansLight.ttf', size = 0.1) => {
     const [x1, y1, x2, y2] = renderInfo.totalBounds;
     const w = x2 - x1;
     const h = y2 - y1;
-    
+
     const outlineGeometry = BufferGeometryUtils.mergeBufferGeometries([
       new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI),
       new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI)
@@ -2463,13 +2463,13 @@ const makeButtonMesh = (text, font = './GeosansLight.ttf', size = 0.1) => {
     textMesh.geometry.boundingBox = outlineGeometry.boundingBox.clone();
     textMesh.geometry.boundingBox.min.z = -0.01;
     textMesh.geometry.boundingBox.max.z = 0.01;
-    
+
     const outlineMesh = new THREE.Mesh(outlineGeometry, blackMaterial);
     textMesh.add(outlineMesh);
   });
 
   textMesh.geometry.boundingBox = new THREE.Box3();
-  
+
   return textMesh;
 };
 const makeArrowMesh = () => {
@@ -2523,17 +2523,17 @@ const makeCornersMesh = () => {
   const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
   return cornerMesh;
 };
-const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size = 0.1, width = 1) => {
+const makeTextInput = (text, placeholder = '', font = './fonts/GeosansLight.ttf', size = 0.1, width = 1) => {
   const textInput = new THREE.Object3D();
 
   let textMesh = makeTextMesh(text, font, size);
   textMesh.position.x = -width/2;
-  
+
   const underlineGeometry = new THREE.PlaneBufferGeometry(1, 0.01)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -size/2, 0));
   const underlineMesh = new THREE.Mesh(underlineGeometry, blackMaterial);
   textInput.add(underlineMesh);
-  
+
   const caretGeometry = new THREE.PlaneBufferGeometry(0.01, 0.08)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(-width/2 + 0.01/2, 0, 0));
   const caretMesh = new THREE.Mesh(caretGeometry, blackMaterial);
@@ -2584,7 +2584,7 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
       textInput.selectRange[0] = caretIndex;
       textInput.selectRange[1] = caretIndex;
     }
-    
+
     await new Promise((accept, reject) => {
       textMesh._needsSync = true;
       textMesh.sync(accept);
@@ -2630,16 +2630,16 @@ const makeTabs = (tabs, size = 0.08, width = 1) => {
         const [x1, y1, x2, y2] = renderInfo.totalBounds;
         const w = x2 - x1;
         const h = y2 - y1;
-        
+
         textMesh.position.x = -width/2 + offset;
 
         offset += w;
-        
+
         widths.push(offset);
       }
       object.add(textMesh);
     }
-    
+
     backgroundMesh.visible = true;
 
     loadPromise.accept();
@@ -2657,7 +2657,7 @@ const makeTabs = (tabs, size = 0.08, width = 1) => {
     selectedTabIndex = index;
 
     _updateBackgroundMesh();
-    
+
     object.ontabchange && object.ontabchange(selectedTabIndex);
   };
   object.selectOffset = offset => {
@@ -2699,7 +2699,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1, buttons = []) => {
   cornersMesh.position.x = -width/2 + size/2;
   cornersMesh.scale.setScalar(size);
   object.add(cornersMesh);
-  
+
   const textMesh = makeTextMesh(text, undefined, size/2);
   textMesh.position.x = -width/2 + size + size/4;
   textMesh.position.y = size/4;
@@ -2716,7 +2716,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1, buttons = []) => {
       const buttonMesh = makeButtonMesh(button, undefined, size/2);
       buttonMesh.position.x = buttonsOffset + offset;
       object.add(buttonMesh);
-      
+
       await new Promise((accept, reject) => {
         buttonMesh._needsSync = true;
         buttonMesh.sync(accept);
@@ -2728,7 +2728,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1, buttons = []) => {
         const h = y2 - y1;
 
         offset += w;
-          
+
         widths.push(offset);
       }
     }

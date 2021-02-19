@@ -24,7 +24,7 @@ import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
-// import {mithrilInit} from './mithril-ui/index.js'
+import {mithrilInit} from './ui/index.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -65,11 +65,11 @@ export default class App {
       });
     this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
-  
+
   async bootstrapFromUrl(urlSpec) {
     const q = parseQuery(urlSpec.search);
 
@@ -86,7 +86,7 @@ export default class App {
         }),
       world.getWorldJson(q),
     ]);
-    
+
     const coord = parseCoord(q.c);
     if (coord) {
       camera.position.copy(coord);
@@ -123,7 +123,7 @@ export default class App {
     universe.bindInterface();
     weaponsManager.bindInterface();
     inventoryBindInterface();
-    // mithrilInit();
+    mithrilInit();
   }
   bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
@@ -175,7 +175,7 @@ export default class App {
         });
     }
   }
-  
+
   render() {
     // high priority render
     renderer.render(scene3, camera);
@@ -212,11 +212,11 @@ export default class App {
     // dom render
     renderer2.render(scene2, camera);
   }
-  
+
   startLoop() {
     let lastTimestamp = performance.now();
     const startTime = Date.now();
-    const animate = (timestamp, frame) => {      
+    const animate = (timestamp, frame) => {
       timestamp = timestamp || performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);

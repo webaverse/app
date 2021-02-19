@@ -3,9 +3,10 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "ospec",
     "lint": "eslint --ext .js .",
     "lint-fix": "eslint --fix --ext .js ."
   },
@@ -32,6 +33,7 @@
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint-plugin-standard": "^4.0.1",
+    "ospec": "^4.1.1"
   }
 }

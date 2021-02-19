@@ -12,8 +12,8 @@ const {Transaction, Common} = ethereumJsTx;
 import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import * as notifications from './notifications.js';
 import {makePromise, jsonParse} from './util.js';
-// import {menuActions} from './mithril-ui/store/actions.js';
-
+// import {menuActions} from './ui/store/actions.js';
+import {Menu} from './ui/models/Menu.js';
 // const usersEndpoint = 'https://users.exokit.org';
 
 // const _clone = o => JSON.parse(JSON.stringify(o));
@@ -21,7 +21,7 @@ import {makePromise, jsonParse} from './util.js';
 async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.back['NFT'].methods.getHash(id + '').call();
-    return `${storageHost}/${hash}`;    
+    return `${storageHost}/${hash}`;
   } else if (typeof id === 'string') {
     return id;
   } else {
@@ -50,8 +50,8 @@ async function pullUserObject() {
     return tokens;
   })();
 
-  // menuActions.setInventory(inventory);
-  
+  Menu.fillInventory(inventory);
+
   userObject = {
     name,
     avatar: {
@@ -136,7 +136,7 @@ async function doLogin(email, code) {
 }
 async function tryLogin() {
   loginToken = await storage.get('loginToken');
-  
+
   const unregisteredWarning = document.getElementById('unregistered-warning');
 
   // const userButton = document.getElementById('user-button');
@@ -173,7 +173,7 @@ async function tryLogin() {
 };
 async function bindLogin() {
   const loginForm = document.getElementById('login-form');
-  
+
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
     <div class=phase-content>
@@ -361,7 +361,7 @@ class LoginManager extends EventTarget {
     }
     return this.loadPromise;
   }
-  
+
   async bindLogin() {
     await bindLogin();
   }
@@ -493,7 +493,7 @@ class LoginManager extends EventTarget {
 
   /* async setFtu(name, avatarId) {
     throw new Error('not debugged');
-    
+
     const address = this.getAddress();
     const res = await fetch(`${tokensHost}/${avatarId}`);
     const token = await res.json();

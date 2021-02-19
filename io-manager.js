@@ -7,8 +7,7 @@ import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
-/* import {menuActions} from './mithril-ui/store/actions.js';
-import {menuState} from './mithril-ui/store/state.js'; */
+import {Menu} from './ui/models/Menu.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -103,7 +102,7 @@ const _updateIo = timeDiff => {
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
             ioManager.currentWalked = true;
           }
-          
+
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
@@ -145,7 +144,7 @@ const _updateIo = timeDiff => {
         ioManager.lastAxes[index][1] = axes[1];
         ioManager.lastAxes[index][2] = axes[2];
         ioManager.lastAxes[index][3] = axes[3];
-        
+
         ioManager.lastButtons[index][0] = buttons[0];
         ioManager.lastButtons[index][1] = buttons[1];
         ioManager.lastButtons[index][2] = buttons[2];
@@ -171,14 +170,14 @@ const _updateIo = timeDiff => {
     const flyState = physicsManager.getFlyState();
     if (flyState) {
       direction.applyQuaternion(camera.quaternion);
-      
+
       if (ioManager.keys.space) {
         direction.y += 1;
       }
       if (ioManager.keys.ctrl) {
         direction.y -= 1;
       }
-    } else {  
+    } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
@@ -385,7 +384,7 @@ ioManager.bindInput = () => {
         // if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          
+
           world.toggleMic();
         // }
         break;
@@ -440,7 +439,9 @@ ioManager.bindInput = () => {
         break;
       }
       case 69: { // E
-        weaponsManager.menuUseHold();
+        if (weaponsManager.canUseHold()) {
+          weaponsManager.menuUseHold();
+        }
         if (weaponsManager.canRotate()) {
           weaponsManager.menuRotate(-1);
         }
@@ -455,7 +456,8 @@ ioManager.bindInput = () => {
         break;
       }
       case 77: { // M
-        menuActions.setIsOpen(!menuState.isOpen)
+        Menu.toggle();
+        break;
       }
     }
   });
@@ -621,7 +623,7 @@ ioManager.bindInput = () => {
 
     avatarCamera.aspect = window.innerWidth / window.innerHeight;
     avatarCamera.updateProjectionMatrix();
-    
+
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;
     }

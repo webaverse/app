@@ -230,7 +230,7 @@ const _selectLoadout = index => {
       if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
         _ungrab();
       }
-      
+
       world.removeObject(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
     }
@@ -269,7 +269,7 @@ const _selectLoadout = index => {
             physicsManager.disableGeometry(physicsId);
           }
         }
-        
+
         _equip(selectedLoadoutObject);
       } else {
         const transforms = rigManager.getRigTransforms();
@@ -327,7 +327,7 @@ const _use = () => {
     // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
-    
+
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (weaponsManager.getMenu() === 1) {
@@ -344,7 +344,7 @@ const _use = () => {
   } else {
     const transforms = rigManager.getRigTransforms();
     const {position} = transforms[0];
-    
+
     const portalObjects = world.getStaticObjects()
       .concat(world.getObjects())
       .filter(object => {
@@ -384,7 +384,7 @@ const _useHold = () => {
     start: now,
     end: now + 1000,
   };
-  
+
   const activePhysicsId = activateManager.getCurrentPhysicsId();
   if (activePhysicsId) {
     const activeObject = world.getObjectFromPhysicsId(activePhysicsId);
@@ -500,7 +500,7 @@ const _try = async () => {
 const _handleUpload = async file => {
   const {name, hash} = await loginManager.uploadFile(file);
   console.log('uploaded', {name, hash});
-  
+
   const transforms = rigManager.getRigTransforms();
   let {position, quaternion} = transforms[0];
   position = position.clone()
@@ -563,7 +563,7 @@ const _updateWeapons = () => {
   const _handleHighlight = () => {
     if (!editedObject) {
       const width = 1;
-      const length = 100;    
+      const length = 100;
       localBox.setFromCenterAndSize(
         localVector.set(0, 0, -length/2 - 0.05),
         localVector2.set(width, width, length)
@@ -615,7 +615,7 @@ const _updateWeapons = () => {
 
   const _handleEdit = () => {
     editMesh.visible = false;
-    
+
     buildTool.update();
 
     if (editedObject) {
@@ -667,10 +667,10 @@ const _updateWeapons = () => {
       if (grabbedObject) {
         const {position, quaternion} = transforms[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
+
         grabbedObject.updateMatrixWorld();
         const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
-        
+
         const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
           collisionEnabled: true,
           handSnapEnabled: true,
@@ -681,7 +681,7 @@ const _updateWeapons = () => {
 
         grabbedObject.updateMatrixWorld();
         const newMatrix = localMatrix3.copy(grabbedObject.matrixWorld);
-        
+
         if (grabbedObject.getPhysicsIds) {
           const physicsIds = grabbedObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
@@ -694,7 +694,7 @@ const _updateWeapons = () => {
             physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion, localVector2);
           }
         }
-        
+
         grabbedObject.setPose(localVector.copy(grabbedObject.position), localQuaternion.copy(grabbedObject.quaternion), localVector2.copy(grabbedObject.scale));
 
         if (handSnap) {
@@ -706,7 +706,7 @@ const _updateWeapons = () => {
     }
   };
   _updateGrab();
-  
+
   const _updateEquip = () => {
     for (let i = 0; i < 2; i++) {
       const equippedObject = appManager.equippedObjects[i];
@@ -837,7 +837,7 @@ const _updateWeapons = () => {
     });
   };
   _handleTeleport();
-  
+
   const _handleEditAnimation = () => {
     if (editMesh.visible) {
       editMesh.material.uniforms.uHighlight.value = 1-(Date.now()%1000)/1000;
@@ -860,14 +860,14 @@ const _updateWeapons = () => {
           for (const progressBarInner of progressBarInners) {
             progressBarInner.style.width = (f * 100) + '%';
           }
-          
+
           highlightMesh.material.uniforms.uTime.value = -(1-f);
           highlightMesh.material.uniforms.uTime.needsUpdate = true;
         } else {
           editedObject = highlightedObject;
           weaponsManager.setMenu(0);
           useAnimation = null;
-          
+
           highlightMesh.material.uniforms.uTime.value = 0;
           highlightMesh.material.uniforms.uTime.needsUpdate = true;
         }
@@ -876,13 +876,13 @@ const _updateWeapons = () => {
       }
       return;
     }
-    
+
     for (const progressBar of progressBars) {
       progressBar.classList.remove('running');
     }
   };
   _handleUseAnimation();
-  
+
   const _handleThrowDrop = () => {
     if (!droppedThrow && physicsManager.getThrowState() && physicsManager.getThrowTime() > 800) {
       const transforms = rigManager.getRigTransforms();
@@ -1094,13 +1094,13 @@ const _updateMenu = () => {
       itemsDetails1El.innerHTML = itemSpec.detailsHtml;
       lastSelectedBuild = selectedItemIndex;
     }
-    
+
     lastCameraFocus = -1;
   } else if (menuOpen === 2) {
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items2El, selectedItemIndex);
-    
+
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 3) {
@@ -1111,7 +1111,7 @@ const _updateMenu = () => {
     _updateSelectedItem(items3El, selectedItemIndex);
 
     deployMesh.visible = true;
-    
+
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 4) {
@@ -1573,7 +1573,7 @@ const bindInterface = () => {
       boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
     }
   })();
-  
+
   world.addEventListener('trackedobjectsadd', async e => {
     const {trackedObject, dynamic} = e.data;
     if (dynamic) {
@@ -1642,7 +1642,7 @@ renderer.domElement.addEventListener('dragover', e => {
 });
 renderer.domElement.addEventListener('drop', async e => {
   e.preventDefault();
-  
+
   const files = Array.from(e.dataTransfer.files);
   for (const file of files) {
     await _handleUpload(file);
@@ -1903,7 +1903,7 @@ const weaponsManager = {
       if (s) {
         const username = loginManager.getUsername();
         messages.addMessage(username, s);
-        
+
         chatInputEl.value = '';
       }
     }

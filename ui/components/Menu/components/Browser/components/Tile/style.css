@@ -1,0 +1,55 @@
+
+.m-menu_browser_tile {
+  --border: 4px solid var(--primaryLight);
+  --size: 144px;
+
+  /* Display */
+  align-items: center;
+  border-left: var(--border);
+  border-right: var(--border);
+  border-top: var(--border);
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+
+  /* Position */
+  margin-bottom: var(--menu_browser-gutter);
+  margin-right: var(--menu_browser-gutter);
+  position: relative;
+
+  /* Size */
+  height: var(--size);
+  width: var(--size);
+
+  /* UX */
+  cursor: pointer;
+}
+
+.m-menu_browser_tile_icon {
+  /* Position */
+  margin-bottom: auto;
+  margin-top: auto;
+}
+
+.m-menu_browser_tile_name {
+  --padding: 4px;
+
+  /* Background */
+  background: var(--primaryLight);
+
+  /* Display */
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 4px;
+  padding-top: 8px;
+
+  /* Position */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  /* Text */
+  text-align: center;
+}

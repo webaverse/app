@@ -9,11 +9,15 @@
 
 @font-face {
   font-family: 'Bangers';
-  src: url('Bangers-Regular.woff2') format('woff2');
+  src: url('fonts/Bangers-Regular.woff2') format('woff2');
 }
 @font-face {
   font-family: 'GeoSans';
-  src: url('GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
+  src: url('fonts/GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
+}
+@font-face {
+  font-family: 'LuckiestGuy';
+  src: url('fonts/LuckiestGuy-Regular.ttf') format('truetype');
 }
 
 body {
@@ -2741,7 +2745,7 @@ footer {
   object-fit: contain;
 }
 .details .wrap {
-  
+
 }
 
 .progress {

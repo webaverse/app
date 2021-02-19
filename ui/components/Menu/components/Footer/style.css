@@ -1,0 +1,24 @@
+
+.m-menu_footer {
+  /* Display */
+  box-shadow: var(--box-shadow-3);
+  display: flex;
+  flex-flow: row nowrap;
+  grid-area: var(--m-menu-template-footer);
+  padding: 0.5em;
+
+  /* Position */
+  /*margin-top: auto;*/
+
+  /* Text */
+  font-size: 1.25rem;
+}
+
+.m-menu_footer_btn {
+  /* UX */
+  cursor: pointer;
+}
+
+.m-menu_footer_btn--back {
+  margin-left: auto;
+}

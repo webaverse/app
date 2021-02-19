@@ -1,0 +1,16 @@
+
+.m-menu_category_viewA {
+  /* Display */
+  display: flex;
+  flex-flow: column nowrap;
+  grid-area: var(--m-menu-template-main);
+  overflow-y: auto;
+  padding: var(--m-menu-section-padding);
+}
+
+.m-menu_category_split {
+  /* Display */
+  display: flex;
+  /*flex: 1;*/
+  flex-flow: row nowrap;
+}

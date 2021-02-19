@@ -1,0 +1,18 @@
+@import './components/Tile/style.css';
+
+:root {
+  --menu_browser-gutter: 16px;
+}
+
+.m-menu_browser {
+  /* Display */
+  flex: 1;
+  overflow-y: auto;
+}
+
+.m-menu_browser_list {
+  /* Display */
+  display: flex;
+  flex-flow: row wrap;
+  /*padding: var(--menu_browser-gutter);*/
+}

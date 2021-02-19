@@ -24225,7 +24225,8 @@ function WebGLRenderer( parameters ) {
 	function onAnimationFrame( time ) {
 
 		if ( xr.isPresenting ) return;
-		if ( onAnimationFrameCallback ) onAnimationFrameCallback( time );
+		// DEBUG
+		//if ( onAnimationFrameCallback ) onAnimationFrameCallback( time );
 
 	}
 
