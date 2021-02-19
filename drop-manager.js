@@ -430,6 +430,10 @@ const drop = async (o, {type = null, count = 1, velocity = null, angularVelocity
     fn(o.getWorldPosition(new THREE.Vector3()), v, r);
   }
 };
+const removeDrop = drop => {
+  scene.remove(drop);
+  tickers.splice(tickers.indexOf(drop), 1);
+};
 const update = () => {
   const localTickers = tickers.slice();
   for (const ticker of localTickers) {
@@ -440,6 +444,7 @@ const update = () => {
 const dropManager = {
   getDrops,
   drop,
+  removeDrop,
   update,
 };
 export default dropManager;
