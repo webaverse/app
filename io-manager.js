@@ -362,7 +362,7 @@ ioManager.bindInput = () => {
         // if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          weaponsManager.menuGridSnap();
+          weaponsManager.menuVDown();
         // }
         break;
       }
@@ -509,6 +509,14 @@ ioManager.bindInput = () => {
         if (document.pointerLockElement) {
           ioManager.keys.backward = false;
         }
+        break;
+      }
+      case 86: { // V
+        // if (!_inputFocused()) {
+          e.preventDefault();
+          e.stopPropagation();
+          weaponsManager.menuVUp();
+        // }
         break;
       }
       case 16: { // shift

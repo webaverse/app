@@ -235,7 +235,23 @@ const _selectLoadout = index => {
     }
 
     const loadout = loginManager.getLoadout();
-    const item = loadout[selectedLoadoutIndex];
+    // XXX
+    let item;
+    if (selectedLoadoutIndex === 1) {
+      item = ['./pistol/manifest.json'];
+    } else if (selectedLoadoutIndex === 2) {
+      item = ['./rifle/manifest.json'];
+    } else if (selectedLoadoutIndex === 3) {
+      item = ['./pickaxe/manifest.json'];
+    } else if (selectedLoadoutIndex === 4) {
+      item = ['./lightsaber/manifest.json'];
+    } else if (selectedLoadoutIndex === 5) {
+      item = ['./hovercraft/manifest.json'];
+    } else if (selectedLoadoutIndex === 6) {
+      item = ['./hoverboard/manifest.json'];
+    } else {
+      item = loadout[selectedLoadoutIndex];
+    }
     if (item) {
       const [contentId] = item;
       let id = parseInt(contentId, 10);
@@ -1787,6 +1803,16 @@ const weaponsManager = {
     } else {
       return 4/this.gridSnap;
     }
+  },
+  menuVDown() {
+    if (appManager.grabbedObjects[0]) {
+      this.menuGridSnap();
+    } else {
+      physicsManager.setDanceState('dansu');
+    }
+  },
+  menuVUp() {
+    physicsManager.setDanceState(null);
   },
   /* setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);

@@ -243,7 +243,9 @@ class RigManager {
             localRig = new Avatar();
             localRig.aux = oldRig.aux;
             localRig.aux.rig = localRig;
-            localRig.model = o;
+            // localRig.model = o;
+            console.log('local rig model', o);
+            debugger;
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
               localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
@@ -367,7 +369,9 @@ class RigManager {
       useTime,
       useAnimation,
       sitState,
-      sitAnimation, 
+      sitAnimation,
+      danceState,
+      danceAnimation,      
     } = this.localRig;
 
     return [
@@ -388,6 +392,8 @@ class RigManager {
       useAnimation,
       sitState,
       sitAnimation,
+      danceState,
+      danceAnimation,
     ];
   }
 
@@ -470,6 +476,8 @@ class RigManager {
       useAnimation,
       sitState,
       sitAnimation,
+      danceState,
+      danceAnimation,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -504,6 +512,8 @@ class RigManager {
       peerRig.useAnimation = useAnimation;
       peerRig.sitState = sitState;
       peerRig.sitAnimation = sitAnimation;
+      peerRig.danceState = danceState;
+      peerRig.danceAnimation = danceAnimation;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -654,8 +664,12 @@ class RigManager {
       sitAnimation = null;
       physicsManager.setDamping();
     }
+    const danceState = !!physicsManager.getDanceState();
+    const danceAnimation = physicsManager.getDanceState();
     rigManager.localRig.sitState = sitState;
     rigManager.localRig.sitAnimation = sitAnimation;
+    rigManager.localRig.danceState = danceState;
+    rigManager.localRig.danceAnimation = danceAnimation;
     physicsManager.setSitState(sitState);
 
     this.peerRigs.forEach(rig => {
