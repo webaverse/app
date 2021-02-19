@@ -73,7 +73,7 @@ class NpcManager {
     updateFns.push(timeDiff => {
       timeDiff *= 1000;
 
-      const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBoneOutputs.Head : rigManager.localRig.model;
+      const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBones.Head : rigManager.localRig.model;
       const position = head.getWorldPosition(localVector);
       position.y = 0;
       const distance = mesh.position.distanceTo(position);
