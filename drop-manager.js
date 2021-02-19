@@ -283,10 +283,10 @@ const loadPromise = (async () => {
   };
 })().catch(err => console.warn(err));
 
-const drop = async (o, {type = null, count = 1} = {}) => {
+const drop = async (o, {type = null, count = 1, velocity = null} = {}) => {
   const {addSilk, addDrop} = await loadPromise;
   for (let i = 0; i < count; i++) {
-    const v = new THREE.Vector3(
+    const v = velocity || new THREE.Vector3(
       count > 1 ? (-1 + Math.random() * 2) : 0,
       0,
       count > 1 ? (-1 + Math.random() * 2) : 0
