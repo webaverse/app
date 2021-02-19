@@ -72,8 +72,6 @@ class NpcManager {
     // const smoothVelocity = new THREE.Vector3();
     updateFns.push(timeDiff => {
       timeDiff *= 1000;
-      
-      console.log('speed', walkSpeed);
 
       const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBoneOutputs.Head : rigManager.localRig.model;
       const position = head.getWorldPosition(localVector);
