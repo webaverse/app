@@ -19,21 +19,46 @@ const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0])
 
 const tickers = [];
 const loadPromise = (async () => {
-  const u = `https://webaverse.github.io/assets/card-placeholder.glb`;
-  let o = await new Promise((accept, reject) => {
-    gltfLoader.load(u, accept, function onprogress() {}, reject);
-  });
-  o = o.scene;
-  let cardModel = null;
-  o.traverse(o => {
-    if (!cardModel && o.isMesh) {
-      cardModel = o;
-    }
-  });
-  if (!cardModel) {
-    console.warn('could not load card model');
-  }
-  
+  const [
+    cardModel,
+    fruitModel,
+  ] = await Promise.all([
+    (async () => {
+      const u = `https://webaverse.github.io/assets/card-placeholder.glb`;
+      let o = await new Promise((accept, reject) => {
+        gltfLoader.load(u, accept, function onprogress() {}, reject);
+      });
+      o = o.scene;
+      let cardModel = null;
+      o.traverse(o => {
+        if (!cardModel && o.isMesh) {
+          cardModel = o;
+        }
+      });
+      if (!cardModel) {
+        console.warn('could not load card model');
+      }
+      return cardModel;
+    })(),
+    (async () => {
+      const u = `https://webaverse.github.io/assets/fruit.glb`;
+      let o = await new Promise((accept, reject) => {
+        gltfLoader.load(u, accept, function onprogress() {}, reject);
+      });
+      o = o.scene;
+      let fruitModel = null;
+      o.traverse(o => {
+        if (!fruitModel && o.isMesh) {
+          fruitModel = o;
+        }
+      });
+      if (!fruitModel) {
+        console.warn('could not load fruit model');
+      }
+      return fruitModel;
+    })(),
+  ]);
+
   const glowHeight = 5;
   const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
@@ -284,15 +309,99 @@ const loadPromise = (async () => {
     };
     tickers.push(o);
   };
+  const addFruit = (p, v, r) => {
+    const velocity = v.clone();
+    let grounded = false;
+    
+    const o = fruitModel.clone();
+    o.position.copy(p);
+    console.log('load', o, fruitModel);
+    scene.add(o);
+
+    const startTime = Date.now();
+    let lastTimestamp = startTime;
+    let animation = null;
+    const timeOffset = Math.random() * 10;
+    o.update = () => {
+      const now = Date.now();
+      const timeDiff = (now - lastTimestamp) / 1000;
+      lastTimestamp = now;
+
+      if (!grounded) {
+        o.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
+        if (o.position.y < dropRadius) {
+          o.position.y = dropRadius;
+          grounded = true;
+        } else {
+          velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff));
+
+          // o.rotation.x += r.x;
+          o.rotation.y += r.y;
+          // o.rotation.z += r.z;
+        }
+      }
+      
+      if (!animation) {
+        rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
+        localVector.y = 0;
+        const distance = localVector.distanceTo(o.position);
+        if (distance < 1) {
+          const timeSinceStart = now - startTime;
+          if (timeSinceStart > gracePickupTime) {
+            animation = {
+              startPosition: o.position.clone(),
+              startTime: now,
+              endTime: now + 1000,
+            };
+          }
+        }
+      }
+      if (animation) {
+        const headOffset = 0.5;
+        const bodyOffset = -0.3;
+        const tailTimeFactorCutoff = 0.8;
+        const timeDiff = now - animation.startTime;
+        const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
+        if (timeFactor < 1) {
+          if (timeFactor < tailTimeFactorCutoff) {
+            const f = cubicBezier(timeFactor);
+            rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+              .add(localVector2.set(0, headOffset, 0));
+            o.position.copy(animation.startPosition).lerp(localVector, f);
+          } else {
+            {
+              const f = cubicBezier(tailTimeFactorCutoff);
+              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                .add(localVector2.set(0, headOffset, 0));
+              o.position.copy(animation.startPosition).lerp(localVector, f);
+            }
+            {
+              const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
+              const f = cubicBezier2(tailTimeFactor);
+              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                .add(localVector2.set(0, bodyOffset, 0));
+              o.position.lerp(localVector, f);
+              o.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
+            }
+          }
+        } else {
+          scene.remove(o);
+          tickers.splice(tickers.indexOf(o), 1);
+        }
+      }
+    };
+    tickers.push(o);
+  };
   
   return {
     addSilk,
     addDrop,
+    addFruit,
   };
 })().catch(err => console.warn(err));
 
 const drop = async (o, {type = null, count = 1, velocity = null} = {}) => {
-  const {addSilk, addDrop} = await loadPromise;
+  const {addSilk, addDrop, addFruit} = await loadPromise;
   for (let i = 0; i < count; i++) {
     const v = velocity || new THREE.Vector3(
       count > 1 ? (-1 + Math.random() * 2) : 0,
@@ -305,6 +414,8 @@ const drop = async (o, {type = null, count = 1, velocity = null} = {}) => {
       fn = addSilk;
     } else if (type === 'card') {
       fn = addDrop;
+    } else if (type === 'fruit') {
+      fn = addFruit;
     } else {
       fn = Math.random() < 0.5 ? addSilk : addDrop;
     }
