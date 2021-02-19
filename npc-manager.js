@@ -3,32 +3,14 @@ import runtime from './runtime.js';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
-// import {contentIdToFile, unFrustumCull} from './util.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 
 class NpcManager {
   constructor() {
     this.npcs = [];
   }
-  /* getNpcs() {
-    return this.npcs;
-  }
-  setNpcs(npcs) {
-    for (const newNpc of npcs) {
-      if (!this.npcs.some(n => n.id === newNpc.id)) {
-        this.addNpc(newNpc);
-      }
-    }
-    const localNpcs = this.npcs.slice();
-    for (const oldNpc of localNpcs) {
-      if (!npcs.some(n => n.id === oldNpc.id)) {
-        this.removeNpc(oldNpc);
-      }
-    }
-  } */
   async addNpc(o, componentIndex) {
     const npc = await world.addNpc(o.contentId, null, o.position, o.quaternion);
     
@@ -105,69 +87,6 @@ class NpcManager {
     throw new Error('not implemented');
   }
   update(timeDiff) {
-    /* const now = Date.now();
-    if (document.pointerLockElement && appManager.using) {
-      const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-      if (collision) {
-        const collisionId = collision.objectId;
-        const object = world.getObjectFromPhysicsId(collisionId);
-        if (object) {
-          const worldPosition = object.getWorldPosition(localVector);
-          const {hit, died} = object.hit();
-          if (died) {
-            const deadObject = new THREE.Object3D();
-            deadObject.position.copy(worldPosition);
-            deadObject.position.y += 0.5;
-            dropManager.drop(deadObject, {
-              type: 'card',
-            });
-          } else if (hit) {
-            const physics = physicsManager.getGeometry(collisionId);
-            if (physics) {
-              let geometry = new THREE.BufferGeometry();
-              geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-              geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
-              geometry = geometry.toNonIndexed();
-              geometry.computeVertexNormals();
-
-              damagePhysicsMesh.geometry.dispose();
-              damagePhysicsMesh.geometry = geometry;
-              damagePhysicsMesh.physicsId = collisionId;
-              
-              const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-              damagePhysicsMesh.position.copy(physicsTransform.position);
-              damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-              damagePhysicsMesh.scale.copy(physicsTransform.scale);
-              
-              damageAnimation = {
-                startTime: now,
-                endTime: now + 300,
-              };
-            }
-          }
-        }
-      }
-    }
-
-    if (damageAnimation) {
-      if (now < damageAnimation.endTime) {
-        const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
-        const f = (now - damageAnimation.startTime) / animationDuration;
-        damagePhysicsMesh.material.uniforms.uTime.value = 1-f;
-        damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      } else {
-        damageAnimation = null;
-      }
-    }
-    damagePhysicsMesh.visible = !!damageAnimation;
-    
-    const transforms = rigManager.getRigTransforms();
-    const {position, quaternion} = transforms[0];
-    const outPosition = localVector.copy(position)
-      .add(localVector2.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
-    cylinderMesh.position.copy(outPosition);
-    cylinderMesh.quaternion.copy(quaternion); */
-    
     for (const npc of this.npcs) {
       npc.update(timeDiff);
     }
