@@ -33,6 +33,7 @@ const cylinderMesh = new THREE.Mesh(
     color: 0x00FFFF,
   })
 );
+cylinderMesh.startPosition = new THREE.Vector3();
 // scene.add(cylinderMesh);
 let damageAnimation = null;
 const update = () => {
@@ -98,9 +99,68 @@ const update = () => {
     .add(localVector2.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
   cylinderMesh.position.copy(outPosition);
   cylinderMesh.quaternion.copy(quaternion);
+  cylinderMesh.startPosition.copy(position);
+};
+
+const hitAnimationLength = 300;
+const makeHitTracker = ({
+  totalHp = 100,
+} = {}) => {
+  let hp = totalHp;
+  const jitterObject = new THREE.Object3D();
+  let hitTime = -1;
+  jitterObject.hit = (damage = 30) => {
+    if (hitTime === -1) {
+      hp = Math.max(hp - damage, 0);
+      if (hp > 0) {
+        hitTime = 0;
+        
+        jitterObject.dispatchEvent({
+          type: 'hit',
+          hp,
+          totalHp,
+          position: cylinderMesh.startPosition.clone(),
+          quaternion: cylinderMesh.quaternion.clone(),
+        });
+        return {
+          hit: true,
+          died: false,
+        };
+      } else {
+        jitterObject.dispatchEvent({
+          type: 'die',
+          position: cylinderMesh.startPosition.clone(),
+          quaternion: cylinderMesh.quaternion.clone(),
+        });
+        return {
+          hit: true,
+          died: true,
+        };
+      }
+    } else {
+      return {
+        hit: false,
+        died: false,
+      };
+    }
+  };
+  jitterObject.update = timeDiff => {
+    if (hitTime !== -1) {
+      hitTime += timeDiff;
+      
+      const scale = (1-hitTime/hitAnimationLength) * 0.1;
+      jitterObject.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+
+      if (hitTime > hitAnimationLength) {
+        hitTime = -1;
+      }
+    }
+  };
+  return jitterObject;
 };
 
 const hpManager = {
+  makeHitTracker,
   update,
 };
 export default hpManager;

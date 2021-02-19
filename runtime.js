@@ -7,7 +7,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes, convertMeshToPhysicsMesh, makeHitTracker} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import buildTool from './build-tool.js';
@@ -411,9 +411,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   })();
 
   const mesh = new THREE.Object3D();
-  const jitterObject = makeHitTracker();
+  const jitterObject = hpManager.makeHitTracker();
   mesh.add(jitterObject);
   jitterObject.add(gltfObject);
+  jitterObject.addEventListener('hit', e => {
+    mesh.dispatchEvent(e);
+  });
   jitterObject.addEventListener('die', e => {
     mesh.dispatchEvent(e);
   });
@@ -576,9 +579,12 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
 
   const o = new THREE.Object3D();
   o.raw = vrmObject;
-  const jitterObject = makeHitTracker();
+  const jitterObject = hpManager.makeHitTracker();
   o.add(jitterObject);
   jitterObject.add(vrmObject.scene);
+  jitterObject.addEventListener('hit', e => {
+    mesh.dispatchEvent(e);
+  });
   jitterObject.addEventListener('die', e => {
     o.dispatchEvent(e);
   });
@@ -956,10 +962,13 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   mesh.getComponents = () => components;
   mesh.getApp = () => app;
   
-  const jitterObject = makeHitTracker();
+  const jitterObject = hpManager.makeHitTracker();
   mesh.add(jitterObject);
   const appObject = new THREE.Object3D();
   jitterObject.add(appObject);
+  jitterObject.addEventListener('hit', e => {
+    mesh.dispatchEvent(e);
+  });
   jitterObject.addEventListener('die', e => {
     mesh.dispatchEvent(e);
   });
