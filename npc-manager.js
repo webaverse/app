@@ -5,6 +5,7 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 
 class NpcManager {
@@ -111,6 +112,19 @@ class NpcManager {
   update(timeDiff) {
     for (const npc of this.npcs) {
       npc.update(timeDiff);
+    }
+    for (const npc of this.npcs) {
+      const closestNpc = this.npcs.filter(n => n !== npc).sort((a, b) => {
+        return a.position.distanceTo(npc.position) - b.position.distanceTo(npc.position);
+      })[0];
+      if (closestNpc) {
+        const restitutionVector = localVector.copy(npc.position).sub(closestNpc.position);
+        const restitutionDistance = restitutionVector.length();
+        const minRestitutionDistance = 0.5;
+        if (restitutionDistance < minRestitutionDistance) {
+          npc.position.add(localVector2.copy(restitutionVector).normalize().multiplyScalar(restitutionDistance - minRestitutionDistance));
+        }
+      }
     }
   }
 }
