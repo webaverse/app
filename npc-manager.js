@@ -1,16 +1,19 @@
 import * as THREE from './three.module.js';
 import runtime from './runtime.js';
+import {world} from './world.js';
 import physicsManager from './physics-manager.js';
-import {contentIdToFile, unFrustumCull} from './util.js';
+import {rigManager} from './rig.js';
+// import {contentIdToFile, unFrustumCull} from './util.js';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
+const localEuler = new THREE.Euler();
 
 class NpcManager {
   constructor() {
     this.npcs = [];
   }
-  getNpcs() {
+  /* getNpcs() {
     return this.npcs;
   }
   setNpcs(npcs) {
@@ -25,49 +28,82 @@ class NpcManager {
         this.removeNpc(oldNpc);
       }
     }
-  }
-  async addNpc({id, contentId, componentIndex}) {
-    const npc = {
-      id,
-      contentId,
-      componentIndex,
-      model: null,
-      update: () => {},
-    };
-    this.npcs.push(npc);
+  } */
+  async addNpc(o, componentIndex) {
+    const npc = await world.addNpc(o.contentId, null, o.position, o.quaternion);
     
-    const file = await (contentId);
-    const o = await runtime.loadFile(file, {
-      local: true,
-    }, {
-      contentId,
-    });
-    npc.model = o;
-    unFrustumCull(o);
-    if (this.npcs.includes(npc)) {
-      this.scene.add(o);
-      
-      const component = o.getComponents()[componentIndex];
-      console.log('got npc component', addNpc);
-      // const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
-      npc.update = () => {
-        /* const chest = this.rig.model.isVrm ? this.rig.modelBones[bone] : this.rig.model;
-        localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
-          .premultiply(chest.matrixWorld)
-          .decompose(o.position, o.quaternion, o.scale); */
-      };
+    const mesh = npc;
+    const animations = mesh.getAnimations();
+    const component = mesh.getComponents()[componentIndex];
+    let  {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = component;
+    if (idleAnimation) {
+      if (!Array.isArray(idleAnimation)) {
+        idleAnimation = [idleAnimation];
+      }
+    } else {
+      idleAnimation = [];
     }
 
-    return npc;
+    const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+    // console.log('got clips', npc, idleAnimationClips);
+    const updateFns = [];
+    if (idleAnimationClips.length > 0) {
+      // hacks
+      {
+        mesh.position.y = 0;
+        localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        mesh.quaternion.setFromEuler(localEuler);
+      }
+      
+      const mixer = new THREE.AnimationMixer(mesh);
+      const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
+      for (const idleAction of idleActions) {
+        idleAction.play();
+      }
+      
+      updateFns.push(timeDiff => {
+        const deltaSeconds = timeDiff / 1000;
+        mixer.update(deltaSeconds);
+      });
+    }
+
+    // const smoothVelocity = new THREE.Vector3();
+    updateFns.push(timeDiff => {
+      timeDiff *= 1000;
+      
+      console.log('speed', walkSpeed);
+
+      const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBoneOutputs.Head : rigManager.localRig.model;
+      const position = head.getWorldPosition(localVector);
+      position.y = 0;
+      const distance = mesh.position.distanceTo(position);
+      const minDistance = 1;
+      let moveDelta;
+      if (distance > minDistance) {
+        const direction = position.clone().sub(mesh.position).normalize();
+        const maxMoveDistance = distance - minDistance;
+        const moveDistance = Math.min(walkSpeed * timeDiff, maxMoveDistance);
+        moveDelta = direction.clone().multiplyScalar(moveDistance);
+        mesh.position.add(moveDelta);
+        mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+      } else {
+        moveDelta = new THREE.Vector3();
+      }
+      // smoothVelocity.lerp(moveDelta, 0.3);
+    });
+    npc.update = timeDiff => {
+      for (const fn of updateFns) {
+        fn(timeDiff);
+      }
+    };
+    this.npcs.push(npc);
   }
   removeNpc(npc) {
-    npc.model && this.scene.remove(npc.model);
-    const index = this.npcs.indexOf(npc);
-    if (index !== -1) {
-      this.npcs.splice(index, 1);
-    }
+    throw new Error('not implemented');
   }
-  update() {
+  update(timeDiff) {
     /* const now = Date.now();
     if (document.pointerLockElement && appManager.using) {
       const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
@@ -132,7 +168,7 @@ class NpcManager {
     cylinderMesh.quaternion.copy(quaternion); */
     
     for (const npc of this.npcs) {
-      npc.update();
+      npc.update(timeDiff);
     }
   }
 }
