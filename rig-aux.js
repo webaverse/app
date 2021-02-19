@@ -307,7 +307,7 @@ export class RigAux {
           const distance = mesh.position.distanceTo(position);
           const minDistance = 1;
           let moveDelta;
-          if (distance > minDistance) {
+          if ((distance - minDistance) > 0.01) { // handle rounding errors
             const direction = position.clone().sub(mesh.position).normalize();
             const maxMoveDistance = distance - minDistance;
             const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
