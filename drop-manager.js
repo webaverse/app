@@ -315,7 +315,12 @@ const loadPromise = (async () => {
     
     const o = fruitModel.clone();
     o.position.copy(p);
-    console.log('load', o, fruitModel);
+    o.quaternion.set(
+      (-1 + Math.random() * 2) * Math.PI*2,
+      (-1 + Math.random() * 2) * Math.PI*2,
+      (-1 + Math.random() * 2) * Math.PI*2,
+      (-1 + Math.random() * 2) * Math.PI*2
+    ).normalize();
     scene.add(o);
 
     const startTime = Date.now();
