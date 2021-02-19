@@ -175,6 +175,26 @@ const componentHandlers = {
       };
     },
   },
+  npc: {
+    load(o, componentIndex, rigAux) {
+      (async () => {
+        const npc = await world.addNpc(o.contentId, null, o.position, o.quaternion);
+        /* const npcs = npcManager.getNpcs();
+        const npc = {
+          id: npcManager.getNextId(),
+          contentId: o.contentId,
+          componentIndex,
+        };
+        npcs.push(npc);
+        npcManager.setNpcs(npcs); */
+      })();
+      return () => {
+        /* let npcs = npcManager.getNpcs();
+        npcs = auxPose.pets.filter(w => w.id !== npc.id);
+        npcManager.setNpcs(npcs); */
+      };
+    },
+  },
   effect: {
     run(o, componentIndex) {
       const component = o.getComponents()[componentIndex];
@@ -201,6 +221,7 @@ const loadComponentTypes = [
   'wear',
   'sit',
   'pet',
+  'npc',
 ];
 const runComponentTypes = [
   'effect',
@@ -260,7 +281,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
       });
     };
-    if (!components.some(c => ['sit', 'pet'].includes(c.type))) {
+    if (!components.some(c => ['sit', 'pet', 'npc'].includes(c.type))) {
       _loadAnimations();
     }
 

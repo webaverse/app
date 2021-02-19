@@ -29,10 +29,16 @@ const states = {
 };
 const _getState = dynamic => dynamic ? states.dynamic : states.static;
 const objects = {
-  static: [],
-  dynamic: [],
+  objects: {
+    static: [],
+    dynamic: [],
+  },
+  npcs: {
+    static: [],
+    dynamic: [],
+  },
 };
-const _getObjects = dynamic => dynamic ? objects.dynamic : objects.static;
+const _getObjects = (arrayName, dynamic) => objects[arrayName][dynamic ? 'dynamic' : 'static'];
 
 // multiplayer
 let roomName = null;
@@ -40,55 +46,50 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const _getOrCreateTrackedObject = (name, dynamic) => {
+const _getOrCreateTrackedObject = (name, dynamic, arrayName) => {
   const state = _getState(dynamic);
-  const objects = state.getArray('objects');
+  const objects = state.getArray(arrayName);
   const objectsJson = objects.toJSON();
   if (!objectsJson.includes(name)) {
     objects.push([name]);
   }
 
-  return state.getMap('object.' + name);
+  return state.getMap(arrayName + '.' + name);
 };
 
 const _bindState = (state, dynamic) => {
-  const objects = state.getArray('objects');
-  let lastObjects = [];
-  objects.observe(() => {
-    const nextObjects = objects.toJSON();
+  for (const arrayName of ['objects', 'npcs']) {
+    const objects = state.getArray(arrayName);
+    let lastObjects = [];
+    objects.observe(() => {
+      const nextObjects = objects.toJSON();
 
-    // const addedObjects = [];
-    // const removedObjects = [];
-    for (const name of nextObjects) {
-      if (!lastObjects.includes(name)) {
-        // addedObjects.push(name);
-        /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
-          data: name,
-        })); */
-        const trackedObject = _getOrCreateTrackedObject(name, dynamic);
-        world.dispatchEvent(new MessageEvent('trackedobjectadd', {
-          data: {
-            trackedObject,
-            dynamic,
-          },
-        }));
+      for (const name of nextObjects) {
+        if (!lastObjects.includes(name)) {
+          const trackedObject = _getOrCreateTrackedObject(name, dynamic, arrayName);
+          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'add', {
+            data: {
+              trackedObject,
+              dynamic,
+            },
+          }));
+        }
       }
-    }
-    for (const name of lastObjects) {
-      if (!nextObjects.includes(name)) {
-        // removedObjects.push(name);
-        const trackedObject = state.getMap('object.' + name);
-        world.dispatchEvent(new MessageEvent('trackedobjectremove', {
-          data: {
-            trackedObject,
-            dynamic,
-          },
-        }));
+      for (const name of lastObjects) {
+        if (!nextObjects.includes(name)) {
+          const trackedObject = state.getMap(arrayName + '.' + name);
+          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'remove', {
+            data: {
+              trackedObject,
+              dynamic,
+            },
+          }));
+        }
       }
-    }
 
-    lastObjects = nextObjects;
-  });
+      lastObjects = nextObjects;
+    });
+  }
 };
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
@@ -265,20 +266,21 @@ world.initializeIfEmpty = spec => {
   console.log('initialize if empty', spec); // XXX
 };
 
-world.getObjects = () => objects.dynamic.slice();
-world.getStaticObjects = () => objects.static.slice();
+world.getObjects = () => objects.objects.dynamic.slice();
+world.getStaticObjects = () => objects.objects.static.slice();
 let pendingAddPromise = null;
-const _addObject = dynamic => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  const scale = new THREE.Vector3();
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
-    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
+    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic, arrayName);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
-    trackedObject.set('scale', [1, 1, 1]);
+    trackedObject.set('scale', scale.toArray());
     trackedObject.set('options', JSON.stringify(options));
   });
   if (pendingAddPromise) {
@@ -289,13 +291,13 @@ const _addObject = dynamic => (contentId, parentId = null, position = new THREE.
     throw new Error('no pending world add object promise');
   }
 };
-const _removeObject = dynamic => removeInstanceId => {
+const _removeObject = (dynamic, arrayName) => removeInstanceId => {
   const state = _getState(dynamic);
   state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     if (index === -1) pointers.splice(index, 1);
 
-    const objects = state.getArray('objects');
+    const objects = state.getArray(arrayName);
     const objectsJson = objects.toJSON();
     const removeIndex = objectsJson.indexOf(removeInstanceId);
     if (removeIndex !== -1) {
@@ -303,7 +305,7 @@ const _removeObject = dynamic => removeInstanceId => {
         const result = [];
         for (let i = 0; i < objectsJson.length; i++) {
           const objectInstanceId = objectsJson[i];
-          const object = state.getMap('object.' + objectInstanceId);
+          const object = state.getMap(arrayName + '.' + objectInstanceId);
           const objectJson = object.toJSON();
           if (objectJson.parentId === removeInstanceId) {
             result.push(i);
@@ -317,7 +319,7 @@ const _removeObject = dynamic => removeInstanceId => {
 
         objects.delete(removeIndex, 1);
 
-        const trackedObject = state.getMap('object.' + instanceId);
+        const trackedObject = state.getMap(arrayName + '.' + instanceId);
         const keys = Array.from(trackedObject.keys());
         for (const key in keys) {
           trackedObject.delete(key);
@@ -328,126 +330,133 @@ const _removeObject = dynamic => removeInstanceId => {
     }
   });
 };
-world.addObject = _addObject(true);
-world.removeObject = _removeObject(true);
-world.addStaticObject = _addObject(false);
-world.removeStaticObject = _removeObject(false);
-world.addEventListener('trackedobjectadd', async e => {
-  const p = makePromise();
-  pendingAddPromise = p;
+world.addObject = _addObject(true, 'objects');
+world.removeObject = _removeObject(true, 'objects');
+world.addStaticObject = _addObject(false, 'objects');
+world.removeStaticObject = _removeObject(false, 'objects');
+world.addNpc = _addObject(true, 'npcs');
+world.removeNpc = _removeObject(true, 'npcs');
+for (const arrayName of [
+  'objects',
+  'npcs',
+]) {
+  world.addEventListener('tracked' + arrayName + 'add', async e => {
+    const p = makePromise();
+    pendingAddPromise = p;
 
-  try {
-    const {trackedObject, dynamic} = e.data;
-    const trackedObjectJson = trackedObject.toJSON();
-    const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
-    const options = JSON.parse(optionsString);
+    try {
+      const {trackedObject, dynamic} = e.data;
+      const trackedObjectJson = trackedObject.toJSON();
+      const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
+      const options = JSON.parse(optionsString);
 
-    const file = await contentIdToFile(contentId);
-    let mesh;
-    if (file) {
-      mesh = await runtime.loadFile(file, {
-        contentId,
-        instanceId: instanceId,
-        physics: options.physics,
-        physics_url: options.physics_url,
-        autoScale: options.autoScale,
-        autoRun: options.autoRun,
-        dynamic,
-        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-        ownerAddress: file.token ? file.token.owner.address : ""
-      });
-      if (mesh) {
-        mesh.position.fromArray(position);
-        mesh.quaternion.fromArray(quaternion);
+      const file = await contentIdToFile(contentId);
+      let mesh;
+      if (file) {
+        mesh = await runtime.loadFile(file, {
+          contentId,
+          instanceId: instanceId,
+          physics: options.physics,
+          physics_url: options.physics_url,
+          autoScale: options.autoScale,
+          autoRun: options.autoRun,
+          dynamic,
+          monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+          ownerAddress: file.token ? file.token.owner.address : ""
+        });
+        if (mesh) {
+          mesh.position.fromArray(position);
+          mesh.quaternion.fromArray(quaternion);
 
-        unFrustumCull(mesh);
-        
-        // mesh.name = file.name;
-        mesh.contentId = contentId;
-        mesh.instanceId = instanceId;
-        mesh.parentId = parentId;
+          unFrustumCull(mesh);
+          
+          // mesh.name = file.name;
+          mesh.contentId = contentId;
+          mesh.instanceId = instanceId;
+          mesh.parentId = parentId;
 
-        if (mesh.renderOrder === -Infinity) {
-          scene3.add(mesh);
+          if (mesh.renderOrder === -Infinity) {
+            scene3.add(mesh);
+          } else {
+            scene.add(mesh);
+          }
+
+          mesh.run && await mesh.run();
+          /* if (mesh.getStaticPhysicsIds) {
+            const staticPhysicsIds = mesh.getStaticPhysicsIds();
+            for (const physicsId of staticPhysicsIds) {
+              physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+            }
+          } */
+          
+          mesh.addEventListener('die', () => {
+            console.log('remove', mesh, mesh.instanceId);
+            if (dynamic) {
+              world.removeObject(mesh.instanceId);
+            } else {
+              world.removeStaticObject(mesh.instanceId);
+            }
+          });
         } else {
+          console.warn('failed to load object', file);
+
+          mesh = new THREE.Object3D();
           scene.add(mesh);
         }
 
-        mesh.run && await mesh.run();
-        /* if (mesh.getStaticPhysicsIds) {
-          const staticPhysicsIds = mesh.getStaticPhysicsIds();
-          for (const physicsId of staticPhysicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-          }
-        } */
-        
-        mesh.addEventListener('die', () => {
-          console.log('remove', mesh, mesh.instanceId);
-          if (dynamic) {
-            world.removeObject(mesh.instanceId);
-          } else {
-            world.removeStaticObject(mesh.instanceId);
-          }
-        });
+        mesh.setPose = (position, quaternion, scale) => {
+          trackedObject.set('position', position.toArray());
+          trackedObject.set('quaternion', quaternion.toArray());
+          trackedObject.set('scale', scale.toArray());
+        };
+
+        const _observe = () => {
+          mesh.position.fromArray(trackedObject.get('position'));
+          mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+          mesh.scale.fromArray(trackedObject.get('scale'));
+        };
+        trackedObject.observe(_observe);
+        trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+        if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+          const monetizationPointer = file.token.owner.monetizationPointer;
+          const ownerAddress = file.token.owner.address.toLowerCase();
+          pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+        }
+
+        const objects = _getObjects(arrayName, dynamic);
+        objects.push(mesh);
+
+        world.dispatchEvent(new MessageEvent(arrayName + 'add', {
+          data: mesh,
+        }));
       } else {
-        console.warn('failed to load object', file);
-
-        mesh = new THREE.Object3D();
-        scene.add(mesh);
+        mesh = null;
       }
 
-      mesh.setPose = (position, quaternion, scale) => {
-        trackedObject.set('position', position.toArray());
-        trackedObject.set('quaternion', quaternion.toArray());
-        trackedObject.set('scale', scale.toArray());
-      };
-
-      const _observe = () => {
-        mesh.position.fromArray(trackedObject.get('position'));
-        mesh.quaternion.fromArray(trackedObject.get('quaternion'));
-        mesh.scale.fromArray(trackedObject.get('scale'));
-      };
-      trackedObject.observe(_observe);
-      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-
-      if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = file.token.owner.monetizationPointer;
-        const ownerAddress = file.token.owner.address.toLowerCase();
-        pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-      }
-
-      const objects = _getObjects(dynamic);
-      objects.push(mesh);
-
-      world.dispatchEvent(new MessageEvent('objectadd', {
-        data: mesh,
-      }));
-    } else {
-      mesh = null;
+      p.accept(mesh);
+    } catch (err) {
+      p.reject(err);
     }
+  });
+  world.addEventListener('tracked' + arrayName + 'remove', async e => {
+    const {trackedObject, dynamic} = e.data;
+    const instanceId = trackedObject.get('instanceId');
+    const objects = _getObjects(arrayName, dynamic);
+    const index = objects.findIndex(object => object.instanceId === instanceId);
+    if (index !== -1) {
+      const object = objects[index];
+      object.destroy && object.destroy();
+      object.parent.remove(object);
+      objects.splice(index, 1);
+      trackedObject.unobserve();
 
-    p.accept(mesh);
-  } catch (err) {
-    p.reject(err);
-  }
-});
-world.addEventListener('trackedobjectremove', async e => {
-  const {trackedObject, dynamic} = e.data;
-  const instanceId = trackedObject.get('instanceId');
-  const objects = _getObjects(dynamic);
-  const index = objects.findIndex(object => object.instanceId === instanceId);
-  if (index !== -1) {
-    const object = objects[index];
-    object.destroy && object.destroy();
-    object.parent.remove(object);
-    objects.splice(index, 1);
-    trackedObject.unobserve();
-
-    world.dispatchEvent(new MessageEvent('objectremove', {
-      data: object,
-    }));
-  }
-});
+      world.dispatchEvent(new MessageEvent(arrayName + 'remove', {
+        data: object,
+      }));
+    }
+  });
+}
 world.isObject = object => objects.includes(object);
 
 world.getWorldJson = async q => {
