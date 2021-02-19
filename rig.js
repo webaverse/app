@@ -372,7 +372,7 @@ class RigManager {
       sitAnimation,
       danceState,
       danceTime,
-      danceAnimation,      
+      danceAnimation,
     } = this.localRig;
 
     return [
