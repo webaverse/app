@@ -69,7 +69,6 @@ class NpcManager {
       });
     }
 
-    // const smoothVelocity = new THREE.Vector3();
     updateFns.push(timeDiff => {
       timeDiff *= 1000;
 
@@ -94,7 +93,6 @@ class NpcManager {
       } else {
         moveDelta = new THREE.Vector3();
       }
-      // smoothVelocity.lerp(moveDelta, 0.3);
     });
     npc.update = timeDiff => {
       for (const fn of updateFns) {
