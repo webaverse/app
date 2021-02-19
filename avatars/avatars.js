@@ -25,6 +25,7 @@ const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(
 const cubicBezier = easing(0, 1, 0, 1);
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
+const defaultDanceAnimation = 'dansu';
 const useAnimationRate = 750;
 
 const animationsSelectMap = {
@@ -124,7 +125,7 @@ let floatAnimation;
 // let hitAnimation;
 let useAnimations;
 let sitAnimations;
-let danceAnimation;
+let danceAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -249,7 +250,9 @@ const loadPromise = (async () => {
     saddle: animations.find(a => a.isSitting),
     stand: animations.find(a => a.isSkateboarding),
   };
-  danceAnimation = animations.find(a => a.isDancing);
+  danceAnimations = {
+    dansu: animations.find(a => a.isDancing),
+  };
 
   /* // bake animations
   (async () => {
@@ -1784,6 +1787,12 @@ class Avatar {
           } else if (this.sitState) {
             const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
             const src2 = sitAnimation.interpolants[k];
+            const v2 = src2.evaluate(1);
+
+            dst.fromArray(v2);
+          } else if (this.danceState) {
+            const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
+            const src2 = danceAnimation.interpolants[k];
             const v2 = src2.evaluate(1);
 
             dst.fromArray(v2);
