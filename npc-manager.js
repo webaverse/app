@@ -86,6 +86,11 @@ class NpcManager {
         moveDelta = direction.clone().multiplyScalar(moveDistance);
         mesh.position.add(moveDelta);
         mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+        
+        const physicsIds = mesh.getPhysicsIds();
+        for (const physicsId of physicsIds) {
+          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+        }
       } else {
         moveDelta = new THREE.Vector3();
       }
