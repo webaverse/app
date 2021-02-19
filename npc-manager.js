@@ -96,7 +96,7 @@ class NpcManager {
       const quaternion = new THREE.Quaternion().setFromEuler(euler);
       const hitSpeed = 1;
       animation = {
-        velocity: new THREE.Vector3(0, 6, -1).applyQuaternion(quaternion).multiplyScalar(hitSpeed),
+        velocity: new THREE.Vector3(0, 6, -5).applyQuaternion(quaternion).multiplyScalar(hitSpeed),
       };
     });
     npc.update = timeDiff => {
