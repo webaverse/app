@@ -14,6 +14,7 @@ import {rigManager} from './rig.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
+import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
@@ -1816,7 +1817,15 @@ const weaponsManager = {
   },
   menuBDown() {
     if (!appManager.grabbedObjects[0]) {
-      physicsManager.setThrowState({});
+      if (!physicsManager.getThrowState()) {
+        physicsManager.setThrowState({});
+        
+        const transforms = rigManager.getRigTransforms();
+        const {quaternion} = transforms[0];
+        dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
+          velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
+        });
+      }
     }
   },
   menuBUp() {
