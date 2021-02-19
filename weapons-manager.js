@@ -889,6 +889,7 @@ const _updateWeapons = () => {
       dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
         type: 'fruit',
         velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
+        angularVelocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.1),
       });
       droppedThrow = true;
     }
