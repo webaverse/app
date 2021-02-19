@@ -51,30 +51,54 @@ class NpcManager {
       });
     }
 
+    let animation = null;
     updateFns.push(timeDiff => {
-      timeDiff *= 1000;
-
-      const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBones.Head : rigManager.localRig.model;
-      const position = head.getWorldPosition(localVector);
-      position.y = 0;
-      const distance = mesh.position.distanceTo(position);
-      const minDistance = 1;
-      let moveDelta;
-      if (distance > minDistance) {
-        const direction = position.clone().sub(mesh.position).normalize();
-        const maxMoveDistance = distance - minDistance;
-        const moveDistance = Math.min(walkSpeed * timeDiff, maxMoveDistance);
-        moveDelta = direction.clone().multiplyScalar(moveDistance);
-        mesh.position.add(moveDelta);
-        mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
-        
+      const _updatePhysics = () => {
         const physicsIds = mesh.getPhysicsIds();
         for (const physicsId of physicsIds) {
           physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
         }
+      };
+
+      if (animation) {
+        mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff/1000));
+        console.log('velo update', timeDiff, mesh.position.toArray(), animation.velocity.toArray());
+        animation.velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff/1000));
+        if (mesh.position.y < 0) {
+          animation = null;
+        }
+        
+        _updatePhysics();
       } else {
-        moveDelta = new THREE.Vector3();
+        const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBones.Head : rigManager.localRig.model;
+        const position = head.getWorldPosition(localVector);
+        position.y = 0;
+        const distance = mesh.position.distanceTo(position);
+        const minDistance = 1;
+        let moveDelta;
+        if (distance > minDistance) {
+          const direction = position.clone().sub(mesh.position).normalize();
+          const maxMoveDistance = distance - minDistance;
+          const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
+          moveDelta = direction.clone().multiplyScalar(moveDistance);
+          mesh.position.add(moveDelta);
+          mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+          
+          _updatePhysics();
+        } else {
+          moveDelta = new THREE.Vector3();
+        }
       }
+    });
+    npc.addEventListener('hit', e => {
+      const euler = new THREE.Euler().setFromQuaternion(e.quaternion, 'YXZ');
+      euler.x = 0;
+      euler.z = 0;
+      const quaternion = new THREE.Quaternion().setFromEuler(euler);
+      const hitSpeed = 1;
+      animation = {
+        velocity: new THREE.Vector3(0, 6, -1).applyQuaternion(quaternion).multiplyScalar(hitSpeed),
+      };
     });
     npc.update = timeDiff => {
       for (const fn of updateFns) {
