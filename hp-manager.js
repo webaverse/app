@@ -41,7 +41,7 @@ const update = () => {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
-      const object = world.getObjectFromPhysicsId(collisionId);
+      const object = world.getObjectFromPhysicsId(collisionId) || world.getNpcFromPhysicsId(collisionId);
       if (object) {
         const worldPosition = object.getWorldPosition(localVector);
         const {hit, died} = object.hit();

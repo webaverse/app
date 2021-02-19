@@ -268,6 +268,7 @@ world.initializeIfEmpty = spec => {
 
 world.getObjects = () => objects.objects.dynamic.slice();
 world.getStaticObjects = () => objects.objects.static.slice();
+world.getNpcs = () => objects.npcs.dynamic.slice();
 let pendingAddPromise = null;
 const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   const scale = new THREE.Vector3();
@@ -326,10 +327,12 @@ const _removeObject = (dynamic, arrayName) => removeInstanceId => {
         }
       }
     } else {
-      console.warn('invalid remove instance id', objectsJson, removeInstanceId);
+      console.warn('invalid remove instance id', {dynamic, arrayName, removeInstanceId, objectsJson});
     }
   });
 };
+world.add = (dynamic, arrayName, ...args) => _addObject(dynamic, arrayName)(...args);
+world.remove = (dynamic, arrayName, id) => _removeObject(dynamic, arrayName)(id);
 world.addObject = _addObject(true, 'objects');
 world.removeObject = _removeObject(true, 'objects');
 world.addStaticObject = _addObject(false, 'objects');
@@ -390,12 +393,7 @@ for (const arrayName of [
           } */
           
           mesh.addEventListener('die', () => {
-            console.log('remove', mesh, mesh.instanceId);
-            if (dynamic) {
-              world.removeObject(mesh.instanceId);
-            } else {
-              world.removeStaticObject(mesh.instanceId);
-            }
+            world.remove(dynamic, arrayName, mesh.instanceId);
           });
         } else {
           console.warn('failed to load object', file);
@@ -530,6 +528,18 @@ world.getObjectFromPhysicsId = physicsId => {
       const physicsIds = object.getPhysicsIds();
       if (physicsIds.includes(physicsId)) {
         return object;
+      }
+    }
+  }
+  return null;
+};
+world.getNpcFromPhysicsId = physicsId => {
+  const npcs = world.getNpcs();
+  for (const npc of npcs) {
+    if (npc.getPhysicsIds) {
+      const physicsIds = npc.getPhysicsIds();
+      if (physicsIds.includes(physicsId)) {
+        return npc;
       }
     }
   }
