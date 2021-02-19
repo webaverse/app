@@ -124,6 +124,14 @@ const stopUse = () => {
 };
 physicsManager.stopUse = stopUse;
 
+let danceState = null;
+const getDanceState = () => danceState;
+physicsManager.getDanceState = getDanceState;
+const setDanceState = newDanceState => {
+  danceState = newDanceState;
+};
+physicsManager.setDanceState = setDanceState;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion, scale) => ({

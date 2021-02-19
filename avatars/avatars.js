@@ -1627,6 +1627,8 @@ class Avatar {
     this.useAnimation = null;
     this.sitState = false;
     this.sitAnimation = null;
+    this.danceState = false;
+    this.danceAnimation = null;
     this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
