@@ -881,6 +881,19 @@ const _updateWeapons = () => {
     }
   };
   _handleUseAnimation();
+  
+  const _handleThrowDrop = () => {
+    if (!droppedThrow && physicsManager.getThrowState() && physicsManager.getThrowTime() > 800) {
+      const transforms = rigManager.getRigTransforms();
+      const {quaternion} = transforms[0];
+      dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
+        type: 'fruit',
+        velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
+      });
+      droppedThrow = true;
+    }
+  };
+  _handleThrowDrop();
 
   crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
 
@@ -1639,6 +1652,7 @@ renderer.domElement.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
+let droppedThrow = false;
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1819,12 +1833,7 @@ const weaponsManager = {
     if (!appManager.grabbedObjects[0]) {
       if (!physicsManager.getThrowState()) {
         physicsManager.setThrowState({});
-        
-        const transforms = rigManager.getRigTransforms();
-        const {quaternion} = transforms[0];
-        dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
-          velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
-        });
+        droppedThrow = false;
       }
     }
   },
