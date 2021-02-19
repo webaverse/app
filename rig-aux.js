@@ -286,8 +286,12 @@ export class RigAux {
           const speed = 0.003;
           timeDiff *= 1000;
 
+          const drop = component.attractedTo === 'fruit' ? (
+            dropManager.getDrops().filter(d => d.isFruit).sort((a, b) => {
+              return a.position.distanceTo(pet.model.position) - b.position.distanceTo(pet.model.position);
+            })[0] || null
+          ) : null;
           const head = (() => {
-            const drop = component.attractedTo === 'fruit' ? dropManager.getDrops().find(d => d.isFruit): null;
             if (drop) {
               return drop;
             } else {
