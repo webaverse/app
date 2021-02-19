@@ -533,7 +533,7 @@
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
-        } else if (type === 'gif') {
+        } else if (type === 'gif' && ext !== 'gif') {
           const {renderer, scene, camera} = _makeRenderer();
 
           const o = await (async () => {
@@ -724,6 +724,34 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'video/webm',
+              },
+              body: arrayBuffer,
+            }).then(res => res.blob());
+          }
+
+          window.parent.postMessage({
+            method: 'result',
+            result: arrayBuffer,
+          }, '*', [arrayBuffer]);
+        } else if (type === 'gif' && ext === 'gif') {
+	  const blob = await fetch(url);
+          const img = new Image();
+          await new Promise((accept, reject) => {
+            img.onload = accept;
+            img.onerror = reject;
+            img.src = url;
+          });
+          img.style.width = `${width}px`;
+          img.style.height = `${height}px`;
+          screenshotResult.appendChild(img);
+
+          const arrayBuffer = await blob.arrayBuffer();
+
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'image/gif',
               },
               body: arrayBuffer,
             }).then(res => res.blob());
