@@ -429,12 +429,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const arrayBuffer = await res.arrayBuffer();
       physicsBuffer = new Uint8Array(arrayBuffer);
     } else {
-      physicsMesh = convertMeshToPhysicsMesh(mesh);
+      mesh.updateMatrixWorld();
+      physicsMesh = convertMeshToPhysicsMesh(gltfObject);
+      physicsMesh.position.copy(mesh.position);
+      physicsMesh.quaternion.copy(mesh.quaternion);
+      physicsMesh.scale.copy(mesh.scale);
     }
     
     if (physicsMesh) {
-      physicsMesh.position.copy(mesh.position);
-      physicsMesh.quaternion.copy(mesh.quaternion);
       const physicsId = physicsManager.addGeometry(physicsMesh);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);

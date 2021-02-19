@@ -13,6 +13,7 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 export function jsonParse(s, d = null) {
   try {
@@ -401,11 +402,12 @@ export function getNextPhysicsId() {
   return ++nextPhysicsId;
 }
 
-export function convertMeshToPhysicsMesh(mesh) {
-  mesh.updateMatrixWorld();
+export function convertMeshToPhysicsMesh(topMesh) {
+  topMesh.updateMatrixWorld();
+  localMatrix.copy(topMesh.matrixWorld).invert();
 
   const meshes = [];
-  mesh.traverse(o => {
+  topMesh.traverse(o => {
     if (o.isMesh) {
       meshes.push(o);
     }
@@ -413,13 +415,14 @@ export function convertMeshToPhysicsMesh(mesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
+    localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
 
     if (geometry.attributes.position.isInterleavedBufferAttribute) {
       const positions = new Float32Array(geometry.attributes.position.count * 3);
       for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
         localVector
           .fromArray(geometry.attributes.position.data.array, j)
-          // .applyMatrix4(mesh.matrixWorld)
+          .applyMatrix4(localMatrix2)
           .toArray(positions, i);
       }
       newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -428,7 +431,7 @@ export function convertMeshToPhysicsMesh(mesh) {
       for (let i = 0; i < positions.length; i += 3) {
         localVector
           .fromArray(geometry.attributes.position.array, i)
-          // .applyMatrix4(mesh.matrixWorld)
+          .applyMatrix4(localMatrix2)
           .toArray(positions, i);
       }
       newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -442,6 +445,9 @@ export function convertMeshToPhysicsMesh(mesh) {
   });
   const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
   const physicsMesh = new THREE.Mesh(newGeometry);
+  /* topMesh.getWorldPosition(physicsMesh.position);
+  topMesh.getWorldQuaternion(physicsMesh.quaternion);
+  topMesh.getWorldScale(physicsMesh.scale); */
   return physicsMesh;
 }
 
