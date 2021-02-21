@@ -27,8 +27,10 @@ const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
 const defaultThrowAnimation = 'throw';
+const defaultCrouchAnimation = 'crouch';
 const useAnimationRate = 750;
 
+const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
   'jump.fbx': new THREE.Vector3(0, 1, 0),
@@ -52,24 +54,6 @@ const animationsSelectMap = {
   'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
   'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
   'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-  
-  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
-  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Pistol Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Pistol Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Rifle Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
-  'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
-  'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
-  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Hip Hop Dancing.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -94,24 +78,6 @@ const animationsDistanceMap = {
   'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
-  
-  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
-  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Pistol Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Pistol Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Rifle Aiming Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Rifle Idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Standing Torch Idle 01.fbx': new THREE.Vector3(0, Infinity, 0),
-  'standing melee attack downward.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield idle (4).fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield slash.fbx': new THREE.Vector3(0, Infinity, 0),
-  'sword and shield attack (4).fbx': new THREE.Vector3(0, Infinity, 0),
-  'One Hand Sword Combo.fbx': new THREE.Vector3(0, Infinity, 0),
-  'magic standing idle.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Skateboarding.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Throw.fbx': new THREE.Vector3(0, Infinity, 0),
-  'Hip Hop Dancing.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 let animations;
 
@@ -128,6 +94,7 @@ let useAnimations;
 let sitAnimations;
 let danceAnimations;
 let throwAnimations;
+let crouchAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -219,6 +186,7 @@ const loadPromise = (async () => {
     animation.isSkateboarding = /skateboarding/i.test(animation.name);
     animation.isThrow = /throw/i.test(animation.name);
     animation.isDancing = /dancing/i.test(animation.name);
+    animation.isCrouch = /crouching idle/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -258,6 +226,9 @@ const loadPromise = (async () => {
   };
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
+  };
+  crouchAnimations = {
+    crouch: animations.find(a => a.isCrouch),
   };
 
   /* // bake animations
@@ -300,6 +271,9 @@ const loadPromise = (async () => {
       `Skateboarding.fbx`,
       `Throw.fbx`,
       `Hip Hop Dancing.fbx`,
+      `Crouching Idle.fbx`,
+      `Standing To Crouched.fbx`,
+      `Sneaking Forward.fbx`,
     ];
     for (const name of animationFileNames) {
       const u = './animations/' + name;
@@ -1642,6 +1616,8 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
+    this.crouchState = null;
+    this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
@@ -1730,10 +1706,10 @@ class Avatar {
     const _applyAnimation = () => {
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
-          const targetPosition1 = animationsSelectMap[a.name];
+          const targetPosition1 = animationsSelectMap[a.name] || infinityUpVector;
           const distance1 = targetPosition1.distanceTo(v);
 
-          const targetPosition2 = animationsSelectMap[b.name];
+          const targetPosition2 = animationsSelectMap[b.name] || infinityUpVector;
           const distance2 = targetPosition2.distanceTo(v);
 
           return distance1 - distance2;
@@ -1788,6 +1764,7 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
+          // top override
           if (this.jumpState) {
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
@@ -1811,6 +1788,15 @@ class Avatar {
             const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
             const src2 = throwAnimation.interpolants[k];
             const t2 = this.throwTime/1000;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          }
+          // bottom override
+          if (this.crouchState) {
+            const crouchAnimation = crouchAnimations[defaultCrouchAnimation];
+            const src2 = crouchAnimation.interpolants[k];
+            const t2 = this.crouchTime/1000;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
