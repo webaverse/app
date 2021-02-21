@@ -153,14 +153,14 @@ const setThrowState = newThrowState => {
 physicsManager.setThrowState = setThrowState;
 
 let crouchState = false;
-let crouchTime = 0;
+let crouchTime = 1000;
 const getCrouchState = () => crouchState;
 physicsManager.getCrouchState = getCrouchState;
 const getCrouchTime = () => crouchTime;
 physicsManager.getCrouchTime = getCrouchTime;
 physicsManager.setCrouchState = newCrouchState => {
   crouchState = newCrouchState;
-  crouchTime = Date.now();
+  crouchTime = 0;
 };
 
 const physicsObjects = {};
@@ -309,7 +309,20 @@ const _getAvatarWorldObject = o => {
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
-const getAvatarHeight = () => crouchState ? (rigManager.localRig.height * 0.6) : rigManager.localRig.height;
+const crouchMaxTime = 200;
+const getAvatarCrouchFactor = () => Math.min(Math.max(crouchTime, 0), crouchMaxTime) / crouchMaxTime;
+const getAvatarHeight = () => {
+  const f = getAvatarCrouchFactor();
+  let startValue, endValue;
+  if (crouchState) {
+    startValue = rigManager.localRig.height;
+    endValue = rigManager.localRig.height * 0.7;
+  } else {
+    startValue = rigManager.localRig.height * 0.7;
+    endValue = rigManager.localRig.height;
+  }
+  return startValue*(1-f) + endValue*f;
+};
 physicsManager.getAvatarHeight = getAvatarHeight;
 
 const _getAvatarCapsule = v => {
@@ -477,9 +490,7 @@ const _updatePhysics = timeDiff => {
   if (throwState) {
     throwTime += timeDiff;
   }
-  if (crouchState) {
-    crouchTime += timeDiff;
-  }
+  crouchTime += timeDiff;
 
   timeDiff /= 1000; // XXX
 

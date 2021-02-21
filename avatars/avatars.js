@@ -16,6 +16,8 @@ import CBOR from '../cbor.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -29,6 +31,7 @@ const defaultDanceAnimation = 'dansu';
 const defaultThrowAnimation = 'throw';
 const defaultCrouchAnimation = 'crouch';
 const useAnimationRate = 750;
+const crouchMaxTime = 200;
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const animationsSelectMap = {
@@ -1641,7 +1644,7 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    this.crouchState = null;
+    this.crouchState = false;
     this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
 	}
@@ -1729,8 +1732,10 @@ class Avatar {
     const now = Date.now();
 
     const _applyAnimation = () => {
-      const standKey = this.crouchState ? 'crouch' : 'stand';
-      const _selectAnimations = v => {
+      const standKey = this.crouchState ? 'stand' : 'crouch';
+      const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
+      const crouchFactor = Math.min(Math.max(this.crouchTime, 0), crouchMaxTime) / crouchMaxTime;
+      const _selectAnimations = (v, standKey) => {
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[standKey][a.name] || infinityUpVector;
           const distance1 = targetPosition1.distanceTo(v);
@@ -1743,32 +1748,29 @@ class Avatar {
         if (selectedAnimations[1].isIdle) {
           selectedAnimations[1] = selectedAnimations[0];
         }
-        if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
-          if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-          } else {
-            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-          }
-        } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
-          if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-          } else {
-            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+        if (selectedAnimations.some(a => a.isBackward)) {
+          if (selectedAnimations.some(a => a.isLeft)) {
+            if (selectedAnimations.some(a => a.isRunning)) {
+              selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else {
+              selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            }
+          } else if (selectedAnimations.some(a => a.isRight)) {
+            if (selectedAnimations.some(a => a.isRunning)) {
+              selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else {
+              selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            }
           }
         }
         return selectedAnimations;
       };
-      const selectedAnimations = _selectAnimations(this.velocity);
-
-      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
-      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
-      const totalDistance = distance1 + distance2;
-      // let factor1 = 1 - distance1/totalDistance;
-      let factor2 = 1 - distance2/totalDistance;
+      const selectedAnimations = _selectAnimations(this.velocity, standKey);
+      const selectedOtherAnimations = _selectAnimations(this.velocity, otherStandKey);
 
       for (const spec of this.animationMappings) {
         const {
@@ -1777,19 +1779,6 @@ class Avatar {
           isTop
         } = spec;
         if (dst) {
-          const t1 = (now/1000) % selectedAnimations[0].duration;
-          const src1 = selectedAnimations[0].interpolants[k];
-          const v1 = src1.evaluate(t1);
-
-          const t2 = (now/1000) % selectedAnimations[1].duration;
-          const src2 = selectedAnimations[1].interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          dst.fromArray(v1);
-          if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
-            dst.slerp(localQuaternion.fromArray(v2), factor2);
-          }
-
           // top override
           if (this.jumpState) {
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
@@ -1824,6 +1813,30 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+          } else {
+            const _getHorizontalBlend = (selectedAnimations, target) => {
+              const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+              const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
+              const totalDistance = distance1 + distance2;
+              // let factor1 = 1 - distance1/totalDistance;
+              let distanceFactor = 1 - distance2/totalDistance;
+              
+              const t1 = (now/1000) % selectedAnimations[0].duration;
+              const src1 = selectedAnimations[0].interpolants[k];
+              const v1 = src1.evaluate(t1);
+
+              const t2 = (now/1000) % selectedAnimations[1].duration;
+              const src2 = selectedAnimations[1].interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              target.fromArray(v1);
+              if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+                target.slerp(localQuaternion.fromArray(v2), distanceFactor);
+              }
+            };
+            _getHorizontalBlend(selectedAnimations, localQuaternion2);
+            _getHorizontalBlend(selectedOtherAnimations, localQuaternion3);
+            dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
           }
           // blend
           if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
