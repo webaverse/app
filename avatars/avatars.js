@@ -95,7 +95,9 @@ const animationsDistanceMap = {
   'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
   'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, 0.5),
   'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-0.5, 0, 0.5),
   'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
+  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(0.5, 0, 0.5),
 };
 let animations;
 
@@ -213,7 +215,7 @@ const loadPromise = (async () => {
     animation.isSkateboarding = /skateboarding/i.test(animation.name);
     animation.isThrow = /throw/i.test(animation.name);
     animation.isDancing = /dancing/i.test(animation.name);
-    animation.isCrouch = /crouch idle/i.test(animation.name);
+    animation.isCrouch = /crouch|sneak/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -1758,6 +1760,9 @@ class Avatar {
             if (selectedAnimations.some(a => a.isRunning)) {
               selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
               selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else if (selectedAnimations.some(a => a.isCrouch)) {
+              selectedAnimations[0] = animations.find(a => a.isRight && a.isCrouch && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
             } else {
               selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
               selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
@@ -1766,6 +1771,9 @@ class Avatar {
             if (selectedAnimations.some(a => a.isRunning)) {
               selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
               selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else if (selectedAnimations.some(a => a.isCrouch)) {
+              selectedAnimations[0] = animations.find(a => a.isLeft && a.isCrouch && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
             } else {
               selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
               selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
