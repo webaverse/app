@@ -34,6 +34,7 @@ ioManager.lastMenuExpanded = false;
 ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
+ioManager.lastCtrlKey = false;
 ioManager.keys = {
   up: false,
   down: false,
@@ -182,6 +183,11 @@ const _updateIo = timeDiff => {
       cameraEuler.x = 0;
       cameraEuler.z = 0;
       direction.applyEuler(cameraEuler);
+      
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+        physicsManager.setCrouchState(!physicsManager.getCrouchState());
+      }
+      ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     localVector.add(direction);
     if (localVector.length() > 0) {
