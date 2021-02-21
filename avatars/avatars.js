@@ -273,6 +273,7 @@ const loadPromise = (async () => {
       `Hip Hop Dancing.fbx`,
       `Crouching Idle.fbx`,
       `Standing To Crouched.fbx`,
+      `Crouched To Standing.fbx`,
       `Sneaking Forward.fbx`,
     ];
     for (const name of animationFileNames) {
