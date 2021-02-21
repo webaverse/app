@@ -36,7 +36,7 @@ const crouchMaxTime = 200;
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const animationsSelectMap = {
   crouch: {
-    'Crouching Idle.fbx': new THREE.Vector3(0, 0, 0),
+    'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
     'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
     'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
     'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
@@ -90,7 +90,7 @@ const animationsDistanceMap = {
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
   
-  'Crouching Idle.fbx': new THREE.Vector3(0, 0, 0),
+  'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
   'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
   'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
   'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
@@ -211,7 +211,7 @@ const loadPromise = (async () => {
     animation.isSkateboarding = /skateboarding/i.test(animation.name);
     animation.isThrow = /throw/i.test(animation.name);
     animation.isDancing = /dancing/i.test(animation.name);
-    animation.isCrouch = /crouching idle/i.test(animation.name);
+    animation.isCrouch = /crouch idle/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
@@ -296,7 +296,7 @@ const loadPromise = (async () => {
       `Skateboarding.fbx`,
       `Throw.fbx`,
       `Hip Hop Dancing.fbx`,
-      `Crouching Idle.fbx`,
+      `Crouch Idle.fbx`,
       `Standing To Crouched.fbx`,
       `Crouched To Standing.fbx`,
       `Sneaking Forward.fbx`,
