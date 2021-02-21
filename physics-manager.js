@@ -316,9 +316,9 @@ const getAvatarHeight = () => {
   let startValue, endValue;
   if (crouchState) {
     startValue = rigManager.localRig.height;
-    endValue = rigManager.localRig.height * 0.7;
+    endValue = rigManager.localRig.height * 0.6;
   } else {
-    startValue = rigManager.localRig.height * 0.7;
+    startValue = rigManager.localRig.height * 0.6;
     endValue = rigManager.localRig.height;
   }
   return startValue*(1-f) + endValue*f;
