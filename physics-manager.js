@@ -309,7 +309,7 @@ const _getAvatarWorldObject = o => {
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
-const getAvatarHeight = () => crouchState ? (rigManager.localRig.height * 0.7) : rigManager.localRig.height;
+const getAvatarHeight = () => crouchState ? (rigManager.localRig.height * 0.6) : rigManager.localRig.height;
 physicsManager.getAvatarHeight = getAvatarHeight;
 
 const _getAvatarCapsule = v => {

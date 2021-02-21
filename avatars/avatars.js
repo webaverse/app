@@ -122,7 +122,7 @@ const loadPromise = (async () => {
       for (const track of animation.tracks) {
         const {times} = track;
         for (let j = 0; j < times.length; j++) {
-          // times[i] *= newDuration/oldDuration;
+          times[j] *= newDuration/oldDuration;
         }
       }
       animation.duration = newDuration;
