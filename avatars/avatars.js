@@ -94,10 +94,10 @@ const animationsDistanceMap = {
 };
 let animations;
 
-let walkingAnimations;
-let walkingBackwardAnimations;
-let runningAnimations;
-let runningBackwardAnimations;
+// let walkingAnimations;
+// let walkingBackwardAnimations;
+// let runningAnimations;
+// let runningBackwardAnimations;
 let jumpAnimation;
 // let sittingAnimation;
 let floatAnimation;
