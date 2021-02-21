@@ -7,8 +7,7 @@ import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
-const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
+const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const birdsEyeHeight = 10;
 const cameraOffset = new THREE.Vector3();
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
@@ -150,8 +149,6 @@ const cameraManager = {
   /* birdsEyeHeight,
   thirdPersonCameraOffset,
   isometricCameraOffset, */
-  getFullAvatarHeight,
-  getAvatarHeight,
   focusCamera,
   requestPointerLock,
   /* getTool() {

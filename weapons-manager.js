@@ -818,14 +818,14 @@ const _updateWeapons = () => {
           .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, cameraManager.getFullAvatarHeight(), 0))
+          .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
       } else {
         camera.matrix
           .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, cameraManager.getFullAvatarHeight(), 0))
+          .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
           .decompose(camera.position, camera.quaternion, camera.scale);
       }
 
