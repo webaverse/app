@@ -38,6 +38,7 @@ const animationsSelectMap = {
   crouch: {
     'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
     'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
+    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, 0.5),
     'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
     'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
   },
@@ -92,6 +93,7 @@ const animationsDistanceMap = {
   
   'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
   'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
+  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, 0.5),
   'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
   'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
 };
