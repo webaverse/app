@@ -340,6 +340,8 @@ const loadPromise = (async () => {
       `left strafe.fbx`,
       `right strafe walking.fbx`,
       `right strafe.fbx`,
+      `Crouched Sneaking Left.fbx`,
+      `Crouched Sneaking Right.fbx`,
     ];
     for (const name of reversibleAnimationNames) {
       const animation = animations.find(a => a.name === name);
