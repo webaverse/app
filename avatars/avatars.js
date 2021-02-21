@@ -139,11 +139,17 @@ const loadPromise = (async () => {
     `right strafe reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+  const crouchingForwardAnimations = [
+    `Sneaking Forward.fbx`,
+    `Crouched Sneaking Left.fbx`,
+    `Crouched Sneaking Right.fbx`,
+  ];
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
         case 'running.fbx':
         case 'walking.fbx':
+        case 'Sneaking Forward.fbx':
           return 'forward';
         case 'running backwards.fbx':
         case 'walking backwards.fbx':
@@ -152,11 +158,13 @@ const loadPromise = (async () => {
         case 'left strafe.fbx':
         case 'left strafe walking reverse.fbx':
         case 'left strafe reverse.fbx':
+        case 'Crouched Sneaking Left.fbx':
           return 'left';
         case 'right strafe walking.fbx':
         case 'right strafe.fbx':
         case 'right strafe walking reverse.fbx':
         case 'right strafe reverse.fbx':
+        case 'Crouched Sneaking Right.fbx':
           return 'right';
         case 'jump.fbx':
         /* case 'falling.fbx':
@@ -275,6 +283,8 @@ const loadPromise = (async () => {
       `Standing To Crouched.fbx`,
       `Crouched To Standing.fbx`,
       `Sneaking Forward.fbx`,
+      `Crouched Sneaking Left.fbx`,
+      `Crouched Sneaking Right.fbx`,
     ];
     for (const name of animationFileNames) {
       const u = './animations/' + name;
