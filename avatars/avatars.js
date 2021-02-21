@@ -340,6 +340,7 @@ const loadPromise = (async () => {
       `left strafe.fbx`,
       `right strafe walking.fbx`,
       `right strafe.fbx`,
+      `Sneaking Forward.fbx`,
       `Crouched Sneaking Left.fbx`,
       `Crouched Sneaking Right.fbx`,
     ];
