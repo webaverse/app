@@ -152,6 +152,17 @@ const setThrowState = newThrowState => {
 };
 physicsManager.setThrowState = setThrowState;
 
+let crouchState = false;
+let crouchTime = 0;
+const getCrouchState = () => crouchState;
+physicsManager.getCrouchState = getCrouchState;
+const getCrouchTime = () => crouchTime;
+physicsManager.getCrouchTime = getCrouchTime;
+physicsManager.setCrouchState = newCrouchState => {
+  crouchState = newCrouchState;
+  crouchTime = Date.now();
+};
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion, scale) => ({
@@ -518,16 +529,5 @@ const _updatePhysics = timeDiff => {
   }
 };
 physicsManager.update = _updatePhysics;
-
-let crouchState = false;
-let crouchTime = 0;
-const getCrouchState = () => crouchState;
-physicsManager.getCrouchState = getCrouchState;
-const getCrouchTime = () => crouchTime;
-physicsManager.getCrouchTime = getCrouchTime;
-physicsManager.setCrouchState = newCrouchState => {
-  crouchState = newCrouchState;
-  crouchTime = Date.now();
-};
 
 export default physicsManager;
