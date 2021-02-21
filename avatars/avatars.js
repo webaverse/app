@@ -32,28 +32,36 @@ const useAnimationRate = 750;
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const animationsSelectMap = {
-  'idle.fbx': new THREE.Vector3(0, 0, 0),
-  'jump.fbx': new THREE.Vector3(0, 1, 0),
+  crouch: {
+    'Crouching Idle.fbx': new THREE.Vector3(0, 0, 0),
+    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
+    'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
+    'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
+  },
+  stand: {
+    'idle.fbx': new THREE.Vector3(0, 0, 0),
+    'jump.fbx': new THREE.Vector3(0, 1, 0),
 
-  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+    'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+    'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+    'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+    'right strafe.fbx': new THREE.Vector3(1, 0, 0),
 
-  'running.fbx': new THREE.Vector3(0, 0, -1),
-  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+    'running.fbx': new THREE.Vector3(0, 0, -1),
+    'walking.fbx': new THREE.Vector3(0, 0, -0.5),
 
-  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+    'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+    'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
 
-  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
-  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
+    /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
+    'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+    'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
 
-  'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-  'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-  'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-  'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+    'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+    'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+    'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+    'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  },
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -78,6 +86,11 @@ const animationsDistanceMap = {
   'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+  
+  'Crouching Idle.fbx': new THREE.Vector3(0, 0, 0),
+  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
+  'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
 };
 let animations;
 
@@ -1715,12 +1728,13 @@ class Avatar {
     const now = Date.now();
 
     const _applyAnimation = () => {
+      const standKey = this.crouchState ? 'crouch' : 'stand';
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
-          const targetPosition1 = animationsSelectMap[a.name] || infinityUpVector;
+          const targetPosition1 = animationsSelectMap[standKey][a.name] || infinityUpVector;
           const distance1 = targetPosition1.distanceTo(v);
 
-          const targetPosition2 = animationsSelectMap[b.name] || infinityUpVector;
+          const targetPosition2 = animationsSelectMap[standKey][b.name] || infinityUpVector;
           const distance2 = targetPosition2.distanceTo(v);
 
           return distance1 - distance2;
@@ -1803,7 +1817,7 @@ class Avatar {
 
             dst.fromArray(v2);
           }
-          // bottom override
+          /* // bottom override
           if (this.crouchState) {
             const crouchAnimation = crouchAnimations[defaultCrouchAnimation];
             const src2 = crouchAnimation.interpolants[k];
@@ -1811,7 +1825,7 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          }
+          } */
           if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
             const t2 = this.flyTime/1000;
             const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
