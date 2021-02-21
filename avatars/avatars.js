@@ -1817,16 +1817,15 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          }
-          /* // bottom override
-          if (this.crouchState) {
-            const crouchAnimation = crouchAnimations[defaultCrouchAnimation];
-            const src2 = crouchAnimation.interpolants[k];
-            const t2 = this.crouchTime/1000;
+          } else if (this.useTime >= 0 && isTop) {
+            const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
+            const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
+            const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } */
+          }
+          // blend
           if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
             const t2 = this.flyTime/1000;
             const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
@@ -1834,14 +1833,6 @@ class Avatar {
             const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
             dst.slerp(localQuaternion.fromArray(v2), f);
-          }
-          if (this.useTime >= 0 && isTop) {
-            const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
-            const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
           }
         }
       }
