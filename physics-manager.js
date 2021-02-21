@@ -152,6 +152,17 @@ const setThrowState = newThrowState => {
 };
 physicsManager.setThrowState = setThrowState;
 
+let crouchState = false;
+let crouchTime = 0;
+const getCrouchState = () => crouchState;
+physicsManager.getCrouchState = getCrouchState;
+const getCrouchTime = () => crouchTime;
+physicsManager.getCrouchTime = getCrouchTime;
+physicsManager.setCrouchState = newCrouchState => {
+  crouchState = newCrouchState;
+  crouchTime = Date.now();
+};
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion, scale) => ({
@@ -297,8 +308,12 @@ const _getAvatarWorldObject = o => {
   return o;
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
+
+const getAvatarHeight = () => crouchState ? (rigManager.localRig.height * 0.6) : rigManager.localRig.height;
+physicsManager.getAvatarHeight = getAvatarHeight;
+
 const _getAvatarCapsule = v => {
-  v.set(0, -rigManager.localRig.height/2, 0);
+  v.set(0, -getAvatarHeight() * 0.5, 0); // XXX use the proper crouch height
   v.radius = 0.3;
   v.halfHeight = Math.max(rigManager.localRig.height/2 - v.radius, 0);
   return v;
@@ -388,7 +403,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     if (jumpState) {
       rigManager.localRig.setFloorHeight(-0xFFFFFF);
     } else {
-      rigManager.localRig.setFloorHeight(localVector.y - cameraManager.getAvatarHeight());
+      rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
     }
   }
 
@@ -461,6 +476,9 @@ const _updatePhysics = timeDiff => {
   }
   if (throwState) {
     throwTime += timeDiff;
+  }
+  if (crouchState) {
+    crouchTime += timeDiff;
   }
 
   timeDiff /= 1000; // XXX
