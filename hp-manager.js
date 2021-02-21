@@ -45,7 +45,7 @@ const update = () => {
       const object = world.getObjectFromPhysicsId(collisionId) || world.getNpcFromPhysicsId(collisionId);
       if (object) {
         const worldPosition = object.getWorldPosition(localVector);
-        const {hit, died} = object.hit();
+        const {hit, died} = object.hit(40);
         if (died) {
           const deadObject = new THREE.Object3D();
           deadObject.position.copy(worldPosition);
