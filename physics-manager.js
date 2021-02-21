@@ -462,6 +462,9 @@ const _updatePhysics = timeDiff => {
   if (throwState) {
     throwTime += timeDiff;
   }
+  if (crouchState) {
+    crouchTime += timeDiff;
+  }
 
   timeDiff /= 1000; // XXX
 
