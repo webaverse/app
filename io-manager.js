@@ -191,7 +191,8 @@ const _updateIo = timeDiff => {
     }
     localVector.add(direction);
     if (localVector.length() > 0) {
-      const speed = weaponsManager.getSpeed() * (ioManager.keys.shift ? 3 : 1);
+      const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
+      const speed = weaponsManager.getSpeed() * sprintMultiplier;
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
       physicsManager.velocity.add(localVector);

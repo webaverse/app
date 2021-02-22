@@ -34,13 +34,14 @@ const useAnimationRate = 750;
 const crouchMaxTime = 200;
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
+const crouchMagnitude = 0.2;
 const animationsSelectMap = {
   crouch: {
     'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
-    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, 0.5),
-    'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
-    'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
+    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
+    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
+    'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
+    'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
   },
   stand: {
     'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -92,12 +93,12 @@ const animationsDistanceMap = {
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
   
   'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -0.5),
-  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, 0.5),
-  'Crouched Sneaking Left.fbx': new THREE.Vector3(-0.5, 0, 0),
-  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-0.5, 0, 0.5),
-  'Crouched Sneaking Right.fbx': new THREE.Vector3(0.5, 0, 0),
-  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(0.5, 0, 0.5),
+  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
+  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
+  'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
+  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
+  'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
+  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
 };
 let animations;
 
