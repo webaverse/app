@@ -2063,6 +2063,11 @@ class Avatar {
           if (surprisedIndex !== -1) {
             morphTargetInfluences[surprisedIndex] = emotionValues.surprised;
           }
+          if (window.lol) {
+            for (const i of window.lol) {
+              morphTargetInfluences[i] = 1;
+            }
+          }
         }
       }
     }
