@@ -462,6 +462,9 @@ ioManager.bindInput = () => {
         weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
         break;
       }
+      case 76: { // L
+        weaponsManager.playScene();
+      }
     }
   });
   window.addEventListener('keyup', e => {
