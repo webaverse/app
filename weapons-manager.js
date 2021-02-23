@@ -555,6 +555,23 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+class PlayScene {
+  constructor() {
+    this.audio = document.createElement('audio');
+    this.audio.src = './ghost.mp3';
+    rigManager.localRig.setMicrophoneMediaStream(this.audio, {
+      playbackRate: 1,
+      muted: false,
+    });
+    // this.audio.muted = false;
+    document.body.appendChild(this.audio);
+    this.audio.play();
+  }
+  update() {
+  }
+}
+let playScene = null;
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {
   const transforms = rigManager.getRigTransforms();
@@ -902,6 +919,8 @@ const _updateWeapons = () => {
   popovers.update();
 
   inventoryUpdate();
+
+  playScene && playScene.update();
 };
 
 /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
@@ -1946,6 +1965,9 @@ const weaponsManager = {
     } else {
       return defaultSpeed;
     }
+  },
+  playScene() {
+    playScene = new PlayScene();
   },
   update: _updateWeapons,
 };
