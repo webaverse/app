@@ -1532,14 +1532,36 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || null;
-          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || null;
-          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || null;
+          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || -1;
+          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || -1;
+          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || -1;
+          const neutralIndex = _getVrmBlendShapeIndex(/^neutral$/i) || -1;
+          const aIndex = _getVrmBlendShapeIndex(/^a$/i) || -1;
+          const iIndex = _getVrmBlendShapeIndex(/^i$/i) || -1;
+          const uIndex = _getVrmBlendShapeIndex(/^u$/i) || -1;
+          const eIndex = _getVrmBlendShapeIndex(/^e$/i) || -1;
+          const oIndex = _getVrmBlendShapeIndex(/^o$/i) || -1;
+          const angryIndex = _getVrmBlendShapeIndex(/^angry$/i) || -1;
+          const funIndex = _getVrmBlendShapeIndex(/^fun$/i) || -1;
+          const joyIndex = _getVrmBlendShapeIndex(/^joy$/i) || -1;
+          const sorrowIndex = _getVrmBlendShapeIndex(/^sorrow$/i) || -1;
+          const surprisedIndex = _getVrmBlendShapeIndex(/^surprised$/i) || -1;
           return [
             morphTargetInfluences,
             aaIndex,
             blinkLeftIndex,
             blinkRightIndex,
+            neutralIndex,
+            aIndex,
+            iIndex,
+            uIndex,
+            eIndex,
+            oIndex,
+            angryIndex,
+            funIndex,
+            joyIndex,
+            sorrowIndex,
+            surprisedIndex,
           ];
         } else {
           return null;
@@ -1978,6 +2000,13 @@ class Avatar {
 
     if (this.options.visemes) {
       const aaValue = Math.min(this.volume * 10, 1);
+      const emotionValues = {
+        angry: 0,
+        fun: 0,
+        joy: 0,
+        sorrow: 0,
+        surprised: 0,
+      };
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -1990,15 +2019,49 @@ class Avatar {
       })();
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         if (visemeMapping) {
-          const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
-          if (aaIndex !== null) {
+          const [
+            morphTargetInfluences,
+            aaIndex,
+            blinkLeftIndex,
+            blinkRightIndex,
+            neutralIndex,
+            aIndex,
+            iIndex,
+            uIndex,
+            eIndex,
+            oIndex,
+            angryIndex,
+            funIndex,
+            joyIndex,
+            sorrowIndex,
+            surprisedIndex,
+          ] = visemeMapping;
+          for (let i = 0; i < morphTargetInfluences.length; i++) {
+            morphTargetInfluences[i] = 0;
+          }
+          if (aaIndex !== -1) {
             morphTargetInfluences[aaIndex] = aaValue;
           }
-          if (blinkLeftIndex !== null) {
+          if (blinkLeftIndex !== -1) {
             morphTargetInfluences[blinkLeftIndex] = blinkValue;
           }
-          if (blinkRightIndex !== null) {
+          if (blinkRightIndex !== -1) {
             morphTargetInfluences[blinkRightIndex] = blinkValue;
+          }
+          if (angryIndex !== -1) {
+            morphTargetInfluences[angryIndex] = emotionValues.angry;
+          }
+          if (funIndex !== -1) {
+            morphTargetInfluences[funIndex] = emotionValues.fun;
+          }
+          if (joyIndex !== -1) {
+            morphTargetInfluences[joyIndex] = emotionValues.joy;
+          }
+          if (sorrowIndex !== -1) {
+            morphTargetInfluences[sorrowIndex] = emotionValues.sorrow;
+          }
+          if (surprisedIndex !== -1) {
+            morphTargetInfluences[surprisedIndex] = emotionValues.surprised;
           }
         }
       }
