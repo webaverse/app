@@ -15,6 +15,7 @@ import CBOR from '../cbor.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -32,6 +33,7 @@ const defaultThrowAnimation = 'throw';
 const defaultCrouchAnimation = 'crouch';
 const useAnimationRate = 750;
 const crouchMaxTime = 200;
+const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
@@ -2001,6 +2003,24 @@ class Avatar {
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
     } */
+
+    for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
+      eye.getWorldPosition(localVector);
+      eye.getWorldQuaternion(localQuaternion);
+      localQuaternion.invert()
+        .premultiply(z180Quaternion)
+        .premultiply(
+          localQuaternion2.setFromUnitVectors(
+            localVector2.set(0, 0, -1),
+            localVector3.set(0, 1, -10).sub(localVector).normalize()
+          )
+        );
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+      localEuler.x = Math.min(Math.max(localEuler.x, -Math.PI*0.1), Math.PI*0.1);
+      localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
+      localEuler.z = 0;
+      eye.quaternion.setFromEuler(localEuler);
+    }
 
     if (this.options.visemes) {
       const aaValue = Math.min(this.volume * 10, 1);
