@@ -908,8 +908,8 @@ class Avatar {
 	    Chest,
 	    Neck,
 	    Head,
-	    /* Eye_L,
-	    Eye_R, */
+	    Eye_L,
+	    Eye_R,
 
 	    Left_shoulder,
 	    Left_arm,
@@ -1409,6 +1409,8 @@ class Avatar {
     this.lastModelScaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
+      eyel: this.shoulderTransforms.eyel,
+      eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
@@ -1465,6 +1467,8 @@ class Avatar {
 	    Chest: this.outputs.chest,
 	    Neck: this.outputs.neck,
 	    Head: this.outputs.head,
+      Eye_L: this.outputs.eyel,
+      Eye_R: this.outputs.eyer,
 
 	    Left_shoulder: this.outputs.rightShoulder,
 	    Left_arm: this.outputs.rightUpperArm,
