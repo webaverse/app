@@ -552,10 +552,6 @@ class RigManager {
     let closestPeerRig = null;
     let closestPeerRigDistance = Infinity;
     for (const peerRig of this.peerRigs.values()) {
-      /* console.log('got peer rig', peerRig);
-      if (!peerRig.rigCapsule) {
-        debugger;
-      } */
       localMatrix2.compose(peerRig.inputs.hmd.position, peerRig.inputs.hmd.quaternion, localVector2.set(1, 1, 1));
       localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
         .premultiply(
