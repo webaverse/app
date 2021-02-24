@@ -59,9 +59,11 @@ class ShoulderTransforms {
   }
 
   Update() {
-    this.enabled && this.shoulderPoser.Update(this.handsEnabled[0], this.handsEnabled[1]);
-    this.handsEnabled[0] && this.leftArmIk.Update();
-    this.handsEnabled[1] && this.rightArmIk.Update();
+    if (this.enabled) {
+      this.shoulderPoser.Update(this.handsEnabled[0], this.handsEnabled[1]);
+      this.handsEnabled[0] && this.leftArmIk.Update();
+      this.handsEnabled[1] && this.rightArmIk.Update();
+    }
   }
 }
 

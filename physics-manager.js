@@ -468,6 +468,7 @@ physicsManager.setGravity = g => {
 };
 
 let unlocked = false;
+physicsManager.isUnlocked = () => unlocked;
 physicsManager.unlockControls = () => {
   unlocked = true;
 };
