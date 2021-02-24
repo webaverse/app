@@ -566,8 +566,64 @@ class PlayScene {
     // this.audio.muted = false;
     document.body.appendChild(this.audio);
     this.audio.play();
+
+    this.script = [
+      {
+        startTime: 0,
+        sustain: 1,
+        release: 1,
+        index: 5,
+      },
+      {
+        startTime: 0,
+        attack: 1,
+        sustain: 1,
+        release: 1,
+        index: 19,
+      },
+      {
+        startTime: 0,
+        release: 1,
+        index: 32,
+      },
+    ].map(o => {
+      o.attack = o.attack || 0;
+      o.sustain = o.sustain || 0;
+      o.release = o.release || 0;
+
+      o.duration = o.attack + o.sustain + o.release;
+      o.endTime = o.startTime + o.duration;
+      
+      o.update = o => {
+        
+      };
+      
+      return o;
+    });
   }
   update() {
+    const {currentTime} = this.audio;
+    rigManager.localRig.activeVisemes = this.script.map(o => {
+      if (o.startTime < currentTime && currentTime < o.endTime) {
+        let value;
+        if (currentTime < o.attack) {
+          value = (currentTime - o.startTime) / o.attack;
+        } else if (currentTime < (o.attack + o.sustain)) {
+          value = 1;
+        } else if (currentTime < (o.attack + o.sustain + o.release)) {
+          value = 1 - (currentTime - (o.attack + o.sustain)) / o.release;
+        } else {
+          // can't happen
+          value = 1;
+        }
+        return {
+          index: o.index,
+          value,
+        };
+      } else {
+        return null;
+      }
+    }).filter(n => n !== null);
   }
 }
 let playScene = null;
