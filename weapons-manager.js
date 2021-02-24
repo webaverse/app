@@ -568,24 +568,37 @@ class PlayScene {
     this.audio.play();
 
     this.script = [
-      {
+      { // angry
         startTime: 0,
-        sustain: 1,
-        release: 1,
+        sustain: 2,
+        release: 3,
         index: 5,
       },
-      {
+      { // wide eye
         startTime: 0,
         attack: 1,
-        sustain: 1,
+        sustain: 2,
         release: 1,
         index: 19,
       },
-      {
+      { // smile
         startTime: 0,
+        sustain: 2,
         release: 1,
         index: 32,
       },
+      { // eyes closed
+        startTime: 2,
+        attack: 0.5,
+        sustain: 0.1,
+        release: 0.5,
+        index: 12,
+      },
+      /* { // ooo
+        startTime: 1,
+        sustain: 1,
+        index: 27,
+      }, */
     ].map(o => {
       o.attack = o.attack || 0;
       o.sustain = o.sustain || 0;
@@ -593,10 +606,6 @@ class PlayScene {
 
       o.duration = o.attack + o.sustain + o.release;
       o.endTime = o.startTime + o.duration;
-      
-      o.update = o => {
-        
-      };
       
       return o;
     });
