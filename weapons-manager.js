@@ -600,6 +600,7 @@ class PlayScene {
         index: 27,
       }, */
     ].map(o => {
+      o.type = 'viseme';
       o.attack = o.attack || 0;
       o.sustain = o.sustain || 0;
       o.release = o.release || 0;
@@ -608,31 +609,54 @@ class PlayScene {
       o.endTime = o.startTime + o.duration;
       
       return o;
-    });
+    }).concat([
+      {
+        startTime: 0,
+        duration: 10,
+        target: new THREE.Vector3(0, 1, -2),
+      },
+    ].map(o => {
+      o.type = 'look';
+      
+      o.endTime = o.startTime + o.duration;
+      
+      return o;
+    }));
   }
   update() {
     const {currentTime} = this.audio;
     rigManager.localRig.activeVisemes = this.script.map(o => {
-      if (o.startTime < currentTime && currentTime < o.endTime) {
-        let value;
-        if (currentTime < o.attack) {
-          value = (currentTime - o.startTime) / o.attack;
-        } else if (currentTime < (o.attack + o.sustain)) {
-          value = 1;
-        } else if (currentTime < (o.attack + o.sustain + o.release)) {
-          value = 1 - (currentTime - (o.attack + o.sustain)) / o.release;
+      if (o.type === 'viseme') {
+        if (o.startTime < currentTime && currentTime < o.endTime) {
+          let value;
+          if (currentTime < o.attack) {
+            value = (currentTime - o.startTime) / o.attack;
+          } else if (currentTime < (o.attack + o.sustain)) {
+            value = 1;
+          } else if (currentTime < (o.attack + o.sustain + o.release)) {
+            value = 1 - (currentTime - (o.attack + o.sustain)) / o.release;
+          } else {
+            // can't happen
+            value = 1;
+          }
+          return {
+            index: o.index,
+            value,
+          };
         } else {
-          // can't happen
-          value = 1;
+          return null;
         }
-        return {
-          index: o.index,
-          value,
-        };
       } else {
         return null;
       }
     }).filter(n => n !== null);
+    rigManager.localRig.activeLook = this.script.map(o => {
+      if (o.type === 'viseme' && currentTime < o.endTime) {
+        return o.position;
+      } else {
+        return null;
+      }
+    })[0] || null;
   }
 }
 let playScene = null;
