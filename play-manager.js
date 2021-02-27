@@ -59,11 +59,10 @@ class PlayScene {
       {
         startTime: 0,
         duration: 10,
-        target: new THREE.Vector3(0, 1, -2),
+        target: new THREE.Vector3(0, 1, -10),
       },
     ].map(o => {
       o.type = 'look';
-      
       o.endTime = o.startTime + o.duration;
       
       return o;
