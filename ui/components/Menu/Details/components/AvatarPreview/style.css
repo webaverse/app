@@ -1,0 +1,38 @@
+
+.m-menu_details_avatar-preview {
+  /* Display */
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.m-menu_details_avatar-preview_img {
+  /* Position */
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+
+  /* Size */
+  height: auto;
+  width: 80%;
+}
+
+.m-menu_details_avatar-preview_name {
+  /* Display */
+  padding: 1rem 2rem;
+  flex: 1;
+
+  /* Position */
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 10;
+
+  /* Size */
+  width: fit-content;
+
+  /* Text */
+  font-size: 2.5rem;
+  line-break: anywhere;
+  text-align: center;
+}

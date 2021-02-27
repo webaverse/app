@@ -1,0 +1,44 @@
+
+.m-menu_actions_action {
+  /* Display */
+  padding: 1rem 2rem;
+
+  /* Position */
+  position: relative;
+  z-index: 10;
+
+  /* Size */
+  width: fit-content;
+
+  /* Text */
+  color: var(--textDark);
+  font-size: 1.5rem;
+  text-align: center;
+
+  /* UX */
+  cursor: pointer;
+}
+
+.m-menu_actions_action:hover {
+  /* Text */
+  color: var(--text);
+}
+
+.m-menu_actions_action:hover > .m-menu_actions_action_decal {
+  fill: var(--primaryLight) !important;
+}
+
+.m-menu_actions_action_decal { fill: var(--highlight) !important }
+
+.m-menu_actions_action_key {
+  /* Display */
+  opacity: 0.5;
+
+  /* Position */
+  margin-right: 0.4em;
+
+  /* Text */
+  /*color: black;*/
+}
+
+.m-menu_actions_action_name {}

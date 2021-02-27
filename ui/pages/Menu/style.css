@@ -1,0 +1,63 @@
+:root {
+  --m-menu-template-nav: 'nav';
+  --m-menu-template-main: 'main';
+  --m-menu-template-footer: 'footer';
+
+  --m-menu-section-padding: 32px;
+}
+
+.m-menu {
+  --alpha: 0.8;
+
+  /* Background */
+  background:
+      radial-gradient(
+          circle at center,
+          rgba(var(--primaryRGB), var(--alpha)),
+          rgba(var(--primaryDarkRGB), var(--alpha))
+      );
+  /*
+   * TODO:
+   *  Move filter to Canvas2D context for platform
+   *  compatibility & performance.
+   */
+  backdrop-filter: blur(10px);
+
+  /* Display */
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    var(--m-menu-template-nav)
+    var(--m-menu-template-main)
+    var(--m-menu-template-footer);
+
+  /* Size */
+  height: 100%;
+
+  /* Text */
+  color: var(--text);
+  font-family: 'LuckiestGuy', sans-serif;
+}
+
+.m-menu_decal {
+  /* Display */
+  fill: var(--primaryLight);
+  padding: 4px;
+
+  /* Size */
+  height: 100%;
+  width: 100%;
+
+  /* Position */
+  left: 0;
+  position: absolute;
+  top: 0;
+  z-index: -1;
+}
+
+.m-menu_key {
+  margin-right: 0.25em;
+  opacity: 0.5;
+}

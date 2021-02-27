@@ -487,6 +487,10 @@ class LoginManager extends EventTarget {
     }
   }
 
+  setLoadout(loadout) {
+    if (userObject) userObject.loadout = loadout;
+  }
+
   getFtu() {
     return !!(userObject && userObject.ftu);
   }

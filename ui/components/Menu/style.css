@@ -1,45 +1,6 @@
-@import './components/Browser/style.css';
-@import './components/Categories/style.css';
-@import './components/Details/style.css';
-@import './components/Footer/style.css';
-@import './components/Nav/style.css';
-
-:root {
-  --m-menu-template-nav: 'nav';
-  --m-menu-template-main: 'main';
-  --m-menu-template-footer: 'footer';
-
-  --m-menu-section-padding: 32px;
-}
-
-.m-menu {
-  /* Background */
-  background:
-      radial-gradient(
-          circle at center,
-          var(--primaryColor),
-          var(--primaryDark)
-      );
-
-  /* Display */
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    var(--m-menu-template-nav)
-    var(--m-menu-template-main)
-    var(--m-menu-template-footer);
-
-  /* Size */
-  height: 100%;
-
-  /* Text */
-  color: var(--text);
-  font-family: 'LuckiestGuy', sans-serif;
-}
-
-.m-menu_key {
-  margin-right: 0.25em;
-  opacity: 0.5;
-}
+@import './Actions/style.css';
+@import './Browser/style.css';
+@import './Categories/style.css';
+@import './Details/style.css';
+@import './Loadout/style.css';
+@import './Nav/style.css';

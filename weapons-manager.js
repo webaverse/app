@@ -25,6 +25,7 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
+import {Menu} from './ui/models/Menu.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -40,10 +41,10 @@ const localBox = new THREE.Box3();
 
 const gltfLoader = new GLTFLoader();
 const equipArmQuaternions = [
-  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
-    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
-  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
-    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI / 2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI / 2)),
+  new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI / 2)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI / 2)),
 ];
 
 const items1El = document.getElementById('items-1');
@@ -127,7 +128,7 @@ const _makeTargetMesh = (() => {
       targetGeometry.clone()
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-    ])// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    ]);// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
   })();
   const targetVsh = `
     #define M_PI 3.1415926535897932384626433832795
@@ -200,7 +201,7 @@ let editedObject = null;
 
 // const coord = new THREE.Vector3();
 // const lastCoord = coord.clone();
-let highlightedWorld = null;
+const highlightedWorld = null;
 
 const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
@@ -352,7 +353,7 @@ const _use = () => {
         if (isPortal) {
           return localBox.set(
             localVector.fromArray(json.extents[0]),
-            localVector2.fromArray(json.extents[1])
+            localVector2.fromArray(json.extents[1]),
           )
             .applyMatrix4(object.matrixWorld)
             .distanceToPoint(position) === 0;
@@ -488,7 +489,7 @@ const _try = async () => {
       });
       try {
         await loginManager.setAvatar(o.contentId);
-      } catch(err) {
+      } catch (err) {
         console.warn(err);
       } finally {
         notifications.removeNotification(notification);
@@ -544,7 +545,7 @@ const _grab = object => {
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
   appManager.grabbedObjects[0] = null;
-  editedObject = null
+  editedObject = null;
   _updateMenu();
 };
 
@@ -565,8 +566,8 @@ const _updateWeapons = () => {
       const width = 1;
       const length = 100;
       localBox.setFromCenterAndSize(
-        localVector.set(0, 0, -length/2 - 0.05),
-        localVector2.set(width, width, length)
+        localVector.set(0, 0, -length / 2 - 0.05),
+        localVector2.set(width, width, length),
       );
 
       highlightMesh.visible = false;
@@ -581,7 +582,7 @@ const _updateWeapons = () => {
             localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
               .premultiply(
                 localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-                  .invert()
+                  .invert(),
               )
               .decompose(localVector, localQuaternion, localVector2);
             if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
@@ -732,7 +733,7 @@ const _updateWeapons = () => {
       }
 
       const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
-      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      const collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.getObjectFromPhysicsId(collision.objectId);
         highlightedPhysicsId = collision.objectId;
@@ -770,7 +771,7 @@ const _updateWeapons = () => {
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.scale.copy(physicsTransform.scale);
-      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now() % 1500) / 1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
     }
@@ -793,11 +794,11 @@ const _updateWeapons = () => {
       localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
-      localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+      localEuler.y = Math.floor((localEuler.y + Math.PI / 4) / (Math.PI / 2)) * (Math.PI / 2);
       localQuaternion.setFromEuler(localEuler);
       deployMesh.quaternion.premultiply(localQuaternion);
 
-      deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
+      deployMesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
       deployMesh.material.uniforms.uTime.needsUpdate = true;
     }
   };
@@ -840,7 +841,7 @@ const _updateWeapons = () => {
 
   const _handleEditAnimation = () => {
     if (editMesh.visible) {
-      editMesh.material.uniforms.uHighlight.value = 1-(Date.now()%1000)/1000;
+      editMesh.material.uniforms.uHighlight.value = 1 - (Date.now() % 1000) / 1000;
       editMesh.material.uniforms.uHighlight.needsUpdate = true;
     }
   };
@@ -861,7 +862,7 @@ const _updateWeapons = () => {
             progressBarInner.style.width = (f * 100) + '%';
           }
 
-          highlightMesh.material.uniforms.uTime.value = -(1-f);
+          highlightMesh.material.uniforms.uTime.value = -(1 - f);
           highlightMesh.material.uniforms.uTime.needsUpdate = true;
         } else {
           editedObject = highlightedObject;
@@ -1006,7 +1007,7 @@ const _renderWheel = (() => {
   };
 })(); */
 
-const rotationSnap = Math.PI/6;
+const rotationSnap = Math.PI / 6;
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
@@ -1161,7 +1162,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   }
 
-  locationLabel.innerText = `Overworld`;
+  locationLabel.innerText = 'Overworld';
 };
 
 const _loadItemSpec1 = async u => {
@@ -1176,7 +1177,7 @@ const _loadItemSpec1 = async u => {
   const object = await p;
   editedObject = object;
   if (editedObject.isBuild) {
-    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
+    appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit * 0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
   }
 
   weaponsManager.setMenu(0);
@@ -1187,107 +1188,107 @@ const _loadItemSpec1 = async u => {
 };
 const itemSpecs3 = [
   {
-    "name": "home",
-    "start_url": "https://avaer.github.io/home/manifest.json"
+    name: 'home',
+    start_url: 'https://avaer.github.io/home/manifest.json',
   },
   {
-    "name": "mirror",
-    "start_url": "https://avaer.github.io/mirror/index.js"
+    name: 'mirror',
+    start_url: 'https://avaer.github.io/mirror/index.js',
   },
   {
-    "name": "lightsaber",
-    "start_url": "https://avaer.github.io/lightsaber/index.js"
+    name: 'lightsaber',
+    start_url: 'https://avaer.github.io/lightsaber/index.js',
   },
   {
-    "name": "shield",
-    "start_url": "https://avaer.github.io/shield/index.js"
+    name: 'shield',
+    start_url: 'https://avaer.github.io/shield/index.js',
   },
   {
-    "name": "physicscube",
-    "start_url": "https://avaer.github.io/physicscube/index.js"
+    name: 'physicscube',
+    start_url: 'https://avaer.github.io/physicscube/index.js',
   },
   {
-    "name": "weapons",
-    "start_url": "https://avaer.github.io/weapons/index.js"
+    name: 'weapons',
+    start_url: 'https://avaer.github.io/weapons/index.js',
   },
   {
-    "name": "hookshot",
-    "start_url": "https://avaer.github.io/hookshot/index.js"
+    name: 'hookshot',
+    start_url: 'https://avaer.github.io/hookshot/index.js',
   },
   {
-    "name": "voxels",
-    "start_url": "https://avaer.github.io/voxels/index.js"
+    name: 'voxels',
+    start_url: 'https://avaer.github.io/voxels/index.js',
   },
   {
-    "name": "cv",
-    "filename": "cv.url",
-    "content": "https://cv.webaverse.com/"
+    name: 'cv',
+    filename: 'cv.url',
+    content: 'https://cv.webaverse.com/',
   },
   {
-    "name": "dcl",
-    "filename": "cv.url",
-    "content": "https://dcl.webaverse.com/"
+    name: 'dcl',
+    filename: 'cv.url',
+    content: 'https://dcl.webaverse.com/',
   },
   {
-    "name": "h",
-    "filename": "h.url",
-    "content": "https://h.webaverse.com/"
+    name: 'h',
+    filename: 'h.url',
+    content: 'https://h.webaverse.com/',
   },
   {
-    "name": "land",
-    "start_url": "https://avaer.github.io/land/index.js"
+    name: 'land',
+    start_url: 'https://avaer.github.io/land/index.js',
   },
   {
-    "name": "planet",
-    "start_url": "https://avaer.github.io/planet/index.js"
+    name: 'planet',
+    start_url: 'https://avaer.github.io/planet/index.js',
   },
   {
-    "name": "camera",
-    "start_url": "https://avaer.github.io/camera/index.js"
+    name: 'camera',
+    start_url: 'https://avaer.github.io/camera/index.js',
   },
   {
-    "name": "cat-in-hat",
-    "start_url": "https://avaer.github.io/cat-in-hat/manifest.json"
+    name: 'cat-in-hat',
+    start_url: 'https://avaer.github.io/cat-in-hat/manifest.json',
   },
   {
-    "name": "sword",
-    "start_url": "https://avaer.github.io/sword/manifest.json"
+    name: 'sword',
+    start_url: 'https://avaer.github.io/sword/manifest.json',
   },
   {
-    "name": "dragon-pet",
-    "start_url": "https://avaer.github.io/dragon-pet/manifest.json"
+    name: 'dragon-pet',
+    start_url: 'https://avaer.github.io/dragon-pet/manifest.json',
   },
   {
-    "name": "dragon-mount",
-    "start_url": "https://avaer.github.io/dragon-mount/manifest.json"
+    name: 'dragon-mount',
+    start_url: 'https://avaer.github.io/dragon-mount/manifest.json',
   },
   {
-    "name": "dragon-fly",
-    "start_url": "https://avaer.github.io/dragon-fly/manifest.json"
+    name: 'dragon-fly',
+    start_url: 'https://avaer.github.io/dragon-fly/manifest.json',
   },
   {
-    "name": "pistol",
-    "start_url": "https://avaer.github.io/pistol/manifest.json"
+    name: 'pistol',
+    start_url: 'https://avaer.github.io/pistol/manifest.json',
   },
   {
-    "name": "rifle",
-    "start_url": "https://avaer.github.io/rifle/manifest.json"
+    name: 'rifle',
+    start_url: 'https://avaer.github.io/rifle/manifest.json',
   },
   {
-    "name": "pickaxe",
-    "start_url": "https://avaer.github.io/pickaxe/manifest.json"
+    name: 'pickaxe',
+    start_url: 'https://avaer.github.io/pickaxe/manifest.json',
   },
   {
-    "name": "hoverboard",
-    "start_url": "https://avaer.github.io/hoverboard/manifest.json"
+    name: 'hoverboard',
+    start_url: 'https://avaer.github.io/hoverboard/manifest.json',
   },
   {
-    "name": "hovercraft",
-    "start_url": "https://avaer.github.io/hovercraft/manifest.json"
+    name: 'hovercraft',
+    start_url: 'https://avaer.github.io/hovercraft/manifest.json',
   },
   {
-    "name": "cityscape",
-    "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
+    name: 'cityscape',
+    start_url: 'https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json',
   },
 ];
 const itemSpecs1 = [
@@ -1340,7 +1341,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-     _loadItemSpec1('./assets/type/Rainbow_Dash.png');
+      _loadItemSpec1('./assets/type/Rainbow_Dash.png');
     },
   },
   {
@@ -1454,10 +1455,9 @@ const bindInterface = () => {
     div.classList.add('item');
     div.innerHTML = `\
       <div class=bar></div>
-      ${/^fa-/.test(itemSpec.icon) ?
-        `<i class="icon fa ${itemSpec.icon}"></i>`
-      :
-        `<img src="${itemSpec.icon}" class=icon>`
+      ${/^fa-/.test(itemSpec.icon)
+        ? `<i class="icon fa ${itemSpec.icon}"></i>`
+      : `<img src="${itemSpec.icon}" class=icon>`
       }
       <div class=name>${itemSpec.name}</div>
       <div class="key-helpers">
@@ -1612,6 +1612,8 @@ const bindInterface = () => {
         _updateMenu();
       });
       items4El.appendChild(div);
+
+      Menu.addToScene(trackedObjectJson);
     }
   });
   world.addEventListener('trackedobjectsremove', async e => {
@@ -1620,6 +1622,7 @@ const bindInterface = () => {
       const instanceId = trackedObject.get('instanceId');
       const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
       items4El.removeChild(itemEl);
+      Menu.removeFromScene(trackedObject.get('instanceId'));
     }
   });
 
@@ -1656,6 +1659,7 @@ scene.add(cubeMesh); */
 
 let droppedThrow = false;
 const weaponsManager = {
+  deployMesh,
   // weapons,
   // cubeMesh,
   /* buildMode: 'wall',
@@ -1720,6 +1724,9 @@ const weaponsManager = {
   }, */
   bindInterface,
   bindUploadFileInput,
+  canUseHold() {
+    return !!highlightedObject && !editedObject;
+  },
   getMenu() {
     return this.menuOpen;
   },
@@ -1818,7 +1825,7 @@ const weaponsManager = {
     if (this.gridSnap === 0) {
       return 0;
     } else {
-      return 4/this.gridSnap;
+      return 4 / this.gridSnap;
     }
   },
   menuVDown() {
@@ -1947,6 +1954,7 @@ const weaponsManager = {
     }
   },
   update: _updateWeapons,
+  clear() { _ungrab(); },
 };
 export default weaponsManager;
 export {_loadItemSpec1};

@@ -1,0 +1,41 @@
+@import 'components/Tile/style.css';
+
+:root {
+  --menu_browser-gutter: 16px;
+}
+
+.m-menu_browser {
+  /* Display */
+  flex: 1;
+  overflow-y: auto;
+
+  /* Position */
+  margin-bottom: 1rem;
+}
+
+.m-menu_browser_list {
+  /* Display */
+  display: flex;
+  flex-flow: row wrap;
+  /*padding: var(--menu_browser-gutter);*/
+}
+
+.m-menu_browser_title {
+  /* Background */
+  /*background: var(--primaryLight);*/
+
+  /* Display */
+  padding: 1rem 2rem;
+  flex: 1;
+
+  /* Position */
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+
+  /* Size */
+  width: fit-content;
+
+  /* Text */
+  font-size: 1.5rem;
+}

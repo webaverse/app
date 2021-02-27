@@ -25,6 +25,7 @@ import {parseCoord} from './util.js';
 // import './procgen.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import {mithrilInit} from './ui/index.js';
+import {Menu} from './ui/models/Menu.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -217,6 +218,9 @@ export default class App {
     let lastTimestamp = performance.now();
     const startTime = Date.now();
     const animate = (timestamp, frame) => {
+      // Don't render while menu is open.
+      if (Menu.isOpen) return;
+
       timestamp = timestamp || performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);

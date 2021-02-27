@@ -1,12 +1,22 @@
 @import './components/style.css';
+@import './layouts/style.css';
+@import './pages/style.css';
 
 :root {
   --gutter: 4px;
+  --transition: 150ms;
 
   /* Theme */
-  --primaryColor: #0b83ec;
+  /*#95cb5a*/
+  --primary: #0b83ec;
+  --primaryLighter: #95cbfa;
   --primaryLight: #4ca7f7;
   --primaryDark: #0968bb;
+
+  --primaryRGB: 11, 131, 236;
+  --primaryLighterRGB: 149, 203, 250;
+  --primaryLightRGB: 76, 167, 247;
+  --primaryDarkRGB: 9, 104, 187;
 
   --highlight: #edf6fe;
 
@@ -27,10 +37,6 @@
 }
 
 #mithril-root {
-  /* Display */
-  display: flex;
-  flex-flow: column nowrap;
-
   /* Position */
   bottom: 0;
   left: 0;
@@ -41,6 +47,7 @@
 
   /* UX */
   user-select: none;
+  pointer-events: none;
 }
 
 #mithril-root::after {
@@ -72,7 +79,7 @@
   --size: 48px;
 
   /* Size */
-  height: var(--size);
+  height: auto;
   width: var(--size);
 
   /* Text */

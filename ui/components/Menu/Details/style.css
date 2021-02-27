@@ -1,0 +1,45 @@
+@import './components/AvatarPreview/style.css';
+
+.m-menu_details {
+  --size: 400px;
+
+  /* Size */
+  width: var(--size);
+  min-width: var(--size);
+}
+
+.m-menu_details_details,
+.m-menu_details_metadata {
+  /* Text */
+  font-size: 1.25rem;
+}
+
+.m-menu_details_image {
+  /* Display */
+  overflow: hidden;
+
+  /* Position */
+  margin-bottom: 1rem;
+
+  /* Size */
+  height: auto;
+  width: 100%;
+}
+
+.m-menu_details_metadata {
+  line-break: anywhere;
+}
+
+.m-menu_details_name {
+  /* Display */
+  padding: 1rem;
+
+  /* Position */
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+
+  /* Text */
+  font-size: 2rem;
+  text-align: center;
+}

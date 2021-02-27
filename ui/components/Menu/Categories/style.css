@@ -1,0 +1,26 @@
+
+.m-menu_category_viewA {
+  /* Display */
+  display: flex;
+  flex-flow: column nowrap;
+  grid-area: var(--m-menu-template-main);
+  overflow-y: auto;
+  padding: var(--m-menu-section-padding) var(--m-menu-section-padding) 16px;
+}
+
+.m-menu_category_split {
+  /* Display */
+  display: flex;
+  flex: 1;
+  flex-flow: row nowrap;
+
+  /* Size */
+  height: 100%;
+}
+
+.m-menu_category_split_column {
+  /* Display */
+  display: flex;
+  flex: 1;
+  flex-flow: column nowrap;
+}

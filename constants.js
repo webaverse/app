@@ -1,5 +1,5 @@
 export const baseUnit = 4;
-export const previewExt = 'jpg';
+export const previewExt = 'png';
 export const maxGrabDistance = 1.5;
 
 export const rarityColors = {
