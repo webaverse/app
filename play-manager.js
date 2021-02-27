@@ -95,13 +95,13 @@ class PlayScene {
         return null;
       }
     }).filter(n => n !== null);
-    rigManager.localRig.activeLook = this.script.map(o => {
-      if (o.type === 'viseme' && currentTime < o.endTime) {
-        return o.position;
-      } else {
-        return null;
-      }
-    })[0] || null;
+    const eyeTarget = this.script.find(o => o.type === 'look' && currentTime < o.endTime);
+    if (eyeTarget) {
+      rigManager.localRig.eyeTarget.copy(eyeTarget.target);
+      rigManager.localRig.eyeTargetEnabled = true;
+    } else {
+      rigManager.localRig.eyeTargetEnabled = false;
+    }
   }
 }
 let playScene = null;
