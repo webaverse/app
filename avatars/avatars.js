@@ -309,6 +309,10 @@ const loadPromise = (async () => {
       `Sneaking Forward.fbx`,
       `Crouched Sneaking Left.fbx`,
       `Crouched Sneaking Right.fbx`,
+      `Breakdance 1990.fbx`,
+      `Dancing Running Man.fbx`,
+      `Jazz Dancing.fbx`,
+      `Silly Dancing.fbx`,
     ];
     for (const name of animationFileNames) {
       const u = './animations/' + name;
