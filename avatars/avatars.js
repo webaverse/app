@@ -1687,6 +1687,8 @@ class Avatar {
     this.crouchState = false;
     this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
+    this.eyeTarget = new THREE.Vector3();
+    this.eyeTargetEnabled = false;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -2008,22 +2010,24 @@ class Avatar {
       this.decapitate();
     } */
 
-    for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
-      eye.getWorldPosition(localVector);
-      eye.getWorldQuaternion(localQuaternion);
-      localQuaternion.invert()
-        .premultiply(z180Quaternion)
-        .premultiply(
-          localQuaternion2.setFromUnitVectors(
-            localVector2.set(0, 0, -1),
-            localVector3.set(0, 1, -10).sub(localVector).normalize()
-          )
-        );
-      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-      localEuler.x = Math.min(Math.max(localEuler.x, -Math.PI*0.1), Math.PI*0.1);
-      localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
-      localEuler.z = 0;
-      eye.quaternion.setFromEuler(localEuler);
+    if (this.eyeTargetEnabled) {
+      for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
+        eye.getWorldPosition(localVector);
+        eye.getWorldQuaternion(localQuaternion);
+        localQuaternion.invert()
+          .premultiply(z180Quaternion)
+          .premultiply(
+            localQuaternion2.setFromUnitVectors(
+              localVector2.set(0, 0, -1),
+              localVector3.copy(this.eyeTarget).sub(localVector).normalize()
+            )
+          );
+        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        // localEuler.x = Math.min(Math.max(localEuler.x, -Math.PI*0.1), Math.PI*0.1);
+        localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
+        localEuler.z = 0;
+        eye.quaternion.setFromEuler(localEuler);
+      }
     }
 
     if (this.options.visemes) {
