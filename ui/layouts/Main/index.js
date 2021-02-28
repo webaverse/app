@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import m from '../../../lib/external/mithril-dev.js';
-import {Menu as M_Menu} from '../../models/Menu.js';
+import {Menu as M_Menu} from '../../models/Menu/index.js';
 import {Menu} from '../../pages/Menu/index.js';
 
 const style = {

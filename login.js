@@ -13,7 +13,7 @@ import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidecha
 import * as notifications from './notifications.js';
 import {makePromise, jsonParse} from './util.js';
 // import {menuActions} from './ui/store/actions.js';
-import {Menu} from './ui/models/Menu.js';
+import {Menu} from './ui/models/Menu/index.js';
 // const usersEndpoint = 'https://users.exokit.org';
 
 // const _clone = o => JSON.parse(JSON.stringify(o));

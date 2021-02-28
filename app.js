@@ -25,7 +25,7 @@ import {parseCoord} from './util.js';
 // import './procgen.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import {mithrilInit} from './ui/index.js';
-import {Menu} from './ui/models/Menu.js';
+import {Menu} from './ui/models/Menu/index.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);

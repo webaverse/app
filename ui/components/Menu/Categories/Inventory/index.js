@@ -5,7 +5,7 @@ import {Browser} from '../../Browser/index.js';
 import {Details} from '../../Details/index.js';
 import {Loadout} from '../../Loadout/index.js';
 import Model from '../model.js';
-import {Menu} from '../../../../models/Menu.js';
+import {Menu} from '../../../../models/Menu/index.js';
 
 const style = {
   body: 'main.m-menu_category_viewA',

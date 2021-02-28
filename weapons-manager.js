@@ -25,7 +25,7 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
-import {Menu} from './ui/models/Menu.js';
+import {Menu} from './ui/models/Menu/index.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

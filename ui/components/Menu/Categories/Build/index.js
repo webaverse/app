@@ -1,5 +1,5 @@
 import m from '../../../../../lib/external/mithril-dev.js';
-import {Menu} from '../../../../models/Menu.js';
+import {Menu} from '../../../../models/Menu/index.js';
 import {Actions} from '../../Actions/index.js';
 import {Browser} from '../../Browser/index.js';
 import {Details} from '../../Details/index.js';

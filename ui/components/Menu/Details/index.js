@@ -1,6 +1,6 @@
 import m from '../../../../lib/external/mithril-dev.js';
 import {AvatarPreview} from './components/AvatarPreview/index.js';
-import {Menu} from '../../../models/Menu.js';
+import {Menu} from '../../../models/Menu/index.js';
 
 const style = {
   body: '.m-menu_details',

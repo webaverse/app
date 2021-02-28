@@ -5,7 +5,7 @@ import {Inventory} from '../../components/Menu/Categories/Inventory/index.js';
 import {Prefabs} from '../../components/Menu/Categories/Prefabs/index.js';
 import {Scene} from '../../components/Menu/Categories/Scene/index.js';
 import {Nav} from '../../components/Menu/Nav/index.js';
-import {Menu as M_Menu} from '../../models/Menu.js';
+import {Menu as M_Menu} from '../../models/Menu/index.js';
 
 export const style = {
   body: '.m-menu',

@@ -1,14 +1,15 @@
 /* eslint-disable camelcase */
-import m from '../../lib/external/mithril-dev.js';
-import {contracts, runSidechainTransaction} from '../../blockchain.js';
-import cameraManager from '../../camera-manager.js';
-import {previewExt, previewHost} from '../../constants.js';
-import {loginManager} from '../../login.js';
-import * as notifications from '../../notifications.js';
-import {rigManager} from '../../rig.js';
-import storage from '../../storage.js';
-import weaponsManager from '../../weapons-manager.js';
-import {world} from '../../world.js';
+import m from '../../../lib/external/mithril-dev.js';
+import {contracts, runSidechainTransaction} from '../../../blockchain.js';
+import cameraManager from '../../../camera-manager.js';
+import {previewExt, previewHost} from '../../../constants.js';
+import {loginManager} from '../../../login.js';
+import * as notifications from '../../../notifications.js';
+import {rigManager} from '../../../rig.js';
+import storage from '../../../storage.js';
+import weaponsManager from '../../../weapons-manager.js';
+import {world} from '../../../world.js';
+import messages from './messages.js';
 
 // Tabs enum
 const tabs = {
@@ -18,13 +19,15 @@ const tabs = {
   Scene: 3,
 };
 
+const defaultActions = {
+  Close: true,
+  Equip: false,
+  Spawn: false,
+};
+
 export const Menu = {
   tabs,
-  actions: {
-    Close: true,
-    Equip: false,
-    Spawn: false,
-  },
+  actions: {...defaultActions},
   tabNames: Object.keys(tabs),
   isOpen: false,
   currentItem: null,
@@ -63,9 +66,7 @@ export const Menu = {
     this.scene.push(item);
   },
 
-  fillInventory(inventory) {
-    this.inventory = inventory;
-  },
+  fillInventory(inventory) { this.inventory = inventory; },
 
   handleKeyDown(e) {
     switch (e.code) {
@@ -192,90 +193,92 @@ export const Menu = {
 
   spawn() {
     const {currentItem, currentItemType} = this;
-    const {deployMesh} = weaponsManager;
+    if (currentItem) {
+      const {deployMesh} = weaponsManager;
 
-    switch (currentItemType) {
-      case 'build': {
-        try {
-          currentItem.cb();
-        } catch (e) { console.error(e); }
-        return this.close();
-      }
-      case 'inventory': {
-        world.addObject(
-          currentItem.id,
-          null,
-          deployMesh.position,
-          deployMesh.quaternion,
-        );
-
-        return this.close();
-      }
-      case 'prefab': {
-        let {start_url, filename, content} = currentItem;
-
-        // Create blob URL.
-        if (!start_url && filename && content) {
-          const blob = new Blob([content], {
-            type: 'application/octet-stream',
-          });
-          start_url = URL.createObjectURL(blob);
-          start_url += '/' + filename;
+      switch (currentItemType) {
+        case 'build': {
+          try {
+            currentItem.cb();
+          } catch (e) { console.error(e); }
+          return this.close();
         }
 
-        world.addObject(
-          start_url,
-          null,
-          deployMesh.position,
-          deployMesh.quaternion,
-        );
+        case 'inventory': {
+          world.addObject(
+            currentItem.id,
+            null,
+            deployMesh.position,
+            deployMesh.quaternion,
+          );
 
-        return this.close();
+          return this.close();
+        }
+
+        case 'prefab': {
+          let {start_url, filename, content} = currentItem;
+
+          // Create blob URL.
+          if (!start_url && filename && content) {
+            const blob = new Blob([content], {
+              type: 'application/octet-stream',
+            });
+            start_url = URL.createObjectURL(blob);
+            start_url += '/' + filename;
+          }
+
+          world.addObject(
+            start_url,
+            null,
+            deployMesh.position,
+            deployMesh.quaternion,
+          );
+
+          return this.close();
+        }
+        default: {
+          return true;
+        }
       }
-      default: {
-        return true;
-      }
+    } else {
+      // Notify the user about error.
+      notifications.addNotification(...messages.nothingToSpawn);
     }
   },
 
   async equip() {
-    const {currentItemType} = this;
+    const {currentItem, currentItemType} = this;
 
     if (
+      currentItem &&
       currentItemType &&
-      currentItemType !== 'build' &&
-      currentItemType !== 'prefabs'
+      currentItemType === 'inventory' &&
+      currentItemType === 'scene'
     ) {
-      const {currentItem} = this;
-
       // Only equip items not in use.
       const used = currentItem.useAux
         ? currentItem.useAux(rigManager.localRig.aux)
         : false;
 
       if (!used) {
-        const notification = notifications.addNotification(`\
-        <i class="icon fa fa-user-ninja"></i>
-        <div class=wrap>
-          <div class=label>Getting changed</div>
-          <div class=text>
-            The system is updating your avatar...
-          </div>
-          <div class=close-button>✕</div>
-        </div>
-      `, {
-          timeout: Infinity,
-        });
+        const id = currentItem.id || currentItem.contentId;
+
+        const notification =
+          notifications.addNotification(...messages.changingAvatar);
 
         try {
-          await loginManager.setAvatar(currentItem.contentId);
-          this.close();
+          await loginManager.setAvatar(id);
+
+          notifications.addNotification(...messages.changedAvatar);
         } catch (e) {
           console.error(e);
         } finally {
           notifications.removeNotification(notification);
         }
       }
+    } else {
+      // Notify the user about error.
+      notifications.addNotification(...messages.nothingToEquip);
     }
   },
 };

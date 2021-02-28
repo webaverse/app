@@ -1,5 +1,5 @@
 import m from '../../../../../../lib/external/mithril-dev.js';
-import {Menu} from '../../../../../models/Menu.js';
+import {Menu} from '../../../../../models/Menu/index.js';
 
 const style = {
   body: '.m-menu_loadout_slot',
