@@ -622,7 +622,7 @@ const _findHead = tailBones => {
 const _findEye = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const eyeBones = tailBones.map(tailBone => {
-    const eyeBone = _findClosestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
+    const eyeBone = _findClosestParentBone(tailBone, bone => bone.isBone && /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
     if (eyeBone) {
       return eyeBone;
     } else {
