@@ -1982,7 +1982,7 @@ class Avatar {
       if (/hips|thumb|finger/i.test(k)) {
         modelBone.position.copy(modelBoneOutput.position);
       }
-      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
+      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
       if (this.getTopEnabled()) {
         if (k === 'Left_wrist') {
