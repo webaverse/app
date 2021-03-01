@@ -2769,6 +2769,7 @@ footer {
   top: 50px;
   right: 0;
   flex-direction: column;
+  z-index: 100;
 }
 .notifications .notification {
   position: relative;
