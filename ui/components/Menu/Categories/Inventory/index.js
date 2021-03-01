@@ -23,7 +23,7 @@ export function Inventory() {
     onupdate() { Menu.setCurrentItem(model.current, 'inventory'); },
 
     async oninit() {
-      Menu.setActions({Equip: true, Spawn: true});
+      Menu.setActions({Spawn: true});
       await loginManager.waitForLoad();
       model.reset();
       model.setItems(loginManager.getInventory());
