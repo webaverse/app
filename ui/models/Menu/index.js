@@ -4,12 +4,11 @@ import {contracts, runSidechainTransaction} from '../../../blockchain.js';
 import cameraManager from '../../../camera-manager.js';
 import {previewExt, previewHost} from '../../../constants.js';
 import {loginManager} from '../../../login.js';
-import * as notifications from '../../../notifications.js';
 import {rigManager} from '../../../rig.js';
 import storage from '../../../storage.js';
 import weaponsManager from '../../../weapons-manager.js';
 import {world} from '../../../world.js';
-import messages from './messages.js';
+import notify from './notifications.js';
 
 // Tabs enum
 const tabs = {
@@ -242,43 +241,35 @@ export const Menu = {
       }
     } else {
       // Notify the user about error.
-      notifications.addNotification(...messages.nothingToSpawn);
+      notify.nothingToSpawn();
     }
   },
 
   async equip() {
-    const {currentItem, currentItemType} = this;
+    if (this.actions.Equip) {
+      const {currentItem} = this;
 
-    if (
-      currentItem &&
-      currentItemType &&
-      currentItemType === 'inventory' &&
-      currentItemType === 'scene'
-    ) {
-      // Only equip items not in use.
-      const used = currentItem.useAux
-        ? currentItem.useAux(rigManager.localRig.aux)
-        : false;
+      if (currentItem) {
+        // Only equip items not in use.
+        const used = currentItem.useAux
+          ? currentItem.useAux(rigManager.localRig.aux)
+          : false;
 
-      if (!used) {
-        const id = currentItem.id || currentItem.contentId;
+        if (!used) {
+          const id = currentItem.id || currentItem.contentId;
+          const notification = notify.changingAvatar();
 
-        const notification =
-          notifications.addNotification(...messages.changingAvatar);
-
-        try {
-          await loginManager.setAvatar(id);
-
-          notifications.addNotification(...messages.changedAvatar);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          notifications.removeNotification(notification);
-        }
-      }
-    } else {
-      // Notify the user about error.
-      notifications.addNotification(...messages.nothingToEquip);
-    }
+          try {
+            await loginManager.setAvatar(id);
+            notify.changedAvatar();
+          } catch (e) {
+            console.error(e);
+          } finally {
+            m.redraw();
+            notification.remove();
+          }
+        } else notify.cantEquip();
+      } else notify.nothingToEquip();
+    } else notify.notAllowed();
   },
 };
