@@ -410,6 +410,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
+  
+  gltfObject.traverse(o => {
+    if (o.isMesh) {
+      o.material.blending = THREE.CustomBlending;
+    }
+  });
 
   const mesh = new THREE.Object3D();
   const jitterObject = hpManager.makeHitTracker();
