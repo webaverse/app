@@ -69,49 +69,19 @@ export const Menu = {
 
   handleKeyDown(e) {
     switch (e.code) {
-      case 'KeyE': {
-        if (this.actions.Equip) {}
-        this.equip();
-        break;
-      }
-      case 'KeyM': {
-        this.close();
-        break;
-      }
-      case 'KeyS': {
-        this.spawn();
-        break;
-      }
-      case 'Digit0': {
-        break;
-      }
-      case 'Digit1': {
-        break;
-      }
-      case 'Digit2': {
-        break;
-      }
-      case 'Digit3': {
-        break;
-      }
-      case 'Digit4': {
-        break;
-      }
-      case 'Digit5': {
-        break;
-      }
-      case 'Digit6': {
-        break;
-      }
-      case 'Digit7': {
-        break;
-      }
-      case 'Digit8': {
-        break;
-      }
-      case 'Digit9': {
-        break;
-      }
+      case 'KeyE': return this.equip();
+      case 'KeyM': return this.close();
+      case 'KeyS': return this.spawn();
+      case 'Digit0': { break; }
+      case 'Digit1': { break; }
+      case 'Digit2': { break; }
+      case 'Digit3': { break; }
+      case 'Digit4': { break; }
+      case 'Digit5': { break; }
+      case 'Digit6': { break; }
+      case 'Digit7': { break; }
+      case 'Digit8': { break; }
+      case 'Digit9': { break; }
     }
   },
 
