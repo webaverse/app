@@ -1,0 +1,37 @@
+
+:root {
+  --menu_loadout-border: 4px solid var(--primaryLight);
+}
+
+.m-menu_loadout_slot {
+  --size: 96px;
+
+  /* Background */
+  background-clip: content-box;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  /* Display */
+  border: var(--menu_loadout-border);
+  border-right: none;
+
+  /* Size */
+  height: var(--size);
+  width: var(--size);
+
+  /* Position */
+  padding: 4px;
+
+  /* Text */
+  text-align: right;
+
+  /* UI */
+  cursor: pointer;
+}
+
+.m-menu_loadout_slot:last-of-type {
+  border-right: var(--menu_loadout-border);
+}
+
+.m-menu_loadout_slot_number {}

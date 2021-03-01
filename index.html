@@ -4,9 +4,7 @@
 <head>
   <title>山</title>
   <link href="/index.css" rel=stylesheet>
-  <!-- <link href="/mithril-ui/index.css" rel=stylesheet>
-  <link href="/mithril-ui/menu/menu.css" rel=stylesheet> -->
-
+  <link href="/ui/style.css" rel=stylesheet>
   <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
 </head>
@@ -53,7 +51,6 @@
     <div class=spacer></div>
     <div class=early-access-label>Webaverse Season 0 [Early Access] | <span id=network-name></span></div>
     <form id=login-form></form>
-    <div class=notifications id=notifications></div>
     <div class=inventory-menu id=inventory-menu>
       <div class=wrap>
         <canvas id=inventory-avatar></canvas>
@@ -238,7 +235,7 @@
       <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
     </div>
   </footer>
-  
+
   <input type=file class=hidden id=upload-file-input>
 
   <div class="menu wide primary" id=menu-1>
@@ -407,7 +404,7 @@
     </div>
   </div>
   <div class=unmenu id=unmenu>
-    <section clas=top>
+    <section class=top>
       <div class="key-helpers">
         <div class="key-helper">
           <div class=key id=key-tab>Tab</div>
@@ -520,6 +517,7 @@
   </div>
 
   <div id="mithril-root"></div>
+  <div class=notifications id=notifications></div>
 
   <canvas id=canvas></canvas>
   <div class=crosshair>
@@ -554,7 +552,7 @@
         }
       },
     });
-    
+
     app.waitForLoad()
       .then(() => {
         app.startLoop();

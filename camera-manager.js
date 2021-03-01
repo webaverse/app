@@ -23,7 +23,7 @@ const requestPointerLock = () => new Promise((accept, reject) => {
     const _pointerlockerror = err => {
       reject(err);
       _cleanup();
-      
+
       notifications.addNotification(`\
         <i class="icon fa fa-mouse-pointer"></i>
         <div class=wrap>
@@ -48,7 +48,7 @@ const requestPointerLock = () => new Promise((accept, reject) => {
   }
 }).then(() => {
   physicsManager.unlockControls();
-});
+}).catch(console.error);
 
 /* const cameraModes = [
   'firstperson',

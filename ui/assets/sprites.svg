@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <!-- General UI -->
+    <symbol id="button-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M4.163 3.805l94.353-2.322-1.373 95.838-94.707 1.313z"/>
+    </symbol>
+
+    <!-- Tabs -->
+    <symbol id="tab-decal-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M4.163 3.805l94.353-2.322-1.373 95.838-94.707 1.313z"/>
+    </symbol>
+
+    <symbol id="tab-decal-1" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M8.924 5.925l83.397-2.302 6.302 94.889-97.021-2.72z"/>
+    </symbol>
+
+    <symbol id="tab-decal-2" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M1.356 1.984l94.301 2.428 1.964 93.59-90.656-.595z"/>
+    </symbol>
+
+    <symbol id="tab-decal-3" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M5.612 3.245l92.513 1.08-2.72 90.253-85.222 4.551z"/>
+    </symbol>
+
+    <symbol id="tab-decal-4" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M1.408 2.121l96.955.893-1.188 92.504-92.51 2.196z"/>
+    </symbol>
+</svg>

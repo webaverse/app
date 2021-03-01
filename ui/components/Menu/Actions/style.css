@@ -1,0 +1,8 @@
+@import 'components/Action/style.css';
+
+.m-menu_actions {
+  /* Display */
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-end;
+}

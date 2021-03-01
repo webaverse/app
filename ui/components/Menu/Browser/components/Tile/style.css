@@ -1,0 +1,88 @@
+
+.m-menu_browser_tile {
+  --border: 4px solid var(--primaryLight);
+  --size: 144px;
+
+  /* Display */
+  align-items: center;
+  border-left: var(--border);
+  border-right: var(--border);
+  border-top: var(--border);
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+
+  /* Position */
+  position: relative;
+
+  /* Size */
+  height: var(--size);
+  width: var(--size);
+
+  /* UX */
+  transition-property:
+      border-left-color,
+      border-top-color,
+      border-right-color,
+      border-bottom-color;
+
+  transition-duration: var(--transition);
+}
+
+.m-menu_browser_tile--highlight {
+  border-color: var(--highlight);
+}
+
+.m-menu_browser_tile--highlight .m-menu_browser_tile_name {
+  background: var(--highlight);
+  color: var(--textDark);
+}
+
+.m-menu_browser_tile--lighter {
+  border-color: var(--primaryLighter);
+}
+
+.m-menu_browser_tile--lighter .m-menu_browser_tile_name {
+  background: var(--primaryLighter);
+  color: var(--textDark);
+}
+
+.m-menu_browser_tile_icon {
+  margin-bottom: auto;
+  margin-top: auto;
+}
+
+.m-menu_browser_tile_name {
+  --padding: 4px;
+
+  /* Background */
+  background: var(--primaryLight);
+
+  /* Display */
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 4px;
+  padding-top: 8px;
+
+  /* Position */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  /* Text */
+  text-align: center;
+
+  /* UX */
+  transition-property: background-color, color;
+  transition-duration: var(--transition);
+}
+
+.m-menu_browser_tile_wrapper {
+  /* Display */
+  padding: calc(var(--menu_browser-gutter) / 2);
+
+  /* UX */
+  cursor: pointer;
+}

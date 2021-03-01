@@ -1,0 +1,41 @@
+@import 'components/Slot/style.css';
+
+.m-menu_loadout {
+  /* Display */
+  /*display: flex;*/
+  /*flex-flow: column nowrap;*/
+
+  /* Position */
+  margin-bottom: 32px;
+  margin-top: auto;
+
+  /* Size */
+  width: fit-content;
+}
+
+.m-menu_loadout_slot_container {
+  /* Display */
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+
+.m-menu_loadout_title {
+  /* Background */
+  /*background: var(--primaryLight);*/
+
+  /* Display */
+  padding: 1rem 2rem;
+  flex: 1;
+
+  /* Position */
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+
+  /* Size */
+  width: fit-content;
+
+  /* Text */
+  font-size: 1.5rem;
+}

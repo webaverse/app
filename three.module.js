@@ -24223,10 +24223,8 @@ function WebGLRenderer( parameters ) {
 	let onAnimationFrameCallback = null;
 
 	function onAnimationFrame( time ) {
-
 		if ( xr.isPresenting ) return;
 		if ( onAnimationFrameCallback ) onAnimationFrameCallback( time );
-
 	}
 
 	const animation = new WebGLAnimation();
