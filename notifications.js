@@ -1,6 +1,7 @@
+const defaultTimeout = 5000;
 const notificationsEl = document.getElementById('notifications');
 
-const addNotification = (html, {timeout = 5000} = {}) => {
+const addNotification = (html, {timeout = defaultTimeout} = {}) => {
   const div = document.createElement('div');
   div.classList.add('notification');
   div.innerHTML = html;
@@ -20,5 +21,6 @@ const removeNotification = div => {
 
 export {
   addNotification,
+  defaultTimeout,
   removeNotification,
 };
