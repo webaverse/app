@@ -1954,7 +1954,10 @@ const weaponsManager = {
     }
   },
   update: _updateWeapons,
-  clear() { _ungrab(); },
+  clear() {
+    _ungrab();
+    this.setMenu(0);
+  },
 };
 export default weaponsManager;
 export {_loadItemSpec1};
