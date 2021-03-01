@@ -30,11 +30,19 @@ The UI code lives in `/ui`.
 
 * Components are organized under `/ui/components`.
 
+* Pages are organized under `/ui/pages`.
+
+* Layouts are organized under `/ui/layouts`.
+
 * Shared models are kept in `/ui/models`.
 
 * Styles are imported hierarchically from `/ui/style.css`. Theming and global variables are defined in the root scope of this document.
 
 * Individual stylesheets are kept in their corresponding component's directory.
+
+Layouts are components which behave as frames and contain pages.  
+Pages are components that are meant to be displayed one at a time, and are comprised of child components.  
+Components are basic reusable mithril components. They can be grouped under directories containing similar components.
 
 #### Style
 
