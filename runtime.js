@@ -555,7 +555,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   
   return mesh;
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, components = [], contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], contentId = null, instanceId = null, physics = false, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -601,9 +601,11 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   let physicsIds = [];
   let staticPhysicsIds = [];
   o.run = async () => {
-    const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
-    physicsIds.push(physicsId);
-    staticPhysicsIds.push(physicsId);
+    if (physics) {
+      const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
+      physicsIds.push(physicsId);
+      staticPhysicsIds.push(physicsId);
+    }
     
     // elide expensive bone updates; this should not be called if wearing the avatar
     const skinnedMeshes = [];
