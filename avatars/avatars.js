@@ -1977,30 +1977,32 @@ class Avatar {
 
     for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
-      const modelBoneOutput = this.modelBoneOutputs[k];
+      if (modelBone) { // broken model
+        const modelBoneOutput = this.modelBoneOutputs[k];
 
-      if (/hips|thumb|finger/i.test(k)) {
-        modelBone.position.copy(modelBoneOutput.position);
-      }
-      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
+        if (/hips|thumb|finger/i.test(k)) {
+          modelBone.position.copy(modelBoneOutput.position);
+        }
+        modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
-      if (this.getTopEnabled()) {
-        if (k === 'Left_wrist') {
-          if (this.getHandEnabled(1)) {
-            modelBone.quaternion.multiply(leftRotation); // center
-          }
-        } else if (k === 'Right_wrist') {
-          if (this.getHandEnabled(0)) {
-            modelBone.quaternion.multiply(rightRotation); // center
+        if (this.getTopEnabled()) {
+          if (k === 'Left_wrist') {
+            if (this.getHandEnabled(1)) {
+              modelBone.quaternion.multiply(leftRotation); // center
+            }
+          } else if (k === 'Right_wrist') {
+            if (this.getHandEnabled(0)) {
+              modelBone.quaternion.multiply(rightRotation); // center
+            }
           }
         }
-      }
-      if (this.getBottomEnabled()) {
-        if (k === 'Left_ankle' || k === 'Right_ankle') {
-          modelBone.quaternion.multiply(upRotation);
+        if (this.getBottomEnabled()) {
+          if (k === 'Left_ankle' || k === 'Right_ankle') {
+            modelBone.quaternion.multiply(upRotation);
+          }
         }
+        modelBone.updateMatrixWorld();
       }
-      modelBone.updateMatrixWorld();
     }
 
     if (this.springBoneManager) {
