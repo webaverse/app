@@ -35,7 +35,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.15;',
+      'float offset = 0.06;',
 
       'void main() {',
       
@@ -47,8 +47,8 @@ const overrideMaterials = [
       'transformed += normal * offset;',
       // 'transformed = round(transformed * 10.) / 10.;',
       '#include <project_vertex>',
-      // 'gl_Position.xyz /= gl_Position.w;',
-      // 'gl_Position.w = 1.;',
+      'gl_Position.xyz /= gl_Position.w;',
+      'gl_Position.w = 1.;',
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
@@ -100,7 +100,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.1;',
+      'float offset = 0.04;',
 
       'void main() {',
       
@@ -112,8 +112,9 @@ const overrideMaterials = [
       'transformed += normal * offset;',
       // 'transformed = round(transformed * 10.) / 10.;',
       '#include <project_vertex>',
-      // 'gl_Position.xyz /= gl_Position.w;',
-      // 'gl_Position.w = 1.;',
+      'gl_Position.xyz /= gl_Position.w;',
+      'gl_Position.w = 1.;',
+      // `gl_Position.x -= ${(10/renderSize.x).toFixed(8)};`,
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
@@ -165,7 +166,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.05;',
+      'float offset = 0.02;',
 
       'void main() {',
       
@@ -177,8 +178,9 @@ const overrideMaterials = [
       'transformed += normal * offset;',
       // 'transformed = round(transformed * 10.) / 10.;',
       '#include <project_vertex>',
-      // 'gl_Position.xyz /= gl_Position.w;',
-      // 'gl_Position.w = 1.;',
+      'gl_Position.xyz /= gl_Position.w;',
+      'gl_Position.w = 1.;',
+      // `gl_Position.x -= ${(20/renderSize.x).toFixed(8)};`,
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
