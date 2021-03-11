@@ -2185,6 +2185,32 @@ class Avatar {
   getFloorHeight() {
     return this.poseManager.vrTransforms.floorHeight;
   }
+  
+  copyTo(model) {
+    // window.o = window.o || {};
+    const _recurse = (a, b) => {
+      if (a.isBone) {
+        // window.o[b.name] = true;
+        // _copySkeleton(a.skeleton, b.skeleton);
+        // b.skeleton.bones.forEach((b, i) => {
+          // console.log('got', a);
+          // debugger;
+          b.matrix.copy(a.matrix)
+            .decompose(b.position, b.quaternion, b.scale);
+          // b.position.copy(a.position);
+          // b.quaternion.copy(a.quaternion);
+          // b.position.set(-1 + Math.random() * 2, Math.random(), -1);
+        // });
+      }
+      if (a.children) {
+        for (let i = 0; i < a.children.length; i++) {
+          _recurse(a.children[i], b.children[i]);
+        }
+      }
+    };
+    // console.log('copy', model);
+    _recurse(this.model, model);
+  }
 
   destroy() {
     this.setMicrophoneMediaStream(null);
