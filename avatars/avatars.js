@@ -2077,7 +2077,7 @@ class Avatar {
           if (surprisedIndex !== -1) {
             morphTargetInfluences[surprisedIndex] = emotionValues.surprised;
           }
-          const activeVisemes = window.lol || this.activeVisemes;
+          const activeVisemes = this.activeVisemes;
           if (activeVisemes) {
             for (const o of activeVisemes) {
               morphTargetInfluences[o.index] = o.value;
