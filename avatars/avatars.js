@@ -2015,12 +2015,13 @@ class Avatar {
         this.outputs[k].quaternion.set(0, 0, 0, 1);
       }
       
+      this.outputs.leftUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.25));
+      this.outputs.rightUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.25));
+      
       const pose = poseData[2];
       for (const bone of pose.bones) {
         if (bone.name !== null) {
-          this.outputs[bone.name].quaternion.fromArray(bone.quaternion);
-          // console.log('pose', this.modelBones[bone.name].quaternion.toArray().join(', '));
-          // debugger;
+          this.outputs[bone.name].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
         }
       }
     }
