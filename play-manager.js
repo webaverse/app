@@ -18,6 +18,7 @@ const mmdLoader = new MMDLoader();
 }, function onprogress() {}, err => {
   console.warn(err.stack);
 }); */
+let poseData = null;
 (async () => {
   const poses = [
     `1.vpd`,
@@ -65,89 +66,91 @@ const mmdLoader = new MMDLoader();
     `9.vpd`,
   ];
   const boneNameMappings = {
-    '全ての親': 'all parents',
-    'センター': 'center',
-    '上半身': 'Upper body',
-    '首': 'first',
-    '頭': 'head',
-    '下半身': 'Lower body',
+    '全ての親': null, // 'mother',
+    'センター': 'Spine',
+    '上半身': 'Chest',
+    '首': 'Neck',
+    '頭': 'Head',
+    '下半身': 'Hips',
 
-    '左肩P': 'Left shoulder P',
-    '左肩': 'Left shoulder',
-    '左腕': 'Left arm',
-    '左腕捩': 'Left arm screw',
-    '左ひじ': 'Left elbow',
-    '左手捩': 'Left hand screw',
-    '左手首': 'Left wrist',
-    '左親指１': 'Left thumb 1',
-    '左親指２': 'Left thumb 2',
-    '左人指１': 'Left finger 1',
-    '左人指２': 'Left finger 2',
-    '左人指３': 'Left finger 3',
-    '左中指１': 'Left middle finger 1',
-    '左中指２': 'Left middle finger 2',
-    '左中指３': 'Left middle finger 3',
-    '左薬指１': 'Left ring finger 1',
-    '左薬指２': 'Left ring finger 2',
-    '左薬指３': 'Left ring finger 3',
-    '左小指１': 'Left little finger 1',
-    '左小指２': 'Left little finger 2',
-    '左小指３': 'Left little finger 3',
+    '左肩P': null, // 'Left_shoulder',
+    '左肩': 'Left_shoulder',
+    '左腕': 'Left_arm',
+    '左腕捩': null, // 'Left arm screw',
+    '左ひじ': 'Left_elbow',
+    '左手捩': null, // 'Left hand screw',
+    '左手首': 'Left_wrist',
+    '左親指１': 'Left_thumb0',
+    '左親指２': 'Left_thumb1',
+    '左人指１': 'Left_indexFinger1',
+    '左人指２': 'Left_indexFinger2',
+    '左人指３': 'Left_indexFinger3',
+    '左中指１': 'Left_middleFinger1',
+    '左中指２': 'Left_middleFinger2',
+    '左中指３': 'Left_middleFinger3',
+    '左薬指１': 'Left_ringFinger1',
+    '左薬指２': 'Left_ringFinger2',
+    '左薬指３': 'Left_ringFinger3',
+    '左小指１': 'Left_littleFinger1',
+    '左小指２': 'Left_littleFinger2',
+    '左小指３': 'Left_littleFinger3',
 
-    '右肩P': 'Right shoulder P',
-    '右肩': 'Right shoulder',
-    '右腕': 'Right arm',
-    '右腕捩': 'Right arm screw',
-    '右ひじ': 'Right elbow',
-    '右手捩': 'Right hand screw',
-    '右手首': 'Right wrist',
-    '右親指１': 'Right thumb 1',
-    '右親指２': 'Right thumb 2',
-    '右人指１': 'Right finger 1',
-    '右人指２': 'Right finger 2',
-    '右人指３': 'Right finger 3',
-    '右中指１': 'Right middle finger 1',
-    '右中指２': 'Right middle finger 2',
-    '右中指３': 'Right middle finger 3',
-    '右薬指１': 'Right ring finger 1',
-    '右薬指２': 'Right ring finger 2',
-    '右薬指３': 'Right ring finger 3',
-    '右小指１': 'Right little finger 1',
-    '右小指２': 'Right little finger 2',
-    '右小指３': 'Right little finger 3',
+    '右肩P': null, // 'Right shoulder P',
+    '右肩': 'Right_shoulder',
+    '右腕': 'Right_arm',
+    '右腕捩': null, // 'Right arm screw',
+    '右ひじ': 'Right_elbow',
+    '右手捩': null, // 'Right hand screw',
+    '右手首': 'Right_wrist',
+    '右親指１': 'Right_thumb0',
+    '右親指２': 'Right_thumb1',
+    '右人指１': 'Right_indexFinger1',
+    '右人指２': 'Right_indexFinger2',
+    '右人指３': 'Right_indexFinger3',
+    '右中指１': 'Right_middleFinger1',
+    '右中指２': 'Right_middleFinger2',
+    '右中指３': 'Right_middleFinger3',
+    '右薬指１': 'Right_ringFinger1',
+    '右薬指２': 'Right_ringFinger2',
+    '右薬指３': 'Right_ringFinger3',
+    '右小指１': 'Right_littleFinger1',
+    '右小指２': 'Right_littleFinger2',
+    '右小指３': 'Right_littleFinger3',
     
-    '左足': 'Left foot',
-    '左ひざ': 'Left knee',
-    '左足首': 'Left ankle',
-    '右足': 'Right foot',
-    '右ひざ': 'Right knee',
-    '右足首': 'Right ankle',
-    '左つま先': 'Left toe',
-    '右つま先': 'Right toe',
-    '左足ＩＫ': 'Left foot IK',
-    '右足ＩＫ': 'Right foot IK',
-    '左つま先ＩＫ': 'Left toe IK',
-    '右つま先ＩＫ': 'Right toe IK',
+    '左足': 'Left_leg',
+    '左ひざ': 'Left_knee',
+    '左足首': 'Left_ankle',
+    '右足': 'Right_leg',
+    '右ひざ': 'Right_knee',
+    '右足首': 'Right_ankle',
+    '左つま先': null, // 'Left_toe',
+    '右つま先': null, // 'Right_toe',
+    '左足ＩＫ': null, // 'Left foot IK',
+    '右足ＩＫ': null, // 'Right foot IK',
+    '左つま先ＩＫ': null, // 'Left toe IK',
+    '右つま先ＩＫ': null, // 'Right toe IK',
   };
-  for (const pose of poses) {
-    const u = './assets2/poses/ThatOneBun Posepack/' + pose;
-    try {
-      await new Promise((accept, reject) => {
+  try {
+    poseData = await Promise.all(poses.map(async pose => {
+      const u = './assets2/poses/ThatOneBun Posepack/' + pose;
+ 
+      const poseData = await new Promise((accept, reject) => {
         mmdLoader.loadVPD(u, false, a => {
           for (const bone of a.bones) {
-            if (boneNameMappings[bone.name]) {
+            if (boneNameMappings[bone.name] !== undefined) {
               bone.name = boneNameMappings[bone.name];
             } else {
               console.warn('could not find bone mapping for', JSON.stringify(bone.name), boneNameMappings);
             }
           }
-          console.log('got animation', a);
+          // console.log('got animation', a);
           accept(a);
         }, function onProgress() {}, reject);
       });
-    } catch(err) {
-      console.warn(err);
-    }
+      return poseData;
+    }));
+  } catch(err) {
+    console.warn(err);
   }
 })();
 
