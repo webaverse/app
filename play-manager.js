@@ -65,7 +65,7 @@ const overrideMaterials = [
         gl_FragColor = vec4(${new THREE.Color(0xd99727).toArray().join(', ')}, 1.);
       }
     `,
-    side: THREE.BackSide,
+    // side: THREE.BackSide,
     depthTest: false,
     // transparent: true,
     // polygonOffset: true,
@@ -131,7 +131,7 @@ const overrideMaterials = [
         gl_FragColor = vec4(${new THREE.Color(0xffc750).toArray().join(', ')}, 1.);
       }
     `,
-    side: THREE.BackSide,
+    // side: THREE.BackSide,
     depthTest: false,
     // transparent: true,
     // polygonOffset: true,
@@ -197,7 +197,7 @@ const overrideMaterials = [
         gl_FragColor = vec4(${new THREE.Color(0xffffff).toArray().join(', ')}, 1.);
       }
     `,
-    side: THREE.BackSide,
+    // side: THREE.BackSide,
     depthTest: false,
     // transparent: true,
     // polygonOffset: true,
