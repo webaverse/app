@@ -616,9 +616,10 @@ class PlayScene {
       const splashMesh = new THREE.Mesh(geometry, material);
       splashMesh.position.set(-0.5, 2, 0);
 
-      const textMesh = makeTextMesh('Sacks Salander', './Roboto-Light.ttf', 0.15, 'left', 'middle');
+      const textMesh = makeTextMesh('Sacks Salander', './Roboto-Regular.ttf', 0.15, 'left', 'middle');
       textMesh.color = 0xFFFFFF;
-      textMesh.position.set(-2.5 * factor / 2, 0.2, 0.01);
+      textMesh.position.set(-0.5, 0.2, 0);
+      textMesh.material.depthTest = false;
       splashMesh.add(textMesh);
 
       backgroundScene2.add(splashMesh);
