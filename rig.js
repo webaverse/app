@@ -120,7 +120,7 @@ class RigManager {
 
     this.peerRigs = new Map();
     
-    this.lastTimetamp = Date.now();
+    this.lastTimestamp = Date.now();
   }
   
   init() {
@@ -601,7 +601,7 @@ class RigManager {
 
   update() {
     const now = Date.now();
-    const timeDiff = (now - this.lastTimetamp) / 1000;
+    const timeDiff = (now - this.lastTimestamp) / 1000;
     
     const session = renderer.xr.getSession();
     let currentPosition, currentQuaternion;
@@ -703,7 +703,7 @@ class RigManager {
       rig.aux.update(timeDiff);
     });
     
-    this.lastTimetamp = now;
+    this.lastTimestamp = now;
 
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
