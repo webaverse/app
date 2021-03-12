@@ -814,6 +814,8 @@ class Avatar {
     })();
     this.model = model;
     this.options = options;
+    
+    const blendShapeGroups = object?.userData?.gltfExtensions?.VRM?.blendShapeMaster.blendShapeGroups;
 
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
@@ -1527,52 +1529,22 @@ class Avatar {
       const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
       const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
-      const _getVrmBlendShapeIndex = r => {
-        if (Array.isArray(blendShapes)) {
-          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
-          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
-            return shape.binds[0].index;
-          } else {
-            return null;
-          }
-        } else {
-          return null;
-        }
-      };
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || -1;
-          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || -1;
-          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || -1;
-          const neutralIndex = _getVrmBlendShapeIndex(/^neutral$/i) || -1;
-          const aIndex = _getVrmBlendShapeIndex(/^a$/i) || -1;
-          const iIndex = _getVrmBlendShapeIndex(/^i$/i) || -1;
-          const uIndex = _getVrmBlendShapeIndex(/^u$/i) || -1;
-          const eIndex = _getVrmBlendShapeIndex(/^e$/i) || -1;
-          const oIndex = _getVrmBlendShapeIndex(/^o$/i) || -1;
-          const angryIndex = _getVrmBlendShapeIndex(/^angry$/i) || -1;
-          const funIndex = _getVrmBlendShapeIndex(/^fun$/i) || -1;
-          const joyIndex = _getVrmBlendShapeIndex(/^joy$/i) || -1;
-          const sorrowIndex = _getVrmBlendShapeIndex(/^sorrow$/i) || -1;
-          const surprisedIndex = _getVrmBlendShapeIndex(/^surprised$/i) || -1;
-          return [
-            morphTargetInfluences,
-            aaIndex,
-            blinkLeftIndex,
-            blinkRightIndex,
-            neutralIndex,
-            aIndex,
-            iIndex,
-            uIndex,
-            eIndex,
-            oIndex,
-            angryIndex,
-            funIndex,
-            joyIndex,
-            sorrowIndex,
-            surprisedIndex,
-          ];
+          const result = blendShapeGroups.map(blendShapeGroup => {
+            const name = blendShapeGroup.name.toLowerCase();
+            const index = blendShapeGroup.binds?.[0]?.index || -1;
+            return {
+              name,
+              index,
+            };
+          });
+          result.morphTargetInfluences = morphTargetInfluences;
+          for (const visemeMapping of result) {
+            result[visemeMapping.name] = visemeMapping.index;
+          }
+          return result;
         } else {
           return null;
         }
@@ -2013,13 +1985,12 @@ class Avatar {
     } */
 
     if (this.options.visemes) {
-      const aaValue = Math.min(this.volume * 10, 1);
+      const aValue = Math.min(this.volume * 10, 1);
       const emotionValues = {
         angry: 0,
         fun: 0,
         joy: 0,
         sorrow: 0,
-        surprised: 0,
       };
       const blinkValue = (() => {
         const nowWindow = now % 2000;
@@ -2033,54 +2004,35 @@ class Avatar {
       })();
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         if (visemeMapping) {
-          const [
-            morphTargetInfluences,
-            aaIndex,
-            blinkLeftIndex,
-            blinkRightIndex,
-            neutralIndex,
-            aIndex,
-            iIndex,
-            uIndex,
-            eIndex,
-            oIndex,
-            angryIndex,
-            funIndex,
-            joyIndex,
-            sorrowIndex,
-            surprisedIndex,
-          ] = visemeMapping;
+          // initialize
+          const {morphTargetInfluences} = visemeMapping;
           for (let i = 0; i < morphTargetInfluences.length; i++) {
             morphTargetInfluences[i] = 0;
           }
-          if (aaIndex !== -1) {
-            morphTargetInfluences[aaIndex] = aaValue;
+
+          // ik
+          if (visemeMapping.a) {
+            morphTargetInfluences[visemeMapping.a] = aValue;
           }
-          if (blinkLeftIndex !== -1) {
-            morphTargetInfluences[blinkLeftIndex] = blinkValue;
+          if (visemeMapping.blink_l) {
+            morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
           }
-          if (blinkRightIndex !== -1) {
-            morphTargetInfluences[blinkRightIndex] = blinkValue;
+          if (visemeMapping.blink_r) {
+            morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
           }
-          if (angryIndex !== -1) {
-            morphTargetInfluences[angryIndex] = emotionValues.angry;
+
+          // local vismeses
+          for (const influence of visemeMapping) {
+            if (emotionValues[influence.name]) {
+              morphTargetInfluences[influence.index] = emotionValues[influence.name];
+            }
           }
-          if (funIndex !== -1) {
-            morphTargetInfluences[funIndex] = emotionValues.fun;
-          }
-          if (joyIndex !== -1) {
-            morphTargetInfluences[joyIndex] = emotionValues.joy;
-          }
-          if (sorrowIndex !== -1) {
-            morphTargetInfluences[sorrowIndex] = emotionValues.sorrow;
-          }
-          if (surprisedIndex !== -1) {
-            morphTargetInfluences[surprisedIndex] = emotionValues.surprised;
-          }
+
+          // animation visemes
           const activeVisemes = this.activeVisemes;
           if (activeVisemes) {
             for (const o of activeVisemes) {
-              morphTargetInfluences[o.index] = o.value;
+              morphTargetInfluences[o.name] = o.value;
             }
           }
         }
