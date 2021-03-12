@@ -202,6 +202,50 @@ class RigManager {
 
     await this.setAvatar(this.localRig, newLocalRig => {
       this.localRig = newLocalRig;
+
+      const img = new Image();
+      img.src = './threeTone.jpg';
+      const gradientMap = new THREE.Texture(img);
+      gradientMap.minFilter = THREE.NearestFilter;
+      gradientMap.magFilter = THREE.NearestFilter;
+      img.onload = () => {
+        gradientMap.needsUpdate = true;
+      };
+      newLocalRig.model.traverse(o => {
+        if (o.isMesh) {
+          const oldMaterial = o.material;
+
+          /* if (oldMaterial.map) {
+            const canvas = document.createElement('canvas');
+            canvas.width = oldMaterial.map.image.width;
+            canvas.height = oldMaterial.map.image.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(oldMaterial.map.image, 0, 0);
+            document.body.appendChild(canvas);
+          } */
+          o.material = new THREE.MeshToonMaterial({
+            map: oldMaterial.map,
+            // normalMap: oldMaterial.normalMap,
+            aoMap: oldMaterial.aoMap,
+            // bumpMap: oldMaterial.bumpMap,
+            // emissiveMap: oldMaterial.emissiveMap,
+            gradientMap,
+            // emissive: oldMaterial.emissive,
+            lightMap: oldMaterial.lightMap,
+            // color: oldMaterial.color,
+            color: oldMaterial.color,
+          });
+          o.material.transparent = oldMaterial.transparent;
+          o.material.alphaTest = oldMaterial.alphaTest;
+          // o.material.map = new THREE.Texture(oldMaterial.map.image);
+          // o.material.map.needsUpdate = true;
+          o.material.skinning = oldMaterial.skinning;
+          o.material.morphTargets = oldMaterial.morphTargets;
+          o.material.morphNormals = oldMaterial.morphNormals;
+        }
+      });
+    // console.log('got model', vrmObject);
+    // window.THREE = THREE;
     }, url, ext);
 
     // await this.localRigQueue.unlock();
