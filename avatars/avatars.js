@@ -35,6 +35,144 @@ const useAnimationRate = 750;
 const crouchMaxTime = 200;
 const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
+import {MMDLoader} from '../MMDLoader.js';
+const mmdLoader = new MMDLoader();
+let poseData = null;
+(async () => {
+  const poses = [
+    `1.vpd`,
+    `2.vpd`,
+    `3.vpd`,
+    `10.vpd`,
+    `11.vpd`,
+    `12.vpd`,
+    `13.vpd`,
+    `14.vpd`,
+    `15.vpd`,
+    `16.vpd`,
+    `17.vpd`,
+    `18.vpd`,
+    `19.vpd`,
+    `20.vpd`,
+    `21.vpd`,
+    `22.vpd`,
+    `23.vpd`,
+    `24.vpd`,
+    `25.vpd`,
+    `26.vpd`,
+    `27.vpd`,
+    `28.vpd`,
+    `29.vpd`,
+    `30.vpd`,
+    `31.vpd`,
+    `32.vpd`,
+    `33.vpd`,
+    `34.vpd`,
+    `35.vpd`,
+    `36.vpd`,
+    `37.vpd`,
+    `38.vpd`,
+    `39.vpd`,
+    `4.vpd`,
+    `40.vpd`,
+    `41.vpd`,
+    `42.vpd`,
+    `43.vpd`,
+    `5.vpd`,
+    `6.vpd`,
+    `7.vpd`,
+    `8.vpd`,
+    `9.vpd`,
+  ];
+  const boneNameMappings = {
+    '全ての親': null, // 'hips',
+    'センター': 'spine',
+    '上半身': 'chest',
+    '首': 'neck',
+    '頭': 'head',
+    '下半身': null, // 'hips',
+
+    '左肩P': null, // 'rightShoulder',
+    '左肩': 'rightShoulder',
+    '左腕': 'rightUpperArm',
+    '左腕捩': null, // 'rightLowerArm',
+    '左ひじ': 'rightLowerArm',
+    '左手捩': null, // 'rightLowerArm',
+    '左手首': 'rightHand',
+    '左親指１': 'leftThumb1',
+    '左親指２': 'leftThumb2',
+    '左人指１': 'leftIndexFinger1',
+    '左人指２': 'leftIndexFinger2',
+    '左人指３': 'leftIndexFinger3',
+    '左中指１': 'leftMiddleFinger1',
+    '左中指２': 'leftMiddleFinger2',
+    '左中指３': 'leftMiddleFinger3',
+    '左薬指１': 'leftRingFinger1',
+    '左薬指２': 'leftRingFinger2',
+    '左薬指３': 'leftRingFinger3',
+    '左小指１': 'leftLittleFinger1',
+    '左小指２': 'leftLittleFinger2',
+    '左小指３': 'leftLittleFinger3',
+
+    '右肩P': null, // 'leftShoulder',
+    '右肩': 'leftShoulder',
+    '右腕': 'leftUpperArm',
+    '右腕捩': null, // 'leftLowerArm',
+    '右ひじ': 'leftLowerArm',
+    '右手捩': null, // 'leftLowerArm',
+    '右手首': 'leftHand',
+    '右親指１': 'rightThumb1',
+    '右親指２': 'rightThumb2',
+    '右人指１': 'rightIndexFinger1',
+    '右人指２': 'rightIndexFinger2',
+    '右人指３': 'rightIndexFinger3',
+    '右中指１': 'rightMiddleFinger1',
+    '右中指２': 'rightMiddleFinger2',
+    '右中指３': 'rightMiddleFinger3',
+    '右薬指１': 'rightRingFinger1',
+    '右薬指２': 'rightRingFinger2',
+    '右薬指３': 'rightRingFinger3',
+    '右小指１': 'rightLittleFinger1',
+    '右小指２': 'rightLittleFinger2',
+    '右小指３': 'rightLittleFinger3',
+    
+    '左足': 'leftUpperLeg',
+    '左ひざ': 'leftLowerLeg',
+    '左足首': 'leftFoot',
+    '右足': 'rightUpperLeg',
+    '右ひざ': 'rightLowerLeg',
+    '右足首': 'rightFoot',
+    '左つま先': null, // 'Left_toe',
+    '右つま先': null, // 'Right_toe',
+    '左足ＩＫ': null, // 'Left foot IK',
+    '右足ＩＫ': null, // 'Right foot IK',
+    '左つま先ＩＫ': null, // 'Left toe IK',
+    '右つま先ＩＫ': null, // 'Right toe IK',
+  };
+  try {
+    poseData = await Promise.all(poses.map(async pose => {
+      const u = './assets2/poses/ThatOneBun Posepack/' + pose;
+ 
+      const poseData = await new Promise((accept, reject) => {
+        mmdLoader.loadVPD(u, false, a => {
+          for (const bone of a.bones) {
+            if (boneNameMappings[bone.name] !== undefined) {
+              bone.name = boneNameMappings[bone.name];
+            } else {
+              console.warn('could not find bone mapping for', JSON.stringify(bone.name), boneNameMappings);
+            }
+          }
+          // console.log('got animation', a);
+          accept(a);
+        }, function onProgress() {}, reject);
+      });
+      return poseData;
+    }));
+  } catch(err) {
+    console.warn(err);
+  }
+})();
+
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
 const animationsSelectMap = {
@@ -1871,6 +2009,21 @@ class Avatar {
       }
     };
     _applyAnimation();
+    
+    if (poseData) {
+      for (const k in this.outputs) {
+        this.outputs[k].quaternion.set(0, 0, 0, 1);
+      }
+      
+      const pose = poseData[2];
+      for (const bone of pose.bones) {
+        if (bone.name !== null) {
+          this.outputs[bone.name].quaternion.fromArray(bone.quaternion);
+          // console.log('pose', this.modelBones[bone.name].quaternion.toArray().join(', '));
+          // debugger;
+        }
+      }
+    }
 
     if (this.getTopEnabled()) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
