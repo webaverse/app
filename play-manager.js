@@ -1,10 +1,88 @@
 import * as THREE from './three.module.js';
 import {rigManager} from './rig.js';
 import {scene, camera, renderer, avatarScene} from './app-object.js';
+import runtime from './runtime.js';
+import Avatar from './avatars/avatars.js';
+import {makeTextMesh} from './vr-ui.js';
+import {unFrustumCull} from './util.js';
+
+let lastAvatarUrl = null;
+let localRig2 = null;
+
+import {MMDLoader} from './MMDLoader.js';
+const mmdLoader = new MMDLoader();
+/* mmdLoader.load('./gumi/Gumi Megpoid.pmx', o => {
+  console.log('got model', o);
+  o.scale.multiplyScalar(0.075);
+  scene.add(o);
+}, function onprogress() {}, err => {
+  console.warn(err.stack);
+}); */
+(async () => {
+  const poses = [
+    `1.vpd`,
+    `10.vpd`,
+    `11.vpd`,
+    `12.vpd`,
+    `13.vpd`,
+    `14.vpd`,
+    `15.vpd`,
+    `16.vpd`,
+    `17.vpd`,
+    `18.vpd`,
+    `19.vpd`,
+    `2.vpd`,
+    `20.vpd`,
+    `21.vpd`,
+    `22.vpd`,
+    `23.vpd`,
+    `24.vpd`,
+    `25.vpd`,
+    `26.vpd`,
+    `27.vpd`,
+    `28.vpd`,
+    `29.vpd`,
+    `3.vpd`,
+    `30.vpd`,
+    `31.vpd`,
+    `32.vpd`,
+    `33.vpd`,
+    `34.vpd`,
+    `35.vpd`,
+    `36.vpd`,
+    `37.vpd`,
+    `38.vpd`,
+    `39.vpd`,
+    `4.vpd`,
+    `40.vpd`,
+    `41.vpd`,
+    `42.vpd`,
+    `43.vpd`,
+    `5.vpd`,
+    `6.vpd`,
+    `7.vpd`,
+    `8.vpd`,
+    `9.vpd`,
+  ];
+})();
+
+const factor = 1/4;      
+const heartShape = new THREE.Shape();
+heartShape.moveTo(-2.5 * factor, -1 * factor );
+heartShape.lineTo(-2.5 * factor, 1 * factor );
+heartShape.lineTo(-2 * factor, 1.5 * factor );
+heartShape.lineTo(2 * factor, 1.5 * factor );
+heartShape.lineTo(2.5 * factor, 1 * factor );
+heartShape.lineTo(1 * factor, -1.5 * factor );
+heartShape.lineTo(-2 * factor, -1.5 * factor );
 
 const renderSize = renderer.getSize(new THREE.Vector2());
 const backgroundRenderTarget = new THREE.WebGLRenderTarget(renderSize.x, renderSize.y);
+// backgroundRenderTarget.generateMipmaps = true;
+// backgroundRenderTarget.anisotropy = 16;
 const backgroundScene = new THREE.Scene();
+const backgroundScene2 = new THREE.Scene();
+const backgroundScene3 = new THREE.Scene();
 const overrideMaterials = [
   new THREE.ShaderMaterial({
     /* uniforms: {
@@ -35,7 +113,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.06;',
+      'float offset = 0.;',
 
       'void main() {',
       
@@ -49,6 +127,7 @@ const overrideMaterials = [
       '#include <project_vertex>',
       'gl_Position.xyz /= gl_Position.w;',
       'gl_Position.w = 1.;',
+      `gl_Position.x -= ${(30/renderSize.x).toFixed(8)};`,
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
@@ -100,7 +179,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.04;',
+      'float offset = 0.;',
 
       'void main() {',
       
@@ -114,7 +193,7 @@ const overrideMaterials = [
       '#include <project_vertex>',
       'gl_Position.xyz /= gl_Position.w;',
       'gl_Position.w = 1.;',
-      // `gl_Position.x -= ${(10/renderSize.x).toFixed(8)};`,
+      `gl_Position.x -= ${(20/renderSize.x).toFixed(8)};`,
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
@@ -166,7 +245,7 @@ const overrideMaterials = [
       '#include <morphtarget_pars_vertex>',
       '#include <skinning_pars_vertex>',
 
-      'float offset = 0.02;',
+      'float offset = 0.;',
 
       'void main() {',
       
@@ -180,7 +259,7 @@ const overrideMaterials = [
       '#include <project_vertex>',
       'gl_Position.xyz /= gl_Position.w;',
       'gl_Position.w = 1.;',
-      // `gl_Position.x -= ${(20/renderSize.x).toFixed(8)};`,
+      `gl_Position.x -= ${(10/renderSize.x).toFixed(8)};`,
       // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
 
       // 'vPosition = mvPosition;',
@@ -208,7 +287,206 @@ for (const overrideMaterial of overrideMaterials) {
   overrideMaterial.skinning = true;
   overrideMaterial.morphTargets = true;
 }
-let lastLocalRig2 = null;
+const overrideMaterials2 = [
+  new THREE.ShaderMaterial({
+    /* uniforms: {
+      uTex: {
+        type: 't',
+        value: backgroundRenderTarget.texture,
+        needsUpdate: true,
+      },
+    }, */
+    /* vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position * 1.1, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `, */
+    uniforms: {
+      "depthTexture": { value: null },
+      "cameraNearFar": { value: new THREE.Vector2( 0.5, 0.5 ) },
+      "textureMatrix": { value: new THREE.Matrix4() }
+    },
+    vertexShader: [
+      'varying vec4 projTexCoord;',
+      'varying vec4 vPosition;',
+      'uniform mat4 textureMatrix;',
+      '#include <morphtarget_pars_vertex>',
+      '#include <skinning_pars_vertex>',
+
+      'float offset = 0.12;',
+
+      'void main() {',
+      
+      
+      '#include <skinbase_vertex>',
+      '#include <begin_vertex>',
+      '#include <morphtarget_vertex>',
+      '#include <skinning_vertex>',
+      'transformed.xy *= 1. + offset;',
+      // 'transformed = round(transformed * 10.) / 10.;',
+      '#include <project_vertex>',
+      // 'gl_Position.xyz /= gl_Position.w;',
+      // 'gl_Position.w = 1.;',
+      // `gl_Position.x -= ${(30/renderSize.x).toFixed(8)};`,
+      // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
+
+      // 'vPosition = mvPosition;',
+      // 'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+      // 'projTexCoord = textureMatrix * worldPosition;',
+
+      '}'
+    ].join( '\n' ),
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        gl_FragColor = vec4(${new THREE.Color(0xd99727).toArray().join(', ')}, 1.);
+      }
+    `,
+    // side: THREE.BackSide,
+    depthTest: false,
+    // transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+  }),
+  new THREE.ShaderMaterial({
+    /* uniforms: {
+      uTex: {
+        type: 't',
+        value: backgroundRenderTarget.texture,
+        needsUpdate: true,
+      },
+    }, */
+    /* vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position * 1.1, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `, */
+    uniforms: {
+      "depthTexture": { value: null },
+      "cameraNearFar": { value: new THREE.Vector2( 0.5, 0.5 ) },
+      "textureMatrix": { value: new THREE.Matrix4() }
+    },
+    vertexShader: [
+      'varying vec4 projTexCoord;',
+      'varying vec4 vPosition;',
+      'uniform mat4 textureMatrix;',
+      '#include <morphtarget_pars_vertex>',
+      '#include <skinning_pars_vertex>',
+
+      'float offset = 0.08;',
+
+      'void main() {',
+      
+      
+      '#include <skinbase_vertex>',
+      '#include <begin_vertex>',
+      '#include <morphtarget_vertex>',
+      '#include <skinning_vertex>',
+      'transformed.xy *= 1. + offset;',
+      // 'transformed = round(transformed * 10.) / 10.;',
+      '#include <project_vertex>',
+      // 'gl_Position.xyz /= gl_Position.w;',
+      // 'gl_Position.w = 1.;',
+      // `gl_Position.x -= ${(20/renderSize.x).toFixed(8)};`,
+      // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
+
+      // 'vPosition = mvPosition;',
+      // 'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+      // 'projTexCoord = textureMatrix * worldPosition;',
+
+      '}'
+    ].join( '\n' ),
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        gl_FragColor = vec4(${new THREE.Color(0xffc750).toArray().join(', ')}, 1.);
+      }
+    `,
+    // side: THREE.BackSide,
+    depthTest: false,
+    // transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+  }),
+  new THREE.ShaderMaterial({
+    /* uniforms: {
+      uTex: {
+        type: 't',
+        value: backgroundRenderTarget.texture,
+        needsUpdate: true,
+      },
+    }, */
+    /* vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position * 1.1, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `, */
+    uniforms: {
+      "depthTexture": { value: null },
+      "cameraNearFar": { value: new THREE.Vector2( 0.5, 0.5 ) },
+      "textureMatrix": { value: new THREE.Matrix4() }
+    },
+    vertexShader: [
+      'varying vec4 projTexCoord;',
+      'varying vec4 vPosition;',
+      'uniform mat4 textureMatrix;',
+      '#include <morphtarget_pars_vertex>',
+      '#include <skinning_pars_vertex>',
+
+      'float offset = 0.04;',
+
+      'void main() {',
+      
+      
+      '#include <skinbase_vertex>',
+      '#include <begin_vertex>',
+      '#include <morphtarget_vertex>',
+      '#include <skinning_vertex>',
+      'transformed.xy *= 1. + offset;',
+      // 'transformed = round(transformed * 10.) / 10.;',
+      '#include <project_vertex>',
+      // 'gl_Position.xyz /= gl_Position.w;',
+      // 'gl_Position.w = 1.;',
+      // `gl_Position.x -= ${(10/renderSize.x).toFixed(8)};`,
+      // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
+
+      // 'vPosition = mvPosition;',
+      // 'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+      // 'projTexCoord = textureMatrix * worldPosition;',
+
+      '}'
+    ].join( '\n' ),
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      void main() {
+        gl_FragColor = vec4(${new THREE.Color(0xffffff).toArray().join(', ')}, 1.);
+      }
+    `,
+    // side: THREE.BackSide,
+    depthTest: false,
+    // transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+  }),
+];
 
 class PlayScene {
   constructor() {
@@ -277,56 +555,82 @@ class PlayScene {
       return o;
     }));
 
-    const geometry = new THREE.PlaneBufferGeometry(4, 4);
-    /* const material = new THREE.MeshBasicMaterial({
-      // color: new THREE.Color(0xFF0000),
-      map: backgroundRenderTarget.texture,
-    }); */
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTex: {
-          type: 't',
-          value: backgroundRenderTarget.texture,
-          needsUpdate: true,
+    {
+      const geometry = new THREE.PlaneBufferGeometry(4, 4);
+      /* const material = new THREE.MeshBasicMaterial({
+        // color: new THREE.Color(0xFF0000),
+        map: backgroundRenderTarget.texture,
+      }); */
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          uTex: {
+            type: 't',
+            value: backgroundRenderTarget.texture,
+            needsUpdate: true,
+          },
         },
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
 
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-          /* gl_Position.xyz /= gl_Position.w;
-          gl_Position.w = 1.0;
-          gl_Position.xy *= 1.25; */
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
+          void main() {
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * mvPosition;
+            /* gl_Position.xyz /= gl_Position.w;
+            gl_Position.w = 1.0;
+            gl_Position.xy *= 1.25; */
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
 
-        uniform sampler2D uTex;
+          uniform sampler2D uTex;
 
-        void main() {
-          // c.rg += gl_FragCoord.xy;
-          // gl_FragColor = c;
-          // gl_FragColor = vec4(1., 0., 1., 1.);
-          vec2 uv = gl_FragCoord.xy / vec2(${(renderSize.x * renderer.getPixelRatio()).toFixed(8)}, ${(renderSize.y * renderer.getPixelRatio()).toFixed(8)});
-          // uv -= 0.5;
-          // uv.y = 1. - uv.y;
-          gl_FragColor = vec4(texture2D(uTex, uv).rgb, 1.);
-          // gl_FragColor.rb += uv;
-        }
-      `,
-      // transparent: true,
-      // polygonOffset: true,
-      // polygonOffsetFactor: -1,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 4/2, -0.5);
-    // mesh.visible = false;
-    scene.add(mesh);
+          void main() {
+            // c.rg += gl_FragCoord.xy;
+            // gl_FragColor = c;
+            // gl_FragColor = vec4(1., 0., 1., 1.);
+            vec2 uv = gl_FragCoord.xy / vec2(${(renderSize.x * renderer.getPixelRatio()).toFixed(8)}, ${(renderSize.y * renderer.getPixelRatio()).toFixed(8)});
+            // uv -= 0.5;
+            // uv.y = 1. - uv.y;
+            gl_FragColor = vec4(texture2D(uTex, uv).rgb, 1.);
+            // gl_FragColor.rb += uv;
+          }
+        `,
+        // transparent: true,
+        // polygonOffset: true,
+        // polygonOffsetFactor: -1,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(0, 4/2, -0.5);
+      // mesh.visible = false;
+      scene.add(mesh);
+    }
+    {
+      const geometry = new THREE.ShapeGeometry(heartShape);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+      });
+      const splashMesh = new THREE.Mesh(geometry, material);
+      splashMesh.position.set(-0.5, 2, 0);
+
+      const textMesh = makeTextMesh('Sacks Salander', './Roboto-Light.ttf', 0.15, 'left', 'middle');
+      textMesh.color = 0xFFFFFF;
+      textMesh.position.set(-2.5 * factor / 2, 0.2, 0.01);
+      splashMesh.add(textMesh);
+
+      backgroundScene2.add(splashMesh);
+    }
+    {
+      const geometry = new THREE.ShapeGeometry(heartShape);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+      });
+      const splashMesh3 = new THREE.Mesh(geometry, material);
+      splashMesh3.position.set(-0.5, 2, 0);
+      backgroundScene3.add(splashMesh3);
+    }
   }
   update() {
     const {currentTime} = this.audio;
@@ -362,33 +666,60 @@ class PlayScene {
     } else {
       rigManager.localRig.eyeTargetEnabled = false;
     }
+
+    const avatarUrl = './assets2/sacks3.vrm'; // rigManager.getLocalAvatarUrl();
+    if (avatarUrl !== lastAvatarUrl) {
+      lastAvatarUrl = avatarUrl;
+      
+      (async () => {
+        let o2;
+        if (avatarUrl) {
+          o2 = await runtime.loadFile({
+            url: avatarUrl,
+            ext: 'vrm',
+          }, {
+            contentId: avatarUrl,
+          });
+          /* if (!o2.isVrm && o2.run) {
+            o2.run();
+          } */
+        }
+        
+        if (localRig2) {
+          backgroundScene.remove(localRig2.model);
+          localRig2 = null;
+        }
+        
+        localRig2 = new Avatar(o2.raw, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          debug: false //!o,
+        });
+        localRig2.model.isVrm = true;
+        
+        unFrustumCull(localRig2.model);
+        backgroundScene.add(localRig2.model);
+      })();
+    }
+    if (rigManager.localRig && localRig2) {
+      // debugger;
+      rigManager.localRig.copyTo(localRig2.model);
+    }
     
-    /* const children = avatarScene.children.slice();
-    for (const child of children) {
-      backgroundScene.add(child);
-    } */
-    if (rigManager.localRig2 && rigManager.localRig2 !== lastLocalRig2) {
-      if (lastLocalRig2) {
-        backgroundScene.remove(lastLocalRig2.model);
-      }
-      backgroundScene.add(rigManager.localRig2.model);
-      lastLocalRig2 = rigManager.localRig2;
-    }
-    if (rigManager.localRig2) {
-      rigManager.localRig.copyTo(rigManager.localRig2.model);
-      // rigManager.localRig2.model.position.z = -0.5;
-      // rigManager.localRig2.model.position.y = Math.sin((Date.now() % 1000) / 1000 * Math.PI*2) * 0.3;
-    }
+    // render 
     renderer.setRenderTarget(backgroundRenderTarget);
     renderer.clear();
     for (const overrideMaterial of overrideMaterials) {
       backgroundScene.overrideMaterial = overrideMaterial;
       renderer.render(backgroundScene, camera);
     }
+    for (const overrideMaterial of overrideMaterials2) {
+      backgroundScene3.overrideMaterial = overrideMaterial;
+      renderer.render(backgroundScene3, camera);
+    }
+    renderer.render(backgroundScene2, camera);
     renderer.setRenderTarget(null);
-    /* for (const child of children) {
-      avatarScene.add(child);
-    } */
   }
 }
 let playScene = null;
