@@ -330,7 +330,7 @@ class PlayScene {
   }
   update() {
     const {currentTime} = this.audio;
-    /* rigManager.localRig.activeVisemes = this.script.map(o => {
+    rigManager.localRig.activeVisemes = this.script.map(o => {
       if (o.type === 'viseme') {
         if (o.startTime < currentTime && currentTime < o.endTime) {
           let value;
@@ -361,7 +361,7 @@ class PlayScene {
       rigManager.localRig.eyeTargetEnabled = true;
     } else {
       rigManager.localRig.eyeTargetEnabled = false;
-    } */
+    }
     
     /* const children = avatarScene.children.slice();
     for (const child of children) {
