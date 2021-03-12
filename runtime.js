@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {MMDLoader} from './MMDLoader.js';
 // import {KTX2Loader} from './KTX2Loader.js';
 import {VOXLoader} from './VOXLoader.js';
 import {CSS3DObject} from './CSS3DRenderer.js';
@@ -15,7 +16,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, scene2, appManager} from './app-object.js';
+import {scene, renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -49,6 +50,14 @@ const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
 gltfLoader.setBasisLoader(basisLoader);
 basisLoader.detectSupport(renderer);
+const mmdLoader = new MMDLoader();
+mmdLoader.load('./gumi/Gumi Megpoid.pmx', o => {
+  console.log('got model', o);
+  o.scale.multiplyScalar(0.075);
+  scene.add(o);
+}, function onprogress() {}, err => {
+  console.warn(err.stack);
+});
 
 const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
   if (!monetizationPointer) {
