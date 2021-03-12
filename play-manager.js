@@ -77,7 +77,8 @@ heartShape.lineTo(1 * factor, -1.5 * factor );
 heartShape.lineTo(-2 * factor, -1.5 * factor );
 
 const renderSize = renderer.getSize(new THREE.Vector2());
-const backgroundRenderTarget = new THREE.WebGLRenderTarget(renderSize.x, renderSize.y);
+const backgroundRenderTarget = new THREE.WebGLMultisampleRenderTarget(renderSize.x, renderSize.y);
+backgroundRenderTarget.samples = 4;
 // backgroundRenderTarget.generateMipmaps = true;
 // backgroundRenderTarget.anisotropy = 16;
 const backgroundScene = new THREE.Scene();
