@@ -35,6 +35,17 @@ const useAnimationRate = 750;
 const crouchMaxTime = 200;
 const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
+let poseIndex = 0;
+window.addEventListener('keydown', e => {
+  if (poseData) {
+    if (e.which === 35) {
+      poseIndex = Math.min(Math.max(poseIndex - 1, 0), poseData.length - 1);
+    } else if (e.which === 40) {
+      poseIndex = Math.min(Math.max(poseIndex + 1, 0), poseData.length - 1);
+    }
+  }
+}, true);
+
 import {MMDLoader} from '../MMDLoader.js';
 const mmdLoader = new MMDLoader();
 let poseData = null;
@@ -43,6 +54,12 @@ let poseData = null;
     `1.vpd`,
     `2.vpd`,
     `3.vpd`,
+    `4.vpd`,
+    `5.vpd`,
+    `6.vpd`,
+    `7.vpd`,
+    `8.vpd`,
+    `9.vpd`,
     `10.vpd`,
     `11.vpd`,
     `12.vpd`,
@@ -73,21 +90,15 @@ let poseData = null;
     `37.vpd`,
     `38.vpd`,
     `39.vpd`,
-    `4.vpd`,
     `40.vpd`,
     `41.vpd`,
     `42.vpd`,
     `43.vpd`,
-    `5.vpd`,
-    `6.vpd`,
-    `7.vpd`,
-    `8.vpd`,
-    `9.vpd`,
   ];
   const boneNameMappings = {
-    '全ての親': null, // 'hips',
-    'センター': 'spine',
-    '上半身': 'chest',
+    '全ての親': null, // 'spine',
+    'センター': null, // 'hips',
+    '上半身': null, // 'spine',
     '首': 'neck',
     '頭': 'head',
     '下半身': null, // 'hips',
@@ -144,8 +155,8 @@ let poseData = null;
     '右足首': 'rightFoot',
     '左つま先': null, // 'Left_toe',
     '右つま先': null, // 'Right_toe',
-    '左足ＩＫ': null, // 'Left foot IK',
-    '右足ＩＫ': null, // 'Right foot IK',
+    '左足ＩＫ': null, // 'leftUpperLeg',
+    '右足ＩＫ': null, // 'rightUpperLeg',
     '左つま先ＩＫ': null, // 'Left toe IK',
     '右つま先ＩＫ': null, // 'Right toe IK',
   };
@@ -2018,7 +2029,7 @@ class Avatar {
       this.outputs.leftUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.25));
       this.outputs.rightUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.25));
       
-      const pose = poseData[2];
+      const pose = poseData[poseIndex];
       for (const bone of pose.bones) {
         if (bone.name !== null) {
           this.outputs[bone.name].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
