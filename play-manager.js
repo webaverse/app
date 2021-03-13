@@ -445,6 +445,18 @@ class PlayScene {
     document.body.appendChild(this.audio);
     this.audio.play();
 
+    this.resourceMeta = [
+      {
+        name: 'sacks',
+        url: `./assets2/sacks.vrm`,
+        ext: 'vrm',
+      },
+      {
+        name: 'wade',
+        url: `./assets2/kasamoto_kanji.vrm`,
+        ext: 'vrm',
+      },
+    ];
     this.script = [
       { // angry
         startTime: 0,
@@ -499,8 +511,7 @@ class PlayScene {
       
       return o;
     }));
-    this.resourcesLoaded = false;
-    this.localRig2 = null;
+    this.resources = null;
     
     const _loadMirrorAvatar = async u => {
       let o2;
@@ -522,7 +533,31 @@ class PlayScene {
       backgroundScene.add(rig.model);
       return rig;
     };
-
+    
+    (async () => {
+      this.resources = await Promise.all(this.resourceMeta.map(async r => {
+        const {name, url, ext} = r;
+        const o = await runtime.loadFile({
+          url,
+          ext,
+        }, {
+          contentId: url,
+        });
+        o.name = name;
+        
+        const rig = new Avatar(o.raw, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          debug: false,
+        });
+        
+        // unFrustumCull(rig.model);
+        scene.add(rig.model);
+        
+        return rig;
+      }));
+    })();
     {
       const geometry = new THREE.PlaneBufferGeometry(4, 4);
       /* const material = new THREE.MeshBasicMaterial({
@@ -600,6 +635,8 @@ class PlayScene {
       splashMesh3.position.set(-0.5, 2, 0);
       backgroundScene3.add(splashMesh3);
     }
+    
+    this.localRig2 = null;
     (async () => {
       this.localRig2 = await _loadMirrorAvatar(forceAvatarUrl);
     })();
@@ -639,8 +676,15 @@ class PlayScene {
       rigManager.localRig.eyeTargetEnabled = false;
     }
 
+    // local pose
     if (this.localRig2) {
       rigManager.localRig.copyTo(this.localRig2.model);
+    }
+    
+    // script pose
+    if (this.resources) {
+      for (const resource of this.resources) {
+      }
     }
     
     // render 
