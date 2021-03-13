@@ -208,7 +208,7 @@ let poseData = null;
   });
   // console.log('got pose', poseData[poseIndex]);
 
-  mmdAnimationHelper.pose(model, animationData[27]);
+  mmdAnimationHelper.pose(model, animationData[poseIndex]);
 })();
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
