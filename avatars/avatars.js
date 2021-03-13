@@ -1699,10 +1699,11 @@ class Avatar {
         } else {
           return null;
         }
-      });
+      }).filter(m => !!m);
     } else {
       this.skinnedMeshesVisemeMappings = [];
     }
+    this.activeVisemes = [];
 
     this.microphoneWorker = null;
     this.volume = 0;
@@ -2152,12 +2153,12 @@ class Avatar {
 
     if (this.options.visemes) {
       const aValue = Math.min(this.volume * 10, 1);
-      const emotionValues = {
+      /* const emotionValues = {
         angry: 0,
         fun: 0,
         joy: 0,
         sorrow: 0,
-      };
+      }; */
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -2168,38 +2169,44 @@ class Avatar {
           return 0;
         }
       })();
+      /* if (this.skinnedMeshesVisemeMappings.length) {
+        console.log('got', this.skinnedMeshesVisemeMappings);
+        debugger;
+      } */
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
-        if (visemeMapping) {
-          // initialize
-          const {morphTargetInfluences} = visemeMapping;
-          for (let i = 0; i < morphTargetInfluences.length; i++) {
-            morphTargetInfluences[i] = 0;
-          }
+        // initialize
+        const {morphTargetInfluences} = visemeMapping;
+        for (let i = 0; i < morphTargetInfluences.length; i++) {
+          morphTargetInfluences[i] = 0;
+        }
 
-          // ik
-          if (visemeMapping.a) {
-            morphTargetInfluences[visemeMapping.a] = aValue;
-          }
-          if (visemeMapping.blink_l) {
-            morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
-          }
-          if (visemeMapping.blink_r) {
-            morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
-          }
+        // ik
+        if (visemeMapping.a) {
+          morphTargetInfluences[visemeMapping.a] = aValue;
+        }
+        if (visemeMapping.blink_l) {
+          morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
+        }
+        if (visemeMapping.blink_r) {
+          morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
+        }
 
-          // local vismeses
-          for (const influence of visemeMapping) {
-            if (emotionValues[influence.name]) {
-              morphTargetInfluences[influence.index] = emotionValues[influence.name];
-            }
+        /* // local vismeses
+        for (const influence of visemeMapping) {
+          if (emotionValues[influence.name]) {
+            morphTargetInfluences[influence.index] = emotionValues[influence.name];
           }
+        } */
+        
+        if (morphTargetInfluences[emotionIndex] !== undefined) {
+          morphTargetInfluences[emotionIndex] = 1;
+        }
 
-          // animation visemes
-          const activeVisemes = this.activeVisemes;
-          if (activeVisemes) {
-            for (const o of activeVisemes) {
-              morphTargetInfluences[o.name] = o.value;
-            }
+        // animation visemes
+        for (const o of this.activeVisemes) {
+          const index = visemeMapping[o.name];
+          if (index !== undefined) {
+            morphTargetInfluences[index] = o.value;
           }
         }
       }
