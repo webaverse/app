@@ -2356,11 +2356,15 @@ class Avatar {
                 localVector3.copy(this.eyeTarget).sub(localVector).normalize()
               )
             );
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.05), Math.PI*0.1);
-          localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
-          localEuler.z = 0;
-          eye.quaternion.setFromEuler(localEuler);
+          if (/^(?:left|right)eye$/i.test(eye.name)) {
+            eye.quaternion.copy(localQuaternion);
+          } else {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.05), Math.PI*0.1);
+            localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
+            localEuler.z = 0;
+            eye.quaternion.setFromEuler(localEuler);
+          }
         }
       }
     }
