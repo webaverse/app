@@ -173,7 +173,7 @@ let poseData = null;
         mmdLoader.loadVPD(u, false, a => {
           for (const bone of a.bones) {
             if (boneNameMappings[bone.name] !== undefined) {
-              bone.name = boneNameMappings[bone.name];
+              bone.mappedName = boneNameMappings[bone.name];
             } else {
               console.warn('could not find bone mapping for', JSON.stringify(bone.name), boneNameMappings);
             }
@@ -2033,8 +2033,8 @@ class Avatar {
       this.outputs.rightUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.25));
       
       for (const bone of poseData[poseIndex].bones) {
-        if (bone.name !== null) {
-          this.outputs[bone.name].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
+        if (bone.mappedName !== null) {
+          this.outputs[bone.mappedName].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
         }
       }
     }
