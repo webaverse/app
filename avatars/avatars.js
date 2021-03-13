@@ -2026,8 +2026,7 @@ class Avatar {
       this.outputs.leftUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.25));
       this.outputs.rightUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.25));
       
-      const pose = poseData[poseIndex];
-      for (const bone of pose.bones) {
+      for (const bone of poseData[poseIndex].bones) {
         if (bone.name !== null) {
           this.outputs[bone.name].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
         }
