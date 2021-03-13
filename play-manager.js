@@ -511,7 +511,8 @@ class PlayScene {
       
       return o;
     }));
-    this.resources = null;
+    this.resources = [];
+    this.live = true;
     
     const _loadMirrorAvatar = async u => {
       let o2;
@@ -535,7 +536,7 @@ class PlayScene {
     };
     
     (async () => {
-      this.resources = await Promise.all(this.resourceMeta.map(async r => {
+      await Promise.all(this.resourceMeta.map(async r => {
         const {name, url, ext} = r;
         const o = await runtime.loadFile({
           url,
@@ -545,19 +546,23 @@ class PlayScene {
         });
         o.name = name;
         
-        const rig = new Avatar(o.raw, {
-          fingers: true,
-          hair: true,
-          visemes: true,
-          debug: false,
-        });
-        
-        // unFrustumCull(rig.model);
-        scene.add(rig.model);
-        
-        return rig;
+        if (this.live) {
+          const rig = new Avatar(o.raw, {
+            fingers: true,
+            hair: true,
+            visemes: true,
+            debug: false,
+          });
+          rig.model.isVrm = true;
+          
+          // unFrustumCull(rig.model);
+          scene.add(rig.model);
+          
+          this.resources.push(rig);
+        }
       }));
     })();
+    this.mesh = null;
     {
       const geometry = new THREE.PlaneBufferGeometry(4, 4);
       /* const material = new THREE.MeshBasicMaterial({
@@ -605,35 +610,36 @@ class PlayScene {
         // polygonOffset: true,
         // polygonOffsetFactor: -1,
       });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(0, 4/2, -0.5);
-      // mesh.visible = false;
-      scene.add(mesh);
+      this.mesh = new THREE.Mesh(geometry, material);
+      this.mesh.position.set(0, 4/2, -0.5);
+      scene.add(this.mesh);
     }
+    this.splashMesh = null;
     {
       const geometry = new THREE.ShapeGeometry(heartShape);
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
       });
-      const splashMesh = new THREE.Mesh(geometry, material);
-      splashMesh.position.set(-0.5, 2, 0);
+      this.splashMesh = new THREE.Mesh(geometry, material);
+      this.splashMesh.position.set(-0.5, 2, 0);
 
       const textMesh = makeTextMesh('Sacks Salander', './Roboto-Regular.ttf', 0.15, 'left', 'middle');
       textMesh.color = 0xFFFFFF;
       textMesh.position.set(-0.5, 0.2, 0);
       textMesh.material.depthTest = false;
-      splashMesh.add(textMesh);
+      this.splashMesh.add(textMesh);
 
-      backgroundScene2.add(splashMesh);
+      backgroundScene2.add(this.splashMesh);
     }
+    this.splashMesh2 = null;
     {
       const geometry = new THREE.ShapeGeometry(heartShape);
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
       });
-      const splashMesh3 = new THREE.Mesh(geometry, material);
-      splashMesh3.position.set(-0.5, 2, 0);
-      backgroundScene3.add(splashMesh3);
+      this.splashMesh2 = new THREE.Mesh(geometry, material);
+      this.splashMesh2.position.set(-0.5, 2, 0);
+      backgroundScene3.add(this.splashMesh2);
     }
     
     this.localRig2 = null;
@@ -682,9 +688,7 @@ class PlayScene {
     }
     
     // script pose
-    if (this.resources) {
-      for (const resource of this.resources) {
-      }
+    for (const resource of this.resources) {
     }
     
     // render 
@@ -701,13 +705,29 @@ class PlayScene {
     renderer.render(backgroundScene2, camera);
     renderer.setRenderTarget(null);
   }
+  destroy() {
+    this.live = false;
+    scene.remove(this.mesh);
+    backgroundScene2.remove(this.splashMesh);
+    backgroundScene3.remove(this.splashMesh2);
+    backgroundScene.remove(this.localRig2.model);
+    console.log('remove', this.resources.slice());
+    for (const resource of this.resources) {
+      scene.remove(resource.model);
+    }
+  }
 }
 let playScene = null;
 
 const playManager = {
   // backgroundScene,
   start() {
-    playScene = new PlayScene();
+    if (playScene) {
+      playScene.destroy();
+      playScene = null;
+    } else {
+      playScene = new PlayScene();
+    }
   },
   update() {
     playScene && playScene.update();
