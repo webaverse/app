@@ -35,6 +35,7 @@ const useAnimationRate = 750;
 const crouchMaxTime = 200;
 const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
+let emotionIndex = 0;
 let poseIndex = 0;
 window.addEventListener('keydown', e => {
   if (poseData) {
@@ -42,6 +43,10 @@ window.addEventListener('keydown', e => {
       poseIndex = Math.min(Math.max(poseIndex - 1, 0), poseData.length - 1);
     } else if (e.which === 40) {
       poseIndex = Math.min(Math.max(poseIndex + 1, 0), poseData.length - 1);
+    } else if (e.which === 37) {
+      emotionIndex = Math.min(Math.max(emotionIndex - 1, 0), Infinity);
+    } else if (e.which === 12) {
+      emotionIndex = Math.min(Math.max(emotionIndex + 1, 0), Infinity);
     }
   }
 }, true);
