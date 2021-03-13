@@ -1002,34 +1002,39 @@ var MMDAnimationHelper = ( function () {
 					var bone = bones[ grant.index ];
 					var parentBone = bones[ grant.parentIndex ];
 
-					if ( grant.isLocal ) {
+          if (parentBone) {
+            if ( grant.isLocal ) {
 
-						// TODO: implement
-						if ( grant.affectPosition ) {
+              // TODO: implement
+              if ( grant.affectPosition ) {
 
-						}
+              }
 
-						// TODO: implement
-						if ( grant.affectRotation ) {
+              // TODO: implement
+              if ( grant.affectRotation ) {
 
-						}
+              }
 
-					} else {
+            } else {
 
-						// TODO: implement
-						if ( grant.affectPosition ) {
+              // TODO: implement
+              if ( grant.affectPosition ) {
 
-						}
+              }
 
-						if ( grant.affectRotation ) {
+              if ( grant.affectRotation ) {
 
-							quaternion.set( 0, 0, 0, 1 );
-							quaternion.slerp( parentBone.quaternion, grant.ratio );
-							bone.quaternion.multiply( quaternion );
+                quaternion.set( 0, 0, 0, 1 );
+                if (!parentBone) {
+                  debugger;
+                }
+                quaternion.slerp( parentBone.quaternion, grant.ratio );
+                bone.quaternion.multiply( quaternion );
 
-						}
+              }
 
-					}
+            }
+          }
 
 				}
 

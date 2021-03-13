@@ -9,6 +9,7 @@ import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
+import {scene} from '../app-object.js';
 
 // import {FBXLoader} from '../FBXLoader.js';
 // import {downloadFile} from '../util.js';
@@ -57,6 +58,13 @@ const mmdLoader = new MMDLoader();
 const mmdAnimationHelper = new MMDAnimationHelper();
 let poseData = null;
 (async () => {
+  const model = await new Promise((accept, reject) => {
+    mmdLoader.load('./assets2/gumi/Gumi Megpoid.pmx', accept, function onProgress() {}, reject);
+  });
+  model.scale.multiplyScalar(0.08);
+  scene.add(model);
+  console.log('got model', model);
+
   const poses = [
     `1.vpd`,
     `2.vpd`,
@@ -189,6 +197,8 @@ let poseData = null;
   } catch(err) {
     console.warn(err);
   }
+  
+  mmdAnimationHelper.pose(model, poseData[0]);
 })();
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
