@@ -57,9 +57,11 @@ import {MMDLoader} from '../MMDLoader.js';
 import {MMDAnimationHelper} from '../MMDAnimationHelper.js';
 const mmdLoader = new MMDLoader();
 const mmdAnimationHelper = new MMDAnimationHelper();
+let model = null;
 let poseData = null;
+let animationData = null;
 (async () => {
-  const model = await new Promise((accept, reject) => {
+  model = await new Promise((accept, reject) => {
     mmdLoader.load('./assets2/gumi/Gumi Megpoid.pmx', accept, function onProgress() {}, reject);
   });
   model.scale.multiplyScalar(0.08);
@@ -297,7 +299,7 @@ let poseData = null;
       bones,
     };
   };
-  const animationData = await Promise.all(poses.map(async pose => {
+  animationData = await Promise.all(poses.map(async pose => {
     const u = `./assets2/poses/${pose}`;
     const poseData = await new Promise((accept, reject) => {
       mmdLoader.loadVPD(u, false, accept, function onProgress() {}, reject);
@@ -309,8 +311,6 @@ let poseData = null;
     return _getModelPose(model);
   });
   // console.log('got pose', poseData[poseIndex]);
-
-  mmdAnimationHelper.pose(model, animationData[poseIndex]);
 })();
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
@@ -2172,6 +2172,8 @@ class Avatar {
       // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
       // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
       // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+      
+      mmdAnimationHelper.pose(model, animationData[poseIndex]);
     }
 
     if (this.getTopEnabled()) {
