@@ -64,7 +64,7 @@ let poseData = null;
   });
   model.scale.multiplyScalar(0.08);
   scene.add(model);
-  console.log('got model', model);
+  // console.log('got model', model);
 
   const poses = [
     `./'The Random Factor' by CorruptedDestiny/Jump, YEAH.vpd`,
