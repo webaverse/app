@@ -2169,10 +2169,6 @@ class Avatar {
           return 0;
         }
       })();
-      /* if (this.skinnedMeshesVisemeMappings.length) {
-        console.log('got', this.skinnedMeshesVisemeMappings);
-        debugger;
-      } */
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         // initialize
         const {morphTargetInfluences} = visemeMapping;
