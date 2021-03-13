@@ -499,6 +499,29 @@ class PlayScene {
       
       return o;
     }));
+    this.resourcesLoaded = false;
+    this.localRig2 = null;
+    
+    const _loadMirrorAvatar = async u => {
+      let o2;
+      o2 = await runtime.loadFile({
+        url: u,
+        ext: 'vrm',
+      }, {
+        contentId: u,
+      });
+      
+      const rig = new Avatar(o2.raw, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        debug: false,
+      });
+      
+      unFrustumCull(rig.model);
+      backgroundScene.add(rig.model);
+      return rig;
+    };
 
     {
       const geometry = new THREE.PlaneBufferGeometry(4, 4);
@@ -577,6 +600,9 @@ class PlayScene {
       splashMesh3.position.set(-0.5, 2, 0);
       backgroundScene3.add(splashMesh3);
     }
+    (async () => {
+      this.localRig2 = await _loadMirrorAvatar(forceAvatarUrl);
+    })();
   }
   update() {
     const {currentTime} = this.audio;
@@ -613,44 +639,8 @@ class PlayScene {
       rigManager.localRig.eyeTargetEnabled = false;
     }
 
-    const avatarUrl = forceAvatarUrl;
-    if (avatarUrl !== lastAvatarUrl) {
-      lastAvatarUrl = avatarUrl;
-      
-      (async () => {
-        let o2;
-        if (avatarUrl) {
-          o2 = await runtime.loadFile({
-            url: avatarUrl,
-            ext: 'vrm',
-          }, {
-            contentId: avatarUrl,
-          });
-          /* if (!o2.isVrm && o2.run) {
-            o2.run();
-          } */
-        }
-        
-        if (localRig2) {
-          backgroundScene.remove(localRig2.model);
-          localRig2 = null;
-        }
-        
-        localRig2 = new Avatar(o2.raw, {
-          fingers: true,
-          hair: true,
-          visemes: true,
-          debug: false //!o,
-        });
-        localRig2.model.isVrm = true;
-        
-        unFrustumCull(localRig2.model);
-        backgroundScene.add(localRig2.model);
-      })();
-    }
-    if (rigManager.localRig && localRig2) {
-      // debugger;
-      rigManager.localRig.copyTo(localRig2.model);
+    if (this.localRig2) {
+      rigManager.localRig.copyTo(this.localRig2.model);
     }
     
     // render 
