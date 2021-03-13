@@ -24,6 +24,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
+const forwardVector = new THREE.Vector3(0, 0, 1);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -116,7 +117,7 @@ let poseData = null;
     '上半身': null, // 'spine',
     '首': 'neck',
     '頭': 'head',
-    '下半身': null, // 'hips',
+    '下半身': null, // 'antispine',
 
     '左肩P': null, // 'rightShoulder',
     '左肩': 'rightShoulder',
@@ -162,12 +163,12 @@ let poseData = null;
     '右小指２': 'rightLittleFinger2',
     '右小指３': 'rightLittleFinger3',
     
-    '左足': 'leftUpperLeg',
-    '左ひざ': 'leftLowerLeg',
-    '左足首': 'leftFoot',
-    '右足': 'rightUpperLeg',
-    '右ひざ': 'rightLowerLeg',
-    '右足首': 'rightFoot',
+    '左足': 'rightUpperLeg',
+    '左ひざ': 'rightLowerLeg',
+    '左足首': 'rightFoot',
+    '右足': 'leftUpperLeg',
+    '右ひざ': 'leftLowerLeg',
+    '右足首': 'leftFoot',
     '左つま先': null, // 'Left_toe',
     '右つま先': null, // 'Right_toe',
     '左足ＩＫ': null, // 'leftUpperLeg',
