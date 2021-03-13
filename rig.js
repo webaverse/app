@@ -11,6 +11,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
+import {forceAvatarUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -199,6 +200,8 @@ class RigManager {
 
   async setLocalAvatarUrl(url, ext) {
     // await this.localRigQueue.lock();
+
+    url = forceAvatarUrl;
 
     await this.setAvatar(this.localRig, newLocalRig => {
       this.localRig = newLocalRig;
