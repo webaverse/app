@@ -963,8 +963,6 @@ class Avatar {
     })();
     this.model = model;
     this.options = options;
-    
-    const blendShapeGroups = object?.userData?.gltfExtensions?.VRM?.blendShapeMaster.blendShapeGroups;
 
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
@@ -1675,8 +1673,7 @@ class Avatar {
 	  };
 
     if (this.options.visemes) {
-      const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
-      const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+      const blendShapeGroups = object?.userData?.gltfExtensions?.VRM?.blendShapeMaster.blendShapeGroups || [];
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
