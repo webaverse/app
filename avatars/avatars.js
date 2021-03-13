@@ -2222,7 +2222,7 @@ class Avatar {
               )
             );
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.1), Math.PI*0.1);
+          localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.05), Math.PI*0.1);
           localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
           localEuler.z = 0;
           eye.quaternion.setFromEuler(localEuler);
