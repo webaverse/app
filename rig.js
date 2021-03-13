@@ -248,6 +248,15 @@ class RigManager {
           o.material.skinning = oldMaterial.skinning;
           o.material.morphTargets = oldMaterial.morphTargets;
           o.material.morphNormals = oldMaterial.morphNormals;
+          
+          o.onBeforeRender = () => {
+            const context = renderer.getContext();
+            context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+          };
+          o.onAfterRender = () => {
+            const context = renderer.getContext();
+            context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+          };
         }
       });
     // console.log('got model', vrmObject);
