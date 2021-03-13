@@ -238,7 +238,10 @@ class RigManager {
             // color: oldMaterial.color,
             color: oldMaterial.color,
           });
+          o.material.alphaMap = oldMaterial.alphaMap;
+          o.material.emissiveMap = oldMaterial.emissiveMap;
           o.material.transparent = oldMaterial.transparent;
+          o.material.opacity = oldMaterial.opacity;
           o.material.alphaTest = oldMaterial.alphaTest;
           // o.material.map = new THREE.Texture(oldMaterial.map.image);
           // o.material.map.needsUpdate = true;
