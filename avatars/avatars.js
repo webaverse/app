@@ -176,30 +176,39 @@ let poseData = null;
     '左つま先ＩＫ': null, // 'Left toe IK',
     '右つま先ＩＫ': null, // 'Right toe IK',
   };
-  try {
-    poseData = await Promise.all(poses.map(async pose => {
-      const u = './assets2/poses/ThatOneBun Posepack/' + pose;
- 
-      const poseData = await new Promise((accept, reject) => {
-        mmdLoader.loadVPD(u, false, a => {
-          for (const bone of a.bones) {
-            if (boneNameMappings[bone.name] !== undefined) {
-              bone.mappedName = boneNameMappings[bone.name];
-            } else {
-              console.warn('could not find bone mapping for', JSON.stringify(bone.name), boneNameMappings);
-            }
-          }
-          // console.log('got animation', a);
-          accept(a);
-        }, function onProgress() {}, reject);
-      });
-      return poseData;
-    }));
-  } catch(err) {
-    console.warn(err);
-  }
-  
-  mmdAnimationHelper.pose(model, poseData[0]);
+  const _getModelPose = model => {
+    const bones = model.skeleton.bones.map(bone => {
+      let {name, quaternion} = bone;
+      const mappedName = boneNameMappings[bone.name];
+      if (mappedName !== undefined) {
+        quaternion = quaternion.clone();
+        return {
+          name,
+          quaternion,
+          mappedName,
+        };
+      } else {
+        return null;
+      }
+    }).filter(b => !!b);
+    return {
+      bones,
+    };
+  };
+  const animationData = await Promise.all(poses.map(async pose => {
+    const u = './assets2/poses/ThatOneBun Posepack/' + pose;
+    const poseData = await new Promise((accept, reject) => {
+      mmdLoader.loadVPD(u, false, accept, function onProgress() {}, reject);
+    });
+    return poseData;
+  }));
+  poseData = animationData.map(a => {
+    mmdAnimationHelper.pose(model, a);
+    return _getModelPose(model);
+  });
+  // console.log('got pose', poseData[poseIndex]);
+
+  mmdAnimationHelper.pose(model, animationData[27]);
 })();
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
@@ -2041,15 +2050,26 @@ class Avatar {
       for (const k in this.outputs) {
         this.outputs[k].quaternion.set(0, 0, 0, 1);
       }
-      
-      this.outputs.leftUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.25));
-      this.outputs.rightUpperArm.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.25));
-      
+
+      this.outputs.leftUpperArm.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.25)
+        // .multiply(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), Math.PI * 0.5));
+        // .premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI * 0.3))
+      this.outputs.rightUpperArm.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.25);
+      // this.outputs.leftUpperLeg.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.15);
+      // this.outputs.rightUpperLeg.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.15);
+
       for (const bone of poseData[poseIndex].bones) {
-        if (bone.mappedName !== null) {
-          this.outputs[bone.mappedName].quaternion.premultiply(localQuaternion.fromArray(bone.quaternion));
+        if (bone.mappedName) {
+          this.outputs[bone.mappedName].quaternion.premultiply(bone.quaternion);
         }
       }
+      
+      // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
+      // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
+      
+      // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
+      // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+      // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
     }
 
     if (this.getTopEnabled()) {
