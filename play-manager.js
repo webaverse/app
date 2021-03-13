@@ -5,6 +5,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {makeTextMesh} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
+import {forceAvatarUrl} from './constants.js';
 
 let lastAvatarUrl = null;
 let localRig2 = null;
@@ -612,7 +613,7 @@ class PlayScene {
       rigManager.localRig.eyeTargetEnabled = false;
     }
 
-    const avatarUrl = './assets2/sacks3.vrm'; // rigManager.getLocalAvatarUrl();
+    const avatarUrl = forceAvatarUrl;
     if (avatarUrl !== lastAvatarUrl) {
       lastAvatarUrl = avatarUrl;
       
