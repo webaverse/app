@@ -52,7 +52,9 @@ window.addEventListener('keydown', e => {
 }, true);
 
 import {MMDLoader} from '../MMDLoader.js';
+import {MMDAnimationHelper} from '../MMDAnimationHelper.js';
 const mmdLoader = new MMDLoader();
+const mmdAnimationHelper = new MMDAnimationHelper();
 let poseData = null;
 (async () => {
   const poses = [
