@@ -3,14 +3,14 @@ import {scene, camera, renderer} from './app-object.js';
 import runtime from './runtime.js';
 
 const size = 1024;
-const vertexShader = `\
+const vertexShader = `#version 300 es
   precision highp float;
 
-  attribute vec3 position;
-  attribute vec2 uv;
+  in vec3 position;
+  in vec2 uv;
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
-  varying vec2 vUv;
+  out vec2 vUv;
 
   void main() {
     vUv = uv;
@@ -36,15 +36,34 @@ class ShaderToyPass {
           projectionMatrix: {
             value: fakeCamera.projectionMatrix,
           },
+          iResolution: {
+            value: new THREE.Vector3(size, size, 0),
+          },
         },
         vertexShader,
-        fragmentShader: `
+        fragmentShader: `#version 300 es
           precision highp float;
 
-          varying vec2 vUv;
+          uniform vec3      iResolution;           // viewport resolution (in pixels)
+          uniform float     iTime;                 // shader playback time (in seconds)
+          uniform float     iTimeDelta;            // render time (in seconds)
+          uniform int       iFrame;                // shader playback frame
+          uniform float     iChannelTime[4];       // channel playback time (in seconds)
+          uniform vec3      iChannelResolution[4]; // channel resolution (in pixels)
+          uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+          uniform sampler2D iChannel0;          // input channel. XX = 2D/Cube
+          uniform sampler2D iChannel1;          // input channel. XX = 2D/Cube
+          uniform sampler2D iChannel2;          // input channel. XX = 2D/Cube
+          uniform sampler2D iChannel3;          // input channel. XX = 2D/Cube
+          uniform vec4      iDate;                 // (year, month, day, time in seconds)
+          uniform float     iSampleRate;           // sound sample rate (i.e., 44100)
+          in vec2 vUv;
+          out vec4 fragColor;
+          
+          ${this.code}
 
           void main() {
-            gl_FragColor = vec4(vUv, 0.0, 1.0);
+            fragColor = vec4(vUv, 0.0, 1.0);
           }
         `,
         depthWrite: false,
@@ -53,6 +72,8 @@ class ShaderToyPass {
     );
     this.scene = new THREE.Scene();
     this.scene.add(this.mesh);
+    
+    console.log('load code', this.code);
   }
   update() {
     {
