@@ -26,6 +26,7 @@ import {parseCoord} from './util.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import playManger from './play-manager.js';
+import shaderToy from './shadertoy.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -351,6 +352,7 @@ export default class App {
 
       weaponsManager.update();
       playManger.update();
+      shaderToy.update();
       hpManager.update();
       activateManager.update();
       dropManager.update();
