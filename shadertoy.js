@@ -17,7 +17,7 @@ const vertexShader = `\
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-const fakeCamera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+const fakeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}) {
     this.type = type;
