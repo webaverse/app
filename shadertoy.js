@@ -20,6 +20,42 @@ const vertexShader = `#version 300 es
 `;
 const planeGeometry = new THREE.PlaneGeometry(2, 2);
 const fakeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+const copyScene = (() => {
+  const mesh = new THREE.Mesh(
+    planeGeometry,
+    new THREE.RawShaderMaterial({
+      uniforms: {
+        tex: {
+          value: null,
+          // needsUpdate: false,
+        },
+      },
+      vertexShader,
+      fragmentShader: `#version 300 es
+        precision highp float;
+
+        uniform sampler2D tex;
+        in vec2 vUv;
+        out vec4 fragColor;
+        
+        void main() {
+          fragColor = texture(tex, vUv);
+        }
+      `,
+      depthWrite: false,
+      depthTest: false,
+    })
+  );
+  const scene = new THREE.Scene();
+  scene.add(mesh);
+  scene.mesh = mesh;
+  return scene;
+})();
+const _makeRenderTarget = () => new THREE.WebGLRenderTarget(size, size, {
+  format: THREE.RGBAFormat,
+  type: THREE.FloatType,
+});
+const copyBuffer = _makeRenderTarget();
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}, parent) {
     this.type = type;
@@ -67,6 +103,7 @@ class ShaderToyPass {
       }
       uniforms['iChannelResolution'].value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
     }
+    console.log('add unis', uniforms);
     this.mesh = new THREE.Mesh(
       planeGeometry,
       new THREE.RawShaderMaterial({
@@ -114,12 +151,23 @@ class ShaderToyPass {
     {
       const [{buffer} = {}] = this.os;
       if (buffer) {
-        // console.log('render buffer', buffer);
-        renderer.setRenderTarget(buffer);
-        // renderer.setClearColor(new THREE.Color(1, 0, 0), 1);
-        renderer.clear();
-        renderer.render(this.scene, fakeCamera);
-        renderer.setRenderTarget(null);
+        if (this.is.some(input => input.buffer === buffer)) {
+          renderer.setRenderTarget(copyBuffer);
+          renderer.clear();
+          renderer.render(this.scene, fakeCamera);
+          renderer.setRenderTarget(null);
+
+          copyScene.mesh.material.uniforms.tex.value = copyBuffer.texture;
+          renderer.setRenderTarget(buffer);
+          renderer.clear();
+          renderer.render(copyScene, fakeCamera);
+          renderer.setRenderTarget(null);
+        } else {
+          renderer.setRenderTarget(buffer);
+          renderer.clear();
+          renderer.render(this.scene, fakeCamera);
+          renderer.setRenderTarget(null);
+        }
       }
     }
 
@@ -158,7 +206,7 @@ class ShadertoyRenderer {
   constructor({shader}) {
     this.shader = shader;
 
-    this.renderTarget = new THREE.WebGLRenderTarget(size, size);
+    this.renderTarget = _makeRenderTarget();
     this.textures = {};
     this.buffers = {};
     this.now = performance.now();
@@ -186,7 +234,7 @@ class ShadertoyRenderer {
         return this.textures[id];
       } else if (type === 'buffer') {
         if (!this.buffers[id]) {
-          this.buffers[id] = new THREE.WebGLRenderTarget(size, size);
+          this.buffers[id] = _makeRenderTarget();
         }
         return this.buffers[id];
       } else {
@@ -272,10 +320,10 @@ class ShadertoyRenderer {
   update() {
     // console.log('update start');
     this.now = performance.now();
-    this.frame++;
     for (const renderPass of this.renderPasses) {
       renderPass.update();
     }
+    this.frame++;
     // console.log('update end');
   }
 }
@@ -347,8 +395,6 @@ const shadertoyRenderers = [];
         //O = abs(2.*O-1.);
         
         //O += .1/length(fract(P * 8.*30.)-.5) -O;
-        
-        O = texture(iChannel0, U / iResolution.xy);
     }
   `;
   shader.renderpass[1].code = `        
@@ -376,6 +422,7 @@ const shadertoyRenderers = [];
     void mainImage( out vec4 O, vec2 U ) // -------------------------------------------
     {
         vec2 R = iResolution.xy;
+        vec2 uv = U/R;
         
         if (iFrame>0 && texture(iChannel0,.5/R).xy==R) { // recompute at start + resize
             O = texture(iChannel0,U/R);
@@ -383,7 +430,7 @@ const shadertoyRenderers = [];
         }
         if (U==vec2(.5)) { O.xy = R; return; }
         
-        float t = iTime;
+        // float t = iTime;
         U /= 8.*R.y; 
         vec2 D, P0 =  U, P = P0;
         
@@ -394,9 +441,9 @@ const shadertoyRenderers = [];
         D = normalize(D)*5./R.y;                     // optional : no calm areas
         D = vec2(-D.y,D.x);                          // invicid noise: grad(D)=0
 
-        O = vec4(D,0,0); // *30.*.1* R.y;
+        O = vec4(D,0,1.); // *30.*.1* R.y;
         
-        O = vec4(1., 0., 0., 1.);
+        // O += vec4(uv, 0., 1.);
     }
   `;
   const shadertoyRenderer = new ShadertoyRenderer({shader});
