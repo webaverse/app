@@ -132,6 +132,8 @@ class ShaderToyPass {
           void main() {
             vec2 fragCoord = vUv * iResolution.xy;
             mainImage(fragColor, fragCoord);
+            fragColor.a = 1.;
+            // ${this.type === 'image' ? `fragColor.a = 1.;` : ''};
             // fragColor = vec4(vUv, 0.0, 1.0);
           }
         `,
