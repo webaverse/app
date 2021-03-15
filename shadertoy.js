@@ -103,7 +103,6 @@ class ShaderToyPass {
       }
       uniforms['iChannelResolution'].value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
     }
-    console.log('add unis', uniforms);
     this.mesh = new THREE.Mesh(
       planeGeometry,
       new THREE.RawShaderMaterial({
@@ -185,7 +184,7 @@ class ShaderToyPass {
   }
 }
 let numRenderTargetMeshes = 0;
-window.renderTargetMeshes = [];
+// window.renderTargetMeshes = [];
 const _addRenderTargetMesh = renderTarget => {
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize);
   /* const material = new THREE.ShaderMaterial({
@@ -197,8 +196,7 @@ const _addRenderTargetMesh = renderTarget => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(-3 + numRenderTargetMeshes * worldSize, worldSize/2, -1);
   scene.add(mesh);
-  renderTargetMeshes.push(mesh);
-  // console.log('add mesh', renderTarget, mesh);
+  // window.renderTargetMeshes.push(mesh);
   
   numRenderTargetMeshes++;
 };
@@ -319,11 +317,18 @@ class ShadertoyRenderer {
   }
   update() {
     // console.log('update start');
+    
+    const context = renderer.getContext();
+    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+
     this.now = performance.now();
     for (const renderPass of this.renderPasses) {
       renderPass.update();
     }
     this.frame++;
+    
+    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    
     // console.log('update end');
   }
 }
@@ -333,7 +338,7 @@ const shadertoyRenderers = [];
   const res = await fetch('./shaders.json');
   const shaders = await res.json();
   const shader = shaders.shaders.find(shader => shader.info.name === 'Fork LIC 2D / f avaer 088');
-  shader.renderpass[0].code = `
+  /* shader.renderpass[0].code = `
     // bufA precomputation version of https://www.shadertoy.com/view/MslyD7#
     #define MODE 0 // 0: lines > 0: flownoise (see previous shaders)
 
@@ -441,13 +446,11 @@ const shadertoyRenderers = [];
         D = normalize(D)*5./R.y;                     // optional : no calm areas
         D = vec2(-D.y,D.x);                          // invicid noise: grad(D)=0
 
-        O = vec4(D,0,1.); // *30.*.1* R.y;
-        
-        // O += vec4(uv, 0., 1.);
+        O = vec4(D,0,0); // *30.*.1* R.y;
     }
-  `;
+  `; */
   const shadertoyRenderer = new ShadertoyRenderer({shader});
-  window.shadertoyRenderer = shadertoyRenderer;
+  // window.shadertoyRenderer = shadertoyRenderer;
   await shadertoyRenderer.waitForLoad();
   shadertoyRenderers.push(shadertoyRenderer);
 })();
