@@ -195,6 +195,15 @@ const _addRenderTargetMesh = renderTarget => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(-3 + numRenderTargetMeshes * worldSize, worldSize/2, -1);
+  mesh.onBeforeRender = () => {
+    const context = renderer.getContext();
+    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  };
+  mesh.onAfterRender = () => {
+    const context = renderer.getContext();
+    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  };
+  
   scene.add(mesh);
   // window.renderTargetMeshes.push(mesh);
   
@@ -317,7 +326,7 @@ class ShadertoyRenderer {
   }
   update() {
     // console.log('update start');
-    
+
     const context = renderer.getContext();
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
