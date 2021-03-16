@@ -1,4 +1,6 @@
 import * as THREE from './three.module.js';
+import {EffectComposer} from './EffectComposer.js';
+import {Pass} from './Pass.js';
 import {loginManager} from './login.js';
 import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
@@ -56,6 +58,17 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
+class FunctionPass extends Pass {
+  constructor(fn) {
+    super();
+    this.needsSwap = false;
+    this.fn = fn;
+  }
+  render(renderer, writeBuffer, readBuffer) {
+    this.fn.call(this, renderer, writeBuffer, readBuffer);
+  }
+}
+
 export default class App {
   constructor() {
     this.loadPromise = Promise.all([
@@ -66,6 +79,40 @@ export default class App {
         runtime.injectDependencies(geometryManager, physicsManager, world);
       });
     this.contentLoaded = false;
+    
+    this.composer = new EffectComposer(renderer);
+    this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
+      // set render target
+      renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
+
+      // high priority render
+      renderer.render(scene3, camera);
+      // main render
+      scene.add(rigManager.localRig.model);
+      rigManager.localRig.model.visible = false;
+      renderer.render(scene, camera);
+      renderer.render(orthographicScene, orthographicCamera);
+      // local avatar render
+      {
+        rigManager.localRig.model.visible = true;
+        avatarScene.add(rigManager.localRig.model);
+        const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
+        if (decapitated) {
+          rigManager.localRig.decapitate();
+          rigManager.localRig.aux.decapitate();
+        } else {
+          rigManager.localRig.undecapitate();
+          rigManager.localRig.aux.undecapitate();
+        }
+        renderer.render(avatarScene, camera);
+        if (decapitated) {
+          rigManager.localRig.undecapitate();
+          rigManager.localRig.aux.undecapitate();
+        }
+      }
+      // highlight render
+      // renderer.render(highlightScene, camera);
+    }));
   }
   
   waitForLoad() {
@@ -179,33 +226,7 @@ export default class App {
   }
   
   render() {
-    // high priority render
-    renderer.render(scene3, camera);
-    // main render
-    scene.add(rigManager.localRig.model);
-    rigManager.localRig.model.visible = false;
-    renderer.render(scene, camera);
-    renderer.render(orthographicScene, orthographicCamera);
-    // local avatar render
-    {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-    }
-    // highlight render
-    // renderer.render(highlightScene, camera);
+    this.composer.render();
   }
   renderMinimap() {
     minimap.update();
