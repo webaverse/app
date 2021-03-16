@@ -173,7 +173,7 @@ class AppManager {
     }
   }
 }
-const appManager = new AppManager()
+const appManager = new AppManager();
 
 class App extends EventTarget {
   constructor(appId) {
