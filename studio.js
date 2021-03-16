@@ -3,51 +3,70 @@ import m from './mithril.js';
 function init() {
 }
 
+function feed(a, src) {
+  return {
+    view() {
+      return m(a, {
+        src,
+      });
+    },
+  };
+}
+
 const Root = {
-    oninit: init,
-    // To ensure the tag gets properly diffed on route change.
-    onbeforeupdate: init,
-    view: () =>
-        m(".blog-summary", [
-            m("p", "My ramblings about everything"),
+  oninit: init,
+  // To ensure the tag gets properly diffed on route change.
+  onbeforeupdate: init,
+  view: () => {
+    return m(".studio", [
+      // m("p", "My ramblings about everything"),
 
-            m(".feeds", [
-                feed("Atom", "blog.atom.xml"),
-                feed("RSS", "blog.rss.xml"),
+      m("footer", [
+        m(".toolbar", [
+          m(".buttons", [
+            m(".button", [
+              m("i.fa.fa-play", {
+                onclick(e) {
+                  console.log('play');
+                },
+              }),
             ]),
-
-            tag != null
-                ? m(TagHeader, {len: posts.length, tag})
-                : m(".summary-header", [
-                    m(".summary-title", "Posts, sorted by most recent."),
-                    m(TagSearch),
-                ]),
-
-            m(".blog-list", posts.map((post) =>
-                m(m.route.Link, {
-                    class: "blog-entry",
-                    href: `/posts/${post.url}`,
-                }, [
-                    m(".post-date", post.date.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    })),
-
-                    m(".post-stub", [
-                        m(".post-title", post.title),
-                        m(".post-preview", post.preview, "..."),
-                    ]),
-
-                    m(TagList, {post, tag}),
-                ])
-            )),
-        ])
+            m(".button.disabled", [
+              m("i.fa.fa-stop", {
+                onclick(e) {
+                  console.log('stop');
+                },
+              }),
+            ]),
+          ]),
+          m("input", {
+            type: 'text',
+            value: '0:00:00',
+          }),
+        ]),
+        m(".core", [
+          m(".playlist", [
+            m(".needle"),
+            m(".tracks", [
+              m(".track"),
+              m(".track"),
+              m(".track"),
+            ])
+          ]),
+          m(".clips", [
+            m(".clip"),
+            m(".clip"),
+            m(".clip"),
+          ]),
+        ]),
+      ]),
+    ]);
+  },
 };
 
 const studio = {
   init() {
-    m.render(document.body.getElementById('mythril-root'), m(Root));
+    m.render(document.getElementById('mithril-root'), m(Root));
   }
 };
 export default studio;
