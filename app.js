@@ -85,6 +85,9 @@ export default class App {
       // set render target
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
 
+      // clear
+      renderer.clear();
+
       // high priority render
       renderer.render(scene3, camera);
       // main render
