@@ -691,7 +691,8 @@ class PlayScene {
     for (const resource of this.resources) {
     }
     
-    // render 
+    // render
+    const oldRenderTarget = renderer.getRenderTarget();
     renderer.setRenderTarget(backgroundRenderTarget);
     renderer.clear();
     for (const overrideMaterial of overrideMaterials) {
@@ -703,7 +704,7 @@ class PlayScene {
       renderer.render(backgroundScene3, camera);
     }
     renderer.render(backgroundScene2, camera);
-    renderer.setRenderTarget(null);
+    renderer.setRenderTarget(oldRenderTarget);
   }
   destroy() {
     this.live = false;
