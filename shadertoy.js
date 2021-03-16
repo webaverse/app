@@ -4,7 +4,8 @@ import runtime from './runtime.js';
 
 const size = 1024;
 const worldSize = 2;
-const vertexShader = `#version 300 es
+const hackShaderName = 'anime radial';
+const copySceneVertexShader = `#version 300 es
   precision highp float;
 
   in vec3 position;
@@ -18,12 +19,11 @@ const vertexShader = `#version 300 es
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-const planeGeometry = new THREE.PlaneGeometry(2, 2);
-const fakeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-const hackShaderName = 'anime radial';
+const copyScenePlaneGeometry = new THREE.PlaneGeometry(2, 2);
+const copySceneCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 const copyScene = (() => {
   const mesh = new THREE.Mesh(
-    planeGeometry,
+    copyScenePlaneGeometry,
     new THREE.RawShaderMaterial({
       uniforms: {
         tex: {
@@ -31,7 +31,7 @@ const copyScene = (() => {
           // needsUpdate: false,
         },
       },
-      vertexShader,
+      copySceneVertexShader,
       fragmentShader: `#version 300 es
         precision highp float;
 
@@ -68,10 +68,10 @@ class ShaderToyPass {
 
     const uniforms = {
       modelViewMatrix: {
-        value: new THREE.Matrix4().multiplyMatrices(fakeCamera.matrixWorldInverse, fakeCamera.matrixWorld),
+        value: new THREE.Matrix4().multiplyMatrices(copySceneCamera.matrixWorldInverse, copySceneCamera.matrixWorld),
       },
       projectionMatrix: {
-        value: fakeCamera.projectionMatrix,
+        value: copySceneCamera.projectionMatrix,
       },
       iResolution: {
         value: new THREE.Vector3(size, size, 1),
@@ -105,10 +105,10 @@ class ShaderToyPass {
       uniforms['iChannelResolution'].value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
     }
     this.mesh = new THREE.Mesh(
-      planeGeometry,
+      copyScenePlaneGeometry,
       new THREE.RawShaderMaterial({
         uniforms,
-        vertexShader,
+        vertexShader: copySceneVertexShader,
         fragmentShader: `#version 300 es
           precision highp float;
 
@@ -156,16 +156,16 @@ class ShaderToyPass {
         if (this.is.some(input => input.buffer === buffer)) {
           renderer.setRenderTarget(copyBuffer);
           renderer.clear();
-          renderer.render(this.scene, fakeCamera);
+          renderer.render(this.scene, copySceneCamera);
 
           copyScene.mesh.material.uniforms.tex.value = copyBuffer.texture;
           renderer.setRenderTarget(buffer);
           renderer.clear();
-          renderer.render(copyScene, fakeCamera);
+          renderer.render(copyScene, copySceneCamera);
         } else {
           renderer.setRenderTarget(buffer);
           renderer.clear();
-          renderer.render(this.scene, fakeCamera);
+          renderer.render(this.scene, copySceneCamera);
         }
         
         renderer.setRenderTarget(oldRenderTarget);
@@ -178,9 +178,8 @@ class ShaderToyPass {
       const oldRenderTarget = renderer.getRenderTarget();
 
       renderer.setRenderTarget(this.renderTarget);
-      // renderer.setClearColor(new THREE.Color(1, 0, 0), 1);
       renderer.clear();
-      renderer.render(this.scene, fakeCamera);
+      renderer.render(this.scene, copySceneCamera);
 
       renderer.setRenderTarget(oldRenderTarget);
     } else {
