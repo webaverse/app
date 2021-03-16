@@ -186,14 +186,14 @@ export default class App {
     }, {
       needsSwap: true,
     })); */
-    this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
+    /* this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
       depthScene.mesh.material.uniforms.depthTex.value = depthTexture;
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
       renderer.clear();
       renderer.render(depthScene, copySceneCamera);
     }, {
       needsSwap: true,
-    }));
+    })); */
   }
   
   waitForLoad() {
