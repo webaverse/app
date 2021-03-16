@@ -59,9 +59,9 @@ let xrscenecam = null;
 let xrscene = null;
 
 class FunctionPass extends Pass {
-  constructor(fn) {
+  constructor(fn, {needsSwap = false} = {}) {
     super();
-    this.needsSwap = false;
+    this.needsSwap = needsSwap;
     this.fn = fn;
   }
   render(renderer, writeBuffer, readBuffer) {
