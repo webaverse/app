@@ -1549,7 +1549,7 @@ const _loadAudio = async (file, {contentId = null, instanceId = null, monetizati
   return object;
 };
 
-const _loadVideo = () => {
+const _loadVideo = async () => {
   throw new Error('not implemented');
 };
 
