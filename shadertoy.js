@@ -148,7 +148,6 @@ class ShaderToyPass {
   update() {
     this.mesh.material.uniforms.iTime.value = this.parent.getITime();
     this.mesh.material.uniforms.iFrame.value = this.parent.getIFrame();
-    // this.mesh.material.needsUpdate = true;
     
     {
       const [{buffer} = {}] = this.os;
