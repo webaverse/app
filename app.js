@@ -1,6 +1,4 @@
 import * as THREE from './three.module.js';
-import {EffectComposer} from './EffectComposer.js';
-import {Pass} from './Pass.js';
 import {loginManager} from './login.js';
 import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
@@ -16,7 +14,6 @@ import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
-import cameraManager from './camera-manager.js';
 import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
@@ -27,8 +24,8 @@ import {parseCoord} from './util.js';
 // import './procgen.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, copyScene, copySceneCamera, copyScenePlaneGeometry, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
+import {compositor} from './compositor.js';
 import playManger from './play-manager.js';
-import shaderToy from './shadertoy.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -58,73 +55,6 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-class FunctionPass extends Pass {
-  constructor(fn, {needsSwap = false} = {}) {
-    super();
-    this.needsSwap = needsSwap;
-    this.fn = fn;
-  }
-  render(renderer, writeBuffer, readBuffer) {
-    this.fn.call(this, renderer, writeBuffer, readBuffer);
-  }
-}
-
-const depthScene = (() => {
-  const mesh = new THREE.Mesh(
-    copyScenePlaneGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        depthTex: {
-          value: null,
-          // needsUpdate: false,
-        },
-        cameraNear: {
-          value: camera.near,
-          // needsUpdate: false,
-        },
-        cameraFar: {
-          value: camera.far,
-          // needsUpdate: false,
-        },
-      },
-      vertexShader: `
-        out vec2 vUv;
-
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        #include <packing>
-
-        uniform sampler2D depthTex;
-        uniform float cameraNear;
-        uniform float cameraFar;
-        in vec2 vUv;
-        
-        float readDepth( sampler2D depthSampler, vec2 coord ) {
-            float fragCoordZ = texture2D( depthSampler, coord ).x;
-            float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
-            return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
-        }
-        
-        void main() {
-          float depth = readDepth(depthTex, vUv);
-          gl_FragColor.rgb = 1.0 - vec3(depth * 100.);
-          gl_FragColor.a = 1.0;
-        }
-      `,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  const scene = new THREE.Scene();
-  scene.add(mesh);
-  scene.mesh = mesh;
-  return scene;
-})();
-
 export default class App {
   constructor() {
     this.loadPromise = Promise.all([
@@ -135,65 +65,6 @@ export default class App {
         runtime.injectDependencies(geometryManager, physicsManager, world);
       });
     this.contentLoaded = false;
-    
-    const size = renderer.getSize(new THREE.Vector2());
-    const depthTexture = new THREE.DepthTexture(size.x, size.y);
-    const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
-      encoding: THREE.sRGBEncoding,
-      depthTexture,
-    });
-    this.composer = new EffectComposer(renderer, renderTarget);
-    this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
-      // set render target
-      renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
-
-      // clear
-      renderer.clear();
-
-      // high priority render
-      renderer.render(scene3, camera);
-      // main render
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-      renderer.render(scene, camera);
-      renderer.render(orthographicScene, orthographicCamera);
-      // local avatar render
-      {
-        rigManager.localRig.model.visible = true;
-        avatarScene.add(rigManager.localRig.model);
-        const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
-        if (decapitated) {
-          rigManager.localRig.decapitate();
-          rigManager.localRig.aux.decapitate();
-        } else {
-          rigManager.localRig.undecapitate();
-          rigManager.localRig.aux.undecapitate();
-        }
-        renderer.render(avatarScene, camera);
-        if (decapitated) {
-          rigManager.localRig.undecapitate();
-          rigManager.localRig.aux.undecapitate();
-        }
-      }
-      // highlight render
-      // renderer.render(highlightScene, camera);
-    }));
-    /* this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
-      copyScene.mesh.material.uniforms.tex.value = readBuffer.texture;
-      renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
-      renderer.clear();
-      renderer.render(copyScene, copySceneCamera);
-    }, {
-      needsSwap: true,
-    })); */
-    /* this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
-      depthScene.mesh.material.uniforms.depthTex.value = depthTexture;
-      renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
-      renderer.clear();
-      renderer.render(depthScene, copySceneCamera);
-    }, {
-      needsSwap: true,
-    })); */
   }
   
   waitForLoad() {
@@ -307,7 +178,7 @@ export default class App {
   }
   
   render() {
-    this.composer.render();
+    compositor.render();
   }
   renderMinimap() {
     minimap.update();
@@ -454,7 +325,6 @@ export default class App {
 
       weaponsManager.update();
       playManger.update();
-      shaderToy.update();
       hpManager.update();
       activateManager.update();
       dropManager.update();
