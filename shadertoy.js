@@ -143,11 +143,8 @@ class ShaderToyPass {
   }
 }
 let numRenderTargetMeshes = 0;
-// window.renderTargetMeshes = [];
 const _addRenderTargetMesh = renderTarget => {
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize);
-  /* const material = new THREE.ShaderMaterial({
-  }); */
   const material = new THREE.MeshBasicMaterial({
     // color: 0xFF0000,
     map: renderTarget.texture,
@@ -164,7 +161,6 @@ const _addRenderTargetMesh = renderTarget => {
   };
   
   scene.add(mesh);
-  // window.renderTargetMeshes.push(mesh);
   
   numRenderTargetMeshes++;
 };
@@ -306,119 +302,7 @@ const shadertoyRenderers = [];
   const res = await fetch('./assets2/shaders.json');
   const shaders = await res.json();
   const shader = shaders.shaders.find(shader => shader.info.name === hackShaderName);
-  /* shader.renderpass[0].code = `
-    // bufA precomputation version of https://www.shadertoy.com/view/MslyD7#
-    #define MODE 0 // 0: lines > 0: flownoise (see previous shaders)
-
-    float line(vec2 p, vec2 a, vec2 b) 
-    {
-      vec2 pa = p - a, ba = b - a;
-      vec2 d = pa - ba * clamp(dot(pa, ba)/dot(ba, ba) , 0., 1.); 
-      return length(d);
-    }
-
-    void mainImage( out vec4 O, vec2 U ) // -------------------------------------------
-    {
-        float t = iTime; const float N=30.; 
-        vec2 R = iResolution.xy;
-        O = vec4(0);
-        U /= 8.*R.y; 
-    #if MODE==0   
-    int n = 2; // try zero :-)
-    for(int x=-n; x<=n; x++) 
-      for(int y=-n; y<=n; y++) { 
-    #endif        
-        vec2 D, P,_P, 
-    #if MODE>0
-            P0 = U;
-    #else
-            P0 = ( ceil(U*64.)-.5 +vec2(x,y)/3. )/64.;
-    #endif
-            
-        P=P0;
-          
-        for (float i=0.; i<1.; i+=1./N) {
-                                                         // --- random field creation
-            D = texture(iChannel0, fract( P*8.*R.y/R +.05*t )).xy;
-                                                                   
-        _P = P;
-            P -= .1/200.* D*R.y/8.;                      // --- advection (to be LIC )
-
-    #if MODE==0          
-            O += smoothstep(.2,.0,line(U,_P,P)*R.y) *N * R.y/1e3
-                 * (.5+.5*vec4(P-P0,0,0)*200.*8./11.3)
-                ;
-    #elif MODE==1          
-          O +=   (.5+.5*vec4(P-P0,0,0)*200.*8./11.3)   // --- flow visualization 
-                 * pow(texture(iChannel1,P.xy*8.*R.y/R+.00*t).r*1.15,3.) *2.
-                 * (1.+1.*sin(2.*6.2832*i+10.*t))
-                ;
-    #elif MODE==2
-          O += pow(texture(iChannel2,P.xy*8.*R.y/R+.00*t)*1.15,vec4(3));
-    #elif MODE==3
-            O += .1/length(fract(P * 8.*30.+.5*t)-.5);
-    #endif  
-        }
-    #if MODE==0          
-     }
-    #endif
-        
-        O /= N;
-        //O = .5+.5*vec4(D,0,0)*30.*.1* R.y /11.3; O=fract(O); 
-        //O = abs(2.*O-1.);
-        
-        //O += .1/length(fract(P * 8.*30.)-.5) -O;
-    }
-  `;
-  shader.renderpass[1].code = `        
-    // --- Simplex noise 2D from  Makio64 / Ashima  https://www.shadertoy.com/view/4sdGD8
-
-    vec3 permute( vec3 x) { return mod( x*x*34.+x, 289.); }
-    float noise2( vec2 v) {
-        v *= 64./2.; // emulates 64x64 noise texture
-        vec2 i = floor((v.x+v.y)*.36602540378443 + v),
-            x0 = (i.x+i.y)*.211324865405187 + v - i;
-        float s = step(x0.x,x0.y);
-        vec2 j = vec2(1.-s,s),
-            x1 = x0 - j + .211324865405187, 
-            x3 = x0 - .577350269189626; 
-        i = mod(i,289.);
-        vec3 p = permute( permute( i.y + vec3(0, j.y, 1 ))+ i.x + vec3(0, j.x, 1 )   ),
-             m = max( .5 - vec3(dot(x0,x0), dot(x1,x1), dot(x3,x3)), 0.),
-             x = fract(p * .024390243902439) * 2. - 1.,
-             h = abs(x) - .5,
-            a0 = x - floor(x + .5);
-        return .5 + 65. * dot( pow(m,vec3(4.))*(- 0.85373472095314*( a0*a0 + h*h )+1.79284291400159 ), 
-                               a0 * vec3(x0.x,x1.x,x3.x) + h * vec3(x0.y,x1.y,x3.y));
-    }
-
-    void mainImage( out vec4 O, vec2 U ) // -------------------------------------------
-    {
-        vec2 R = iResolution.xy;
-        vec2 uv = U/R;
-        
-        if (iFrame>0 && texture(iChannel0,.5/R).xy==R) { // recompute at start + resize
-            O = texture(iChannel0,U/R);
-            return;
-        }
-        if (U==vec2(.5)) { O.xy = R; return; }
-        
-        // float t = iTime;
-        U /= 8.*R.y; 
-        vec2 D, P0 =  U, P = P0;
-        
-        float T = noise2(P);
-    #define dnoise2(i,j) T - noise2(P-vec2(i,j)/8./R.y)
-      //D = vec2(dFdx(T), dFdy(T) );                 // hardware derivatives
-        D = vec2(dnoise2(1,0), dnoise2(0,1) );       // software derivatives
-        D = normalize(D)*5./R.y;                     // optional : no calm areas
-        D = vec2(-D.y,D.x);                          // invicid noise: grad(D)=0
-
-        O = vec4(D,0,0); // *30.*.1* R.y;
-    }
-  `; */
   const shadertoyRenderer = new ShadertoyRenderer({shader});
-  // window.shadertoyRenderer = shadertoyRenderer;
   await shadertoyRenderer.waitForLoad();
   shadertoyRenderers.push(shadertoyRenderer);
 })();
