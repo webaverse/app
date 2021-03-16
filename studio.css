@@ -52,15 +52,27 @@
 }
 
 .studio footer .core .playlist {
+  position: relative;
   display: flex;
+  margin: 0 3px;
   flex-direction: column;
   flex: 1;
 }
-
+.studio footer .core .playlist .needle {
+  position: absolute;
+  display: flex;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #66bb6a;
+  border: 0px solid transparent;
+  border-left-width: 2px;
+  border-right-width: 2px;
+}
 .studio footer .core .playlist .track {
   display: flex;
   height: 50px;
-  margin: 3px;
+  margin: 3px 0;
   border: 3px solid #CCC;
 }
 
