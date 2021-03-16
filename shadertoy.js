@@ -20,6 +20,7 @@ const vertexShader = `#version 300 es
 `;
 const planeGeometry = new THREE.PlaneGeometry(2, 2);
 const fakeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+const hackShaderName = 'anime radial';
 const copyScene = (() => {
   const mesh = new THREE.Mesh(
     planeGeometry,
@@ -348,7 +349,7 @@ const shadertoyRenderers = [];
 (async () => {
   const res = await fetch('./shaders.json');
   const shaders = await res.json();
-  const shader = shaders.shaders.find(shader => shader.info.name === 'Fork LIC 2D / f avaer 088');
+  const shader = shaders.shaders.find(shader => shader.info.name === hackShaderName);
   /* shader.renderpass[0].code = `
     // bufA precomputation version of https://www.shadertoy.com/view/MslyD7#
     #define MODE 0 // 0: lines > 0: flownoise (see previous shaders)
