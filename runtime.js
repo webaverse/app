@@ -15,13 +15,16 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {scene, renderer, scene2, appManager} from './app-object.js';
+import {renderer, scene, camera, scene2, copyScenePlaneGeometry, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
 import {baseUnit, rarityColors} from './constants.js';
+import json6 from './json6.js';
+import {FullscreenShader, compositor} from './compositor.js';
+import {ShadertoyRenderer} from './shadertoy.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1559,6 +1562,50 @@ const _loadGeo = async (file, {contentId = null}) => {
   return object;
 };
 
+const _loadGlfs = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  
+  const fullscreenShader = new FullscreenShader(shader);
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.useAux = rigAux => {
+    compositor.add(fullscreenShader);
+  };
+  o.destroy = () => {
+    compositor.remove(fullscreenShader);
+  };
+  return o;
+};
+
+const _loadGlbb = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  
+  const shadertoyRenderer = new ShadertoyRenderer(shader);
+  const o = shadertoyRenderer.mesh;
+  o.contentId = contentId;
+  // o.frustumCulled = false;
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+  };
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', () => {
+    shadertoyRenderer.render();
+  });
+
+  return o;
+};
+
 const typeHandlers = {
   'gltf': _loadGltf,
   'glb': _loadGltf,
@@ -1578,6 +1625,8 @@ const typeHandlers = {
   'geo': _loadGeo,
   'mp3': _loadAudio,
   'mp4': _loadVideo,
+  'glfs': _loadGlfs,
+  'glbb': _loadGlbb,
 };
 runtime.typeHandlers = typeHandlers;
 
