@@ -57,6 +57,13 @@
   flex: 1;
 }
 
+.studio footer .core .playlist .track {
+  display: flex;
+  height: 50px;
+  margin: 3px;
+  border: 3px solid #CCC;
+}
+
 .studio footer .core .clips {
   width: 300px;
   border-left: 5px solid #EEE;
