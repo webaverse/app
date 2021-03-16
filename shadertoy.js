@@ -303,7 +303,7 @@ class ShadertoyRenderer {
 
 const shadertoyRenderers = [];
 (async () => {
-  const res = await fetch('./shaders.json');
+  const res = await fetch('./assets2/shaders.json');
   const shaders = await res.json();
   const shader = shaders.shaders.find(shader => shader.info.name === hackShaderName);
   /* shader.renderpass[0].code = `
