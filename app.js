@@ -80,7 +80,13 @@ export default class App {
       });
     this.contentLoaded = false;
     
-    this.composer = new EffectComposer(renderer);
+    const size = renderer.getSize(new THREE.Vector2());
+    const depthTexture = new THREE.DepthTexture(size.x, size.y);
+    const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
+      encoding: THREE.sRGBEncoding,
+      depthTexture,
+    });
+    this.composer = new EffectComposer(renderer, renderTarget);
     this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
       // set render target
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
