@@ -142,15 +142,13 @@ class ShaderToyPass {
     }
   }
 }
-let numRenderTargetMeshes = 0;
-const _addRenderTargetMesh = renderTarget => {
+const _makeRenderTargetMesh = renderTarget => {
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize);
   const material = new THREE.MeshBasicMaterial({
     // color: 0xFF0000,
     map: renderTarget.texture,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(-3 + numRenderTargetMeshes * worldSize, worldSize/2, -1);
   mesh.onBeforeRender = () => {
     const context = renderer.getContext();
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
@@ -159,14 +157,18 @@ const _addRenderTargetMesh = renderTarget => {
     const context = renderer.getContext();
     context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
-  
+  return mesh;
+};
+let numRenderTargetMeshes = 0;
+const _addDebugRenderTargetMesh = renderTarget => {
+  const mesh = _makeRenderTargetMesh(renderTarget);
+  mesh.position.set(-3 + numRenderTargetMeshes * worldSize, worldSize/2, -1);
   scene.add(mesh);
-  
   numRenderTargetMeshes++;
 };
 class ShadertoyRenderer {
-  constructor({shader}) {
-    this.shader = shader;
+  constructor(shader) {
+    // this.shader = shader;
 
     this.renderTarget = _makeRenderTarget();
     this.textures = {};
@@ -243,14 +245,16 @@ class ShadertoyRenderer {
       });
     };
     _initRenderPassIos();
+
+    /* // debugging
+    for (const id in this.buffers) {
+      _addDebugRenderTargetMesh(this.buffers[id]);
+    }
+    _addDebugRenderTargetMesh(this.renderTarget); */
+    
     const _initRenderPasses = async () => {
       // wait for images to load
       await Promise.all(promises);
-      
-      for (const id in this.buffers) {
-        _addRenderTargetMesh(this.buffers[id]);
-      }
-      _addRenderTargetMesh(this.renderTarget);
       
       for (let i = 0; i < shader.renderpass.length; i++) {
         const {type, code} = shader.renderpass[i];
@@ -267,8 +271,13 @@ class ShadertoyRenderer {
     };
     _initRenderPasses();
     
+    this.mesh = _makeRenderTargetMesh(this.renderTarget);
+
+    this.loaded = false;
     this.loadPromise = Promise.all(promises)
-      .then(() => {});
+      .then(() => {
+        this.loaded = true;
+      });
   }
   getITime() {
     return (this.now - this.startTime)/1000;
@@ -279,25 +288,27 @@ class ShadertoyRenderer {
   waitForLoad() {
     return this.loadPromise;
   }
-  update() {
-    // console.log('update start');
+  render() {
+    if (this.loaded) {
+      // console.log('update start');
 
-    const context = renderer.getContext();
-    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+      const context = renderer.getContext();
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
-    this.now = performance.now();
-    for (const renderPass of this.renderPasses) {
-      renderPass.update();
+      this.now = performance.now();
+      for (const renderPass of this.renderPasses) {
+        renderPass.update();
+      }
+      this.frame++;
+      
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+      
+      // console.log('update end');
     }
-    this.frame++;
-    
-    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    
-    // console.log('update end');
   }
 }
 
-const shadertoyRenderers = [];
+/* const shadertoyRenderers = [];
 (async () => {
   const res = await fetch('./assets2/shaders.json');
   const shaders = await res.json();
@@ -305,13 +316,8 @@ const shadertoyRenderers = [];
   const shadertoyRenderer = new ShadertoyRenderer({shader});
   await shadertoyRenderer.waitForLoad();
   shadertoyRenderers.push(shadertoyRenderer);
-})();
+})(); */
 
-const shaderToy = {
-  update() {
-    for (const shadertoyRenderer of shadertoyRenderers) {
-      shadertoyRenderer.update();
-    }
-  }
+export {
+  ShadertoyRenderer,
 };
-export default shaderToy;
