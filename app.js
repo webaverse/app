@@ -25,7 +25,7 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, copyScene, copySceneCamera, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import playManger from './play-manager.js';
 import shaderToy from './shadertoy.js';
@@ -121,6 +121,14 @@ export default class App {
       }
       // highlight render
       // renderer.render(highlightScene, camera);
+    }));
+    this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
+      copyScene.mesh.material.uniforms.tex.value = readBuffer.texture;
+      renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
+      renderer.clear();
+      renderer.render(copyScene, copySceneCamera);
+    }, {
+      needsSwap: true,
     }));
   }
   
