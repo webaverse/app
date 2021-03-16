@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>山</title>
+  <link href="/index.css" rel=stylesheet>
+  <!-- <link href="/mithril-ui/index.css" rel=stylesheet>
+  <link href="/mithril-ui/menu/menu.css" rel=stylesheet> -->
+  <link href="/studio.css" rel=stylesheet>
+
+  <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+</head>
+
+<body class=no-ui>
+
+  <div id=mytril-root></div>
+
+  <script src="./bin/geometry.js"></script>
+  <script type=module>
+    import App from '/app.js';
+    import studio from './studio.js';
+    import m from './mithril.js';
+
+    (async () => {
+      const app = new App();
+
+      // app.bootstrapFromUrl(location);
+
+      // app.bindLogin();
+      // app.bindInput();
+      // app.bindInterface();
+      // const uploadFileInput = document.getElementById('upload-file-input');
+      // app.bindUploadFileInput(uploadFileInput);
+
+      // const mapCanvas = document.getElementById('map-canvas')
+      // app.bindMinimap(mapCanvas);
+
+      /* const enterXrButton = document.getElementById('enter-xr-button');
+      const noXrButton = document.getElementById('no-xr-button');
+      app.bindXr({
+        enterXrButton,
+        noXrButton,
+        onSupported(ok) {
+          if (ok) {
+            enterXrButton.style.display = null;
+            noXrButton.style.display = 'none';
+          }
+        },
+      }); */
+      
+      await app.waitForLoad()
+      app.startLoop();
+      
+      studio.init();
+    })();
+  </script>
+</body>
+
+</html>
