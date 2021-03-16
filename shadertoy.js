@@ -152,34 +152,37 @@ class ShaderToyPass {
     {
       const [{buffer} = {}] = this.os;
       if (buffer) {
+        const oldRenderTarget = renderer.getRenderTarget();
         if (this.is.some(input => input.buffer === buffer)) {
           renderer.setRenderTarget(copyBuffer);
           renderer.clear();
           renderer.render(this.scene, fakeCamera);
-          renderer.setRenderTarget(null);
 
           copyScene.mesh.material.uniforms.tex.value = copyBuffer.texture;
           renderer.setRenderTarget(buffer);
           renderer.clear();
           renderer.render(copyScene, fakeCamera);
-          renderer.setRenderTarget(null);
         } else {
           renderer.setRenderTarget(buffer);
           renderer.clear();
           renderer.render(this.scene, fakeCamera);
-          renderer.setRenderTarget(null);
         }
+        
+        renderer.setRenderTarget(oldRenderTarget);
       }
     }
 
     if (this.type === 'buffer') {
       
     } else if (this.type === 'image') {
+      const oldRenderTarget = renderer.getRenderTarget();
+
       renderer.setRenderTarget(this.renderTarget);
       // renderer.setClearColor(new THREE.Color(1, 0, 0), 1);
       renderer.clear();
       renderer.render(this.scene, fakeCamera);
-      renderer.setRenderTarget(null);
+
+      renderer.setRenderTarget(oldRenderTarget);
     } else {
       throw new Error('unknown pass type: ' + this.type);
     }
