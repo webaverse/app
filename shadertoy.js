@@ -1,57 +1,11 @@
 import * as THREE from './three.module.js';
-import {scene, camera, renderer} from './app-object.js';
+import {scene, camera, renderer, copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './app-object.js';
 import runtime from './runtime.js';
 
 const size = 1024;
 const worldSize = 2;
 const hackShaderName = 'anime radial';
-const copySceneVertexShader = `#version 300 es
-  precision highp float;
 
-  in vec3 position;
-  in vec2 uv;
-  uniform mat4 modelViewMatrix;
-  uniform mat4 projectionMatrix;
-  out vec2 vUv;
-
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-const copyScenePlaneGeometry = new THREE.PlaneGeometry(2, 2);
-const copySceneCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-const copyScene = (() => {
-  const mesh = new THREE.Mesh(
-    copyScenePlaneGeometry,
-    new THREE.RawShaderMaterial({
-      uniforms: {
-        tex: {
-          value: null,
-          // needsUpdate: false,
-        },
-      },
-      copySceneVertexShader,
-      fragmentShader: `#version 300 es
-        precision highp float;
-
-        uniform sampler2D tex;
-        in vec2 vUv;
-        out vec4 fragColor;
-        
-        void main() {
-          fragColor = texture(tex, vUv);
-        }
-      `,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  const scene = new THREE.Scene();
-  scene.add(mesh);
-  scene.mesh = mesh;
-  return scene;
-})();
 const _makeRenderTarget = () => new THREE.WebGLRenderTarget(size, size, {
   format: THREE.RGBAFormat,
   type: THREE.FloatType,
