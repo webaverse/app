@@ -114,18 +114,20 @@ const _makeWorld = extents => {
 };
 
 const update = () => {
-  localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-  localEuler.x = 0;
-  localEuler.z = 0;
-  mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
-    .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
-  mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
-  mapIndicator.quaternion.setFromEuler(localEuler);
-  mapCamera.lookAt(mapIndicator.position);
-  mapRenderer.render(mapScene, mapCamera);
+  if (mapCamera) {
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
+      .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
+    mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
+    mapIndicator.quaternion.setFromEuler(localEuler);
+    mapCamera.lookAt(mapIndicator.position);
+    mapRenderer.render(mapScene, mapCamera);
 
-  for (const object of objects) {
-    object.update();
+    for (const object of objects) {
+      object.update();
+    }
   }
 };
 
