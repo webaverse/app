@@ -25,7 +25,7 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, copyScene, copySceneCamera, depthScene, appManager} from './app-object.js';
+import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, copyScene, copySceneCamera, copyScenePlaneGeometry, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import playManger from './play-manager.js';
 import shaderToy from './shadertoy.js';
@@ -68,6 +68,62 @@ class FunctionPass extends Pass {
     this.fn.call(this, renderer, writeBuffer, readBuffer);
   }
 }
+
+const depthScene = (() => {
+  const mesh = new THREE.Mesh(
+    copyScenePlaneGeometry,
+    new THREE.ShaderMaterial({
+      uniforms: {
+        depthTex: {
+          value: null,
+          // needsUpdate: false,
+        },
+        cameraNear: {
+          value: camera.near,
+          // needsUpdate: false,
+        },
+        cameraFar: {
+          value: camera.far,
+          // needsUpdate: false,
+        },
+      },
+      vertexShader: `
+        out vec2 vUv;
+
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        #include <packing>
+
+        uniform sampler2D depthTex;
+        uniform float cameraNear;
+        uniform float cameraFar;
+        in vec2 vUv;
+        
+        float readDepth( sampler2D depthSampler, vec2 coord ) {
+            float fragCoordZ = texture2D( depthSampler, coord ).x;
+            float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
+            return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
+        }
+        
+        void main() {
+          float depth = readDepth(depthTex, vUv);
+          gl_FragColor.rgb = 1.0 - vec3(depth * 100.);
+          gl_FragColor.a = 1.0;
+        }
+      `,
+      depthWrite: false,
+      depthTest: false,
+    })
+  );
+  const scene = new THREE.Scene();
+  scene.add(mesh);
+  scene.mesh = mesh;
+  return scene;
+})();
 
 export default class App {
   constructor() {
