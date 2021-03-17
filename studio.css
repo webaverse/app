@@ -47,7 +47,6 @@
 .studio footer .core {
   display: flex;
   width: 100%;
-  background-color: #DDD;
   flex: 1;
 }
 
@@ -74,6 +73,7 @@
   position: relative;
   display: flex;
   height: 20px;
+  background-color: #DDD;
 }
 .studio footer .core .playlist .ruler .tick {
   position: absolute;
@@ -93,6 +93,7 @@
 
 .studio footer .core .clips {
   width: 300px;
+  background-color: #DDD;
   border-left: 5px solid #EEE;
 }
 .studio footer .core .clips .clip {
