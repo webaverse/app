@@ -1,14 +1,11 @@
 import m from './mithril.js';
 
-/* function feed(a, src) {
-  return {
-    view() {
-      return m(a, {
-        src,
-      });
-    },
-  };
-} */
+const zoom = 10;
+const entityColors = {
+  camera: '#5c6bc0',
+  sakura: '#ec407a',
+  move: '#ffa726',
+};
 
 const _toTimeString = sec_num => {
   var minutes = Math.floor(sec_num / 60);
@@ -20,6 +17,12 @@ const _toTimeString = sec_num => {
   if (ms < 10) {ms = "0"+ms;}
   return minutes+':'+seconds+':'+ms;
 };
+const _getEventTime = e => {
+  const playListEl = mithrilRoot.querySelector('.playlist');
+  const box = playListEl.getBoundingClientRect();
+  return (e.clientX - box.left) / zoom;
+};
+const _timeToPixels = t => t * zoom;
 
 const Ruler = {
   view() {
@@ -36,11 +39,46 @@ const Ruler = {
   }
 };
 
+const Track = {
+  view(vnode) {
+    return m('.track', {
+      ondragover(e) {
+        e.preventDefault();
+      },
+      ondrop(e) {
+        e.preventDefault();
+        const dataString = e.dataTransfer.getData('application/json');
+        const data = JSON.parse(dataString);
+        vnode.attrs.drop({
+          data,
+          time: _getEventTime(e),
+        });
+      },
+    }, m('.entities', vnode.attrs.entities.map(entity => {
+      return m('.entity', {
+        style: {
+          backgroundColor: entityColors[entity.type],
+          left: `${_timeToPixels(entity.startTime)}px`,
+          width: `${_timeToPixels(entity.endTime - entity.startTime)}px`,
+        },
+      }, entity.type);
+    })));
+  },
+};
+
 let rootInstance = null;
 const Root = {
   oninit() {
     this.currentTime = 0;
     this.playing = false;
+    const _makeTrack = () => ({
+      entities: [],
+    });
+    this.tracks = [
+      _makeTrack(),
+      _makeTrack(),
+      _makeTrack(),
+    ];
 
     window.addEventListener('keydown', e => {
       switch (e.which) {
@@ -64,7 +102,16 @@ const Root = {
   },
   view() {
     const timeString = _toTimeString(this.currentTime);
-    const zoom = 10;
+    const _dropTrack = (track, o) => {
+      const {data: {type}, time} = o;
+      const entity = {
+        type,
+        startTime: time,
+        endTime: time + 20*1000,
+      };
+      track.entities.push(entity);
+      _render();
+    };
 
     return m(".studio", [
       // m("p", "My ramblings about everything"),
@@ -104,38 +151,55 @@ const Root = {
               e.preventDefault();
               e.stopPropagation();
               
-              const playListEl = mithrilRoot.querySelector('.playlist');
-              const box = playListEl.getBoundingClientRect();
-              this.currentTime = (e.clientX - box.left) / zoom;
+              this.currentTime = _getEventTime(e);
               _render();
-            },
+            },  
           }, [
             m(".needle", {
               style: {
-                left: `${this.currentTime * zoom}px`,
+                left: `${_timeToPixels(this.currentTime)}px`,
               },
             }),
             m(Ruler),
-            m(".tracks", [
-              m(".track"),
-              m(".track"),
-              m(".track"),
-            ])
+            m(".tracks", this.tracks.map(track => m(Track, {
+              entities: track.entities,
+              drop(o) {
+                _dropTrack(track, o);
+              },
+            }))),
           ]),
           m(".clips", [
             m(".clip", {
               style: {
-                backgroundColor: '#5c6bc0',
+                backgroundColor: entityColors.camera,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'camera',
+                }));
               },
             }, 'Camera'),
             m(".clip", {
               style: {
-                backgroundColor: '#ec407a',
+                backgroundColor: entityColors.sakura,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'sakura',
+                }));
               },
             }, 'Sakura'),
             m(".clip", {
               style: {
-                backgroundColor: '#ffa726',
+                backgroundColor: entityColors.move,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'move',
+                }));
               },
             }, 'Move'),
           ]),
