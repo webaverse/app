@@ -103,6 +103,7 @@
   color: #FFF;
   border-radius: 3px;
   cursor: pointer;
+  user-select: none;
 }
 .studio footer .core .clips .clip:hover {
   filter: brightness(50%);
