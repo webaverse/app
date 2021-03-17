@@ -123,9 +123,21 @@ const Root = {
             ])
           ]),
           m(".clips", [
-            m(".clip"),
-            m(".clip"),
-            m(".clip"),
+            m(".clip", {
+              style: {
+                backgroundColor: '#5c6bc0',
+              },
+            }, 'Camera'),
+            m(".clip", {
+              style: {
+                backgroundColor: '#ec407a',
+              },
+            }, 'Sakura'),
+            m(".clip", {
+              style: {
+                backgroundColor: '#ffa726',
+              },
+            }, 'Move'),
           ]),
         ]),
       ]),

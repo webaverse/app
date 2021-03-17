@@ -97,5 +97,13 @@
   border-left: 5px solid #EEE;
 }
 .studio footer .core .clips .clip {
-  
+  display: inline-flex;
+  margin: 3px;
+  padding: 3px;
+  color: #FFF;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.studio footer .core .clips .clip:hover {
+  filter: brightness(50%);
 }
