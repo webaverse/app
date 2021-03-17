@@ -10,8 +10,21 @@ import m from './mithril.js';
   };
 } */
 
+const _toTimeString = sec_num => {
+  var minutes = Math.floor(sec_num / 60);
+  var seconds = Math.floor(sec_num - (minutes * 60));
+  var ms = Math.floor((sec_num - (minutes * 60) - seconds) * 100);
+
+  if (minutes < 10) {minutes   = "0"+minutes;}
+  if (seconds < 10) {seconds = "0"+seconds;}
+  if (ms < 10) {ms = "0"+ms;}
+  return minutes+':'+seconds+':'+ms;
+};
+
+let rootInstance = null;
 const Root = {
   oninit() {
+    this.currentTime = 0;
     this.playing = false;
     this.needleOffset = 0;
 
@@ -24,10 +37,20 @@ const Root = {
         }
       }
     });
+    
+    rootInstance = this;
   },
   // To ensure the tag gets properly diffed on route change.
   // onbeforeupdate: init,
+  update(timeDiff) {
+    if (this.playing) {
+      this.currentTime += timeDiff / 1000;
+      _render();
+    }
+  },
   view() {
+    const timeString = _toTimeString(this.currentTime);
+
     return m(".studio", [
       // m("p", "My ramblings about everything"),
 
@@ -57,7 +80,7 @@ const Root = {
           ]),
           m("input", {
             type: 'text',
-            value: '0:00:00',
+            value: timeString,
           }),
         ]),
         m(".core", [
@@ -101,6 +124,9 @@ const _render = () => {
 const studio = {
   init() {
     _render();
+  },
+  update(timeDiff) {
+    rootInstance.update(timeDiff);
   }
 };
 export default studio;

@@ -49,14 +49,23 @@ const localArray = Array(4);
 const localArray2 = Array(4);
 const localArray3 = Array(4);
 const localArray4 = Array(4);
+const localData = {
+  timeDiff: 0,
+};
+const localFrameOpts = {
+  data: localData,
+};
+
 
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-export default class App {
+export default class App extends EventTarget {
   constructor() {
+    super();
+    
     this.loadPromise = Promise.all([
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
@@ -332,6 +341,9 @@ export default class App {
       fx.update();
 
       appManager.tick(timestamp, frame);
+      
+      localData.timeDiff = timeDiff;
+      this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
 
       ioManager.updatePost();
 
