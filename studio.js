@@ -21,6 +21,21 @@ const _toTimeString = sec_num => {
   return minutes+':'+seconds+':'+ms;
 };
 
+const Ruler = {
+  view() {
+    const lines = Array(100);
+    for (let i = 0; i < lines.length; i++) {
+      lines[i] = m('.tick' + ((i % 10 === 0) ? '.large' : ''), {
+        style: {
+          left: `${i * 20}px`,
+          width: '${20}px',
+        },
+      });
+    }
+    return m('.ruler', lines);
+  }
+};
+
 let rootInstance = null;
 const Root = {
   oninit() {
@@ -100,6 +115,7 @@ const Root = {
                 left: `${this.needleOffset}px`,
               },
             }),
+            m(Ruler),
             m(".tracks", [
               m(".track"),
               m(".track"),
