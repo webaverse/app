@@ -41,7 +41,6 @@ const Root = {
   oninit() {
     this.currentTime = 0;
     this.playing = false;
-    this.needleOffset = 0;
 
     window.addEventListener('keydown', e => {
       switch (e.which) {
@@ -65,6 +64,7 @@ const Root = {
   },
   view() {
     const timeString = _toTimeString(this.currentTime);
+    const zoom = 10;
 
     return m(".studio", [
       // m("p", "My ramblings about everything"),
@@ -106,13 +106,13 @@ const Root = {
               
               const playListEl = mithrilRoot.querySelector('.playlist');
               const box = playListEl.getBoundingClientRect();
-              this.needleOffset = e.clientX - box.left;
+              this.currentTime = (e.clientX - box.left) / zoom;
               _render();
             },
           }, [
             m(".needle", {
               style: {
-                left: `${this.needleOffset}px`,
+                left: `${this.currentTime * zoom}px`,
               },
             }),
             m(Ruler),
