@@ -57,6 +57,7 @@
   margin: 0 3px;
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 }
 .studio footer .core .playlist .needle {
   position: absolute;
@@ -68,6 +69,20 @@
   border: 0px solid transparent;
   border-left-width: 2px;
   border-right-width: 2px;
+}
+.studio footer .core .playlist .ruler {
+  position: relative;
+  display: flex;
+  height: 20px;
+}
+.studio footer .core .playlist .ruler .tick {
+  position: absolute;
+  bottom: 0;
+  height: 5px;
+  border-right: 1px solid #333;
+}
+.studio footer .core .playlist .ruler .tick.large {
+  height: 10px;
 }
 .studio footer .core .playlist .track {
   display: flex;
