@@ -53,7 +53,10 @@ const Entity = {
         e.stopPropagation();
         vnode.attrs.selectEntity(vnode.attrs.entity);
       },
-    }, vnode.attrs.entity.type);
+    }, [
+      m('.core', vnode.attrs.entity.type),
+      m('.attributes'),
+    ]);
   },
 };
 
