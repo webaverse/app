@@ -91,7 +91,19 @@ const Attribute = {
         e.stopPropagation();
         vnode.attrs.selectObject(vnode.attrs.attribute);
       },
-    }, vnode.attrs.attribute.type);
+    }, [
+      m('.nub', {
+        style: {
+          left: 0,
+        },
+      }),
+      m('div', vnode.attrs.attribute.type),
+      m('.nub', {
+        style: {
+          right: 0,
+        },
+      }),
+    ]);
   },
 };
 
