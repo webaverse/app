@@ -3,7 +3,8 @@ import m from './mithril.js';
 const zoom = 10;
 const entityColors = {
   camera: '#5c6bc0',
-  sakura: '#ec407a',
+  shader: '#ec407a',
+  avatar: '#42a5f5',
   song: '#7e57c2',
   move: '#ffa726',
 };
@@ -425,16 +426,16 @@ const Root = {
             }, 'Camera'),
             m(".clip", {
               style: {
-                backgroundColor: entityColors.sakura,
+                backgroundColor: entityColors.shader,
               },
               draggable: true,
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'sakura',
+                  type: 'shader',
                   length: 12,
                 }));
               },
-            }, 'Sakura'),
+            }, 'Shader'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.song,
@@ -447,6 +448,18 @@ const Root = {
                 }));
               },
             }, 'Song'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.avatar,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'avatar',
+                  length: 10,
+                }));
+              },
+            }, 'Avatar'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.move,
