@@ -53,21 +53,53 @@ const Entity = {
         e.stopPropagation();
         vnode.attrs.selectEntity(vnode.attrs.entity);
       },
+      ondragover(e) {
+        e.preventDefault();
+      },
+      ondrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dataString = e.dataTransfer.getData('application/json');
+        const data = JSON.parse(dataString);
+        console.log('drop on entity', data);
+        vnode.attrs.drop({
+          data,
+          time: _getEventTime(e),
+        });
+      },
     }, [
       m('.core', vnode.attrs.entity.type),
-      m('.attributes'),
+      m('.attributes', vnode.attrs.entity.attributes.map(a => {
+        return m('.attribute', {
+          style: {
+            backgroundColor: entityColors[a.type],
+          },
+        }, a.type);
+      })),
     ]);
   },
 };
 
 const Track = {
   view(vnode) {
+    const _dropAttribute = (entity, o) => {
+      const {data: {type}, time} = o;
+      const attribute = {
+        type,
+        startTime: time,
+        endTime: time + 20*1000,
+      };
+      entity.attributes.push(attribute);
+      _render();
+    };
+    
     return m('.track', {
       ondragover(e) {
         e.preventDefault();
       },
       ondrop(e) {
         e.preventDefault();
+        e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
         const data = JSON.parse(dataString);
         vnode.attrs.drop({
@@ -79,6 +111,9 @@ const Track = {
       entity,
       selectedEntity: vnode.attrs.selectedEntity,
       selectEntity: vnode.attrs.selectEntity,
+      drop(o) {
+        _dropAttribute(entity, o);
+      },
     }))));
   },
 };
@@ -142,6 +177,7 @@ const Root = {
         type,
         startTime: time,
         endTime: time + 20*1000,
+        attributes: [],
       };
       track.entities.push(entity);
       _render();

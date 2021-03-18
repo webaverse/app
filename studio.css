@@ -86,20 +86,19 @@
 }
 .studio footer .core .playlist .track {
   display: flex;
-  height: 50px;
+  min-height: 50px;
   margin: 3px 0;
   border: 3px solid #CCC;
 }
 .studio footer .core .playlist .entities {
   position: relative;
   width: 100%;
-  height: 50px;
+  min-height: 50px;
 }
 .studio footer .core .playlist .entities .entity {
-  position: absolute;
+  position: relative;
   display: flex;
-  top: 0;
-  height: 50px;
+  min-height: 50px;
   flex-direction: column;
 }
 .studio footer .core .playlist .entities .entity.selected .core {
@@ -108,16 +107,23 @@
 
 .studio footer .core .playlist .entities .entity .core {
   width: 100%;
-  height: 50px;
+  min-height: 50px;
   color: #FFF;
   border: 3px solid transparent;
   user-select: none;
 }
-.studio footer .core .playlist .entities .entity.core .attributes {
+.studio footer .core .playlist .entities .entity .attributes {
   background-color: #BBB;
 }
-.studio footer .core .playlist .entities .entity.core .attributes:not(.empty) {
+.studio footer .core .playlist .entities .entity .attributes:not(.empty) {
   
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute {
+  min-height: 50px;
+  border: 3px solid transparent;
+}
+.studio footer .core .playlist .entities .entity.core .attributes .attribute.selected {
+  border-color: #0008;
 }
 
 .studio footer .core .clips {
