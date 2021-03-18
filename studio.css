@@ -150,7 +150,12 @@
   top: calc(50% - 4px);
   width: 8px;
   height: 8px;
-  border: 2px solid #0008;
+  background-color: #0004;
+  /* border: 2px solid #0008; */
+  z-index: 1;
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute .nub.selected {
+  background-color: #000;
 }
 
 .studio footer .core .clips {
