@@ -379,10 +379,10 @@ const Track = {
     const _dropAttribute = (entity, o) => {
       const {data: {id, type, length}, time} = o;
       if (type === 'attribute' || type === 'entity') {
-        if (entity.id === id) {
+        if (entity.id !== id) {
           const object = rootInstance.spliceObject(id);
           object.startTime = time;
-          object.endTime = time + length;
+          object.endTime = time + object.length;
           object.nubs = _makeNubs();
           entity.attributes.push(object);
         }
@@ -572,14 +572,13 @@ const Root = {
   },
   view(vnode) {
     const timeString = _toTimeString(this.currentTime);
-    const _dropTrack = (track, o) => {
+    const _dropEntity = (track, o) => {
       const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
-      console.log('drop', {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion});
       if (type === 'attribute' || type === 'entity') {
-        if (id !== track.id) {
+        if (track.id !== id) {
           const object = rootInstance.spliceObject(id);
           object.startTime = time;
-          object.endTime = time + length;
+          object.endTime = time + object.length;
           track.entities.push(object);
         }
       } else {
@@ -668,7 +667,7 @@ const Root = {
                 entities: track.entities,
                 selectedObject: this.selectedObject,
                 drop(o) {
-                  _dropTrack(track, o);
+                  _dropEntity(track, o);
                 },
                 selectObject: o => {
                   this.selectedObject = o;
