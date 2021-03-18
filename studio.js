@@ -4,7 +4,40 @@ const zoom = 10;
 const entityColors = {
   camera: '#5c6bc0',
   sakura: '#ec407a',
+  song: '#7e57c2',
   move: '#ffa726',
+};
+const entityHandlers = {
+  song() {
+    const audio = new Audio();
+    audio.src = './assets2/song2.mp3';
+    audio.addEventListener('canplaythrough', () => {
+      // console.log('audio load ok');
+    });
+    audio.addEventListener('error', err => {
+      console.warn(err);
+    });
+
+    return {
+      update(currentTime) {
+        if (currentTime >= 0 && currentTime < audio.duration) {
+          if (audio.paused) {
+            audio.play();
+            audio.currentTime = currentTime;
+          }
+        } else {
+          if (!audio.paused) {
+            audio.pause();
+          }
+        }
+      },
+      stop() {
+        if (!audio.paused) {
+          audio.pause();
+        }
+      },
+    };
+  },
 };
 
 const _toTimeString = sec_num => {
@@ -98,7 +131,6 @@ const Attribute = {
           type: 'inner',
           time,
         };
-        console.log('got dbl click', e, time, _getEventTime(e), vnode.attrs.entity.startTime, vnode.attrs.attribute.startTime);
         vnode.attrs.attribute.nubs.push(nub);
         _render();
       },
@@ -134,7 +166,6 @@ const Nub = {
       class: vnode.attrs.selectedObject === vnode.attrs.nub ? 'selected' : '',
       style,
       onclick(e) {
-        console.log('click nub');
         e.preventDefault();
         e.stopPropagation();
         vnode.attrs.selectObject(vnode.attrs.nub);
@@ -146,11 +177,11 @@ const Nub = {
 const Track = {
   view(vnode) {
     const _dropAttribute = (entity, o) => {
-      const {data: {type}, time} = o;
+      const {data: {type, length}, time} = o;
       const attribute = {
         type,
         startTime: time,
-        endTime: time + 5,
+        endTime: time + length,
         nubs: [
           {
             type: 'start',
@@ -198,6 +229,16 @@ const Root = {
     this.playing = false;
     const _makeTrack = () => ({
       entities: [],
+      update(currentTime) {
+        for (const entity of this.entities) {
+          entity.update(currentTime);
+        }
+      },
+      stop() {
+        for (const entity of this.entities) {
+          entity.stop();
+        }
+      },
     });
     this.tracks = [
       _makeTrack(),
@@ -225,7 +266,8 @@ const Root = {
           for (const track of this.tracks) {
             const index = track.entities.indexOf(this.selectedObject);
             if (index !== -1) {
-              track.entities.splice(index, 1);
+              const entity = track.entities.splice(index, 1)[0];
+              entity.destroy();
               this.selectedObject = null;
               changed = true;
             }
@@ -264,19 +306,41 @@ const Root = {
     if (this.playing) {
       this.currentTime += timeDiff / 1000;
       _render();
+      
+      for (const entity of this.tracks) {
+        entity.update(this.currentTime);
+      }
     }
   },
   view() {
     const timeString = _toTimeString(this.currentTime);
+    const _stopAll = () => {
+      for (const track of this.tracks) {
+        track.stop();
+      }
+    };
     const _dropTrack = (track, o) => {
-      const {data: {type}, time} = o;
+      const {data: {type, length}, time} = o;
       const entity = {
         type,
         startTime: time,
-        endTime: time + 20,
+        endTime: time + length,
         attributes: [],
+        update(currentTime) {
+          instance && instance.update(currentTime - entity.startTime);
+        },
+        stop() {
+          instance && instance.stop();
+        },
+        destroy() {
+          this.stop();
+        },
       };
       track.entities.push(entity);
+      
+      const handler = entityHandlers[type];
+      const instance = handler && handler();
+      
       _render();
     };
 
@@ -300,6 +364,7 @@ const Root = {
               m("i.fa.fa-stop", {
                 onclick: e => {
                   this.playing = false;
+                  _stopAll();
                   _render();
                 },
               }),
@@ -318,6 +383,7 @@ const Root = {
               
               this.currentTime = _getEventTime(e);
               this.selectedObject = null;
+              _stopAll();
               _render();
             },
           }, [
@@ -350,6 +416,7 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'camera',
+                  length: 10,
                 }));
               },
             }, 'Camera'),
@@ -361,9 +428,22 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'sakura',
+                  length: 12,
                 }));
               },
             }, 'Sakura'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.song,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'song',
+                  length: 30,
+                }));
+              },
+            }, 'Song'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.move,
@@ -372,6 +452,7 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'move',
+                  length: 10,
                 }));
               },
             }, 'Move'),
