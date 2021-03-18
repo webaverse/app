@@ -63,7 +63,7 @@ const Entity = {
         const data = JSON.parse(dataString);
         vnode.attrs.drop({
           data,
-          time: _getEventTime(e),
+          time: _getEventTime(e) - vnode.attrs.entity.startTime,
         });
       },
     }, [
@@ -73,6 +73,8 @@ const Entity = {
           class: vnode.attrs.selectedObject === a ? 'selected' : '',
           style: {
             backgroundColor: entityColors[a.type],
+            left: `${_timeToPixels(a.startTime)}px`,
+            width: `${_timeToPixels(a.endTime - a.startTime)}px`,
           },
           onclick(e) {
             e.preventDefault();
@@ -92,7 +94,7 @@ const Track = {
       const attribute = {
         type,
         startTime: time,
-        endTime: time + 20*1000,
+        endTime: time + 5,
       };
       entity.attributes.push(attribute);
       _render();
@@ -191,7 +193,7 @@ const Root = {
       const entity = {
         type,
         startTime: time,
-        endTime: time + 20*1000,
+        endTime: time + 20,
         attributes: [],
       };
       track.entities.push(entity);
