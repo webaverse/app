@@ -173,8 +173,7 @@ class ShadertoyRenderer {
     this.renderTarget = _makeRenderTarget();
     this.textures = {};
     this.buffers = {};
-    this.now = performance.now();
-    this.startTime = this.now;
+    this.currentTime = 0;
     this.frame = 0;
 
     const _ensureInput = input => {
@@ -279,27 +278,31 @@ class ShadertoyRenderer {
         this.loaded = true;
       });
   }
+  setCurrentTime(currentTime) {
+    this.currentTime = currentTime;
+  }
   getITime() {
-    return (this.now - this.startTime)/1000;
+    return this.currentTime;
   }
   getIFrame() {
     return this.frame;
-  }
+  } 
   waitForLoad() {
     return this.loadPromise;
   }
-  render() {
+  update(timeDiff) {
+    this.currentTime += timeDiff;
+    this.frame++;
+
     if (this.loaded) {
       // console.log('update start');
 
       const context = renderer.getContext();
       context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
-      this.now = performance.now();
       for (const renderPass of this.renderPasses) {
         renderPass.update();
       }
-      this.frame++;
       
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
       
