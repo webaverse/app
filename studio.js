@@ -716,7 +716,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'pass',
                   length: 12,
-                  start_url: './sakura/index.glfs',
+                  start_url: './depth-pass/index.glfs',
                 }));
               },
             }, 'Pass'),
