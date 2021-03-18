@@ -434,7 +434,7 @@ const _stopAllTracks = () => {
 const Root = {
   oninit() {
     this.currentTime = 0;
-    this.playing = false;
+
     const _makeTrack = () => ({
       id: _getNextId(),
       entities: [],
@@ -464,8 +464,12 @@ const Root = {
           break;
         }
         case 32: { // space
-          this.playing = !this.playing;
-          if (!this.playing) {
+          if (app.paused) {
+            app.play();
+          } else {
+            app.pause();
+          }
+          if (app.paused) {
             _stopAllTracks();
           }
           _render();
@@ -515,7 +519,7 @@ const Root = {
   // To ensure the tag gets properly diffed on route change.
   // onbeforeupdate: init,
   update(timeDiff) {
-    if (this.playing) {
+    if (!app.paused) {
       this.currentTime += timeDiff / 1000;
       _render();
       
@@ -524,7 +528,7 @@ const Root = {
       }
     }
   },
-  findObject(id) {
+  /* findObject(id) {
     for (const track of this.tracks) {
       if (track.id === id) {
         return track;
@@ -543,7 +547,7 @@ const Root = {
       }
     }
     return null;
-  },
+  }, */
   spliceObject(id) {
     for (let i = 0; i < this.tracks.length; i++) {
       const track = this.tracks[i];
@@ -618,21 +622,21 @@ const Root = {
         m(".toolbar", [
           m(".buttons", [
             m(".button", {
-              class: this.playing ? 'disabled' : '',
+              class: app.paused ? '' : 'disabled',
             }, [
               m("i.fa.fa-play", {
                 onclick: e => {
-                  this.playing = true;
+                  app.play();
                   _render();
                 },
               }),
             ]),
             m(".button", {
-              class: this.playing ? '' : 'disabled',
+              class: app.paused ? 'disabled' : '',
             }, [
               m("i.fa.fa-stop", {
                 onclick: e => {
-                  this.playing = false;
+                  app.pause();
                   _stopAllTracks();
                   _render();
                 },
