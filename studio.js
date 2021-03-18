@@ -276,11 +276,13 @@ const Entity = {
         e.preventDefault();
         e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
-        const data = JSON.parse(dataString);
-        vnode.attrs.drop({
-          data,
-          time: _getEventTime(e) - vnode.attrs.entity.startTime,
-        });
+        if (dataString) {
+          const data = JSON.parse(dataString);
+          vnode.attrs.drop({
+            data,
+            time: _getEventTime(e) - vnode.attrs.entity.startTime,
+          });
+        }
       },
     }, [
       m('.core', vnode.attrs.entity.type),
@@ -408,11 +410,13 @@ const Track = {
         e.preventDefault();
         e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
-        const data = JSON.parse(dataString);
-        vnode.attrs.drop({
-          data,
-          time: _getEventTime(e),
-        });
+        if (dataString) {
+          const data = JSON.parse(dataString);
+          vnode.attrs.drop({
+            data,
+            time: _getEventTime(e),
+          });
+        }
       },
     }, m('.entities', vnode.attrs.entities.map(entity => m(Entity, {
       entity,
