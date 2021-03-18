@@ -39,6 +39,24 @@ const Ruler = {
   }
 };
 
+const Entity = {
+  view(vnode) {
+    return m('.entity', {
+      class: vnode.attrs.selectedEntity === vnode.attrs.entity ? 'selected' : '',
+      style: {
+        backgroundColor: entityColors[vnode.attrs.entity.type],
+        left: `${_timeToPixels(vnode.attrs.entity.startTime)}px`,
+        width: `${_timeToPixels(vnode.attrs.entity.endTime - vnode.attrs.entity.startTime)}px`,
+      },
+      onclick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        vnode.attrs.selectEntity(vnode.attrs.entity);
+      },
+    }, vnode.attrs.entity.type);
+  },
+};
+
 const Track = {
   view(vnode) {
     return m('.track', {
@@ -54,15 +72,11 @@ const Track = {
           time: _getEventTime(e),
         });
       },
-    }, m('.entities', vnode.attrs.entities.map(entity => {
-      return m('.entity', {
-        style: {
-          backgroundColor: entityColors[entity.type],
-          left: `${_timeToPixels(entity.startTime)}px`,
-          width: `${_timeToPixels(entity.endTime - entity.startTime)}px`,
-        },
-      }, entity.type);
-    })));
+    }, m('.entities', vnode.attrs.entities.map(entity => m(Entity, {
+      entity,
+      selectedEntity: vnode.attrs.selectedEntity,
+      selectEntity: vnode.attrs.selectEntity,
+    }))));
   },
 };
 
@@ -79,12 +93,29 @@ const Root = {
       _makeTrack(),
       _makeTrack(),
     ];
+    this.selectedEntity = null;
 
     window.addEventListener('keydown', e => {
       switch (e.which) {
         case 32: { // space
           this.playing = !this.playing;
           _render();
+          break;
+        }
+        case 8:
+        case 46: { // delete
+          let changed = false;
+          for (const track of this.tracks) {
+            const index = track.entities.indexOf(this.selectedEntity);
+            if (index !== -1) {
+              track.entities.splice(index, 1);
+              this.selectedEntity = null;
+              changed = true;
+            }
+          }
+          if (changed) {
+            _render();
+          }
           break;
         }
       }
@@ -114,8 +145,6 @@ const Root = {
     };
 
     return m(".studio", [
-      // m("p", "My ramblings about everything"),
-
       m("footer", [
         m(".toolbar", [
           m(".buttons", [
@@ -152,8 +181,9 @@ const Root = {
               e.stopPropagation();
               
               this.currentTime = _getEventTime(e);
+              this.selectedEntity = null;
               _render();
-            },  
+            },
           }, [
             m(".needle", {
               style: {
@@ -161,12 +191,19 @@ const Root = {
               },
             }),
             m(Ruler),
-            m(".tracks", this.tracks.map(track => m(Track, {
-              entities: track.entities,
-              drop(o) {
-                _dropTrack(track, o);
-              },
-            }))),
+            m(".tracks", this.tracks.map(track => {
+              return m(Track, {
+                entities: track.entities,
+                selectedEntity: this.selectedEntity,
+                drop(o) {
+                  _dropTrack(track, o);
+                },
+                selectEntity: entity => {
+                  this.selectedEntity = entity;
+                  _render();
+                },
+              });
+            })),
           ]),
           m(".clips", [
             m(".clip", {
