@@ -409,8 +409,7 @@ const loadPromise = Promise.all([
       mmdLoader.load('./assets2/gumi/Gumi Megpoid.pmx', accept, function onProgress() {}, reject);
     });
     model.scale.multiplyScalar(0.08);
-    scene.add(model);
-    // console.log('got model', model);
+    // scene.add(model);
 
     const poses = [
       `./'Running' by CorruptedDestiny/2.vpd`,
