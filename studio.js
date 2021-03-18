@@ -223,6 +223,11 @@ const Track = {
 };
 
 let rootInstance = null;
+const _stopAllTracks = () => {
+  for (const track of rootInstance.tracks) {
+    track.stop();
+  }
+};
 const Root = {
   oninit() {
     this.currentTime = 0;
@@ -256,6 +261,9 @@ const Root = {
         }
         case 32: { // space
           this.playing = !this.playing;
+          if (!this.playing) {
+            _stopAllTracks();
+          }
           _render();
           break;
         }
@@ -314,11 +322,6 @@ const Root = {
   },
   view() {
     const timeString = _toTimeString(this.currentTime);
-    const _stopAll = () => {
-      for (const track of this.tracks) {
-        track.stop();
-      }
-    };
     const _dropTrack = (track, o) => {
       const {data: {type, length}, time} = o;
       const entity = {
@@ -364,7 +367,7 @@ const Root = {
               m("i.fa.fa-stop", {
                 onclick: e => {
                   this.playing = false;
-                  _stopAll();
+                  _stopAllTracks();
                   _render();
                 },
               }),
@@ -383,7 +386,7 @@ const Root = {
               
               this.currentTime = _getEventTime(e);
               this.selectedObject = null;
-              _stopAll();
+              _stopAllTracks();
               _render();
             },
           }, [
