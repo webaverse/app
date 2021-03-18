@@ -102,16 +102,25 @@
   min-height: 50px;
   flex-direction: column;
 }
-.studio footer .core .playlist .entities .entity.selected .core {
+.studio footer .core .playlist .entities .entity.selected .core::after {
   border-color: #0008;
 }
 
 .studio footer .core .playlist .entities .entity .core {
+  position: relative;
   width: 100%;
   min-height: 50px;
   color: #FFF;
-  border: 3px solid transparent;
   user-select: none;
+}
+.studio footer .core .playlist .entities .entity .core::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 3px solid transparent;
+  content: '';
 }
 .studio footer .core .playlist .entities .entity .attributes {
   background-color: #BBB;
@@ -122,11 +131,26 @@
 .studio footer .core .playlist .entities .entity .attributes .attribute {
   position: relative;
   min-height: 50px;
-  border: 3px solid transparent;
   user-select: none;
 }
-.studio footer .core .playlist .entities .entity .attributes .attribute.selected {
+.studio footer .core .playlist .entities .entity .attributes .attribute::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 3px solid transparent;
+  content: '';
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute.selected::after {
   border-color: #0008;
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute .nub {
+  position: absolute;
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border: 2px solid #0008;
 }
 
 .studio footer .core .clips {
