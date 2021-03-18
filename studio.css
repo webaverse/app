@@ -122,6 +122,7 @@
 .studio footer .core .playlist .entities .entity .attributes .attribute {
   min-height: 50px;
   border: 3px solid transparent;
+  user-select: none;
 }
 .studio footer .core .playlist .entities .entity .attributes .attribute.selected {
   border-color: #0008;
