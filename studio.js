@@ -68,22 +68,30 @@ const Entity = {
       },
     }, [
       m('.core', vnode.attrs.entity.type),
-      m('.attributes', vnode.attrs.entity.attributes.map(a => {
-        return m('.attribute', {
-          class: vnode.attrs.selectedObject === a ? 'selected' : '',
-          style: {
-            backgroundColor: entityColors[a.type],
-            left: `${_timeToPixels(a.startTime)}px`,
-            width: `${_timeToPixels(a.endTime - a.startTime)}px`,
-          },
-          onclick(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            vnode.attrs.selectObject(a);
-          },
-        }, a.type);
-      })),
+      m('.attributes', vnode.attrs.entity.attributes.map(attribute => m(Attribute, {
+        selectedObject: vnode.attrs.selectedObject,
+        attribute,
+        selectObject: vnode.attrs.selectObject,
+      }))),
     ]);
+  },
+};
+
+const Attribute = {
+  view(vnode) {
+    return m('.attribute', {
+      class: vnode.attrs.selectedObject === vnode.attrs.attribute ? 'selected' : '',
+      style: {
+        backgroundColor: entityColors[vnode.attrs.attribute.type],
+        left: `${_timeToPixels(vnode.attrs.attribute.startTime)}px`,
+        width: `${_timeToPixels(vnode.attrs.attribute.endTime - vnode.attrs.attribute.startTime)}px`,
+      },
+      onclick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        vnode.attrs.selectObject(vnode.attrs.attribute);
+      },
+    }, vnode.attrs.attribute.type);
   },
 };
 
