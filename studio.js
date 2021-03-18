@@ -15,6 +15,8 @@ const entityColors = {
   song: '#7e57c2',
   move: '#ffa726',
 };
+let id = 0;
+const _getNextId = () => ++id;
 let app = null;
 const entityHandlers = {
   camera(entity) {
@@ -260,6 +262,13 @@ const Entity = {
         e.stopPropagation();
         vnode.attrs.selectObject(vnode.attrs.entity);
       },
+      draggable: true,
+      ondragstart(e) {
+        e.dataTransfer.setData('application/json', JSON.stringify({
+          type: 'entity',
+          id: vnode.attrs.entity.id,
+        }));
+      },
       ondragover(e) {
         e.preventDefault();
       },
@@ -293,6 +302,13 @@ const Attribute = {
         backgroundColor: entityColors[vnode.attrs.attribute.type],
         left: `${_timeToPixels(vnode.attrs.attribute.startTime)}px`,
         width: `${_timeToPixels(vnode.attrs.attribute.endTime - vnode.attrs.attribute.startTime)}px`,
+      },
+      draggable: true,
+      ondragstart(e) {
+        e.dataTransfer.setData('application/json', JSON.stringify({
+          type: 'attribute',
+          id: vnode.attrs.attribute.id,
+        }));
       },
       onclick(e) {
         e.preventDefault();
@@ -350,24 +366,35 @@ const Nub = {
 
 const Track = {
   view(vnode) {
+    const _makeNubs = () => ([
+      {
+        type: 'start',
+        time: 0,
+      },
+      {
+        type: 'end',
+        time: 0,
+      },
+    ]);
     const _dropAttribute = (entity, o) => {
-      const {data: {type, length}, time} = o;
-      const attribute = {
-        type,
-        startTime: time,
-        endTime: time + length,
-        nubs: [
-          {
-            type: 'start',
-            time: 0,
-          },
-          {
-            type: 'end',
-            time: 0,
-          },
-        ],
-      };
-      entity.attributes.push(attribute);
+      const {data: {id, type, length}, time} = o;
+      if (type === 'attribute' || type === 'entity') {
+        const object = rootInstance.spliceObject(id);
+        object.startTime = time;
+        object.endTime = time + length;
+        object.nubs = _makeNubs();
+        entity.attributes.push(object);
+      } else {
+        const attribute = {
+          id: _getNextId(),
+          type,
+          startTime: time,
+          endTime: time + length,
+          length,
+          nubs: _makeNubs(),
+        };
+        entity.attributes.push(attribute);
+      }
       _render();
     };
     
@@ -407,6 +434,7 @@ const Root = {
     this.currentTime = 0;
     this.playing = false;
     const _makeTrack = () => ({
+      id: _getNextId(),
       entities: [],
       update(currentTime) {
         for (const entity of this.entities) {
@@ -494,36 +522,91 @@ const Root = {
       }
     }
   },
+  findObject(id) {
+    for (const track of this.tracks) {
+      if (track.id === id) {
+        return track;
+      }
+      
+      for (const entity of track.entities) {
+        if (entity.id === id) {
+          return entity;
+        }
+
+        for (const attribute of entity.attributes) {
+          if (attribute.id === id) {
+            return attribute;
+          }
+        }
+      }
+    }
+    return null;
+  },
+  spliceObject(id) {
+    for (let i = 0; i < this.tracks.length; i++) {
+      const track = this.tracks[i];
+      if (track.id === id) {
+        this.tracks.splice(i, 1);
+        return track;
+      }
+      
+      for (let i = 0; i < track.entities.length; i++) {
+        const entity = track.entities[i];
+        if (entity.id === id) {
+          track.entities.splice(i, 1);
+          return entity;
+        }
+
+        for (let i = 0; i < entity.attributes.length; i++) {
+          const attribute = entity.attributes[i];
+          if (attribute.id === id) {
+            entity.attributes.splice(i, 1);
+            return attribute;
+          }
+        }
+      }
+    }
+    return null;
+  },
   view() {
     const timeString = _toTimeString(this.currentTime);
     const _dropTrack = (track, o) => {
-      const {data: {type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
-      const entity = {
-        type,
-        start_url,
-        startTime: time,
-        endTime: time + length,
-        attributes: [],
-        startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
-        endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
-        startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
-        endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
-        update(currentTime) {
-          instance && instance.update(currentTime);
-        },
-        stop() {
-          instance && instance.stop();
-        },
-        destroy() {
-          instance && instance.stop();
-          instance && instance.destroy();
-        },
-      };
-      track.entities.push(entity);
+      const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
+      console.log('drop', {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion});
+      if (type === 'attribute' || type === 'entity') {
+        const object = rootInstance.spliceObject(id);
+        object.startTime = time;
+        object.endTime = time + length;
+        track.entities.push(object);
+      } else {
+        const entity = {
+          type,
+          id: _getNextId(),
+          start_url,
+          startTime: time,
+          endTime: time + length,
+          length,
+          attributes: [],
+          startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
+          endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
+          startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
+          endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
+          update(currentTime) {
+            instance && instance.update(currentTime);
+          },
+          stop() {
+            instance && instance.stop();
+          },
+          destroy() {
+            instance && instance.stop();
+            instance && instance.destroy();
+          },
+        };
+        track.entities.push(entity);
 
-      const handler = entityHandlers[type];
-      const instance = handler && handler(entity);
-
+        const handler = entityHandlers[type];
+        const instance = handler && handler(entity);
+      }
       _render();
     };
 
