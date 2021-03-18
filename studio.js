@@ -95,32 +95,51 @@ const Attribute = {
       ondblclick(e) {
         const time = _getEventTime(e) - vnode.attrs.entity.startTime - vnode.attrs.attribute.startTime;
         const nub = {
+          type: 'inner',
           time,
         };
         console.log('got dbl click', e, time, _getEventTime(e), vnode.attrs.entity.startTime, vnode.attrs.attribute.startTime);
         vnode.attrs.attribute.nubs.push(nub);
         _render();
       },
-    }, vnode.attrs.attribute.nubs.map(nub => {
-      return m('.nub', {
-        style: {
-          left: `${_timeToPixels(nub.time)}px`,
-        },
-      });
-    }).concat(
-      m('.nub', {
-        style: {
-          left: 0,
-        },
-      }),
+    }, vnode.attrs.attribute.nubs.map(nub => m(Nub, {
+      nub,
+      selectedObject: vnode.attrs.selectedObject,
+      selectObject: vnode.attrs.selectObject,
+    })).concat([
       m('div', {
       }, vnode.attrs.attribute.type),
-      m('.nub', {
-        style: {
-          right: 0,
-        },
-      }),
-    ));
+    ]));
+  },
+};
+
+const Nub = {
+  view(vnode) {
+    let style;
+    if (vnode.attrs.nub.type === 'inner') {
+      style = {
+        left: `${_timeToPixels(vnode.attrs.nub.time)}px`,
+      };
+    } else if (vnode.attrs.nub.type === 'start') {
+      style = {
+        left: 0,
+      };
+    } else if (vnode.attrs.nub.type === 'end') {
+      style = {
+        right: 0,
+      };
+    }
+    
+    return m('.nub', {
+      class: vnode.attrs.selectedObject === vnode.attrs.nub ? 'selected' : '',
+      style,
+      onclick(e) {
+        console.log('click nub');
+        e.preventDefault();
+        e.stopPropagation();
+        vnode.attrs.selectObject(vnode.attrs.nub);
+      },
+    });
   },
 };
 
@@ -132,7 +151,16 @@ const Track = {
         type,
         startTime: time,
         endTime: time + 5,
-        nubs: [],
+        nubs: [
+          {
+            type: 'start',
+            time: 0,
+          },
+          {
+            type: 'end',
+            time: 0,
+          },
+        ],
       };
       entity.attributes.push(attribute);
       _render();
@@ -203,6 +231,15 @@ const Root = {
                 entity.attributes.splice(index, 1);
                 this.selectedObject = null;
                 changed = true;
+              }
+              
+              for (const attribute of entity.attributes) {
+                const index = attribute.nubs.indexOf(this.selectedObject);
+                if (index !== -1) {
+                  attribute.nubs.splice(index, 1);
+                  this.selectedObject = null;
+                  changed = true;
+                }
               }
             }
           }
