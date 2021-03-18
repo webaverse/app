@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 
-let canvas = document.getElementById('canvas') || undefined;
+let canvas = document.getElementById('canvas');
 let context = canvas && canvas.getContext('webgl2', {
   antialias: true,
   alpha: true,

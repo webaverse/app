@@ -1,17 +1,104 @@
+import * as THREE from './three.module.js';
 import m from './mithril.js';
+import runtime from './runtime.js';
+import Avatar from './avatars/avatars.js';
+import {RigAux} from './rig-aux.js';
+import {renderer, scene, camera, avatarScene} from './app-object.js';
+import {getExt, unFrustumCull} from './util.js';
 
 const zoom = 10;
 const entityColors = {
   camera: '#5c6bc0',
-  shader: '#ec407a',
+  billboard: '#9ccc65',
+  pass: '#ec407a',
   avatar: '#42a5f5',
   song: '#7e57c2',
   move: '#ffa726',
 };
+let app = null;
 const entityHandlers = {
-  song() {
+  camera(entity) {
+    return {
+      update(currentTime) {
+        const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
+        if (factor >= 0 && factor <= 1) {
+          camera.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+          camera.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
+        } else {
+          camera.position.set(0, 0, 0);
+          camera.quaternion.set(0, 0, 0, 1);
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+  avatar(entity) {
+    let o;
+    let live = true;
+    (async () => {
+      const spec = await runtime.loadFile({
+        url: entity.start_url,
+        ext: getExt(entity.start_url),
+      }, {
+        contentId: entity.start_url,
+      });
+      if (live) {
+        /* if (!spec.isVrm && spec.run) {
+          spec.run();
+        } */
+        const avatar = new Avatar(spec.raw, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          debug: false,
+        });
+        avatar.model.isVrm = true;
+        avatar.aux = new RigAux({
+          rig: avatar,
+          scene: avatarScene,
+        });
+        avatar.aux.rig = avatar;
+        unFrustumCull(avatar.model);
+        scene.add(avatar.model);
+        
+        o = avatar;
+      }
+    })();
+    
+    return {
+      update(currentTime) {
+        if (o) {
+          const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
+          if (factor >= 0 && factor <= 1) {
+            o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+            o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
+            o.model.visible = true;
+          } else {
+            o.model.position.set(0, 0, 0);
+            o.model.quaternion.set(0, 0, 0, 1);
+            o.model.visible = false;
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          scene.remove(o.model);
+        }
+        live = false;
+      },
+    };
+  },
+  song(entity) {
     const audio = new Audio();
-    audio.src = './assets2/song2.mp3';
+    audio.src = entity.start_url;
     audio.addEventListener('canplaythrough', () => {
       // console.log('audio load ok');
     });
@@ -36,6 +123,50 @@ const entityHandlers = {
         if (!audio.paused) {
           audio.pause();
         }
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+  billboard(entity) {
+    let o;
+    let live = true;
+    (async () => {
+      o = await runtime.loadFile({
+        url: entity.start_url,
+        ext: getExt(entity.start_url),
+      }, {
+        contentId: entity.start_url,
+      });
+      if (live) {
+        scene.add(o);
+      }
+    })();
+    
+    return {
+      update(currentTime) {
+        if (o) {
+          const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
+          if (factor >= 0 && factor <= 1) {
+            o.position.copy(entity.startPosition).lerp(o.endPosition, factor);
+            o.quaternion.copy(entity.startQuaternion).slerp(o.endQuaternion, factor);
+            o.visible = true;
+          } else {
+            o.position.set(0, 0, 0);
+            o.quaternion.set(0, 0, 0, 1);
+            o.visible = false;
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          scene.remove(o);
+        }
+        live = false;
       },
     };
   },
@@ -324,12 +455,17 @@ const Root = {
   view() {
     const timeString = _toTimeString(this.currentTime);
     const _dropTrack = (track, o) => {
-      const {data: {type, length}, time} = o;
+      const {data: {type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
       const entity = {
         type,
+        start_url,
         startTime: time,
         endTime: time + length,
         attributes: [],
+        startPosition: new THREE.Vector3().fromArray(startPosition),
+        endPosition: new THREE.Vector3().fromArray(endPosition),
+        startQuaternion: new THREE.Quaternion().fromArray(startQuaternion),
+        endQuaternion: new THREE.Quaternion().fromArray(endQuaternion),
         update(currentTime) {
           instance && instance.update(currentTime - entity.startTime);
         },
@@ -337,14 +473,15 @@ const Root = {
           instance && instance.stop();
         },
         destroy() {
-          this.stop();
+          instance && instance.stop();
+          instance && instance.destroy();
         },
       };
       track.entities.push(entity);
-      
+
       const handler = entityHandlers[type];
-      const instance = handler && handler();
-      
+      const instance = handler && handler(entity);
+
       _render();
     };
 
@@ -421,21 +558,43 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'camera',
                   length: 10,
+                  startPosition: new THREE.Vector3(0, 1, 1).toArray(),
+                  endPosition: new THREE.Vector3(0, 2, 3).toArray(),
+                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
                 }));
               },
             }, 'Camera'),
             m(".clip", {
               style: {
-                backgroundColor: entityColors.shader,
+                backgroundColor: entityColors.billboard,
               },
               draggable: true,
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'shader',
+                  type: 'billboard',
                   length: 12,
+                  start_url: './sakura/index.glbb',
+                  startPosition: new THREE.Vector3(0, 0, 0).toArray(),
+                  endPosition: new THREE.Vector3(0, 2, 0).toArray(),
+                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.2).toArray(),
                 }));
               },
-            }, 'Shader'),
+            }, 'Billboard'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.pass,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'pass',
+                  length: 12,
+                  start_url: './sakura/index.glfs',
+                }));
+              },
+            }, 'Pass'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.song,
@@ -445,6 +604,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'song',
                   length: 30,
+                  start_url: './assets2/song2.mp3',
                 }));
               },
             }, 'Song'),
@@ -457,6 +617,11 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'avatar',
                   length: 10,
+                  start_url: './assets2/sacks3.vrm',
+                  startPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
+                  endPosition: new THREE.Vector3(-1, 1.5, -1).toArray(),
+                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
                 }));
               },
             }, 'Avatar'),
@@ -484,7 +649,8 @@ const _render = () => {
 };
 
 const studio = {
-  init() {
+  init(newApp) {
+    app = newApp;
     _render();
   },
   update(timeDiff) {

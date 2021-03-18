@@ -15,6 +15,7 @@
 
 
 <body>
+  <canvas id=canvas></canvas>
 
   <div id=mithril-root></div>
 
@@ -58,7 +59,7 @@
         studio.update(timeDiff);
       });
       
-      studio.init();
+      studio.init(app);
     })();
   </script>
 </body>
