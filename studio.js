@@ -108,10 +108,11 @@ const entityHandlers = {
 
     return {
       update(currentTime) {
-        if (currentTime >= 0 && currentTime < audio.duration) {
+        const innerTime = currentTime - entity.startTime;
+        if (innerTime >= 0 && innerTime < audio.duration) {
           if (audio.paused) {
             audio.play();
-            audio.currentTime = currentTime;
+            audio.currentTime = innerTime;
           }
         } else {
           if (!audio.paused) {
@@ -447,8 +448,8 @@ const Root = {
       this.currentTime += timeDiff / 1000;
       _render();
       
-      for (const entity of this.tracks) {
-        entity.update(this.currentTime);
+      for (const track of this.tracks) {
+        track.update(this.currentTime);
       }
     }
   },
@@ -467,7 +468,7 @@ const Root = {
         startQuaternion: new THREE.Quaternion().fromArray(startQuaternion),
         endQuaternion: new THREE.Quaternion().fromArray(endQuaternion),
         update(currentTime) {
-          instance && instance.update(currentTime - entity.startTime);
+          instance && instance.update(currentTime);
         },
         stop() {
           instance && instance.stop();
