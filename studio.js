@@ -208,6 +208,11 @@ const Root = {
 
     window.addEventListener('keydown', e => {
       switch (e.which) {
+        case 27: { // esc
+          this.selectedObject = null;
+          _render();
+          break;
+        }
         case 32: { // space
           this.playing = !this.playing;
           _render();
