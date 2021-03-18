@@ -1599,8 +1599,8 @@ const _loadGlbb = async (file, {contentId = null}) => {
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
-  app.addEventListener('frame', () => {
-    shadertoyRenderer.render();
+  app.addEventListener('frame', e => {
+    shadertoyRenderer.update(e.data.timeDiff/1000);
   });
 
   return o;
