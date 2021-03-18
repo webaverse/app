@@ -70,6 +70,7 @@ const Entity = {
       m('.core', vnode.attrs.entity.type),
       m('.attributes', vnode.attrs.entity.attributes.map(attribute => m(Attribute, {
         selectedObject: vnode.attrs.selectedObject,
+        entity: vnode.attrs.entity,
         attribute,
         selectObject: vnode.attrs.selectObject,
       }))),
@@ -91,19 +92,35 @@ const Attribute = {
         e.stopPropagation();
         vnode.attrs.selectObject(vnode.attrs.attribute);
       },
-    }, [
+      ondblclick(e) {
+        const time = _getEventTime(e) - vnode.attrs.entity.startTime - vnode.attrs.attribute.startTime;
+        const nub = {
+          time,
+        };
+        console.log('got dbl click', e, time, _getEventTime(e), vnode.attrs.entity.startTime, vnode.attrs.attribute.startTime);
+        vnode.attrs.attribute.nubs.push(nub);
+        _render();
+      },
+    }, vnode.attrs.attribute.nubs.map(nub => {
+      return m('.nub', {
+        style: {
+          left: `${_timeToPixels(nub.time)}px`,
+        },
+      });
+    }).concat(
       m('.nub', {
         style: {
           left: 0,
         },
       }),
-      m('div', vnode.attrs.attribute.type),
+      m('div', {
+      }, vnode.attrs.attribute.type),
       m('.nub', {
         style: {
           right: 0,
         },
       }),
-    ]);
+    ));
   },
 };
 
@@ -115,6 +132,7 @@ const Track = {
         type,
         startTime: time,
         endTime: time + 5,
+        nubs: [],
       };
       entity.attributes.push(attribute);
       _render();
