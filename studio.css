@@ -92,17 +92,32 @@
 }
 .studio footer .core .playlist .entities {
   position: relative;
+  width: 100%;
+  height: 50px;
 }
 .studio footer .core .playlist .entities .entity {
   position: absolute;
   display: flex;
   top: 0;
-  height: 100%;
+  height: 50px;
+  flex-direction: column;
+}
+.studio footer .core .playlist .entities .entity.selected .core {
+  border-color: #0008;
+}
+
+.studio footer .core .playlist .entities .entity .core {
+  width: 100%;
+  height: 50px;
   color: #FFF;
   border: 3px solid transparent;
+  user-select: none;
 }
-.studio footer .core .playlist .entities .entity.selected {
-  border-color: #0008;
+.studio footer .core .playlist .entities .entity.core .attributes {
+  background-color: #BBB;
+}
+.studio footer .core .playlist .entities .entity.core .attributes:not(.empty) {
+  
 }
 
 .studio footer .core .clips {
