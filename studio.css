@@ -99,6 +99,10 @@
   top: 0;
   height: 100%;
   color: #FFF;
+  border: 3px solid transparent;
+}
+.studio footer .core .playlist .entities .entity.selected {
+  border-color: #0008;
 }
 
 .studio footer .core .clips {
