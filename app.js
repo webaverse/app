@@ -56,7 +56,6 @@ const localFrameOpts = {
   data: localData,
 };
 
-
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
