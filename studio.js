@@ -150,12 +150,53 @@ const entityHandlers = {
         if (o) {
           const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
           if (factor >= 0 && factor <= 1) {
-            o.position.copy(entity.startPosition).lerp(o.endPosition, factor);
-            o.quaternion.copy(entity.startQuaternion).slerp(o.endQuaternion, factor);
+            o.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+            o.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.visible = true;
           } else {
             o.position.set(0, 0, 0);
             o.quaternion.set(0, 0, 0, 1);
+            o.visible = false;
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          scene.remove(o);
+        }
+        live = false;
+      },
+    };
+  },
+  pass(entity) {
+    let o;
+    let live = true;
+    (async () => {
+      o = await runtime.loadFile({
+        url: entity.start_url,
+        ext: getExt(entity.start_url),
+      }, {
+        contentId: entity.start_url,
+      });
+      if (live) {
+        scene.add(o);
+      }
+    })();
+    
+    return {
+      update(currentTime) {
+        if (o) {
+          const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
+          if (factor >= 0 && factor <= 1) {
+            // o.position.copy(entity.startPosition).lerp(o.endPosition, factor);
+            // o.quaternion.copy(entity.startQuaternion).slerp(o.endQuaternion, factor);
+            o.visible = true;
+          } else {
+            // o.position.set(0, 0, 0);
+            // o.quaternion.set(0, 0, 0, 1);
             o.visible = false;
           }
         }
@@ -463,10 +504,10 @@ const Root = {
         startTime: time,
         endTime: time + length,
         attributes: [],
-        startPosition: new THREE.Vector3().fromArray(startPosition),
-        endPosition: new THREE.Vector3().fromArray(endPosition),
-        startQuaternion: new THREE.Quaternion().fromArray(startQuaternion),
-        endQuaternion: new THREE.Quaternion().fromArray(endQuaternion),
+        startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
+        endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
+        startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
+        endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
         update(currentTime) {
           instance && instance.update(currentTime);
         },
@@ -576,10 +617,10 @@ const Root = {
                   type: 'billboard',
                   length: 12,
                   start_url: './sakura/index.glbb',
-                  startPosition: new THREE.Vector3(0, 0, 0).toArray(),
-                  endPosition: new THREE.Vector3(0, 2, 0).toArray(),
+                  startPosition: new THREE.Vector3(0, 0, -1).toArray(),
+                  endPosition: new THREE.Vector3(0, 2, -1).toArray(),
                   startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.2).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
                 }));
               },
             }, 'Billboard'),
