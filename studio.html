@@ -54,6 +54,7 @@
       
       await app.waitForLoad()
       app.startLoop();
+      // app.play();
       app.addEventListener('frame', e => {
         const {data: {timeDiff}} = e;
         studio.update(timeDiff);

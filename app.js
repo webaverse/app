@@ -65,7 +65,8 @@ export default class App extends EventTarget {
   constructor() {
     super();
     
-    this.paused = false;
+    this.paused = true;
+    this.lastTimestamp = performance.now();
     this.loadPromise = Promise.all([
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
@@ -188,6 +189,7 @@ export default class App extends EventTarget {
   
   play() {
     this.paused = false;
+    this.lastTimestamp = performance.now();
   }
   pause() {
     this.paused = true;
@@ -205,15 +207,13 @@ export default class App extends EventTarget {
   }
   
   startLoop() {
-    let lastTimestamp = performance.now();
-    const startTime = Date.now();
     const animate = (timestamp, frame) => {
       if (this.paused) return;
       
       timestamp = timestamp || performance.now();
-      const timeDiff = timestamp - lastTimestamp;
+      const timeDiff = timestamp - this.lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);
-      lastTimestamp = timestamp;
+      this.lastTimestamp = timestamp;
 
       const session = renderer.xr.getSession();
       const now = Date.now();
