@@ -42,7 +42,7 @@ const Ruler = {
 const Entity = {
   view(vnode) {
     return m('.entity', {
-      class: vnode.attrs.selectedEntity === vnode.attrs.entity ? 'selected' : '',
+      class: vnode.attrs.selectedObject === vnode.attrs.entity ? 'selected' : '',
       style: {
         backgroundColor: entityColors[vnode.attrs.entity.type],
         left: `${_timeToPixels(vnode.attrs.entity.startTime)}px`,
@@ -51,7 +51,7 @@ const Entity = {
       onclick(e) {
         e.preventDefault();
         e.stopPropagation();
-        vnode.attrs.selectEntity(vnode.attrs.entity);
+        vnode.attrs.selectObject(vnode.attrs.entity);
       },
       ondragover(e) {
         e.preventDefault();
@@ -61,7 +61,6 @@ const Entity = {
         e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
         const data = JSON.parse(dataString);
-        console.log('drop on entity', data);
         vnode.attrs.drop({
           data,
           time: _getEventTime(e),
@@ -71,8 +70,14 @@ const Entity = {
       m('.core', vnode.attrs.entity.type),
       m('.attributes', vnode.attrs.entity.attributes.map(a => {
         return m('.attribute', {
+          class: vnode.attrs.selectedObject === a ? 'selected' : '',
           style: {
             backgroundColor: entityColors[a.type],
+          },
+          onclick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            vnode.attrs.selectObject(a);
           },
         }, a.type);
       })),
@@ -109,8 +114,8 @@ const Track = {
       },
     }, m('.entities', vnode.attrs.entities.map(entity => m(Entity, {
       entity,
-      selectedEntity: vnode.attrs.selectedEntity,
-      selectEntity: vnode.attrs.selectEntity,
+      selectedObject: vnode.attrs.selectedObject,
+      selectObject: vnode.attrs.selectObject,
       drop(o) {
         _dropAttribute(entity, o);
       },
@@ -131,7 +136,7 @@ const Root = {
       _makeTrack(),
       _makeTrack(),
     ];
-    this.selectedEntity = null;
+    this.selectedObject = null;
 
     window.addEventListener('keydown', e => {
       switch (e.which) {
@@ -140,15 +145,25 @@ const Root = {
           _render();
           break;
         }
-        case 8:
-        case 46: { // delete
+        case 8: // backspace
+        case 46: // delete
+        {
           let changed = false;
           for (const track of this.tracks) {
-            const index = track.entities.indexOf(this.selectedEntity);
+            const index = track.entities.indexOf(this.selectedObject);
             if (index !== -1) {
               track.entities.splice(index, 1);
-              this.selectedEntity = null;
+              this.selectedObject = null;
               changed = true;
+            }
+            
+            for (const entity of track.entities) {
+              const index = entity.attributes.indexOf(this.selectedObject);
+              if (index !== -1) {
+                entity.attributes.splice(index, 1);
+                this.selectedObject = null;
+                changed = true;
+              }
             }
           }
           if (changed) {
@@ -220,7 +235,7 @@ const Root = {
               e.stopPropagation();
               
               this.currentTime = _getEventTime(e);
-              this.selectedEntity = null;
+              this.selectedObject = null;
               _render();
             },
           }, [
@@ -233,12 +248,12 @@ const Root = {
             m(".tracks", this.tracks.map(track => {
               return m(Track, {
                 entities: track.entities,
-                selectedEntity: this.selectedEntity,
+                selectedObject: this.selectedObject,
                 drop(o) {
                   _dropTrack(track, o);
                 },
-                selectEntity: entity => {
-                  this.selectedEntity = entity;
+                selectObject: o => {
+                  this.selectedObject = o;
                   _render();
                 },
               });
