@@ -14,6 +14,9 @@ const entityColors = {
   avatar: '#42a5f5',
   song: '#7e57c2',
   move: '#ffa726',
+  pose: '#ffa726',
+  viseme: '#ffa726',
+  text: '#90a4ae',
 };
 let id = 0;
 const _getNextId = () => ++id;
@@ -773,6 +776,42 @@ const Root = {
                 }));
               },
             }, 'Move'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.pose,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'pose',
+                  length: 5,
+                }));
+              },
+            }, 'Pose'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.move,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'viseme',
+                  length: 5,
+                }));
+              },
+            }, 'Viseme'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.text,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'text',
+                  length: 5,
+                }));
+              },
+            }, 'Text'),
           ]),
         ]),
       ]),
