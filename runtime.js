@@ -1590,6 +1590,11 @@ const _loadGlbb = async (file, {contentId = null}) => {
   const shader = json6.parse(text);
   
   const shadertoyRenderer = new ShadertoyRenderer(shader);
+  let loaded = false;
+  (async () => {
+    await shadertoyRenderer.waitForLoad();
+    loaded = true;
+  })();
   const o = shadertoyRenderer.mesh;
   o.contentId = contentId;
   // o.frustumCulled = false;
@@ -1600,7 +1605,9 @@ const _loadGlbb = async (file, {contentId = null}) => {
   const appId = ++appIds;
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
-    shadertoyRenderer.update(e.data.timeDiff/1000);
+    if (loaded) {
+      shadertoyRenderer.update(e.data.timeDiff/1000);
+    }
   });
 
   return o;

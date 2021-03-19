@@ -1083,9 +1083,9 @@ const _findFinger = (handBone, r) => _findClosestChildBone(handBone, bone => r.t
 const _findFoot = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const legBones = tailBones.map(tailBone => {
-    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle|leg(?:l|r)4/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle|leg(l|r)4/gi, '$1')));
+    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle|leg(?:l|r)4|UpperLegNeck/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle|leg(l|r)4|UpperLegNeck/gi, '$1')));
     if (footBone) {
-      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh|legl2/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh|leg(?:l|r)2/gi, '')));
+      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh|legl2|LowerLeg/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh|leg(?:l|r)2|LowerLeg/gi, '')));
       if (legBone) {
         const distance = _distanceToParentBone(footBone, legBone);
         if (distance >= 2) {
