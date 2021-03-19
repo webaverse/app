@@ -1102,7 +1102,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'text',
                   length: 10,
-                  start_url: './guitar/guitar.txt',
+                  start_url: './donotwant/iranai.txt',
                   startPosition: new THREE.Vector3(2, 1.5, -1).toArray(),
                   endPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
                   startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
