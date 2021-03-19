@@ -1265,7 +1265,7 @@ class Avatar {
     const Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
     const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
     const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
-	  const Left_elbow = Left_wrist.parent;
+	  const Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.parent.name) ? Left_wrist.parent.parent : Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
@@ -1284,7 +1284,7 @@ class Avatar {
     const Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
     const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
     const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
-	  const Right_elbow = Right_wrist.parent;
+	  const Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name) ? Right_wrist.parent.parent : Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
 	  const Left_knee = Left_ankle.parent;
