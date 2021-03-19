@@ -2046,6 +2046,8 @@ class Avatar {
     this.sitTarget = new THREE.Object3D();
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetEnabled = false;
+    this.windTarget = new THREE.Vector3();
+    this.windTargetEnabled = false;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -2359,6 +2361,18 @@ class Avatar {
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
+
+    if (this.windTargetEnabled && this.springBoneManager) {
+      for (const springBoneGroup of this.springBoneManager.springBoneGroupList) {
+        for (const bone of springBoneGroup) {
+          bone.gravityDir.copy(this.windTarget);
+          bone.gravityPower =
+            Math.sin((Date.now() % 100)/100 * Math.PI) * 1 +
+            Math.cos((Date.now() % 20)/20 * Math.PI) * 1 +
+            Math.sin((Date.now() % 5)/5 * Math.PI) * 1;
+        }
+      }
+    }
 
     for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];

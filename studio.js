@@ -63,6 +63,8 @@ const entityHandlers = {
           debug: false,
         });
         avatar.model.isVrm = true;
+        avatar.setTopEnabled(false);
+        avatar.setBottomEnabled(false);
         avatar.aux = new RigAux({
           rig: avatar,
           scene: avatarScene,
@@ -75,14 +77,20 @@ const entityHandlers = {
       }
     })();
     
+    let lastTimestamp = performance.now();
     return {
       update(currentTime) {
+        const timeDiff = currentTime - lastTimestamp;
+        lastTimestamp = currentTime;
+
         if (o) {
           const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
           if (factor >= 0 && factor <= 1) {
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
             o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
+
+            o.update(timeDiff);
           } else {
             o.model.position.set(0, 0, 0);
             o.model.quaternion.set(0, 0, 0, 1);
@@ -737,7 +745,7 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'camera',
-                  length: 10,
+                  length: 30,
                   startPosition: new THREE.Vector3(0, 1, 1).toArray(),
                   endPosition: new THREE.Vector3(0, 2, 3).toArray(),
                   startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
@@ -796,12 +804,12 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'avatar',
-                  length: 10,
+                  length: 20,
                   start_url: './assets2/sacks3.vrm',
-                  startPosition: new THREE.Vector3(0, 0, -1).toArray(),
-                  endPosition: new THREE.Vector3(-1, 0, -2).toArray(),
-                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
+                  startPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
+                  endPosition: new THREE.Vector3(-1, 1.5, -2).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
                 }));
               },
             }, 'Avatar 1'),
@@ -813,12 +821,12 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'avatar',
-                  length: 10,
+                  length: 20,
                   start_url: './assets2/kasamoto_kanji.vrm',
-                  startPosition: new THREE.Vector3(0, 0, -3).toArray(),
-                  endPosition: new THREE.Vector3(1, 0, -2).toArray(),
-                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
+                  startPosition: new THREE.Vector3(0, 1.5, -3).toArray(),
+                  endPosition: new THREE.Vector3(1, 1.5, -2).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
                 }));
               },
             }, 'Avatar 2'),
