@@ -1915,7 +1915,10 @@ class Avatar {
         if (morphTargetDictionary && morphTargetInfluences) {
           const result = blendShapeGroups.map(blendShapeGroup => {
             const name = blendShapeGroup.name.toLowerCase();
-            const index = blendShapeGroup.binds?.[0]?.index || -1;
+            let index = blendShapeGroup.binds?.[0]?.index;
+            if (typeof index !== 'number') {
+              index = -1;
+            }
             return {
               name,
               index,
