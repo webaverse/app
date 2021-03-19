@@ -1102,10 +1102,36 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'pose',
                   length: 10,
+                  index: 30,
+                }));
+              },
+            }, 'Pose 1'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.viseme,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'viseme',
+                  length: 5,
+                  index: 25,
+                }));
+              },
+            }, 'Viseme 1'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.pose,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'pose',
+                  length: 10,
                   index: 81,
                 }));
               },
-            }, 'Pose'),
+            }, 'Pose 3'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.viseme,
@@ -1118,7 +1144,7 @@ const Root = {
                   index: 22,
                 }));
               },
-            }, 'Viseme'),
+            }, 'Viseme 3'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.eyeTarget,
