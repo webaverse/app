@@ -1613,6 +1613,22 @@ const _loadGlbb = async (file, {contentId = null}) => {
   return o;
 };
 
+const _loadTxt = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  const res = await fetch(srcUrl);
+  let text = await res.text();
+
+  const textMesh = makeTextMesh(text.slice(0, 20), './NotoSansJP-Regular.otf', 0.2, 'center', 'middle');
+  // textMesh.position.y = 2.2;
+  // textMesh.color = 0xCCCCCC;
+  textMesh.update = () => {
+    // nothing
+  };
+
+  return textMesh;
+};
+
 const typeHandlers = {
   'gltf': _loadGltf,
   'glb': _loadGltf,
@@ -1634,6 +1650,7 @@ const typeHandlers = {
   'mp4': _loadVideo,
   'glfs': _loadGlfs,
   'glbb': _loadGlbb,
+  'txt': _loadTxt,
 };
 runtime.typeHandlers = typeHandlers;
 
