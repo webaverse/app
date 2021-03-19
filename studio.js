@@ -980,9 +980,9 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'camera',
                   length: 60,
-                  startPosition: new THREE.Vector3(0, 1.5, 1).toArray(),
-                  endPosition: new THREE.Vector3(0, 1.5, 3).toArray(),
-                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+                  startPosition: new THREE.Vector3(-5, 1, -1).toArray(),
+                  endPosition: new THREE.Vector3(-5, 1, -1).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
                   endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
                 }));
               },
@@ -1040,8 +1040,8 @@ const Root = {
                   type: 'avatar',
                   length: 20,
                   start_url: './assets2/sacks3.vrm',
-                  startPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
-                  endPosition: new THREE.Vector3(-1, 1.5, -2).toArray(),
+                  startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
+                  endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
                   startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.9).toArray(),
                   endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.1).toArray(),
                 }));
@@ -1057,8 +1057,8 @@ const Root = {
                   type: 'avatar',
                   length: 20,
                   start_url: './assets2/kasamoto_kanji.vrm',
-                  startPosition: new THREE.Vector3(0, 1.5, -3).toArray(),
-                  endPosition: new THREE.Vector3(1, 1.5, -2).toArray(),
+                  startPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
+                  endPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
                   startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
                   endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
                 }));
@@ -1074,10 +1074,10 @@ const Root = {
                   type: 'avatar',
                   length: 20,
                   start_url: './assets2/shilo.vrm',
-                  startPosition: new THREE.Vector3(-2, 1.5, -3).toArray(),
-                  endPosition: new THREE.Vector3(1, 1.5, -3).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
+                  startPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
+                  endPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
                 }));
               },
             }, 'Avatar 3'),
@@ -1188,7 +1188,7 @@ const Root = {
                   startPosition: new THREE.Vector3(0, 0, 0).toArray(),
                   endPosition: new THREE.Vector3(0, 0, 0).toArray(),
                   startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
                 }));
               },
             }, 'Homespace'),
