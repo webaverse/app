@@ -414,7 +414,7 @@ const attributeHandlers = {
           
           entity.setActiveVisemes([
             {
-              name: attribute.name,
+              index: attribute.index,
               value: f,
             },
           ]);
@@ -635,7 +635,7 @@ const Track = {
       },
     ]);
     const _dropAttribute = (entity, o) => {
-      const {data: {id, type, length, name, index, start_url, startPosition, endPosition}, time} = o;
+      const {data: {id, type, length, index, start_url, startPosition, endPosition}, time} = o;
       if (type === 'attribute' || type === 'entity') {
         if (entity.id !== id) {
           const object = rootInstance.spliceObject(id);
@@ -652,7 +652,6 @@ const Track = {
           startTime: time,
           endTime: time + length,
           length,
-          name,
           index,
           start_url,
           startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
