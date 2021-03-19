@@ -1003,6 +1003,23 @@ const Root = {
             }, 'Avatar 2'),
             m(".clip", {
               style: {
+                backgroundColor: entityColors.avatar,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'avatar',
+                  length: 20,
+                  start_url: './assets2/shilo.vrm',
+                  startPosition: new THREE.Vector3(-2, 1.5, -3).toArray(),
+                  endPosition: new THREE.Vector3(1, 1.5, -3).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
+                }));
+              },
+            }, 'Avatar 3'),
+            m(".clip", {
+              style: {
                 backgroundColor: entityColors.move,
               },
               draggable: true,
@@ -1022,6 +1039,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'pose',
                   length: 5,
+                  index: 0,
                 }));
               },
             }, 'Pose'),
@@ -1034,6 +1052,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'viseme',
                   length: 5,
+                  index: 0,
                 }));
               },
             }, 'Viseme'),
@@ -1103,10 +1122,10 @@ const Root = {
                   type: 'text',
                   length: 10,
                   start_url: './donotwant/iranai.txt',
-                  startPosition: new THREE.Vector3(2, 1.5, -1).toArray(),
-                  endPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
-                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.1).toArray(),
+                  startPosition: new THREE.Vector3(-1.5, 1.5, -0.5).toArray(),
+                  endPosition: new THREE.Vector3(-0.75, 1.5, -2).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.3).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
                 }));
               },
             }, 'Text'),
