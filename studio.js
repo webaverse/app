@@ -1115,7 +1115,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'viseme',
                   length: 5,
-                  name: 'fun',
+                  index: 22,
                 }));
               },
             }, 'Viseme'),
