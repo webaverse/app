@@ -831,7 +831,7 @@ const Root = {
             }, 'Pose'),
             m(".clip", {
               style: {
-                backgroundColor: entityColors.move,
+                backgroundColor: entityColors.viseme,
               },
               draggable: true,
               ondragstart(e) {
