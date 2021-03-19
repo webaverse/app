@@ -10,7 +10,7 @@ class MicrophoneWorker extends EventTarget {
       audio.srcObject = o;
       audio.muted = true;
     } else {
-      audio = o;
+      o = o.cloneNode();
     }
     this.audioContext = new AudioContext();
     const mediaStreamSource = (() => {
