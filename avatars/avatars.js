@@ -2423,13 +2423,13 @@ class Avatar {
         }
 
         // ik
-        if (visemeMapping.a) {
+        if (visemeMapping.a >= 0) {
           morphTargetInfluences[visemeMapping.a] = aValue;
         }
-        if (visemeMapping.blink_l) {
+        if (visemeMapping.blink_l >= 0) {
           morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
         }
-        if (visemeMapping.blink_r) {
+        if (visemeMapping.blink_r >= 0) {
           morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
         }
 
