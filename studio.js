@@ -20,6 +20,7 @@ const entityColors = {
   viseme: '#ffa726',
   eyeTarget: '#ffa726',
   headTarget: '#ffa726',
+  voice: '#ffa726',
   text: '#90a4ae',
 };
 let id = 0;
@@ -57,6 +58,11 @@ const entityHandlers = {
       } else {
         eyeTargetEnabled = false;
       }
+    };
+    let microphoneMediaStream = null;
+    let lastMicrophoneMediaStream = null;
+    entity.setMicrophoneMediaStream = newMicrophoneMediaStream => {
+      microphoneMediaStream = newMicrophoneMediaStream;
     };
     
     let o;
@@ -108,6 +114,10 @@ const entityHandlers = {
             } else {
               o.eyeTargetEnabled = false;
             }
+            if (microphoneMediaStream !== lastMicrophoneMediaStream) {
+              o.setMicrophoneMediaStream(microphoneMediaStream);
+              lastMicrophoneMediaStream = microphoneMediaStream;
+            }
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
             o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
@@ -115,6 +125,8 @@ const entityHandlers = {
             o.update(timeDiff);
           } else {
             o.eyeTargetEnabled = false;
+            o.setMicrophoneMediaStream(null);
+            lastMicrophoneMediaStream = null;
             o.model.position.set(0, 0, 0);
             o.model.quaternion.set(0, 0, 0, 1);
             o.model.visible = false;
@@ -312,6 +324,46 @@ const attributeHandlers = {
       },
     };
   },
+  voice(entity, attribute) {
+    const audio = new Audio();
+    audio.src = attribute.start_url;
+    audio.addEventListener('canplaythrough', () => {
+      // console.log('audio load ok');
+    });
+    audio.addEventListener('error', err => {
+      console.warn(err);
+    });
+
+    return {
+      update(currentTime) {
+        if (entity.isAvatar) {
+          const innerTime = currentTime - entity.startTime - attribute.startTime;
+          if (innerTime >= 0 && innerTime < audio.duration) {
+            if (audio.paused) {
+              audio.play();
+              audio.currentTime = innerTime;
+              
+              entity.setMicrophoneMediaStream(audio);
+            }
+          } else {
+            if (!audio.paused) {
+              audio.pause();
+
+              entity.setMicrophoneMediaStream(null);
+            }
+          }
+        }
+      },
+      stop() {
+        if (!audio.paused) {
+          audio.pause();
+        }
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
 };
 
 const _toTimeString = sec_num => {
@@ -477,10 +529,11 @@ const Track = {
       },
     ]);
     const _dropAttribute = (entity, o) => {
-      const {data: {id, type, length, startPosition, endPosition}, time} = o;
+      const {data: {id, type, length, start_url, startPosition, endPosition}, time} = o;
       if (type === 'attribute' || type === 'entity') {
         if (entity.id !== id) {
           const object = rootInstance.spliceObject(id);
+          object.start_url = start_url;
           object.startTime = time;
           object.endTime = time + object.length;
           object.nubs = _makeNubs();
@@ -493,6 +546,7 @@ const Track = {
           startTime: time,
           endTime: time + length,
           length,
+          start_url,
           startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
           endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
           nubs: _makeNubs(),
@@ -965,6 +1019,19 @@ const Root = {
                 }));
               },
             }, 'Head Target'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.voice,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'voice',
+                  length: 10,
+                  start_url: './ghost.mp3',
+                }));
+              },
+            }, 'Voice'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.text,
