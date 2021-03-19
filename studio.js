@@ -115,7 +115,9 @@ const entityHandlers = {
               o.eyeTargetEnabled = false;
             }
             if (microphoneMediaStream !== lastMicrophoneMediaStream) {
-              o.setMicrophoneMediaStream(microphoneMediaStream);
+              o.setMicrophoneMediaStream(microphoneMediaStream, {
+                muted: false,
+              });
               lastMicrophoneMediaStream = microphoneMediaStream;
             }
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
