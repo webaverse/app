@@ -1584,11 +1584,11 @@ const _loadGlfs = async (file, {contentId = null}) => {
 
 const _loadGlbb = async (file, {contentId = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  
+
   const res = await fetch(srcUrl);
   const text = await res.text();
   const shader = json6.parse(text);
-  
+
   const shadertoyRenderer = new ShadertoyRenderer(shader);
   let loaded = false;
   (async () => {
