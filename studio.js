@@ -21,6 +21,7 @@ const entityColors = {
   eyeTarget: '#ffa726',
   headTarget: '#ffa726',
   voice: '#ffa726',
+  fox: '#42a5f5',
   text: '#90a4ae',
 };
 let id = 0;
@@ -141,6 +142,47 @@ const entityHandlers = {
       destroy() {
         if (o) {
           scene.remove(o.model);
+        }
+        live = false;
+      },
+    };
+  },
+  fox(entity) {
+    let o;
+    let live = true;
+    (async () => {
+      o = await runtime.loadFile({
+        url: entity.start_url,
+        ext: getExt(entity.start_url),
+      }, {
+        contentId: entity.start_url,
+      });
+      if (live) {
+        scene.add(o);
+      }
+    })();
+
+    return {
+      update(currentTime) {
+        if (o) {
+          const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
+          if (factor >= 0 && factor <= 1) {
+            o.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+            o.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
+            o.visible = true;
+          } else {
+            o.position.set(0, 0, 0);
+            o.quaternion.set(0, 0, 0, 1);
+            o.visible = false;
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          scene.remove(o);
         }
         live = false;
       },
@@ -1034,6 +1076,23 @@ const Root = {
                 }));
               },
             }, 'Voice'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.fox,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'fox',
+                  length: 10,
+                  start_url: './assets2/fox.glb',
+                  startPosition: new THREE.Vector3(1, 2, -1.5).toArray(),
+                  endPosition: new THREE.Vector3(0, 2, -3).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+                }));
+              },
+            }, 'Fox'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.text,
