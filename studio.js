@@ -69,6 +69,10 @@ const entityHandlers = {
     entity.setActiveVisemes = newActiveVisemes => {
       activeVisemes = newActiveVisemes;
     };
+    let activePoses = [];
+    entity.setActivePoses = newActivePoses => {
+      activePoses = newActivePoses;
+    };
     
     let o;
     let live = true;
@@ -126,6 +130,7 @@ const entityHandlers = {
               lastMicrophoneMediaStream = microphoneMediaStream;
             }
             o.activeVisemes = activeVisemes;
+            o.activePoses = activePoses;
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
             o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
@@ -136,6 +141,7 @@ const entityHandlers = {
             o.setMicrophoneMediaStream(null);
             lastMicrophoneMediaStream = null;
             o.activeVisemes = [];
+            o.activePoses = [];
             o.model.position.set(0, 0, 0);
             o.model.quaternion.set(0, 0, 0, 1);
             o.model.visible = false;
@@ -378,12 +384,12 @@ const attributeHandlers = {
     return {
       update(currentTime) {
         if (entity.isAvatar) {
-          let f = Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
+          let f = 1 - Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
           f = Math.min(Math.max(f, 0), 1);
           
-          entity.setActiveVisemes([
+          entity.setActivePoses([
             {
-              name: 'fun',
+              index: attribute.index,
               value: f,
             },
           ]);
@@ -402,20 +408,16 @@ const attributeHandlers = {
   viseme(entity, attribute) {
     return {
       update(currentTime) {
-        const innerTime = currentTime - entity.startTime - attribute.startTime;
-        if (innerTime >= 0 && innerTime < audio.duration) {
-          if (audio.paused) {
-            audio.play();
-            audio.currentTime = innerTime;
-            
-            entity.setMicrophoneMediaStream(audio);
-          }
-        } else {
-          if (!audio.paused) {
-            audio.pause();
-
-            entity.setMicrophoneMediaStream(null);
-          }
+        if (entity.isAvatar) {
+          let f = Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
+          f = Math.min(Math.max(f, 0), 1);
+          
+          entity.setActiveVisemes([
+            {
+              name: attribute.name,
+              value: f,
+            },
+          ]);
         }
       },
       stop() {
@@ -633,7 +635,7 @@ const Track = {
       },
     ]);
     const _dropAttribute = (entity, o) => {
-      const {data: {id, type, length, start_url, startPosition, endPosition}, time} = o;
+      const {data: {id, type, length, name, index, start_url, startPosition, endPosition}, time} = o;
       if (type === 'attribute' || type === 'entity') {
         if (entity.id !== id) {
           const object = rootInstance.spliceObject(id);
@@ -650,6 +652,8 @@ const Track = {
           startTime: time,
           endTime: time + length,
           length,
+          name,
+          index,
           start_url,
           startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
           endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
@@ -1098,8 +1102,8 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'pose',
-                  length: 5,
-                  index: 0,
+                  length: 10,
+                  index: 81,
                 }));
               },
             }, 'Pose'),
@@ -1112,7 +1116,7 @@ const Root = {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'viseme',
                   length: 5,
-                  index: 0,
+                  name: 'fun',
                 }));
               },
             }, 'Viseme'),

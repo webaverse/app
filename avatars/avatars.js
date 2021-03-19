@@ -43,12 +43,16 @@ window.addEventListener('keydown', e => {
   if (poseData) {
     if (e.which === 35) {
       poseIndex = Math.min(Math.max(poseIndex - 1, 0), poseData.length - 1);
+      console.log(poseIndex);
     } else if (e.which === 40) {
       poseIndex = Math.min(Math.max(poseIndex + 1, 0), poseData.length - 1);
+      console.log(poseIndex);
     } else if (e.which === 37) {
       emotionIndex = Math.min(Math.max(emotionIndex - 1, 0), Infinity);
+      console.log(emotionIndex);
     } else if (e.which === 12) {
       emotionIndex = Math.min(Math.max(emotionIndex + 1, 0), Infinity);
+      console.log(emotionIndex);
     }
   }
 }, true);
@@ -1937,6 +1941,7 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = [];
     }
     this.activeVisemes = [];
+    this.activePoses = [];
 
     this.microphoneWorker = null;
     this.volume = 0;
@@ -2276,6 +2281,15 @@ class Avatar {
           this.outputs[bone.mappedName].quaternion.premultiply(bone.quaternion);
         }
       }
+
+      for (const activePose of this.activePoses) {
+        const {index: poseIndex, value} = activePose;
+        for (const bone of poseData[poseIndex].bones) {
+          if (bone.mappedName) {
+            this.outputs[bone.mappedName].quaternion.slerp(bone.quaternion, value);
+          }
+        }
+      }
       
       // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
       // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
@@ -2284,7 +2298,7 @@ class Avatar {
       // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
       // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
       
-      mmdAnimationHelper.pose(model, animationData[poseIndex]);
+      // mmdAnimationHelper.pose(model, animationData[poseIndex]);
     }
 
     if (this.getTopEnabled()) {
