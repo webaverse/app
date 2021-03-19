@@ -866,7 +866,7 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'text',
-                  length: 5,
+                  length: 10,
                   start_url: './guitar/guitar.txt',
                   startPosition: new THREE.Vector3(2, 1.5, -1).toArray(),
                   endPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
