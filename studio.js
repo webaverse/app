@@ -196,8 +196,8 @@ const entityHandlers = {
         if (o) {
           const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
           if (factor >= 0 && factor <= 1) {
-            // o.position.copy(entity.startPosition).lerp(o.endPosition, factor);
-            // o.quaternion.copy(entity.startQuaternion).slerp(o.endQuaternion, factor);
+            // o.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+            // o.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.visible = true;
           } else {
             // o.position.set(0, 0, 0);
