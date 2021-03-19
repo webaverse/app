@@ -798,13 +798,30 @@ const Root = {
                   type: 'avatar',
                   length: 10,
                   start_url: './assets2/sacks3.vrm',
-                  startPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
-                  endPosition: new THREE.Vector3(-1, 1.5, -1).toArray(),
+                  startPosition: new THREE.Vector3(0, 0, -1).toArray(),
+                  endPosition: new THREE.Vector3(-1, 0, -2).toArray(),
                   startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
                   endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
                 }));
               },
-            }, 'Avatar'),
+            }, 'Avatar 1'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.avatar,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'avatar',
+                  length: 10,
+                  start_url: './assets2/kasamoto_kanji.vrm',
+                  startPosition: new THREE.Vector3(0, 0, -3).toArray(),
+                  endPosition: new THREE.Vector3(1, 0, -2).toArray(),
+                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
+                }));
+              },
+            }, 'Avatar 2'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.move,
