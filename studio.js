@@ -65,6 +65,10 @@ const entityHandlers = {
     entity.setMicrophoneMediaStream = newMicrophoneMediaStream => {
       microphoneMediaStream = newMicrophoneMediaStream;
     };
+    let activeVisemes = [];
+    entity.setActiveVisemes = newActiveVisemes => {
+      activeVisemes = newActiveVisemes;
+    };
     
     let o;
     let live = true;
@@ -121,6 +125,7 @@ const entityHandlers = {
               });
               lastMicrophoneMediaStream = microphoneMediaStream;
             }
+            o.activeVisemes = activeVisemes;
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
             o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
@@ -130,6 +135,7 @@ const entityHandlers = {
             o.eyeTargetEnabled = false;
             o.setMicrophoneMediaStream(null);
             lastMicrophoneMediaStream = null;
+            o.activeVisemes = [];
             o.model.position.set(0, 0, 0);
             o.model.quaternion.set(0, 0, 0, 1);
             o.model.visible = false;
@@ -362,6 +368,60 @@ const attributeHandlers = {
       },
       stop() {
         // nothing
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+  pose(entity, attribute) {
+    return {
+      update(currentTime) {
+        if (entity.isAvatar) {
+          let f = Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
+          f = Math.min(Math.max(f, 0), 1);
+          
+          entity.setActiveVisemes([
+            {
+              name: 'fun',
+              value: f,
+            },
+          ]);
+        }
+      },
+      stop() {
+        /* if (!audio.paused) {
+          audio.pause();
+        } */
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+  viseme(entity, attribute) {
+    return {
+      update(currentTime) {
+        const innerTime = currentTime - entity.startTime - attribute.startTime;
+        if (innerTime >= 0 && innerTime < audio.duration) {
+          if (audio.paused) {
+            audio.play();
+            audio.currentTime = innerTime;
+            
+            entity.setMicrophoneMediaStream(audio);
+          }
+        } else {
+          if (!audio.paused) {
+            audio.pause();
+
+            entity.setMicrophoneMediaStream(null);
+          }
+        }
+      },
+      stop() {
+        /* if (!audio.paused) {
+          audio.pause();
+        } */
       },
       destroy() {
         // nothing
