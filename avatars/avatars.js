@@ -2474,11 +2474,9 @@ class Avatar {
 
         // ["neutral", "a", "i", "u", "e", "o", "blink", "joy", "angry", "sorrow", "fun", "lookup", "lookdown", "lookleft", "lookright", "blink_l", "blink_r"]
         // animation visemes
-        for (const o of this.activeVisemes) {
-          const index = visemeMapping[o.name];
-          if (index !== undefined) {
-            morphTargetInfluences[index] = o.value;
-          }
+        for (const activeViseme of this.activeVisemes) {
+          const {index, value} = activeViseme;
+          morphTargetInfluences[index] = value;
         }
       }
     }
