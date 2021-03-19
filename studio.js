@@ -6,6 +6,8 @@ import {RigAux} from './rig-aux.js';
 import {renderer, scene, camera, avatarScene} from './app-object.js';
 import {getExt, unFrustumCull} from './util.js';
 
+const localVector = new THREE.Vector3();
+
 const zoom = 10;
 const entityColors = {
   camera: '#5c6bc0',
@@ -16,6 +18,8 @@ const entityColors = {
   move: '#ffa726',
   pose: '#ffa726',
   viseme: '#ffa726',
+  eyeTarget: '#ffa726',
+  headTarget: '#ffa726',
   text: '#90a4ae',
 };
 let id = 0;
@@ -43,6 +47,18 @@ const entityHandlers = {
     };
   },
   avatar(entity) {
+    entity.isAvatar = true;
+    let eyeTargetEnabled = false;
+    const eyeTarget = new THREE.Vector3();
+    entity.setEyeTarget = newEyeTarget => {
+      if (newEyeTarget) {
+        eyeTargetEnabled = true;
+        eyeTarget.copy(newEyeTarget);
+      } else {
+        eyeTargetEnabled = false;
+      }
+    };
+    
     let o;
     let live = true;
     (async () => {
@@ -86,12 +102,19 @@ const entityHandlers = {
         if (o) {
           const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
           if (factor >= 0 && factor <= 1) {
+            if (eyeTargetEnabled) {
+              o.eyeTargetEnabled = true;
+              o.eyeTarget.copy(eyeTarget);
+            } else {
+              o.eyeTargetEnabled = false;
+            }
             o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
             o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
 
             o.update(timeDiff);
           } else {
+            o.eyeTargetEnabled = false;
             o.model.position.set(0, 0, 0);
             o.model.quaternion.set(0, 0, 0, 1);
             o.model.visible = false;
@@ -267,6 +290,29 @@ const entityHandlers = {
     };
   },
 };
+const attributeHandlers = {
+  eyeTarget(entity, attribute) {
+    return {
+      update(currentTime) {
+        if (entity.isAvatar) {
+          const factor = (currentTime - entity.startTime - attribute.startTime) / (attribute.endTime - attribute.startTime);
+          if (factor >= 0 && factor <= 1) {
+            // console.log('lerp', attribute.startPosition.toArray(), attribute.endPosition.toArray(), factor, localVector.copy(attribute.startPosition).lerp(attribute.endPosition, factor).toArray());
+            entity.setEyeTarget(localVector.copy(attribute.startPosition).lerp(attribute.endPosition, factor));
+          } else {
+            entity.setEyeTarget(null);
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+};
 
 const _toTimeString = sec_num => {
   var minutes = Math.floor(sec_num / 60);
@@ -431,7 +477,7 @@ const Track = {
       },
     ]);
     const _dropAttribute = (entity, o) => {
-      const {data: {id, type, length}, time} = o;
+      const {data: {id, type, length, startPosition, endPosition}, time} = o;
       if (type === 'attribute' || type === 'entity') {
         if (entity.id !== id) {
           const object = rootInstance.spliceObject(id);
@@ -447,9 +493,24 @@ const Track = {
           startTime: time,
           endTime: time + length,
           length,
+          startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
+          endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
           nubs: _makeNubs(),
+          update(currentTime) {
+            instance && instance.update(currentTime);
+          },
+          stop() {
+            instance && instance.stop();
+          },
+          destroy() {
+            instance && instance.stop();
+            instance && instance.destroy();
+          },
         };
         entity.attributes.push(attribute);
+
+        const handler = attributeHandlers[type];
+        const instance = handler && handler(entity, attribute);
       }
       _render();
     };
@@ -656,13 +717,25 @@ const Root = {
           endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
           update(currentTime) {
             instance && instance.update(currentTime);
+            
+            for (const attribute of this.attributes) {
+              attribute.update(currentTime);
+            }
           },
           stop() {
             instance && instance.stop();
+            
+            for (const attribute of this.attributes) {
+              attribute.stop();
+            }
           },
           destroy() {
             instance && instance.stop();
             instance && instance.destroy();
+            
+            for (const attribute of this.attributes) {
+              attribute.destroy();
+            }
           },
         };
         track.entities.push(entity);
@@ -808,8 +881,8 @@ const Root = {
                   start_url: './assets2/sacks3.vrm',
                   startPosition: new THREE.Vector3(0, 1.5, -1).toArray(),
                   endPosition: new THREE.Vector3(-1, 1.5, -2).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.9).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.1).toArray(),
                 }));
               },
             }, 'Avatar 1'),
@@ -866,6 +939,32 @@ const Root = {
                 }));
               },
             }, 'Viseme'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.eyeTarget,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'eyeTarget',
+                  length: 10,
+                  startPosition: new THREE.Vector3(3, 1.5, 10).toArray(),
+                  endPosition: new THREE.Vector3(0, 1.5, 10).toArray(),
+                }));
+              },
+            }, 'Eye Target'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.headTarget,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'headTarget',
+                  length: 10,
+                }));
+              },
+            }, 'Head Target'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.text,
