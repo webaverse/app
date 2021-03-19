@@ -21,7 +21,7 @@ const entityColors = {
   eyeTarget: '#ffa726',
   headTarget: '#ffa726',
   voice: '#ffa726',
-  fox: '#42a5f5',
+  model: '#42a5f5',
   text: '#90a4ae',
 };
 let id = 0;
@@ -36,7 +36,7 @@ const entityHandlers = {
           camera.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
           camera.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
         } else {
-          camera.position.set(0, 0, 0);
+          camera.position.set(0, 1.5, 0);
           camera.quaternion.set(0, 0, 0, 1);
         }
       },
@@ -147,7 +147,7 @@ const entityHandlers = {
       },
     };
   },
-  fox(entity) {
+  model(entity) {
     let o;
     let live = true;
     (async () => {
@@ -664,11 +664,11 @@ const Root = {
         }
       },
     });
-    this.tracks = [
-      _makeTrack(),
-      _makeTrack(),
-      _makeTrack(),
-    ];
+    const numTracks = 4;
+    this.tracks = Array(numTracks);
+    for (let i = 0; i < numTracks; i++) {
+      this.tracks[i] = _makeTrack();
+    }
     this.selectedObject = null;
 
     window.addEventListener('keydown', e => {
@@ -916,9 +916,9 @@ const Root = {
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
                   type: 'camera',
-                  length: 30,
-                  startPosition: new THREE.Vector3(0, 1, 1).toArray(),
-                  endPosition: new THREE.Vector3(0, 2, 3).toArray(),
+                  length: 60,
+                  startPosition: new THREE.Vector3(0, 1.5, 1).toArray(),
+                  endPosition: new THREE.Vector3(0, 1.5, 3).toArray(),
                   startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
                   endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
                 }));
@@ -1097,12 +1097,12 @@ const Root = {
             }, 'Voice'),
             m(".clip", {
               style: {
-                backgroundColor: entityColors.fox,
+                backgroundColor: entityColors.model,
               },
               draggable: true,
               ondragstart(e) {
                 e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'fox',
+                  type: 'model',
                   length: 10,
                   start_url: './assets2/fox.glb',
                   startPosition: new THREE.Vector3(1, 2, -1.5).toArray(),
@@ -1112,6 +1112,23 @@ const Root = {
                 }));
               },
             }, 'Fox'),
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.model,
+              },
+              draggable: true,
+              ondragstart(e) {
+                e.dataTransfer.setData('application/json', JSON.stringify({
+                  type: 'model',
+                  length: 10,
+                  start_url: './homespace/homespace.glb',
+                  startPosition: new THREE.Vector3(0, 0, 0).toArray(),
+                  endPosition: new THREE.Vector3(0, 0, 0).toArray(),
+                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+                }));
+              },
+            }, 'Homespace'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.text,
