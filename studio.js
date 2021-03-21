@@ -409,7 +409,7 @@ const attributeHandlers = {
     return {
       update(currentTime) {
         if (entity.isAvatar) {
-          let f = Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
+          let f = 1 - Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
           f = Math.min(Math.max(f, 0), 1);
           
           entity.setActiveVisemes([
@@ -703,8 +703,8 @@ const adders = {
       type: 'avatar',
       length: 20,
       start_url: './assets2/kasamoto_kanji.vrm',
-      startPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
-      endPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
+      startPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
+      endPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
       startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
       endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
     }));
@@ -729,21 +729,21 @@ const adders = {
   viseme1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 5,
-      index: 25,
+      length: 10,
+      index: 26,
     }));
   },
   viseme2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 5,
+      length: 10,
       index: 23,
     }));
   },
   viseme3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 5,
+      length: 10,
       index: 22,
     }));
   },
