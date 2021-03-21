@@ -658,8 +658,8 @@ const adders = {
       length: 60,
       startPosition: new THREE.Vector3(-5, 1, -1).toArray(),
       endPosition: new THREE.Vector3(-5, 1, -1).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.03).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.03).toArray(),
     }));
   },
   billboard(e) {
@@ -694,8 +694,8 @@ const adders = {
       start_url: './assets2/sacks3.vrm',
       startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
       endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.9).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.1).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
     }));
   },
   avatar2(e) {
@@ -705,8 +705,8 @@ const adders = {
       start_url: './assets2/kasamoto_kanji.vrm',
       startPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
       endPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
     }));
   },
   avatar3(e) {
@@ -714,23 +714,16 @@ const adders = {
       type: 'avatar',
       length: 20,
       start_url: './assets2/shilo.vrm',
-      startPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
-      endPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+      startPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
+      endPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
     }));
   },
   move(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'move',
       length: 10,
-    }));
-  },
-  pose(e) {
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'pose',
-      length: 10,
-      index: 30,
     }));
   },
   viseme1(e) {
@@ -740,11 +733,11 @@ const adders = {
       index: 25,
     }));
   },
-  pose3(e) {
+  viseme2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'pose',
-      length: 10,
-      index: 81,
+      type: 'viseme',
+      length: 5,
+      index: 23,
     }));
   },
   viseme3(e) {
@@ -752,6 +745,48 @@ const adders = {
       type: 'viseme',
       length: 5,
       index: 22,
+    }));
+  },
+  pose1(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 30,
+    }));
+  },
+  pose2(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 33,
+    }));
+  },
+  pose3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 81,
+    }));
+  },
+  pose4(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 153, // cute
+    }));
+  },
+  pose5(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 214, // shootself
+    }));
+  },
+  pose6(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 178, // open
     }));
   },
   eyeTarget(e) {
@@ -809,17 +844,51 @@ const adders = {
     }));
   },
 };
-const _useAdder = name => {
-  adders[name]({
-    dataTransfer: {
-      setData(type, s) {
-        _dropEntity(rootInstance.tracks[0], {
-          data: JSON.parse(s),
-          time: 0,
-        });
+const _useAdder = o => {
+  if (typeof o === 'string') {
+    const name = o;
+    if (!adders[name]) {
+      console.warn('no such adder', {name});
+    }
+    adders[name]({
+      dataTransfer: {
+        setData(type, s) {
+          _dropEntity(rootInstance.tracks[0], {
+            data: JSON.parse(s),
+            time: 0,
+          });
+        },
       },
-    },
-  });
+    });
+  } else if (Array.isArray(o)) {
+    const firstTrack = rootInstance.tracks[0];
+
+    const [name, childNames] = o;
+    adders[name]({
+      dataTransfer: {
+        setData(type, s) {
+          _dropEntity(firstTrack, {
+            data: JSON.parse(s),
+            time: 0,
+          });
+        },
+      },
+    });
+    for (const childName of childNames) {
+      adders[childName]({
+        dataTransfer: {
+          setData(type, s) {
+            _dropAttribute(firstTrack.entities[firstTrack.entities.length - 1], {
+              data: JSON.parse(s),
+              time: 0,
+            });
+          },
+        },
+      });
+    }
+  } else {
+    console.warn('unknown type of name', {name});
+  }
 };
 const _dropEntity = (track, o) => {
   const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
@@ -1222,12 +1291,15 @@ const Root = {
                 adders.pose1(e);
               },
             }, 'Pose 1'),
-            // avatar 3 (shilo)
-            // 153 cute
-
-            // avatar 2 (wade)
-            // 23
-            // 214 shootself 33 grip 178 spread
+            m(".clip", {
+              style: {
+                backgroundColor: entityColors.pose,
+              },
+              draggable: true,
+              ondragstart(e) {
+                adders.pose3(e);
+              },
+            }, 'Pose 3'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.viseme,
@@ -1325,7 +1397,33 @@ const studio = {
     app = newApp;
     _render();
     
-    _useAdder('homespace');
+    [
+      'camera',
+      'homespace',
+      [
+        'avatar1',
+        [
+          'pose1',
+          'viseme1',
+        ],
+      ],
+      [
+        'avatar2',
+        [
+          'pose2',
+          'viseme2',
+        ],
+      ],
+      [
+        'avatar3',
+        [
+          'pose3',
+          'viseme3',
+        ],
+      ],
+    ].forEach(n => {
+      _useAdder(n);
+    });
   },
   update(timeDiff) {
     rootInstance.update(timeDiff);

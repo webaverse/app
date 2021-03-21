@@ -37,8 +37,8 @@ const useAnimationRate = 750;
 const crouchMaxTime = 200;
 const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-let emotionIndex = 0;
-let poseIndex = 0;
+let emotionIndex = -1;
+let poseIndex = -1;
 window.addEventListener('keydown', e => {
   if (poseData) {
     if (e.which === 35) {
@@ -2263,43 +2263,6 @@ class Avatar {
       }
     };
     _applyAnimation();
-    
-    if (poseData) {
-      for (const k in this.outputs) {
-        this.outputs[k].quaternion.set(0, 0, 0, 1);
-      }
-
-      this.outputs.leftUpperArm.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.25)
-        // .multiply(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), Math.PI * 0.5));
-        // .premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI * 0.3))
-      this.outputs.rightUpperArm.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.25);
-      // this.outputs.leftUpperLeg.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.15);
-      // this.outputs.rightUpperLeg.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.15);
-
-      for (const bone of poseData[poseIndex].bones) {
-        if (bone.mappedName) {
-          this.outputs[bone.mappedName].quaternion.premultiply(bone.quaternion);
-        }
-      }
-
-      for (const activePose of this.activePoses) {
-        const {index: poseIndex, value} = activePose;
-        for (const bone of poseData[poseIndex].bones) {
-          if (bone.mappedName) {
-            this.outputs[bone.mappedName].quaternion.slerp(bone.quaternion, value);
-          }
-        }
-      }
-      
-      // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
-      // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
-      
-      // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
-      // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
-      // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
-      
-      // mmdAnimationHelper.pose(model, animationData[poseIndex]);
-    }
 
     if (this.getTopEnabled()) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -2375,6 +2338,47 @@ class Avatar {
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
+    
+    if (poseData && (poseIndex !== -1 || this.activePoses.length > 0)) {
+      for (const k in this.outputs) {
+        this.outputs[k].quaternion.set(0, 0, 0, 1);
+      }
+      
+      this.outputs.leftUpperArm.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.25)
+      // .multiply(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), Math.PI * 0.5));
+      // .premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI * 0.3))
+      this.outputs.rightUpperArm.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.25);
+      // this.outputs.leftUpperLeg.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.15);
+      // this.outputs.rightUpperLeg.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.15);
+      
+      if (poseIndex !== -1) {
+        for (const bone of poseData[poseIndex].bones) {
+          if (bone.mappedName) {
+            this.outputs[bone.mappedName].quaternion.premultiply(bone.quaternion);
+          }
+        }
+      }
+
+      for (const activePose of this.activePoses) {
+        const {index: poseIndex, value} = activePose;
+        for (const bone of poseData[poseIndex].bones) {
+          if (bone.mappedName) {            
+            localQuaternion.copy(this.outputs[bone.mappedName].quaternion);
+            localQuaternion2.copy(this.outputs[bone.mappedName].quaternion).premultiply(bone.quaternion);
+            this.outputs[bone.mappedName].quaternion.copy(localQuaternion).slerp(localQuaternion2, value);
+          }
+        }
+      }
+      
+      // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
+      // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
+      
+      // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
+      // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+      // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+      
+      // mmdAnimationHelper.pose(model, animationData[poseIndex]);
+    }
 
     if (this.windTargetEnabled && this.springBoneManager) {
       for (const springBoneGroup of this.springBoneManager.springBoneGroupList) {
@@ -2468,7 +2472,7 @@ class Avatar {
           }
         } */
         
-        if (morphTargetInfluences[emotionIndex] !== undefined) {
+        if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
           morphTargetInfluences[emotionIndex] = 1;
         }
 
