@@ -2051,6 +2051,9 @@ class Avatar {
     this.sitTarget = new THREE.Object3D();
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetEnabled = false;
+    this.headTarget = new THREE.Quaternion();
+    this.headTargetEnabled = false;
+    
     this.windTarget = new THREE.Vector3();
     this.windTargetEnabled = false;
 	}
@@ -2269,14 +2272,14 @@ class Avatar {
         for (const k in this.outputs) {
           this.outputs[k].quaternion.set(0, 0, 0, 1);
         }
-        
+
         this.outputs.leftUpperArm.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.25)
         // .multiply(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), Math.PI * 0.5));
         // .premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI * 0.3))
         this.outputs.rightUpperArm.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.25);
         // this.outputs.leftUpperLeg.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.15);
         // this.outputs.rightUpperLeg.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.15);
-        
+
         if (poseIndex !== -1) {
           for (const bone of poseData[poseIndex].bones) {
             if (bone.mappedName) {
@@ -2295,15 +2298,18 @@ class Avatar {
             }
           }
         }
-        
+
         // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
         // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
-        
+
         // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
         // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
         // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
-        
+
         // mmdAnimationHelper.pose(model, animationData[poseIndex]);
+      }
+      if (this.headTargetEnabled) {
+        this.outputs.neck.quaternion.premultiply(this.headTarget);
       }
     };
     _applyPose();
