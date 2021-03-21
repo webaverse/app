@@ -7,6 +7,7 @@ import {renderer, scene, camera, avatarScene} from './app-object.js';
 import {getExt, unFrustumCull} from './util.js';
 
 const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
 
 const zoom = 10;
 const entityColors = {
@@ -58,6 +59,16 @@ const entityHandlers = {
         eyeTarget.copy(newEyeTarget);
       } else {
         eyeTargetEnabled = false;
+      }
+    };
+    let headTargetEnabled = false;
+    const headTarget = new THREE.Quaternion();
+    entity.setHeadTarget = newHeadTarget => {
+      if (newHeadTarget) {
+        headTargetEnabled = true;
+        headTarget.copy(newHeadTarget);
+      } else {
+        headTargetEnabled = false;
       }
     };
     let microphoneMediaStream = null;
@@ -117,11 +128,19 @@ const entityHandlers = {
         if (o) {
           const factor = (currentTime - entity.startTime) / (entity.endTime - entity.startTime);
           if (factor >= 0 && factor <= 1) {
+            o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
+            o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             if (eyeTargetEnabled) {
               o.eyeTargetEnabled = true;
               o.eyeTarget.copy(eyeTarget);
             } else {
               o.eyeTargetEnabled = false;
+            }
+            if (headTargetEnabled) {
+              o.headTargetEnabled = true;
+              o.headTarget.copy(headTarget);
+            } else {
+              o.headTargetEnabled = false;
             }
             if (microphoneMediaStream !== lastMicrophoneMediaStream) {
               o.setMicrophoneMediaStream(microphoneMediaStream, {
@@ -131,8 +150,6 @@ const entityHandlers = {
             }
             o.activeVisemes = activeVisemes;
             o.activePoses = activePoses;
-            o.model.position.copy(entity.startPosition).lerp(entity.endPosition, factor);
-            o.model.quaternion.copy(entity.startQuaternion).slerp(entity.endQuaternion, factor);
             o.model.visible = true;
 
             o.update(timeDiff);
@@ -365,10 +382,29 @@ const attributeHandlers = {
         if (entity.isAvatar) {
           const factor = (currentTime - entity.startTime - attribute.startTime) / (attribute.endTime - attribute.startTime);
           if (factor >= 0 && factor <= 1) {
-            // console.log('lerp', attribute.startPosition.toArray(), attribute.endPosition.toArray(), factor, localVector.copy(attribute.startPosition).lerp(attribute.endPosition, factor).toArray());
             entity.setEyeTarget(localVector.copy(attribute.startPosition).lerp(attribute.endPosition, factor));
           } else {
             entity.setEyeTarget(null);
+          }
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
+  headTarget(entity, attribute) {
+    return {
+      update(currentTime) {
+        if (entity.isAvatar) {
+          const factor = (currentTime - entity.startTime - attribute.startTime) / (attribute.endTime - attribute.startTime);
+          if (factor >= 0 && factor <= 1) {
+            entity.setHeadTarget(localQuaternion.copy(attribute.startQuaternion).slerp(attribute.endQuaternion, factor));
+          } else {
+            entity.setHeadTarget(null);
           }
         }
       },
@@ -694,8 +730,8 @@ const adders = {
       start_url: './assets2/sacks3.vrm',
       startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
       endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
     }));
   },
   avatar2(e) {
@@ -705,8 +741,8 @@ const adders = {
       start_url: './assets2/kasamoto_kanji.vrm',
       startPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
       endPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
     }));
   },
   avatar3(e) {
@@ -716,8 +752,8 @@ const adders = {
       start_url: './assets2/shilo.vrm',
       startPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
       endPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
-      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
     }));
   },
   move(e) {
@@ -730,7 +766,7 @@ const adders = {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
       length: 10,
-      index: 26,
+      index: 25,
     }));
   },
   viseme2(e) {
@@ -789,18 +825,58 @@ const adders = {
       index: 178, // open
     }));
   },
-  eyeTarget(e) {
+  eyeTarget1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'eyeTarget',
       length: 10,
-      startPosition: new THREE.Vector3(3, 1.5, 10).toArray(),
-      endPosition: new THREE.Vector3(0, 1.5, 10).toArray(),
+      startPosition: new THREE.Vector3(-5, 1, 10).toArray(),
+      endPosition: new THREE.Vector3(-5, 1, 10).toArray(),
     }));
   },
-  headTarget(e) {
+  eyeTarget2(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'eyeTarget',
+      length: 10,
+      startPosition: new THREE.Vector3(-10, -10, 0).toArray(),
+      endPosition: new THREE.Vector3(-10, -10, 0).toArray(),
+    }));
+  },
+  eyeTarget3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'eyeTarget',
+      length: 10,
+      startPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
+      endPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
+    }));
+  },
+  headTarget1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'headTarget',
       length: 10,
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.1).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.1).toArray(),
+    }));
+  },
+  headTarget2(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'headTarget',
+      length: 10,
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1).toArray(),
+    }));
+  },
+  headTarget3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'headTarget',
+      length: 10,
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1)
+        .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1))
+        .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.05))
+        .toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1)
+        .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1))
+        .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.05))
+        .toArray(),
     }));
   },
   voice(e) {
@@ -953,7 +1029,7 @@ const _makeNubs = () => ([
   },
 ]);
 const _dropAttribute = (entity, o) => {
-  const {data: {id, type, length, index, start_url, startPosition, endPosition}, time} = o;
+  const {data: {id, type, length, index, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
   if (type === 'attribute' || type === 'entity') {
     if (entity.id !== id) {
       const object = rootInstance.spliceObject(id);
@@ -974,6 +1050,8 @@ const _dropAttribute = (entity, o) => {
       start_url,
       startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
       endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
+      startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
+      endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
       nubs: _makeNubs(),
       update(currentTime) {
         instance && instance.update(currentTime);
@@ -1333,18 +1411,18 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                adders.eyeTarget(e);
+                adders.eyeTarget1(e);
               },
-            }, 'Eye Target'),
+            }, 'Eye Target 1'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.headTarget,
               },
               draggable: true,
               ondragstart(e) {
-                adders.headTarget(e);
+                adders.headTarget1(e);
               },
-            }, 'Head Target'),
+            }, 'Head Target 1'),
             m(".clip", {
               style: {
                 backgroundColor: entityColors.voice,
@@ -1405,6 +1483,8 @@ const studio = {
         [
           'pose1',
           'viseme1',
+          'eyeTarget1',
+          'headTarget1',
         ],
       ],
       [
@@ -1412,6 +1492,8 @@ const studio = {
         [
           'pose2',
           'viseme2',
+          'eyeTarget2',
+          'headTarget2',
         ],
       ],
       [
@@ -1419,6 +1501,8 @@ const studio = {
         [
           'pose3',
           'viseme3',
+          'eyeTarget3',
+          'headTarget3',
         ],
       ],
     ].forEach(n => {
