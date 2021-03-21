@@ -2492,13 +2492,16 @@ class Avatar {
       for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
         if (eye) {
           eye.getWorldPosition(localVector);
-          eye.getWorldQuaternion(localQuaternion);
+          eye.parent.getWorldQuaternion(localQuaternion);
           localQuaternion.invert()
             .premultiply(z180Quaternion)
-            .premultiply(
-              localQuaternion2.setFromUnitVectors(
-                localVector2.set(0, 0, -1),
-                localVector3.copy(this.eyeTarget).sub(localVector).normalize()
+            .multiply(
+              localQuaternion2.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  localVector,
+                  this.eyeTarget,
+                  localVector2.set(0, 1, 0)
+                )
               )
             );
           if (/^(?:left|right)eye$/i.test(eye.name)) {
