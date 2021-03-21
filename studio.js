@@ -624,58 +624,6 @@ const Nub = {
 
 const Track = {
   view(vnode) {
-    const _makeNubs = () => ([
-      {
-        type: 'start',
-        time: 0,
-      },
-      {
-        type: 'end',
-        time: 0,
-      },
-    ]);
-    const _dropAttribute = (entity, o) => {
-      const {data: {id, type, length, index, start_url, startPosition, endPosition}, time} = o;
-      if (type === 'attribute' || type === 'entity') {
-        if (entity.id !== id) {
-          const object = rootInstance.spliceObject(id);
-          object.start_url = start_url;
-          object.startTime = time;
-          object.endTime = time + object.length;
-          object.nubs = _makeNubs();
-          entity.attributes.push(object);
-        }
-      } else {
-        const attribute = {
-          id: _getNextId(),
-          type,
-          startTime: time,
-          endTime: time + length,
-          length,
-          index,
-          start_url,
-          startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
-          endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
-          nubs: _makeNubs(),
-          update(currentTime) {
-            instance && instance.update(currentTime);
-          },
-          stop() {
-            instance && instance.stop();
-          },
-          destroy() {
-            instance && instance.stop();
-            instance && instance.destroy();
-          },
-        };
-        entity.attributes.push(attribute);
-
-        const handler = attributeHandlers[type];
-        const instance = handler && handler(entity, attribute);
-      }
-      _render();
-    };
-    
     return m('.track', {
       ondragover(e) {
         e.preventDefault();
@@ -701,6 +649,280 @@ const Track = {
       },
     }))));
   },
+};
+
+const adders = {
+  camera(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'camera',
+      length: 60,
+      startPosition: new THREE.Vector3(-5, 1, -1).toArray(),
+      endPosition: new THREE.Vector3(-5, 1, -1).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
+    }));
+  },
+  billboard(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'billboard',
+      length: 12,
+      start_url: './sakura/index.glbb',
+      startPosition: new THREE.Vector3(0, 0, -1).toArray(),
+      endPosition: new THREE.Vector3(0, 2, -1).toArray(),
+      startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
+    }));
+  },
+  depthPass(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pass',
+      length: 12,
+      start_url: './depth-pass/index.glfs',
+    }));
+  },
+  song(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'song',
+      length: 30,
+      start_url: './assets2/song2.mp3',
+    }));
+  },
+  avatar1(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'avatar',
+      length: 20,
+      start_url: './assets2/sacks3.vrm',
+      startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
+      endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.9).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.1).toArray(),
+    }));
+  },
+  avatar2(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'avatar',
+      length: 20,
+      start_url: './assets2/kasamoto_kanji.vrm',
+      startPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
+      endPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
+    }));
+  },
+  avatar3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'avatar',
+      length: 20,
+      start_url: './assets2/shilo.vrm',
+      startPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
+      endPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
+    }));
+  },
+  move(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'move',
+      length: 10,
+    }));
+  },
+  pose(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 30,
+    }));
+  },
+  viseme1(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'viseme',
+      length: 5,
+      index: 25,
+    }));
+  },
+  pose3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'pose',
+      length: 10,
+      index: 81,
+    }));
+  },
+  viseme3(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'viseme',
+      length: 5,
+      index: 22,
+    }));
+  },
+  eyeTarget(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'eyeTarget',
+      length: 10,
+      startPosition: new THREE.Vector3(3, 1.5, 10).toArray(),
+      endPosition: new THREE.Vector3(0, 1.5, 10).toArray(),
+    }));
+  },
+  headTarget(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'headTarget',
+      length: 10,
+    }));
+  },
+  voice(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'voice',
+      length: 10,
+      start_url: './ghost.mp3',
+    }));
+  },
+  fox(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'model',
+      length: 10,
+      start_url: './assets2/fox.glb',
+      startPosition: new THREE.Vector3(1, 2, -1.5).toArray(),
+      endPosition: new THREE.Vector3(0, 2, -3).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+    }));
+  },
+  homespace(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'model',
+      length: 10,
+      start_url: './homespace/homespace.glb',
+      startPosition: new THREE.Vector3(0, 0, 0).toArray(),
+      endPosition: new THREE.Vector3(0, 0, 0).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
+    }));
+  },
+  donotwant(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'text',
+      length: 10,
+      start_url: './donotwant/iranai.txt',
+      startPosition: new THREE.Vector3(-1.5, 1.5, -0.5).toArray(),
+      endPosition: new THREE.Vector3(-0.75, 1.5, -2).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.3).toArray(),
+      endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
+    }));
+  },
+};
+const _useAdder = name => {
+  adders[name]({
+    dataTransfer: {
+      setData(type, s) {
+        _dropEntity(rootInstance.tracks[0], {
+          data: JSON.parse(s),
+          time: 0,
+        });
+      },
+    },
+  });
+};
+const _dropEntity = (track, o) => {
+  const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
+  if (type === 'attribute' || type === 'entity') {
+    if (track.id !== id) {
+      const object = rootInstance.spliceObject(id);
+      object.startTime = time;
+      object.endTime = time + object.length;
+      track.entities.push(object);
+    }
+  } else {
+    const entity = {
+      type,
+      id: _getNextId(),
+      start_url,
+      startTime: time,
+      endTime: time + length,
+      length,
+      attributes: [],
+      startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
+      endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
+      startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
+      endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
+      update(currentTime) {
+        instance && instance.update(currentTime);
+        
+        for (const attribute of this.attributes) {
+          attribute.update(currentTime);
+        }
+      },
+      stop() {
+        instance && instance.stop();
+        
+        for (const attribute of this.attributes) {
+          attribute.stop();
+        }
+      },
+      destroy() {
+        instance && instance.stop();
+        instance && instance.destroy();
+        
+        for (const attribute of this.attributes) {
+          attribute.destroy();
+        }
+      },
+    };
+    track.entities.push(entity);
+
+    const handler = entityHandlers[type];
+    const instance = handler && handler(entity);
+  }
+  _render();
+};
+const _makeNubs = () => ([
+  {
+    type: 'start',
+    time: 0,
+  },
+  {
+    type: 'end',
+    time: 0,
+  },
+]);
+const _dropAttribute = (entity, o) => {
+  const {data: {id, type, length, index, start_url, startPosition, endPosition}, time} = o;
+  if (type === 'attribute' || type === 'entity') {
+    if (entity.id !== id) {
+      const object = rootInstance.spliceObject(id);
+      object.start_url = start_url;
+      object.startTime = time;
+      object.endTime = time + object.length;
+      object.nubs = _makeNubs();
+      entity.attributes.push(object);
+    }
+  } else {
+    const attribute = {
+      id: _getNextId(),
+      type,
+      startTime: time,
+      endTime: time + length,
+      length,
+      index,
+      start_url,
+      startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
+      endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
+      nubs: _makeNubs(),
+      update(currentTime) {
+        instance && instance.update(currentTime);
+      },
+      stop() {
+        instance && instance.stop();
+      },
+      destroy() {
+        instance && instance.stop();
+        instance && instance.destroy();
+      },
+    };
+    entity.attributes.push(attribute);
+
+    const handler = attributeHandlers[type];
+    const instance = handler && handler(entity, attribute);
+  }
+  _render();
 };
 
 let rootInstance = null;
@@ -854,58 +1076,6 @@ const Root = {
   },
   view(vnode) {
     const timeString = _toTimeString(this.currentTime);
-    const _dropEntity = (track, o) => {
-      const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
-      if (type === 'attribute' || type === 'entity') {
-        if (track.id !== id) {
-          const object = rootInstance.spliceObject(id);
-          object.startTime = time;
-          object.endTime = time + object.length;
-          track.entities.push(object);
-        }
-      } else {
-        const entity = {
-          type,
-          id: _getNextId(),
-          start_url,
-          startTime: time,
-          endTime: time + length,
-          length,
-          attributes: [],
-          startPosition: startPosition && new THREE.Vector3().fromArray(startPosition),
-          endPosition: endPosition && new THREE.Vector3().fromArray(endPosition),
-          startQuaternion: startQuaternion && new THREE.Quaternion().fromArray(startQuaternion),
-          endQuaternion: endQuaternion && new THREE.Quaternion().fromArray(endQuaternion),
-          update(currentTime) {
-            instance && instance.update(currentTime);
-            
-            for (const attribute of this.attributes) {
-              attribute.update(currentTime);
-            }
-          },
-          stop() {
-            instance && instance.stop();
-            
-            for (const attribute of this.attributes) {
-              attribute.stop();
-            }
-          },
-          destroy() {
-            instance && instance.stop();
-            instance && instance.destroy();
-            
-            for (const attribute of this.attributes) {
-              attribute.destroy();
-            }
-          },
-        };
-        track.entities.push(entity);
-
-        const handler = entityHandlers[type];
-        const instance = handler && handler(entity);
-      }
-      _render();
-    };
 
     return m(".studio", [
       m("footer", [
@@ -977,14 +1147,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'camera',
-                  length: 60,
-                  startPosition: new THREE.Vector3(-5, 1, -1).toArray(),
-                  endPosition: new THREE.Vector3(-5, 1, -1).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.1).toArray(),
-                }));
+                adders.camera(e);
               },
             }, 'Camera'),
             m(".clip", {
@@ -993,15 +1156,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'billboard',
-                  length: 12,
-                  start_url: './sakura/index.glbb',
-                  startPosition: new THREE.Vector3(0, 0, -1).toArray(),
-                  endPosition: new THREE.Vector3(0, 2, -1).toArray(),
-                  startQuaternion: new THREE.Quaternion(0, 0, 0, 1).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.2).toArray(),
-                }));
+                adders.billboard(e);
               },
             }, 'Billboard'),
             m(".clip", {
@@ -1010,11 +1165,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'pass',
-                  length: 12,
-                  start_url: './depth-pass/index.glfs',
-                }));
+                adders.depthPass(e);
               },
             }, 'Pass'),
             m(".clip", {
@@ -1023,11 +1174,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'song',
-                  length: 30,
-                  start_url: './assets2/song2.mp3',
-                }));
+                adders.song(e);
               },
             }, 'Song'),
             m(".clip", {
@@ -1036,15 +1183,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'avatar',
-                  length: 20,
-                  start_url: './assets2/sacks3.vrm',
-                  startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
-                  endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.9).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.1).toArray(),
-                }));
+                adders.avatar1(e);
               },
             }, 'Avatar 1'),
             m(".clip", {
@@ -1053,15 +1192,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'avatar',
-                  length: 20,
-                  start_url: './assets2/kasamoto_kanji.vrm',
-                  startPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
-                  endPosition: new THREE.Vector3(-4, 1.5, -4).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 1.5).toArray(),
-                }));
+                adders.avatar2(e);
               },
             }, 'Avatar 2'),
             m(".clip", {
@@ -1070,15 +1201,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'avatar',
-                  length: 20,
-                  start_url: './assets2/shilo.vrm',
-                  startPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
-                  endPosition: new THREE.Vector3(-5.5, 1, -4).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 1.5).toArray(),
-                }));
+                adders.avatar3(e);
               },
             }, 'Avatar 3'),
             m(".clip", {
@@ -1087,10 +1210,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'move',
-                  length: 10,
-                }));
+                adders.move(e);
               },
             }, 'Move'),
             m(".clip", {
@@ -1099,24 +1219,22 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'pose',
-                  length: 10,
-                  index: 30,
-                }));
+                adders.pose1(e);
               },
             }, 'Pose 1'),
+            // avatar 3 (shilo)
+            // 153 cute
+
+            // avatar 2 (wade)
+            // 23
+            // 214 shootself 33 grip 178 spread
             m(".clip", {
               style: {
                 backgroundColor: entityColors.viseme,
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'viseme',
-                  length: 5,
-                  index: 25,
-                }));
+                adders.viseme1(e);
               },
             }, 'Viseme 1'),
             m(".clip", {
@@ -1125,11 +1243,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'pose',
-                  length: 10,
-                  index: 81,
-                }));
+                adders.pose3(e);
               },
             }, 'Pose 3'),
             m(".clip", {
@@ -1138,11 +1252,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'viseme',
-                  length: 5,
-                  index: 22,
-                }));
+                adder.viseme3(e);
               },
             }, 'Viseme 3'),
             m(".clip", {
@@ -1151,12 +1261,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'eyeTarget',
-                  length: 10,
-                  startPosition: new THREE.Vector3(3, 1.5, 10).toArray(),
-                  endPosition: new THREE.Vector3(0, 1.5, 10).toArray(),
-                }));
+                adders.eyeTarget(e);
               },
             }, 'Eye Target'),
             m(".clip", {
@@ -1165,10 +1270,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'headTarget',
-                  length: 10,
-                }));
+                adders.headTarget(e);
               },
             }, 'Head Target'),
             m(".clip", {
@@ -1177,11 +1279,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'voice',
-                  length: 10,
-                  start_url: './ghost.mp3',
-                }));
+                adders.voice(e);
               },
             }, 'Voice'),
             m(".clip", {
@@ -1190,15 +1288,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'model',
-                  length: 10,
-                  start_url: './assets2/fox.glb',
-                  startPosition: new THREE.Vector3(1, 2, -1.5).toArray(),
-                  endPosition: new THREE.Vector3(0, 2, -3).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
-                }));
+                adders.fox(e);
               },
             }, 'Fox'),
             m(".clip", {
@@ -1207,15 +1297,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'model',
-                  length: 10,
-                  start_url: './homespace/homespace.glb',
-                  startPosition: new THREE.Vector3(0, 0, 0).toArray(),
-                  endPosition: new THREE.Vector3(0, 0, 0).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5).toArray(),
-                }));
+                adders.homespace(e);
               },
             }, 'Homespace'),
             m(".clip", {
@@ -1224,15 +1306,7 @@ const Root = {
               },
               draggable: true,
               ondragstart(e) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                  type: 'text',
-                  length: 10,
-                  start_url: './donotwant/iranai.txt',
-                  startPosition: new THREE.Vector3(-1.5, 1.5, -0.5).toArray(),
-                  endPosition: new THREE.Vector3(-0.75, 1.5, -2).toArray(),
-                  startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.3).toArray(),
-                  endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
-                }));
+                adders.donotwant(e);
               },
             }, 'Text'),
           ]),
@@ -1250,6 +1324,8 @@ const studio = {
   init(newApp) {
     app = newApp;
     _render();
+    
+    _useAdder('homespace');
   },
   update(timeDiff) {
     rootInstance.update(timeDiff);
