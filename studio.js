@@ -91,6 +91,17 @@ const entityHandlers = {
     entity.setActivePoses = newActivePoses => {
       activePoses = newActivePoses;
     };
+    const auxs = [];
+    const lastAuxs = [];
+    entity.addAux = aux => {
+      auxs.push(aux);
+    };
+    entity.removeAux = aux => {
+      auxs.splice(auxs.indexOf(aux), 1);
+    };
+    entity.setIdleTime = newIdleTime => {
+      console.warn('not implemented');
+    };
     
     let o;
     let live = true;
@@ -155,11 +166,20 @@ const entityHandlers = {
               });
               lastMicrophoneMediaStream = microphoneMediaStream;
             }
+            for (let i = 0; i < auxs.length; i++) {
+              const aux = auxs[i];
+              if (aux !== lastAuxs[i]) {
+                aux.useAux(o.aux);
+                lastAuxs[i] = aux;
+              }
+            }
+            lastAuxs.length = auxs.length;
             o.activeVisemes = activeVisemes;
             o.activePoses = activePoses;
             o.model.visible = true;
 
             o.update(timeDiff);
+            o.aux.update(timeDiff);
           } else {
             o.eyeTargetEnabled = false;
             o.setMicrophoneMediaStream(null);
@@ -491,6 +511,37 @@ const attributeHandlers = {
       },
       destroy() {
         // nothing
+      },
+    };
+  },
+  busterSword(entity, attribute) {
+    let o;
+    let live = true;
+    (async () => {
+      o = await runtime.loadFile({
+        url: attribute.start_url,
+        ext: getExt(attribute.start_url),
+      }, {
+        contentId: attribute.start_url,
+      });
+      if (live) {
+        entity.addAux(o);
+      }
+    })();
+
+    return {
+      update(currentTime) {
+        // nothing
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          entity.removeAux(o);
+          o.destroy();
+        }
+        live = false;
       },
     };
   },
@@ -908,6 +959,13 @@ const adders = {
         // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1))
         .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.05))
         .toArray(),
+    }));
+  },
+  busterSword(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'busterSword',
+      length: defaultLength,
+      start_url: './buster-sword/manifest.json',
     }));
   },
   voice(e) {
@@ -1529,6 +1587,7 @@ const studio = {
           'viseme1',
           'eyeTarget1',
           'headTarget1',
+          'busterSword',
         ],
       ],
       [
