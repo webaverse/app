@@ -37,6 +37,8 @@ const overrideMaterial1 = new THREE.ShaderMaterial({
     "offset": { value: 0 },
     "translation": { value: new THREE.Vector3() },
     "color": { value: new THREE.Color() },
+    "center": { value: new THREE.Vector3() },
+    "scale": { value: new THREE.Vector3() },
   },
   vertexShader: [
     'varying vec4 projTexCoord;',
@@ -47,6 +49,8 @@ const overrideMaterial1 = new THREE.ShaderMaterial({
 
     'uniform float offset;',
     'uniform vec3 translation;',
+    'uniform vec3 center;',
+    'uniform vec3 scale;',
 
     'void main() {',
     
@@ -55,8 +59,10 @@ const overrideMaterial1 = new THREE.ShaderMaterial({
     '#include <begin_vertex>',
     '#include <morphtarget_vertex>',
     '#include <skinning_vertex>',
+    'transformed -= center;',
+    'transformed *= scale;',
+    'transformed += center;',
     'transformed += normal * offset;',
-    // 'transformed = round(transformed * 10.) / 10.;',
     '#include <project_vertex>',
     'gl_Position.xyz /= gl_Position.w;',
     'gl_Position.w = 1.;',
@@ -380,10 +386,6 @@ class PlayScene {
       rigManager.localRig.copyTo(this.localRig2.model);
     }
     
-    // script pose
-    for (const resource of this.resources) {
-    }
-    
     // render
     const oldRenderTarget = renderer.getRenderTarget();
     renderer.setRenderTarget(backgroundRenderTarget);
@@ -393,6 +395,8 @@ class PlayScene {
       overrideMaterial1.uniforms.offset.value = spec.offset;
       overrideMaterial1.uniforms.translation.value.copy(spec.translation);
       overrideMaterial1.uniforms.color.value.copy(spec.color);
+      overrideMaterial2.uniforms.center.value.set(0, 0, 0);
+      overrideMaterial1.uniforms.scale.value.set(1, 1, 1);
       renderer.render(backgroundScene, camera);
     }
     for (const spec of overrideMaterialSpecs2) {
@@ -400,6 +404,8 @@ class PlayScene {
       overrideMaterial2.uniforms.offset.value = spec.offset;
       overrideMaterial2.uniforms.translation.value.copy(spec.translation);
       overrideMaterial2.uniforms.color.value.copy(spec.color);
+      overrideMaterial2.uniforms.center.value.set(0, 0, 0);
+      overrideMaterial2.uniforms.scale.value.set(1, 1, 1);
       renderer.render(backgroundScene3, camera);
     }
     renderer.render(backgroundScene2, camera);
