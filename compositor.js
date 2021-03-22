@@ -78,6 +78,8 @@ class FullscreenShader {
     this.pass = new FunctionPass(function(renderer, writeBuffer, readBuffer) {
       shaderScene.mesh.material.uniforms.colorTex.value = compositor.getColorTexture();
       shaderScene.mesh.material.uniforms.depthTex.value = compositor.getDepthTexture();
+      shaderScene.mesh.material.uniforms.cameraNear.value = camera.near;
+      shaderScene.mesh.material.uniforms.cameraFar.value = camera.far;
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
       renderer.clear();
       renderer.render(shaderScene, copySceneCamera);
