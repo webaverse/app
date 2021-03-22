@@ -395,7 +395,7 @@ class PlayScene {
       overrideMaterial1.uniforms.offset.value = spec.offset;
       overrideMaterial1.uniforms.translation.value.copy(spec.translation);
       overrideMaterial1.uniforms.color.value.copy(spec.color);
-      overrideMaterial2.uniforms.center.value.set(0, 0, 0);
+      overrideMaterial1.uniforms.center.value.set(0, 0, 0);
       overrideMaterial1.uniforms.scale.value.set(1, 1, 1);
       renderer.render(backgroundScene, camera);
     }
