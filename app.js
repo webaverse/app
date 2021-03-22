@@ -4,7 +4,6 @@ import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import geometryManager from './geometry-manager.js';
 import ioManager from './io-manager.js';
