@@ -10,6 +10,12 @@ import {getExt, unFrustumCull} from './util.js';
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshPhongMaterial({
+  color: 0xFF0000,
+}));
+scene.add(cubeMesh); */
+
+const cubicBezier = easing(0, 1, 0, 1);
 const zoom = 10;
 const entityColors = {
   camera: '#5c6bc0',
