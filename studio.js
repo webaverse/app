@@ -565,15 +565,16 @@ const Entity = {
         e.preventDefault();
       },
       ondrop(e) {
-        e.preventDefault();
-        e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
         if (dataString) {
           const data = JSON.parse(dataString);
-          vnode.attrs.drop({
+          if (vnode.attrs.drop({
             data,
             time: _getEventTime(e) - vnode.attrs.entity.startTime,
-          });
+          })) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
         }
       },
     }, [
@@ -665,15 +666,16 @@ const Track = {
         e.preventDefault();
       },
       ondrop(e) {
-        e.preventDefault();
-        e.stopPropagation();
         const dataString = e.dataTransfer.getData('application/json');
         if (dataString) {
           const data = JSON.parse(dataString);
-          vnode.attrs.drop({
+          if (vnode.attrs.drop({
             data,
             time: _getEventTime(e),
-          });
+          })) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
         }
       },
     }, m('.entities', vnode.attrs.entities.map(entity => m(Entity, {
@@ -681,7 +683,7 @@ const Track = {
       selectedObject: vnode.attrs.selectedObject,
       selectObject: vnode.attrs.selectObject,
       drop(o) {
-        _dropAttribute(entity, o);
+        return _dropAttribute(entity, o);
       },
     }))));
   },
@@ -967,6 +969,7 @@ const _useAdder = o => {
   }
 };
 const _dropEntity = (track, o) => {
+  let result = false;
   const {data: {id, type, length, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
   if (type === 'attribute' || type === 'entity') {
     if (track.id !== id) {
@@ -974,6 +977,7 @@ const _dropEntity = (track, o) => {
       object.startTime = time;
       object.endTime = time + object.length;
       track.entities.push(object);
+      result = true;
     }
   } else {
     const entity = {
@@ -1015,8 +1019,12 @@ const _dropEntity = (track, o) => {
 
     const handler = entityHandlers[type];
     const instance = handler && handler(entity);
+    
+    result = true;
   }
   _render();
+  
+  return result;
 };
 const _makeNubs = () => ([
   {
@@ -1029,6 +1037,7 @@ const _makeNubs = () => ([
   },
 ]);
 const _dropAttribute = (entity, o) => {
+  let result = false;
   const {data: {id, type, length, index, start_url, startPosition, endPosition, startQuaternion, endQuaternion}, time} = o;
   if (type === 'attribute' || type === 'entity') {
     if (entity.id !== id) {
@@ -1038,6 +1047,7 @@ const _dropAttribute = (entity, o) => {
       object.endTime = time + object.length;
       object.nubs = _makeNubs();
       entity.attributes.push(object);
+      result = true;
     }
   } else {
     const attribute = {
@@ -1068,8 +1078,12 @@ const _dropAttribute = (entity, o) => {
 
     const handler = attributeHandlers[type];
     const instance = handler && handler(entity, attribute);
+    
+    result = true;
   }
   _render();
+  
+  return result;
 };
 
 let rootInstance = null;
@@ -1278,7 +1292,7 @@ const Root = {
                 entities: track.entities,
                 selectedObject: this.selectedObject,
                 drop(o) {
-                  _dropEntity(track, o);
+                  return _dropEntity(track, o);
                 },
                 selectObject: o => {
                   this.selectedObject = o;
