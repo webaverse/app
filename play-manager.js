@@ -10,6 +10,12 @@ import {forceAvatarUrl} from './constants.js';
 let lastAvatarUrl = null;
 let localRig2 = null;
 
+const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshPhongMaterial({
+  color: 0xFF0000,
+}));
+cubeMesh.position.set(0, 1, -10);
+scene.add(cubeMesh);
+
 const factor = 1/4;      
 const heartShape = new THREE.Shape();
 heartShape.moveTo(-2.5 * factor, -1 * factor );
