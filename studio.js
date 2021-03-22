@@ -310,6 +310,9 @@ const entityHandlers = {
         contentId: entity.start_url,
       });
       if (live) {
+        if (o.useAux) {
+          o.useAux();
+        }
         scene.add(o);
       }
     })();
@@ -1518,6 +1521,7 @@ const studio = {
     [
       'camera',
       'homespace',
+      // 'depthPass',
       [
         'avatar1',
         [
