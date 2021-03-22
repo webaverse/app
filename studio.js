@@ -743,7 +743,7 @@ const adders = {
   depthPass(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pass',
-      length: 12,
+      length: defaultLength,
       start_url: './depth-pass/index.glfs',
     }));
   },
