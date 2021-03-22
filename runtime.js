@@ -1578,7 +1578,15 @@ const _loadGlfs = async (file, {contentId = null}) => {
   };
   o.destroy = () => {
     compositor.remove(fullscreenShader);
+    appManager.destroyApp(appId);
   };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    fullscreenShader.pass.enabled = !!o.parent;
+  });
+  
   return o;
 };
 
