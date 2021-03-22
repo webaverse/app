@@ -28,6 +28,14 @@ backgroundRenderTarget.samples = 4;
 const backgroundScene = new THREE.Scene();
 const backgroundScene2 = new THREE.Scene();
 const backgroundScene3 = new THREE.Scene();
+
+
+
+
+
+
+
+
 const overrideMaterials = [
   new THREE.ShaderMaterial({
     /* uniforms: {
@@ -228,10 +236,6 @@ const overrideMaterials = [
     // polygonOffsetFactor: -1,
   }),
 ];
-for (const overrideMaterial of overrideMaterials) {
-  overrideMaterial.skinning = true;
-  overrideMaterial.morphTargets = true;
-}
 const overrideMaterials2 = [
   new THREE.ShaderMaterial({
     /* uniforms: {
@@ -431,6 +435,111 @@ const overrideMaterials2 = [
     // polygonOffset: true,
     // polygonOffsetFactor: -1,
   }),
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+const overrideMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    "depthTexture": { value: null },
+    "cameraNearFar": { value: new THREE.Vector2( 0.5, 0.5 ) },
+    "textureMatrix": { value: new THREE.Matrix4() },
+    "offset": { value: 0 },
+    "translation": { value: new THREE.Vector3() },
+    "color": { value: new THREE.Color() },
+  },
+  vertexShader: [
+    'varying vec4 projTexCoord;',
+    'varying vec4 vPosition;',
+    'uniform mat4 textureMatrix;',
+    '#include <morphtarget_pars_vertex>',
+    '#include <skinning_pars_vertex>',
+
+    'uniform float offset;',
+    'uniform vec3 translation;',
+    'uniform vec3 color;',
+
+    'void main() {',
+    
+    
+    '#include <skinbase_vertex>',
+    '#include <begin_vertex>',
+    '#include <morphtarget_vertex>',
+    '#include <skinning_vertex>',
+    'transformed += normal * offset;',
+    // 'transformed = round(transformed * 10.) / 10.;',
+    '#include <project_vertex>',
+    'gl_Position.xyz /= gl_Position.w;',
+    'gl_Position.w = 1.;',
+    `gl_Position.xyz += translation;`,
+    // 'gl_Position.xy = round(gl_Position.xy * 100.) / 100.;',
+
+    // 'vPosition = mvPosition;',
+    // 'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+    // 'projTexCoord = textureMatrix * worldPosition;',
+
+    '}'
+  ].join( '\n' ),
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color().toArray().join(', ')}, 1.);
+    }
+  `,
+  // side: THREE.BackSide,
+  depthTest: false,
+  depthWrite: false,
+  // transparent: true,
+  // polygonOffset: true,
+  // polygonOffsetFactor: -1,
+});
+overrideMaterial.skinning = true;
+overrideMaterial.morphTargets = true;
+const overrideMaterialSpecs1 = [
+  {
+    offset: 0,
+    translation: new THREE.Vector3(-30/renderSize.x, 0, 0),
+    color: new THREE.Color(0xd99727),
+  },
+  {
+    offset: 0,
+    translation: new THREE.Vector3(-20/renderSize.x, 0, 0),
+    color: new THREE.Color(0xffc750),
+  },
+  {
+    offset: 0,
+    translation: new THREE.Vector3(-10/renderSize.x, 0, 0),
+    color: new THREE.Color(0xffffff),
+  },
+];
+const overrideMaterialSpecs2 = [
+  {
+    offset: 0.12,
+    translation: new THREE.Vector3(0, 0, 0),
+    color: new THREE.Color(0xd99727),
+  },
+  {
+    offset: 0.08,
+    translation: new THREE.Vector3(0, 0, 0),
+    color: new THREE.Color(0xffc750),
+  },
+  {
+    offset: 0.04,
+    translation: new THREE.Vector3(0, 0, 0),
+    color: new THREE.Color(0xffffff),
+  },
 ];
 
 class PlayScene {
@@ -695,14 +804,20 @@ class PlayScene {
     const oldRenderTarget = renderer.getRenderTarget();
     renderer.setRenderTarget(backgroundRenderTarget);
     renderer.clear();
-    for (const overrideMaterial of overrideMaterials) {
+    for (const spec of overrideMaterialSpecs1) {
       backgroundScene.overrideMaterial = overrideMaterial;
+      overrideMaterial.uniforms.offset.value = spec.offset;
+      overrideMaterial.uniforms.translation.value.copy(spec.translation);
+      overrideMaterial.uniforms.color.value.copy(spec.color);
       renderer.render(backgroundScene, camera);
     }
-    for (const overrideMaterial of overrideMaterials2) {
+    /* for (const spec of overrideMaterialSpecs2) {
       backgroundScene3.overrideMaterial = overrideMaterial;
+      overrideMaterial.uniforms.offset.value = spec.offset;
+      overrideMaterial.uniforms.translation.value.copy(spec.translation);
+      overrideMaterial.uniforms.color.value.copy(spec.color);
       renderer.render(backgroundScene3, camera);
-    }
+    } */
     renderer.render(backgroundScene2, camera);
     renderer.setRenderTarget(oldRenderTarget);
   }
