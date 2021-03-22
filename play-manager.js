@@ -449,7 +449,7 @@ const overrideMaterials2 = [
 
 
 
-const overrideMaterial = new THREE.ShaderMaterial({
+const overrideMaterial1 = new THREE.ShaderMaterial({
   uniforms: {
     "depthTexture": { value: null },
     "cameraNearFar": { value: new THREE.Vector2( 0.5, 0.5 ) },
@@ -467,7 +467,6 @@ const overrideMaterial = new THREE.ShaderMaterial({
 
     'uniform float offset;',
     'uniform vec3 translation;',
-    'uniform vec3 color;',
 
     'void main() {',
     
@@ -493,9 +492,11 @@ const overrideMaterial = new THREE.ShaderMaterial({
   fragmentShader: `\
     precision highp float;
     precision highp int;
+    
+    uniform vec3 color;
 
     void main() {
-      gl_FragColor = vec4(${new THREE.Color().toArray().join(', ')}, 1.);
+      gl_FragColor = vec4(color, 1.);
     }
   `,
   // side: THREE.BackSide,
@@ -505,8 +506,11 @@ const overrideMaterial = new THREE.ShaderMaterial({
   // polygonOffset: true,
   // polygonOffsetFactor: -1,
 });
-overrideMaterial.skinning = true;
-overrideMaterial.morphTargets = true;
+const overrideMaterial2 = overrideMaterial1.clone();
+for (const m of [overrideMaterial1, overrideMaterial2]) {
+  m.skinning = true;
+  m.morphTargets = true;
+}
 const overrideMaterialSpecs1 = [
   {
     offset: 0,
@@ -805,19 +809,19 @@ class PlayScene {
     renderer.setRenderTarget(backgroundRenderTarget);
     renderer.clear();
     for (const spec of overrideMaterialSpecs1) {
-      backgroundScene.overrideMaterial = overrideMaterial;
-      overrideMaterial.uniforms.offset.value = spec.offset;
-      overrideMaterial.uniforms.translation.value.copy(spec.translation);
-      overrideMaterial.uniforms.color.value.copy(spec.color);
+      backgroundScene.overrideMaterial = overrideMaterial1;
+      overrideMaterial1.uniforms.offset.value = spec.offset;
+      overrideMaterial1.uniforms.translation.value.copy(spec.translation);
+      overrideMaterial1.uniforms.color.value.copy(spec.color);
       renderer.render(backgroundScene, camera);
     }
-    /* for (const spec of overrideMaterialSpecs2) {
-      backgroundScene3.overrideMaterial = overrideMaterial;
-      overrideMaterial.uniforms.offset.value = spec.offset;
-      overrideMaterial.uniforms.translation.value.copy(spec.translation);
-      overrideMaterial.uniforms.color.value.copy(spec.color);
+    for (const spec of overrideMaterialSpecs2) {
+      backgroundScene3.overrideMaterial = overrideMaterial2;
+      overrideMaterial2.uniforms.offset.value = spec.offset;
+      overrideMaterial2.uniforms.translation.value.copy(spec.translation);
+      overrideMaterial2.uniforms.color.value.copy(spec.color);
       renderer.render(backgroundScene3, camera);
-    } */
+    }
     renderer.render(backgroundScene2, camera);
     renderer.setRenderTarget(oldRenderTarget);
   }
