@@ -4,12 +4,20 @@ class MicrophoneWorker extends EventTarget {
 
     this.live = true;
 
-    let audio;
     if (o instanceof MediaStream) {
-      audio = document.createElement('audio');
+      const audio = document.createElement('audio');
       audio.srcObject = o;
       audio.muted = true;
     } else {
+      const oldO = o;
+      oldO.play = (play => function() {
+        play.apply(oldO, arguments);
+        play.apply(o, arguments);
+      })(oldO.play);
+      oldO.pause = (pause => function() {
+        pause.apply(oldO, arguments);
+        pause.apply(o, arguments);
+      })(oldO.pause);
       o = o.cloneNode();
     }
     this.audioContext = new AudioContext();
