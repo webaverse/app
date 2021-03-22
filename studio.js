@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import m from './mithril.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
+import easing from './easing.js';
 import {RigAux} from './rig-aux.js';
 import {renderer, scene, camera, avatarScene} from './app-object.js';
 import {getExt, unFrustumCull} from './util.js';
@@ -376,6 +377,22 @@ const entityHandlers = {
   },
 };
 const attributeHandlers = {
+  idle(entity, attribute) {
+    return {
+      update(currentTime) {
+        if (entity.isAvatar) {
+          const idleTime = currentTime - entity.startTime - attribute.startTime;
+          entity.setIdleTime(idleTime);
+        }
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        // nothing
+      },
+    };
+  },
   eyeTarget(entity, attribute) {
     return {
       update(currentTime) {
@@ -422,6 +439,7 @@ const attributeHandlers = {
         if (entity.isAvatar) {
           let f = 1 - Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
           f = Math.min(Math.max(f, 0), 1);
+          f = cubicBezier(f);
           
           entity.setActivePoses([
             {
@@ -447,6 +465,7 @@ const attributeHandlers = {
         if (entity.isAvatar) {
           let f = 1 - Math.abs(currentTime - ((entity.startTime + attribute.startTime) + (entity.startTime + attribute.startTime + attribute.length))/2) / (attribute.length/2);
           f = Math.min(Math.max(f, 0), 1);
+          f = cubicBezier(f);
           
           entity.setActiveVisemes([
             {
@@ -689,11 +708,12 @@ const Track = {
   },
 };
 
+const defaultLength = 60;
 const adders = {
   camera(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'camera',
-      length: 60,
+      length: defaultLength,
       startPosition: new THREE.Vector3(-5, 1, -1).toArray(),
       endPosition: new THREE.Vector3(-5, 1, -1).toArray(),
       startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI * 0.03).toArray(),
@@ -728,7 +748,7 @@ const adders = {
   avatar1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'avatar',
-      length: 20,
+      length: defaultLength,
       start_url: './assets2/sacks3.vrm',
       startPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
       endPosition: new THREE.Vector3(-5, 1.5, -4).toArray(),
@@ -739,7 +759,7 @@ const adders = {
   avatar2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'avatar',
-      length: 20,
+      length: defaultLength,
       start_url: './assets2/kasamoto_kanji.vrm',
       startPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
       endPosition: new THREE.Vector3(-4, 1.6, -4).toArray(),
@@ -750,7 +770,7 @@ const adders = {
   avatar3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'avatar',
-      length: 20,
+      length: defaultLength,
       start_url: './assets2/shilo.vrm',
       startPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
       endPosition: new THREE.Vector3(-5.7, 1.08, -3.5).toArray(),
@@ -767,63 +787,63 @@ const adders = {
   viseme1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 10,
+      length: defaultLength,
       index: 25,
     }));
   },
   viseme2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 10,
+      length: defaultLength,
       index: 23,
     }));
   },
   viseme3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'viseme',
-      length: 10,
+      length: defaultLength,
       index: 22,
     }));
   },
   pose1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 30,
     }));
   },
   pose2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 33,
     }));
   },
   pose3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 81,
     }));
   },
   pose4(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 153, // cute
     }));
   },
   pose5(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 214, // shootself
     }));
   },
   pose6(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'pose',
-      length: 10,
+      length: defaultLength,
       index: 178, // open
     }));
   },
@@ -884,7 +904,7 @@ const adders = {
   voice(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'voice',
-      length: 10,
+      length: defaultLength,
       start_url: './ghost.mp3',
     }));
   },
@@ -902,7 +922,7 @@ const adders = {
   homespace(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'model',
-      length: 10,
+      length: defaultLength,
       start_url: './homespace/homespace.glb',
       startPosition: new THREE.Vector3(0, 0, 0).toArray(),
       endPosition: new THREE.Vector3(0, 0, 0).toArray(),
@@ -913,11 +933,11 @@ const adders = {
   donotwant(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'text',
-      length: 10,
+      length: defaultLength,
       start_url: './donotwant/iranai.txt',
-      startPosition: new THREE.Vector3(-1.5, 1.5, -0.5).toArray(),
-      endPosition: new THREE.Vector3(-0.75, 1.5, -2).toArray(),
-      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.3).toArray(),
+      startPosition: new THREE.Vector3(-3, 1.5, -3).toArray(),
+      endPosition: new THREE.Vector3(-3, 1.5, -3).toArray(),
+      startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.1).toArray(),
       endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0).toArray(),
     }));
   },
