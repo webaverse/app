@@ -910,7 +910,7 @@ const adders = {
   eyeTarget1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'eyeTarget',
-      length: 10,
+      length: defaultLength,
       startPosition: new THREE.Vector3(-5, 1, 10).toArray(),
       endPosition: new THREE.Vector3(-5, 1, 10).toArray(),
     }));
@@ -918,7 +918,7 @@ const adders = {
   eyeTarget2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'eyeTarget',
-      length: 10,
+      length: defaultLength,
       startPosition: new THREE.Vector3(-10, -10, 0).toArray(),
       endPosition: new THREE.Vector3(-10, -10, 0).toArray(),
     }));
@@ -926,7 +926,7 @@ const adders = {
   eyeTarget3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'eyeTarget',
-      length: 10,
+      length: defaultLength,
       startPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
       endPosition: new THREE.Vector3(0, 1.5, 0).toArray(),
     }));
@@ -934,7 +934,7 @@ const adders = {
   headTarget1(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'headTarget',
-      length: 10,
+      length: defaultLength,
       startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.1).toArray(),
       endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI * 0.1).toArray(),
     }));
@@ -942,7 +942,7 @@ const adders = {
   headTarget2(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'headTarget',
-      length: 10,
+      length: defaultLength,
       startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1).toArray(),
       endQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1).toArray(),
     }));
@@ -950,7 +950,7 @@ const adders = {
   headTarget3(e) {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'headTarget',
-      length: 10,
+      length: defaultLength,
       startQuaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.1)
         // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1))
         .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.05))
