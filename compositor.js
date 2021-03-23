@@ -108,9 +108,9 @@ class Compositor {
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
 
       // clear
-      if (!this.renderToScreen) {
+      /* if (!this.renderToScreen) {
         renderer.clear();
-      }
+      } */
 
       // high priority render
       renderer.render(scene3, camera);
