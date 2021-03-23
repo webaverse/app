@@ -122,7 +122,8 @@ const entityHandlers = {
           visemes: true,
           debug: false,
         });
-        avatar.model.isVrm = true;
+        avatar.model.isVrm = spec.isVrm;
+        avatar.model.contentId = spec.contentId;
         avatar.setTopEnabled(false);
         avatar.setBottomEnabled(false);
         avatar.aux = new RigAux({
