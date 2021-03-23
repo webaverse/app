@@ -194,6 +194,9 @@ export default class App extends EventTarget {
     this.paused = true;
   }
   
+  clear() {
+    compositor.clear();
+  }
   render() {
     compositor.render();
   }
@@ -216,6 +219,8 @@ export default class App extends EventTarget {
 
       const session = renderer.xr.getSession();
       const now = Date.now();
+      
+      this.clear();
 
       ioManager.update(timeDiffCapped);
       universe.update();

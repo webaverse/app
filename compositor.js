@@ -6,10 +6,12 @@ import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCam
 import {rigManager} from './rig.js';
 
 class FunctionPass extends Pass {
-  constructor(fn, {needsSwap = false} = {}) {
+  constructor(fn, {priority = 0, needsSwap = false} = {}) {
     super();
-    this.needsSwap = needsSwap;
+    
     this.fn = fn;
+    this.priority = priority;
+    this.needsSwap = needsSwap;
   }
   render(renderer, writeBuffer, readBuffer) {
     this.fn.call(this, renderer, writeBuffer, readBuffer);
@@ -84,6 +86,7 @@ class FullscreenShader {
       renderer.clear();
       renderer.render(shaderScene, copySceneCamera);
     }, {
+      priority: 1,
       needsSwap: true,
     });
   }
@@ -97,6 +100,7 @@ class Compositor {
       encoding: THREE.sRGBEncoding,
       depthTexture,
     });
+    this.renderTarget = renderTarget;
     
     this.composer = new EffectComposer(renderer, renderTarget);
     this.composer.addPass(new FunctionPass(function(renderer, writeBuffer, readBuffer) {
@@ -104,7 +108,9 @@ class Compositor {
       renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
 
       // clear
-      renderer.clear();
+      if (!this.renderToScreen) {
+        renderer.clear();
+      }
 
       // high priority render
       renderer.render(scene3, camera);
@@ -143,6 +149,11 @@ class Compositor {
       needsSwap: true,
     })); */
   }
+  clear() {
+    renderer.setRenderTarget(this.renderTarget);
+    renderer.clear();
+    renderer.setRenderTarget(null);
+  }
   getColorTexture() {
     return this.composer.readBuffer.texture;
   }
@@ -151,6 +162,8 @@ class Compositor {
   }
   add(fullscreenShader) {
     this.composer.addPass(fullscreenShader.pass);
+    this.composer.passes.sort((a, b) => a.priority - b.priority);
+    console.log('got passes', this.composer.passes.slice());
   }
   remove(fullscreenShader) {
     this.composer.removePass(fullscreenShader.pass);
@@ -162,6 +175,7 @@ class Compositor {
 const compositor = new Compositor();
 
 export {
+  FunctionPass,
   FullscreenShader,
   compositor,
 };
