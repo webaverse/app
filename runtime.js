@@ -1660,6 +1660,12 @@ const _loadGlom = async (file, {files = null, components = [], contentId = null}
   const {vertexShader, fragmentShader} = shader;
 
   const material = new THREE.ShaderMaterial({
+    uniforms: {
+      opacity: {
+        value: 1,
+        needsUpdate: true,
+      },
+    },
     vertexShader,
     fragmentShader,
   });
