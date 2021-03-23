@@ -1668,6 +1668,9 @@ const _loadGlom = async (file, {files = null, components = [], contentId = null}
     },
     vertexShader,
     fragmentShader,
+    transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
   });
   material.skinning = true;
   material.morphTargets = true;
