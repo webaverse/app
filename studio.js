@@ -546,6 +546,37 @@ const attributeHandlers = {
       },
     };
   },
+  overrideMaterial1(entity, attribute) {
+    let o;
+    let live = true;
+    (async () => {
+      o = await runtime.loadFile({
+        url: attribute.start_url,
+        ext: getExt(attribute.start_url),
+      }, {
+        contentId: attribute.start_url,
+      });
+      if (live) {
+        entity.addAux(o);
+      }
+    })();
+
+    return {
+      update(currentTime) {
+        // nothing
+      },
+      stop() {
+        // nothing
+      },
+      destroy() {
+        if (o) {
+          entity.removeAux(o);
+          o.destroy();
+        }
+        live = false;
+      },
+    };
+  },
   voice(entity, attribute) {
     const audio = new Audio();
     audio.src = attribute.start_url;
@@ -967,6 +998,13 @@ const adders = {
       type: 'busterSword',
       length: defaultLength,
       start_url: './buster-sword/manifest.json',
+    }));
+  },
+  overrideMaterial1(e) {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'overrideMaterial1',
+      length: defaultLength,
+      start_url: './normal-mesh/manifest.json',
     }));
   },
   voice(e) {
@@ -1589,6 +1627,7 @@ const studio = {
           'eyeTarget1',
           'headTarget1',
           'busterSword',
+          'overrideMaterial1',
         ],
       ],
       [
