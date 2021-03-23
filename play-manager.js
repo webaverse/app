@@ -252,7 +252,8 @@ class PlayScene {
             visemes: true,
             debug: false,
           });
-          rig.model.isVrm = true;
+          rig.model.isVrm = o.isVrm;
+          rig.model.contentId = o.contentId;
           
           // unFrustumCull(rig.model);
           scene.add(rig.model);

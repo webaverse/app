@@ -208,6 +208,24 @@ const componentHandlers = {
       };
     },
   },
+  overrideMaterial: {
+    load(o, componentIndex, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.materials.length = 0;
+      const material = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        componentIndex,
+      };
+      auxPose.materials.push(material);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.materials = auxPose.materials.filter(w => w.id !== material.id);
+        rigAux.setPose(auxPose);
+      };
+    },
+  },
 };
 const triggerComponentTypes = [
   'use',
@@ -217,6 +235,7 @@ const loadComponentTypes = [
   'sit',
   'pet',
   'npc',
+  'overrideMaterial',
 ];
 const runComponentTypes = [
   'effect',
@@ -512,6 +531,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     let used = false;
     for (const componentType of loadComponentTypes) {
       const componentIndex = components.findIndex(component => component.type === componentType);
+      // console.log('load component type', components, componentType, componentIndex);
       if (componentIndex !== -1) {
         const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
@@ -1064,16 +1084,22 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
 };
 const _loadManifestJson = async (file, {files = null, contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
+  // console.log('load manifest 1', [srcUrl, files, _isResolvableUrl(srcUrl)]);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
+    // console.log('load manifest 2', srcUrl);
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
   }
+  
+  // console.log('load manifest 3', srcUrl);
 
   if (!files && /^https?:/.test(srcUrl)) {
     files = _makeFilesProxy(srcUrl);
   }
+  
+  // console.log('files proxy', files);
 
   const res = await fetch(srcUrl);
   const j = await res.json();
@@ -1089,6 +1115,7 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
   } */
 
   const u = _dotifyUrl(start_url);
+  // console.log('dotify url', {start_url, u, files});
   return await runtime.loadFile({
     url: u,
     name: u,
@@ -1621,6 +1648,60 @@ const _loadGlbb = async (file, {contentId = null}) => {
   return o;
 };
 
+const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  const {vertexShader, fragmentShader} = shader;
+
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+  });
+  material.skinning = true;
+  material.morphTargets = true;
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.material = material;
+  const componentUnloadFns = [];
+  o.useAux = rigAux => {
+    let used = false;
+    for (const componentType of loadComponentTypes) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
+        const componentHandler = componentHandlers[component.type];
+        const unloadFn = componentHandler.load(o, componentIndex, rigAux);
+        componentUnloadFns.push(unloadFn);
+        used = true;
+      }
+    }
+    return used;
+  };
+  o.destroy = () => {
+    // appManager.destroyApp(appId);
+    
+    for (const fn of componentUnloadFns) {
+      fn();
+    }
+    componentUnloadFns.length = 0;
+  };
+  
+  /* const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    // nothing
+  }); */
+  
+  return o;
+};
+
 const _loadTxt = async (file, {contentId = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
 
@@ -1658,11 +1739,15 @@ const typeHandlers = {
   'mp4': _loadVideo,
   'glfs': _loadGlfs,
   'glbb': _loadGlbb,
+  'glom': _loadGlom,
   'txt': _loadTxt,
 };
 runtime.typeHandlers = typeHandlers;
 
 runtime.loadFile = async (file, opts) => {
+  if (!file) {
+    debugger;
+  }
   const object = await (async () => {
     const ext = file.ext || getExt(file.name);
     const handler = typeHandlers[ext];
