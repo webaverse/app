@@ -163,7 +163,6 @@ class Compositor {
   add(fullscreenShader) {
     this.composer.addPass(fullscreenShader.pass);
     this.composer.passes.sort((a, b) => a.priority - b.priority);
-    console.log('got passes', this.composer.passes.slice());
   }
   remove(fullscreenShader) {
     this.composer.removePass(fullscreenShader.pass);
