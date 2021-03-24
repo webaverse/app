@@ -236,24 +236,24 @@ const _selectLoadout = index => {
     }
 
     const loadout = loginManager.getLoadout();
-    let item;
-    /* if (selectedLoadoutIndex === 1) {
-      item = ['./pistol/manifest.json'];
-    } else if (selectedLoadoutIndex === 2) {
-      item = ['./rifle/manifest.json'];
-    } else if (selectedLoadoutIndex === 3) {
-      item = ['./pickaxe/manifest.json'];
-    } else if (selectedLoadoutIndex === 4) {
-      item = ['./lightsaber/manifest.json'];
-    } else if (selectedLoadoutIndex === 5) {
-      item = ['./hovercraft/manifest.json'];
-    } else if (selectedLoadoutIndex === 6) {
-      item = ['./hoverboard/manifest.json'];
-    } else if (selectedLoadoutIndex === 7) {
-      item = ['./dragon-pet/manifest.json'];
-    } else {
-      item = loadout[selectedLoadoutIndex];
-    } */
+    let item = loadout[selectedLoadoutIndex];
+    if (weaponsManager.inventoryHack) {
+      if (selectedLoadoutIndex === 1) {
+        item = ['https://avaer.github.io/pistol/manifest.json'];
+      } else if (selectedLoadoutIndex === 2) {
+        item = ['https://avaer.github.io//rifle/manifest.json'];
+      } else if (selectedLoadoutIndex === 3) {
+        item = ['https://avaer.github.io//pickaxe/manifest.json'];
+      } else if (selectedLoadoutIndex === 4) {
+        item = ['https://avaer.github.io//lightsaber/manifest.json'];
+      } else if (selectedLoadoutIndex === 5) {
+        item = ['https://avaer.github.io//hovercraft/manifest.json'];
+      } else if (selectedLoadoutIndex === 6) {
+        item = ['https://avaer.github.io//hoverboard/manifest.json'];
+      } else if (selectedLoadoutIndex === 7) {
+        item = ['https://avaer.github.io//dragon-pet/manifest.json'];
+      }
+    }
     if (item) {
       const [contentId] = item;
       let id = parseInt(contentId, 10);
@@ -1664,6 +1664,7 @@ const weaponsManager = {
   // weaponWheel: false,
   gridSnap: 0,
   editMode: false,
+  inventoryHack: false,
   /* getWeapon() {
     return selectedWeapon;
   },

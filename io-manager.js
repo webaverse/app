@@ -455,7 +455,12 @@ ioManager.bindInput = () => {
         break;
       }
       case 77: { // M
-        menuActions.setIsOpen(!menuState.isOpen)
+        menuActions.setIsOpen(!menuState.isOpen);
+        break;
+      }
+      case 74: {
+        weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
+        break;
       }
     }
   });
