@@ -24,6 +24,9 @@ import {web3, contracts, getNetworkName, getMainnetAddress, runSidechainTransact
 const unlocksForm = document.getElementById('unlocks-form');
 const submitButton = document.getElementById('submit-button');
 
+const m = "Proof of address.";
+const id = 82;
+
 (async () => {
   await loginManager.waitForLoad();
   
@@ -39,37 +42,51 @@ const submitButton = document.getElementById('submit-button');
     // const ethereumSpec = await window.ethereum.enable();
     // const [address] = ethereumSpec;
 
-    const mnemonic = await loginManager.getMnemonic();
-    const address = await loginManager.getAddress();
-
     if (window.ethereum) {
-      const m = "Proof of address.";
-      /* const result1 = await window.ethereum.enable();
-      const result2 = await web3.mainnet.eth.personal.sign(m, web3.mainnet.currentProvider.selectedAddress);
-      const result3 = await web3.mainnet.eth.personal.ecRecover(m, result2); */
+      const _getMainnetSignature = async () => {
+        const result1 = await window.ethereum.enable();
+        const signature = await web3.mainnet.eth.personal.sign(m, web3.mainnet.currentProvider.selectedAddress);
+        const result3 = await web3.mainnet.eth.personal.ecRecover(m, signature);
+        console.log('got sig 1', {signature});
+        return signature;
+      };
+      const _getSidechainSignature = async () => {
+        const mnemonic = await loginManager.getMnemonic();
+        const address = await loginManager.getAddress();
+        const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+        const privateKey = wallet.getPrivateKey().toString('hex');
 
-      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-      const privateKey = wallet.getPrivateKey().toString('hex');
-
-      console.log('log', [m, privateKey]);
-      const result2 = await web3.mainnetsidechain.eth.accounts.sign(m, privateKey);
-      console.log('log 2', result2);
-      const {v, r, s, signature} = result2;
-      const result3 = await web3.mainnetsidechain.eth.accounts.recover(m, v, r, s);
-      console.log('got result', {result2, result3});
+        const result2 = await web3.mainnetsidechain.eth.accounts.sign(m, privateKey);
+        const {v, r, s, signature} = result2;
+        const result3 = await web3.mainnetsidechain.eth.accounts.recover(m, v, r, s);
+        console.log('got sig 2', {signature});
+        return signature;
+      };
+      const _getUnlockable = async (signature, id) => {
+        const res = await fetch('https://unlock.exokit.org/', {
+          method: 'POST',
+          body: JSON.stringify({
+            signature,
+            id,
+          }),
+        });
+        const j = await res.json();
+        return j;
+      };
       
-      const id = 82;
-      
-      const res = await fetch('https://unlock.exokit.org/', {
-        method: 'POST',
-        body: JSON.stringify({
-          signature,
-          id,
-        }),
-      });
-      const j = await res.json();
-      
-      console.log('got j', j);
+      const results = await Promise.all([
+        (async () => {
+          const signature = await _getMainnetSignature();
+          const unlocks = await _getUnlockable(signature, id);
+          return unlocks;
+        })(),
+        (async () => {
+          const signature = await _getSidechainSignature();
+          const unlocks = await _getUnlockable(signature, id);
+          return unlocks;
+        })(),
+      ]);
+      console.log('got results', results);
     }
   });
 })();
