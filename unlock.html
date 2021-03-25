@@ -76,11 +76,11 @@ const m = "Proof of address.";
         // console.log('got sig 2', {signature});
         return signature;
       };
-      const _getUnlockable = async (signature, id) => {
+      const _getUnlockable = async (signatures, id) => {
         const res = await fetch('https://unlock.exokit.org/', {
           method: 'POST',
           body: JSON.stringify({
-            signature,
+            signatures,
             id,
           }),
         });
@@ -104,16 +104,10 @@ const m = "Proof of address.";
         const token = allTokens[i];
         const {id} = token;
 
-        const unlocksArray = await Promise.all([
-          (async () => {
-            const unlocks = await _getUnlockable(mainnetSignature, id);
-            return unlocks;
-          })(),
-          (async () => {
-            const unlocks = await _getUnlockable(sidechainSignature, id);
-            return unlocks;
-          })(),
-        ]);
+        const unlocksArray = await _getUnlockable([
+          mainnetSignature,
+          sidechainSignature,
+        ], id);
         console.log('unlocks array', token, unlocksArray);
       }
       // console.log('got results', results);
