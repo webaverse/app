@@ -410,7 +410,7 @@ const loadPromise = Promise.all([
   })(),
   (async () => {
     model = await new Promise((accept, reject) => {
-      mmdLoader.load('./assets2/gumi/Gumi Megpoid.pmx', accept, function onProgress() {}, reject);
+      mmdLoader.load('./assets2/TDA hipster Miku 1.2/TDA Hipster Miku.pmx', accept, function onProgress() {}, reject);
     });
     model.scale.multiplyScalar(0.08);
     // scene.add(model);
