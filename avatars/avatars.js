@@ -412,8 +412,8 @@ const loadPromise = Promise.all([
     model = await new Promise((accept, reject) => {
       mmdLoader.load('./assets2/TDA hipster Miku 1.2/TDA Hipster Miku.pmx', accept, function onProgress() {}, reject);
     });
-    model.scale.multiplyScalar(0.08);
     // scene.add(model);
+    model.scale.multiplyScalar(0.085);
 
     const poses = [
       `./'Running' by CorruptedDestiny/2.vpd`,
