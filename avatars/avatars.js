@@ -14,7 +14,8 @@ import CBOR from '../cbor.js';
 import {scene} from '../app-object.js';
 import {downloadFile} from '../util.js';
 
-// import {FBXLoader} from '../FBXLoader.js';
+/* import {FBXLoader} from '../FBXLoader.js';
+const fbxLoader = new FBXLoader(); */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -160,10 +161,14 @@ const loadPromise = Promise.all([
   // load animations
   (async () => {
     const animationsModel = await new Promise((accept, reject) => {
-      const u = '../animations/animations.glb';
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load('../animations/animations.glb', accept, function onprogress() {}, reject);
+      /* fbxLoader.load('../animations/animations.fbx', o => {
+        for (const animation of o.animations) {
+          animation.name = animation.name.replace(/^.*?\|/, '');
+        }
+        return o;
+      }, function onprogress() {}, reject); */
     });
-    
     animations = animationsModel.animations;
     
     // console.log('got animations', animations);
