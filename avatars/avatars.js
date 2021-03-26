@@ -182,7 +182,6 @@ const loadPromise = Promise.all([
         animation.duration = newDuration;
       }
     };
-    console.log('got animations 2');
     const walkingAnimations = [
       `walking`,
       `left_strafe_walking`,
