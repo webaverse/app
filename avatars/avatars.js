@@ -1,4 +1,6 @@
 import THREE from '../three.module.js';
+import {GLTFLoader} from '../GLTFLoader.js';
+import {DRACOLoader} from '../DRACOLoader.js';
 import './vrarmik/three-vrm.js';
 import {BufferGeometryUtils} from '../BufferGeometryUtils.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
@@ -141,6 +143,14 @@ let danceAnimations;
 let throwAnimations;
 let crouchAnimations;
 
+const dracoLoader = new DRACOLoader();
+// Specify path to a folder containing WASM/JS decoding libraries.
+dracoLoader.setDecoderPath( '../' );
+// Optional: Pre-fetch Draco WASM/JS module.
+dracoLoader.preload();
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
 import {MMDLoader} from '../MMDLoader.js';
 import {MMDAnimationHelper} from '../MMDAnimationHelper.js';
 const mmdLoader = new MMDLoader();
@@ -151,6 +161,12 @@ let animationData = null;
 const loadPromise = Promise.all([
   // load animations
   (async () => {
+    const animationsModel = await new Promise((accept, reject) => {
+      const u = '../animations/animations.glb';
+      gltfLoader.load(u, accept, function onprogress() {}, reject);
+    });
+    console.log('gltf loader animations load', animationsModel);
+    
     const res = await fetch('../animations/animations.cbor');
     const arrayBuffer = await res.arrayBuffer();
     animations = CBOR.decode(arrayBuffer).animations
