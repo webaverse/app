@@ -63,68 +63,68 @@ const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
 const animationsSelectMap = {
   crouch: {
-    'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-    'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-    'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
+    'crouch_idle': new THREE.Vector3(0, 0, 0),
+    'sneaking_forward': new THREE.Vector3(0, 0, -crouchMagnitude),
+    'sneaking_forward reverse': new THREE.Vector3(0, 0, crouchMagnitude),
+    'crouched_sneaking Left': new THREE.Vector3(-crouchMagnitude, 0, 0),
+    'crouched_sneaking Right': new THREE.Vector3(crouchMagnitude, 0, 0),
   },
   stand: {
-    'idle.fbx': new THREE.Vector3(0, 0, 0),
-    'jump.fbx': new THREE.Vector3(0, 1, 0),
+    'idle': new THREE.Vector3(0, 0, 0),
+    'jump': new THREE.Vector3(0, 1, 0),
 
-    'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-    'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-    'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-    'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+    'left_strafe_walking': new THREE.Vector3(-0.5, 0, 0),
+    'left_strafe': new THREE.Vector3(-1, 0, 0),
+    'right_strafe_walking': new THREE.Vector3(0.5, 0, 0),
+    'right_strafe': new THREE.Vector3(1, 0, 0),
 
-    'running.fbx': new THREE.Vector3(0, 0, -1),
-    'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+    'running': new THREE.Vector3(0, 0, -1),
+    'walking': new THREE.Vector3(0, 0, -0.5),
 
-    'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-    'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+    'running_backwards': new THREE.Vector3(0, 0, 1),
+    'walking_backwards': new THREE.Vector3(0, 0, 0.5),
 
-    /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
-    'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-    'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
+    /* 'falling': new THREE.Vector3(0, -1, 0),
+    'falling_idle': new THREE.Vector3(0, -0.5, 0),
+    'falling_landing': new THREE.Vector3(0, -2, 0), */
 
-    'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-    'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+    'left_strafe_walking_reverse': new THREE.Vector3(-Infinity, 0, 0),
+    'left_strafe_reverse': new THREE.Vector3(-Infinity, 0, 0),
+    'right_strafe_walking reverse': new THREE.Vector3(Infinity, 0, 0),
+    'right_strafe_reverse': new THREE.Vector3(Infinity, 0, 0),
   },
 };
 const animationsDistanceMap = {
-  'idle.fbx': new THREE.Vector3(0, 0, 0),
-  'jump.fbx': new THREE.Vector3(0, 1, 0),
+  'idle': new THREE.Vector3(0, 0, 0),
+  'jump': new THREE.Vector3(0, 1, 0),
 
-  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+  'left_strafe_walking': new THREE.Vector3(-0.5, 0, 0),
+  'left_strafe': new THREE.Vector3(-1, 0, 0),
+  'right_strafe_walking': new THREE.Vector3(0.5, 0, 0),
+  'right_strafe': new THREE.Vector3(1, 0, 0),
 
-  'running.fbx': new THREE.Vector3(0, 0, -1),
-  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+  'running': new THREE.Vector3(0, 0, -1),
+  'walking': new THREE.Vector3(0, 0, -0.5),
 
-  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+  'running_backwards': new THREE.Vector3(0, 0, 1),
+  'walking_backwards': new THREE.Vector3(0, 0, 0.5),
 
-  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
-  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
+  /* 'falling': new THREE.Vector3(0, -1, 0),
+  'falling_idle': new THREE.Vector3(0, -0.5, 0),
+  'falling_landing': new THREE.Vector3(0, -2, 0), */
 
-  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
-  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
-  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
-  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+  'left_strafe_walking_reverse': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'left_strafe_reverse': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
+  'right_strafe_walking_reverse': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
+  'right_strafe_reverse': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
   
-  'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-  'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
-  'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
-  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
+  'crouch_idle': new THREE.Vector3(0, 0, 0),
+  'sneaking_forward': new THREE.Vector3(0, 0, -crouchMagnitude),
+  'sneaking_forward reverse': new THREE.Vector3(0, 0, crouchMagnitude),
+  'crouched_sneaking_left': new THREE.Vector3(-crouchMagnitude, 0, 0),
+  'crouched_sneaking_left reverse': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
+  'crouched_sneaking_right': new THREE.Vector3(crouchMagnitude, 0, 0),
+  'crouched_sneaking_right_reverse': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
 };
 let animations;
 
@@ -163,16 +163,17 @@ const loadPromise = Promise.all([
       const u = '../animations/animations.glb';
       gltfLoader.load(u, accept, function onprogress() {}, reject);
     });
-    console.log('gltf loader animations load', animationsModel);
+    console.log('got animations 1', animationsModel);
+    /* for (const animation of animationsModel.animations) {
+      const {name} = animation;
+    } */
     
-    const res = await fetch('../animations/animations.cbor');
-    const arrayBuffer = await res.arrayBuffer();
-    animations = CBOR.decode(arrayBuffer).animations
-      .map(a => THREE.AnimationClip.parse(a));
+    animations = animationsModel.animations;
 
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
       for (let i = 1; i < animations.length; i++) {
         const animation = animations[i];
+        console.log('got duration', animations, animation);
         const oldDuration = animation.duration;
         const newDuration = baseAnimation.duration;
         for (const track of animation.tracks) {
@@ -184,65 +185,68 @@ const loadPromise = Promise.all([
         animation.duration = newDuration;
       }
     };
+    console.log('got animations 2');
     const walkingAnimations = [
-      `walking.fbx`,
-      `left strafe walking.fbx`,
-      `right strafe walking.fbx`,
+      `walking`,
+      `left_strafe_walking`,
+      `right_strafe_walking`,
     ].map(name => animations.find(a => a.name === name));
     _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
     const walkingBackwardAnimations = [
-      `walking backwards.fbx`,
-      `left strafe walking reverse.fbx`,
-      `right strafe walking reverse.fbx`,
+      `walking_backwards`,
+      `left_strafe_walking_reverse`,
+      `right_strafe_walking_reverse`,
     ].map(name => animations.find(a => a.name === name));
+    console.log('walking backwards', walkingBackwardAnimations);
     _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
     const runningAnimations = [
-      `running.fbx`,
-      `left strafe.fbx`,
-      `right strafe.fbx`,
+      `running`,
+      `left_strafe`,
+      `right_strafe`,
     ].map(name => animations.find(a => a.name === name));
     _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
     const runningBackwardAnimations = [
-      `running backwards.fbx`,
-      `left strafe reverse.fbx`,
-      `right strafe reverse.fbx`,
+      `running_backwards`,
+      `left_strafe_reverse`,
+      `right_strafe_reverse`,
     ].map(name => animations.find(a => a.name === name));
+    // console.log('running backwards', runningBackwardAnimations);
     _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
     const crouchingForwardAnimations = [
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
+      `sneaking_forward`,
+      `crouched_sneaking left`,
+      `crouched_sneaking right`,
     ].map(name => animations.find(a => a.name === name));
     _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0]);
     animations.forEach(animation => {
       animation.direction = (() => {
         switch (animation.name) {
-          case 'running.fbx':
-          case 'walking.fbx':
-          case 'Sneaking Forward.fbx':
+          case 'running':
+          case 'walking':
+          case 'sneaking_forward':
             return 'forward';
-          case 'running backwards.fbx':
-          case 'walking backwards.fbx':
+          case 'running_backwards':
+          case 'walking_backwards':
             return 'backward';
-          case 'left strafe walking.fbx':
-          case 'left strafe.fbx':
-          case 'left strafe walking reverse.fbx':
-          case 'left strafe reverse.fbx':
-          case 'Crouched Sneaking Left.fbx':
+          case 'left_strafe_walking':
+          case 'left_strafe':
+          case 'left_strafe_walking_reverse':
+          case 'left_strafe_reverse':
+          case 'crouched_sneaking_left':
             return 'left';
-          case 'right strafe walking.fbx':
-          case 'right strafe.fbx':
-          case 'right strafe walking reverse.fbx':
-          case 'right strafe reverse.fbx':
-          case 'Crouched Sneaking Right.fbx':
+          case 'right_strafe_walking':
+          case 'right_strafe':
+          case 'right_strafe_walking_reverse':
+          case 'right_strafe_reverse':
+          case 'crouched_sneaking_right':
             return 'right';
-          case 'jump.fbx':
-          /* case 'falling.fbx':
-          case 'falling idle.fbx':
-          case 'falling landing.fbx': */
+          case 'jump':
+          /* case 'falling':
+          case 'falling_idle':
+          case 'falling_landing': */
             return 'jump';
-          // case 'floating.fbx':
-          case 'treading water.fbx':
+          // case 'floating':
+          case 'treading_water':
             return 'float';
           default:
             return null;
