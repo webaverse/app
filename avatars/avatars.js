@@ -198,7 +198,6 @@ const loadPromise = Promise.all([
       `left_strafe_walking_reverse`,
       `right_strafe_walking_reverse`,
     ].map(name => animations.find(a => a.name === name));
-    console.log('walking backwards', walkingBackwardAnimations);
     _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
     const runningAnimations = [
       `running`,
