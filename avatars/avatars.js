@@ -169,7 +169,7 @@ const loadPromise = Promise.all([
     
     animations = animationsModel.animations;
     
-    console.log('got animations', animations);
+    // console.log('got animations', animations);
 
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
       for (let i = 1; i < animations.length; i++) {
