@@ -163,9 +163,6 @@ const loadPromise = Promise.all([
       const u = '../animations/animations.glb';
       gltfLoader.load(u, accept, function onprogress() {}, reject);
     });
-    /* for (const animation of animationsModel.animations) {
-      const {name} = animation;
-    } */
     
     animations = animationsModel.animations;
     
@@ -174,7 +171,6 @@ const loadPromise = Promise.all([
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
       for (let i = 1; i < animations.length; i++) {
         const animation = animations[i];
-        console.log('got duration', animations, animation);
         const oldDuration = animation.duration;
         const newDuration = baseAnimation.duration;
         for (const track of animation.tracks) {
