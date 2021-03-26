@@ -214,8 +214,8 @@ const loadPromise = Promise.all([
     _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
     const crouchingForwardAnimations = [
       `sneaking_forward`,
-      `crouched_sneaking left`,
-      `crouched_sneaking right`,
+      `crouched_sneaking_left`,
+      `crouched_sneaking_right`,
     ].map(name => animations.find(a => a.name === name));
     _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0]);
     animations.forEach(animation => {
