@@ -65,9 +65,9 @@ const animationsSelectMap = {
   crouch: {
     'crouch_idle': new THREE.Vector3(0, 0, 0),
     'sneaking_forward': new THREE.Vector3(0, 0, -crouchMagnitude),
-    'sneaking_forward reverse': new THREE.Vector3(0, 0, crouchMagnitude),
-    'crouched_sneaking Left': new THREE.Vector3(-crouchMagnitude, 0, 0),
-    'crouched_sneaking Right': new THREE.Vector3(crouchMagnitude, 0, 0),
+    'sneaking_forward_reverse': new THREE.Vector3(0, 0, crouchMagnitude),
+    'crouched_sneaking_left': new THREE.Vector3(-crouchMagnitude, 0, 0),
+    'crouched_sneaking_right': new THREE.Vector3(crouchMagnitude, 0, 0),
   },
   stand: {
     'idle': new THREE.Vector3(0, 0, 0),
@@ -90,7 +90,7 @@ const animationsSelectMap = {
 
     'left_strafe_walking_reverse': new THREE.Vector3(-Infinity, 0, 0),
     'left_strafe_reverse': new THREE.Vector3(-Infinity, 0, 0),
-    'right_strafe_walking reverse': new THREE.Vector3(Infinity, 0, 0),
+    'right_strafe_walking_reverse': new THREE.Vector3(Infinity, 0, 0),
     'right_strafe_reverse': new THREE.Vector3(Infinity, 0, 0),
   },
 };
@@ -120,9 +120,9 @@ const animationsDistanceMap = {
   
   'crouch_idle': new THREE.Vector3(0, 0, 0),
   'sneaking_forward': new THREE.Vector3(0, 0, -crouchMagnitude),
-  'sneaking_forward reverse': new THREE.Vector3(0, 0, crouchMagnitude),
+  'sneaking_forward_reverse': new THREE.Vector3(0, 0, crouchMagnitude),
   'crouched_sneaking_left': new THREE.Vector3(-crouchMagnitude, 0, 0),
-  'crouched_sneaking_left reverse': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
+  'crouched_sneaking_left_reverse': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
   'crouched_sneaking_right': new THREE.Vector3(crouchMagnitude, 0, 0),
   'crouched_sneaking_right_reverse': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
 };
