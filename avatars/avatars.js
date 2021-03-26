@@ -144,9 +144,7 @@ let throwAnimations;
 let crouchAnimations;
 
 const dracoLoader = new DRACOLoader();
-// Specify path to a folder containing WASM/JS decoding libraries.
 dracoLoader.setDecoderPath( '../' );
-// Optional: Pre-fetch Draco WASM/JS module.
 dracoLoader.preload();
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
