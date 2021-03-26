@@ -210,7 +210,6 @@ const loadPromise = Promise.all([
       `left_strafe_reverse`,
       `right_strafe_reverse`,
     ].map(name => animations.find(a => a.name === name));
-    // console.log('running backwards', runningBackwardAnimations);
     _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
     const crouchingForwardAnimations = [
       `sneaking_forward`,
