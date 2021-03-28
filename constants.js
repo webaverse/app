@@ -10,8 +10,21 @@ export const rarityColors = {
   legendary: [0xAD00EA, 0x32002D],
 };
 
-export const isMainChain = true;
-const mainChainName = isMainChain ? 'mainnet' : 'rinkeby';
+
+// TODO: Polygon: make sure this code is right and produces the intended result
+let chainPrefix = /^testnet\./.test(location.hostname) ? 'testnet' : '';
+export const isMainnet = !/^testnet\./.test(location.hostname);
+let _chainName = chainPrefix +
+                /^sidechain\./.test(location.hostname) ? 'sidechain' :
+                /^polygon\./.test(location.hostname) ? 'polygon' : '';
+    chainName === 'sidechain' ? 'mainnetsidechain' :
+    chainName === '' ? 'mainnet' : chainName;
+if(chainName === '') console.error("chainName is invalid or empty");
+console.log("Whoah!")
+export const chainName = _chainName;
+
+export const mainChainName = /^testnet\./.test(location.hostname) ? 'testnet' : 'mainnet';
+// TODO: Add polygon
 
 export const storageHost = 'https://ipfs.exokit.org';
 export const previewHost = 'https://preview.exokit.org'
@@ -23,5 +36,5 @@ export const loginEndpoint = 'https://login.exokit.org';
 export const tokensHost = `https://${mainChainName}all-tokens.webaverse.com`;
 export const landHost = `https://${mainChainName}sidechain-land.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
-export const web3RinkebySidechainEndpoint = 'https://rinkebysidechain.exokit.org';
+export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const homeScnUrl = `https://webaverse.github.io/street/street.scn`;
