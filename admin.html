@@ -156,7 +156,7 @@ const submitButton = document.getElementById('submit-button');
 
       console.log('got addresses', mainnetAddress, sidechainAddress);
 
-      // front
+      // mainnet
       _addText(tokenName + ' mainnet logs:');
       for (const entry of withdrewEntries) {
         let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;

@@ -10,7 +10,6 @@ export const rarityColors = {
   legendary: [0xAD00EA, 0x32002D],
 };
 
-
 // TODO: Polygon: make sure this code is right and produces the intended result
 let chainPrefix = /^testnet\./.test(location.hostname) ? 'testnet' : '';
 export const isMainnet = !/^testnet\./.test(location.hostname);
