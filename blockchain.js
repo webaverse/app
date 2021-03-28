@@ -5,7 +5,6 @@ const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import { makePromise } from './util.js';
 import { isMainChain, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint } from './constants.js';
-
 const { Transaction, Common } = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
@@ -42,9 +41,7 @@ const web3 = {
   mainnet: injectedWeb3,
   mainnetsidechain: new Web3(new Web3.providers.HttpProvider(web3MainnetSidechainEndpoint)),
   testnet: injectedWeb3,
-  testnetsidechain: new Web3(new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint)),
-  front: null,
-  back: null,
+  testnetsidechain: new Web3(new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint))
 };
 let networkName = '';
 function _setSideChain(mainChainName) {

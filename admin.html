@@ -92,8 +92,8 @@ const submitButton = document.getElementById('submit-button');
     const mainnetAddress = await getMainnetAddress();
 
     for (const tokenName of ['NFT', 'LAND']) {
-      const chainName = 'front';
-      const otherChainName = 'back';
+      const chainName = 'mainnet';
+      const otherChainName = 'sidechain';
       // const tokenId = parseInt(unstickNftTokenidInput.value, 10);
 
       const contract = contracts[chainName];
@@ -157,7 +157,7 @@ const submitButton = document.getElementById('submit-button');
       console.log('got addresses', mainnetAddress, sidechainAddress);
 
       // front
-      _addText(tokenName + ' front logs:');
+      _addText(tokenName + ' mainnet logs:');
       for (const entry of withdrewEntries) {
         let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
         from = from.toLowerCase();
@@ -190,7 +190,7 @@ const submitButton = document.getElementById('submit-button');
       }
 
       // back
-      _addText(tokenName + ' back logs:');
+      _addText(tokenName + ' sidechain logs:');
       for (const entry of otherWithdrewEntries) {
         let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
         from = from.toLowerCase();
