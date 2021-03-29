@@ -204,7 +204,6 @@ export default class App extends EventTarget {
     minimap.update();
   }
   renderDom() {
-    // dom render
     renderer2.render(scene2, camera);
   }
   
