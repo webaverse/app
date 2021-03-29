@@ -458,7 +458,7 @@ ioManager.bindInput = () => {
         menuActions.setIsOpen(!menuState.isOpen);
         break;
       }
-      case 74: {
+      case 74: { // J
         weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
         break;
       }
