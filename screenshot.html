@@ -248,7 +248,7 @@
       toggleElements(false);
       const screenshotResult = document.getElementById('screenshot-result');
 
-      let {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+      let {url, hash, ext, type, dst, width, height} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
         const _loadGltf = async () => {
