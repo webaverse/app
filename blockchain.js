@@ -1,13 +1,13 @@
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
-const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import {makePromise} from './util.js';
-import {isMainChain, storageHost, web3MainnetSidechainEndpoint, web3RinkebySidechainEndpoint} from './constants.js';
-const {Transaction, Common} = ethereumJsTx;
+import {isMainChain,, web3MainnetSidechainEndpoint, web3RinkebySidechainEndpoint} from './constants.js';
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
+const {Transaction, Common} = ethereumJsTx;
+const hdkey = hdkeySpec.default;
 
 const injectedWeb3 = new Web3(window.ethereum);
 const web3 = {
@@ -36,7 +36,6 @@ function _setMainChain(isMainChain) {
     networkName = 'rinkeby';
   }
 }
-// _setMainChain(!/^test\./.test(location.hostname));
 _setMainChain(isMainChain);
 
 const contracts = {
@@ -93,15 +92,11 @@ const transactionQueue = {
 const runSidechainTransaction = mnemonic => async (contractName, method, ...args) => {
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
-  // console.log('got mnem', mnemonic, address);
   const privateKey = wallet.getPrivateKeyString();
   const privateKeyBytes = Uint8Array.from(web3.back.utils.hexToBytes(privateKey));
 
   const txData = contracts.back[contractName].methods[method](...args);
   const data = txData.encodeABI();
-  const gas = await txData.estimateGas({
-    from: address,
-  });
   let gasPrice = await web3.back.eth.getGasPrice();
   gasPrice = parseInt(gasPrice, 10);
 
@@ -126,7 +121,6 @@ const runSidechainTransaction = mnemonic => async (contractName, method, ...args
     ),
   }).sign(privateKeyBytes);
   const rawTx = '0x' + tx.serialize().toString('hex');
-  // console.log('signed tx', tx, rawTx);
   const receipt = await web3.back.eth.sendSignedTransaction(rawTx);
   transactionQueue.unlock();
   return receipt;
@@ -135,7 +129,6 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
   const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
   for (let i = 0; i < 10; i++) {
     const signature = await fetch(u).then(res => res.json());
-    // console.log('got sig', u, signature);
     if (signature) {
       return signature;
     } else {
