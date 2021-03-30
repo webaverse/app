@@ -12,27 +12,27 @@ import abis from 'https://contracts.webaverse.com/config/abi.js';
 export const Networks = {
   mainnet: {
     displayName: "Mainnet",
-    transferOptions: ["mainnetsidechain"]
+    // transferOptions: ["mainnetsidechain"]
   },
   mainnetsidechain: {
     displayName: "Webaverse",
-    transferOptions: ["mainnet", "polygon"]
+    // transferOptions: ["mainnet", "polygon"]
   },
   polygon: {
     displayName: "Polygon",
-    transferOptions: ["mainnetsidechain"]
+    // transferOptions: ["mainnetsidechain"]
   },
   testnet: {
     displayName: "Rinkeby Testnet",
-    transferOptions: ["testnetsidechain"]
+    // transferOptions: ["testnetsidechain"]
   },
   testnetsidechain: {
     displayName: "Webaverse Testnet",
-    transferOptions: ["testnet, testnetpolygon"]
+    // transferOptions: ["testnet, testnetpolygon"]
   },
   testnetpolygon: {
     displayName: "Polygon Testnet",
-    transferOptions: ["mainnetsidechain"]
+    // transferOptions: ["mainnetsidechain"]
   }
 }
 
