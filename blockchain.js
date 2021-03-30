@@ -110,7 +110,7 @@ const runSidechainTransaction = mnemonic => async (contractName, method, ...args
   let tx = Transaction.fromTxData({
     to: contracts.back[contractName]._address,
     nonce: '0x' + new web3.back.utils.BN(nonce).toString(16),
-    gas: '0x' + new web3.back.utils.BN(gasPrice).toString(16),
+    gas: '0x' + new web3.back.utils.BN(gas).toString(16),
     gasPrice: '0x' + new web3.back.utils.BN(gasPrice).toString(16),
     gasLimit: '0x' + new web3.back.utils.BN(8000000).toString(16),
     data,
