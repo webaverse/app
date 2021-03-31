@@ -8,6 +8,7 @@ import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {otherChainName} from './constants.js';
 import * as notifications from './notifications.js';
 import {jsonParse} from './util.js';
 // import {menuActions} from './mithril-ui/store/actions.js';
@@ -297,7 +298,7 @@ async function bindLogin() {
       location.hostname = 'main.' + location.hostname;
     }
   });
-  document.getElementById('other-chain-name').innerText = getOtherNetworkName();
+  document.getElementById('other-chain-name').innerText = otherChainName;
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
 

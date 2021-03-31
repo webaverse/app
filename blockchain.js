@@ -4,7 +4,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import { makePromise } from './util.js';
-import { web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
+import { chainName, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
 const { Transaction, Common } = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
@@ -47,8 +47,10 @@ const web3 = {
   front: null,
   back: null,
 };
-let networkName = '';
 let common = null;
+let addressFront;
+let addressBack;
+let networkName = '';
 function _setChain(nn) {
   web3.front = web3[nn];
   web3.back = web3[nn + 'sidechain'];
@@ -83,13 +85,7 @@ function _setChain(nn) {
   }
 }
 const _initSetChain = () => {
-  if (typeof window !== 'undefined' && /^test\./.test(location.hostname)) {
-    _setChain('testnet');
-  } else if (typeof window !== 'undefined' && /^polygon\./.test(location.hostname)) {
-    _setChain('polygon');
-  } else {
-    _setChain('mainnet');
-  }
+  _setChain(chainName);
 };
 _initSetChain();
 
