@@ -25,6 +25,8 @@ export const chainName = _chainName;
 export const mainChainName = /^testnet\./.test(location.hostname) ? 'testnet' : 'mainnet';
 // TODO: Add polygon
 
+export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
+
 export const storageHost = 'https://ipfs.exokit.org';
 export const previewHost = 'https://preview.exokit.org'
 export const worldsHost = 'https://worlds.exokit.org';
