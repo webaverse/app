@@ -3,8 +3,9 @@ import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
+<<<<<<< HEAD
 import { makePromise } from './util.js';
-import { isMainChain, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint } from './constants.js';
+import { isMainChain, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
 const { Transaction, Common } = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
@@ -41,27 +42,56 @@ const web3 = {
   mainnet: injectedWeb3,
   mainnetsidechain: new Web3(new Web3.providers.HttpProvider(web3MainnetSidechainEndpoint)),
   testnet: injectedWeb3,
-  testnetsidechain: new Web3(new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint))
+  testnetsidechain: new Web3(new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint)),
+  polygon: new Web3(new Web3.providers.HttpProvider(`https://rpc-mainnet.maticvigil.com/v1/${polygonVigilKey}`)),
+  front: null,
+  back: null,
 };
 let networkName = '';
-function _setSideChain(mainChainName) {
-  networkName = chainName;
-  let nodeName = 'geth';
-  let networkId = 1;
-  let chainId = 1338; // 1337 for testnet
-  // TODO: 
-  common = Common.forCustomChain(
-    // TODO: handle polygon, what is going on here?
-    chainName,
-    {
-      name: nodeName,
-      networkId: networkId,
-      chainId: chainId,
-    },
-    'petersburg',
-  );
+let common = null;
+function _setChain(nn) {
+  web3.front = web3[nn];
+  web3.back = web3[nn + 'sidechain'];
+  addressFront = addresses[nn];
+  addressBack = addresses[nn + 'sidechain'];
+  networkName = nn;
+
+  if (nn === 'mainnet') {
+    common = Common.forCustomChain(
+      'mainnet',
+      {
+        name: 'geth',
+        networkId: 1,
+        chainId: 1338,
+      },
+      'petersburg',
+    );
+  } else if (nn === 'testnet') {
+    common = Common.forCustomChain(
+      'mainnet',
+      {
+        name: 'geth',
+        networkId: 1,
+        chainId: 1337,
+      },
+      'petersburg',
+    );
+  } else if (nn === 'polygon') {
+    // throw new Error('cannot set common properties for polygon yet');
+  } else {
+    throw new Error('unknown network name', nn);
+  }
 }
-_setSideChain();
+const _initSetChain = () => {
+  if (typeof window !== 'undefined' && /^test\./.test(location.hostname)) {
+    _setChain('testnet');
+  } else if (typeof window !== 'undefined' && /^polygon\./.test(location.hostname)) {
+    _setChain('polygon');
+  } else {
+    _setChain('mainnet');
+  }
+};
+_initSetChain();
 
 let contracts = {}
 Object.keys(Networks).forEach(network => {
