@@ -20,8 +20,7 @@
   },
   "homepage": "https://github.com/webaverse/app",
   "dependencies": {
-    "express": "^4.17.1",
-    "three": "^0.125.2"
+    "express": "^4.17.1"
   },
   "browserslist": [
     "last 1 chrome version"
