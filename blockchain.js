@@ -93,7 +93,7 @@ const _initSetChain = () => {
 };
 _initSetChain();
 
-let contracts = {}
+const contracts = {};
 Object.keys(Networks).forEach(network => {
   console.log("*** Network is", network);
   contracts[network] = {
