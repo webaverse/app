@@ -3,7 +3,6 @@ import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
-<<<<<<< HEAD
 import { makePromise } from './util.js';
 import { isMainChain, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
 const { Transaction, Common } = ethereumJsTx;
