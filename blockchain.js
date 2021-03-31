@@ -110,14 +110,14 @@ Object.keys(Networks).forEach(network => {
 
 const getNetworkName = () => chainName;
 
-  const getMainnetAddress = async () => {
-    if (typeof window !== "undefined" && window.ethereum) {
-      const [address] = await window.ethereum.enable();
-      return address || null;
-    } else {
-      return null;
-    }
-  };
+const getMainnetAddress = async () => {
+  if (typeof window !== "undefined" && window.ethereum) {
+    const [address] = await window.ethereum.enable();
+    return address || null;
+  } else {
+    return null;
+  }
+};
 
 const transactionQueue = {
   running: false,
