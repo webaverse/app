@@ -7,11 +7,10 @@ import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
-import ethereumJsTx from './ethereumjs-tx.js';
-const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {otherChainName} from './constants.js';
 import * as notifications from './notifications.js';
-import {makePromise, jsonParse} from './util.js';
+import {jsonParse} from './util.js';
 // import {menuActions} from './mithril-ui/store/actions.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
@@ -291,6 +290,7 @@ async function bindLogin() {
     await storage.remove('loginToken');
     window.location.reload();
   });
+  // TODO: Fix me with polygon
   document.getElementById('switch-chain-button').addEventListener('click', e => {
     if (/^main\./.test(location.hostname)) {
       location.hostname = location.hostname.replace(/^main\./, '');
@@ -298,7 +298,7 @@ async function bindLogin() {
       location.hostname = 'main.' + location.hostname;
     }
   });
-  document.getElementById('other-chain-name').innerText = getOtherNetworkName();
+  document.getElementById('other-chain-name').innerText = otherChainName;
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
 
