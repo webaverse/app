@@ -4,7 +4,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import { makePromise } from './util.js';
-import { isMainChain, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
+import { web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from './constants.js';
 const { Transaction, Common } = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
@@ -163,16 +163,7 @@ const runSidechainTransaction = mnemonic => async (contractName, method, ...args
     gasLimit: '0x' + new web3.back.utils.BN(8000000).toString(16),
     data,
   }, {
-    // TODO: WTF is going on here?
-    common: Common.forCustomChain(
-      'mainnet',
-      {
-        name: 'geth',
-        networkId: 1,
-        chainId: isMainChain ? 1338 : 1337,
-      },
-      'petersburg',
-    ),
+    common,
   }).sign(privateKeyBytes);
   const rawTx = '0x' + tx.serialize().toString('hex');
   // console.log('signed tx', tx, rawTx);
