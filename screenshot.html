@@ -248,10 +248,13 @@
       toggleElements(false);
       const screenshotResult = document.getElementById('screenshot-result');
 
-      let {url, hash, ext, type, dst, width=512, height=512} = parseQuery(decodeURIComponent(window.location.search));
+      let {url, hash, ext, type, dst, width = 512, height = 512} = parseQuery(decodeURIComponent(window.location.search));
       // make sure the image is square
-      if (height !== width){
-        height = width
+      let aspectRatio = width / height;
+      if (height > width){
+        width = width / aspectRatio
+      } else if (height < width) {
+        height = height * aspectRatio
       }
       try {
         const _loadGltf = async () => {
