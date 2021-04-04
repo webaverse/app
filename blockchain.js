@@ -91,7 +91,7 @@ _initSetChain();
 
 const contracts = {};
 Object.keys(Networks).forEach(network => {
-  console.log("*** Network is", network);
+  // console.log("*** Network is", network);
   contracts[network] = {
     Account: new web3[network].eth.Contract(abis.Account, addresses[network].Account),
     FT: new web3[network].eth.Contract(abis.FT, addresses[network].FT),
