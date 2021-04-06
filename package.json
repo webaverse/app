@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start-proxied": "HTTP_PORT=8080 HTTPS_PORT=8443 node index.js",
     "lint": "eslint --ext .js .",
     "lint-fix": "eslint --fix --ext .js ."
   },
