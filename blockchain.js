@@ -102,7 +102,7 @@ Object.keys(Networks).forEach(network => {
     LAND: new web3[network].eth.Contract(abis.LAND, addresses[network].LAND),
     LANDProxy: new web3[network].eth.Contract(abis.LANDProxy, addresses[network].LANDProxy),
   }
-})
+});
 
 const getNetworkName = () => chainName;
 
