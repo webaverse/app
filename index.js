@@ -6,6 +6,12 @@ const express = require('express');
 const fullchainPath = './certs/fullchain.pem';
 const privkeyPath = './certs/privkey.pem';
 
+const httpPort = process.env.HTTP_PORT || 3000;
+const httpsPort = process.env.HTTPS_PORT || 3001;
+
+console.log("HTTP Port is", httpPort);
+console.log("HTTPS Port is", httpsPort);
+
 let CERT = null;
 let PRIVKEY = null;
 try {
@@ -34,13 +40,13 @@ app.get('*', (req, res, next) => {
 app.use(appStatic);
 
 http.createServer(app)
-  .listen(3000);
-console.log('http://localhost:3000');
+  .listen(httpPort);
+console.log('http://localhost:'+httpPort);
 if (CERT && PRIVKEY) {
   https.createServer({
     cert: CERT,
     key: PRIVKEY,
   }, app)
-    .listen(3001);
-  console.log('https://localhost:3001');
+    .listen(httpsPort);
+  console.log('https://localhost:'+httpsPort);
 }
