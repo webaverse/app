@@ -118,7 +118,7 @@ const animationsDistanceMap = {
   'left_strafe_reverse': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
   'right_strafe_walking_reverse': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right_strafe_reverse': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
-  
+
   'crouch_idle': new THREE.Vector3(0, 0, 0),
   'sneaking_forward': new THREE.Vector3(0, 0, -crouchMagnitude),
   'sneaking_forward_reverse': new THREE.Vector3(0, 0, crouchMagnitude),
@@ -161,7 +161,7 @@ const loadPromise = Promise.all([
   // load animations
   (async () => {
     const animationsModel = await new Promise((accept, reject) => {
-      gltfLoader.load('../animations/animations.glb', accept, function onprogress() {}, reject);
+      gltfLoader.load('../animations/animations1.glb', accept, function onprogress() {}, reject);
       /* fbxLoader.load('../animations/animations.fbx', o => {
         for (const animation of o.animations) {
           animation.name = animation.name.replace(/^.*?\|/, '');
@@ -170,7 +170,7 @@ const loadPromise = Promise.all([
       }, function onprogress() {}, reject); */
     });
     animations = animationsModel.animations;
-    
+
     // console.log('got animations', animations);
 
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
@@ -738,7 +738,7 @@ const loadPromise = Promise.all([
         '右小指１': 'rightLittleFinger1',
         '右小指２': 'rightLittleFinger2',
         '右小指３': 'rightLittleFinger3',
-        
+
         '左足': 'rightUpperLeg',
         '左ひざ': 'rightLowerLeg',
         '左足首': 'rightFoot',
@@ -752,9 +752,9 @@ const loadPromise = Promise.all([
         '左つま先ＩＫ': null, // 'Left toe IK',
         '右つま先ＩＫ': null, // 'Right toe IK',
       };
-      
+
       console.log('got model 2');
-      
+
       const _getModelPose = model => {
         const bones = model.skeleton.bones.map(bone => {
           let {name, quaternion} = bone;
@@ -1726,7 +1726,7 @@ class Avatar {
 		this.poseManager = new PoseManager();
 		this.shoulderTransforms = new ShoulderTransforms(this);
 		this.legsManager = new LegsManager(this);
-    
+
     const fingerBoneMap = {
       left: [
         {
@@ -2115,7 +2115,7 @@ class Avatar {
     this.eyeTargetEnabled = false;
     this.headTarget = new THREE.Quaternion();
     this.headTargetEnabled = false;
-    
+
     this.windTarget = new THREE.Vector3();
     this.windTargetEnabled = false;
 	}
@@ -2297,7 +2297,7 @@ class Avatar {
               const totalDistance = distance1 + distance2;
               // let factor1 = 1 - distance1/totalDistance;
               let distanceFactor = 1 - distance2/totalDistance;
-              
+
               const t1 = (now/1000) % selectedAnimations[0].duration;
               const src1 = selectedAnimations[0].interpolants[k];
               const v1 = src1.evaluate(t1);
@@ -2329,7 +2329,7 @@ class Avatar {
     };
     _applyAnimation();
 
-    const _applyPose = () => {    
+    const _applyPose = () => {
       if (poseData && (poseIndex !== -1 || this.activePoses.length > 0)) {
         for (const k in this.outputs) {
           this.outputs[k].quaternion.set(0, 0, 0, 1);
@@ -2353,7 +2353,7 @@ class Avatar {
         for (const activePose of this.activePoses) {
           const {index: poseIndex, value} = activePose;
           for (const bone of poseData[poseIndex].bones) {
-            if (bone.mappedName) {            
+            if (bone.mappedName) {
               localQuaternion.copy(this.outputs[bone.mappedName].quaternion);
               localQuaternion2.copy(this.outputs[bone.mappedName].quaternion).premultiply(bone.quaternion);
               this.outputs[bone.mappedName].quaternion.copy(localQuaternion).slerp(localQuaternion2, value);
@@ -2402,7 +2402,7 @@ class Avatar {
           });
         });
       }
-      
+
       if (this.options.fingers) {
         const _traverse = (o, fn) => {
           fn(o);
@@ -2542,7 +2542,7 @@ class Avatar {
             morphTargetInfluences[influence.index] = emotionValues[influence.name];
           }
         } */
-        
+
         if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
           morphTargetInfluences[emotionIndex] = 1;
         }
@@ -2555,7 +2555,7 @@ class Avatar {
         }
       }
     }
-    
+
     if (this.eyeTargetEnabled) {
       for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
         if (eye) {
@@ -2665,7 +2665,7 @@ class Avatar {
   getFloorHeight() {
     return this.poseManager.vrTransforms.floorHeight;
   }
-  
+
   copyTo(model) {
     // window.o = window.o || {};
     const _recurse = (a, b) => {
