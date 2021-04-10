@@ -2045,7 +2045,8 @@ class Avatar {
       new AnimationMapping('LeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
       new AnimationMapping('LeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
       new AnimationMapping('LeftForeArm.quaternion', this.outputs.rightLowerArm.quaternion, true),
-      new AnimationMapping('LeftHand.quaternion', this.outputs.leftHand.quaternion, true),
+      new AnimationMapping('LeftHand.quaternion', this.outputs.rightHand.quaternion, true),
+
       new AnimationMapping('LeftHandMiddle1.quaternion', this.outputs.leftMiddleFinger1.quaternion, true),
       new AnimationMapping('LeftHandMiddle2.quaternion', this.outputs.leftMiddleFinger2.quaternion, true),
       new AnimationMapping('LeftHandMiddle3.quaternion', this.outputs.leftMiddleFinger3.quaternion, true),
@@ -2065,7 +2066,8 @@ class Avatar {
       new AnimationMapping('RightShoulder.quaternion', this.outputs.leftShoulder.quaternion, true),
       new AnimationMapping('RightArm.quaternion', this.outputs.leftUpperArm.quaternion, true),
       new AnimationMapping('RightForeArm.quaternion', this.outputs.leftLowerArm.quaternion, true),
-      new AnimationMapping('RightHand.quaternion', this.outputs.rightHand.quaternion, true),
+      new AnimationMapping('RightHand.quaternion', this.outputs.leftHand.quaternion, true),
+      
       new AnimationMapping('RightHandMiddle1.quaternion', this.outputs.rightMiddleFinger1.quaternion, true),
       new AnimationMapping('RightHandMiddle2.quaternion', this.outputs.rightMiddleFinger2.quaternion, true),
       new AnimationMapping('RightHandMiddle3.quaternion', this.outputs.rightMiddleFinger3.quaternion, true),
