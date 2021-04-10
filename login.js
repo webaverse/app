@@ -7,11 +7,10 @@ import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
-import ethereumJsTx from './ethereumjs-tx.js';
-const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {otherChainName} from './constants.js';
 import * as notifications from './notifications.js';
-import {makePromise, jsonParse} from './util.js';
+import {jsonParse} from './util.js';
 // import {menuActions} from './mithril-ui/store/actions.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
@@ -20,7 +19,7 @@ import {makePromise, jsonParse} from './util.js';
 
 async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
-    const hash = await contracts.back['NFT'].methods.getHash(id + '').call();
+    const hash = await contracts['mainnetsidechain']['NFT'].methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;    
   } else if (typeof id === 'string') {
     return id;
@@ -291,6 +290,7 @@ async function bindLogin() {
     await storage.remove('loginToken');
     window.location.reload();
   });
+  // TODO: Fix me with polygon
   document.getElementById('switch-chain-button').addEventListener('click', e => {
     if (/^main\./.test(location.hostname)) {
       location.hostname = location.hostname.replace(/^main\./, '');
@@ -298,7 +298,7 @@ async function bindLogin() {
       location.hostname = 'main.' + location.hostname;
     }
   });
-  document.getElementById('other-chain-name').innerText = getOtherNetworkName();
+  document.getElementById('other-chain-name').innerText = otherChainName;
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -575,9 +575,9 @@ class LoginManager extends EventTarget {
         const quantity = 1;
         const fullAmount = {
           t: 'uint256',
-          v: new web3.back.utils.BN(1e9)
-            .mul(new web3.back.utils.BN(1e9))
-            .mul(new web3.back.utils.BN(1e9)),
+          v: new web3['mainnetsidechain'].utils.BN(1e9)
+            .mul(new web3['mainnetsidechain'].utils.BN(1e9))
+            .mul(new web3['mainnetsidechain'].utils.BN(1e9)),
         };
 
         let status, transactionHash, id;
@@ -596,7 +596,7 @@ class LoginManager extends EventTarget {
             notifications.removeNotification(notification);
           });
           {
-            const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts.back['NFT']._address, fullAmount.v);
+            const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['mainnetsidechain']['NFT']._address, fullAmount.v);
             status = result.status;
             transactionHash = '0x0';
             id = -1;
@@ -608,7 +608,7 @@ class LoginManager extends EventTarget {
             const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
             status = result.status;
             transactionHash = result.transactionHash;
-            id = new web3.back.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+            id = new web3['mainnetsidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
           }
         } catch (err) {
           const errorNotification = notifications.addNotification(`\
