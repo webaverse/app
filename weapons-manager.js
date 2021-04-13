@@ -712,8 +712,9 @@ const _updateWeapons = () => {
       const equippedObject = appManager.equippedObjects[i];
       if (equippedObject) {
         rigManager.localRig.modelBones.Right_wrist.getWorldPosition(localVector);
+        // XXX: this needs to add offset to middle of palm so the object is correctly held
         rigManager.localRig.modelBones.Right_wrist.getWorldQuaternion(localQuaternion)
-          .multiply(equipArmQuaternions[i]);
+          .multiply(equipArmQuaternions[i]); // correct for wrist axis
         equippedObject.position.copy(localVector);
         equippedObject.quaternion.copy(localQuaternion);
       }
