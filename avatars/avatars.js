@@ -2034,6 +2034,7 @@ class Avatar {
       }
     } */
 
+    // from Avaer: animation mappings defines which bones are sourced from animations at all, and under which conditions (it is top half of body or not)
     this.animationMappings = [
       new AnimationMapping('Hips.quaternion', this.outputs.hips.quaternion, false),
       new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, false),
@@ -2221,6 +2222,7 @@ class Avatar {
         if (selectedAnimations[1].isIdle) {
           selectedAnimations[1] = selectedAnimations[0];
         }
+        // from Avaer: selecting animations for 4-way blend (can be 8-way in the future)
         if (selectedAnimations.some(a => a.isBackward)) {
           if (selectedAnimations.some(a => a.isLeft)) {
             if (selectedAnimations.some(a => a.isRunning)) {
@@ -2285,7 +2287,7 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.useTime >= 0 && isTop) {
+          } else if (this.useTime >= 0 && isTop) { // from Avaer: checking whether an animation should be blended based on the above declarations
             const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
             const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
             const src2 = useAnimation.interpolants[k];
@@ -2293,6 +2295,7 @@ class Avatar {
 
             dst.fromArray(v2);
           } else {
+            // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
             const _getHorizontalBlend = (selectedAnimations, target) => {
               const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
               const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
@@ -2310,6 +2313,7 @@ class Avatar {
 
               target.fromArray(v1);
               if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+                // from Avaer: literally blending animation quaternions (spherical linear interpolation, slerp)
                 target.slerp(localQuaternion.fromArray(v2), distanceFactor);
               }
             };
