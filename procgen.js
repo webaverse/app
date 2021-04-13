@@ -1,6 +1,26 @@
 import alea from './alea.js';
 import colorScheme from './color-scheme.js';
 
+const types = [
+  'fire',
+  'grass',
+  'water',
+  'electric',
+  'fighting',
+  'psychic',
+  'colorless',
+  'dark',
+  'metal',
+  'fairy',
+  'bug',
+  'rock',
+  'flying',
+  'ground',
+  'ice',
+  'poison',
+  'ghost',
+  'dragon',
+];
 const rarities = [
   'common',
   'uncommon',
@@ -17,31 +37,29 @@ function makeRandom(rng, n) {
   }
   return raw;
 }
-const makeColors = rng => {
-  const colors = colorScheme
-    .from_hue(rng() * 360)
-    .scheme('triade')
-    .variation('default')
-    .colors()
-    .map(c => '#' + c);
-  return [
-    colors[0],
-    colors[4],
-    colors[8],
-  ];
-};
+const makeColors = rng => colorScheme
+  .from_hue(rng() * 360)
+  .scheme('triade')
+  .variation('default')
+  .colors()
+  .map(c => '#' + c);
 function procgen(seed = '', count = 1) {
   const result = Array(count);
   const rng = alea(seed);
   for (let i = 0; i < count; i++) {
-    const [color, color2, color3] = makeColors(rng);
+    const colors = makeColors(rng);
+    const color = colors[0];
+    const color2 = colors[4];
+    const color3 = colors[8];
     const art = {
+      colors,
       color,
       color2,
       color3,
       details: makeRandom(rng, 32),
     };
     const stats = {
+      type: types[Math.floor(rng() * types.length)],
       rarity: (() => {
         const f = rng();
         let totalFactor = 0;
@@ -74,3 +92,7 @@ function procgen(seed = '', count = 1) {
   return result;
 }
 export default procgen;
+export {
+  types,
+  rarities,
+};
