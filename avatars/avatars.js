@@ -2482,17 +2482,17 @@ class Avatar {
         if (this.getTopEnabled()) {
           if (k === 'Left_wrist') {
             if (this.getHandEnabled(1)) {
-              modelBone.quaternion.multiply(leftRotation); // center
+              // modelBone.quaternion.multiply(leftRotation); // center
             }
           } else if (k === 'Right_wrist') {
             if (this.getHandEnabled(0)) {
-              modelBone.quaternion.multiply(rightRotation); // center
+              // modelBone.quaternion.multiply(rightRotation); // center
             }
           }
         }
         if (this.getBottomEnabled()) {
           if (k === 'Left_ankle' || k === 'Right_ankle') {
-            modelBone.quaternion.multiply(upRotation);
+            // modelBone.quaternion.multiply(upRotation);
           }
         }
         modelBone.updateMatrixWorld();
