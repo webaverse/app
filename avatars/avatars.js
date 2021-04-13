@@ -2440,22 +2440,36 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    if (!this.getBottomEnabled()) {
-      this.outputs.hips.position.copy(this.inputs.hmd.position)
-        .add(this.eyeToHipsOffset);
 
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
-    }
-    if (!this.getTopEnabled() && this.debugMeshes) {
-      this.outputs.hips.updateMatrixWorld();
-    }
+    const _applyIk = () => {
+      if (this.options.ikEnabled === undefined || this.options.ikEnabled) {
+        if (!this.getBottomEnabled()) {
+          this.outputs.hips.position.copy(this.inputs.hmd.position)
+            .add(this.eyeToHipsOffset);
 
-    this.shoulderTransforms.Update();
-    this.legsManager.Update();
+          localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localEuler.y += Math.PI;
+          this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+        }
+        if (!this.getTopEnabled() && this.debugMeshes) {
+          this.outputs.hips.updateMatrixWorld();
+        }
+
+        this.shoulderTransforms.Update();
+        this.legsManager.Update();
+      } else {
+        this.outputs.hips.position.copy(this.inputs.hmd.position)
+          .add(this.eyeToHipsOffset);
+        localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y += Math.PI;
+        this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+      }
+    };
+    _applyIk();
 
     if (this.windTargetEnabled && this.springBoneManager) {
       for (const springBoneGroup of this.springBoneManager.springBoneGroupList) {
