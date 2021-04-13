@@ -161,7 +161,7 @@ const loadPromise = Promise.all([
   // load animations
   (async () => {
     const animationsModel = await new Promise((accept, reject) => {
-      gltfLoader.load('../animations/animations1.glb', accept, function onprogress() {}, reject);
+      gltfLoader.load('../animations/animations.glb', accept, function onprogress() {}, reject);
       /* fbxLoader.load('../animations/animations.fbx', o => {
         for (const animation of o.animations) {
           animation.name = animation.name.replace(/^.*?\|/, '');
@@ -1786,7 +1786,7 @@ class Avatar {
       leftShoulder: _getOffset(modelBones.Right_shoulder),
       leftUpperArm: _getOffset(modelBones.Right_arm),
       leftLowerArm: _getOffset(modelBones.Right_elbow),
-      leftHand: _getOffset(modelBones.Right_wrist),
+      leftHand: _getOffset(modelBones.Left_wrist),
       leftThumb2: _getOffset(modelBones.Right_thumb2),
       leftThumb1: _getOffset(modelBones.Right_thumb1),
       leftThumb0: _getOffset(modelBones.Right_thumb0),
@@ -1806,7 +1806,7 @@ class Avatar {
       rightShoulder: _getOffset(modelBones.Left_shoulder),
       rightUpperArm: _getOffset(modelBones.Left_arm),
       rightLowerArm: _getOffset(modelBones.Left_elbow),
-      rightHand: _getOffset(modelBones.Left_wrist),
+      rightHand: _getOffset(modelBones.Right_wrist),
       rightThumb2: _getOffset(modelBones.Left_thumb2),
       rightThumb1: _getOffset(modelBones.Left_thumb1),
       rightThumb0: _getOffset(modelBones.Left_thumb0),
@@ -1929,7 +1929,7 @@ class Avatar {
 	    Left_shoulder: this.outputs.rightShoulder,
 	    Left_arm: this.outputs.rightUpperArm,
 	    Left_elbow: this.outputs.rightLowerArm,
-	    Left_wrist: this.outputs.rightHand,
+	    Left_wrist: this.outputs.leftHand,
       Left_thumb2: this.outputs.leftThumb2,
       Left_thumb1: this.outputs.leftThumb1,
       Left_thumb0: this.outputs.leftThumb0,
@@ -1952,7 +1952,7 @@ class Avatar {
 	    Right_shoulder: this.outputs.leftShoulder,
 	    Right_arm: this.outputs.leftUpperArm,
 	    Right_elbow: this.outputs.leftLowerArm,
-	    Right_wrist: this.outputs.leftHand,
+	    Right_wrist: this.outputs.rightHand,
       Right_thumb2: this.outputs.rightThumb2,
       Right_thumb1: this.outputs.rightThumb1,
       Right_thumb0: this.outputs.rightThumb0,
@@ -2036,12 +2036,12 @@ class Avatar {
 
     // from Avaer: animation mappings defines which bones are sourced from animations at all, and under which conditions (it is top half of body or not)
     this.animationMappings = [
-      new AnimationMapping('Hips.quaternion', this.outputs.hips.quaternion, false),
-      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, false),
+      new AnimationMapping('Hips.quaternion', this.outputs.hips.quaternion, true),
+      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, true),
       // new AnimationMapping('Spine1.quaternion', null, false),
-      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, false),
-      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, false),
-      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, false),
+      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, true),
+      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, true),
+      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, true),
 
       new AnimationMapping('LeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
       new AnimationMapping('LeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
