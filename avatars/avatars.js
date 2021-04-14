@@ -20,6 +20,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const forwardVector = new THREE.Vector3(0, 0, 1);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.5);
@@ -34,6 +35,7 @@ const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3
 
 let emotionIndex = -1;
 let poseIndex = -1;
+
 window.addEventListener('keydown', e => {
   if (poseData) {
     if (e.which === 35) {
@@ -1747,8 +1749,7 @@ class Avatar {
   }
 
   _applyIk() {
-    var ikEnabeled = false;
-    if (ikEnabeled) {
+    if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
       if (!this.getBottomEnabled()) {
         this.outputs.hips.position.copy(this.inputs.hmd.position)
           .add(this.eyeToHipsOffset);
@@ -1873,8 +1874,11 @@ class Avatar {
           }
         }
         if (this.getBottomEnabled()) {
+          // Fix messed up feet if IK is being used
           if (k === 'LeftAnkle' || k === 'RightAnkle') {
-            // modelBone.quaternion.multiply(upRotation);
+            if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
+              modelBone.quaternion.multiply(upRotation);
+            }
           }
         }
         modelBone.updateMatrixWorld();
