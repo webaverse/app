@@ -707,6 +707,7 @@ class Avatar {
     })();
     this.model = model;
     this.options = options;
+    this.ikEnabled = (this.options.ikEnabled === undefined || this.options.ikEnabled);
 
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
@@ -1505,6 +1506,10 @@ class Avatar {
     this.windTargetEnabled = false;
   }
 
+  setIkEnabled(val) {
+    this.ikEnabled = val;
+  }
+
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.transform.position.copy(setups.chest);
@@ -1749,7 +1754,7 @@ class Avatar {
   }
 
   _applyIk() {
-    if (this.options.ikEnabled === undefined || this.options.ikEnabled) {
+    if (this.ikEnabled) {
       if (!this.getBottomEnabled()) {
         this.outputs.hips.position.copy(this.inputs.hmd.position)
           .add(this.eyeToHipsOffset);
@@ -1870,7 +1875,7 @@ class Avatar {
         setter(bones[i].quaternion, i);
       }
     }
-  };
+  }
 
   _animateTop() {
     this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -1961,7 +1966,7 @@ class Avatar {
         modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
         // Fix messed up bones if IK is being used
-        if (this.options.ikEnabled === undefined || this.options.ikEnabled) {
+        if (this.ikEnabled) {
           this._fixIKProblems(k, modelBone);
         }
 
