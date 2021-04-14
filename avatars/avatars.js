@@ -1749,7 +1749,7 @@ class Avatar {
   }
 
   _applyIk() {
-    if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
+    if (this.options.ikEnabled === undefined || this.options.ikEnabled) {
       if (!this.getBottomEnabled()) {
         this.outputs.hips.position.copy(this.inputs.hmd.position)
           .add(this.eyeToHipsOffset);
@@ -1870,7 +1870,7 @@ class Avatar {
         setter(bones[i].quaternion, i);
       }
     }
-  }
+  };
 
   _animateTop() {
     this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -1961,7 +1961,7 @@ class Avatar {
         modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
         // Fix messed up bones if IK is being used
-        if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
+        if (this.options.ikEnabled === undefined || this.options.ikEnabled) {
           this._fixIKProblems(k, modelBone);
         }
 
