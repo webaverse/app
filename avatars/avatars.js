@@ -1510,6 +1510,10 @@ class Avatar {
     this.ikEnabled = val;
   }
 
+  getIkEnabled(val) {
+    return this.ikEnabled;
+  }
+
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.transform.position.copy(setups.chest);
@@ -1754,7 +1758,7 @@ class Avatar {
   }
 
   _applyIk() {
-    if (this.ikEnabled) {
+    if (this.getIkEnabled()) {
       if (!this.getBottomEnabled()) {
         this.outputs.hips.position.copy(this.inputs.hmd.position)
           .add(this.eyeToHipsOffset);
@@ -1966,7 +1970,7 @@ class Avatar {
         modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
         // Fix messed up bones if IK is being used
-        if (this.ikEnabled) {
+        if (this.getIkEnabled()) {
           this._fixIKProblems(k, modelBone);
         }
 
