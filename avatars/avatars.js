@@ -1791,6 +1791,151 @@ class Avatar {
     }
   }
 
+  _fixIKProblems(k, modelBone) {
+    if (this.getTopEnabled()) {
+      if (k === 'LeftWrist') {
+        if (this.getHandEnabled(1)) {
+          modelBone.quaternion.multiply(leftRotation); // center
+        }
+      } else if (k === 'RightWrist') {
+        if (this.getHandEnabled(0)) {
+          modelBone.quaternion.multiply(rightRotation); // center
+        }
+      }
+    }
+    if (this.getBottomEnabled()) {
+      if (k === 'LeftAnkle' || k === 'RightAnkle') {
+        modelBone.quaternion.multiply(upRotation);
+      }
+    }
+  }
+
+  _animateVisemes(now) {
+    const aValue = Math.min(this.volume * 10, 1);
+    const blinkValue = (() => {
+      const nowWindow = now % 2000;
+      if (nowWindow >= 0 && nowWindow < 100) {
+        return nowWindow / 100;
+      } else if (nowWindow >= 100 && nowWindow < 200) {
+        return 1 - (nowWindow - 100) / 100;
+      } else {
+        return 0;
+      }
+    })();
+    for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
+      // initialize
+      const {morphTargetInfluences} = visemeMapping;
+      for (let i = 0; i < morphTargetInfluences.length; i++) {
+        morphTargetInfluences[i] = 0;
+      }
+
+      // ik
+      if (visemeMapping.a >= 0) {
+        morphTargetInfluences[visemeMapping.a] = aValue;
+      }
+      if (visemeMapping.blink_l >= 0) {
+        morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
+      }
+      if (visemeMapping.blink_r >= 0) {
+        morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
+      }
+
+      if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
+        morphTargetInfluences[emotionIndex] = 1;
+      }
+
+      // ["neutral", "a", "i", "u", "e", "o", "blink", "joy", "angry", "sorrow", "fun", "lookup", "lookdown", "lookleft", "lookright", "blink_l", "blink_r"]
+      // animation visemes
+      for (const activeViseme of this.activeVisemes) {
+        const {index, value} = activeViseme;
+        morphTargetInfluences[index] = value;
+      }
+    }
+  }
+
+  _animateFingerBones(left) {
+    const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
+    const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
+    for (const fingerBone of fingerBones) {
+      const {bones, finger} = fingerBone;
+      let setter;
+      if (finger === 'thumb') {
+        setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI * (i === 0 ? 0.125 : 0.25));
+      } else if (finger === 'index') {
+        setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI * 0.5);
+      } else {
+        setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI * 0.5);
+      }
+      for (let i = 0; i < bones.length; i++) {
+        setter(bones[i].quaternion, i);
+      }
+    }
+  }
+
+  _animateTop() {
+    this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
+    this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
+    this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
+    this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
+    this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
+    this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
+    this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
+    this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
+    this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
+    this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+
+    const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
+    if (modelScaleFactor !== this.lastModelScaleFactor) {
+      this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
+      this.lastModelScaleFactor = modelScaleFactor;
+
+      this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+        springBoneGroup.forEach(springBone => {
+          springBone._worldBoneLength = springBone.bone
+            .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
+            .sub(springBone._worldPosition)
+            .length();
+        });
+      });
+    }
+
+    if (this.options.fingers) {
+      this._animateFingerBones(true);
+      this._animateFingerBones(false);
+    }
+  }
+
+  _animateEyeTarget() {
+    for (const eye of [this.modelBones.EyeL, this.modelBones.EyeR]) {
+      if (eye) {
+        eye.getWorldPosition(localVector);
+        eye.parent.getWorldQuaternion(localQuaternion);
+        localQuaternion.invert()
+          .premultiply(z180Quaternion)
+          .multiply(
+            localQuaternion2.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector,
+                this.eyeTarget,
+                localVector2.set(0, 1, 0),
+              ),
+            ),
+          );
+        if (/^(?:left|right)eye$/i.test(eye.name)) {
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler.x = -localEuler.x;
+          eye.quaternion.setFromEuler(localEuler);
+        } else {
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI * 0.05), Math.PI * 0.1);
+          localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.1), Math.PI * 0.1);
+          localEuler.z = 0;
+          eye.quaternion.setFromEuler(localEuler);
+        }
+      }
+    }
+  }
+
   update(timeDiff) {
     const now = Date.now();
 
@@ -1798,58 +1943,10 @@ class Avatar {
     this._applyPose();
 
     if (this.getTopEnabled()) {
-      this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
-      this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
-      this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-      this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
-      this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
-      this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
-      this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
-      this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
-      this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
-      this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
-
-      const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
-      if (modelScaleFactor !== this.lastModelScaleFactor) {
-        this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
-        this.lastModelScaleFactor = modelScaleFactor;
-
-        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
-          springBoneGroup.forEach(springBone => {
-            springBone._worldBoneLength = springBone.bone
-              .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
-              .sub(springBone._worldPosition)
-              .length();
-          });
-        });
-      }
-
-      if (this.options.fingers) {
-        const _processFingerBones = left => {
-          const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
-          const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
-          for (const fingerBone of fingerBones) {
-            const {bones, finger} = fingerBone;
-            let setter;
-            if (finger === 'thumb') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI * (i === 0 ? 0.125 : 0.25));
-            } else if (finger === 'index') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI * 0.5);
-            } else {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI * 0.5);
-            }
-            for (let i = 0; i < bones.length; i++) {
-              setter(bones[i].quaternion, i);
-            }
-          }
-        };
-        _processFingerBones(true);
-        _processFingerBones(false);
-      }
+      this._animateTop();
     }
 
     this._applyIk();
-
     this._applyWind();
 
     for (const k in this.modelBones) {
@@ -1860,27 +1957,14 @@ class Avatar {
         if (/hips|thumb|finger/i.test(k)) {
           modelBone.position.copy(modelBoneOutput.position);
         }
+
         modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
-        if (this.getTopEnabled()) {
-          if (k === 'LeftWrist') {
-            if (this.getHandEnabled(1)) {
-              // modelBone.quaternion.multiply(leftRotation); // center
-            }
-          } else if (k === 'RightWrist') {
-            if (this.getHandEnabled(0)) {
-              // modelBone.quaternion.multiply(rightRotation); // center
-            }
-          }
+        // Fix messed up bones if IK is being used
+        if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
+          this._fixIKProblems(k, modelBone);
         }
-        if (this.getBottomEnabled()) {
-          // Fix messed up feet if IK is being used
-          if (k === 'LeftAnkle' || k === 'RightAnkle') {
-            if (this.options.ikEnabeled === undefined || this.options.ikEnabeled) {
-              modelBone.quaternion.multiply(upRotation);
-            }
-          }
-        }
+
         modelBone.updateMatrixWorld();
       }
     }
@@ -1888,95 +1972,13 @@ class Avatar {
     if (this.springBoneManager) {
       this.springBoneManager.lateUpdate(timeDiff);
     }
-    /* if (this.springBoneManager && wasDecapitated) {
-      this.decapitate();
-    } */
 
     if (this.options.visemes) {
-      const aValue = Math.min(this.volume * 10, 1);
-      /* const emotionValues = {
-        angry: 0,
-        fun: 0,
-        joy: 0,
-        sorrow: 0,
-      }; */
-      const blinkValue = (() => {
-        const nowWindow = now % 2000;
-        if (nowWindow >= 0 && nowWindow < 100) {
-          return nowWindow / 100;
-        } else if (nowWindow >= 100 && nowWindow < 200) {
-          return 1 - (nowWindow - 100) / 100;
-        } else {
-          return 0;
-        }
-      })();
-      for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
-        // initialize
-        const {morphTargetInfluences} = visemeMapping;
-        for (let i = 0; i < morphTargetInfluences.length; i++) {
-          morphTargetInfluences[i] = 0;
-        }
-
-        // ik
-        if (visemeMapping.a >= 0) {
-          morphTargetInfluences[visemeMapping.a] = aValue;
-        }
-        if (visemeMapping.blink_l >= 0) {
-          morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
-        }
-        if (visemeMapping.blink_r >= 0) {
-          morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
-        }
-
-        /* // local vismeses
-        for (const influence of visemeMapping) {
-          if (emotionValues[influence.name]) {
-            morphTargetInfluences[influence.index] = emotionValues[influence.name];
-          }
-        } */
-
-        if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
-          morphTargetInfluences[emotionIndex] = 1;
-        }
-
-        // ["neutral", "a", "i", "u", "e", "o", "blink", "joy", "angry", "sorrow", "fun", "lookup", "lookdown", "lookleft", "lookright", "blink_l", "blink_r"]
-        // animation visemes
-        for (const activeViseme of this.activeVisemes) {
-          const {index, value} = activeViseme;
-          morphTargetInfluences[index] = value;
-        }
-      }
+      this._animateVisemes(now);
     }
 
     if (this.eyeTargetEnabled) {
-      for (const eye of [this.modelBones.EyeL, this.modelBones.EyeR]) {
-        if (eye) {
-          eye.getWorldPosition(localVector);
-          eye.parent.getWorldQuaternion(localQuaternion);
-          localQuaternion.invert()
-            .premultiply(z180Quaternion)
-            .multiply(
-              localQuaternion2.setFromRotationMatrix(
-                localMatrix.lookAt(
-                  localVector,
-                  this.eyeTarget,
-                  localVector2.set(0, 1, 0),
-                ),
-              ),
-            );
-          if (/^(?:left|right)eye$/i.test(eye.name)) {
-            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-            localEuler.x = -localEuler.x;
-            eye.quaternion.setFromEuler(localEuler);
-          } else {
-            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-            localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI * 0.05), Math.PI * 0.1);
-            localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.1), Math.PI * 0.1);
-            localEuler.z = 0;
-            eye.quaternion.setFromEuler(localEuler);
-          }
-        }
-      }
+      this._animateEyeTarget();
     }
 
     if (this.debugMeshes) {
