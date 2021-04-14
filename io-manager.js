@@ -2,6 +2,8 @@ import * as THREE from './three.module.js';
 import cameraManager from './camera-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
+import {rigManager} from './rig.js'
+import * as notifications from './notifications.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
@@ -431,6 +433,23 @@ ioManager.bindInput = () => {
         if (document.pointerLockElement) {
           ioManager.keys.ctrl = true;
         }
+        break;
+      }
+      case 75: { // K - Toggle Inverse Kinematics on Local Rig
+        rigManager.localRig.setIkEnabled( !rigManager.localRig.getIkEnabled() )
+
+        const notification = notifications.addNotification(`\
+        <i class="icon fa fa-user-ninja"></i>
+        <div class=wrap>
+          <div class=label>Updating Character IK...</div>
+          <div class=text>
+           IK Enabled : ${rigManager.localRig.getIkEnabled()}
+          </div>
+          <div class=close-button>✕</div>
+        </div>
+      `, {
+        timeout: 3000,
+      });
         break;
       }
       case 81: { // Q
