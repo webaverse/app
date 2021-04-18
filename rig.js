@@ -33,6 +33,7 @@ class RigManager {
       hair: true,
       visemes: true,
       debug: true,
+      ikEnabled: false, // XXX
     });
     this.localRig.aux = new RigAux({
       rig: this.localRig,
@@ -295,7 +296,8 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: false //!o,
+              debug: false,
+              ikEnabled: false, // XXX
             });
             localRig.model.isVrm = o.isVrm;
             localRig.model.contentId = o.contentId;
@@ -319,6 +321,7 @@ class RigManager {
             hair: true,
             visemes: true,
             debug: true,
+            ikEnabled: false, // XXX
           });
           localRig.aux = oldRig.aux;
           localRig.aux.rig = localRig;
@@ -348,7 +351,8 @@ class RigManager {
       fingers: true,
       hair: true,
       visemes: true,
-      debug: true
+      debug: true,
+      ikEnabled: false, // XXX
     });
     peerRig.aux = new RigAux({
       rig: peerRig,
