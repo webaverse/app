@@ -436,7 +436,7 @@ ioManager.bindInput = () => {
         break;
       }
       case 75: { // K - Toggle Inverse Kinematics on Local Rig
-        rigManager.localRig.setIkEnabled( !rigManager.localRig.getIkEnabled() )
+        rigManager.localRig.setIkEnabled(!rigManager.localRig.getIkEnabled());
 
         const notification = notifications.addNotification(`\
         <i class="icon fa fa-user-ninja"></i>
