@@ -214,7 +214,7 @@ const loadPromise = Promise.all([
             return null;
         }
       })();
-      animation.isIdle = /idle\-active/i.test(animation.name);
+      animation.isIdle = /idle\-active|simple\-hoverboard\-stand/i.test(animation.name);
       animation.isJump = /jump/i.test(animation.name);
       animation.isSitting = /sitting/i.test(animation.name);
       // animation.isFalling  = /falling/i.test(animation.name);
@@ -227,7 +227,8 @@ const loadPromise = Promise.all([
       animation.isCombo = /combo/i.test(animation.name);
       // animation.isHit = /sword_and_shield_idle/i.test(animation.name);
       animation.isMagic = /magic/i.test(animation.name);
-      animation.isSkateboarding = /skateboarding/i.test(animation.name);
+      // animation.isSkateboarding = /skateboarding/i.test(animation.name);
+      animation.isSkateboarding = /simple\-hoverboard/i.test(animation.name);
       animation.isThrow = /throw/i.test(animation.name);
       animation.isDancing = /dancing/i.test(animation.name);
       animation.isCrouch = /crouch|sneak/i.test(animation.name);
@@ -237,6 +238,8 @@ const loadPromise = Promise.all([
       animation.isRight = /right/i.test(animation.name);
       animation.isRunning = /running|left_strafe(?:_reverse)?|right_strafe(?:_reverse)?/i.test(animation.name);
       animation.isReverse = /reverse/i.test(animation.name);
+      animation.isPitch = /pitch/i.test(animation.name);
+      animation.isYaw = /yaw/i.test(animation.name);
       animation.interpolants = {};
       animation.tracks.forEach(track => {
         const i = track.createInterpolant();
@@ -263,7 +266,7 @@ const loadPromise = Promise.all([
     sitAnimations = {
       chair: animations.find(a => a.isSitting),
       saddle: animations.find(a => a.isSitting),
-      stand: animations.find(a => a.isSkateboarding),
+      stand: animations.find(a => a.isSkateboarding && a.isIdle),
     };
     danceAnimations = {
       dansu: animations.find(a => a.isDancing),
