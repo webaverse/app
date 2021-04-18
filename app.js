@@ -239,6 +239,11 @@ export default class App extends EventTarget {
         }
         localMatrix
           .decompose(localVector, localQuaternion, localVector2);
+        if (appManager.aimed) {
+          camera.matrixWorld
+            .decompose(localVector3, localQuaternion2, localVector4);
+          localQuaternion.copy(localQuaternion2);
+        }
 
         if (session) {
           let inputSources = Array.from(session.inputSources);
