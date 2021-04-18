@@ -1458,11 +1458,11 @@ class Avatar {
     // from Avaer: animation mappings defines which bones are sourced from animations at all, and under which conditions (it is top half of body or not)
     this.animationMappings = [
       new AnimationMapping('Hips.quaternion', this.outputs.hips.quaternion, false),
-      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, false),
-      // new AnimationMapping('Spine1.quaternion', null, false),
-      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, false),
-      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, false),
-      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, false),
+      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, true),
+      // new AnimationMapping('Spine1.quaternion', null, true),
+      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, true),
+      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, true),
+      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, true),
 
       new AnimationMapping('LeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
       new AnimationMapping('LeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
