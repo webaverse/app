@@ -121,6 +121,12 @@ const animationsDistanceMap = {
   crouched_sneaking_left_reverse: new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
   crouched_sneaking_right: new THREE.Vector3(crouchMagnitude, 0, 0),
   crouched_sneaking_right_reverse: new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
+
+  'simple-hoverboard-stand': new THREE.Vector3(0, 0, 0),
+  'simple-hoverboard-lean-left': new THREE.Vector3(-1, 0, 0),
+  'simple-hoverboard-lean-right': new THREE.Vector3(1, 0, 0),
+  'simple-hoverboard-lean-forward': new THREE.Vector3(0, 0, -1),
+  'simple-hoverboard-lean-backward': new THREE.Vector3(0, 0, 1),
 };
 let animations;
 let jumpAnimation;
@@ -1638,7 +1644,8 @@ class Avatar {
     
     const crouchFactor = Math.min(Math.max(this.crouchTime, 0), crouchMaxTime) / crouchMaxTime;
     const _selectAnimations = (v, standKey) => {
-      const selectedAnimations = animations.slice().sort((a, b) => {
+      const candidateAnimations = animations.filter(a => a.isSkateboarding === this.sitState);
+      const selectedAnimations = candidateAnimations.sort((a, b) => {
         const targetPosition1 = animationsSelectMap[standKey][a.name] || infinityUpVector;
         const distance1 = targetPosition1.distanceTo(v);
 
@@ -1651,28 +1658,30 @@ class Avatar {
         selectedAnimations[1] = selectedAnimations[0];
       }
       // from Avaer: selecting animations for 4-way blend (can be 8-way in the future)
-      if (selectedAnimations.some(a => a.isBackward)) {
-        if (selectedAnimations.some(a => a.isLeft)) {
-          if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-          } else if (selectedAnimations.some(a => a.isCrouch)) {
-            selectedAnimations[0] = animations.find(a => a.isRight && a.isCrouch && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
-          } else {
-            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-          }
-        } else if (selectedAnimations.some(a => a.isRight)) {
-          if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-          } else if (selectedAnimations.some(a => a.isCrouch)) {
-            selectedAnimations[0] = animations.find(a => a.isLeft && a.isCrouch && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
-          } else {
-            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
-            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+      if (!this.sitState) {
+        if (selectedAnimations.some(a => a.isBackward)) {
+          if (selectedAnimations.some(a => a.isLeft)) {
+            if (selectedAnimations.some(a => a.isRunning)) {
+              selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else if (selectedAnimations.some(a => a.isCrouch)) {
+              selectedAnimations[0] = animations.find(a => a.isRight && a.isCrouch && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
+            } else {
+              selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            }
+          } else if (selectedAnimations.some(a => a.isRight)) {
+            if (selectedAnimations.some(a => a.isRunning)) {
+              selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            } else if (selectedAnimations.some(a => a.isCrouch)) {
+              selectedAnimations[0] = animations.find(a => a.isLeft && a.isCrouch && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
+            } else {
+              selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
+              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            }
           }
         }
       }
