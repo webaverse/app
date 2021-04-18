@@ -248,7 +248,7 @@ const _selectLoadout = index => {
         item = ['https://avaer.github.io/lightsaber/manifest.json'];
       } else if (selectedLoadoutIndex === 5) {
         item = ['https://avaer.github.io/hovercraft/manifest.json'];
-      } else if (selectedLoadoutIndex === ) {
+      } else if (selectedLoadoutIndex === 6) {
         item = ['./hoverboard2/manifest.json'];
       } else if (selectedLoadoutIndex === 7) {
         item = ['https://avaer.github.io/dragon-pet/manifest.json'];
