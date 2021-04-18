@@ -50,6 +50,7 @@ class ShoulderTransforms {
     this.rightArmIk = new VRArmIK(this.rightArm, this, this.shoulderPoser, this.shoulderPoser.vrTransforms.rightHand, false);
 
     this.handsEnabled = [true, true];
+    this.aimed = true;
     this.enabled = true;
   }
 

@@ -696,6 +696,7 @@ class RigManager {
     }
     this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || (cameraManager.getMode() === 'firstperson' && physicsManager.isUnlocked()) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
+    this.localRig.setAimed(appManager.aimed);
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
     this.localRig.jumpState = physicsManager.getJumpState();

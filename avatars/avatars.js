@@ -18,6 +18,7 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
@@ -1544,12 +1545,12 @@ class Avatar {
     this.windTargetEnabled = false;
   }
 
-  setIkEnabled(val) {
-    this.ikEnabled = val;
+  getIkEnabled() {
+    return this.ikEnabled;
   }
 
-  getIkEnabled(val) {
-    return this.ikEnabled;
+  setIkEnabled(ikEnabled) {
+    this.ikEnabled = ikEnabled;
   }
 
   initializeBonePositions(setups) {
@@ -1620,6 +1621,14 @@ class Avatar {
 
   setTopEnabled(enabled) {
     this.shoulderTransforms.enabled = enabled;
+  }
+
+  getAimed() {
+    return this.shoulderTransforms.aimed;
+  }
+  
+  setAimed(aimed) {
+    this.shoulderTransforms.aimed = aimed;
   }
 
   getTopEnabled() {
@@ -1700,6 +1709,40 @@ class Avatar {
     const selectedAnimations = _selectAnimations(this.velocity, standKey);
     const selectedOtherAnimations = _selectAnimations(this.velocity, otherStandKey);
 
+    const pitchAnimation = animations.find(a => a.isPitch);
+    const yawAnimation = animations.find(a => a.isYaw);
+    let x = 0;
+    let y = 0;
+    if (this.aimed) {
+      const directionQuaternion = localQuaternion2.setFromUnitVectors(
+        localVector.set(0, 0, -1),
+        localVector2.copy(this.direction).normalize()
+      );
+      {
+        const hmdEuler = localEuler.setFromQuaternion(directionQuaternion, 'YXZ');
+        hmdEuler.y = 0;
+        hmdEuler.z = 0;
+        localQuaternion2.setFromEuler(hmdEuler);
+        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.leftGamepad.getWorldQuaternion(localQuaternion3), 'YXZ');
+        // console.log('got euler', localQuaternion3.toArray().join(' '));
+        rightGamepadEuler.y = 0;
+        rightGamepadEuler.z = 0;
+        localQuaternion3.setFromEuler(rightGamepadEuler);
+        y = localQuaternion2.angleTo(localQuaternion3);
+      }
+      {
+        const hmdEuler = localEuler.setFromQuaternion(directionQuaternion, 'YXZ');
+        hmdEuler.x = 0;
+        hmdEuler.z = 0;
+        localQuaternion2.setFromEuler(hmdEuler);
+        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.leftGamepad.getWorldQuaternion(localQuaternion3), 'YXZ');
+        rightGamepadEuler.x = 0;
+        rightGamepadEuler.z = 0;
+        localQuaternion3.setFromEuler(rightGamepadEuler);
+        x = localQuaternion2.angleTo(localQuaternion3);
+      }
+    }
+
     for (const spec of this.animationMappings) {
       const {
         quaternionKey: k,
@@ -1763,15 +1806,16 @@ class Avatar {
             target.fromArray(v1);
           };
           const _getTopBlend = target => {
-            const pitchAnimation = animations.find(a => a.isPitch);
-            const yawAnimation = animations.find(a => a.isYaw);
-            const now = (Date.now() % 1000) / 1000;
-            
+            /* const y = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
+              .angleTo(this.inputs.leftGamepad.quaternion.getWorldQuaternion(localQuaternion3));
+            const x = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
+              .angleTo(this.inputs.rightGamepad.quaternion.getWorldQuaternion(localQuaternion3)); */
+
             const src1 = pitchAnimation.interpolants[k];
-            const v1 = src1.evaluate(now);
-            
+            const v1 = src1.evaluate(y);
+
             const src2 = yawAnimation.interpolants[k];
-            const v2 = src2.evaluate(now);
+            const v2 = src2.evaluate(x);
 
             target.fromArray(v1)
               .slerp(localQuaternion2.fromArray(v2), 0.5);
