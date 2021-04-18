@@ -1774,7 +1774,7 @@ class Avatar {
             const v2 = src2.evaluate(now);
 
             target.fromArray(v1)
-              .slerp(localQuaternion2.fromArray(v2), 1);
+              .slerp(localQuaternion2.fromArray(v2), 0.5);
           };
           if (isTop) {
             _getTopBlend(dst);
