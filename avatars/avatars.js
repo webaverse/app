@@ -35,6 +35,7 @@ const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3
 
 let emotionIndex = -1;
 let poseIndex = -1;
+const ankleToFootOffset = 0.15;
 
 window.addEventListener('keydown', e => {
   if (poseData) {
@@ -1507,6 +1508,19 @@ class Avatar {
 
     this.windTarget = new THREE.Vector3();
     this.windTargetEnabled = false;
+  }
+  
+  getButtOffset() {
+    const eyesPosition = this.modelBones.EyeL.getWorldPosition(new THREE.Vector3())
+      .add(this.modelBones.EyeR.getWorldPosition(new THREE.Vector3()))
+      .divideScalar(2);
+    const legsPosition = this.modelBones.LeftAnkle.getWorldPosition(new THREE.Vector3())
+      .add(this.modelBones.RightAnkle.getWorldPosition(new THREE.Vector3()))
+      .divideScalar(2);
+    // console.log('eyes foot position', eyesPosition.toArray(), legsPosition.toArray());
+    const distance = eyesPosition.distanceTo(legsPosition);
+    // console.log('distance', distance);
+    return new THREE.Vector3(0, distance + ankleToFootOffset, 0);
   }
 
   setIkEnabled(val) {
