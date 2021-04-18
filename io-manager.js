@@ -439,17 +439,17 @@ ioManager.bindInput = () => {
         rigManager.localRig.setIkEnabled(!rigManager.localRig.getIkEnabled());
 
         const notification = notifications.addNotification(`\
-        <i class="icon fa fa-user-ninja"></i>
-        <div class=wrap>
-          <div class=label>Updating Character IK...</div>
-          <div class=text>
-           IK Enabled : ${rigManager.localRig.getIkEnabled()}
+          <i class="icon fa fa-user-ninja"></i>
+          <div class=wrap>
+            <div class=label>Updating Character IK...</div>
+            <div class=text>
+             IK Enabled : ${rigManager.localRig.getIkEnabled()}
+            </div>
+            <div class=close-button>✕</div>
           </div>
-          <div class=close-button>✕</div>
-        </div>
-      `, {
-        timeout: 3000,
-      });
+        `, {
+          timeout: 3000,
+        });
         break;
       }
       case 81: { // Q
