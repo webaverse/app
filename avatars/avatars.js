@@ -85,6 +85,14 @@ const animationsSelectMap = {
     right_strafe_walking_reverse: new THREE.Vector3(Infinity, 0, 0),
     right_strafe_reverse: new THREE.Vector3(Infinity, 0, 0),
   },
+  hoverboard: {
+    idle: new THREE.Vector3(0, 0, 0),
+
+    left_strafe: new THREE.Vector3(-1, 0, 0),
+    right_strafe: new THREE.Vector3(1, 0, 0),
+    running: new THREE.Vector3(0, 0, -1),
+    running_backwards: new THREE.Vector3(0, 0, 1),
+  },
 };
 const animationsDistanceMap = {
   idle: new THREE.Vector3(0, 0, 0),
@@ -1612,8 +1620,22 @@ class Avatar {
   }
 
   _applyAnimation(now) {
-    const standKey = this.crouchState ? 'stand' : 'crouch';
-    const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
+    // const standKey = this.crouchState ? 'stand' : 'crouch';
+    // const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
+    let standKey, otherStandKey;
+    if (!this.sitState) {
+      if (this.crouchState) {
+        standKey = 'stand';
+        otherStandKey = 'crouch';
+      } else {
+        standKey = 'crouch';
+        otherStandKey = 'stand';
+      }
+    } else {
+      standKey = 'hoverboard';
+      otherStandKey = 'hoverboard';
+    }
+    
     const crouchFactor = Math.min(Math.max(this.crouchTime, 0), crouchMaxTime) / crouchMaxTime;
     const _selectAnimations = (v, standKey) => {
       const selectedAnimations = animations.slice().sort((a, b) => {
@@ -1673,12 +1695,12 @@ class Avatar {
           const v2 = src2.evaluate(t2);
 
           dst.fromArray(v2);
-        } else if (this.sitState) {
+        /* } else if (this.sitState) {
           const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
           const src2 = sitAnimation.interpolants[k];
           const v2 = src2.evaluate(1);
 
-          dst.fromArray(v2);
+          dst.fromArray(v2); */
         } else if (this.danceState) {
           const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
           const src2 = danceAnimation.interpolants[k];
