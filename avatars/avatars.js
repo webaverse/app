@@ -86,12 +86,12 @@ const animationsSelectMap = {
     right_strafe_reverse: new THREE.Vector3(Infinity, 0, 0),
   },
   hoverboard: {
-    idle: new THREE.Vector3(0, 0, 0),
+    'simple-hoverboard-stand': new THREE.Vector3(0, 0, 0),
 
-    left_strafe: new THREE.Vector3(-1, 0, 0),
-    right_strafe: new THREE.Vector3(1, 0, 0),
-    running: new THREE.Vector3(0, 0, -1),
-    running_backwards: new THREE.Vector3(0, 0, 1),
+    'simple-hoverboard-lean-left': new THREE.Vector3(-1, 0, 0),
+    'simple-hoverboard-lean-right': new THREE.Vector3(1, 0, 0),
+    'simple-hoverboard-lean-forward': new THREE.Vector3(0, 0, -1),
+    'simple-hoverboard-lean-backward': new THREE.Vector3(0, 0, 1),
   },
 };
 const animationsDistanceMap = {
@@ -1739,18 +1739,17 @@ class Avatar {
               debugger;
             } */
             
-            const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
-            const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
-            const totalDistance = distance1 + distance2;
+            const distance1 = 1 - Math.min(animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction), 1);
+            const distance2 = 1 - distance1; // Math.min(animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction), 1);
             // const distanceFactor = 1 - distance2 / totalDistance;
 
             // const t1 = (now / 1000) % selectedAnimations[0].duration;
             const src1 = selectedAnimations[0].interpolants[k];
-            const v1 = src1.evaluate(distance1 / totalDistance);
+            const v1 = src1.evaluate(distance1);
 
             // const t2 = (now / 1000) % selectedAnimations[1].duration;
             const src2 = selectedAnimations[1].interpolants[k];
-            const v2 = src2.evaluate(distance2 / totalDistance);
+            const v2 = src2.evaluate(distance2);
 
             target.fromArray(v1);
           };
