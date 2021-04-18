@@ -1731,6 +1731,32 @@ class Avatar {
           const v2 = src2.evaluate(t2);
 
           dst.fromArray(v2);
+        } else if (this.sitState) {
+          // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
+          const _getHorizontalBlend = (selectedAnimations, target) => {
+            /* if (!animationsDistanceMap[selectedAnimations[0].name]) {
+              console.log('get distance', animationsDistanceMap, selectedAnimations[0].name);
+              debugger;
+            } */
+            
+            const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+            const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
+            const totalDistance = distance1 + distance2;
+            // const distanceFactor = 1 - distance2 / totalDistance;
+
+            // const t1 = (now / 1000) % selectedAnimations[0].duration;
+            const src1 = selectedAnimations[0].interpolants[k];
+            const v1 = src1.evaluate(distance1 / totalDistance);
+
+            // const t2 = (now / 1000) % selectedAnimations[1].duration;
+            const src2 = selectedAnimations[1].interpolants[k];
+            const v2 = src2.evaluate(distance2 / totalDistance);
+
+            target.fromArray(v1);
+          };
+          _getHorizontalBlend(selectedAnimations, localQuaternion2);
+          _getHorizontalBlend(selectedOtherAnimations, localQuaternion3);
+          dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
         } else {
           // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
           const _getHorizontalBlend = (selectedAnimations, target) => {
