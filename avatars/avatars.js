@@ -1765,12 +1765,16 @@ class Avatar {
           const _getTopBlend = target => {
             const pitchAnimation = animations.find(a => a.isPitch);
             const yawAnimation = animations.find(a => a.isYaw);
-
-            const src2 = pitchAnimation.interpolants[k];
             const now = (Date.now() % 1000) / 1000;
-            const v1 = src2.evaluate(now);
+            
+            const src1 = pitchAnimation.interpolants[k];
+            const v1 = src1.evaluate(now);
+            
+            const src2 = yawAnimation.interpolants[k];
+            const v2 = src2.evaluate(now);
 
-            target.fromArray(v1);
+            target.fromArray(v1)
+              .slerp(localQuaternion2.fromArray(v2), 1);
           };
           if (isTop) {
             _getTopBlend(dst);
