@@ -202,15 +202,15 @@ class LegsManager {
   }
 
   Reset() {
-    Helpers.copyTransform(this.leftLeg.upperLeg, this.rig.modelBones.Right_leg);
-    Helpers.copyTransform(this.leftLeg.lowerLeg, this.rig.modelBones.Right_knee);
-    Helpers.copyTransform(this.leftLeg.foot, this.rig.modelBones.Right_ankle);
+    Helpers.copyTransform(this.leftLeg.upperLeg, this.rig.modelBones.RightLeg);
+    Helpers.copyTransform(this.leftLeg.lowerLeg, this.rig.modelBones.RightKnee);
+    Helpers.copyTransform(this.leftLeg.foot, this.rig.modelBones.RightAnkle);
     this.leftLeg.foot.getWorldPosition(this.leftLeg.foot.stickTransform.position);
     this.leftLeg.foot.getWorldQuaternion(this.leftLeg.foot.stickTransform.quaternion);
 
-    Helpers.copyTransform(this.rightLeg.upperLeg, this.rig.modelBones.Left_leg);
-    Helpers.copyTransform(this.rightLeg.lowerLeg, this.rig.modelBones.Left_knee);
-    Helpers.copyTransform(this.rightLeg.foot, this.rig.modelBones.Left_ankle);
+    Helpers.copyTransform(this.rightLeg.upperLeg, this.rig.modelBones.LeftLeg);
+    Helpers.copyTransform(this.rightLeg.lowerLeg, this.rig.modelBones.LeftKnee);
+    Helpers.copyTransform(this.rightLeg.foot, this.rig.modelBones.LeftAnkle);
     this.rightLeg.foot.getWorldPosition(this.rightLeg.foot.stickTransform.position);
     this.rightLeg.foot.getWorldQuaternion(this.rightLeg.foot.stickTransform.quaternion);
 
