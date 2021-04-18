@@ -738,7 +738,7 @@ class RigManager {
       }
       physicsManager.setSitOffset(sitOffset);
       
-      physicsManager.setButtOffset(localVector.copy(this.localRig.buttOffset).multiplyScalar(0.85));
+      physicsManager.setButtOffset(localVector.copy(this.localRig.buttOffset).multiplyScalar(0.9));
       
       if (typeof damping === 'number') {
         physicsManager.setDamping(damping);
