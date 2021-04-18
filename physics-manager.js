@@ -22,6 +22,7 @@ const localMatrix = new THREE.Matrix4();
 const localObject = new THREE.Object3D();
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
+const ankleToFootOffset = 0.15;
 
 const physicsManager = new EventTarget();
 
@@ -403,8 +404,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
     localMatrix.copy(sitTarget.matrixWorld)
       .decompose(localVector, localQuaternion, localVector2);
-    localVector.add(sitOffset);
-    localVector.add(buttOffset);
+    localVector
+      .add(sitOffset)
+      .add(buttOffset)
+      .add(localVector3.set(0, ankleToFootOffset, 0));
     localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
     
     const offset = physicsManager.getAvatarCameraOffset();

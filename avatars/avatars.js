@@ -35,7 +35,6 @@ const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3
 
 let emotionIndex = -1;
 let poseIndex = -1;
-const ankleToFootOffset = 0.15;
 
 window.addEventListener('keydown', e => {
   if (poseData) {
@@ -900,6 +899,17 @@ class Avatar {
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
+    
+    this.buttOffset = (() => {
+      const eyesPosition = this.modelBones.EyeL.getWorldPosition(new THREE.Vector3())
+        .add(this.modelBones.EyeR.getWorldPosition(new THREE.Vector3()))
+        .divideScalar(2);
+      const legsPosition = this.modelBones.LeftAnkle.getWorldPosition(new THREE.Vector3())
+        .add(this.modelBones.RightAnkle.getWorldPosition(new THREE.Vector3()))
+        .divideScalar(2);
+      const distance = eyesPosition.distanceTo(legsPosition);
+      return new THREE.Vector3(0, distance, 0);
+    })();
 
     const armatureQuaternion = armature.quaternion.clone();
     const armatureMatrixInverse = armature.matrixWorld.clone().invert();
@@ -1523,17 +1533,6 @@ class Avatar {
     this.windTarget = new THREE.Vector3();
     this.windTargetEnabled = false;
   }
-  
-  getButtOffset() {
-    const eyesPosition = this.modelBones.EyeL.getWorldPosition(new THREE.Vector3())
-      .add(this.modelBones.EyeR.getWorldPosition(new THREE.Vector3()))
-      .divideScalar(2);
-    const legsPosition = this.modelBones.LeftAnkle.getWorldPosition(new THREE.Vector3())
-      .add(this.modelBones.RightAnkle.getWorldPosition(new THREE.Vector3()))
-      .divideScalar(2);
-    const distance = eyesPosition.distanceTo(legsPosition);
-    return new THREE.Vector3(0, distance + ankleToFootOffset, 0);
-  }
 
   setIkEnabled(val) {
     this.ikEnabled = val;
@@ -1654,11 +1653,12 @@ class Avatar {
 
         return distance1 - distance2;
       }).slice(0, 2);
-      if (selectedAnimations[1].isIdle) {
-        selectedAnimations[1] = selectedAnimations[0];
-      }
       // from Avaer: selecting animations for 4-way blend (can be 8-way in the future)
       if (!this.sitState) {
+        if (selectedAnimations[1].isIdle) {
+          selectedAnimations[1] = selectedAnimations[0];
+        }
+        
         if (selectedAnimations.some(a => a.isBackward)) {
           if (selectedAnimations.some(a => a.isLeft)) {
             if (selectedAnimations.some(a => a.isRunning)) {
@@ -1739,16 +1739,20 @@ class Avatar {
               debugger;
             } */
             
-            const distance1 = 1 - Math.min(animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction), 1);
+            const nonIdleAnimation = selectedAnimations[0].isIdle ? selectedAnimations[1] : selectedAnimations[0];
+            const idleAnimation = selectedAnimations[0].isIdle ? selectedAnimations[0] : selectedAnimations[1];
+            const normalizedDirection = this.direction.length() > 1 ? localVector2.copy(this.direction).normalize() : this.direction;
+            const distance1 = Math.min(Math.max(1 - animationsDistanceMap[nonIdleAnimation.name].distanceTo(normalizedDirection), 0), 1);
             const distance2 = 1 - distance1; // Math.min(animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction), 1);
+            // const totalDistance = distance1 + distance2;
             // const distanceFactor = 1 - distance2 / totalDistance;
 
             // const t1 = (now / 1000) % selectedAnimations[0].duration;
-            const src1 = selectedAnimations[0].interpolants[k];
+            const src1 = nonIdleAnimation.interpolants[k];
             const v1 = src1.evaluate(distance1);
 
             // const t2 = (now / 1000) % selectedAnimations[1].duration;
-            const src2 = selectedAnimations[1].interpolants[k];
+            const src2 = idleAnimation.interpolants[k];
             const v2 = src2.evaluate(distance2);
 
             target.fromArray(v1);
