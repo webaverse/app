@@ -1517,9 +1517,7 @@ class Avatar {
     const legsPosition = this.modelBones.LeftAnkle.getWorldPosition(new THREE.Vector3())
       .add(this.modelBones.RightAnkle.getWorldPosition(new THREE.Vector3()))
       .divideScalar(2);
-    // console.log('eyes foot position', eyesPosition.toArray(), legsPosition.toArray());
     const distance = eyesPosition.distanceTo(legsPosition);
-    // console.log('distance', distance);
     return new THREE.Vector3(0, distance + ankleToFootOffset, 0);
   }
 
