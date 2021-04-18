@@ -214,7 +214,7 @@ const loadPromise = Promise.all([
             return null;
         }
       })();
-      animation.isIdle = /idle/i.test(animation.name);
+      animation.isIdle = /idle\-active/i.test(animation.name);
       animation.isJump = /jump/i.test(animation.name);
       animation.isSitting = /sitting/i.test(animation.name);
       // animation.isFalling  = /falling/i.test(animation.name);
