@@ -241,17 +241,17 @@ const _selectLoadout = index => {
       if (selectedLoadoutIndex === 1) {
         item = ['https://avaer.github.io/pistol/manifest.json'];
       } else if (selectedLoadoutIndex === 2) {
-        item = ['https://avaer.github.io//rifle/manifest.json'];
+        item = ['https://avaer.github.io/rifle/manifest.json'];
       } else if (selectedLoadoutIndex === 3) {
-        item = ['https://avaer.github.io//pickaxe/manifest.json'];
+        item = ['https://avaer.github.io/pickaxe/manifest.json'];
       } else if (selectedLoadoutIndex === 4) {
-        item = ['https://avaer.github.io//lightsaber/manifest.json'];
+        item = ['https://avaer.github.io/lightsaber/manifest.json'];
       } else if (selectedLoadoutIndex === 5) {
-        item = ['https://avaer.github.io//hovercraft/manifest.json'];
+        item = ['https://avaer.github.io/hovercraft/manifest.json'];
       } else if (selectedLoadoutIndex === 6) {
-        item = ['https://avaer.github.io//hoverboard/manifest.json'];
+        item = ['https://avaer.github.io/hoverboard2/manifest.json'];
       } else if (selectedLoadoutIndex === 7) {
-        item = ['https://avaer.github.io//dragon-pet/manifest.json'];
+        item = ['https://avaer.github.io/dragon-pet/manifest.json'];
       }
     }
     if (item) {
