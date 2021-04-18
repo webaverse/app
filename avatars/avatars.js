@@ -1737,7 +1737,6 @@ class Avatar {
             const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
             const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
             const totalDistance = distance1 + distance2;
-            const distanceFactor = 1 - distance2 / totalDistance;
 
             const t1 = (now / 1000) % selectedAnimations[0].duration;
             const src1 = selectedAnimations[0].interpolants[k];
@@ -1750,6 +1749,7 @@ class Avatar {
             target.fromArray(v1);
             if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
               // from Avaer: literally blending animation quaternions (spherical linear interpolation, slerp)
+              const distanceFactor = 1 - distance2 / totalDistance;
               target.slerp(localQuaternion.fromArray(v2), distanceFactor);
             }
           };
