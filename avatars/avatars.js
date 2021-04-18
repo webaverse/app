@@ -149,6 +149,16 @@ const loadPromise = Promise.all([
       gltfLoader.load('../animations/animations1.glb', resolve, () => {}, reject);
     });
     animations = animationsModel.animations;
+    
+    // console.log('got animations', animations.map(a => a.name));
+    
+    // const akPitch = animations.find(a => a.name === 'ak-pitch');
+    // const akYaw = animations.find(a => a.name === 'ak-yaw');
+    /* const simpleHoverboardLeanBackward = animations.find(a => a.name === 'simple-hoverboard-lean-backward');
+    const simpleHoverboardLeanForward = animations.find(a => a.name === 'simple-hoverboard-lean-forward');
+    const simpleHoverboardLeanLeft = animations.find(a => a.name === 'simple-hoverboard-lean-left');
+    const simpleHoverboardLeanRight = animations.find(a => a.name === 'simple-hoverboard-lean-right');
+    const simpleHoverboardStand = animations.find(a => a.name === 'simple-hoverboard-stand'); */
 
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
       for (let i = 1; i < animations.length; i++) {
@@ -1448,11 +1458,11 @@ class Avatar {
     // from Avaer: animation mappings defines which bones are sourced from animations at all, and under which conditions (it is top half of body or not)
     this.animationMappings = [
       new AnimationMapping('Hips.quaternion', this.outputs.hips.quaternion, false),
-      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, true),
+      new AnimationMapping('Spine.quaternion', this.outputs.spine.quaternion, false),
       // new AnimationMapping('Spine1.quaternion', null, false),
-      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, true),
-      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, true),
-      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, true),
+      new AnimationMapping('Spine2.quaternion', this.outputs.chest.quaternion, false),
+      new AnimationMapping('Neck.quaternion', this.outputs.neck.quaternion, false),
+      new AnimationMapping('Head.quaternion', this.outputs.head.quaternion, false),
 
       new AnimationMapping('LeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
       new AnimationMapping('LeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
@@ -1733,12 +1743,7 @@ class Avatar {
           dst.fromArray(v2);
         } else if (this.sitState) {
           // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
-          const _getHorizontalBlend = (selectedAnimations, target) => {
-            /* if (!animationsDistanceMap[selectedAnimations[0].name]) {
-              console.log('get distance', animationsDistanceMap, selectedAnimations[0].name);
-              debugger;
-            } */
-            
+          const _getBottomBlend = (selectedAnimations, target) => {
             const nonIdleAnimation = selectedAnimations[0].isIdle ? selectedAnimations[1] : selectedAnimations[0];
             const idleAnimation = selectedAnimations[0].isIdle ? selectedAnimations[0] : selectedAnimations[1];
             const normalizedDirection = this.direction.length() > 1 ? localVector2.copy(this.direction).normalize() : this.direction;
@@ -1757,9 +1762,22 @@ class Avatar {
 
             target.fromArray(v1);
           };
-          _getHorizontalBlend(selectedAnimations, localQuaternion2);
-          _getHorizontalBlend(selectedOtherAnimations, localQuaternion3);
-          dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
+          const _getTopBlend = target => {
+            const pitchAnimation = animations.find(a => a.isPitch);
+            const yawAnimation = animations.find(a => a.isYaw);
+
+            const src2 = pitchAnimation.interpolants[k];
+            const now = (Date.now() % 1000) / 1000;
+            const v1 = src2.evaluate(now);
+
+            target.fromArray(v1);
+          };
+          if (isTop) {
+            _getTopBlend(dst);
+          } else {
+            _getBottomBlend(selectedAnimations, dst);
+          }
+          // dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
         } else {
           // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
           const _getHorizontalBlend = (selectedAnimations, target) => {
