@@ -279,7 +279,20 @@
             URL.revokeObjectURL(u);
           } */
           console.log('loaded VRM', o);
+          
+          const rig = new Avatar(o, {
+            fingers: true,
+            hair: true,
+            visemes: true,
+            debug: false //!o,
+          });
+          rig.model.isVrm = true;
+          /* rig.aux = oldRig.aux;
+          rig.aux.rig = rig; */
+          
           o = o.scene;
+          o.rig = rig;
+          
           return o;
         };
         const _loadVox = async () => {
@@ -480,11 +493,8 @@
                       .add(eyes[1].getWorldPosition(new THREE.Vector3()))
                       .divideScalar(2);
                     camera.position.copy(center)
-                      .add(new THREE.Vector3(0, 0, -0.3));
-                    camera.quaternion.setFromUnitVectors(
-                      new THREE.Vector3(0, 0, -1),
-                      new THREE.Vector3(0, 0, 1)
-                    );
+                      .add(new THREE.Vector3(0, 0, 0.3));
+                    camera.quaternion.identity();
                     camera.fov = 60;
                     camera.updateProjectionMatrix();
                   }
