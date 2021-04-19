@@ -783,6 +783,8 @@
             type: 'video/webm',
           });
 
+          console.log('got video blob', blob);
+
           const video = document.createElement('video');
           video.muted = true;
           video.autoplay = true;
