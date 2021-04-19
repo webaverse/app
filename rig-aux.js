@@ -384,7 +384,7 @@ export class RigAux {
       }
     }
   }
-  update(timeDiff) {
+  update(now, timeDiff) {
     for (const wearable of this.wearables) {
 	    wearable.update(timeDiff);
 	  }

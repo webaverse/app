@@ -1731,13 +1731,11 @@ class Avatar {
   getBottomEnabled() {
     return this.legsManager.enabled;
   }
-	update(timeDiff) {
+	update(now, timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
-
-    const now = Date.now();
 
     const _applyAnimation = () => {
       const standKey = this.crouchState ? 'stand' : 'crouch';
@@ -2088,4 +2086,5 @@ class Avatar {
   }
 }
 Avatar.waitForLoad = () => loadPromise;
+Avatar.getAnimations = () => animations;
 export default Avatar;
