@@ -749,6 +749,7 @@
 
           const mediaRecorder = new MediaRecorder(stream, {
             mimeType: 'video/webm; codecs=vp9',
+            videoBitsPerSecond: 5000000,
           });
 
           mediaRecorder.ondataavailable = event => {
