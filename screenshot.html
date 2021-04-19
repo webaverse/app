@@ -790,8 +790,8 @@
             video.onerror = reject;
             video.src = URL.createObjectURL(blob);
           });
-          video.style.width = `${width}px`;
-          video.style.height = `${height}px`;
+          video.style.width = `${width / window.devicePixelRatio}px`;
+          video.style.height = `${height / window.devicePixelRatio}px`;
           video.loop = true;
           screenshotResult.appendChild(video);
 
