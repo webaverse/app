@@ -33,6 +33,7 @@
     import {VOXLoader} from './VOXLoader.js';
     import {bake, toggleElements} from './bakeUtils.js';
     import {getExt, parseQuery} from './util.js';
+    import Avatar from './avatars/avatars.js';
     import wbn from './wbn.js';
     import * as icons from './icons.js';
     import './gif.js';
@@ -266,6 +267,21 @@
           o = o.scene;
           return o;
         };
+        const _loadVrm = async () => {
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new GLTFLoader().load(url, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          console.log('loaded VRM', o);
+          o = o.scene;
+          return o;
+        };
         const _loadVox = async () => {
           let o;
           try {
@@ -347,9 +363,12 @@
               let o;
               try {
                 switch (ext) {
-                  case 'glb':
-                  case 'vrm': {
+                  case 'glb': {
                     o = await _loadGltf();
+                    break;
+                  }
+                  case 'vrm': {
+                    o = await _loadVrm();
                     break;
                   }
                   case 'vox': {
@@ -557,8 +576,9 @@
           const o = await (async () => {
             switch (ext) {
               case 'glb':
-              case 'vrm':
                 return await _loadGltf();
+              case 'vrm':
+                return await _loadVrm();
               case 'vox':
                 return await _loadVox();
               default:
@@ -641,8 +661,9 @@
           const o = await (async () => {
             switch (ext) {
               case 'glb':
-              case 'vrm':
                 return await _loadGltf();
+              case 'vrm':
+                return await _loadVrm();
               case 'vox':
                 return await _loadVox();
               default:
