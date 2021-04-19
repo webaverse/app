@@ -812,7 +812,7 @@
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
         } else if (type === 'gif' && ext === 'gif') {
-	  const blob = await fetch(url);
+	        const blob = await fetch(url);
           const img = new Image();
           await new Promise((accept, reject) => {
             img.onload = accept;
