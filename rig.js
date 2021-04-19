@@ -656,8 +656,8 @@ class RigManager {
     })();
     this.localRig.useAnimation = useAnimation;
 
-    this.localRig.update(timeDiff);
-    this.localRig.aux.update(timeDiff);
+    this.localRig.update(now, timeDiff);
+    this.localRig.aux.update(now, timeDiff);
 
     let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
     let sitAnimation;
@@ -703,8 +703,8 @@ class RigManager {
     physicsManager.setSitState(sitState);
 
     this.peerRigs.forEach(rig => {
-      rig.update(timeDiff);
-      rig.aux.update(timeDiff);
+      rig.update(now, timeDiff);
+      rig.aux.update(now, timeDiff);
     });
     
     this.lastTimetamp = now;
