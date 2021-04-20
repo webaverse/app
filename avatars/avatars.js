@@ -1772,7 +1772,12 @@ class Avatar {
         x = rightGamepadEuler.y - hmdEuler.y;
         x /= Math.PI;
         x += 0.5;
-        // x *= -1;
+        while (x < -2.5) {
+          x += 2;
+        }
+        while (x > 1.5) {
+          x -= 2;
+        }
         x = Math.min(Math.max(x, 0), 1);
         x = 1 - x;
       }
