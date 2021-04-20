@@ -1844,8 +1844,9 @@ class Avatar {
             const src2 = yawAnimation.interpolants[k];
             const v2 = src2.evaluate(x);
 
-            target.fromArray(v1)
-              .premultiply(localQuaternion2.fromArray(v2));
+            target.fromArray(v1); // this is pitch
+            // target.fromArray(v2); // this is yaw
+            // .premultiply(localQuaternion2.fromArray(v2));
           };
           // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
           const _getBottomBlend = (selectedAnimations, target) => {
