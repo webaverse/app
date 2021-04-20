@@ -555,10 +555,27 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+const redArrow = new THREE.Mesh(new THREE.CylinderBufferGeometry(0, 0.1, 0.3, 3).applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2))), new THREE.MeshPhongMaterial({
+  color: 0xFF0000,
+}));
+scene.add(redArrow);
+const blueArrow = new THREE.Mesh(new THREE.CylinderBufferGeometry(0, 0.1, 0.3, 3).applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2))), new THREE.MeshPhongMaterial({
+  color: 0x0000FF,
+}));
+scene.add(blueArrow);
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
+
+  const _updateArrows = () => {
+    redArrow.position.copy(rigManager.localRig.outputs.hips.position);
+    redArrow.quaternion.copy(rigManager.localRig.inputs.hips.quaternion);
+    blueArrow.position.copy(rigManager.localRig.inputs.hmd.position);
+    blueArrow.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
+  };
+  _updateArrows();
 
   const _handleHighlight = () => {
     if (!editedObject) {
