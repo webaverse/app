@@ -1277,6 +1277,7 @@ class Avatar {
       hmd: _makeInput(),
       leftGamepad: _makeInput(),
       rightGamepad: _makeInput(),
+      hips: _makeInput(),
     };
     this.sdkInputs = {
       hmd: this.poseManager.vrTransforms.head,

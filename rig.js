@@ -420,6 +420,8 @@ class RigManager {
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
     const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
+    
+    const hipQuaternion = this.localRig.inputs.hips.quaternion.toArray();
 
     const floorHeight = this.localRig.getFloorHeight();
     const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
@@ -449,6 +451,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
       floorHeight,
       handsEnabled,
       topEnabled,
@@ -488,6 +491,8 @@ class RigManager {
     const rightGamepadQuaternion = peerRig.inputs.rightGamepad.quaternion.toArray();
     const rightGamepadPointer = peerRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
+    
+    const hipQuaternion = peerRig.inputs.hips.quaternion.toArray();
 
     const floorHeight = peerRig.getFloorHeight();
     const topEnabled = peerRig.getTopEnabled();
@@ -497,6 +502,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [hipQuaternion],
       floorHeight,
       topEnabled,
       bottomEnabled,
@@ -508,6 +514,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
     ] = poseArray;
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
@@ -525,6 +532,8 @@ class RigManager {
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
     this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
+    this.localRig.inputs.hips.quaternion.fromArray(hipQuaternion);
+
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
     this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
@@ -538,6 +547,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
       floorHeight,
       handsEnabled,
       topEnabled,
@@ -576,6 +586,8 @@ class RigManager {
       peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
       peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      
+      peerRig.inputs.hipQuaternion.fromArray(hipQuaternion);
 
       peerRig.setFloorHeight(floorHeight);
       for (let i = 0; i < 2; i++) {
