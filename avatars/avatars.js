@@ -1990,7 +1990,8 @@ class Avatar {
     } else {
       this.outputs.hips.position.copy(this.inputs.hmd.position)
         .add(this.eyeToHipsOffset);
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      
+      localEuler.setFromQuaternion(this.inputs.hips.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
