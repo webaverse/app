@@ -48,3 +48,4 @@ export const forceAvatarUrl = null;
 // export const forceAvatarUrl = './assets2/kasamoto_kanji.vrm';
 // export const forceAvatarUrl = './assets2/shilo.vrm';
 // export const forceAvatarUrl = './assets2/eggy.vrm';
+export const defaultAvatarModelUrl = `https://webaverse.github.io/assets/Default%20Bot%20(2).vrm`;
