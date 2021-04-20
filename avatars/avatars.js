@@ -1741,17 +1741,17 @@ class Avatar {
     const yawAnimation = animations.find(a => a.isYaw);
     let x = 0;
     let y = 0;
-    if (this.aimed) {
-      const directionQuaternion = localQuaternion2.setFromUnitVectors(
+    if (this.getAimed()) {
+      /* const directionQuaternion = localQuaternion2.setFromUnitVectors(
         localVector.set(0, 0, -1),
         localVector2.copy(this.direction).normalize()
-      );
+      ); */
       {
-        const hmdEuler = localEuler.setFromQuaternion(directionQuaternion, 'YXZ');
+        const hmdEuler = localEuler.setFromQuaternion(this.inputs.hmd.getWorldQuaternion(localQuaternion3), 'YXZ');
         hmdEuler.y = 0;
         hmdEuler.z = 0;
         localQuaternion2.setFromEuler(hmdEuler);
-        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.leftGamepad.getWorldQuaternion(localQuaternion3), 'YXZ');
+        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.hips.getWorldQuaternion(localQuaternion3), 'YXZ');
         // console.log('got euler', localQuaternion3.toArray().join(' '));
         rightGamepadEuler.y = 0;
         rightGamepadEuler.z = 0;
@@ -1759,11 +1759,11 @@ class Avatar {
         y = localQuaternion2.angleTo(localQuaternion3);
       }
       {
-        const hmdEuler = localEuler.setFromQuaternion(directionQuaternion, 'YXZ');
+        const hmdEuler = localEuler.setFromQuaternion(this.inputs.hmd.getWorldQuaternion(localQuaternion3), 'YXZ');
         hmdEuler.x = 0;
         hmdEuler.z = 0;
         localQuaternion2.setFromEuler(hmdEuler);
-        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.leftGamepad.getWorldQuaternion(localQuaternion3), 'YXZ');
+        const rightGamepadEuler = localEuler2.setFromQuaternion(this.inputs.hips.getWorldQuaternion(localQuaternion3), 'YXZ');
         rightGamepadEuler.x = 0;
         rightGamepadEuler.z = 0;
         localQuaternion3.setFromEuler(rightGamepadEuler);
@@ -1812,7 +1812,22 @@ class Avatar {
           const v2 = src2.evaluate(t2);
 
           dst.fromArray(v2);
-        } else if (this.sitState) {
+        } else if (this.sitState || this.getAimed()) {
+          const _getTopBlend = target => {
+            /* const y = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
+              .angleTo(this.inputs.leftGamepad.quaternion.getWorldQuaternion(localQuaternion3));
+            const x = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
+              .angleTo(this.inputs.rightGamepad.quaternion.getWorldQuaternion(localQuaternion3)); */
+
+            const src1 = pitchAnimation.interpolants[k];
+            const v1 = src1.evaluate(y);
+
+            const src2 = yawAnimation.interpolants[k];
+            const v2 = src2.evaluate(x);
+
+            target.fromArray(v1)
+              .premultiply(localQuaternion2.fromArray(v2));
+          };
           // from Avaer: blending the animations that we selected for the 4-way blend, in the last line
           const _getBottomBlend = (selectedAnimations, target) => {
             const nonIdleAnimation = selectedAnimations[0].isIdle ? selectedAnimations[1] : selectedAnimations[0];
@@ -1828,30 +1843,39 @@ class Avatar {
             const v1 = src1.evaluate(distance1);
 
             // const t2 = (now / 1000) % selectedAnimations[1].duration;
-            const src2 = idleAnimation.interpolants[k];
-            const v2 = src2.evaluate(distance2);
+            // const src2 = idleAnimation.interpolants[k];
+            // const v2 = src2.evaluate(distance2);
 
             target.fromArray(v1);
           };
-          const _getTopBlend = target => {
-            /* const y = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
-              .angleTo(this.inputs.leftGamepad.quaternion.getWorldQuaternion(localQuaternion3));
-            const x = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
-              .angleTo(this.inputs.rightGamepad.quaternion.getWorldQuaternion(localQuaternion3)); */
+          const _getHorizontalBlend = (selectedAnimations, target) => {
+            const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+            const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
+            const totalDistance = distance1 + distance2;
 
-            const src1 = pitchAnimation.interpolants[k];
-            const v1 = src1.evaluate(y);
+            const t1 = (now / 1000) % selectedAnimations[0].duration;
+            const src1 = selectedAnimations[0].interpolants[k];
+            const v1 = src1.evaluate(t1);
 
-            const src2 = yawAnimation.interpolants[k];
-            const v2 = src2.evaluate(x);
+            const t2 = (now / 1000) % selectedAnimations[1].duration;
+            const src2 = selectedAnimations[1].interpolants[k];
+            const v2 = src2.evaluate(t2);
 
-            target.fromArray(v1)
-              .slerp(localQuaternion2.fromArray(v2), 0.5);
+            target.fromArray(v1);
+            if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+              // from Avaer: literally blending animation quaternions (spherical linear interpolation, slerp)
+              const distanceFactor = 1 - distance2 / totalDistance;
+              target.slerp(localQuaternion.fromArray(v2), distanceFactor);
+            }
           };
           if (isTop) {
             _getTopBlend(dst);
           } else {
-            _getBottomBlend(selectedAnimations, dst);
+            // _getBottomBlend(selectedAnimations, dst);
+
+            _getHorizontalBlend(selectedAnimations, localQuaternion2);
+            _getHorizontalBlend(selectedOtherAnimations, localQuaternion3);
+            dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
           }
           // dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
         } else {
