@@ -1756,7 +1756,9 @@ class Avatar {
         rightGamepadEuler.y = 0;
         rightGamepadEuler.z = 0;
         localQuaternion3.setFromEuler(rightGamepadEuler);
-        y = localQuaternion2.angleTo(localQuaternion3);
+        y = rightGamepadEuler.x - hmdEuler.x;
+        y /= Math.PI;
+        y += 0.5;
       }
       {
         const hmdEuler = localEuler.setFromQuaternion(this.inputs.hmd.getWorldQuaternion(localQuaternion3), 'YXZ');
@@ -1767,8 +1769,19 @@ class Avatar {
         rightGamepadEuler.x = 0;
         rightGamepadEuler.z = 0;
         localQuaternion3.setFromEuler(rightGamepadEuler);
-        x = localQuaternion2.angleTo(localQuaternion3);
+        x = rightGamepadEuler.y - hmdEuler.y;
+        x /= Math.PI;
+        x += 0.5;
+        // x *= -1;
+        x = Math.min(Math.max(x, 0), 1);
+        x = 1 - x;
       }
+    }
+    
+    // console.log('got blend', this.sitState, this.getAimed());
+
+    if (this.getAimed()) {
+      console.log('pitch yaw', x, y);
     }
 
     for (const spec of this.animationMappings) {
