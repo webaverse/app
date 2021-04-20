@@ -11,6 +11,7 @@ import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
+import {defaultAvatarModelUrl} from '../constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -57,6 +58,9 @@ window.addEventListener('keydown', e => {
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
+
+let defaultAvatarModel = null;
+
 const animationsSelectMap = {
   crouch: {
     crouch_idle: new THREE.Vector3(0, 0, 0),
@@ -142,8 +146,28 @@ dracoLoader.preload();
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
+const _gltfClone = a => {
+  const result = {
+    scene: a.scene,
+  };
+  for (const k in a) {
+    if (k !== 'scene') {
+     result[k] = a[k];
+    }
+  }
+  return result;
+};
+
 let poseData = null;
 const loadPromise = Promise.all([
+  // load default avatar
+  (async () => {
+    defaultAvatarModel = await new Promise((resolve, reject) => {
+      gltfLoader.load(defaultAvatarModelUrl, resolve, () => {}, err => {
+        reject(err);
+      });
+    });
+  })(),
   // load animations
   (async () => {
     const animationsModel = await new Promise((resolve, reject) => {
@@ -368,7 +392,7 @@ const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
 const cubeGeometryPositions = cubeGeometry.attributes.position.array;
 const numCubeGeometryPositions = cubeGeometryPositions.length;
 const srcCubeGeometries = {};
-const _makeDebugMeshes = () => {
+/* const _makeDebugMeshes = () => {
   const geometries = [];
   const _makeCubeMesh = (color, scale = 1) => {
     color = new THREE.Color(color);
@@ -462,7 +486,7 @@ const _makeDebugMeshes = () => {
   mesh.frustumCulled = false;
   mesh.attributes = attributes;
   return mesh;
-};
+}; */
 
 const _getTailBones = skeleton => {
   const result = [];
@@ -707,6 +731,9 @@ class AnimationMapping {
 
 class Avatar {
   constructor(object, options = {}) {
+    if (!object) {
+      object = _gltfClone(defaultAvatarModel);
+    }
     this.object = object;
     const model = (() => {
       let o = object;
@@ -756,13 +783,13 @@ class Avatar {
       poseSkeletonSkinnedMesh.bind(skeleton);
     }
 
-    if (options.debug) {
+    /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
       this.model.add(debugMeshes);
       this.debugMeshes = debugMeshes;
     } else {
       this.debugMeshes = null;
-    }
+    } */
 
     const _getOptional = o => o || new THREE.Bone();
     const _ensureParent = (o, parent) => {
@@ -1911,9 +1938,9 @@ class Avatar {
         localEuler.y += Math.PI;
         this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
       }
-      if (!this.getTopEnabled() && this.debugMeshes) {
+      /* if (!this.getTopEnabled() && this.debugMeshes) {
         this.outputs.hips.updateMatrixWorld();
-      }
+      } */
 
       this.shoulderTransforms.Update();
       this.legsManager.Update();
@@ -2132,7 +2159,7 @@ class Avatar {
       this._animateEyeTarget();
     }
 
-    if (this.debugMeshes) {
+    /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
@@ -2151,7 +2178,7 @@ class Avatar {
         }
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    }
+    } */
   }
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
@@ -2178,11 +2205,11 @@ class Avatar {
           o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
         }
       });
-      if (this.debugMeshes) {
+      /* if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
           attribute.visible = false;
         });
-      }
+      } */
       this.decapitated = true;
     }
   }
@@ -2195,11 +2222,11 @@ class Avatar {
           o.matrixWorld.copy(o.savedMatrixWorld);
         }
       });
-      if (this.debugMeshes) {
+      /* if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
           attribute.visible = true;
         });
-      }
+      } */
       this.decapitated = false;
     }
   }

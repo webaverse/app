@@ -73,6 +73,7 @@ export default class App extends EventTarget {
     ])
       .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
+        rigManager.injectDependencies(scene);
       });
     this.contentLoaded = false;
   }
