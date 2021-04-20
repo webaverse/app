@@ -1772,10 +1772,10 @@ class Avatar {
         x = rightGamepadEuler.y - hmdEuler.y;
         x /= Math.PI;
         x += 1;
-        if (x < -2) {
+        while (x < -2) {
           x += 2;
         }
-        if (x > 2) {
+        while (x > 2) {
           x -= 2;
         }
         x -= 0.5;
