@@ -1785,9 +1785,9 @@ class Avatar {
     
     // console.log('got blend', this.sitState, this.getAimed());
 
-    if (this.getAimed()) {
+    /* if (this.getAimed()) {
       console.log('pitch yaw', x, y);
-    }
+    } */
 
     for (const spec of this.animationMappings) {
       const {
