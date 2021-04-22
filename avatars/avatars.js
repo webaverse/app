@@ -90,12 +90,12 @@ const animationsSelectMap = {
     right_strafe_reverse: new THREE.Vector3(Infinity, 0, 0),
   },
   hoverboard: {
-    'simple-hoverboard-stand': new THREE.Vector3(0, 0, 0),
+    'simple_hoverboard_stand': new THREE.Vector3(0, 0, 0),
 
-    'simple-hoverboard-lean-left': new THREE.Vector3(-1, 0, 0),
-    'simple-hoverboard-lean-right': new THREE.Vector3(1, 0, 0),
-    'simple-hoverboard-lean-forward': new THREE.Vector3(0, 0, -1),
-    'simple-hoverboard-lean-backward': new THREE.Vector3(0, 0, 1),
+    'simple_hoverboard_lean_left': new THREE.Vector3(-1, 0, 0),
+    'simple_hoverboard_lean_right': new THREE.Vector3(1, 0, 0),
+    'simple_hoverboard_lean_forward': new THREE.Vector3(0, 0, -1),
+    'simple_hoverboard_lean_backward': new THREE.Vector3(0, 0, 1),
   },
 };
 const animationsDistanceMap = {
@@ -126,11 +126,11 @@ const animationsDistanceMap = {
   crouched_sneaking_right: new THREE.Vector3(crouchMagnitude, 0, 0),
   crouched_sneaking_right_reverse: new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
 
-  'simple-hoverboard-stand': new THREE.Vector3(0, 0, 0),
-  'simple-hoverboard-lean-left': new THREE.Vector3(-1, 0, 0),
-  'simple-hoverboard-lean-right': new THREE.Vector3(1, 0, 0),
-  'simple-hoverboard-lean-forward': new THREE.Vector3(0, 0, -1),
-  'simple-hoverboard-lean-backward': new THREE.Vector3(0, 0, 1),
+  'simple_hoverboard_stand': new THREE.Vector3(0, 0, 0),
+  'simple_hoverboard_lean_left': new THREE.Vector3(-1, 0, 0),
+  'simple_hoverboard_lean_right': new THREE.Vector3(1, 0, 0),
+  'simple_hoverboard_lean_forward': new THREE.Vector3(0, 0, -1),
+  'simple_hoverboard_lean_backward': new THREE.Vector3(0, 0, 1),
 };
 let animations;
 let jumpAnimation;
@@ -177,13 +177,13 @@ const loadPromise = Promise.all([
     
     // console.log('got animations', animations.map(a => a.name));
     
-    // const akPitch = animations.find(a => a.name === 'ak-pitch');
-    // const akYaw = animations.find(a => a.name === 'ak-yaw');
-    /* const simpleHoverboardLeanBackward = animations.find(a => a.name === 'simple-hoverboard-lean-backward');
-    const simpleHoverboardLeanForward = animations.find(a => a.name === 'simple-hoverboard-lean-forward');
-    const simpleHoverboardLeanLeft = animations.find(a => a.name === 'simple-hoverboard-lean-left');
-    const simpleHoverboardLeanRight = animations.find(a => a.name === 'simple-hoverboard-lean-right');
-    const simpleHoverboardStand = animations.find(a => a.name === 'simple-hoverboard-stand'); */
+    // const akPitch = animations.find(a => a.name === 'ak_pitch');
+    // const akYaw = animations.find(a => a.name === 'ak_yaw');
+    /* const simpleHoverboardLeanBackward = animations.find(a => a.name === 'simple_hoverboard_lean_backward');
+    const simpleHoverboardLeanForward = animations.find(a => a.name === 'simple_hoverboard_lean_forward');
+    const simpleHoverboardLeanLeft = animations.find(a => a.name === 'simple_hoverboard_lean_left');
+    const simpleHoverboardLeanRight = animations.find(a => a.name === 'simple_hoverboard_lean_right');
+    const simpleHoverboardStand = animations.find(a => a.name === 'simple_hoverboard_stand'); */
 
     const _normalizeAnimationDurations = (animations, baseAnimation) => {
       for (let i = 1; i < animations.length; i++) {
@@ -263,7 +263,7 @@ const loadPromise = Promise.all([
             return null;
         }
       })();
-      animation.isIdle = /idle\-active|simple\-hoverboard\-stand/i.test(animation.name);
+      animation.isIdle = /idle\_active|simple\_hoverboard\_stand/i.test(animation.name);
       animation.isJump = /jump/i.test(animation.name);
       animation.isSitting = /sitting/i.test(animation.name);
       // animation.isFalling  = /falling/i.test(animation.name);
@@ -277,7 +277,7 @@ const loadPromise = Promise.all([
       // animation.isHit = /sword_and_shield_idle/i.test(animation.name);
       animation.isMagic = /magic/i.test(animation.name);
       // animation.isSkateboarding = /skateboarding/i.test(animation.name);
-      animation.isSkateboarding = /simple\-hoverboard/i.test(animation.name);
+      animation.isSkateboarding = /simple\_hoverboard/i.test(animation.name);
       animation.isThrow = /throw/i.test(animation.name);
       animation.isDancing = /dancing/i.test(animation.name);
       animation.isCrouch = /crouch|sneak/i.test(animation.name);
