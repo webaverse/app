@@ -9,12 +9,14 @@ import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
+import {scene} from '../app-object.js';
+import {downloadFile} from '../util.js';
 
 // import {FBXLoader} from '../FBXLoader.js';
-// import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -22,6 +24,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
+const forwardVector = new THREE.Vector3(0, 0, 1);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -32,6 +35,27 @@ const defaultThrowAnimation = 'throw';
 const defaultCrouchAnimation = 'crouch';
 const useAnimationRate = 750;
 const crouchMaxTime = 200;
+const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+let emotionIndex = -1;
+let poseIndex = -1;
+window.addEventListener('keydown', e => {
+  if (poseData) {
+    if (e.which === 35) {
+      poseIndex = Math.min(Math.max(poseIndex - 1, 0), poseData.length - 1);
+      console.log(poseIndex);
+    } else if (e.which === 40) {
+      poseIndex = Math.min(Math.max(poseIndex + 1, 0), poseData.length - 1);
+      console.log(poseIndex);
+    } else if (e.which === 37) {
+      emotionIndex = Math.min(Math.max(emotionIndex - 1, 0), Infinity);
+      console.log(emotionIndex);
+    } else if (e.which === 12) {
+      emotionIndex = Math.min(Math.max(emotionIndex + 1, 0), Infinity);
+      console.log(emotionIndex);
+    }
+  }
+}, true);
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
@@ -116,261 +140,676 @@ let sitAnimations;
 let danceAnimations;
 let throwAnimations;
 let crouchAnimations;
-const loadPromise = (async () => {
-  const res = await fetch('../animations/animations.cbor');
-  const arrayBuffer = await res.arrayBuffer();
-  animations = CBOR.decode(arrayBuffer).animations
-    .map(a => THREE.AnimationClip.parse(a));
 
-  const _normalizeAnimationDurations = (animations, baseAnimation) => {
-    for (let i = 1; i < animations.length; i++) {
-      const animation = animations[i];
-      const oldDuration = animation.duration;
-      const newDuration = baseAnimation.duration;
-      for (const track of animation.tracks) {
-        const {times} = track;
-        for (let j = 0; j < times.length; j++) {
-          times[j] *= newDuration/oldDuration;
-        }
-      }
-      animation.duration = newDuration;
-    }
-  };
-  const walkingAnimations = [
-    `walking.fbx`,
-    `left strafe walking.fbx`,
-    `right strafe walking.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
-  const walkingBackwardAnimations = [
-    `walking backwards.fbx`,
-    `left strafe walking reverse.fbx`,
-    `right strafe walking reverse.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
-  const runningAnimations = [
-    `running.fbx`,
-    `left strafe.fbx`,
-    `right strafe.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
-  const runningBackwardAnimations = [
-    `running backwards.fbx`,
-    `left strafe reverse.fbx`,
-    `right strafe reverse.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
-  const crouchingForwardAnimations = [
-    `Sneaking Forward.fbx`,
-    `Crouched Sneaking Left.fbx`,
-    `Crouched Sneaking Right.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0]);
-  animations.forEach(animation => {
-    animation.direction = (() => {
-      switch (animation.name) {
-        case 'running.fbx':
-        case 'walking.fbx':
-        case 'Sneaking Forward.fbx':
-          return 'forward';
-        case 'running backwards.fbx':
-        case 'walking backwards.fbx':
-          return 'backward';
-        case 'left strafe walking.fbx':
-        case 'left strafe.fbx':
-        case 'left strafe walking reverse.fbx':
-        case 'left strafe reverse.fbx':
-        case 'Crouched Sneaking Left.fbx':
-          return 'left';
-        case 'right strafe walking.fbx':
-        case 'right strafe.fbx':
-        case 'right strafe walking reverse.fbx':
-        case 'right strafe reverse.fbx':
-        case 'Crouched Sneaking Right.fbx':
-          return 'right';
-        case 'jump.fbx':
-        /* case 'falling.fbx':
-        case 'falling idle.fbx':
-        case 'falling landing.fbx': */
-          return 'jump';
-        // case 'floating.fbx':
-        case 'treading water.fbx':
-          return 'float';
-        default:
-          return null;
-      }
-    })();
-    animation.isIdle = /idle/i.test(animation.name);
-    animation.isJump = /jump/i.test(animation.name);
-    animation.isSitting = /sitting/i.test(animation.name);
-    // animation.isFalling  = /falling/i.test(animation.name);
-    animation.isFloat  = /treading/i.test(animation.name);
-    animation.isPistol  = /pistol aiming/i.test(animation.name);
-    animation.isRifle  = /rifle aiming/i.test(animation.name);
-    // animation.isHit  = /downward/i.test(animation.name);
-    animation.isSlash  = /slash/i.test(animation.name);
-    // animation.isHit  = /attack/i.test(animation.name);
-    animation.isCombo  = /combo/i.test(animation.name);
-    // animation.isHit = /sword and shield idle/i.test(animation.name);
-    animation.isMagic = /magic/i.test(animation.name);
-    animation.isSkateboarding = /skateboarding/i.test(animation.name);
-    animation.isThrow = /throw/i.test(animation.name);
-    animation.isDancing = /dancing/i.test(animation.name);
-    animation.isCrouch = /crouch|sneak/i.test(animation.name);
-    animation.isForward = /forward/i.test(animation.name);
-    animation.isBackward = /backward/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
-    animation.isLeft = /left/i.test(animation.name);
-    animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-    animation.isReverse = /reverse/i.test(animation.name);
-    animation.interpolants = {};
-    animation.tracks.forEach(track => {
-      const i = track.createInterpolant();
-      i.name = track.name;
-      animation.interpolants[track.name] = i;
-      return i;
-    });
-    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-    } */
-  });
-  jumpAnimation = animations.find(a => a.isJump);
-  // sittingAnimation = animations.find(a => a.isSitting);
-  floatAnimation = animations.find(a => a.isFloat);
-  // rifleAnimation = animations.find(a => a.isRifle);
-  // hitAnimation = animations.find(a => a.isHit);
-  useAnimations = {
-    combo: animations.find(a => a.isCombo),
-    slash: animations.find(a => a.isSlash),
-    rifle: animations.find(a => a.isRifle),
-    pistol: animations.find(a => a.isPistol),
-    magic: animations.find(a => a.isMagic),
-  };
-  sitAnimations = {
-    chair: animations.find(a => a.isSitting),
-    saddle: animations.find(a => a.isSitting),
-    stand: animations.find(a => a.isSkateboarding),
-  };
-  danceAnimations = {
-    dansu: animations.find(a => a.isDancing),
-  };
-  throwAnimations = {
-    throw: animations.find(a => a.isThrow),
-  };
-  crouchAnimations = {
-    crouch: animations.find(a => a.isCrouch),
-  };
-
-  /* // bake animations
+import {MMDLoader} from '../MMDLoader.js';
+import {MMDAnimationHelper} from '../MMDAnimationHelper.js';
+const mmdLoader = new MMDLoader();
+const mmdAnimationHelper = new MMDAnimationHelper();
+let model = null;
+let poseData = null;
+let animationData = null;
+const loadPromise = Promise.all([
+  // load animations
   (async () => {
-    animations = [];
-    const fbxLoader = new FBXLoader();
-    const animationFileNames = [
-      `idle.fbx`,
-      `jump.fbx`,
-      `left strafe walking.fbx`,
-      `left strafe.fbx`,
-      // `left turn 90.fbx`,
-      // `left turn.fbx`,
-      `right strafe walking.fbx`,
-      `right strafe.fbx`,
-      // `right turn 90.fbx`,
-      // `right turn.fbx`,
-      `running.fbx`,
-      `walking.fbx`,
-      // `ybot.fbx`,
-      `running backwards.fbx`,
-      `walking backwards.fbx`,
-      // `falling.fbx`,
-      // `falling idle.fbx`,
-      // `falling landing.fbx`,
-      // `floating.fbx`,
-      `treading water.fbx`,
-      `sitting idle.fbx`,
-      `Pistol Aiming Idle.fbx`,
-      `Pistol Idle.fbx`,
-      `Rifle Aiming Idle.fbx`,
-      `Rifle Idle.fbx`,
-      `Standing Torch Idle 01.fbx`,
-      `standing melee attack downward.fbx`,
-      `sword and shield idle (4).fbx`,
-      `sword and shield slash.fbx`,
-      `sword and shield attack (4).fbx`,
-      `One Hand Sword Combo.fbx`,
-      `magic standing idle.fbx`,
-      `Skateboarding.fbx`,
-      `Throw.fbx`,
-      `Hip Hop Dancing.fbx`,
-      `Crouch Idle.fbx`,
-      `Standing To Crouched.fbx`,
-      `Crouched To Standing.fbx`,
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of animationFileNames) {
-      const u = './animations/' + name;
-      let o = await new Promise((accept, reject) => {
-        fbxLoader.load(u, accept, function progress() {}, reject);
-      });
-      o = o.animations[0];
-      o.name = name;
-      animations.push(o);
-    }
-    const _reverseAnimation = animation => {
-      animation = animation.clone();
-      const {tracks} = animation;
-      for (const track of tracks) {
-        track.times.reverse();
-        for (let i = 0; i < track.times.length; i++) {
-          track.times[i] = animation.duration - track.times[i];
-        }
+    const res = await fetch('../animations/animations.cbor');
+    const arrayBuffer = await res.arrayBuffer();
+    animations = CBOR.decode(arrayBuffer).animations
+      .map(a => THREE.AnimationClip.parse(a));
 
-        const values2 = new track.values.constructor(track.values.length);
-        const valueSize = track.getValueSize();
-        const numValues = track.values.length / valueSize;
-        for (let i = 0; i < numValues; i++) {
-          const aIndex = i;
-          const bIndex = numValues - 1 - i;
-          for (let j = 0; j < valueSize; j++) {
-            values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+    const _normalizeAnimationDurations = (animations, baseAnimation) => {
+      for (let i = 1; i < animations.length; i++) {
+        const animation = animations[i];
+        const oldDuration = animation.duration;
+        const newDuration = baseAnimation.duration;
+        for (const track of animation.tracks) {
+          const {times} = track;
+          for (let j = 0; j < times.length; j++) {
+            times[j] *= newDuration/oldDuration;
           }
         }
-        track.values = values2;
+        animation.duration = newDuration;
       }
-      return animation;
     };
-    const reversibleAnimationNames = [
+    const walkingAnimations = [
+      `walking.fbx`,
       `left strafe walking.fbx`,
-      `left strafe.fbx`,
       `right strafe walking.fbx`,
+    ].map(name => animations.find(a => a.name === name));
+    _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+    const walkingBackwardAnimations = [
+      `walking backwards.fbx`,
+      `left strafe walking reverse.fbx`,
+      `right strafe walking reverse.fbx`,
+    ].map(name => animations.find(a => a.name === name));
+    _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+    const runningAnimations = [
+      `running.fbx`,
+      `left strafe.fbx`,
       `right strafe.fbx`,
+    ].map(name => animations.find(a => a.name === name));
+    _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+    const runningBackwardAnimations = [
+      `running backwards.fbx`,
+      `left strafe reverse.fbx`,
+      `right strafe reverse.fbx`,
+    ].map(name => animations.find(a => a.name === name));
+    _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+    const crouchingForwardAnimations = [
       `Sneaking Forward.fbx`,
       `Crouched Sneaking Left.fbx`,
       `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of reversibleAnimationNames) {
-      const animation = animations.find(a => a.name === name);
-      const reverseAnimation = _reverseAnimation(animation);
-      reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
-      animations.push(reverseAnimation);
-    }
-    const animationsJson = animations.map(a => a.toJSON());
-    const animationsString = JSON.stringify(animationsJson);
-    const animationsCborBuffer = CBOR.encode({
-      animations: animationsJson,
+    ].map(name => animations.find(a => a.name === name));
+    _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0]);
+    animations.forEach(animation => {
+      animation.direction = (() => {
+        switch (animation.name) {
+          case 'running.fbx':
+          case 'walking.fbx':
+          case 'Sneaking Forward.fbx':
+            return 'forward';
+          case 'running backwards.fbx':
+          case 'walking backwards.fbx':
+            return 'backward';
+          case 'left strafe walking.fbx':
+          case 'left strafe.fbx':
+          case 'left strafe walking reverse.fbx':
+          case 'left strafe reverse.fbx':
+          case 'Crouched Sneaking Left.fbx':
+            return 'left';
+          case 'right strafe walking.fbx':
+          case 'right strafe.fbx':
+          case 'right strafe walking reverse.fbx':
+          case 'right strafe reverse.fbx':
+          case 'Crouched Sneaking Right.fbx':
+            return 'right';
+          case 'jump.fbx':
+          /* case 'falling.fbx':
+          case 'falling idle.fbx':
+          case 'falling landing.fbx': */
+            return 'jump';
+          // case 'floating.fbx':
+          case 'treading water.fbx':
+            return 'float';
+          default:
+            return null;
+        }
+      })();
+      animation.isIdle = /idle/i.test(animation.name);
+      animation.isJump = /jump/i.test(animation.name);
+      animation.isSitting = /sitting/i.test(animation.name);
+      // animation.isFalling  = /falling/i.test(animation.name);
+      animation.isFloat  = /treading/i.test(animation.name);
+      animation.isPistol  = /pistol aiming/i.test(animation.name);
+      animation.isRifle  = /rifle aiming/i.test(animation.name);
+      // animation.isHit  = /downward/i.test(animation.name);
+      animation.isSlash  = /slash/i.test(animation.name);
+      // animation.isHit  = /attack/i.test(animation.name);
+      animation.isCombo  = /combo/i.test(animation.name);
+      // animation.isHit = /sword and shield idle/i.test(animation.name);
+      animation.isMagic = /magic/i.test(animation.name);
+      animation.isSkateboarding = /skateboarding/i.test(animation.name);
+      animation.isThrow = /throw/i.test(animation.name);
+      animation.isDancing = /dancing/i.test(animation.name);
+      animation.isCrouch = /crouch|sneak/i.test(animation.name);
+      animation.isForward = /forward/i.test(animation.name);
+      animation.isBackward = /backward/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+      animation.isLeft = /left/i.test(animation.name);
+      animation.isRight = /right/i.test(animation.name);
+      animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+      animation.isReverse = /reverse/i.test(animation.name);
+      animation.interpolants = {};
+      animation.tracks.forEach(track => {
+        const i = track.createInterpolant();
+        i.name = track.name;
+        animation.interpolants[track.name] = i;
+        return i;
+      });
+      /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+        animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+      } */
     });
-    console.log('decoding 1', animationsCborBuffer);
-    console.log('decoding 2', CBOR.decode(animationsCborBuffer));
-    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-    console.log('exporting', animations);
-    downloadFile(new Blob([animationsCborBuffer], {
-      type: 'application/cbor',
-    }), 'animations.cbor');
-  })().catch(err => {
-    console.warn(err);
-  }); */
-})().catch(err => {
+    jumpAnimation = animations.find(a => a.isJump);
+    // sittingAnimation = animations.find(a => a.isSitting);
+    floatAnimation = animations.find(a => a.isFloat);
+    // rifleAnimation = animations.find(a => a.isRifle);
+    // hitAnimation = animations.find(a => a.isHit);
+    useAnimations = {
+      combo: animations.find(a => a.isCombo),
+      slash: animations.find(a => a.isSlash),
+      rifle: animations.find(a => a.isRifle),
+      pistol: animations.find(a => a.isPistol),
+      magic: animations.find(a => a.isMagic),
+    };
+    sitAnimations = {
+      chair: animations.find(a => a.isSitting),
+      saddle: animations.find(a => a.isSitting),
+      stand: animations.find(a => a.isSkateboarding),
+    };
+    danceAnimations = {
+      dansu: animations.find(a => a.isDancing),
+    };
+    throwAnimations = {
+      throw: animations.find(a => a.isThrow),
+    };
+    crouchAnimations = {
+      crouch: animations.find(a => a.isCrouch),
+    };
+
+    /* // bake animations
+    (async () => {
+      animations = [];
+      const fbxLoader = new FBXLoader();
+      const animationFileNames = [
+        `idle.fbx`,
+        `jump.fbx`,
+        `left strafe walking.fbx`,
+        `left strafe.fbx`,
+        // `left turn 90.fbx`,
+        // `left turn.fbx`,
+        `right strafe walking.fbx`,
+        `right strafe.fbx`,
+        // `right turn 90.fbx`,
+        // `right turn.fbx`,
+        `running.fbx`,
+        `walking.fbx`,
+        // `ybot.fbx`,
+        `running backwards.fbx`,
+        `walking backwards.fbx`,
+        // `falling.fbx`,
+        // `falling idle.fbx`,
+        // `falling landing.fbx`,
+        // `floating.fbx`,
+        `treading water.fbx`,
+        `sitting idle.fbx`,
+        `Pistol Aiming Idle.fbx`,
+        `Pistol Idle.fbx`,
+        `Rifle Aiming Idle.fbx`,
+        `Rifle Idle.fbx`,
+        `Standing Torch Idle 01.fbx`,
+        `standing melee attack downward.fbx`,
+        `sword and shield idle (4).fbx`,
+        `sword and shield slash.fbx`,
+        `sword and shield attack (4).fbx`,
+        `One Hand Sword Combo.fbx`,
+        `magic standing idle.fbx`,
+        `Skateboarding.fbx`,
+        `Throw.fbx`,
+        `Hip Hop Dancing.fbx`,
+        `Crouch Idle.fbx`,
+        `Standing To Crouched.fbx`,
+        `Crouched To Standing.fbx`,
+        `Sneaking Forward.fbx`,
+        `Crouched Sneaking Left.fbx`,
+        `Crouched Sneaking Right.fbx`,
+        `Breakdance 1990.fbx`,
+        `Dancing Running Man.fbx`,
+        `Jazz Dancing.fbx`,
+        `Silly Dancing.fbx`,
+      ];
+      for (const name of animationFileNames) {
+        const u = './animations/' + name;
+        let o = await new Promise((accept, reject) => {
+          fbxLoader.load(u, accept, function progress() {}, reject);
+        });
+        o = o.animations[0];
+        o.name = name;
+        animations.push(o);
+      }
+      const _reverseAnimation = animation => {
+        animation = animation.clone();
+        const {tracks} = animation;
+        for (const track of tracks) {
+          track.times.reverse();
+          for (let i = 0; i < track.times.length; i++) {
+            track.times[i] = animation.duration - track.times[i];
+          }
+
+          const values2 = new track.values.constructor(track.values.length);
+          const valueSize = track.getValueSize();
+          const numValues = track.values.length / valueSize;
+          for (let i = 0; i < numValues; i++) {
+            const aIndex = i;
+            const bIndex = numValues - 1 - i;
+            for (let j = 0; j < valueSize; j++) {
+              values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+            }
+          }
+          track.values = values2;
+        }
+        return animation;
+      };
+      const reversibleAnimationNames = [
+        `left strafe walking.fbx`,
+        `left strafe.fbx`,
+        `right strafe walking.fbx`,
+        `right strafe.fbx`,
+        `Sneaking Forward.fbx`,
+        `Crouched Sneaking Left.fbx`,
+        `Crouched Sneaking Right.fbx`,
+      ];
+      for (const name of reversibleAnimationNames) {
+        const animation = animations.find(a => a.name === name);
+        const reverseAnimation = _reverseAnimation(animation);
+        reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+        animations.push(reverseAnimation);
+      }
+      const animationsJson = animations.map(a => a.toJSON());
+      const animationsString = JSON.stringify(animationsJson);
+      const animationsCborBuffer = CBOR.encode({
+        animations: animationsJson,
+      });
+      console.log('decoding 1', animationsCborBuffer);
+      console.log('decoding 2', CBOR.decode(animationsCborBuffer));
+      animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+      console.log('exporting', animations);
+      downloadFile(new Blob([animationsCborBuffer], {
+        type: 'application/cbor',
+      }), 'animations.cbor');
+    })().catch(err => {
+      console.warn(err);
+    }); */
+    /* // bake poses
+    (async () => {
+      model = await new Promise((accept, reject) => {
+        mmdLoader.load('./assets2/mmd/TDA hipster Miku 1.2/TDA Hipster Miku.pmx', accept, function onProgress() {}, reject);
+      });
+      model.scale.multiplyScalar(0.085);
+      // scene.add(model);
+
+      console.log('got model 1');
+
+      const poses = [
+        `./'Running' by CorruptedDestiny/2.vpd`,
+        `./'Running' by CorruptedDestiny/3.vpd`,
+        `./'Running' by CorruptedDestiny/4.vpd`,
+        `./'Running' by CorruptedDestiny/5.vpd`,
+        `./'Running' by CorruptedDestiny/6.vpd`,
+        `./'Running' by CorruptedDestiny/First step.vpd`,
+        `./'The Random Factor' by CorruptedDestiny/Jump, YEAH.vpd`,
+        `./'The Random Factor' by CorruptedDestiny/Peace up dude.vpd`,
+        `./'The Random Factor' by CorruptedDestiny/Randomness.vpd`,
+        `./'To Lie' by CorruptedDestiny/Fetal Position.vpd`,
+        `./'To Lie' by CorruptedDestiny/Semi Fetal Position.vpd`,
+        `./'To Lie' by CorruptedDestiny/Sleeping on Back Open.vpd`,
+        `./'To Lie' by CorruptedDestiny/Sleeping on Back.vpd`,
+        `./'To Lie' by CorruptedDestiny/Sleeping on Stomach.vpd`,
+        `./Floating Pose Pack - Snorlaxin/1.vpd`,
+        `./Floating Pose Pack - Snorlaxin/10.vpd`,
+        `./Floating Pose Pack - Snorlaxin/11.vpd`,
+        `./Floating Pose Pack - Snorlaxin/12.vpd`,
+        `./Floating Pose Pack - Snorlaxin/2.vpd`,
+        `./Floating Pose Pack - Snorlaxin/3.vpd`,
+        `./Floating Pose Pack - Snorlaxin/4.vpd`,
+        `./Floating Pose Pack - Snorlaxin/5-ver2.vpd`,
+        `./Floating Pose Pack - Snorlaxin/5.vpd`,
+        `./Floating Pose Pack - Snorlaxin/6.vpd`,
+        `./Floating Pose Pack - Snorlaxin/7.vpd`,
+        `./Floating Pose Pack - Snorlaxin/8.vpd`,
+        `./Floating Pose Pack - Snorlaxin/9.vpd`,
+        `./General Poses 1/Casting.vpd`,
+        `./General Poses 1/Cross my heart.vpd`,
+        `./General Poses 1/Drawing 1.vpd`,
+        `./General Poses 1/Drawing 2.vpd`,
+        `./General Poses 1/Drawing Pose Reference 1.vpd`,
+        `./General Poses 1/Drawing Pose Reference 2.vpd`,
+        `./General Poses 1/Element Bending.vpd`,
+        `./General Poses 1/Frankenstocking 2-1.vpd`,
+        `./General Poses 1/Frankenstocking 2-2.vpd`,
+        `./General Poses 1/Heaven knows, I tried.vpd`,
+        `./General Poses 1/Here I stand in the light of day.vpd`,
+        `./General Poses 1/I'm Devious.vpd`,
+        `./General Poses 1/Look Ma No Hands.vpd`,
+        `./General Poses 1/Magical Girl.vpd`,
+        `./General Poses 1/Monster Girl 2 1.vpd`,
+        `./General Poses 1/Monster Girl 2 2.vpd`,
+        `./General Poses 1/Monster Girl.vpd`,
+        `./General Poses 1/No No 1.vpd`,
+        `./General Poses 1/No No 2.vpd`,
+        `./General Poses 1/Number 1.vpd`,
+        `./General Poses 1/Offer Up 1.vpd`,
+        `./General Poses 1/Offer Up 2.vpd`,
+        `./General Poses 1/Peace.vpd`,
+        `./General Poses 1/Rawr 1.vpd`,
+        `./General Poses 1/Rawr 2.vpd`,
+        `./General Poses 1/Rawr 3.vpd`,
+        `./General Poses 1/Red Purse 1.vpd`,
+        `./General Poses 1/Red Purse 2.vpd`,
+        `./General Poses 1/Sky's Falling 1.vpd`,
+        `./General Poses 1/Sky's Falling 2.vpd`,
+        `./General Poses 1/Sneaking Around 1.vpd`,
+        `./General Poses 1/Sneaking Around 2.vpd`,
+        `./General Poses 1/Sneaking Around 3.vpd`,
+        `./General Poses 1/ssppooonn.vpd`,
+        `./General Poses 1/Start Somthing 1.vpd`,
+        `./General Poses 1/Start Somthing 2.vpd`,
+        `./General Poses 1/Start Somthing 3.vpd`,
+        `./General Poses 1/Turn away and slam the door.vpd`,
+        `./General Poses 1/Witch Brew 1.vpd`,
+        `./General Poses 1/Witch Brew 2.vpd`,
+        `./General Poses 1/Witch Brew 3.vpd`,
+        `./General Poses 1/Witch Brew 4.vpd`,
+        `./General Poses 1/Witch Brew 5.vpd`,
+        `./General Poses 1/Witch Brew 6.vpd`,
+        `./General Poses 1/Witch Brew 7.vpd`,
+        `./General Poses 1/Witch Brew 8.vpd`,
+        `./General Poses 1/With Wings Pose 1.vpd`,
+        `./General Poses 1/With Wings Pose 2.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R1.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R10.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R11.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R12.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R13.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R14.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R15.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R16.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R17.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R18.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R19.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R2.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R20.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R21.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R22.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R23.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R24.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R25.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R26.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R27.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R28.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R29.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R3.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R30.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R31.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R32.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R33.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R34.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R35.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R4.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R5.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R6.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R7.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R8.vpd`,
+        `./JuuRenka's Ultimate Pose Pack/R9.vpd`,
+        `./Pose Pack 2 by OzzWalcito/1.vpd`,
+        `./Pose Pack 2 by OzzWalcito/10.vpd`,
+        `./Pose Pack 2 by OzzWalcito/11.vpd`,
+        `./Pose Pack 2 by OzzWalcito/12.vpd`,
+        `./Pose Pack 2 by OzzWalcito/13.vpd`,
+        `./Pose Pack 2 by OzzWalcito/14.vpd`,
+        `./Pose Pack 2 by OzzWalcito/15.vpd`,
+        `./Pose Pack 2 by OzzWalcito/16.vpd`,
+        `./Pose Pack 2 by OzzWalcito/17.vpd`,
+        `./Pose Pack 2 by OzzWalcito/18.vpd`,
+        `./Pose Pack 2 by OzzWalcito/19.vpd`,
+        `./Pose Pack 2 by OzzWalcito/2.vpd`,
+        `./Pose Pack 2 by OzzWalcito/20.vpd`,
+        `./Pose Pack 2 by OzzWalcito/21.vpd`,
+        `./Pose Pack 2 by OzzWalcito/22.vpd`,
+        `./Pose Pack 2 by OzzWalcito/23_1.vpd`,
+        `./Pose Pack 2 by OzzWalcito/23_2.vpd`,
+        `./Pose Pack 2 by OzzWalcito/24.vpd`,
+        `./Pose Pack 2 by OzzWalcito/25.vpd`,
+        `./Pose Pack 2 by OzzWalcito/26.vpd`,
+        `./Pose Pack 2 by OzzWalcito/27.vpd`,
+        `./Pose Pack 2 by OzzWalcito/28.vpd`,
+        `./Pose Pack 2 by OzzWalcito/29.vpd`,
+        `./Pose Pack 2 by OzzWalcito/3.vpd`,
+        `./Pose Pack 2 by OzzWalcito/30.vpd`,
+        `./Pose Pack 2 by OzzWalcito/4.vpd`,
+        `./Pose Pack 2 by OzzWalcito/5.vpd`,
+        `./Pose Pack 2 by OzzWalcito/6.vpd`,
+        `./Pose Pack 2 by OzzWalcito/7.vpd`,
+        `./Pose Pack 2 by OzzWalcito/8.vpd`,
+        `./Pose Pack 2 by OzzWalcito/9.vpd`,
+        `./Pose Pack 6 - Snorlaxin/1.vpd`,
+        `./Pose Pack 6 - Snorlaxin/10.vpd`,
+        `./Pose Pack 6 - Snorlaxin/2.vpd`,
+        `./Pose Pack 6 - Snorlaxin/3.vpd`,
+        `./Pose Pack 6 - Snorlaxin/4.vpd`,
+        `./Pose Pack 6 - Snorlaxin/5.vpd`,
+        `./Pose Pack 6 - Snorlaxin/6.vpd`,
+        `./Pose Pack 6 - Snorlaxin/7.vpd`,
+        `./Pose Pack 6 - Snorlaxin/8.vpd`,
+        `./Pose Pack 6 - Snorlaxin/9.vpd`,
+        `./Resting Pose Pack - Snorlaxin/1.vpd`,
+        `./Resting Pose Pack - Snorlaxin/10.vpd`,
+        `./Resting Pose Pack - Snorlaxin/11.vpd`,
+        `./Resting Pose Pack - Snorlaxin/12.vpd`,
+        `./Resting Pose Pack - Snorlaxin/13.vpd`,
+        `./Resting Pose Pack - Snorlaxin/14.vpd`,
+        `./Resting Pose Pack - Snorlaxin/2.vpd`,
+        `./Resting Pose Pack - Snorlaxin/3.vpd`,
+        `./Resting Pose Pack - Snorlaxin/4.vpd`,
+        `./Resting Pose Pack - Snorlaxin/5.vpd`,
+        `./Resting Pose Pack - Snorlaxin/6.vpd`,
+        `./Resting Pose Pack - Snorlaxin/7.vpd`,
+        `./Resting Pose Pack - Snorlaxin/8.vpd`,
+        `./Resting Pose Pack - Snorlaxin/9.vpd`,
+        `./Seated Poses/1.vpd`,
+        `./Seated Poses/2.vpd`,
+        `./Seated Poses/3.vpd`,
+        `./Seated Poses/4.vpd`,
+        `./ThatOneBun Posepack/1.vpd`,
+        `./ThatOneBun Posepack/10.vpd`,
+        `./ThatOneBun Posepack/11.vpd`,
+        `./ThatOneBun Posepack/12.vpd`,
+        `./ThatOneBun Posepack/13.vpd`,
+        `./ThatOneBun Posepack/14.vpd`,
+        `./ThatOneBun Posepack/15.vpd`,
+        `./ThatOneBun Posepack/16.vpd`,
+        `./ThatOneBun Posepack/17.vpd`,
+        `./ThatOneBun Posepack/18.vpd`,
+        `./ThatOneBun Posepack/19.vpd`,
+        `./ThatOneBun Posepack/2.vpd`,
+        `./ThatOneBun Posepack/20.vpd`,
+        `./ThatOneBun Posepack/21.vpd`,
+        `./ThatOneBun Posepack/22.vpd`,
+        `./ThatOneBun Posepack/23.vpd`,
+        `./ThatOneBun Posepack/24.vpd`,
+        `./ThatOneBun Posepack/25.vpd`,
+        `./ThatOneBun Posepack/26.vpd`,
+        `./ThatOneBun Posepack/27.vpd`,
+        `./ThatOneBun Posepack/28.vpd`,
+        `./ThatOneBun Posepack/29.vpd`,
+        `./ThatOneBun Posepack/3.vpd`,
+        `./ThatOneBun Posepack/30.vpd`,
+        `./ThatOneBun Posepack/31.vpd`,
+        `./ThatOneBun Posepack/32.vpd`,
+        `./ThatOneBun Posepack/33.vpd`,
+        `./ThatOneBun Posepack/34.vpd`,
+        `./ThatOneBun Posepack/35.vpd`,
+        `./ThatOneBun Posepack/36.vpd`,
+        `./ThatOneBun Posepack/37.vpd`,
+        `./ThatOneBun Posepack/38.vpd`,
+        `./ThatOneBun Posepack/39.vpd`,
+        `./ThatOneBun Posepack/4.vpd`,
+        `./ThatOneBun Posepack/40.vpd`,
+        `./ThatOneBun Posepack/41.vpd`,
+        `./ThatOneBun Posepack/42.vpd`,
+        `./ThatOneBun Posepack/43.vpd`,
+        `./ThatOneBun Posepack/5.vpd`,
+        `./ThatOneBun Posepack/6.vpd`,
+        `./ThatOneBun Posepack/7.vpd`,
+        `./ThatOneBun Posepack/8.vpd`,
+        `./ThatOneBun Posepack/9.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Darinka.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Frizerka.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Jebac.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Snezana.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Spizdi.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Strina.vpd`,
+        `./ThatOneBun Posepack/Scoot's pick/Vesna.vpd`,
+        `./Trust Me Pose Pack/1.vpd`,
+        `./Trust Me Pose Pack/10.vpd`,
+        `./Trust Me Pose Pack/11 (Boy).vpd`,
+        `./Trust Me Pose Pack/12 (Girl).vpd`,
+        `./Trust Me Pose Pack/13.vpd`,
+        `./Trust Me Pose Pack/14.vpd`,
+        `./Trust Me Pose Pack/15 (Final Pose).vpd`,
+        `./Trust Me Pose Pack/2.vpd`,
+        `./Trust Me Pose Pack/3.vpd`,
+        `./Trust Me Pose Pack/4.vpd`,
+        `./Trust Me Pose Pack/5.vpd`,
+        `./Trust Me Pose Pack/6.vpd`,
+        `./Trust Me Pose Pack/7 (Left).vpd`,
+        `./Trust Me Pose Pack/8 (Right).vpd`,
+        `./Trust Me Pose Pack/9.vpd`,
+        `./Twins/Twins.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 1.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 10.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 11.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 12.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 13.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 14.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 15.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 2.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 3.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 4.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 5.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 6.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 7.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 8.vpd`,
+        `./Yoga Pose Pack - Snorlaxin/Yoga Pose 9.vpd`,
+      ];
+      const boneNameMappings = {
+        '全ての親': null, // 'spine',
+        'センター': null, // 'hips',
+        '上半身': null, // 'spine',
+        '首': 'neck',
+        '頭': 'head',
+        '下半身': null, // 'antispine',
+
+        '左肩P': null, // 'rightShoulder',
+        '左肩': 'rightShoulder',
+        '左腕': 'rightUpperArm',
+        '左腕捩': null, // 'rightLowerArm',
+        '左ひじ': 'rightLowerArm',
+        '左手捩': null, // 'rightLowerArm',
+        '左手首': 'rightHand',
+        '左親指１': 'leftThumb1',
+        '左親指２': 'leftThumb2',
+        '左人指１': 'leftIndexFinger1',
+        '左人指２': 'leftIndexFinger2',
+        '左人指３': 'leftIndexFinger3',
+        '左中指１': 'leftMiddleFinger1',
+        '左中指２': 'leftMiddleFinger2',
+        '左中指３': 'leftMiddleFinger3',
+        '左薬指１': 'leftRingFinger1',
+        '左薬指２': 'leftRingFinger2',
+        '左薬指３': 'leftRingFinger3',
+        '左小指１': 'leftLittleFinger1',
+        '左小指２': 'leftLittleFinger2',
+        '左小指３': 'leftLittleFinger3',
+
+        '右肩P': null, // 'leftShoulder',
+        '右肩': 'leftShoulder',
+        '右腕': 'leftUpperArm',
+        '右腕捩': null, // 'leftLowerArm',
+        '右ひじ': 'leftLowerArm',
+        '右手捩': null, // 'leftLowerArm',
+        '右手首': 'leftHand',
+        '右親指１': 'rightThumb1',
+        '右親指２': 'rightThumb2',
+        '右人指１': 'rightIndexFinger1',
+        '右人指２': 'rightIndexFinger2',
+        '右人指３': 'rightIndexFinger3',
+        '右中指１': 'rightMiddleFinger1',
+        '右中指２': 'rightMiddleFinger2',
+        '右中指３': 'rightMiddleFinger3',
+        '右薬指１': 'rightRingFinger1',
+        '右薬指２': 'rightRingFinger2',
+        '右薬指３': 'rightRingFinger3',
+        '右小指１': 'rightLittleFinger1',
+        '右小指２': 'rightLittleFinger2',
+        '右小指３': 'rightLittleFinger3',
+        
+        '左足': 'rightUpperLeg',
+        '左ひざ': 'rightLowerLeg',
+        '左足首': 'rightFoot',
+        '右足': 'leftUpperLeg',
+        '右ひざ': 'leftLowerLeg',
+        '右足首': 'leftFoot',
+        '左つま先': null, // 'Left_toe',
+        '右つま先': null, // 'Right_toe',
+        '左足ＩＫ': null, // 'leftUpperLeg',
+        '右足ＩＫ': null, // 'rightUpperLeg',
+        '左つま先ＩＫ': null, // 'Left toe IK',
+        '右つま先ＩＫ': null, // 'Right toe IK',
+      };
+      
+      console.log('got model 2');
+      
+      const _getModelPose = model => {
+        const bones = model.skeleton.bones.map(bone => {
+          let {name, quaternion} = bone;
+          const mappedName = boneNameMappings[bone.name];
+          if (mappedName !== undefined) {
+            // quaternion = quaternion.clone();
+            return {
+              // name,
+              quaternion: quaternion.toArray(),
+              mappedName,
+            };
+          } else {
+            return null;
+          }
+        }).filter(b => !!b);
+        return bones;
+      };
+      console.log('got model 3');
+      animationData = await Promise.all(poses.map(async pose => {
+        const u = `./assets2/poses/${pose}`;
+        const poseData = await new Promise((accept, reject) => {
+          mmdLoader.loadVPD(u, false, accept, function onProgress() {}, reject);
+        });
+        return poseData;
+      }));
+      const poseData = animationData.map(a => {
+        mmdAnimationHelper.pose(model, a);
+        return _getModelPose(model);
+      });
+      console.log('got model 4');
+      const poseDataCborBuffer = CBOR.encode(poseData);
+      {
+        let poseData2 = CBOR.decode(poseDataCborBuffer);
+        console.log('got model 4.5', poseData2);
+        poseData2 = poseData2.map(track => {
+          return {
+            bones: track.map(bone => {
+              let {quaternion, mappedName} = bone;
+              return {
+                mappedName,
+                quaternion: new THREE.Quaternion().fromArray(quaternion),
+              };
+            }),
+          };
+        });
+        console.log('got pose', poseData, poseData2);
+      }
+      console.log('got model 5');
+      downloadFile(new Blob([poseDataCborBuffer], {
+        type: 'application/cbor',
+      }), 'poses.cbor');
+      console.log('got model 6');
+    })(); */
+  })(),
+  // load poses
+  (async () => {
+    const res = await fetch('../poses/poses.cbor');
+    const arrayBuffer = await res.arrayBuffer();
+    poseData = CBOR.decode(arrayBuffer);
+    poseData = poseData.map(track => {
+      return {
+        bones: track.map(bone => {
+          let {quaternion, mappedName} = bone;
+          return {
+            mappedName,
+            quaternion: new THREE.Quaternion().fromArray(quaternion),
+          };
+        }),
+      };
+    });
+  })(),
+]).catch(err => {
   console.log('load avatar animations error', err);
 });
 
@@ -616,7 +1055,7 @@ const _findHead = tailBones => {
 const _findEye = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const eyeBones = tailBones.map(tailBone => {
-    const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
+    const eyeBone = _findClosestParentBone(tailBone, bone => bone.isBone && /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
     if (eyeBone) {
       return eyeBone;
     } else {
@@ -693,9 +1132,9 @@ const _findFinger = (handBone, r) => _findClosestChildBone(handBone, bone => r.t
 const _findFoot = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const legBones = tailBones.map(tailBone => {
-    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle/gi, '')));
+    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle|leg(?:l|r)4|UpperLegNeck/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle|leg(l|r)4|UpperLegNeck/gi, '$1')));
     if (footBone) {
-      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh/gi, '')));
+      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh|legl2|LowerLeg/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh|leg(?:l|r)2|LowerLeg/gi, '')));
       if (legBone) {
         const distance = _distanceToParentBone(footBone, legBone);
         if (distance >= 2) {
@@ -875,7 +1314,7 @@ class Avatar {
     const Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
     const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
     const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
-	  const Left_elbow = Left_wrist.parent;
+	  const Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.name) ? Left_wrist.parent.parent : Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
@@ -894,7 +1333,7 @@ class Avatar {
     const Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
     const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
     const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
-	  const Right_elbow = Right_wrist.parent;
+	  const Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name) ? Right_wrist.parent.parent : Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
 	  const Left_knee = Left_ankle.parent;
@@ -908,8 +1347,8 @@ class Avatar {
 	    Chest,
 	    Neck,
 	    Head,
-	    /* Eye_L,
-	    Eye_R, */
+	    Eye_L,
+	    Eye_R,
 
 	    Left_shoulder,
 	    Left_arm,
@@ -1409,6 +1848,8 @@ class Avatar {
     this.lastModelScaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
+      eyel: this.shoulderTransforms.eyel,
+      eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
@@ -1465,6 +1906,8 @@ class Avatar {
 	    Chest: this.outputs.chest,
 	    Neck: this.outputs.neck,
 	    Head: this.outputs.head,
+      Eye_L: this.outputs.eyel,
+      Eye_R: this.outputs.eyer,
 
 	    Left_shoulder: this.outputs.rightShoulder,
 	    Left_arm: this.outputs.rightUpperArm,
@@ -1514,40 +1957,36 @@ class Avatar {
 	  };
 
     if (this.options.visemes) {
-      const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
-      const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+      const blendShapeGroups = object?.userData?.gltfExtensions?.VRM?.blendShapeMaster.blendShapeGroups || [];
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
-      const _getVrmBlendShapeIndex = r => {
-        if (Array.isArray(blendShapes)) {
-          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
-          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
-            return shape.binds[0].index;
-          } else {
-            return null;
-          }
-        } else {
-          return null;
-        }
-      };
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || null;
-          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || null;
-          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || null;
-          return [
-            morphTargetInfluences,
-            aaIndex,
-            blinkLeftIndex,
-            blinkRightIndex,
-          ];
+          const result = blendShapeGroups.map(blendShapeGroup => {
+            const name = blendShapeGroup.name.toLowerCase();
+            let index = blendShapeGroup.binds?.[0]?.index;
+            if (typeof index !== 'number') {
+              index = -1;
+            }
+            return {
+              name,
+              index,
+            };
+          });
+          result.morphTargetInfluences = morphTargetInfluences;
+          for (const visemeMapping of result) {
+            result[visemeMapping.name] = visemeMapping.index;
+          }
+          return result;
         } else {
           return null;
         }
-      });
+      }).filter(m => !!m);
     } else {
       this.skinnedMeshesVisemeMappings = [];
     }
+    this.activeVisemes = [];
+    this.activePoses = [];
 
     this.microphoneWorker = null;
     this.volume = 0;
@@ -1655,6 +2094,13 @@ class Avatar {
     this.crouchState = false;
     this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
+    this.eyeTarget = new THREE.Vector3();
+    this.eyeTargetEnabled = false;
+    this.headTarget = new THREE.Quaternion();
+    this.headTargetEnabled = false;
+    
+    this.windTarget = new THREE.Vector3();
+    this.windTargetEnabled = false;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1864,6 +2310,53 @@ class Avatar {
     };
     _applyAnimation();
 
+    const _applyPose = () => {    
+      if (poseData && (poseIndex !== -1 || this.activePoses.length > 0)) {
+        for (const k in this.outputs) {
+          this.outputs[k].quaternion.set(0, 0, 0, 1);
+        }
+
+        this.outputs.leftUpperArm.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.25)
+        // .multiply(localQuaternion.setFromAxisAngle(localVector.set(1, 0, 0), Math.PI * 0.5));
+        // .premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI * 0.3))
+        this.outputs.rightUpperArm.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.25);
+        // this.outputs.leftUpperLeg.quaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.15);
+        // this.outputs.rightUpperLeg.quaternion.setFromAxisAngle(forwardVector, Math.PI * 0.15);
+
+        if (poseIndex !== -1) {
+          for (const bone of poseData[poseIndex].bones) {
+            if (bone.mappedName) {
+              this.outputs[bone.mappedName].quaternion.premultiply(bone.quaternion);
+            }
+          }
+        }
+
+        for (const activePose of this.activePoses) {
+          const {index: poseIndex, value} = activePose;
+          for (const bone of poseData[poseIndex].bones) {
+            if (bone.mappedName) {            
+              localQuaternion.copy(this.outputs[bone.mappedName].quaternion);
+              localQuaternion2.copy(this.outputs[bone.mappedName].quaternion).premultiply(bone.quaternion);
+              this.outputs[bone.mappedName].quaternion.copy(localQuaternion).slerp(localQuaternion2, value);
+            }
+          }
+        }
+
+        // this.outputs.leftLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, -Math.PI * 0.4));
+        // this.outputs.rightLowerArm.quaternion.premultiply(localQuaternion.setFromAxisAngle(forwardVector, Math.PI * 0.4));
+
+        // const antiSpineBone = poseData[poseIndex].bones.find(b => b.mappedName === 'antispine');
+        // this.outputs.leftUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+        // this.outputs.rightUpperLeg.quaternion.premultiply(antiSpineBone.quaternion);
+
+        // mmdAnimationHelper.pose(model, animationData[poseIndex]);
+      }
+      if (this.headTargetEnabled) {
+        this.outputs.neck.quaternion.premultiply(this.headTarget);
+      }
+    };
+    _applyPose();
+
     if (this.getTopEnabled()) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1939,32 +2432,46 @@ class Avatar {
     this.shoulderTransforms.Update();
     this.legsManager.Update();
 
+    if (this.windTargetEnabled && this.springBoneManager) {
+      for (const springBoneGroup of this.springBoneManager.springBoneGroupList) {
+        for (const bone of springBoneGroup) {
+          bone.gravityDir.copy(this.windTarget);
+          bone.gravityPower =
+            Math.sin((Date.now() % 100)/100 * Math.PI) * 1 +
+            Math.cos((Date.now() % 20)/20 * Math.PI) * 1 +
+            Math.sin((Date.now() % 5)/5 * Math.PI) * 1;
+        }
+      }
+    }
+
     for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
-      const modelBoneOutput = this.modelBoneOutputs[k];
+      if (modelBone) { // broken model
+        const modelBoneOutput = this.modelBoneOutputs[k];
 
-      if (/hips|thumb|finger/i.test(k)) {
-        modelBone.position.copy(modelBoneOutput.position);
-      }
-      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
+        if (/hips|thumb|finger/i.test(k)) {
+          modelBone.position.copy(modelBoneOutput.position);
+        }
+        modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion);
 
-      if (this.getTopEnabled()) {
-        if (k === 'Left_wrist') {
-          if (this.getHandEnabled(1)) {
-            modelBone.quaternion.multiply(leftRotation); // center
-          }
-        } else if (k === 'Right_wrist') {
-          if (this.getHandEnabled(0)) {
-            modelBone.quaternion.multiply(rightRotation); // center
+        if (this.getTopEnabled()) {
+          if (k === 'Left_wrist') {
+            if (this.getHandEnabled(1)) {
+              modelBone.quaternion.multiply(leftRotation); // center
+            }
+          } else if (k === 'Right_wrist') {
+            if (this.getHandEnabled(0)) {
+              modelBone.quaternion.multiply(rightRotation); // center
+            }
           }
         }
-      }
-      if (this.getBottomEnabled()) {
-        if (k === 'Left_ankle' || k === 'Right_ankle') {
-          modelBone.quaternion.multiply(upRotation);
+        if (this.getBottomEnabled()) {
+          if (k === 'Left_ankle' || k === 'Right_ankle') {
+            modelBone.quaternion.multiply(upRotation);
+          }
         }
+        modelBone.updateMatrixWorld();
       }
-      modelBone.updateMatrixWorld();
     }
 
     if (this.springBoneManager) {
@@ -1975,7 +2482,13 @@ class Avatar {
     } */
 
     if (this.options.visemes) {
-      const aaValue = Math.min(this.volume * 10, 1);
+      const aValue = Math.min(this.volume * 10, 1);
+      /* const emotionValues = {
+        angry: 0,
+        fun: 0,
+        joy: 0,
+        sorrow: 0,
+      }; */
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -1987,16 +2500,69 @@ class Avatar {
         }
       })();
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
-        if (visemeMapping) {
-          const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
-          if (aaIndex !== null) {
-            morphTargetInfluences[aaIndex] = aaValue;
+        // initialize
+        const {morphTargetInfluences} = visemeMapping;
+        for (let i = 0; i < morphTargetInfluences.length; i++) {
+          morphTargetInfluences[i] = 0;
+        }
+
+        // ik
+        if (visemeMapping.a >= 0) {
+          morphTargetInfluences[visemeMapping.a] = aValue;
+        }
+        if (visemeMapping.blink_l >= 0) {
+          morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
+        }
+        if (visemeMapping.blink_r >= 0) {
+          morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
+        }
+
+        /* // local vismeses
+        for (const influence of visemeMapping) {
+          if (emotionValues[influence.name]) {
+            morphTargetInfluences[influence.index] = emotionValues[influence.name];
           }
-          if (blinkLeftIndex !== null) {
-            morphTargetInfluences[blinkLeftIndex] = blinkValue;
-          }
-          if (blinkRightIndex !== null) {
-            morphTargetInfluences[blinkRightIndex] = blinkValue;
+        } */
+        
+        if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
+          morphTargetInfluences[emotionIndex] = 1;
+        }
+
+        // ["neutral", "a", "i", "u", "e", "o", "blink", "joy", "angry", "sorrow", "fun", "lookup", "lookdown", "lookleft", "lookright", "blink_l", "blink_r"]
+        // animation visemes
+        for (const activeViseme of this.activeVisemes) {
+          const {index, value} = activeViseme;
+          morphTargetInfluences[index] = value;
+        }
+      }
+    }
+    
+    if (this.eyeTargetEnabled) {
+      for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
+        if (eye) {
+          eye.getWorldPosition(localVector);
+          eye.parent.getWorldQuaternion(localQuaternion);
+          localQuaternion.invert()
+            .premultiply(z180Quaternion)
+            .multiply(
+              localQuaternion2.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  localVector,
+                  this.eyeTarget,
+                  localVector2.set(0, 1, 0)
+                )
+              )
+            );
+          if (/^(?:left|right)eye$/i.test(eye.name)) {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = -localEuler.x;
+            eye.quaternion.setFromEuler(localEuler);
+          } else {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.05), Math.PI*0.1);
+            localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
+            localEuler.z = 0;
+            eye.quaternion.setFromEuler(localEuler);
           }
         }
       }
@@ -2079,6 +2645,32 @@ class Avatar {
 
   getFloorHeight() {
     return this.poseManager.vrTransforms.floorHeight;
+  }
+  
+  copyTo(model) {
+    // window.o = window.o || {};
+    const _recurse = (a, b) => {
+      if (a.isBone) {
+        // window.o[b.name] = true;
+        // _copySkeleton(a.skeleton, b.skeleton);
+        // b.skeleton.bones.forEach((b, i) => {
+          // console.log('got', a);
+          // debugger;
+          b.matrix.copy(a.matrix)
+            .decompose(b.position, b.quaternion, b.scale);
+          // b.position.copy(a.position);
+          // b.quaternion.copy(a.quaternion);
+          // b.position.set(-1 + Math.random() * 2, Math.random(), -1);
+        // });
+      }
+      if (a.children) {
+        for (let i = 0; i < a.children.length; i++) {
+          _recurse(a.children[i], b.children[i]);
+        }
+      }
+    };
+    // console.log('copy', model);
+    _recurse(this.model, model);
   }
 
   destroy() {

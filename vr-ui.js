@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 // import {scene} from './run.js';
-import {TextMesh} from './textmesh-standalone.esm.js';
+import {Text as TextMesh} from './troika-three-text.esm.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import easing from './easing.js';
 import * as icons from './icons.js';

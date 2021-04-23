@@ -11,6 +11,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
+import {forceAvatarUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -120,7 +121,7 @@ class RigManager {
 
     this.peerRigs = new Map();
     
-    this.lastTimetamp = Date.now();
+    this.lastTimestamp = Date.now();
   }
   
   init() {
@@ -200,8 +201,68 @@ class RigManager {
   async setLocalAvatarUrl(url, ext) {
     // await this.localRigQueue.lock();
 
+    if (forceAvatarUrl) {
+      url = forceAvatarUrl;
+    }
+
     await this.setAvatar(this.localRig, newLocalRig => {
       this.localRig = newLocalRig;
+
+      const img = new Image();
+      img.src = './threeTone.jpg';
+      const gradientMap = new THREE.Texture(img);
+      gradientMap.minFilter = THREE.NearestFilter;
+      gradientMap.magFilter = THREE.NearestFilter;
+      img.onload = () => {
+        gradientMap.needsUpdate = true;
+      };
+      newLocalRig.model.traverse(o => {
+        if (o.isMesh) {
+          const oldMaterial = o.material;
+
+          /* if (oldMaterial.map) {
+            const canvas = document.createElement('canvas');
+            canvas.width = oldMaterial.map.image.width;
+            canvas.height = oldMaterial.map.image.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(oldMaterial.map.image, 0, 0);
+            document.body.appendChild(canvas);
+          } */
+          o.material = new THREE.MeshToonMaterial({
+            map: oldMaterial.map,
+            // normalMap: oldMaterial.normalMap,
+            aoMap: oldMaterial.aoMap,
+            // bumpMap: oldMaterial.bumpMap,
+            // emissiveMap: oldMaterial.emissiveMap,
+            gradientMap,
+            // emissive: oldMaterial.emissive,
+            lightMap: oldMaterial.lightMap,
+            // color: oldMaterial.color,
+            color: oldMaterial.color,
+          });
+          o.material.alphaMap = oldMaterial.alphaMap;
+          o.material.emissiveMap = oldMaterial.emissiveMap;
+          o.material.transparent = oldMaterial.transparent;
+          o.material.opacity = oldMaterial.opacity;
+          o.material.alphaTest = oldMaterial.alphaTest;
+          // o.material.map = new THREE.Texture(oldMaterial.map.image);
+          // o.material.map.needsUpdate = true;
+          o.material.skinning = oldMaterial.skinning;
+          o.material.morphTargets = oldMaterial.morphTargets;
+          o.material.morphNormals = oldMaterial.morphNormals;
+          
+          o.onBeforeRender = () => {
+            const context = renderer.getContext();
+            context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+          };
+          o.onAfterRender = () => {
+            const context = renderer.getContext();
+            context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+          };
+        }
+      });
+    // console.log('got model', vrmObject);
+    // window.THREE = THREE;
     }, url, ext);
 
     // await this.localRigQueue.unlock();
@@ -236,7 +297,8 @@ class RigManager {
               visemes: true,
               debug: false //!o,
             });
-            localRig.model.isVrm = true;
+            localRig.model.isVrm = o.isVrm;
+            localRig.model.contentId = o.contentId;
             localRig.aux = oldRig.aux;
             localRig.aux.rig = localRig;
           } else {
@@ -552,10 +614,6 @@ class RigManager {
     let closestPeerRig = null;
     let closestPeerRigDistance = Infinity;
     for (const peerRig of this.peerRigs.values()) {
-      /* console.log('got peer rig', peerRig);
-      if (!peerRig.rigCapsule) {
-        debugger;
-      } */
       localMatrix2.compose(peerRig.inputs.hmd.position, peerRig.inputs.hmd.quaternion, localVector2.set(1, 1, 1));
       localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
         .premultiply(
@@ -605,7 +663,7 @@ class RigManager {
 
   update() {
     const now = Date.now();
-    const timeDiff = (now - this.lastTimetamp) / 1000;
+    const timeDiff = (now - this.lastTimestamp) / 1000;
     
     const session = renderer.xr.getSession();
     let currentPosition, currentQuaternion;
@@ -632,7 +690,7 @@ class RigManager {
     for (let i = 0; i < 2; i++) {
       this.localRig.setHandEnabled(i, useTime === -1 && !!appManager.equippedObjects[i]);
     }
-    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
+    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || (cameraManager.getMode() === 'firstperson' && physicsManager.isUnlocked()) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
@@ -707,7 +765,7 @@ class RigManager {
       rig.aux.update(now, timeDiff);
     });
     
-    this.lastTimetamp = now;
+    this.lastTimestamp = now;
 
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];

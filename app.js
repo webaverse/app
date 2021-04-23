@@ -4,7 +4,6 @@ import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import geometryManager from './geometry-manager.js';
 import ioManager from './io-manager.js';
@@ -14,7 +13,6 @@ import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
-import cameraManager from './camera-manager.js';
 import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
@@ -23,8 +21,10 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, copyScene, copySceneCamera, copyScenePlaneGeometry, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
+import {compositor} from './compositor.js';
+import playManger from './play-manager.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -48,14 +48,24 @@ const localArray = Array(4);
 const localArray2 = Array(4);
 const localArray3 = Array(4);
 const localArray4 = Array(4);
+const localData = {
+  timeDiff: 0,
+};
+const localFrameOpts = {
+  data: localData,
+};
 
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-export default class App {
+export default class App extends EventTarget {
   constructor() {
+    super();
+    
+    this.paused = true;
+    this.lastTimestamp = performance.now();
     this.loadPromise = Promise.all([
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
@@ -176,54 +186,40 @@ export default class App {
     }
   }
   
+  play() {
+    this.paused = false;
+    this.lastTimestamp = performance.now();
+  }
+  pause() {
+    this.paused = true;
+  }
+  
+  clear() {
+    compositor.clear();
+  }
   render() {
-    // high priority render
-    renderer.render(scene3, camera);
-    // main render
-    scene.add(rigManager.localRig.model);
-    rigManager.localRig.model.visible = false;
-    renderer.render(scene, camera);
-    renderer.render(orthographicScene, orthographicCamera);
-    // local avatar render
-    {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-    }
-    // highlight render
-    // renderer.render(highlightScene, camera);
+    compositor.render();
   }
   renderMinimap() {
     minimap.update();
   }
   renderDom() {
-    // dom render
     renderer2.render(scene2, camera);
   }
   
   startLoop() {
-    let lastTimestamp = performance.now();
-    const startTime = Date.now();
-    const animate = (timestamp, frame) => {      
+    const animate = (timestamp, frame) => {
+      if (this.paused) return;
+      
       timestamp = timestamp || performance.now();
-      const timeDiff = timestamp - lastTimestamp;
+      const timeDiff = timestamp - this.lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);
-      lastTimestamp = timestamp;
+      this.lastTimestamp = timestamp;
 
       const session = renderer.xr.getSession();
       const now = Date.now();
+      
+      this.clear();
 
       ioManager.update(timeDiffCapped);
       universe.update();
@@ -349,6 +345,7 @@ export default class App {
       _updateRig();
 
       weaponsManager.update();
+      playManger.update();
       hpManager.update();
       activateManager.update();
       dropManager.update();
@@ -356,6 +353,9 @@ export default class App {
       fx.update();
 
       appManager.tick(timestamp, frame);
+      
+      localData.timeDiff = timeDiff;
+      this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
 
       ioManager.updatePost();
 

@@ -9,6 +9,7 @@ import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
+import playManger from './play-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -461,6 +462,9 @@ ioManager.bindInput = () => {
       case 74: { // J
         weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
         break;
+      }
+      case 76: { // L
+        playManger.start();
       }
     }
   });

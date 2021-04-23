@@ -2,7 +2,10 @@ import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
 import dropManager from './drop-manager.js';
+import Avatar from './avatars/avatars.js';
 import {contentIdToFile, unFrustumCull} from './util.js';
+import {renderer, camera} from './app-object.js';
+import {compositor, FunctionPass} from './compositor.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -18,6 +21,7 @@ export class RigAux {
     this.wearables = [];
     this.sittables = [];
     this.pets = [];
+    this.materials = [];
     
     this.nextId = 0;
   }
@@ -31,10 +35,11 @@ export class RigAux {
       wearables: this.wearables.map(_formatAuxObject),
       sittables: this.sittables.map(_formatAuxObject),
       pets: this.pets.map(_formatAuxObject),
+      materials: this.materials.map(_formatAuxObject),
     };
   }
   setPose(data) {
-    const {wearables, sittables, pets} = data;
+    const {wearables, sittables, pets, materials} = data;
     {
       for (const newWearable of wearables) {
         if (!this.wearables.some(w => w.id === newWearable.id)) {
@@ -76,6 +81,20 @@ export class RigAux {
         }
       }
     }
+
+    {
+      for (const newMaterial of materials) {
+        if (!this.materials.some(m => m.id === newMaterial.id)) {
+          this.addMaterial(newMaterial);
+        }
+      }
+      const localMaterials = this.materials.slice();
+      for (const oldMaterial of localMaterials) {
+        if (!materials.some(o => o.id === oldMaterial.id)) {
+          this.removeMaterial(oldMaterial);
+        }
+      }
+    }
   }
   async addWearable({id, contentId, componentIndex}) {
     const wearable = {
@@ -95,7 +114,7 @@ export class RigAux {
     });
     wearable.model = o;
     unFrustumCull(o);
-    if (this.wearables.includes(wearable)) {
+    if (this.wearables.includes(wearable)) { // check for race condition
       this.scene.add(o);
       
       const component = o.getComponents()[componentIndex];
@@ -135,7 +154,7 @@ export class RigAux {
     });
     sittable.model = o;
     unFrustumCull(o);
-    if (this.sittables.includes(sittable)) {
+    if (this.sittables.includes(sittable)) { // check for race condition
       this.scene.add(o);
 
       const root = o;
@@ -224,7 +243,7 @@ export class RigAux {
     });
     pet.model = o;
     unFrustumCull(o);
-    if (this.pets.includes(pet)) {
+    if (this.pets.includes(pet)) { // check for race condition
       this.scene.add(o);
 
       const mesh = o;
@@ -352,6 +371,85 @@ export class RigAux {
       this.pets.splice(index, 1);
     }
   }
+  async addMaterial({id, contentId, componentIndex}) {
+    const localAvatarScene = new THREE.Scene();
+
+    const self = this;
+
+    const material = {
+      id,
+      contentId,
+      componentIndex,
+      // object: null,
+      update: () => {
+        // nothing
+      },
+    };
+    this.materials.push(material);
+    
+    const file = await contentIdToFile(contentId);
+    const o = await runtime.loadFile(file, {
+      local: true,
+    }, {
+      contentId,
+    });
+    // material.object = o;
+    localAvatarScene.overrideMaterial = o.material;
+    // unFrustumCull(o);
+    
+    const _loadMirrorAvatar = async () => {
+      const file = await contentIdToFile(self.rig.model.contentId);
+      const o2 = await runtime.loadFile(file, {
+        local: true,
+      }, {
+        contentId,
+      });
+      
+      const rig = new Avatar(o2.raw, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        debug: false,
+      });
+      
+      unFrustumCull(rig.model);
+      localAvatarScene.add(rig.model);
+      return rig;
+    };
+    const localRig2 = await _loadMirrorAvatar();
+
+    if (this.materials.includes(material)) { // check for race condition
+      const pass = {
+        pass: new FunctionPass(function(renderer, writeBuffer, readBuffer) {
+          renderer.setRenderTarget(null);
+          
+          if (localRig2) {
+            localRig2.model.position.copy(self.rig.model.position);
+            localRig2.model.quaternion.copy(self.rig.model.quaternion);
+            localRig2.model.scale.copy(self.rig.model.scale);
+            localRig2.model.matrix.copy(self.rig.model.matrix);
+            localRig2.model.matrixWorld.copy(self.rig.model.matrixWorld);
+            self.rig.copyTo(localRig2.model);
+          }
+   
+          renderer.render(localAvatarScene, camera);
+        }, {
+          priority: -1,
+          // needsSwap: false,
+        }),
+      };
+      compositor.add(pass);
+    }
+    
+    return material;
+  }
+  removeMaterial(pet) {
+    pet.model && this.scene.remove(pet.model);
+    const index = this.pets.indexOf(pet);
+    if (index !== -1) {
+      this.pets.splice(index, 1);
+    }
+  }
   getNextId() {
     return ++this.nextId;
   }
@@ -394,6 +492,9 @@ export class RigAux {
     for (const pet of this.pets) {
 	    pet.update(timeDiff);
 	  }
+    for (const material of this.materials) {
+	    material.update(timeDiff);
+	  }
   }
   destroy() {
     {
@@ -412,6 +513,12 @@ export class RigAux {
       const localPets = this.pets.slice();
       for (const pet of localPets) {
         this.removePet(pet);
+      }
+    }
+    {    
+      const localMaterials = this.materials.slice();
+      for (const material of localMaterials) {
+        this.removeMaterial(material);
       }
     }
   }

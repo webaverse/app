@@ -15,13 +15,16 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, scene2, appManager} from './app-object.js';
+import {renderer, scene, camera, scene2, copyScenePlaneGeometry, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
 import {baseUnit, rarityColors} from './constants.js';
+import json6 from './json6.js';
+import {FullscreenShader, compositor} from './compositor.js';
+import {ShadertoyRenderer} from './shadertoy.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -205,6 +208,24 @@ const componentHandlers = {
       };
     },
   },
+  overrideMaterial: {
+    load(o, componentIndex, rigAux) {
+      const auxPose = rigAux.getPose();
+      auxPose.materials.length = 0;
+      const material = {
+        id: rigAux.getNextId(),
+        contentId: o.contentId,
+        componentIndex,
+      };
+      auxPose.materials.push(material);
+      rigAux.setPose(auxPose);
+      return () => {
+        const auxPose = rigAux.getPose();
+        auxPose.materials = auxPose.materials.filter(w => w.id !== material.id);
+        rigAux.setPose(auxPose);
+      };
+    },
+  },
 };
 const triggerComponentTypes = [
   'use',
@@ -214,6 +235,7 @@ const loadComponentTypes = [
   'sit',
   'pet',
   'npc',
+  'overrideMaterial',
 ];
 const runComponentTypes = [
   'effect',
@@ -410,6 +432,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
+  
+  gltfObject.traverse(o => {
+    if (o.isMesh) {
+      o.material.blending = THREE.CustomBlending;
+    }
+  });
 
   const mesh = new THREE.Object3D();
   const jitterObject = hpManager.makeHitTracker();
@@ -444,7 +472,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const res = await fetch(physics_url);
       const arrayBuffer = await res.arrayBuffer();
       physicsBuffer = new Uint8Array(arrayBuffer);
-    } else {
+    } else if (physics) {
       mesh.updateMatrixWorld();
       physicsMesh = convertMeshToPhysicsMesh(gltfObject);
       physicsMesh.position.copy(mesh.position);
@@ -503,6 +531,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     let used = false;
     for (const componentType of loadComponentTypes) {
       const componentIndex = components.findIndex(component => component.type === componentType);
+      // console.log('load component type', components, componentType, componentIndex);
       if (componentIndex !== -1) {
         const component = components[componentIndex];
         const componentHandler = componentHandlers[component.type];
@@ -555,7 +584,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   
   return mesh;
 };
-const _loadVrm = async (file, {files = null, parentUrl = null, components = [], contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, components = [], contentId = null, instanceId = null, physics = false, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -601,9 +630,11 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   let physicsIds = [];
   let staticPhysicsIds = [];
   o.run = async () => {
-    const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
-    physicsIds.push(physicsId);
-    staticPhysicsIds.push(physicsId);
+    if (physics) {
+      const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
+      physicsIds.push(physicsId);
+      staticPhysicsIds.push(physicsId);
+    }
     
     // elide expensive bone updates; this should not be called if wearing the avatar
     const skinnedMeshes = [];
@@ -1053,16 +1084,22 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
 };
 const _loadManifestJson = async (file, {files = null, contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
+  // console.log('load manifest 1', [srcUrl, files, _isResolvableUrl(srcUrl)]);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
+    // console.log('load manifest 2', srcUrl);
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
   }
+  
+  // console.log('load manifest 3', srcUrl);
 
   if (!files && /^https?:/.test(srcUrl)) {
     files = _makeFilesProxy(srcUrl);
   }
+  
+  // console.log('files proxy', files);
 
   const res = await fetch(srcUrl);
   const j = await res.json();
@@ -1078,6 +1115,7 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
   } */
 
   const u = _dotifyUrl(start_url);
+  // console.log('dotify url', {start_url, u, files});
   return await runtime.loadFile({
     url: u,
     name: u,
@@ -1541,7 +1579,7 @@ const _loadAudio = async (file, {contentId = null, instanceId = null, monetizati
   return object;
 };
 
-const _loadVideo = () => {
+const _loadVideo = async () => {
   throw new Error('not implemented');
 };
 
@@ -1549,6 +1587,144 @@ const _loadGeo = async (file, {contentId = null}) => {
   const object = buildTool.makeShapeMesh();
   object.contentId = contentId;
   return object;
+};
+
+const _loadGlfs = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  
+  const fullscreenShader = new FullscreenShader(shader);
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.useAux = rigAux => {
+    compositor.add(fullscreenShader);
+  };
+  o.destroy = () => {
+    compositor.remove(fullscreenShader);
+    appManager.destroyApp(appId);
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    fullscreenShader.pass.enabled = !!o.parent;
+  });
+  
+  return o;
+};
+
+const _loadGlbb = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+
+  const shadertoyRenderer = new ShadertoyRenderer(shader);
+  let loaded = false;
+  (async () => {
+    await shadertoyRenderer.waitForLoad();
+    loaded = true;
+  })();
+  const o = shadertoyRenderer.mesh;
+  o.contentId = contentId;
+  // o.frustumCulled = false;
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+  };
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    if (loaded) {
+      shadertoyRenderer.update(e.data.timeDiff/1000);
+    }
+  });
+
+  return o;
+};
+
+const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  const {vertexShader, fragmentShader} = shader;
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      opacity: {
+        value: 1,
+        needsUpdate: true,
+      },
+    },
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+  });
+  material.skinning = true;
+  material.morphTargets = true;
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.material = material;
+  const componentUnloadFns = [];
+  o.useAux = rigAux => {
+    let used = false;
+    for (const componentType of loadComponentTypes) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
+        const componentHandler = componentHandlers[component.type];
+        const unloadFn = componentHandler.load(o, componentIndex, rigAux);
+        componentUnloadFns.push(unloadFn);
+        used = true;
+      }
+    }
+    return used;
+  };
+  o.destroy = () => {
+    // appManager.destroyApp(appId);
+    
+    for (const fn of componentUnloadFns) {
+      fn();
+    }
+    componentUnloadFns.length = 0;
+  };
+  
+  /* const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    // nothing
+  }); */
+  
+  return o;
+};
+
+const _loadTxt = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  const res = await fetch(srcUrl);
+  let text = await res.text();
+
+  const textMesh = makeTextMesh(text.slice(0, 20), './NotoSansJP-Regular.otf', 0.2, 'center', 'middle');
+  // textMesh.position.y = 2.2;
+  // textMesh.color = 0xCCCCCC;
+  textMesh.update = () => {
+    // nothing
+  };
+
+  return textMesh;
 };
 
 const typeHandlers = {
@@ -1570,10 +1746,17 @@ const typeHandlers = {
   'geo': _loadGeo,
   'mp3': _loadAudio,
   'mp4': _loadVideo,
+  'glfs': _loadGlfs,
+  'glbb': _loadGlbb,
+  'glom': _loadGlom,
+  'txt': _loadTxt,
 };
 runtime.typeHandlers = typeHandlers;
 
 runtime.loadFile = async (file, opts) => {
+  if (!file) {
+    debugger;
+  }
   const object = await (async () => {
     const ext = file.ext || getExt(file.name);
     const handler = typeHandlers[ext];

@@ -1,0 +1,177 @@
+.studio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
+.studio footer {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0;
+  /* height: 300px; */
+  pointer-events: all;
+}
+
+.studio footer .toolbar {
+  display: flex;
+  width: 100%;
+  height: 40px;
+  background-color: #EEE;
+  border-top: 3px solid #CCC;
+}
+
+.studio footer .toolbar .buttons {
+  display: flex;
+  background-color: #CCC;
+  border-radius: 3px;
+  align-items: center;
+}
+
+.studio footer .toolbar .buttons .button {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  align-items: center;
+}
+.studio footer .toolbar .buttons .button.disabled {
+  color: #999;
+}
+.studio footer .toolbar .buttons .button i {
+  font-size: 18px;
+}
+
+.studio footer .core {
+  display: flex;
+  width: 100%;
+  flex: 1;
+}
+
+.studio footer .core .playlist {
+  position: relative;
+  display: flex;
+  margin: 0 3px;
+  flex-direction: column;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.studio footer .core .playlist .needle {
+  position: absolute;
+  display: flex;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #66bb6a;
+  border: 0px solid transparent;
+  border-left-width: 2px;
+  border-right-width: 2px;
+}
+.studio footer .core .playlist .ruler {
+  position: relative;
+  display: flex;
+  height: 20px;
+  background-color: #DDD;
+}
+.studio footer .core .playlist .ruler .tick {
+  position: absolute;
+  bottom: 0;
+  height: 5px;
+  border-right: 1px solid #333;
+}
+.studio footer .core .playlist .ruler .tick.large {
+  height: 10px;
+}
+.studio footer .core .playlist .track {
+  display: flex;
+  min-height: 50px;
+  margin: 3px 0;
+  border: 3px solid #CCC;
+}
+.studio footer .core .playlist .entities {
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+}
+.studio footer .core .playlist .entities .entity {
+  position: relative;
+  display: flex;
+  min-height: 50px;
+  flex-direction: column;
+}
+.studio footer .core .playlist .entities .entity.selected .core::after {
+  border-color: #0008;
+}
+
+.studio footer .core .playlist .entities .entity .core {
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+  color: #FFF;
+  user-select: none;
+}
+.studio footer .core .playlist .entities .entity .core::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 3px solid transparent;
+  content: '';
+}
+.studio footer .core .playlist .entities .entity .attributes {
+  background-color: #BBB;
+}
+.studio footer .core .playlist .entities .entity .attributes:not(.empty) {
+  
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute {
+  position: relative;
+  min-height: 50px;
+  user-select: none;
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 3px solid transparent;
+  content: '';
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute.selected::after {
+  border-color: #0008;
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute .nub {
+  position: absolute;
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  background-color: #0004;
+  /* border: 2px solid #0008; */
+  z-index: 1;
+}
+.studio footer .core .playlist .entities .entity .attributes .attribute .nub.selected {
+  background-color: #000;
+}
+
+.studio footer .core .clips {
+  width: 300px;
+  background-color: #DDD;
+  border-left: 5px solid #EEE;
+}
+.studio footer .core .clips .clip {
+  display: inline-flex;
+  margin: 3px;
+  padding: 3px;
+  color: #FFF;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+.studio footer .core .clips .clip:hover {
+  filter: brightness(50%);
+}

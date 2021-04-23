@@ -1,14 +1,33 @@
 class MicrophoneWorker extends EventTarget {
-  constructor(mediaStream, options = {}) {
+  constructor(o, options = {}) {
     super();
 
     this.live = true;
 
-    const audio = document.createElement('audio');
-    audio.srcObject = mediaStream;
-    audio.muted = true;
+    if (o instanceof MediaStream) {
+      const audio = document.createElement('audio');
+      audio.srcObject = o;
+      audio.muted = true;
+    } else {
+      const oldO = o;
+      oldO.play = (play => function() {
+        play.apply(oldO, arguments);
+        play.apply(o, arguments);
+      })(oldO.play);
+      oldO.pause = (pause => function() {
+        pause.apply(oldO, arguments);
+        pause.apply(o, arguments);
+      })(oldO.pause);
+      o = o.cloneNode();
+    }
     this.audioContext = new AudioContext();
-    const mediaStreamSource = this.audioContext.createMediaStreamSource(mediaStream);
+    const mediaStreamSource = (() => {
+      if (o instanceof MediaStream) {
+        return this.audioContext.createMediaStreamSource(o);
+      } else {
+        return this.audioContext.createMediaElementSource(o);
+      }
+    })();
 
     this.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
       .then(() => {

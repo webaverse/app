@@ -1,4 +1,4 @@
-import { ShaderChunk, UniformsUtils, MeshDepthMaterial, RGBADepthPacking, MeshDistanceMaterial, ShaderLib, DataTexture, Vector3, MeshStandardMaterial, DoubleSide, Mesh, CylinderBufferGeometry, Vector2 } from './three.module.js';
+import { ShaderChunk, UniformsUtils, MeshDepthMaterial, RGBADepthPacking, MeshDistanceMaterial, ShaderLib, Matrix4, Vector3, Mesh, CylinderBufferGeometry, Vector2, MeshStandardMaterial, DoubleSide } from './three.module.js';
 
 /**
  * Regular expression for matching the `void main() {` opener line in GLSL.
@@ -22,6 +22,36 @@ function expandShaderIncludes( source ) {
   return source.replace( pattern, replace )
 }
 
+/*
+ * This is a direct copy of MathUtils.generateUUID from Three.js, to preserve compatibility with three
+ * versions before 0.113.0 as it was changed from Math to MathUtils in that version.
+ * https://github.com/mrdoob/three.js/blob/dd8b5aa3b270c17096b90945cd2d6d1b13aaec53/src/math/MathUtils.js#L16
+ */
+
+const _lut = [];
+
+for (let i = 0; i < 256; i++) {
+  _lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
+}
+
+function generateUUID() {
+
+  // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
+
+  const d0 = Math.random() * 0xffffffff | 0;
+  const d1 = Math.random() * 0xffffffff | 0;
+  const d2 = Math.random() * 0xffffffff | 0;
+  const d3 = Math.random() * 0xffffffff | 0;
+  const uuid = _lut[d0 & 0xff] + _lut[d0 >> 8 & 0xff] + _lut[d0 >> 16 & 0xff] + _lut[d0 >> 24 & 0xff] + '-' +
+    _lut[d1 & 0xff] + _lut[d1 >> 8 & 0xff] + '-' + _lut[d1 >> 16 & 0x0f | 0x40] + _lut[d1 >> 24 & 0xff] + '-' +
+    _lut[d2 & 0x3f | 0x80] + _lut[d2 >> 8 & 0xff] + '-' + _lut[d2 >> 16 & 0xff] + _lut[d2 >> 24 & 0xff] +
+    _lut[d3 & 0xff] + _lut[d3 >> 8 & 0xff] + _lut[d3 >> 16 & 0xff] + _lut[d3 >> 24 & 0xff];
+
+  // .toUpperCase() here flattens concatenated strings to save heap memory space.
+  return uuid.toUpperCase()
+
+}
+
 // Local assign polyfill to avoid importing troika-core
 const assign = Object.assign || function(/*target, ...sources*/) {
   let target = arguments[0];
@@ -40,8 +70,12 @@ const assign = Object.assign || function(/*target, ...sources*/) {
 
 
 const epoch = Date.now();
-const CACHE = new WeakMap(); //threejs requires WeakMap internally so should be safe to assume support
+const CONSTRUCTOR_CACHE = new WeakMap();
+const SHADER_UPGRADE_CACHE = new Map();
 
+// Material ids must be integers, but we can't access the increment from Three's `Material` module,
+// so let's choose a sufficiently large starting value that should theoretically never collide.
+let materialInstanceId = 1e10;
 
 /**
  * A utility for creating a custom shader material derived from another material's
@@ -85,6 +119,12 @@ const CACHE = new WeakMap(); //threejs requires WeakMap internally so should be 
  *        for performing custom rewrites of the full shader code. Useful if you need to do something
  *        special that's not covered by the other builtin options. This function will be executed before
  *        any other transforms are applied.
+ * @param {boolean} options.chained - Set to `true` to prototype-chain the derived material to the base
+ *        material, rather than the default behavior of copying it. This allows the derived material to
+ *        automatically pick up changes made to the base material and its properties. This can be useful
+ *        where the derived material is hidden from the user as an implementation detail, allowing them
+ *        to work with the original material like normal. But it can result in unexpected behavior if not
+ *        handled carefully.
  *
  * @return {THREE.Material}
  *
@@ -98,46 +138,40 @@ const CACHE = new WeakMap(); //threejs requires WeakMap internally so should be 
  * scenarios, e.g. skipping antialiasing or expensive shader logic.
  */
 function createDerivedMaterial(baseMaterial, options) {
-  // First check the cache to see if we've already derived from this baseMaterial using
-  // this unique set of options, and if so just return a clone instead of a new subclass
-  // which is faster and allows their shader program to be shared when rendering.
-  const optionsHash = getOptionsHash(options);
-  let cached = CACHE.get(baseMaterial);
-  if (!cached) {
-    cached = Object.create(null);
-    CACHE.set(baseMaterial, cached);
+  // Generate a key that is unique to the content of these `options`. We'll use this
+  // throughout for caching and for generating the upgraded shader code. This increases
+  // the likelihood that the resulting shaders will line up across multiple calls so
+  // their GL programs can be shared and cached.
+  const optionsKey = getKeyForOptions(options);
+
+  // First check to see if we've already derived from this baseMaterial using this
+  // unique set of options, and if so reuse the constructor to avoid some allocations.
+  let ctorsByDerivation = CONSTRUCTOR_CACHE.get(baseMaterial);
+  if (!ctorsByDerivation) {
+    CONSTRUCTOR_CACHE.set(baseMaterial, (ctorsByDerivation = Object.create(null)));
   }
-  if (cached[optionsHash]) {
-    return cached[optionsHash].clone()
+  if (ctorsByDerivation[optionsKey]) {
+    return new ctorsByDerivation[optionsKey]()
   }
 
-  // Even if baseMaterial is changing, use a consistent id in shader rewrites based on the
-  // optionsHash. This makes it more likely that deriving from base materials of the same
-  // type/class, e.g. multiple instances of MeshStandardMaterial, will produce identical
-  // rewritten shader code so they can share a single WebGLProgram behind the scenes.
-  const id = getIdForOptionsHash(optionsHash);
-  const privateDerivedShadersProp = `_derivedShaders${id}`;
-  const privateBeforeCompileProp = `_onBeforeCompile${id}`;
-  let distanceMaterialTpl, depthMaterialTpl;
+  const privateBeforeCompileProp = `_onBeforeCompile${optionsKey}`;
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
-  function onBeforeCompile(shaderInfo) {
+  const onBeforeCompile = function (shaderInfo) {
     baseMaterial.onBeforeCompile.call(this, shaderInfo);
 
-    // Upgrade the shaders, caching the result
-    const {vertex, fragment} = this[privateDerivedShadersProp] || (this[privateDerivedShadersProp] = {vertex: {}, fragment: {}});
-    if (vertex.source !== shaderInfo.vertexShader || fragment.source !== shaderInfo.fragmentShader) {
-      const upgraded = upgradeShaders(shaderInfo, options, id);
-      vertex.source = shaderInfo.vertexShader;
-      vertex.result = upgraded.vertexShader;
-      fragment.source = shaderInfo.fragmentShader;
-      fragment.result = upgraded.fragmentShader;
+    // Upgrade the shaders, caching the result by incoming source code
+    const cacheKey = optionsKey + '|||' + shaderInfo.vertexShader + '|||' + shaderInfo.fragmentShader;
+    let upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey];
+    if (!upgradedShaders) {
+      const upgraded = upgradeShaders(shaderInfo, options, optionsKey);
+      upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey] = upgraded;
     }
 
     // Inject upgraded shaders and uniforms into the program
-    shaderInfo.vertexShader = vertex.result;
-    shaderInfo.fragmentShader = fragment.result;
+    shaderInfo.vertexShader = upgradedShaders.vertexShader;
+    shaderInfo.fragmentShader = upgradedShaders.fragmentShader;
     assign(shaderInfo.uniforms, this.uniforms);
 
     // Inject auto-updating time uniform if requested
@@ -151,16 +185,46 @@ function createDerivedMaterial(baseMaterial, options) {
     if (this[privateBeforeCompileProp]) {
       this[privateBeforeCompileProp](shaderInfo);
     }
-  }
+  };
 
-  function DerivedMaterial() {
-    baseMaterial.constructor.apply(this, arguments);
-    this._listeners = undefined; //don't inherit EventDispatcher listeners
-  }
-  DerivedMaterial.prototype = Object.create(baseMaterial, {
+  const DerivedMaterial = function DerivedMaterial() {
+    return derive(options.chained ? baseMaterial : baseMaterial.clone())
+  };
+
+  const derive = function(base) {
+    // Prototype chain to the base material
+    const derived = Object.create(base, descriptor);
+
+    // Store the baseMaterial for reference; this is always the original even when cloning
+    Object.defineProperty(derived, 'baseMaterial', { value: baseMaterial });
+
+    // Needs its own ids
+    Object.defineProperty(derived, 'id', { value: materialInstanceId++ });
+    derived.uuid = generateUUID();
+
+    // Merge uniforms, defines, and extensions
+    derived.uniforms = assign({}, base.uniforms, options.uniforms);
+    derived.defines = assign({}, base.defines, options.defines);
+    derived.defines[`TROIKA_DERIVED_MATERIAL_${optionsKey}`] = ''; //force a program change from the base material
+    derived.extensions = assign({}, base.extensions, options.extensions);
+
+    // Don't inherit EventDispatcher listeners
+    derived._listeners = undefined;
+
+    return derived
+  };
+
+  const descriptor = {
     constructor: {value: DerivedMaterial},
     isDerivedMaterial: {value: true},
-    baseMaterial: {value: baseMaterial},
+
+    customProgramCacheKey: {
+      writable: true,
+      configurable: true,
+      value: function () {
+        return optionsKey
+      }
+    },
 
     onBeforeCompile: {
       get() {
@@ -172,14 +236,25 @@ function createDerivedMaterial(baseMaterial, options) {
     },
 
     copy: {
+      writable: true,
+      configurable: true,
       value: function (source) {
         baseMaterial.copy.call(this, source);
         if (!baseMaterial.isShaderMaterial && !baseMaterial.isDerivedMaterial) {
-          this.extensions = assign({}, source.extensions);
-          this.defines = assign({}, source.defines);
-          this.uniforms = UniformsUtils.clone(source.uniforms);
+          assign(this.extensions, source.extensions);
+          assign(this.defines, source.defines);
+          assign(this.uniforms, UniformsUtils.clone(source.uniforms));
         }
         return this
+      }
+    },
+
+    clone: {
+      writable: true,
+      configurable: true,
+      value: function () {
+        const newBase = new baseMaterial.constructor();
+        return derive(newBase).copy(this)
       }
     },
 
@@ -187,69 +262,66 @@ function createDerivedMaterial(baseMaterial, options) {
      * Utility to get a MeshDepthMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDepthMaterial: {value: function() {
-      let depthMaterial = this._depthMaterial;
-      if (!depthMaterial) {
-        if (!depthMaterialTpl) {
-          depthMaterialTpl = createDerivedMaterial(
+    getDepthMaterial: {
+      writable: true,
+      configurable: true,
+      value: function() {
+        let depthMaterial = this._depthMaterial;
+        if (!depthMaterial) {
+          depthMaterial = this._depthMaterial = createDerivedMaterial(
             baseMaterial.isDerivedMaterial
               ? baseMaterial.getDepthMaterial()
-              : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
+              : new MeshDepthMaterial({ depthPacking: RGBADepthPacking }),
             options
           );
-          depthMaterialTpl.defines.IS_DEPTH_MATERIAL = '';
+          depthMaterial.defines.IS_DEPTH_MATERIAL = '';
+          depthMaterial.uniforms = this.uniforms; //automatically recieve same uniform values
         }
-        depthMaterial = this._depthMaterial = depthMaterialTpl.clone();
-        depthMaterial.uniforms = this.uniforms; //automatically recieve same uniform values
+        return depthMaterial
       }
-      return depthMaterial
-    }},
+    },
 
     /**
      * Utility to get a MeshDistanceMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDistanceMaterial: {value: function() {
-      let distanceMaterial = this._distanceMaterial;
-      if (!distanceMaterial) {
-        if (!distanceMaterialTpl) {
-          distanceMaterialTpl = createDerivedMaterial(
+    getDistanceMaterial: {
+      writable: true,
+      configurable: true,
+      value: function() {
+        let distanceMaterial = this._distanceMaterial;
+        if (!distanceMaterial) {
+          distanceMaterial = this._distanceMaterial = createDerivedMaterial(
             baseMaterial.isDerivedMaterial
               ? baseMaterial.getDistanceMaterial()
               : new MeshDistanceMaterial(),
             options
           );
-          distanceMaterialTpl.defines.IS_DISTANCE_MATERIAL = '';
+          distanceMaterial.defines.IS_DISTANCE_MATERIAL = '';
+          distanceMaterial.uniforms = this.uniforms; //automatically recieve same uniform values
         }
-        distanceMaterial = this._distanceMaterial = distanceMaterialTpl.clone();
-        distanceMaterial.uniforms = this.uniforms; //automatically recieve same uniform values
+        return distanceMaterial
       }
-      return distanceMaterial
-    }},
+    },
 
-    dispose: {value() {
-      const {_depthMaterial, _distanceMaterial} = this;
-      if (_depthMaterial) _depthMaterial.dispose();
-      if (_distanceMaterial) _distanceMaterial.dispose();
-      baseMaterial.dispose.call(this);
-    }}
-  });
+    dispose: {
+      writable: true,
+      configurable: true,
+      value() {
+        const {_depthMaterial, _distanceMaterial} = this;
+        if (_depthMaterial) _depthMaterial.dispose();
+        if (_distanceMaterial) _distanceMaterial.dispose();
+        baseMaterial.dispose.call(this);
+      }
+    }
+  };
 
-  const material = new DerivedMaterial();
-  material.copy(baseMaterial);
-
-  // Merge uniforms, defines, and extensions
-  material.uniforms = assign(UniformsUtils.clone(baseMaterial.uniforms || {}), options.uniforms);
-  material.defines = assign({}, baseMaterial.defines, options.defines);
-  material.defines.TROIKA_DERIVED_MATERIAL = id; //force a program change from the base material
-  material.extensions = assign({}, baseMaterial.extensions, options.extensions);
-
-  cached[optionsHash] = material;
-  return material.clone() //return a clone so changes made to it don't affect the cached object
+  ctorsByDerivation[optionsKey] = DerivedMaterial;
+  return new DerivedMaterial()
 }
 
 
-function upgradeShaders({vertexShader, fragmentShader}, options, id) {
+function upgradeShaders({vertexShader, fragmentShader}, options, key) {
   let {
     vertexDefs,
     vertexMainIntro,
@@ -316,29 +388,32 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
 
   // Inject a function for the vertexTransform and rename all usages of position/normal/uv
   if (vertexTransform) {
+    // Hoist these defs to the very top so they work in other function defs
+    vertexShader = `vec3 troika_position_${key};
+vec3 troika_normal_${key};
+vec2 troika_uv_${key};
+${vertexShader}
+`;
     vertexDefs = `${vertexDefs}
-vec3 troika_position_${id};
-vec3 troika_normal_${id};
-vec2 troika_uv_${id};
-void troikaVertexTransform${id}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
+void troikaVertexTransform${key}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
   ${vertexTransform}
 }
 `;
     vertexMainIntro = `
-troika_position_${id} = vec3(position);
-troika_normal_${id} = vec3(normal);
-troika_uv_${id} = vec2(uv);
-troikaVertexTransform${id}(troika_position_${id}, troika_normal_${id}, troika_uv_${id});
+troika_position_${key} = vec3(position);
+troika_normal_${key} = vec3(normal);
+troika_uv_${key} = vec2(uv);
+troikaVertexTransform${key}(troika_position_${key}, troika_normal_${key}, troika_uv_${key});
 ${vertexMainIntro}
 `;
     vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
-      return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
+      return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${key}`
     });
   }
 
   // Inject defs and intro/outro snippets
-  vertexShader = injectIntoShaderCode(vertexShader, id, vertexDefs, vertexMainIntro, vertexMainOutro);
-  fragmentShader = injectIntoShaderCode(fragmentShader, id, fragmentDefs, fragmentMainIntro, fragmentMainOutro);
+  vertexShader = injectIntoShaderCode(vertexShader, key, vertexDefs, vertexMainIntro, vertexMainOutro);
+  fragmentShader = injectIntoShaderCode(fragmentShader, key, fragmentDefs, fragmentMainIntro, fragmentMainOutro);
 
   return {
     vertexShader,
@@ -362,9 +437,6 @@ void main() {
   return shaderCode
 }
 
-function getOptionsHash(options) {
-  return JSON.stringify(options, optionsJsonReplacer)
-}
 
 function optionsJsonReplacer(key, value) {
   return key === 'uniforms' ? undefined : typeof value === 'function' ? value.toString() : value
@@ -372,7 +444,8 @@ function optionsJsonReplacer(key, value) {
 
 let _idCtr = 0;
 const optionsHashesToIds = new Map();
-function getIdForOptionsHash(optionsHash) {
+function getKeyForOptions(options) {
+  const optionsHash = JSON.stringify(options, optionsJsonReplacer);
   let id = optionsHashesToIds.get(optionsHash);
   if (id == null) {
     optionsHashesToIds.set(optionsHash, (id = ++_idCtr));
@@ -389,7 +462,7 @@ const MATERIAL_TYPES_TO_SHADERS = {
   MeshBasicMaterial: 'basic',
   MeshLambertMaterial: 'lambert',
   MeshPhongMaterial: 'phong',
-  MeshToonMaterial: 'phong',
+  MeshToonMaterial: 'toon',
   MeshStandardMaterial: 'physical',
   MeshPhysicalMaterial: 'physical',
   MeshMatcapMaterial: 'matcap',
@@ -429,263 +502,18 @@ function getShaderUniformTypes(shader) {
 }
 
 /**
- * @class ShaderFloatArray
- *
- * When writing a custom WebGL shader, sometimes you need to pass it an array of floating
- * point numbers that it can read from. Unfortunately this is very difficult to do in WebGL,
- * because:
- *
- *   - GLSL "array" uniforms can only be of a constant length.
- *   - Textures can only hold floating point numbers in WebGL1 if the `OES_texture_float`
- *     extension is available.
- *
- * ShaderFloatArray is an array-like abstraction that encodes its floating point data into
- * an RGBA texture's four Uint8 components, and provides the corresponding ThreeJS uniforms
- * and GLSL code for you to put in your custom shader to query the float values by array index.
- *
- * This should generally only be used within a fragment shader, as some environments (e.g. iOS)
- * only allow texture lookups in fragment shaders.
- *
- * TODO:
- *   - Fix texture to fill both dimensions so we don't easily hit max texture size limits
- *   - Use a float texture if the extension is available so we can skip the encoding process
+ * Helper for smoothing out the `m.getInverse(x)` --> `m.copy(x).invert()` conversion
+ * that happened in ThreeJS r123.
+ * @param {Matrix4} srcMatrix
+ * @param {Matrix4} [tgtMatrix]
  */
-class ShaderFloatArray {
-  constructor(name) {
-    this.name = name;
-    this.textureUniform = `dataTex_${name}`;
-    this.textureSizeUniform = `dataTexSize_${name}`;
-    this.multiplierUniform = `dataMultiplier_${name}`;
-
-    /**
-     * @property dataSizeUniform - the name of the GLSL uniform that will hold the
-     * length of the data array.
-     * @type {string}
-     */
-    this.dataSizeUniform = `dataSize_${name}`;
-
-    /**
-     * @property readFunction - the name of the GLSL function that should be called to
-     * read data out of the array by index.
-     * @type {string}
-     */
-    this.readFunction = `readData_${name}`;
-
-    this._raw = new Float32Array(0);
-    this._texture = new DataTexture(new Uint8Array(0), 0, 1);
-    this._length = 0;
-    this._multiplier = 1;
+function invertMatrix4(srcMatrix, tgtMatrix = new Matrix4()) {
+  if (typeof tgtMatrix.invert === 'function') {
+    tgtMatrix.copy(srcMatrix).invert();
+  } else {
+    tgtMatrix.getInverse(srcMatrix);
   }
-
-  /**
-   * @property length - the current length of the data array
-   * @type {number}
-   */
-  set length(value) {
-    if (value !== this._length) {
-      // Find nearest power-of-2 that holds the new length
-      const size = Math.pow(2, Math.ceil(Math.log2(value)));
-      const raw = this._raw;
-      if (size < raw.length) {
-        this._raw = raw.subarray(0, size);
-      }
-      else if(size > raw.length) {
-        this._raw = new Float32Array(size);
-        this._raw.set(raw);
-      }
-      this._length = value;
-    }
-  }
-  get length() {
-    return this._length
-  }
-
-  /**
-   * Add a value to the end of the data array
-   * @param {number} value
-   */
-  push(value) {
-    return this.set(this.length++, value)
-  }
-
-  /**
-   * Replace the existing data with that from a new array
-   * @param {ArrayLike<number>} array
-   */
-  setArray(array) {
-    this.length = array.length;
-    this._raw.set(array);
-    this._needsRepack = true;
-  }
-
-  /**
-   * Get the current value at index
-   * @param {number} index
-   * @return {number}
-   */
-  get(index) {
-    return this._raw[index]
-  }
-
-  set(index, value) {
-    if (index + 1 > this._length) {
-      this.length = index + 1;
-    }
-    if (value !== this._raw[index]) {
-      this._raw[index] = value;
-      encodeFloatToFourInts(
-        value / this._multiplier,
-        this._texture.image.data,
-        index * 4
-      );
-      this._needsMultCheck = true;
-    }
-  }
-
-  /**
-   * Make a copy of this ShaderFloatArray
-   * @return {ShaderFloatArray}
-   */
-  clone() {
-    const clone = new ShaderFloatArray(this.name);
-    clone.setArray(this._raw);
-    return clone
-  }
-
-  /**
-   * Retrieve the set of Uniforms that must to be added to the target ShaderMaterial or
-   * DerivedMaterial, to feed the GLSL code generated by {@link #getShaderHeaderCode}.
-   * @return {Object}
-   */
-  getShaderUniforms() {
-    const me = this;
-    return {
-      [this.textureUniform]: {get value() {
-        me._sync();
-        return me._texture
-      }},
-      [this.textureSizeUniform]: {get value() {
-        me._sync();
-        return me._texture.image.width
-      }},
-      [this.dataSizeUniform]: {get value() {
-        me._sync();
-        return me.length
-      }},
-      [this.multiplierUniform]: {get value() {
-        me._sync();
-        return me._multiplier
-      }}
-    }
-  }
-
-  /**
-   * Retrieve the GLSL code that must be injected into the shader's definitions area to
-   * enable reading from the data array. This exposes a function with a name matching
-   * the {@link #readFunction} property, which other shader code can call to read values
-   * from the array by their index.
-   * @return {string}
-   */
-  getShaderHeaderCode() {
-    const {textureUniform, textureSizeUniform, dataSizeUniform, multiplierUniform, readFunction} = this;
-    return `
-uniform sampler2D ${textureUniform};
-uniform float ${textureSizeUniform};
-uniform float ${dataSizeUniform};
-uniform float ${multiplierUniform};
-
-float ${readFunction}(float index) {
-  vec2 texUV = vec2((index + 0.5) / ${textureSizeUniform}, 0.5);
-  vec4 pixel = texture2D(${textureUniform}, texUV);
-  return dot(pixel, 1.0 / vec4(1.0, 255.0, 65025.0, 16581375.0)) * ${multiplierUniform};
-}
-`
-  }
-
-  /**
-   * @private Synchronize any pending changes to the underlying DataTexture
-   */
-  _sync() {
-    const tex = this._texture;
-    const raw = this._raw;
-    let needsRepack = this._needsRepack;
-
-    // If the size of the raw array changed, resize the texture to match
-    if (raw.length !== tex.image.width) {
-      tex.image = {
-        data: new Uint8Array(raw.length * 4),
-        width: raw.length,
-        height: 1
-      };
-      needsRepack = true;
-    }
-
-    // If the values changed, check the multiplier. This should be a value by which
-    // all the values are divided to constrain them to the [0,1] range required by
-    // the Uint8 packing algorithm. We pick the nearest power of 2 that holds the
-    // maximum value for greatest accuracy.
-    if (needsRepack || this._needsMultCheck) {
-      const maxVal = this._raw.reduce((a, b) => Math.max(a, b), 0);
-      const mult = Math.pow(2, Math.ceil(Math.log2(maxVal)));
-      if (mult !== this._multiplier) {
-        this._multiplier = mult;
-        needsRepack = true;
-      }
-      tex.needsUpdate = true;
-      this._needsMultCheck = false;
-    }
-
-    // If things changed in a way we need to repack, do so
-    if (needsRepack) {
-      for (let i = 0, len = raw.length, mult = this._multiplier; i < len; i++) {
-        encodeFloatToFourInts(raw[i] / mult, tex.image.data, i * 4);
-      }
-      this._needsRepack = false;
-    }
-  }
-}
-
-
-
-/**
- * Encode a floating point number into a set of four 8-bit integers.
- * Also see the companion decoder function #decodeFloatFromFourInts.
- *
- * This is adapted to JavaScript from the basic approach at
- * http://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
- * but writes out integers in the range 0-255 instead of floats in the range 0-1
- * so they can be more easily used in a Uint8Array for standard WebGL rgba textures.
- *
- * Some precision will necessarily be lost during the encoding and decoding process.
- * Testing shows that the maximum precision error is ~1.18e-10 which should be good
- * enough for most cases.
- *
- * @param {Number} value - the floating point number to encode. Must be in the range [0, 1]
- *        otherwise the results will be incorrect.
- * @param {Array|Uint8Array} array - an array into which the four ints should be written
- * @param {Number} startIndex - index in the output array at which to start writing the ints
- * @return {Array|Uint8Array}
- */
-function encodeFloatToFourInts(value, array, startIndex) {
-  // This is adapted to JS from the basic approach at
-  // http://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
-  // but writes to a Uint8Array instead of floats. Input values must be in
-  // the range [0, 1]. The maximum error after encoding and decoding is ~1.18e-10
-  let enc0 = 255 * value;
-  let enc1 = 255 * (enc0 % 1);
-  let enc2 = 255 * (enc1 % 1);
-  let enc3 = 255 * (enc2 % 1);
-
-  enc0 = enc0 & 255;
-  enc1 = enc1 & 255;
-  enc2 = enc2 & 255;
-  enc3 = Math.round(enc3) & 255;
-
-  array[startIndex] = enc0;
-  array[startIndex + 1] = enc1;
-  array[startIndex + 2] = enc2;
-  array[startIndex + 3] = enc3;
-  return array
+  return tgtMatrix
 }
 
 /*
@@ -779,6 +607,7 @@ function createBezierMeshMaterial(baseMaterial) {
   return createDerivedMaterial(
     baseMaterial,
     {
+      chained: true,
       uniforms: {
         pointA: {value: new Vector3()},
         controlA: {value: new Vector3()},
@@ -797,7 +626,7 @@ function createBezierMeshMaterial(baseMaterial) {
 
 let geometry = null;
 
-const defaultBaseMaterial = new MeshStandardMaterial({color: 0xffffff, side: DoubleSide});
+const defaultBaseMaterial = /*#__PURE__*/new MeshStandardMaterial({color: 0xffffff, side: DoubleSide});
 
 
 /**
@@ -857,7 +686,7 @@ class BezierMesh extends Mesh {
   // lazily on _read_ rather than write to avoid unnecessary wrapping on transient values.
   get material() {
     let derivedMaterial = this._derivedMaterial;
-    const baseMaterial = this._baseMaterial || defaultBaseMaterial;
+    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = defaultBaseMaterial.clone());
     if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
       derivedMaterial = this._derivedMaterial = createBezierMeshMaterial(baseMaterial);
       // dispose the derived material when its base material is disposed:
@@ -896,4 +725,4 @@ class BezierMesh extends Mesh {
   }
 }
 
-export { BezierMesh, ShaderFloatArray, createDerivedMaterial, expandShaderIncludes, getShaderUniformTypes, getShadersForMaterial, voidMainRegExp };
+export { BezierMesh, createDerivedMaterial, expandShaderIncludes, getShaderUniformTypes, getShadersForMaterial, invertMatrix4, voidMainRegExp };

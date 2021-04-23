@@ -75,7 +75,7 @@ class ShoulderPoser {
   		.magnitude);
   } */
 
-  Update() {
+  Update(leftArmIk, rightArmIk) {
     this.shoulder.proneFactor = this.getProneFactor();
     this.shoulder.prone = this.shoulder.proneFactor > 0;
     if (this.shoulder.prone) {
@@ -88,8 +88,8 @@ class ShoulderPoser {
 
     this.updateHips();
 
-    this.shoulder.leftShoulderAnchor.quaternion.set(0, 0, 0, 1);
-    this.shoulder.rightShoulderAnchor.quaternion.set(0, 0, 0, 1);
+    leftArmIk && this.shoulder.leftShoulderAnchor.quaternion.set(0, 0, 0, 1);
+    rightArmIk && this.shoulder.rightShoulderAnchor.quaternion.set(0, 0, 0, 1);
 
     // this.shoulder.transform.rotation = Quaternion.identity;
     // this.positionShoulder();
