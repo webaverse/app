@@ -1,6 +1,5 @@
 import * as THREE from './three.module.js';
 import {scene, camera, renderer, copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './app-object.js';
-import runtime from './runtime.js';
 
 const size = 1024;
 const worldSize = 2;
