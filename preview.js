@@ -25,6 +25,25 @@ import {storageHost} from './constants.js';
         img.src = `${storageHost}/ipfs/${hash}`;
       });
     },
+    'mp4': async ({
+      hash,
+    }) => {
+      const video = document.createElement('video');
+      video.classList.add('content');
+      video.classList.add('video');
+      video.setAttribute('controls', true);
+      video.setAttribute('autoplay', true);
+      video.setAttribute('muted', true);
+      // window.video = video;
+      _setContainerContent(video);
+      await new Promise((accept, reject) => {
+        video.oncanplaythrough = () => {
+          accept();
+        };
+        video.onerror = reject;
+        video.src = `${storageHost}/ipfs/${hash}`;
+      });
+    },
     'html': async ({
       hash,
     }) => {
