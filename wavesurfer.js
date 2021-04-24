@@ -3285,9 +3285,9 @@ exports.default = void 0;
  *
  * @return {function} Available `requestAnimationFrame` function for the browser
  */
-var _default = (window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback, element) {
+var _default = (globalThis.requestAnimationFrame || globalThis.webkitRequestAnimationFrame || globalThis.mozRequestAnimationFrame || globalThis.oRequestAnimationFrame || globalThis.msRequestAnimationFrame || function (callback, element) {
   return setTimeout(callback, 1000 / 60);
-}).bind(window);
+}).bind(globalThis);
 
 exports.default = _default;
 module.exports = exports.default;
