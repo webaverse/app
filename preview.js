@@ -14,6 +14,7 @@ import {storageHost} from './constants.js';
       hash,
     }) => {
       const img = new Image();
+      img.classList.add('content');
       img.classList.add('img');
       _setContainerContent(img);
       await new Promise((accept, reject) => {
@@ -28,6 +29,7 @@ import {storageHost} from './constants.js';
       hash,
     }) => {
       const iframe = document.createElement('iframe');
+      iframe.classList.add('content');
       iframe.classList.add('iframe');
       _setContainerContent(iframe);
     },
