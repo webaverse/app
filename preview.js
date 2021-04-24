@@ -44,6 +44,22 @@ import {storageHost} from './constants.js';
         video.src = `${storageHost}/ipfs/${hash}`;
       });
     },
+    'mp3': async ({
+      hash,
+    }) => {
+      const audio = new Audio();
+      audio.classList.add('content');
+      audio.classList.add('audio');
+      audio.setAttribute('controls', true);
+      _setContainerContent(audio);
+      await new Promise((accept, reject) => {
+        audio.oncanplaythrough = () => {
+          accept();
+        };
+        audio.onerror = reject;
+        audio.src = `${storageHost}/ipfs/${hash}`;
+      });
+    },
     'html': async ({
       hash,
     }) => {
