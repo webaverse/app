@@ -1,7 +1,37 @@
 <!doctype html>
 <html>
+<head>
+<style>
+body {
+  margin: 0;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+body {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+.container {
+  display: inline-flex;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.content {
+  display: flex;
+  /* width: 100vw;
+  height: 100vh; */
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: auto 0;
+  border: 0;
+  object-fit: contain;
+}
+</style>
+</head>
 <body>
-<div id=container></div>
+<div class=container id=container></div>
 <script type=module src="preview.js"></script>
 </body>
 </html>
