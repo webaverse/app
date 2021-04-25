@@ -17,6 +17,7 @@ body {
   display: inline-flex;
   border-radius: 10px;
   overflow: hidden;
+  flex-direction: column;
 }
 .content {
   display: flex;
@@ -28,10 +29,15 @@ body {
   border: 0;
   object-fit: contain;
 }
-.blocker {
+.container .blocker {
   background-color: rgba(255, 255, 255, 0.8);
   /* transform: translateX(100vw); */
   pointer-events: none;
+}
+.container audio {
+  position: relative;
+  width: 100%;
+  z-index: 1;
 }
 </style>
 </head>
