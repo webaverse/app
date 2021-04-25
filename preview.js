@@ -82,9 +82,11 @@ window.onload = async () => {
       
       
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 128;
-      canvas.style.cssText = `width: ${canvas.width}px; height: ${canvas.height}px;`;
+      const width = window.innerWidth;
+      const height = window.innerHeight / 2;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      canvas.style.cssText = `width: ${width}px; height: ${height}px;`;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#333';
       _setContainerContent(canvas);
@@ -120,10 +122,12 @@ window.onload = async () => {
           v = Math.abs(v);
           return v;
         };
-        const numBars = 100;
+        const numBars = 256;
+        const barWidth = 2 / canvas.width * numBars;
+        const fullBarsWidth = numBars * (barWidth + 2);
         for (let i = 0; i < numBars; i++) {
           const v = _samplePeakAt(i / numBars);
-          ctx.fillRect(i * (2 + 2), (1-v) * canvas.height / 2, 2, v * canvas.height);
+          ctx.fillRect(i * (barWidth + 2) * canvas.width / fullBarsWidth, (1-v) * canvas.height / 2, 2 * canvas.width / fullBarsWidth, v * canvas.height);
         }
       });
       
