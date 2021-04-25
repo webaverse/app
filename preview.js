@@ -225,9 +225,13 @@ window.onload = async () => {
       _setContainerContent(null);
       container.appendChild(canvas);
       
+      let lastTimestamp = Date.now();
       const _recurse = () => {
-        o.rig.update();
+        const now = Date.now();
+        const timeDiff = (now - lastTimestamp)/1000;
+        o.rig.update(now, timeDiff);
         renderer.render(scene, camera);
+        lastTimestamp = now;
         requestAnimationFrame(_recurse);
       };
       requestAnimationFrame(_recurse);
