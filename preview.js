@@ -133,10 +133,9 @@ window.onload = async () => {
       //decode an ArrayBuffer into an AudioBuffer
       audioCtx.decodeAudioData(audioData, decodedData => {
         //calculate peaks from an AudioBuffer
-        console.log('got audio data', audio.duration, decodedData);
         const peaks = extractPeaks(decodedData, audio.duration * 10);
         
-        console.log('got peaks', peaks);
+        // console.log('got peaks', peaks);
         
         const _samplePeakAt = (f, numSamples) => {
           const peakIndexTarget = f * peaks.length;
