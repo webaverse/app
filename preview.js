@@ -1,4 +1,3 @@
-// import WaveSurfer from './wavesurfer.js';
 import extractPeaks from './webaudio-peaks.js';
 import {parseQuery} from './util.js';
 import {storageHost} from './constants.js';
@@ -165,38 +164,6 @@ window.onload = async () => {
           ctx.fillRect(i * (barWidth + barSpacing) * canvas.width / fullBarsWidth, (1-v) * canvas.height / 2, 2 * canvas.width / fullBarsWidth, v * canvas.height);
         }
       });
-      
-      /* const wavesurfer = WaveSurfer.create({
-        container,
-        waveColor: '#A8DBA8',
-        progressColor: '#3B8686',
-        // backend: 'MediaElement',
-      });
-      wavesurfer.on('ready', () => {
-        console.log('surfer play');
-        window.addEventListener('click', e => {
-          wavesurfer.play();
-        });
-      });
-      wavesurfer.on('error', err => {
-        console.warn(err);
-      });
-      const result = wavesurfer.load(`${storageHost}/${hash}/preview.mp3`);
-      window.wavesurfer = wavesurfer;
-      console.log('wave surfer load', result); */
-      
-      /* const audio = new Audio();
-      audio.classList.add('content');
-      audio.classList.add('audio');
-      audio.setAttribute('controls', true);
-      _setContainerContent(audio);
-      await new Promise((accept, reject) => {
-        audio.oncanplaythrough = () => {
-          accept();
-        };
-        audio.onerror = reject;
-        audio.src = src;
-      }); */
     },
     'html': async ({
       hash,
