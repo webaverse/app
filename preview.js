@@ -229,7 +229,8 @@ window.onload = async () => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, 2, -2);
-      camera.lookAt(new THREE.Vector3(0, o.rig.height / 2, 0));
+      const target = new THREE.Vector3(0, o.rig.height / 2, 0);
+      camera.lookAt(target);
       
       o.rig.setTopEnabled(false);
       o.rig.setHandEnabled(0, false);
@@ -240,6 +241,9 @@ window.onload = async () => {
       addDefaultLights(scene);
       scene.add(o);
       
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(target);
+      
       _setContainerContent(null);
       container.appendChild(canvas);
       
@@ -247,6 +251,7 @@ window.onload = async () => {
       const _recurse = () => {
         const now = Date.now();
         const timeDiff = (now - lastTimestamp)/1000;
+        controls.update();
         o.rig.update(now, timeDiff);
         renderer.render(scene, camera);
         lastTimestamp = now;
@@ -269,10 +274,14 @@ window.onload = async () => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, 1, 1);
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      const target = new THREE.Vector3(0, 0, 0);
+      camera.lookAt(target);
       
       addDefaultLights(scene);
       scene.add(o);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(target);
       
       _setContainerContent(null);
       container.appendChild(canvas);
@@ -282,6 +291,7 @@ window.onload = async () => {
         // const now = Date.now();
         // const timeDiff = (now - lastTimestamp)/1000;
         // o.rig.update(now, timeDiff);
+        controls.update();
         renderer.render(scene, camera);
         // lastTimestamp = now;
         requestAnimationFrame(_recurse);
