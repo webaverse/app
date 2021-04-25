@@ -104,40 +104,65 @@ window.onload = async () => {
         const boundingBox = canvas.getBoundingClientRect();
         const x = (e.clientX - boundingBox.x) / boundingBox.width;
         const y = (e.clientY - boundingBox.y) / boundingBox.height;
-        console.log('got x y', x, y);
-        _setX(x);
+        if (audio.duration) {
+          audio.currentTime = x * audio.duration;
+        }
       });
+      window.addEventListener('keydown', e => {
+        if (e.which === 32) { // space
+          if (audio.paused) {
+            audio.play();
+          } else {
+            audio.pause();
+          }
+        }
+      });
+      const _bindUpdates = () => {
+        const _recurse = () => {
+          if (audio.duration) {
+            _setX(audio.currentTime / audio.duration);
+            requestAnimationFrame(_recurse);
+          }
+        };
+        requestAnimationFrame(_recurse);
+      };        
+      _bindUpdates();
       
       const audioCtx = new AudioContext();
       //decode an ArrayBuffer into an AudioBuffer
       audioCtx.decodeAudioData(audioData, decodedData => {
         //calculate peaks from an AudioBuffer
-        const peaks = extractPeaks(decodedData, 10000, true);
+        console.log('got audio data', audio.duration, decodedData);
+        const peaks = extractPeaks(decodedData, audio.duration * 10);
         
         console.log('got peaks', peaks);
         
-        const _samplePeakAt = f => {
+        const _samplePeakAt = (f, numSamples) => {
           const peakIndexTarget = f * peaks.length;
           let peakIndex = Math.floor(peakIndexTarget);
           const peakIndexRemainder = peakIndexTarget - peakIndex;
-          
-          if (peakIndex === peaks.length - 1) {
-            peakIndex--;
-          }
-          
+
+          let v = 0;
           const startPeak = peaks.data[0][peakIndex];
-          const endPeak = peaks.data[0][peakIndex + 1];
-          let v = startPeak * (1 - peakIndexRemainder) + endPeak * peakIndexRemainder;
+          for (let i = 0; i < numSamples; i++) {
+            const j = Math.floor(peakIndex - numSamples / 2) + i;
+            if (j >= 0 && j < peaks.data[0].length) {
+              v += Math.abs(peaks.data[0][j]);
+            }
+          }
+          v /= numSamples;
+
           v /= 128;
-          v = Math.abs(v);
+          // v = Math.abs(v);
           return v;
         };
         const numBars = 256;
         const barWidth = 2 / canvas.width * numBars;
-        const fullBarsWidth = numBars * (barWidth + 2);
+        const barSpacing = 2;
+        const fullBarsWidth = numBars * (barWidth + barSpacing);
         for (let i = 0; i < numBars; i++) {
-          const v = _samplePeakAt(i / numBars);
-          ctx.fillRect(i * (barWidth + 2) * canvas.width / fullBarsWidth, (1-v) * canvas.height / 2, 2 * canvas.width / fullBarsWidth, v * canvas.height);
+          const v = _samplePeakAt(i / numBars, 16);
+          ctx.fillRect(i * (barWidth + barSpacing) * canvas.width / fullBarsWidth, (1-v) * canvas.height / 2, 2 * canvas.width / fullBarsWidth, v * canvas.height);
         }
       });
       
