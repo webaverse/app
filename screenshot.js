@@ -258,7 +258,7 @@ const _makeIconString = (hash, ext) => {
         fingers: true,
         hair: true,
         visemes: true,
-        debug: false //!o,
+        debug: false,
       });
       rig.model.isVrm = true;
       /* rig.aux = oldRig.aux;
