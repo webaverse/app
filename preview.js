@@ -4,6 +4,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {parseQuery} from './util.js';
 import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
+import {addDefaultLights} from './util.js';
 import extractPeaks from './webaudio-peaks.js';
 
 const _loadVrm = async src => {
@@ -236,6 +237,7 @@ window.onload = async () => {
       o.rig.setBottomEnabled(false);
       o.rig.inputs.hmd.position.y = o.rig.height;
       
+      addDefaultLights(scene);
       scene.add(o);
       
       _setContainerContent(null);
@@ -266,9 +268,10 @@ window.onload = async () => {
       });
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 2, -2);
+      camera.position.set(0, 1, 1);
       camera.lookAt(new THREE.Vector3(0, 0, 0));
       
+      addDefaultLights(scene);
       scene.add(o);
       
       _setContainerContent(null);
