@@ -120,8 +120,9 @@ window.onload = async () => {
           v = Math.abs(v);
           return v;
         };
-        for (let i = 0; i < 100; i++) {
-          const v = _samplePeakAt(i / 100);
+        const numBars = 100;
+        for (let i = 0; i < numBars; i++) {
+          const v = _samplePeakAt(i / numBars);
           ctx.fillRect(i * (2 + 2), (1-v) * canvas.height / 2, 2, v * canvas.height);
         }
       });
