@@ -6,6 +6,50 @@ import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
 import extractPeaks from './webaudio-peaks.js';
 
+const _loadVrm = async src => {
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new GLTFLoader().load(src, accept, function onprogress() {}, reject);
+    });
+  } catch(err) {
+    console.warn(err);
+  } /* finally {
+    URL.revokeObjectURL(u);
+  } */
+  console.log('loaded VRM', o);
+  
+  const rig = new Avatar(o, {
+    fingers: true,
+    hair: true,
+    visemes: true,
+    debug: false //!o,
+  });
+  rig.model.isVrm = true;
+  /* rig.aux = oldRig.aux;
+  rig.aux.rig = rig; */
+  
+  o = o.scene;
+  o.rig = rig;
+  
+  return o;
+};
+const _loadGltf = async src => {
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new GLTFLoader().load(src, accept, function onprogress() {}, reject);
+    });
+  } catch(err) {
+    console.warn(err);
+  } /* finally {
+    URL.revokeObjectURL(u);
+  } */
+  console.log('loaded GLTF', o);
+  o = o.scene;
+  return o;
+};
+
 window.onload = async () => {
   const container = document.getElementById('container');
 
@@ -171,34 +215,6 @@ window.onload = async () => {
     },
     'vrm': async () => {
       const src = _hashToSrc(hash);
-      const _loadVrm = async src => {
-        let o;
-        try {
-          o = await new Promise((accept, reject) => {
-            new GLTFLoader().load(src, accept, function onprogress() {}, reject);
-          });
-        } catch(err) {
-          console.warn(err);
-        } /* finally {
-          URL.revokeObjectURL(u);
-        } */
-        console.log('loaded VRM', o);
-        
-        const rig = new Avatar(o, {
-          fingers: true,
-          hair: true,
-          visemes: true,
-          debug: false //!o,
-        });
-        rig.model.isVrm = true;
-        /* rig.aux = oldRig.aux;
-        rig.aux.rig = rig; */
-        
-        o = o.scene;
-        o.rig = rig;
-        
-        return o;
-      };
       const o = await _loadVrm(src);
       
       const canvas = document.createElement('canvas');
@@ -232,6 +248,39 @@ window.onload = async () => {
         o.rig.update(now, timeDiff);
         renderer.render(scene, camera);
         lastTimestamp = now;
+        requestAnimationFrame(_recurse);
+      };
+      requestAnimationFrame(_recurse);
+    },
+    'glb': async () => {
+      const src = _hashToSrc(hash);
+      const o = await _loadGltf(src);
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      const context = canvas.getContext('webgl2');
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        context,
+      });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, -2);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      
+      scene.add(o);
+      
+      _setContainerContent(null);
+      container.appendChild(canvas);
+      
+      // let lastTimestamp = Date.now();
+      const _recurse = () => {
+        // const now = Date.now();
+        // const timeDiff = (now - lastTimestamp)/1000;
+        // o.rig.update(now, timeDiff);
+        renderer.render(scene, camera);
+        // lastTimestamp = now;
         requestAnimationFrame(_recurse);
       };
       requestAnimationFrame(_recurse);
