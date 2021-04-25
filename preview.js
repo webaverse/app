@@ -91,11 +91,21 @@ window.onload = async () => {
       ctx.fillStyle = '#333';
       _setContainerContent(canvas);
       
+      const blocker = document.createElement('div');
+      blocker.classList.add('blocker');
+      blocker.style.cssText = `position: absolute; top: 0; bottom: 0; left: 0; width: ${window.innerWidth}px; transform-origin: 0 50%;`;
+      container.appendChild(blocker);
+      
+      const _setX = x => {
+        blocker.style.transform = `translateX(${x * window.innerWidth}px)`;
+      };
+      
       canvas.addEventListener('click', e => {
         const boundingBox = canvas.getBoundingClientRect();
         const x = (e.clientX - boundingBox.x) / boundingBox.width;
         const y = (e.clientY - boundingBox.y) / boundingBox.height;
         console.log('got x y', x, y);
+        _setX(x);
       });
       
       const audioCtx = new AudioContext();
@@ -108,7 +118,7 @@ window.onload = async () => {
         
         const _samplePeakAt = f => {
           const peakIndexTarget = f * peaks.length;
-          const peakIndex = Math.floor(peakIndexTarget);
+          let peakIndex = Math.floor(peakIndexTarget);
           const peakIndexRemainder = peakIndexTarget - peakIndex;
           
           if (peakIndex === peaks.length - 1) {
