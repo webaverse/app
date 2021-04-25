@@ -326,6 +326,12 @@ window.onload = async () => {
     await handler({
       hash,
     });
+    
+    const m = {
+      _preview: true,
+      ok: true,
+    };
+    window.parent.postMessage(m, '*');
   } else {
     throw new Error('unknown extension: ' + ext);
   }
