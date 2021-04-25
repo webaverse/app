@@ -89,6 +89,13 @@ window.onload = async () => {
       ctx.fillStyle = '#333';
       _setContainerContent(canvas);
       
+      canvas.addEventListener('click', e => {
+        const boundingBox = canvas.getBoundingClientRect();
+        const x = (e.clientX - boundingBox.x) / boundingBox.width;
+        const y = (e.clientY - boundingBox.y) / boundingBox.height;
+        console.log('got x y', x, y);
+      });
+      
       const audioCtx = new AudioContext();
       //decode an ArrayBuffer into an AudioBuffer
       audioCtx.decodeAudioData(audioData, decodedData => {
