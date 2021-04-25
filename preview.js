@@ -1,6 +1,10 @@
-import extractPeaks from './webaudio-peaks.js';
+import * as THREE from './three.module.js';
+import {OrbitControls} from './OrbitControls.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {parseQuery} from './util.js';
 import {storageHost} from './constants.js';
+import Avatar from './avatars/avatars.js';
+import extractPeaks from './webaudio-peaks.js';
 
 window.onload = async () => {
   const container = document.getElementById('container');
@@ -164,6 +168,69 @@ window.onload = async () => {
           ctx.fillRect(i * (barWidth + barSpacing) * canvas.width / fullBarsWidth, (1-v) * canvas.height / 2, 2 * canvas.width / fullBarsWidth, v * canvas.height);
         }
       });
+    },
+    'vrm': async () => {
+      const src = _hashToSrc(hash);
+      const _loadVrm = async src => {
+        let o;
+        try {
+          o = await new Promise((accept, reject) => {
+            new GLTFLoader().load(src, accept, function onprogress() {}, reject);
+          });
+        } catch(err) {
+          console.warn(err);
+        } /* finally {
+          URL.revokeObjectURL(u);
+        } */
+        console.log('loaded VRM', o);
+        
+        const rig = new Avatar(o, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          debug: false //!o,
+        });
+        rig.model.isVrm = true;
+        /* rig.aux = oldRig.aux;
+        rig.aux.rig = rig; */
+        
+        o = o.scene;
+        o.rig = rig;
+        
+        return o;
+      };
+      const o = await _loadVrm(src);
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      const context = canvas.getContext('webgl2');
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        context,
+      });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, -2);
+      camera.lookAt(new THREE.Vector3(0, o.rig.height / 2, 0));
+      
+      o.rig.setTopEnabled(false);
+      o.rig.setHandEnabled(0, false);
+      o.rig.setHandEnabled(1, false);
+      o.rig.setBottomEnabled(false);
+      o.rig.inputs.hmd.position.y = o.rig.height;
+      
+      scene.add(o);
+      
+      _setContainerContent(null);
+      container.appendChild(canvas);
+      
+      const _recurse = () => {
+        o.rig.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(_recurse);
+      };
+      requestAnimationFrame(_recurse);
     },
     'html': async ({
       hash,
