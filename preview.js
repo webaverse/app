@@ -220,7 +220,7 @@ window.onload = async () => {
   const q = parseQuery(window.location.search);
   const {hash, ext} = q;
   
-  container.innerHTML = 'Loading preview:<br>' + JSON.stringify(q, null, 2);
+  // container.innerHTML = 'Loading preview:<br>' + JSON.stringify(q, null, 2);
   
   const handler = handlers[ext];
   if (handler) {
