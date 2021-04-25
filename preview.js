@@ -80,7 +80,6 @@ window.onload = async () => {
         })(),
       ]);
       
-      
       const canvas = document.createElement('canvas');
       const width = window.innerWidth;
       const height = window.innerHeight / 2;
@@ -89,12 +88,14 @@ window.onload = async () => {
       canvas.style.cssText = `width: ${width}px; height: ${height}px;`;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#333';
-      _setContainerContent(canvas);
+      _setContainerContent(null);
       
       const blocker = document.createElement('div');
       blocker.classList.add('blocker');
-      blocker.style.cssText = `position: absolute; top: 0; bottom: 0; left: 0; width: ${window.innerWidth}px; transform-origin: 0 50%;`;
+      blocker.style.cssText = `position: absolute; left: 0; width: ${window.innerWidth}px; height: ${height}px; transform-origin: 0 50%;`;
       container.appendChild(blocker);
+      container.appendChild(canvas);
+      container.appendChild(audio);
       
       const _setX = x => {
         blocker.style.transform = `translateX(${x * window.innerWidth}px)`;
