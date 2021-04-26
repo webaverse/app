@@ -54,6 +54,12 @@ const _loadGltf = async src => {
 window.onload = async () => {
   const container = document.getElementById('container');
 
+  const _tokenIdToHash = async tokenId => {  
+    const res = await fetch(`https://tokens.webaverse.com/${tokenId}`);
+    const token = await res.json();
+    const {hash} = token;
+    return hash;
+  };
   const _hashToSrc = hash => `${storageHost}/ipfs/${hash}`;
   const _setContainerContent = el => {
     container.innerHTML = '';
@@ -62,13 +68,13 @@ window.onload = async () => {
     }
   };
   const imageHandler = async ({
-    hash,
+    src,
   }) => {
     const img = new Image();
     img.classList.add('content');
     img.classList.add('img');
     _setContainerContent(img);
-    const src = _hashToSrc(hash);
+
     await new Promise((accept, reject) => {
       img.onload = () => {
         accept();
@@ -82,7 +88,7 @@ window.onload = async () => {
     'jpg': imageHandler,
     'gif': imageHandler,
     'mp4': async ({
-      hash,
+      src,
     }) => {
       const video = document.createElement('video');
       video.classList.add('content');
@@ -92,7 +98,7 @@ window.onload = async () => {
       video.setAttribute('muted', true);
       // window.video = video;
       _setContainerContent(video);
-      const src = _hashToSrc(hash);
+
       await new Promise((accept, reject) => {
         video.oncanplaythrough = () => {
           accept();
@@ -102,10 +108,9 @@ window.onload = async () => {
       });
     },
     'mp3': async ({
-      hash,
+      src,
     }) => {
       _setContainerContent(null);
-      const src = _hashToSrc(hash);
       
       const [
         audioData,
@@ -217,8 +222,9 @@ window.onload = async () => {
         }
       });
     },
-    'vrm': async () => {
-      const src = _hashToSrc(hash);
+    'vrm': async ({
+      src,
+    }) => {
       const o = await _loadVrm(src);
       
       const canvas = document.createElement('canvas');
@@ -262,8 +268,9 @@ window.onload = async () => {
       };
       requestAnimationFrame(_recurse);
     },
-    'glb': async () => {
-      const src = _hashToSrc(hash);
+    'glb': async ({
+      src,
+    }) => {
       const o = await _loadGltf(src);
       
       const canvas = document.createElement('canvas');
@@ -302,13 +309,13 @@ window.onload = async () => {
       requestAnimationFrame(_recurse);
     },
     'html': async ({
-      hash,
+      src,
     }) => {
       const iframe = document.createElement('iframe');
       iframe.classList.add('content');
       iframe.classList.add('iframe');
       _setContainerContent(iframe);
-      const src = _hashToSrc(hash);
+
       await new Promise((accept, reject) => {
         iframe.onload = () => {
           accept();
@@ -320,14 +327,23 @@ window.onload = async () => {
   };
 
   const q = parseQuery(window.location.search);
-  const {hash, ext} = q;
+  const {id, hash, ext} = q;
+  const tokenId = parseInt(id, 10);
   
   // container.innerHTML = 'Loading preview:<br>' + JSON.stringify(q, null, 2);
   
   const handler = handlers[ext];
   if (handler) {
+    let src;
+    if (!isNaN(tokenId)) {
+      const hash = await _tokenIdToHash(tokenId);
+      src = _hashToSrc(hash);
+    } else {
+      src = _hashToSrc(hash);
+    }
+
     await handler({
-      hash,
+      src,
     });
     
     const m = {
