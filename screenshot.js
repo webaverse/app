@@ -327,7 +327,6 @@ const _makeIconString = (hash, ext) => {
       return;
     };
 
-
     if (type === 'png' || type === 'jpg' || type === 'jpeg') {
       const canvas = await (async () => {
         const _renderDefaultCanvas = async () => {
