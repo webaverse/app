@@ -80,6 +80,7 @@ window.onload = async () => {
   const handlers = {
     'png': imageHandler,
     'jpg': imageHandler,
+    'gif': imageHandler,
     'mp4': async ({
       hash,
     }) => {
