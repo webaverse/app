@@ -61,23 +61,25 @@ window.onload = async () => {
       container.appendChild(el);
     }
   };
+  const imageHandler = async ({
+    hash,
+  }) => {
+    const img = new Image();
+    img.classList.add('content');
+    img.classList.add('img');
+    _setContainerContent(img);
+    const src = _hashToSrc(hash);
+    await new Promise((accept, reject) => {
+      img.onload = () => {
+        accept();
+      };
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
   const handlers = {
-    'png': async ({
-      hash,
-    }) => {
-      const img = new Image();
-      img.classList.add('content');
-      img.classList.add('img');
-      _setContainerContent(img);
-      const src = _hashToSrc(hash);
-      await new Promise((accept, reject) => {
-        img.onload = () => {
-          accept();
-        };
-        img.onerror = reject;
-        img.src = src;
-      });
-    },
+    'png': imageHandler,
+    'jpg': imageHandler,
     'mp4': async ({
       hash,
     }) => {
@@ -333,6 +335,14 @@ window.onload = async () => {
     };
     window.parent.postMessage(m, '*');
   } else {
-    throw new Error('unknown extension: ' + ext);
+    const err = new Error('unknown extension: ' + ext);
+    const m = {
+      _preview: true,
+      ok: false,
+      error: err.stack,
+    };
+    window.parent.postMessage(m, '*');
+
+    throw err;
   }
 };
