@@ -818,8 +818,9 @@ const _makeIconString = (hash, ext) => {
 
     toggleElements(true);
   } catch (err) {
-    toggleElements(null, err);
     console.warn(err.stack);
+
+    toggleElements(null, err);
 
     if (dst) {
       fetch(dst, {
