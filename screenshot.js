@@ -742,7 +742,7 @@ const _makeIconString = (hash, ext) => {
                 new THREE.Vector3(
                   0,
                   0,
-                  Math.max(size.x / 2, size.z / 2) * 2.2
+                  Math.max(size.x / 2, size.y / 2) * 2.2
                 )
               );
             camera.lookAt(center);
