@@ -813,21 +813,7 @@ const _makeIconString = (hash, ext) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else {
-      console.warn('unknown output type', type);
-
-      if (dst) {
-        fetch(dst, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        }).then(res => res.blob());
-      }
-
-      window.parent.postMessage({
-        method: 'result',
-        result: null,
-      }, '*');
+      throw new Error('unknown output type: ' + type);
     }
 
     toggleElements(true);
@@ -837,7 +823,7 @@ const _makeIconString = (hash, ext) => {
 
     if (dst) {
       fetch(dst, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Content-Type': 'text/plain',
         },
