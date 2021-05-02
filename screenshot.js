@@ -655,135 +655,137 @@ const _makeIconString = (hash, ext) => {
       })();
       scene.add(o);
       
-      // console.log('is video', isVideo, o.rig);
+      if (o) {
+        const boundingBox = new THREE.Box3().setFromObject(o);
+        const center = boundingBox.getCenter(new THREE.Vector3());
+        const size = boundingBox.getSize(new THREE.Vector3());
 
-      const boundingBox = new THREE.Box3().setFromObject(o);
-      const center = boundingBox.getCenter(new THREE.Vector3());
-      const size = boundingBox.getSize(new THREE.Vector3());
+        renderer.setClearColor(0xFFFFFF, 1);
 
-      renderer.setClearColor(0xFFFFFF, 1);
+        const frames = [];
+        const _pushFrame = () => {
+          const writeCanvas = document.createElement('canvas');
+          writeCanvas.width = width;
+          writeCanvas.height = height;
+          // draw
+          const writeCtx = writeCanvas.getContext('2d');
+          writeCtx.drawImage(renderer.domElement, 0, 0);
 
-      const frames = [];
-      const _pushFrame = () => {
-        const writeCanvas = document.createElement('canvas');
-        writeCanvas.width = width;
-        writeCanvas.height = height;
-        // draw
-        const writeCtx = writeCanvas.getContext('2d');
-        writeCtx.drawImage(renderer.domElement, 0, 0);
+          frames.push(writeCanvas);
+        };
+        if (isVrm && isVideo) {
+          o.rig.setTopEnabled(false);
+          o.rig.setHandEnabled(0, false);
+          o.rig.setHandEnabled(1, false);
+          o.rig.setBottomEnabled(false);
+          o.rig.inputs.hmd.position.y = o.rig.height;
+          
+          let now = 0;
+          const timeDiff = 1/FPS;
+          for (let i = 0; i < 100; i++) {
+            o.rig.update(now, timeDiff);
+            now += timeDiff * 1000;
+          
+            camera.position.set(0, o.rig.height / 2, -1.5);
+            camera.lookAt(center);
+            camera.updateMatrixWorld();
+            renderer.render(scene, camera);
 
-        frames.push(writeCanvas);
-      };
-      if (isVrm && isVideo) {
-        o.rig.setTopEnabled(false);
-        o.rig.setHandEnabled(0, false);
-        o.rig.setHandEnabled(1, false);
-        o.rig.setBottomEnabled(false);
-        o.rig.inputs.hmd.position.y = o.rig.height;
-        
-        let now = 0;
-        const timeDiff = 1/FPS;
-        for (let i = 0; i < 100; i++) {
-          o.rig.update(now, timeDiff);
-          now += timeDiff * 1000;
-        
-          camera.position.set(0, o.rig.height / 2, -1.5);
-          camera.lookAt(center);
-          camera.updateMatrixWorld();
-          renderer.render(scene, camera);
-
-          _pushFrame();
-        }
-      } else {
-        for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
-          camera.position.copy(center)
-            .add(
-              new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-                .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
-            );
-          camera.lookAt(center);
-          camera.updateMatrixWorld();
-          renderer.render(scene, camera);
-
-          _pushFrame();
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      const stream = canvas.captureStream(0);
-      const track = stream.getVideoTracks()[0];
-      const recordedChunks = [];
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm; codecs=vp9',
-        videoBitsPerSecond: 5000000,
-      });
-
-      mediaRecorder.ondataavailable = event => {
-        // console.log('got data', event.data);
-        if (event.data.size > 0) {
-          recordedChunks.push(event.data);
-          // console.log(recordedChunks);
-          // download();
+            _pushFrame();
+          }
         } else {
-          // ...
+          for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
+            camera.position.copy(center)
+              .add(
+                new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
+                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
+              );
+            camera.lookAt(center);
+            camera.updateMatrixWorld();
+            renderer.render(scene, camera);
+
+            _pushFrame();
+          }
         }
-      };
-      const p = _makePromise();
-      mediaRecorder.onstop = () => {
-        // console.log('stop');
-        p.accept();
-      };
-      mediaRecorder.start();
-      for (const frame of frames) {
-        ctx.drawImage(frame, 0, 0);
-        track.requestFrame();
-        await new Promise((accept, reject) => {
-          setTimeout(accept, 1000/FPS);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const stream = canvas.captureStream(0);
+        const track = stream.getVideoTracks()[0];
+        const recordedChunks = [];
+
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm; codecs=vp9',
+          videoBitsPerSecond: 5000000,
         });
+
+        mediaRecorder.ondataavailable = event => {
+          // console.log('got data', event.data);
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+            // console.log(recordedChunks);
+            // download();
+          } else {
+            // ...
+          }
+        };
+        const p = _makePromise();
+        mediaRecorder.onstop = () => {
+          // console.log('stop');
+          p.accept();
+        };
+        mediaRecorder.start();
+        for (const frame of frames) {
+          ctx.drawImage(frame, 0, 0);
+          track.requestFrame();
+          await new Promise((accept, reject) => {
+            setTimeout(accept, 1000/FPS);
+          });
+        }
+        mediaRecorder.stop();
+
+        await p;
+
+        const blob = new Blob(recordedChunks, {
+          type: 'video/webm',
+        });
+
+        console.log('got video blob', blob);
+
+        const video = document.createElement('video');
+        video.muted = true;
+        video.autoplay = true;
+        await new Promise((accept, reject) => {
+          video.oncanplaythrough = accept;
+          video.onerror = reject;
+          video.src = URL.createObjectURL(blob);
+        });
+        video.style.width = `${width / window.devicePixelRatio}px`;
+        video.style.height = `${height / window.devicePixelRatio}px`;
+        video.loop = true;
+        screenshotResult.appendChild(video);
+
+        const arrayBuffer = await blob.arrayBuffer();
+
+        if (dst) {
+          fetch(dst, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'video/webm',
+            },
+            body: arrayBuffer,
+          }).then(res => res.blob());
+        }
+
+        window.parent.postMessage({
+          method: 'result',
+          result: arrayBuffer,
+        }, '*', [arrayBuffer]);
+      } else {
+        throw new Error('cannot capture video of type: ' + ext);
       }
-      mediaRecorder.stop();
-
-      await p;
-
-      const blob = new Blob(recordedChunks, {
-        type: 'video/webm',
-      });
-
-      console.log('got video blob', blob);
-
-      const video = document.createElement('video');
-      video.muted = true;
-      video.autoplay = true;
-      await new Promise((accept, reject) => {
-        video.oncanplaythrough = accept;
-        video.onerror = reject;
-        video.src = URL.createObjectURL(blob);
-      });
-      video.style.width = `${width / window.devicePixelRatio}px`;
-      video.style.height = `${height / window.devicePixelRatio}px`;
-      video.loop = true;
-      screenshotResult.appendChild(video);
-
-      const arrayBuffer = await blob.arrayBuffer();
-
-      if (dst) {
-        fetch(dst, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'video/webm',
-          },
-          body: arrayBuffer,
-        }).then(res => res.blob());
-      }
-
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]);
     } else if (type === 'gif' && ext === 'gif') {
       const blob = await fetch(url);
       const img = new Image();
