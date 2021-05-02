@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
 import {parseQuery} from './util.js';
 import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
@@ -48,6 +49,20 @@ const _loadGltf = async src => {
   } */
   console.log('loaded GLTF', o);
   o = o.scene;
+  return o;
+};
+const _loadVox = async src => {
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new VOXLoader({
+        scale: 0.01,
+      }).load(src, accept, function onprogress() {}, reject);
+    });
+    startMonetization(instanceId, monetizationPointer, ownerAddress);
+  } catch(err) {
+    console.warn(err);
+  }
   return o;
 };
 
