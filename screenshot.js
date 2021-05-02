@@ -300,7 +300,7 @@ const _makeIconString = (hash, ext) => {
           });
           const aspect = img.width / img.height;
           const size = 1;
-          const geometry = new THREE.PlaneBufferGeometry(size, size * aspect);
+          const geometry = new THREE.PlaneBufferGeometry(size, size / aspect);
           const map = new THREE.Texture(img);
           map.minFilter = THREE.LinearMipmapLinearFilter;
           map.magFilter = THREE.LinearFilter;
