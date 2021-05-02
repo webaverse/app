@@ -737,9 +737,6 @@ const _makeIconString = (hash, ext) => {
               .premultiply(
                 new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*1) * 0.005)
               )
-              /* .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*2) * 0.01)
-              ); */
             camera.position.copy(center)
               .add(
                 new THREE.Vector3(
