@@ -284,6 +284,39 @@ const _makeIconString = (hash, ext) => {
       } */
       return o;
     };
+    const _loadImage = async () => {
+      let o;
+      try {
+        o = await (async () => {
+          const img = await new Promise((accept, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              accept(img);
+            };
+            img.onerror = reject;
+            img.crossOrigin = 'Anonymous';
+            img.src = url;
+          });
+          const aspect = img.width / img.height;
+          const size = 1;
+          const geometry = new THREE.PlaneBufferGeometry(size, size * aspect);
+          const map = new THREE.Texture(img);
+          map.minFilter = THREE.LinearMipmapLinearFilter;
+          map.magFilter = THREE.LinearFilter;
+          map.anisotropy = 16;
+          map.needsUpdate = true;
+          const material = new THREE.MeshBasicMaterial({
+            map,
+            side: THREE.DoubleSide,
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          return mesh;
+        })();
+      } catch(err) {
+        console.warn(err);
+      }
+      return o;
+    };
     const _loadWbn = async () => {
       let arrayBuffer;
 
