@@ -288,6 +288,10 @@ window.onload = async () => {
     }) => {
       const o = await _loadGltf(src);
       
+      const boundingBox = new THREE.Box3().setFromObject(o);
+      const center = boundingBox.getCenter(new THREE.Vector3());
+      const size = boundingBox.getSize(new THREE.Vector3());
+      
       const canvas = document.createElement('canvas');
       canvas.width = window.innerWidth * window.devicePixelRatio;
       canvas.height = window.innerHeight * window.devicePixelRatio;
@@ -298,15 +302,18 @@ window.onload = async () => {
       });
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 1, 1);
-      const target = new THREE.Vector3(0, 0, 0);
-      camera.lookAt(target);
+      camera.position.copy(center)
+        .add(
+          new THREE.Vector3(0, 0.5, 1).normalize()
+            .multiplyScalar(Math.max(size.x, size.z))
+        );
+      camera.lookAt(center);
       
       addDefaultLights(scene);
       scene.add(o);
 
       const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.copy(target);
+      controls.target.copy(center);
       
       _setContainerContent(null);
       container.appendChild(canvas);
@@ -327,6 +334,10 @@ window.onload = async () => {
       src,
     }) => {
       const o = await _loadVox(src);
+
+      const boundingBox = new THREE.Box3().setFromObject(o);
+      const center = boundingBox.getCenter(new THREE.Vector3());
+      const size = boundingBox.getSize(new THREE.Vector3());
       
       const canvas = document.createElement('canvas');
       canvas.width = window.innerWidth * window.devicePixelRatio;
@@ -338,15 +349,18 @@ window.onload = async () => {
       });
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 1, 1);
-      const target = new THREE.Vector3(0, 0, 0);
-      camera.lookAt(target);
+      camera.position.copy(center)
+        .add(
+          new THREE.Vector3(0, 0.5, 1).normalize()
+            .multiplyScalar(Math.max(size.x, size.z))
+        );
+      camera.lookAt(center);
       
       addDefaultLights(scene);
       scene.add(o);
 
       const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.copy(target);
+      controls.target.copy(center);
       
       _setContainerContent(null);
       container.appendChild(canvas);
