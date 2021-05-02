@@ -813,7 +813,7 @@ const _makeIconString = (hash, ext) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else {
-      throw new Error('unknown output type: ' + type);
+      throw new Error('unknown output format: ' + type + ' ' + ext);
     }
 
     toggleElements(true);
