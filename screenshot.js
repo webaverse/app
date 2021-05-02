@@ -682,6 +682,9 @@ const _makeIconString = (hash, ext) => {
             return await _loadVrm();
           case 'vox':
             return await _loadVox();
+          case 'png':
+          case 'jpg':
+            return await _loadImage();
           default:
             return null;
         }
