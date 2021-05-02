@@ -335,10 +335,10 @@ window.onload = async () => {
   const handler = handlers[ext];
   if (handler) {
     let src;
-    if (!isNaN(tokenId)) {
-      const hash = await _tokenIdToHash(tokenId);
+    if (hash) {
       src = _hashToSrc(hash);
-    } else {
+    } else if (!isNaN(tokenId)) {    
+      const hash = await _tokenIdToHash(tokenId);
       src = _hashToSrc(hash);
     }
 
