@@ -223,6 +223,7 @@ const _makeIconString = (hash, ext) => {
 
   let {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
   const isVrm = ext === 'vrm';
+  const isImage = ['png', 'jpg'].includes(ext);
   const isVideo = type === 'webm';
 
   try {
@@ -723,6 +724,30 @@ const _makeIconString = (hash, ext) => {
             now += timeDiff * 1000;
           
             camera.position.set(0, o.rig.height / 2, -1.5);
+            camera.lookAt(center);
+            camera.updateMatrixWorld();
+            renderer.render(scene, camera);
+
+            _pushFrame();
+          }
+        } else if (isImage && isVideo) {
+          for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
+            o.position.y = Math.sin(i + Math.PI / 2) * 0.05;
+            o.quaternion
+              .premultiply(
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*1) * 0.005)
+              )
+              /* .premultiply(
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*2) * 0.01)
+              ); */
+            camera.position.copy(center)
+              .add(
+                new THREE.Vector3(
+                  0,
+                  0,
+                  Math.max(size.x / 2, size.z / 2) * 2.2
+                )
+              );
             camera.lookAt(center);
             camera.updateMatrixWorld();
             renderer.render(scene, camera);
