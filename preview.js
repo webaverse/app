@@ -323,6 +323,46 @@ window.onload = async () => {
       };
       requestAnimationFrame(_recurse);
     },
+    'vox': async ({
+      src,
+    }) => {
+      const o = await _loadVox(src);
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      const context = canvas.getContext('webgl2');
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        context,
+      });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 1, 1);
+      const target = new THREE.Vector3(0, 0, 0);
+      camera.lookAt(target);
+      
+      addDefaultLights(scene);
+      scene.add(o);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(target);
+      
+      _setContainerContent(null);
+      container.appendChild(canvas);
+      
+      // let lastTimestamp = Date.now();
+      const _recurse = () => {
+        // const now = Date.now();
+        // const timeDiff = (now - lastTimestamp)/1000;
+        // o.rig.update(now, timeDiff);
+        controls.update();
+        renderer.render(scene, camera);
+        // lastTimestamp = now;
+        requestAnimationFrame(_recurse);
+      };
+      requestAnimationFrame(_recurse);
+    },
     'html': async ({
       src,
     }) => {
