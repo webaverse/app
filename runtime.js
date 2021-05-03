@@ -1550,7 +1550,49 @@ const _loadHtml = async (file, {contentId = null}) => {
   // object.scale.setScalar(0.01);
   object.frustumCulled = false;
   object.contentId = contentId;
+  
+  
+  
+  
+  
+  
+  function epsilon(value) {
+		return Math.abs(value) < 1e-10 ? 0 : value;
+	}
+  function getCameraCSSMatrix(matrix) {
+    const {elements} = matrix;
+    return 'matrix3d(' +
+      epsilon( elements[ 0 ] ) + ',' +
+      epsilon( - elements[ 1 ] ) + ',' +
+      epsilon( elements[ 2 ] ) + ',' +
+      epsilon( elements[ 3 ] ) + ',' +
+      epsilon( elements[ 4 ] ) + ',' +
+      epsilon( - elements[ 5 ] ) + ',' +
+      epsilon( elements[ 6 ] ) + ',' +
+      epsilon( elements[ 7 ] ) + ',' +
+      epsilon( elements[ 8 ] ) + ',' +
+      epsilon( - elements[ 9 ] ) + ',' +
+      epsilon( elements[ 10 ] ) + ',' +
+      epsilon( elements[ 11 ] ) + ',' +
+      epsilon( elements[ 12 ] ) + ',' +
+      epsilon( - elements[ 13 ] ) + ',' +
+      epsilon( elements[ 14 ] ) + ',' +
+      epsilon( elements[ 15 ] ) +
+    ')';
+  }
+  let styleCache = '';
   object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+		/* const style = 'translateZ(' + fov + 'px)' +
+      getCameraCSSMatrix( camera.matrixWorldInverse ) +
+			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
+    const style = getCameraCSSMatrix( camera.matrixWorldInverse );
+
+		if (styleCache !== style) {
+			iframe.style.transform = style;
+
+			styleCache = style;
+		}
+    
     // console.log('before render', object.iframe);
     // iframe.style
   };
