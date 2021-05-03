@@ -1489,6 +1489,19 @@ const _loadIframe = async (file, {contentId = null}) => {
   
   return object2;
 };
+class IFrameMesh extends THREE.Mesh {
+  constructor(iframe) {
+    super();
+
+    this.iframe = iframe;
+  }
+  
+  /* onBeforeRender(renderer, scene, camera, geometry, material, group) {
+    super.onBeforeRender && super.onBeforeRender.apply(this, arguments);
+    
+    console.log('before render', this.iframe);
+  } */
+}
 const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
