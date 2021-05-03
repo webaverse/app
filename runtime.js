@@ -1569,7 +1569,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     width: 100vw;
     height: 100vh;
     // transform-style: preserve-3d;
-    transform-origin: 50% 50%;
+    // transform-origin: 50% 50%;
   `;
   console.log('got fov', fov, window.innerHeight - fov);
   const scale = 1/width // Math.min(1/width, 1/height);
