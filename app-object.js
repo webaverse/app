@@ -5,7 +5,7 @@ import {addDefaultLights} from './util.js';
 let canvas = document.getElementById('canvas');
 let context = canvas && canvas.getContext('webgl2', {
   antialias: true,
-  alpha: true,
+  alpha: false,
   preserveDrawingBuffer: false,
   xrCompatible: true,
 });
@@ -13,7 +13,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas,
   context,
   antialias: true,
-  alpha: true,
+  alpha: false,
   // preserveDrawingBuffer: false,
 });
 renderer.setSize(window.innerWidth, window.innerHeight);

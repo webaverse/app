@@ -680,11 +680,11 @@ class RigManager {
 
     this.peerRigs = new Map();
     
-    this.lastTimestamp = Date.now();
+    this.lastTimestamp = performance.now()
   }
 
   update() {
-    const now = Date.now();
+    const now = performance.now()
     const timeDiff = (now - this.lastTimestamp) / 1000;
     
     const session = renderer.xr.getSession();
