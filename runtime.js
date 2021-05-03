@@ -1573,10 +1573,11 @@ const _loadHtml = async (file, {contentId = null}) => {
     // transform-style: preserve-3d;
   `;
   const scale = Math.min(1/width, 1/height);
+  console.log('scale', scale, (window.innerHeight - height)/2);
   iframe.style.transform = `
-    translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2}px)
+    translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2 + 100*scale}px)
     scale(${scale}, ${-scale})
-  `; 
+  `;
   // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh({
