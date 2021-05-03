@@ -1569,11 +1569,11 @@ const _loadHtml = async (file, {contentId = null}) => {
     top: 0;
     width: ${window.innerWidth}px;
     height: ${window.innerHeight}px;
-    // transform-style: preserve-3d;
+    /* transform-style: preserve-3d; */
   `;
-  console.log('got fov', innerWidth, innerHeight, width, height);
+  // console.log('got fov', innerWidth, innerHeight, width, height);
   const scale = Math.min(1/width, 1/height) * s;
-  iframe.style.transform = getObjectCSSMatrix(
+  iframe.style.transform = `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + getObjectCSSMatrix(
     localMatrix.compose(
       localVector.set(0, 0, 0),
       localQuaternion.set(0, 0, 0, 1),
@@ -1610,7 +1610,6 @@ const _loadHtml = async (file, {contentId = null}) => {
     // return Math.abs(value) < 1e-10 ? 0 : value;
 	}
   function getObjectCSSMatrix( matrix, cameraCSSMatrix ) {
-
 		var elements = matrix.elements;
 		var matrix3d = 'matrix3d(' +
 			epsilon( elements[ 0 ] ) + ',' +
@@ -1640,8 +1639,7 @@ const _loadHtml = async (file, {contentId = null}) => {
 
 		} */
 
-		return `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + matrix3d;
-
+		return matrix3d;
 	}
   function getCameraCSSMatrix( matrix ) {
     const {elements} = matrix;
