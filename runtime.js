@@ -30,6 +30,7 @@ const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
 const gcFiles = true;
 const iframeContainer = document.getElementById('iframe-container');
+const iframeContainer2 = document.getElementById('iframe-container2');
 
 const runtime = {};
 
@@ -1503,6 +1504,8 @@ class IFrameMesh extends THREE.Mesh {
     console.log('before render', this.iframe);
   } */
 }
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const _loadHtml = async (file, {contentId = null}) => {
   let href;
   if (file.url) {
@@ -1531,9 +1534,10 @@ const _loadHtml = async (file, {contentId = null}) => {
   // iframe.src = href;
   iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
   
-  iframeContainer.appendChild(iframe);
+  iframeContainer2.appendChild(iframe);
   
-  const _heightHalf = window.innerWidth / 2;
+  const _widthHalf = window.innerWidth / 2;
+  const _heightHalf = window.innerHeight / 2;
   const fov = camera.projectionMatrix.elements[ 5 ] * _heightHalf;
   iframeContainer.style.cssText = `
     position: absolute;
@@ -1542,8 +1546,16 @@ const _loadHtml = async (file, {contentId = null}) => {
     top: 0;
     bottom: 0;
     perspective: ${fov}px;
+  `;
+  iframeContainer2.style.cssText = `
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
     transform-style: preserve-3d;
   `;
+  // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh(iframe);
   // object.position.set(0, 1, 0);
@@ -1559,39 +1571,134 @@ const _loadHtml = async (file, {contentId = null}) => {
   function epsilon(value) {
 		return Math.abs(value) < 1e-10 ? 0 : value;
 	}
-  function getCameraCSSMatrix(matrix) {
+  function getCameraCSSProjectionMatrix(matrix) {
     const {elements} = matrix;
     return 'matrix3d(' +
       epsilon( elements[ 0 ] ) + ',' +
-      epsilon( - elements[ 1 ] ) + ',' +
+      epsilon( elements[ 1 ] ) + ',' +
       epsilon( elements[ 2 ] ) + ',' +
       epsilon( elements[ 3 ] ) + ',' +
       epsilon( elements[ 4 ] ) + ',' +
-      epsilon( - elements[ 5 ] ) + ',' +
+      epsilon( elements[ 5 ] ) + ',' +
       epsilon( elements[ 6 ] ) + ',' +
       epsilon( elements[ 7 ] ) + ',' +
       epsilon( elements[ 8 ] ) + ',' +
-      epsilon( - elements[ 9 ] ) + ',' +
+      epsilon( elements[ 9 ] ) + ',' +
       epsilon( elements[ 10 ] ) + ',' +
       epsilon( elements[ 11 ] ) + ',' +
       epsilon( elements[ 12 ] ) + ',' +
-      epsilon( - elements[ 13 ] ) + ',' +
+      epsilon( elements[ 13 ] ) + ',' +
       epsilon( elements[ 14 ] ) + ',' +
       epsilon( elements[ 15 ] ) +
     ')';
   }
-  let styleCache = '';
+  /* function getCameraCSSMatrix2(matrix) {
+    const {elements} = matrix;
+    return 'matrix3d(' +
+      epsilon( elements[ 0 ] ) + ',' +
+      epsilon( elements[ 1 ] ) + ',' +
+      epsilon( elements[ 2 ] ) + ',' +
+      epsilon( elements[ 3 ] ) + ',' +
+      epsilon( elements[ 4 ] ) + ',' +
+      epsilon( elements[ 5 ] ) + ',' +
+      epsilon( elements[ 6 ] ) + ',' +
+      epsilon( elements[ 7 ] ) + ',' +
+      epsilon( elements[ 8 ] ) + ',' +
+      epsilon( elements[ 9 ] ) + ',' +
+      epsilon( elements[ 10 ] ) + ',' +
+      epsilon( elements[ 11 ] ) + ',' +
+      epsilon( elements[ 12 ] ) + ',' +
+      epsilon( elements[ 13 ] ) + ',' +
+      epsilon( elements[ 14 ] ) + ',' +
+      epsilon( elements[ 15 ] ) +
+    ')';
+  } */
+  function getCameraCSSMatrix( matrix ) {
+    const {elements} = matrix;
+		return 'matrix3d(' +
+			epsilon( elements[ 0 ] ) + ',' +
+			epsilon( - elements[ 1 ] ) + ',' +
+			epsilon( elements[ 2 ] ) + ',' +
+			epsilon( elements[ 3 ] ) + ',' +
+			epsilon( elements[ 4 ] ) + ',' +
+			epsilon( - elements[ 5 ] ) + ',' +
+			epsilon( elements[ 6 ] ) + ',' +
+			epsilon( elements[ 7 ] ) + ',' +
+			epsilon( elements[ 8 ] ) + ',' +
+			epsilon( - elements[ 9 ] ) + ',' +
+			epsilon( elements[ 10 ] ) + ',' +
+			epsilon( elements[ 11 ] ) + ',' +
+			epsilon( elements[ 12 ] ) + ',' +
+			epsilon( - elements[ 13 ] ) + ',' +
+			epsilon( elements[ 14 ] ) + ',' +
+			epsilon( elements[ 15 ] ) +
+		')';
+
+	}
+  function getObjectCSSMatrix( matrix /*, cameraCSSMatrix */) {
+    const {elements} = matrix;
+		var matrix3d = 'matrix3d(' +
+			epsilon( elements[ 0 ] ) + ',' +
+			epsilon( elements[ 1 ] ) + ',' +
+			epsilon( elements[ 2 ] ) + ',' +
+			epsilon( elements[ 3 ] ) + ',' +
+			epsilon( - elements[ 4 ] ) + ',' +
+			epsilon( - elements[ 5 ] ) + ',' +
+			epsilon( - elements[ 6 ] ) + ',' +
+			epsilon( - elements[ 7 ] ) + ',' +
+			epsilon( elements[ 8 ] ) + ',' +
+			epsilon( elements[ 9 ] ) + ',' +
+			epsilon( elements[ 10 ] ) + ',' +
+			epsilon( elements[ 11 ] ) + ',' +
+			epsilon( elements[ 12 ] ) + ',' +
+			epsilon( elements[ 13 ] ) + ',' +
+			epsilon( elements[ 14 ] ) + ',' +
+			epsilon( elements[ 15 ] ) +
+		')';
+
+		/* if ( isIE ) {
+
+			return 'translate(-50%,-50%)' +
+				'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)' +
+				cameraCSSMatrix +
+				matrix3d;
+
+		} */
+
+		return 'translate(-50%,-50%)' + matrix3d;
+
+	}
   object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
 		/* const style = 'translateZ(' + fov + 'px)' +
       getCameraCSSMatrix( camera.matrixWorldInverse ) +
 			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
-    const style = getCameraCSSMatrix( camera.matrixWorldInverse );
-
-		if (styleCache !== style) {
-			iframe.style.transform = style;
-
-			styleCache = style;
-		}
+    {
+      const cameraCSSMatrix =
+        'translateZ(' + fov + 'px)' + getCameraCSSMatrix( camera.matrixWorldInverse );
+      const style = cameraCSSMatrix +
+        'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)';
+      iframeContainer2.style.transform = style;
+    }
+    {
+      const style =
+        /* // 'translateZ(' + fov + 'px)' + ' ' +
+        getCameraCSSProjectionMatrix(
+          localMatrix.copy(camera.projectionMatrix)
+            .invert()
+            .premultiply(
+              localMatrix2.copy(camera.matrixWorldInverse)
+                // .invert()
+            )
+            .premultiply(
+              localMatrix2.copy(camera.projectionMatrix)
+                // .invert()
+            )
+        ) + ' ' + */
+        getObjectCSSMatrix(object.matrixWorld) + ' ' +
+        ''
+      // console.log('got style', style);
+      iframe.style.transform = style;
+    }
     
     // console.log('before render', object.iframe);
     // iframe.style
