@@ -1567,7 +1567,9 @@ const _loadHtml = async (file, {contentId = null}) => {
   
   
   
-  
+  object.position.y = 2;
+  object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
+  object.updateMatrixWorld();
   function epsilon(value) {
 		return Math.abs(value) < 1e-10 ? 0 : value;
 	}
@@ -1674,9 +1676,13 @@ const _loadHtml = async (file, {contentId = null}) => {
 			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
     {
       const cameraCSSMatrix =
-        'translateZ(' + fov + 'px)' + getCameraCSSMatrix( camera.matrixWorldInverse );
+       'translateZ(' + fov + 'px) ' +
+       // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
+       getCameraCSSMatrix( camera.matrixWorldInverse ) + ' ' +
+       ''
       const style = cameraCSSMatrix +
-        'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)';
+        'translate(' + _widthHalf + 'px,' + _heightHalf + 'px) ' +
+        ''
       iframeContainer2.style.transform = style;
     }
     {
@@ -1694,7 +1700,10 @@ const _loadHtml = async (file, {contentId = null}) => {
                 // .invert()
             )
         ) + ' ' + */
-        getObjectCSSMatrix(object.matrixWorld) + ' ' +
+        getObjectCSSMatrix(
+          localMatrix.copy(object.matrixWorld)
+            // .premultiply(localMatrix2.makeScale(1/window.innerWidth, 1/window.innerHeight, 1))
+        ) + ' ' +
         ''
       // console.log('got style', style);
       iframe.style.transform = style;
