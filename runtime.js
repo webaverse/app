@@ -1559,7 +1559,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   iframeContainer.style.cssText = `
     position: fixed;
     left: 0;
-    top: 0
+    top: 0;
     width: 100vw;
     height: 100vh;
     perspective: ${fov}px;
