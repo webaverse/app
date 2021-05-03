@@ -1562,14 +1562,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   // object.scale.setScalar(0.01);
   object.frustumCulled = false;
   object.contentId = contentId;
-  
-  
-  
-  
-  
-  object.position.y = 2;
-  object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
-  object.updateMatrixWorld();
+
   function epsilon(value) {
 		return Math.abs(value) < 1e-10 ? 0 : value;
 	}
@@ -1667,7 +1660,7 @@ const _loadHtml = async (file, {contentId = null}) => {
 
 		} */
 
-		return 'translate(-50%,-50%)' + matrix3d;
+		return matrix3d;
 
 	}
   object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
@@ -1678,41 +1671,35 @@ const _loadHtml = async (file, {contentId = null}) => {
       const cameraCSSMatrix =
        'translateZ(' + fov + 'px) ' +
        // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
-       getCameraCSSMatrix( camera.matrixWorldInverse ) + ' ' +
+       getCameraCSSMatrix(
+         localMatrix.copy(camera.matrixWorldInverse)
+           .invert()
+           .premultiply(
+             // localMatrix2.makeTranslation(0, 1, 0)
+             localMatrix2.copy(object.matrixWorld)
+               .invert()
+           )
+           .premultiply(
+             localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
+               .invert()
+           )
+           .invert()
+       ) + ' ' +
        ''
       const style = cameraCSSMatrix +
-        'translate(' + _widthHalf + 'px,' + _heightHalf + 'px) ' +
+        // 'translate(' + _widthHalf + 'px,' + _heightHalf + 'px) ' +
         ''
       iframeContainer2.style.transform = style;
-    }
-    {
-      const style =
-        /* // 'translateZ(' + fov + 'px)' + ' ' +
-        getCameraCSSProjectionMatrix(
-          localMatrix.copy(camera.projectionMatrix)
-            .invert()
-            .premultiply(
-              localMatrix2.copy(camera.matrixWorldInverse)
-                // .invert()
-            )
-            .premultiply(
-              localMatrix2.copy(camera.projectionMatrix)
-                // .invert()
-            )
-        ) + ' ' + */
-        getObjectCSSMatrix(
-          localMatrix.copy(object.matrixWorld)
-            // .premultiply(localMatrix2.makeScale(1/window.innerWidth, 1/window.innerHeight, 1))
-        ) + ' ' +
-        ''
-      // console.log('got style', style);
-      iframe.style.transform = style;
     }
     
     // console.log('before render', object.iframe);
     // iframe.style
   };
   object.run = async () => {
+    object.position.y = 1;
+    // object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
+    object.updateMatrixWorld();
+    
     scene.add(object);
   };
   object.hit = () => {
