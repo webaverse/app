@@ -3046,6 +3046,7 @@ export class VOXParser {
         z: y,
         colorIndex
       } = voxelsObject;
+      x = size.x - x;
       const {r, g, b, a} = paletteObjects[colorIndex];
       // x *= -1;
       // z *= -1;
