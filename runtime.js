@@ -1572,7 +1572,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     // transform-origin: 50% 50%;
   `;
   console.log('got fov', fov, window.innerHeight - fov);
-  const scale = 1/width // Math.min(1/width, 1/height);
+  const scale = Math.min(1/width, 1/height);
   iframe.style.position = 'absolute';
   iframe.style.top = '0';
   iframe.style.left = '0';
