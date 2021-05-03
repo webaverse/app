@@ -1573,7 +1573,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   const scale = Math.min(1/width, 1/height);
   console.log('scale', scale, (window.innerHeight - height)/2, 100*scale);
   iframe.style.transform = `
-    translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2 + 100/width*window.devicePixelRatio*2}px)
+    translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2 + 100/width*(width/height)*2}px)
     scale(${scale}, ${-scale})
   `;
   // iframe.style.transformStyle = 'preserve-3d';
