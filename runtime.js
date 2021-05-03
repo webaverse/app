@@ -1690,6 +1690,12 @@ const _loadHtml = async (file, {contentId = null}) => {
   const appId = ++appIds;
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
+    object2.position.copy(object.position);
+    object2.quaternion.copy(object.quaternion);
+    object2.scale.copy(object.scale);
+    // object2.matrix.copy(object.matrix);
+    // object2.matrixWorld.copy(object.matrixWorld);
+    
     const cameraCSSMatrix =
       // 'translateZ(' + fov + 'px) ' +
       // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
