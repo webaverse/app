@@ -1501,6 +1501,10 @@ class IFrameMesh extends THREE.Mesh {
     const material = new THREE.MeshBasicMaterial({
       color: 0xFF0000,
       side: THREE.DoubleSide,
+      // colorWrite: false,
+      // depthWrite: true,
+      opacity: 0.5,
+      transparent: true,
     });
     super(geometry, material);
 
@@ -1612,6 +1616,9 @@ const _loadHtml = async (file, {contentId = null}) => {
 
 	}
   object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+    const context = renderer.getContext();
+    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    
 		/* const style = 'translateZ(' + fov + 'px)' +
       getCameraCSSMatrix( camera.matrixWorldInverse ) +
 			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
@@ -1635,13 +1642,14 @@ const _loadHtml = async (file, {contentId = null}) => {
                .invert()
            ) */
            // .invert()
-       ) + ' ' +
-       ''
+       );
       iframeContainer2.style.transform = cameraCSSMatrix;
     }
     
     // console.log('before render', object.iframe);
     // iframe.style
+    
+    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
   object.run = async () => {
     object.position.y = 1;
