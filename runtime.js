@@ -1557,7 +1557,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     right: 0;
     top: 0;
     bottom: 0;
-    transform-style: preserve-3d;
+    // transform-style: preserve-3d;
   `;
   const scale = Math.min(1/width, 1/height);
   iframe.style.transform = `
