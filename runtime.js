@@ -1516,8 +1516,8 @@ const _loadHtml = async (file, {contentId = null}) => {
   }
   href = href.replace(/^([\S]*)/, '$1');
 
-  /* const width = 600;
-  const height = 400; */
+  const width = 600;
+  const height = 400;
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', window.innerWidth); 
@@ -1555,9 +1555,10 @@ const _loadHtml = async (file, {contentId = null}) => {
     bottom: 0;
     transform-style: preserve-3d;
   `;
+  const scale = Math.min(1/window.innerWidth, 1/window.innerHeight);
   iframe.style.transform = `
-    scale(${1/window.innerWidth}, ${-1/window.innerHeight})
-  `;
+    scale(${scale}, ${-scale * window.innerHeight / window.innerWidth})
+  `; 
   // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh(iframe);
