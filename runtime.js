@@ -1516,18 +1516,22 @@ const _loadHtml = async (file, {contentId = null}) => {
   }
   href = href.replace(/^([\S]*)/, '$1');
 
-  const width = 600;
-  const height = 400;
+  /* const width = 600;
+  const height = 400; */
+
+  const f = 1;
+  const width = window.innerWidth * f;
+  const height = window.innerHeight * f;
 
   const iframe = document.createElement('iframe');
-  iframe.setAttribute('width', window.innerWidth); 
-  iframe.setAttribute('height', window.innerHeight); 
+  iframe.setAttribute('width', width); 
+  iframe.setAttribute('height', height); 
   iframe.allow = 'monetization';
   iframe.style.position = 'absolute';
   iframe.style.top = '0';
   iframe.style.left = '0';
-  iframe.style.width = window.innerWidth + 'px';
-  iframe.style.height = window.innerHeight + 'px';
+  iframe.style.width = width + 'px';
+  iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
   iframe.style.background = 'white';
   // iframe.style.backfaceVisibility = 'visible';
