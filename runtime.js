@@ -25,6 +25,9 @@ import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
@@ -1517,8 +1520,6 @@ class IFrameMesh extends THREE.Mesh {
     console.log('before render', this.iframe);
   } */
 }
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
 const _loadHtml = async (file, {contentId = null}) => {
   let href;
   if (file.url) {
@@ -1574,13 +1575,9 @@ const _loadHtml = async (file, {contentId = null}) => {
   const scale = Math.min(1/width, 1/height) * s;
   iframe.style.transform = getObjectCSSMatrix(
     localMatrix.compose(
-      new THREE.Vector3(
-        0,
-        0,
-        0
-      ),
-      new THREE.Quaternion(),
-      new THREE.Vector3().setScalar(scale)
+      localVector.set(0, 0, 0),
+      localQuaternion.set(0, 0, 0, 1),
+      localVector2.setScalar(scale)
     )
   );
   /* `
@@ -1709,7 +1706,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     // object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
     object.updateMatrixWorld();
     
-    scene.add(object);
+    // scene.add(object);
   };
   object.hit = () => {
     console.log('hit', object2); // XXX
@@ -1720,7 +1717,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   };
   object.destroy = () => {
     iframeContainer.removeChild(iframe);
-    scene.remove(object);
+    // scene.remove(object);
   };
   
   return object;
