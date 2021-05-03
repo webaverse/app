@@ -1693,10 +1693,7 @@ const _loadHtml = async (file, {contentId = null}) => {
            // .invert()
        ) + ' ' +
        ''
-      const style = cameraCSSMatrix +
-        // 'translate(' + _widthHalf + 'px,' + _heightHalf + 'px) ' +
-        ''
-      iframeContainer2.style.transform = style;
+      iframeContainer2.style.transform = cameraCSSMatrix;
     }
     
     // console.log('before render', object.iframe);
