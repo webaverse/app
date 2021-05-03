@@ -15,7 +15,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, camera, scene2, appManager} from './app-object.js';
+import {renderer, camera, scene2, scene3, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -1502,11 +1502,11 @@ class IFrameMesh extends THREE.Mesh {
   }) {
     const geometry = new THREE.PlaneBufferGeometry(width, height);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xFF0000,
+      color: 0xFFFFFF,
       side: THREE.DoubleSide,
       // colorWrite: false,
       // depthWrite: true,
-      opacity: 0.5,
+      opacity: 0,
       transparent: true,
     });
     super(geometry, material);
@@ -1546,8 +1546,6 @@ const _loadHtml = async (file, {contentId = null}) => {
   // iframe.style.backfaceVisibility = 'visible';
   // iframe.src = href;
   iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
-  
-  iframeContainer2.appendChild(iframe);
   
   const _widthHalf = window.innerWidth / 2;
   const _heightHalf = window.innerHeight / 2;
@@ -1595,15 +1593,12 @@ const _loadHtml = async (file, {contentId = null}) => {
   // iframe.style.border = '0';
   // iframe.style.transformStyle = 'preserve-3d';
 
-  const object = new IFrameMesh({
+  const object2 = new IFrameMesh({
     iframe,
     width: width * scale,
     height: height * scale,
   });
-  // object.position.set(0, 1, 0);
-  // object.scale.setScalar(0.01);
-  object.frustumCulled = false;
-  object.contentId = contentId;
+  object2.frustumCulled = false;
 
   function epsilon(value) {
 		return value;
@@ -1663,51 +1658,23 @@ const _loadHtml = async (file, {contentId = null}) => {
 		')';
 
 	}
-  object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+  object2.onBeforeRender = (renderer) => {
     const context = renderer.getContext();
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    
-		/* const style = 'translateZ(' + fov + 'px)' +
-      getCameraCSSMatrix( camera.matrixWorldInverse ) +
-			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
-    {
-      const cameraCSSMatrix =
-       // 'translateZ(' + fov + 'px) ' +
-       // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
-       getCameraCSSMatrix(
-         localMatrix.copy(camera.matrixWorldInverse)
-           // .invert()
-           .premultiply(
-             localMatrix2.makeTranslation(0, 0, fov)
-           )
-           .multiply(
-             // localMatrix2.makeTranslation(0, 1, 0)
-             localMatrix2.copy(object.matrixWorld)
-               // .invert()
-           )
-           /* .premultiply(
-             localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
-               .invert()
-           ) */
-           // .invert()
-       );
-      iframeContainer2.style.transform = cameraCSSMatrix;
-    }
-    
-    // console.log('before render', object.iframe);
-    // iframe.style
-    
+  };
+  object2.onAfterRender = (renderer) => {
+    const context = renderer.getContext();
     context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
+  const object = new THREE.Mesh();
+  object.contentId = contentId;
+  object.frustumCulled = false;
   object.run = async () => {
-    object.position.y = 2;
-    // object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
-    object.updateMatrixWorld();
-    
-    // scene.add(object);
+    iframeContainer2.appendChild(iframe);
+    scene3.add(object2);
   };
   object.hit = () => {
-    console.log('hit', object2); // XXX
+    console.log('hit', object); // XXX
     return {
       hit: false,
       died: false,
@@ -1715,8 +1682,34 @@ const _loadHtml = async (file, {contentId = null}) => {
   };
   object.destroy = () => {
     iframeContainer.removeChild(iframe);
-    // scene.remove(object);
+    scene3.remove(object2);
+    
+    appManager.destroyApp(appId);
   };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    const cameraCSSMatrix =
+      // 'translateZ(' + fov + 'px) ' +
+      // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
+      getCameraCSSMatrix(
+        localMatrix.copy(camera.matrixWorldInverse)
+          // .invert()
+          .premultiply(
+            localMatrix2.makeTranslation(0, 0, fov)
+          )
+          .multiply(
+            object.matrixWorld
+          )
+          /* .premultiply(
+            localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
+              .invert()
+          ) */
+          // .invert()
+      );
+    iframeContainer2.style.transform = cameraCSSMatrix;
+  });
   
   return object;
 };
