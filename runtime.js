@@ -1492,8 +1492,17 @@ const _loadIframe = async (file, {contentId = null}) => {
   return object2;
 };
 class IFrameMesh extends THREE.Mesh {
-  constructor(iframe) {
-    super();
+  constructor({
+    iframe,
+    width,
+    height,
+  }) {
+    const geometry = new THREE.PlaneBufferGeometry(width, height);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFF0000,
+      side: THREE.DoubleSide,
+    });
+    super(geometry, material);
 
     this.iframe = iframe;
   }
@@ -1566,7 +1575,11 @@ const _loadHtml = async (file, {contentId = null}) => {
   `; 
   // iframe.style.transformStyle = 'preserve-3d';
 
-  const object = new IFrameMesh(iframe);
+  const object = new IFrameMesh({
+    iframe,
+    width: width * scale,
+    height: height * scale,
+  });
   // object.position.set(0, 1, 0);
   // object.scale.setScalar(0.01);
   object.frustumCulled = false;
