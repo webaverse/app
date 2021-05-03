@@ -1519,9 +1519,9 @@ const _loadHtml = async (file, {contentId = null}) => {
   /* const width = 600;
   const height = 400; */
 
-  const f = 1;
-  const width = window.innerWidth * f;
-  const height = window.innerHeight * f;
+  const f = 2;
+  const width = Math.floor(window.innerWidth * f);
+  const height = Math.floor(window.innerHeight * f);
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
@@ -1534,6 +1534,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
   iframe.style.background = 'white';
+  // iframe.style.transformOrigin = '50% 50%';
   // iframe.style.backfaceVisibility = 'visible';
   // iframe.src = href;
   iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
@@ -1561,6 +1562,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   `;
   const scale = Math.min(1/window.innerWidth, 1/window.innerHeight);
   iframe.style.transform = `
+    translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2}px)
     scale(${scale}, ${-scale * window.innerHeight / window.innerWidth})
   `; 
   // iframe.style.transformStyle = 'preserve-3d';
