@@ -1576,48 +1576,6 @@ const _loadHtml = async (file, {contentId = null}) => {
 		return value;
     // return Math.abs(value) < 1e-10 ? 0 : value;
 	}
-  function getCameraCSSProjectionMatrix(matrix) {
-    const {elements} = matrix;
-    return 'matrix3d(' +
-      epsilon( elements[ 0 ] ) + ',' +
-      epsilon( elements[ 1 ] ) + ',' +
-      epsilon( elements[ 2 ] ) + ',' +
-      epsilon( elements[ 3 ] ) + ',' +
-      epsilon( elements[ 4 ] ) + ',' +
-      epsilon( elements[ 5 ] ) + ',' +
-      epsilon( elements[ 6 ] ) + ',' +
-      epsilon( elements[ 7 ] ) + ',' +
-      epsilon( elements[ 8 ] ) + ',' +
-      epsilon( elements[ 9 ] ) + ',' +
-      epsilon( elements[ 10 ] ) + ',' +
-      epsilon( elements[ 11 ] ) + ',' +
-      epsilon( elements[ 12 ] ) + ',' +
-      epsilon( elements[ 13 ] ) + ',' +
-      epsilon( elements[ 14 ] ) + ',' +
-      epsilon( elements[ 15 ] ) +
-    ')';
-  }
-  /* function getCameraCSSMatrix2(matrix) {
-    const {elements} = matrix;
-    return 'matrix3d(' +
-      epsilon( elements[ 0 ] ) + ',' +
-      epsilon( elements[ 1 ] ) + ',' +
-      epsilon( elements[ 2 ] ) + ',' +
-      epsilon( elements[ 3 ] ) + ',' +
-      epsilon( elements[ 4 ] ) + ',' +
-      epsilon( elements[ 5 ] ) + ',' +
-      epsilon( elements[ 6 ] ) + ',' +
-      epsilon( elements[ 7 ] ) + ',' +
-      epsilon( elements[ 8 ] ) + ',' +
-      epsilon( elements[ 9 ] ) + ',' +
-      epsilon( elements[ 10 ] ) + ',' +
-      epsilon( elements[ 11 ] ) + ',' +
-      epsilon( elements[ 12 ] ) + ',' +
-      epsilon( elements[ 13 ] ) + ',' +
-      epsilon( elements[ 14 ] ) + ',' +
-      epsilon( elements[ 15 ] ) +
-    ')';
-  } */
   function getCameraCSSMatrix( matrix ) {
     const {elements} = matrix;
 		return 'matrix3d(' +
@@ -1638,39 +1596,6 @@ const _loadHtml = async (file, {contentId = null}) => {
 			epsilon( elements[ 14 ] ) + ',' +
 			epsilon( elements[ 15 ] ) +
 		')';
-
-	}
-  function getObjectCSSMatrix( matrix /*, cameraCSSMatrix */) {
-    const {elements} = matrix;
-		var matrix3d = 'matrix3d(' +
-			epsilon( elements[ 0 ] ) + ',' +
-			epsilon( elements[ 1 ] ) + ',' +
-			epsilon( elements[ 2 ] ) + ',' +
-			epsilon( elements[ 3 ] ) + ',' +
-			epsilon( - elements[ 4 ] ) + ',' +
-			epsilon( - elements[ 5 ] ) + ',' +
-			epsilon( - elements[ 6 ] ) + ',' +
-			epsilon( - elements[ 7 ] ) + ',' +
-			epsilon( elements[ 8 ] ) + ',' +
-			epsilon( elements[ 9 ] ) + ',' +
-			epsilon( elements[ 10 ] ) + ',' +
-			epsilon( elements[ 11 ] ) + ',' +
-			epsilon( elements[ 12 ] ) + ',' +
-			epsilon( elements[ 13 ] ) + ',' +
-			epsilon( elements[ 14 ] ) + ',' +
-			epsilon( elements[ 15 ] ) +
-		')';
-
-		/* if ( isIE ) {
-
-			return 'translate(-50%,-50%)' +
-				'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)' +
-				cameraCSSMatrix +
-				matrix3d;
-
-		} */
-
-		return matrix3d;
 
 	}
   object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
