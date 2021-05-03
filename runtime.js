@@ -15,7 +15,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, scene2, appManager} from './app-object.js';
+import {renderer, camera, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -1503,6 +1503,74 @@ class IFrameMesh extends THREE.Mesh {
     console.log('before render', this.iframe);
   } */
 }
+const _loadHtml = async (file, {contentId = null}) => {
+  let href;
+  if (file.url) {
+    const res = await fetch(file.url);
+    href = await res.text();
+  } else {
+    href = await file.text();
+  }
+  href = href.replace(/^([\S]*)/, '$1');
+
+  /* const width = 600;
+  const height = 400; */
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('width', window.innerWidth); 
+  iframe.setAttribute('height', window.innerHeight); 
+  iframe.allow = 'monetization';
+  iframe.style.position = 'absolute';
+  iframe.style.top = '0';
+  iframe.style.left = '0';
+  iframe.style.width = '100vw';
+  iframe.style.height = '100vh';
+  // iframe.style.opacity = 0.75;
+  iframe.style.background = 'white';
+  // iframe.style.backfaceVisibility = 'visible';
+  // iframe.src = href;
+  iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
+  
+  iframeContainer.appendChild(iframe);
+  
+  const _heightHalf = window.innerWidth / 2;
+  const fov = camera.projectionMatrix.elements[ 5 ] * _heightHalf;
+  iframeContainer.style.cssText = `
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    perspective: ${fov}px;
+    transform-style: preserve-3d;
+  `;
+
+  const object = new IFrameMesh(iframe);
+  // object.position.set(0, 1, 0);
+  // object.scale.setScalar(0.01);
+  object.frustumCulled = false;
+  object.contentId = contentId;
+  object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+    // console.log('before render', object.iframe);
+    // iframe.style
+  };
+  object.run = async () => {
+    scene.add(object);
+  };
+  object.hit = () => {
+    console.log('hit', object2); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
+  };
+  object.destroy = () => {
+    iframeContainer.removeChild(iframe);
+    scene.remove(object);
+  };
+  
+  return object;
+};
 const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
@@ -1580,6 +1648,7 @@ const typeHandlers = {
   'scn': _loadScene,
   'url': _loadPortal,
   'iframe': _loadIframe,
+  'html': _loadHtml,
   'mediastream': _loadMediaStream,
   'geo': _loadGeo,
   'mp3': _loadAudio,
