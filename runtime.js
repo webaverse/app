@@ -1555,6 +1555,9 @@ const _loadHtml = async (file, {contentId = null}) => {
     bottom: 0;
     transform-style: preserve-3d;
   `;
+  iframe.style.transform = `
+    scale(${1/window.innerWidth}, ${-1/window.innerHeight})
+  `;
   // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh(iframe);
@@ -1564,7 +1567,8 @@ const _loadHtml = async (file, {contentId = null}) => {
   object.contentId = contentId;
 
   function epsilon(value) {
-		return Math.abs(value) < 1e-10 ? 0 : value;
+		return value;
+    // return Math.abs(value) < 1e-10 ? 0 : value;
 	}
   function getCameraCSSProjectionMatrix(matrix) {
     const {elements} = matrix;
@@ -1679,10 +1683,10 @@ const _loadHtml = async (file, {contentId = null}) => {
              localMatrix2.copy(object.matrixWorld)
                .invert()
            )
-           .premultiply(
+           /* .premultiply(
              localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
                .invert()
-           )
+           ) */
            .invert()
        ) + ' ' +
        ''
