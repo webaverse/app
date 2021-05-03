@@ -1529,17 +1529,14 @@ const _loadHtml = async (file, {contentId = null}) => {
   }
   href = href.replace(/^([\S]*)/, '$1');
 
-  const f = 6;
+  const f = 1;
+  const s = 5;
   const width = 600 * f;
-  const height = 100 * f;
+  const height = 400 * f;
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
   iframe.setAttribute('height', height); 
-  iframe.allow = 'monetization';
-  iframe.style.position = 'absolute';
-  iframe.style.top = '0';
-  iframe.style.left = '0';
   iframe.style.width = width + 'px';
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
@@ -1558,32 +1555,47 @@ const _loadHtml = async (file, {contentId = null}) => {
     position: fixed;
     left: 0;
     top: 0;
-    width: 100vw;
-    height: 100vh;
+    width: ${window.innerWidth}px;
+    height: ${window.innerHeight}px;
     perspective: ${fov}px;
   `;
   iframeContainer2.style.cssText = `
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
     position: fixed;
     left: 0;
     top: 0;
-    width: 100vw;
-    height: 100vh;
+    width: ${window.innerWidth}px;
+    height: ${window.innerHeight}px;
     // transform-style: preserve-3d;
-    // transform-origin: 50% 50%;
   `;
-  console.log('got fov', fov, window.innerHeight - fov);
-  const scale = Math.min(1/width, 1/height);
-  iframe.style.position = 'absolute';
-  iframe.style.top = '0';
-  iframe.style.left = '0';
-  iframe.style.transform = `
+  console.log('got fov', innerWidth, innerHeight, width, height);
+  const scale = Math.min(1/width, 1/height) * s;
+  iframe.style.transform = getObjectCSSMatrix(
+    localMatrix.compose(
+      new THREE.Vector3(
+        0,
+        0,
+        0
+      ),
+      new THREE.Quaternion(),
+      new THREE.Vector3().setScalar(scale)
+    )
+  );
+  /* `
     translate(
-      ${(window.innerWidth - width)/2}px,
-      ${(window.innerHeight - height)/2}px
+      ${innerWidth > innerHeight ? -height*scale : height*scale}px,
+      ${height*scale/2}px
     )
     scale(${scale}, ${-scale})
-  `;
-  iframe.style.border = '0';
+  `; */
+  // iframe.style.position = 'absolute';
+  // iframe.style.left = `${window.innerWidth/2 - width/2}px`;
+  // iframe.style.top = `${window.innerHeight/2 - height/2}px`;
+  iframe.style.width = `${width}px`;
+  iframe.style.height = `${height}px`;
+  // iframe.style.border = '0';
   // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh({
@@ -1599,6 +1611,40 @@ const _loadHtml = async (file, {contentId = null}) => {
   function epsilon(value) {
 		return value;
     // return Math.abs(value) < 1e-10 ? 0 : value;
+	}
+  function getObjectCSSMatrix( matrix, cameraCSSMatrix ) {
+
+		var elements = matrix.elements;
+		var matrix3d = 'matrix3d(' +
+			epsilon( elements[ 0 ] ) + ',' +
+			epsilon( elements[ 1 ] ) + ',' +
+			epsilon( elements[ 2 ] ) + ',' +
+			epsilon( elements[ 3 ] ) + ',' +
+			epsilon( - elements[ 4 ] ) + ',' +
+			epsilon( - elements[ 5 ] ) + ',' +
+			epsilon( - elements[ 6 ] ) + ',' +
+			epsilon( - elements[ 7 ] ) + ',' +
+			epsilon( elements[ 8 ] ) + ',' +
+			epsilon( elements[ 9 ] ) + ',' +
+			epsilon( elements[ 10 ] ) + ',' +
+			epsilon( elements[ 11 ] ) + ',' +
+			epsilon( elements[ 12 ] ) + ',' +
+			epsilon( elements[ 13 ] ) + ',' +
+			epsilon( elements[ 14 ] ) + ',' +
+			epsilon( elements[ 15 ] ) +
+		')';
+
+		/* if ( isIE ) {
+
+			return 'translate(-50%,-50%)' +
+				'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)' +
+				cameraCSSMatrix +
+				matrix3d;
+
+		} */
+
+		return `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + matrix3d;
+
 	}
   function getCameraCSSMatrix( matrix ) {
     const {elements} = matrix;
