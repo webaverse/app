@@ -1529,9 +1529,9 @@ const _loadHtml = async (file, {contentId = null}) => {
   }
   href = href.replace(/^([\S]*)/, '$1');
 
-  const f = 3;
+  const f = 6;
   const width = 600 * f;
-  const height = 400 * f;
+  const height = 100 * f;
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
@@ -1569,16 +1569,21 @@ const _loadHtml = async (file, {contentId = null}) => {
     width: 100vw;
     height: 100vh;
     // transform-style: preserve-3d;
+    transform-origin: 50% 50%;
   `;
-  const scale = Math.min(1/width, 1/height);
-  console.log('scale', scale, (window.innerHeight - height)/2, 100*scale);
+  console.log('got fov', fov, window.innerHeight - fov);
+  const scale = 1/width // Math.min(1/width, 1/height);
+  iframe.style.position = 'absolute';
+  iframe.style.top = '0';
+  iframe.style.left = '0';
   iframe.style.transform = `
     translate(
       ${(window.innerWidth - width)/2}px,
-      ${(window.innerHeight - height)/2 + 200/height}px
+      ${(window.innerHeight - height)/2}px
     )
     scale(${scale}, ${-scale})
   `;
+  iframe.style.border = '0';
   // iframe.style.transformStyle = 'preserve-3d';
 
   const object = new IFrameMesh({
@@ -1654,7 +1659,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
   object.run = async () => {
-    object.position.y = 1;
+    object.position.y = 2;
     // object.scale.set(1/window.innerWidth, 1/window.innerHeight, 1);
     object.updateMatrixWorld();
     
