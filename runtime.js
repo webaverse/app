@@ -1673,11 +1673,14 @@ const _loadHtml = async (file, {contentId = null}) => {
 			'translate(' + _widthHalf + 'px,' + _heightHalf + 'px)'; */
     {
       const cameraCSSMatrix =
-       'translateZ(' + fov + 'px) ' +
+       // 'translateZ(' + fov + 'px) ' +
        // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
        getCameraCSSMatrix(
          localMatrix.copy(camera.matrixWorldInverse)
            // .invert()
+           .premultiply(
+             localMatrix2.makeTranslation(0, 0, fov)
+           )
            .multiply(
              // localMatrix2.makeTranslation(0, 1, 0)
              localMatrix2.copy(object.matrixWorld)
