@@ -29,6 +29,7 @@ const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
 const gcFiles = true;
+const iframeContainer = document.getElementById('iframe-container');
 
 const runtime = {};
 
