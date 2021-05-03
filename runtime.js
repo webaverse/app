@@ -1526,8 +1526,8 @@ const _loadHtml = async (file, {contentId = null}) => {
   iframe.style.position = 'absolute';
   iframe.style.top = '0';
   iframe.style.left = '0';
-  iframe.style.width = '100vw';
-  iframe.style.height = '100vh';
+  iframe.style.width = window.innerWidth + 'px';
+  iframe.style.height = window.innerHeight + 'px';
   // iframe.style.opacity = 0.75;
   iframe.style.background = 'white';
   // iframe.style.backfaceVisibility = 'visible';
