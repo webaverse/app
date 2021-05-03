@@ -1677,17 +1677,17 @@ const _loadHtml = async (file, {contentId = null}) => {
        // `scale(${1/window.innerWidth}, ${1/window.innerHeight}) ` +
        getCameraCSSMatrix(
          localMatrix.copy(camera.matrixWorldInverse)
-           .invert()
-           .premultiply(
+           // .invert()
+           .multiply(
              // localMatrix2.makeTranslation(0, 1, 0)
              localMatrix2.copy(object.matrixWorld)
-               .invert()
+               // .invert()
            )
            /* .premultiply(
              localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
                .invert()
            ) */
-           .invert()
+           // .invert()
        ) + ' ' +
        ''
       const style = cameraCSSMatrix +
