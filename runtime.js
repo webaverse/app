@@ -1516,12 +1516,11 @@ const _loadHtml = async (file, {contentId = null}) => {
   }
   href = href.replace(/^([\S]*)/, '$1');
 
-  /* const width = 600;
-  const height = 400; */
-
-  const f = 2;
+  const width = 600;
+  const height = 400;
+  /* const f = 2;
   const width = Math.floor(window.innerWidth * f);
-  const height = Math.floor(window.innerHeight * f);
+  const height = Math.floor(window.innerHeight * f); */
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
@@ -1560,10 +1559,10 @@ const _loadHtml = async (file, {contentId = null}) => {
     bottom: 0;
     transform-style: preserve-3d;
   `;
-  const scale = Math.min(1/window.innerWidth, 1/window.innerHeight);
+  const scale = Math.min(1/width, 1/height);
   iframe.style.transform = `
     translate(${(window.innerWidth - width)/2}px, ${(window.innerHeight - height)/2}px)
-    scale(${scale}, ${-scale * window.innerHeight / window.innerWidth})
+    scale(${scale}, ${-scale})
   `; 
   // iframe.style.transformStyle = 'preserve-3d';
 
