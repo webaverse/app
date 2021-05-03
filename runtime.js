@@ -1557,19 +1557,19 @@ const _loadHtml = async (file, {contentId = null}) => {
   const _heightHalf = window.innerHeight / 2;
   const fov = camera.projectionMatrix.elements[ 5 ] * _heightHalf;
   iframeContainer.style.cssText = `
-    position: absolute;
+    position: fixed;
     left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    top: 0
+    width: 100vw;
+    height: 100vh;
     perspective: ${fov}px;
   `;
   iframeContainer2.style.cssText = `
-    position: absolute;
+    position: fixed;
     left: 0;
-    right: 0;
     top: 0;
-    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     // transform-style: preserve-3d;
   `;
   const scale = Math.min(1/width, 1/height);
