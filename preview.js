@@ -59,7 +59,6 @@ const _loadVox = async src => {
         scale: 0.01,
       }).load(src, accept, function onprogress() {}, reject);
     });
-    startMonetization(instanceId, monetizationPointer, ownerAddress);
   } catch(err) {
     console.warn(err);
   }
