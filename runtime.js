@@ -1809,6 +1809,7 @@ runtime.loadFile = async (file, opts) => {
   const object = await (async () => {
     const ext = file.ext || getExt(file.name);
     const handler = typeHandlers[ext];
+    console.log('runtime load file', file.name, file.ext, !!handler);
     if (handler) {
       return await handler(file, opts);
     } else {
