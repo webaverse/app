@@ -471,7 +471,7 @@ world.getWorldJson = async q => {
       ],
     };
   };
-  const _getSpecFromTokenId = idString => {
+  const _fetchSpecFromTokenId = async idString => {
     const id = parseInt(idString, 10);
     if (!isNaN(id)) { // token id
       const res = await fetch(`${tokensHost}/${id}`);
@@ -516,14 +516,14 @@ world.getWorldJson = async q => {
   let spec;
   const {u, t, h, e} = q;
   if (u) {
-    spec = await _getSpecFromUrl(u);
+    spec = _getSpecFromUrl(u);
   } else if (h && e) {
-    spec = await _getSpecFromHashExt(h, e);
+    spec = _getSpecFromHashExt(h, e);
     _dynamicizeSpec(spec);
     camera.position.set(0, 0, baseUnit);
     // camera.updateMatrixWorld();
   } else if (t) {
-    spec = await _getSpecFromTokenId(t);
+    spec = await _fetchSpecFromTokenId(t);
     _dynamicizeSpec(spec);
     camera.position.set(0, 0, baseUnit);
     // camera.updateMatrixWorld();
