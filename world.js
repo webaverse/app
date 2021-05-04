@@ -458,12 +458,22 @@ for (const arrayName of [
 world.isObject = object => objects.includes(object);
 
 world.getWorldJson = async q => {
-  const _getDefault = () => ({
+  const _getDefaultSpec = () => ({
     default: true,
+    objects: [],
   });
-  const _getSpec = async u => {
-    const id = parseInt(u, 10);
-    if (!isNaN(id)) {
+  const _getSpecFromUrl = async u => {
+    return {
+      objects: [
+        {
+          start_url: u,
+        }
+      ],
+    };
+  };
+  const _getSpecFromTokenId = idString => {
+    const id = parseInt(idString, 10);
+    if (!isNaN(id)) { // token id
       const res = await fetch(`${tokensHost}/${id}`);
       const j = await res.json();
       const {hash} = j.properties;
@@ -477,28 +487,22 @@ world.getWorldJson = async q => {
           ],
         };
       } else {
-        return _getDefault();
+        return null;
       }
     } else {
-      return {
-        objects: [
-          {
-            start_url: u,
-          }
-        ],
-      };
+      return null;
     }
   };
-
-  let spec;
-  const {u, t} = q;
-  if (u) {
-    spec = await _getSpec(u);
-  } else if (t) {
-    spec = await _getSpec(t);
-    if (!spec.objects) {
-      spec.objects = [];
-    }
+  const _getSpecFromHashExt = (hash, ext) => {
+    return {
+      objects: [
+        {
+          start_url: `${storageHost}/${hash}/token.${ext}`,
+        }
+      ],
+    };
+  };
+  const _dynamicizeSpec = spec => {
     for (const object of spec.objects) {
       object.dynamic = true;
       object.autoScale = false;
@@ -507,18 +511,33 @@ world.getWorldJson = async q => {
     spec.objects.splice(0, 0, {
       start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
-    /* for (const object of spec.objects) {
-      object.position = [0, 0, -2];
-    } */
+  };
+
+  let spec;
+  const {u, t, h, e} = q;
+  if (u) {
+    spec = await _getSpecFromUrl(u);
+  } else if (h && e) {
+    spec = await _getSpecFromHashExt(h, e);
+    _dynamicizeSpec(spec);
+    camera.position.set(0, 0, baseUnit);
+    // camera.updateMatrixWorld();
+  } else if (t) {
+    spec = await _getSpecFromTokenId(t);
+    _dynamicizeSpec(spec);
     camera.position.set(0, 0, baseUnit);
     // camera.updateMatrixWorld();
   } else {
-    spec = _getDefault();
+    spec = _getDefaultSpec();
   }
-  if (q.r) {
-    spec.room = q.r;
+  if (spec) {
+    if (q.r) {
+      spec.room = q.r;
+    }
+    return spec;
+  } else {
+    throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
   }
-  return spec;
 };
 
 world.getObjectFromPhysicsId = physicsId => {
