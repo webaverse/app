@@ -1523,12 +1523,11 @@ class IFrameMesh extends THREE.Mesh {
 const _loadHtml = async (file, {contentId = null}) => {
   let href;
   if (file.url) {
-    const res = await fetch(file.url);
-    href = await res.text();
+    href = file.url;
   } else {
-    href = await file.text();
+    href = file;
   }
-  href = href.replace(/^([\S]*)/, '$1');
+  href = href.replace(/(\/[^\/]*\/)(?:[^\/]*)$/, '/ipfs$1');
 
   const f = 1;
   const s = 5;
@@ -1542,10 +1541,12 @@ const _loadHtml = async (file, {contentId = null}) => {
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
   iframe.style.background = 'white';
+  iframe.style.border = '0';
   // iframe.style.transformOrigin = '50% 50%';
   // iframe.style.backfaceVisibility = 'visible';
   // iframe.src = href;
-  iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
+  // iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
+  iframe.src = href;
   
   const _widthHalf = window.innerWidth / 2;
   const _heightHalf = window.innerHeight / 2;
