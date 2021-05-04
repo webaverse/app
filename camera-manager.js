@@ -141,6 +141,8 @@ window.addEventListener('wheel', e => {
   camera.updateMatrixWorld();
 
   physicsManager.unlockControls();
+}, {
+  passive: false,
 });
 const focusCamera = position => {
   camera.lookAt(position);
