@@ -9,15 +9,19 @@ import {isInIframe} from './util.js';
 import {renderer, renderer2, camera, avatarCamera, dolly, iframeContainer} from './app-object.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
+import geometryManager from './geometry-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localRaycaster = new THREE.Raycaster();
 
 const ioManager = new EventTarget();
 
@@ -570,12 +574,35 @@ ioManager.bindInput = () => {
       camera.updateMatrixWorld();
     }
   };
+  const _updateMouseHover = e => {
+    const {clientX, clientY} = e;
+    
+    renderer.getSize(localVector2D2);
+    localVector2D.set(
+      (clientX / localVector2D2.x) * 2 - 1,
+      -(clientY / localVector2D2.y) * 2 + 1
+    );
+    localRaycaster.setFromCamera(localVector2D, camera);
+    const position = localRaycaster.ray.origin;
+    const quaternion = localQuaternion.setFromUnitVectors(
+      localVector.set(0, 0, -1),
+      localRaycaster.ray.direction
+    );
+    
+    const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+    
+    if (result) {
+      // XXX console.log('update mouse hover', result, position.toArray(), quaternion.toArray());
+    }
+  };
   renderer.domElement.addEventListener('mousemove', e => {
     if (weaponsManager.weaponWheel) {
       weaponsManager.updateWeaponWheel(e);
     } else {
       if (document.pointerLockElement) {
         _updateMouseMovement(e);
+      } else {
+        _updateMouseHover(e);
       }
     }
   });
