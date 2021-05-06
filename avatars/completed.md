@@ -1,5 +1,10 @@
 # Completed 
 
+## Animation Improvements
+* fully retargetted blend file so that you can add new animations that will be compatible with the fbx armature 
+* a more bare main scene just for checking animations 
+* begun new animations for stylized animation overhaul
+
 ## Basic Animation Tasks
 * doing poses with citrine 
 * corrected lots of animations

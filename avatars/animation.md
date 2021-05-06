@@ -1,7 +1,5 @@
 # Webaverse Animations
 
-###### tags: `webaverse`
-
 ## Webaverse Animation System 
 
 Webaverse Animations can be broken up into a few categories: 
