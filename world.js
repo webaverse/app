@@ -471,6 +471,15 @@ world.getWorldJson = async q => {
       ],
     };
   };
+  const _hashExtNameToStartUrl = (hash, ext, name) => {
+    let start_url;
+    if (ext === 'html') {
+      start_url = `${storageHost}/ipfs/${hash}`;
+    } else {
+      start_url = `${storageHost}/${hash}/${name}.${ext}`;
+    }
+    return start_url;
+  };
   const _fetchSpecFromTokenId = async idString => {
     const id = parseInt(idString, 10);
     if (!isNaN(id)) { // token id
@@ -479,10 +488,11 @@ world.getWorldJson = async q => {
       const {hash} = j.properties;
       if (hash) {
         const {name, ext} = j.properties;
+        const start_url = _hashExtNameToStartUrl(hash, ext, name);
         return {
           objects: [
             {
-              start_url: `${storageHost}/${hash}/${name}.${ext}`,
+              start_url,
             }
           ],
         };
@@ -494,10 +504,12 @@ world.getWorldJson = async q => {
     }
   };
   const _getSpecFromHashExt = (hash, ext) => {
+    const name = 'token';
+    const start_url = _hashExtNameToStartUrl(hash, ext, name);
     return {
       objects: [
         {
-          start_url: `${storageHost}/${hash}/token.${ext}`,
+          start_url,
         }
       ],
     };
