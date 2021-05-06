@@ -6,7 +6,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
-import {renderer, renderer2, camera, avatarCamera, dolly, iframeContainer} from './app-object.js';
+import {renderer, /*renderer2,*/ camera, avatarCamera, dolly, iframeContainer} from './app-object.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import geometryManager from './geometry-manager.js';
@@ -649,7 +649,7 @@ ioManager.bindInput = () => {
     }
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer2.setSize(window.innerWidth, window.innerHeight);
+    // renderer2.setSize(window.innerWidth, window.innerHeight);
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();

@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {CSS3DRenderer} from './CSS3DRenderer.js';
+// import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 
 let canvas = document.getElementById('canvas') || undefined;
@@ -60,13 +60,13 @@ scene.add(orthographicCamera);
 addDefaultLights(scene, true);
 addDefaultLights(avatarScene, false);
 
-const renderer2 = new CSS3DRenderer();
+/* const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
 renderer2.domElement.style.position = 'absolute';
 renderer2.domElement.style.top = 0;
 if (canvas.parentNode) {
   document.body.insertBefore(renderer2.domElement, canvas);
-}
+} */
 
 const scene2 = new THREE.Scene();
 const scene3 = new THREE.Scene();
@@ -170,4 +170,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, iframeContainer, iframeContainer2, appManager};
+export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, iframeContainer, iframeContainer2, appManager};
