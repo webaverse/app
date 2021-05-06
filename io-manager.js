@@ -608,7 +608,7 @@ ioManager.bindInput = () => {
       renderer.domElement.classList.remove('hover');
     }
   };
-  renderer.domElement.addEventListener('mousemove', e => {
+  window.addEventListener('mousemove', e => {
     if (weaponsManager.weaponWheel) {
       weaponsManager.updateWeaponWheel(e);
     } else {
@@ -624,7 +624,7 @@ ioManager.bindInput = () => {
     ioManager.currentWeaponValue = 0;
     ioManager.currentTeleport = false;
   });
-  renderer.domElement.addEventListener('mouseout', e => {
+  window.document.addEventListener('mouseleave', e => {
     renderer.domElement.classList.remove('hover');
   });
   renderer.domElement.addEventListener('click', e => {
