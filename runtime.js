@@ -1531,7 +1531,6 @@ const _loadHtml = async (file, {contentId = null}) => {
   const width = 600 * f;
   const height = 400 * f;
   const scale = Math.min(1/width, 1/height) * s;
-  const fov = iframeContainer.getFov();
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
@@ -1546,8 +1545,12 @@ const _loadHtml = async (file, {contentId = null}) => {
   // iframe.src = href;
   // iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
   iframe.src = href;
-  
-  iframe.updateSize = function updateSize() {
+  iframe.style.width = `${width}px`;
+  iframe.style.height = `${height}px`;
+  let fov = 0;
+  const _updateSize = () => {
+    fov = iframeContainer.getFov();
+    
     // console.log('got fov', innerWidth, innerHeight, width, height);
     /* `
       translate(
@@ -1559,12 +1562,10 @@ const _loadHtml = async (file, {contentId = null}) => {
     // iframe.style.position = 'absolute';
     // iframe.style.left = `${window.innerWidth/2 - width/2}px`;
     // iframe.style.top = `${window.innerHeight/2 - height/2}px`;
-    iframe.style.width = `${width}px`;
-    iframe.style.height = `${height}px`;
     // iframe.style.border = '0';
     // iframe.style.transformStyle = 'preserve-3d';
     
-    this.style.transform = `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + getObjectCSSMatrix(
+    iframe.style.transform = `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + getObjectCSSMatrix(
       localMatrix.compose(
         localVector.set(0, 0, 0),
         localQuaternion.set(0, 0, 0, 1),
@@ -1572,7 +1573,7 @@ const _loadHtml = async (file, {contentId = null}) => {
       )
     );
   };
-  iframe.updateSize();
+  _updateSize();
 
   const object2 = new IFrameMesh({
     iframe,
@@ -1697,6 +1698,7 @@ const _loadHtml = async (file, {contentId = null}) => {
       );
     iframeContainer2.style.transform = cameraCSSMatrix;
   });
+  object.resize = _updateSize;
   
   return object;
 };
