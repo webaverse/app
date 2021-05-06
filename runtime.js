@@ -1657,11 +1657,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   let staticPhysicsIds = [];
   object.run = async () => {
     const physicsId = physicsManager.addBoxGeometry(
-      object.position/*.clone()
-        .add(
-          new THREE.Vector3(0, 0, 0)
-            .applyQuaternion(object.quaternion)
-          ) */,
+      object.position,
       object.quaternion,
       new THREE.Vector3(width * scale / 2, height * scale / 2, 0.1),
       false
