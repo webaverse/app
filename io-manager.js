@@ -592,7 +592,8 @@ ioManager.bindInput = () => {
     const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
     
     if (result) {
-      // XXX console.log('update mouse hover', result, position.toArray(), quaternion.toArray());
+      const object = world.getObjectFromPhysicsId(result.objectId);
+      console.log('update mouse hover', object.isHtml);
     }
   };
   renderer.domElement.addEventListener('mousemove', e => {
