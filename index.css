@@ -1249,6 +1249,9 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   height: 100vh;
   outline: none;
 }
+#canvas.hover {
+  pointer-events: none;
+}
 .crosshair {
   position: absolute;
   top: 0;
