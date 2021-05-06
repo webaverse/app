@@ -1527,7 +1527,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   } else {
     href = file;
   }
-  href = href.replace(/(\/[^\/]*\/)(?:[^\/]*)$/, '/ipfs$1');
+  // href = href.replace(/(\/[^\/]*\/)(?:[^\/]*)$/, '/ipfs$1');
 
   const f = 1;
   const s = 5;
@@ -1807,7 +1807,7 @@ runtime.typeHandlers = typeHandlers;
 
 runtime.loadFile = async (file, opts) => {
   const object = await (async () => {
-    const ext = file.ext || getExt(file.name);
+    const ext = file.ext || getExt(file.name) || 'html';
     const handler = typeHandlers[ext];
     console.log('runtime load file', file.name, file.ext, !!handler);
     if (handler) {
