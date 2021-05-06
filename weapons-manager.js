@@ -686,7 +686,8 @@ const _updateWeapons = () => {
           const physicsIds = grabbedObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
             const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-            const oldTransformMatrix = localMatrix4.compose(physicsTransform.position, physicsTransform.quaternion, localVector2.set(1, 1, 1));
+            
+            const oldTransformMatrix = localMatrix4.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
             oldTransformMatrix.clone()
               .premultiply(oldMatrix.invert())
               .premultiply(newMatrix)
