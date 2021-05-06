@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {KTX2Loader} from './KTX2Loader.js';
 import {VOXLoader} from './VOXLoader.js';
-import {CSS3DObject} from './CSS3DRenderer.js';
+// import {CSS3DObject} from './CSS3DRenderer.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
