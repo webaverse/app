@@ -1563,11 +1563,11 @@ const _loadHtml = async (file, {contentId = null}) => {
     /* display: flex;
     justify-content: center;
     align-items: center; */
-    position: fixed;
+    position: absolute;
     left: 0;
     top: 0;
-    width: ${window.innerWidth}px;
-    height: ${window.innerHeight}px;
+    width: 100%;
+    height: 100%;
     /* transform-style: preserve-3d; */
   `;
   // console.log('got fov', innerWidth, innerHeight, width, height);
