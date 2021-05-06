@@ -1427,7 +1427,7 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   return o;
 };
-const _loadIframe = async (file, {contentId = null}) => {
+/* const _loadIframe = async (file, {contentId = null}) => {
   let href;
   if (file.url) {
     const res = await fetch(file.url);
@@ -1490,7 +1490,7 @@ const _loadIframe = async (file, {contentId = null}) => {
   };
   
   return object2;
-};
+}; */
 class IFrameMesh extends THREE.Mesh {
   constructor({
     iframe,
@@ -1799,7 +1799,7 @@ const typeHandlers = {
   'wbn': _loadWebBundle,
   'scn': _loadScene,
   'url': _loadPortal,
-  'iframe': _loadIframe,
+  // 'iframe': _loadIframe,
   'html': _loadHtml,
   'mediastream': _loadMediaStream,
   'geo': _loadGeo,

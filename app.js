@@ -23,7 +23,7 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -208,10 +208,10 @@ export default class App {
   renderMinimap() {
     minimap.update();
   }
-  renderDom() {
+  /* renderDom() {
     // dom render
     renderer2.render(scene2, camera);
-  }
+  } */
   
   startLoop() {
     let lastTimestamp = performance.now();
@@ -367,7 +367,7 @@ export default class App {
 
       this.render();
       this.renderMinimap();
-      this.renderDom();
+      // this.renderDom();
 
       const _mirrorRender = () => {
         if (session && document.visibilityState == 'visible') {
