@@ -1648,25 +1648,49 @@ const _loadHtml = async (file, {contentId = null}) => {
     const context = renderer.getContext();
     context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
+
   const object = new THREE.Mesh();
   object.contentId = contentId;
   object.frustumCulled = false;
+  let physicsIds = [];
+  let staticPhysicsIds = [];
   object.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      object.position.clone()
+        .add(
+          new THREE.Vector3(0, - height * scale / 2, 0)
+            .applyQuaternion(object.quaternion)
+          ),
+      object.quaternion,
+      new THREE.Vector3(width * scale / 2, height * scale, 0.1),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+    
     iframeContainer2.appendChild(iframe);
     scene3.add(object2);
   };
+  object.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+    
+    iframeContainer2.removeChild(iframe);
+    scene3.remove(object2);
+    
+    appManager.destroyApp(appId);
+  };
+  object.getPhysicsIds = () => physicsIds;
+  object.getStaticPhysicsIds = () => staticPhysicsIds;
   object.hit = () => {
     console.log('hit', object); // XXX
     return {
       hit: false,
       died: false,
     };
-  };
-  object.destroy = () => {
-    iframeContainer2.removeChild(iframe);
-    scene3.remove(object2);
-    
-    appManager.destroyApp(appId);
   };
   
   const appId = ++appIds;
