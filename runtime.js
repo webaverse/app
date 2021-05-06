@@ -15,7 +15,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, camera, scene2, scene3, appManager} from './app-object.js';
+import {renderer, camera, scene2, scene3, appManager, iframeContainer, iframeContainer2} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -32,9 +32,6 @@ const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
 const gcFiles = true;
-const iframeContainer = document.getElementById('iframe-container');
-const iframeContainer2 = document.getElementById('iframe-container2');
-
 const runtime = {};
 
 let geometryManager = null;
@@ -1533,6 +1530,8 @@ const _loadHtml = async (file, {contentId = null}) => {
   const s = 5;
   const width = 600 * f;
   const height = 400 * f;
+  const scale = Math.min(1/width, 1/height) * s;
+  const fov = iframeContainer.getFov();
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('width', width); 
@@ -1548,51 +1547,32 @@ const _loadHtml = async (file, {contentId = null}) => {
   // iframe.src = 'https://threejs.org/examples/webgl_materials_channels.html';
   iframe.src = href;
   
-  const _widthHalf = window.innerWidth / 2;
-  const _heightHalf = window.innerHeight / 2;
-  const fov = camera.projectionMatrix.elements[ 5 ] * _heightHalf;
-  iframeContainer.style.cssText = `
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: ${window.innerWidth}px;
-    height: ${window.innerHeight}px;
-    perspective: ${fov}px;
-  `;
-  iframeContainer2.style.cssText = `
-    /* display: flex;
-    justify-content: center;
-    align-items: center; */
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    /* transform-style: preserve-3d; */
-  `;
-  // console.log('got fov', innerWidth, innerHeight, width, height);
-  const scale = Math.min(1/width, 1/height) * s;
-  iframe.style.transform = `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + getObjectCSSMatrix(
-    localMatrix.compose(
-      localVector.set(0, 0, 0),
-      localQuaternion.set(0, 0, 0, 1),
-      localVector2.setScalar(scale)
-    )
-  );
-  /* `
-    translate(
-      ${innerWidth > innerHeight ? -height*scale : height*scale}px,
-      ${height*scale/2}px
-    )
-    scale(${scale}, ${-scale})
-  `; */
-  // iframe.style.position = 'absolute';
-  // iframe.style.left = `${window.innerWidth/2 - width/2}px`;
-  // iframe.style.top = `${window.innerHeight/2 - height/2}px`;
-  iframe.style.width = `${width}px`;
-  iframe.style.height = `${height}px`;
-  // iframe.style.border = '0';
-  // iframe.style.transformStyle = 'preserve-3d';
+  iframe.updateSize = function updateSize() {
+    // console.log('got fov', innerWidth, innerHeight, width, height);
+    /* `
+      translate(
+        ${innerWidth > innerHeight ? -height*scale : height*scale}px,
+        ${height*scale/2}px
+      )
+      scale(${scale}, ${-scale})
+    `; */
+    // iframe.style.position = 'absolute';
+    // iframe.style.left = `${window.innerWidth/2 - width/2}px`;
+    // iframe.style.top = `${window.innerHeight/2 - height/2}px`;
+    iframe.style.width = `${width}px`;
+    iframe.style.height = `${height}px`;
+    // iframe.style.border = '0';
+    // iframe.style.transformStyle = 'preserve-3d';
+    
+    this.style.transform = `translate(${window.innerWidth/2 - width/2}px, ${window.innerHeight/2 - height/2}px)` + getObjectCSSMatrix(
+      localMatrix.compose(
+        localVector.set(0, 0, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.setScalar(scale)
+      )
+    );
+  };
+  iframe.updateSize();
 
   const object2 = new IFrameMesh({
     iframe,
