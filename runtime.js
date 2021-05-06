@@ -1682,7 +1682,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     };
   };
   object.destroy = () => {
-    iframeContainer.removeChild(iframe);
+    iframeContainer2.removeChild(iframe);
     scene3.remove(object2);
     
     appManager.destroyApp(appId);
