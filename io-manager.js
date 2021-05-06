@@ -591,11 +591,21 @@ ioManager.bindInput = () => {
     
     const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
     
+    let htmlHover;
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
       if (object.isHtml) {
-        // console.log('update mouse hover', object.isHtml);
+        htmlHover = true;
+      } else {
+        htmlHover = false;
       }
+    } else {
+      htmlHover = false;
+    }
+    if (htmlHover) {
+      renderer.domElement.classList.add('hover');
+    } else {
+      renderer.domElement.classList.remove('hover');
     }
   };
   renderer.domElement.addEventListener('mousemove', e => {
@@ -613,6 +623,9 @@ ioManager.bindInput = () => {
     ioManager.currentWeaponDown = false;
     ioManager.currentWeaponValue = 0;
     ioManager.currentTeleport = false;
+  });
+  renderer.domElement.addEventListener('mouseout', e => {
+    renderer.domElement.classList.remove('hover');
   });
   renderer.domElement.addEventListener('click', e => {
     if (document.pointerLockElement && e.buttons === 0) {
