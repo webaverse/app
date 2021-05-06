@@ -1652,7 +1652,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   const object = new THREE.Mesh();
   object.contentId = contentId;
   object.frustumCulled = false;
-  object.isIframe = true;
+  object.isHtml = true;
   let physicsIds = [];
   let staticPhysicsIds = [];
   object.run = async () => {
