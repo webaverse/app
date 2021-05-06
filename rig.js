@@ -696,6 +696,8 @@ class RigManager {
       currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
       currentQuaternion = this.localRig.inputs.hmd.quaternion;
     }
+    
+    //
     const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
       .multiplyScalar(0.1/timeDiff);
@@ -707,6 +709,7 @@ class RigManager {
     positionDiff.applyEuler(localEuler2);
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
+    //
 
     const useTime = physicsManager.getUseTime();
     for (let i = 0; i < 2; i++) {
