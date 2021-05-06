@@ -593,7 +593,9 @@ ioManager.bindInput = () => {
     
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
-      console.log('update mouse hover', object.isHtml);
+      if (object.isHtml) {
+        // console.log('update mouse hover', object.isHtml);
+      }
     }
   };
   renderer.domElement.addEventListener('mousemove', e => {
