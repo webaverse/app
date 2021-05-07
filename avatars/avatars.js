@@ -1744,14 +1744,13 @@ class Avatar {
 
     const pitchAnimation = animations.find(a => a.isPitch);
     const yawAnimation = animations.find(a => a.isYaw);
+    const akIdle = animations.find(a=>a.name==='rifle_aiming_idle')
+
     let x = 0;
     let y = 0;
+
     if (this.getAimed()) {
-      /* const directionQuaternion = localQuaternion2.setFromUnitVectors(
-        localVector.set(0, 0, -1),
-        localVector2.copy(this.direction).normalize()
-      ); */
-      {
+/*      {
         const hmdEuler = localEuler.setFromQuaternion(this.inputs.hmd.getWorldQuaternion(localQuaternion3), 'YXZ');
         hmdEuler.y = 0;
         hmdEuler.z = 0;
@@ -1787,6 +1786,7 @@ class Avatar {
         x = Math.min(Math.max(x, 0), 1);
         x = 1 - x;
       }
+    */
     }
     
     // console.log('got blend', this.sitState, this.getAimed());
@@ -1838,18 +1838,23 @@ class Avatar {
           dst.fromArray(v2);
         } else if (this.sitState || this.getAimed()) {
           const _getTopBlend = target => {
+
+            target.fromArray(akIdle.interpolants[k].evaluate(x))
+
+
             /* const y = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
               .angleTo(this.inputs.leftGamepad.quaternion.getWorldQuaternion(localQuaternion3));
             const x = this.inputs.hmd.getWorldQuaternion(localQuaternion2)
               .angleTo(this.inputs.rightGamepad.quaternion.getWorldQuaternion(localQuaternion3)); */
 
-            const src1 = pitchAnimation.interpolants[k];
+           /* const src1 = pitchAnimation.interpolants[k];
             const v1 = src1.evaluate(y);
 
             const src2 = yawAnimation.interpolants[k];
             const v2 = src2.evaluate(x);
 
             target.fromArray(v1); // this is pitch
+            */
             // target.fromArray(v2); // this is yaw
             // .premultiply(localQuaternion2.fromArray(v2));
           };
@@ -1995,6 +2000,7 @@ class Avatar {
       this.legsManager.Update();
     } else {
 
+      //
       localVector.copy(this.inputs.hmd.position)
                  .add(this.eyeToHipsOffset)
                  .sub(this.outputs.hips.position)
@@ -2004,16 +2010,43 @@ class Avatar {
       this.outputs.hips.position.y = this.outputs.hips.position.y + localVector.y*0.3
       this.outputs.hips.position.z = this.outputs.hips.position.z + localVector.z*0.3
 
-      // rotation
-      // firstperson
       if (this.getTopEnabled()){
+        // firstperson
+        // rotation
         localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ')
         this._rot_y = localEuler.y - Math.PI
-        this.outputs.hips.quaternion.setFromEuler(localEuler2)
       }else{
         // thirdperson
-        const distance = localVector.x*localVector.x + localVector.z*localVector.z
-        if (distance>0.001){
+
+        // rotation
+        if (!this.getAimed()){
+          const distance = localVector.x*localVector.x + localVector.z*localVector.z
+          if (distance>0.001){
+            let angle = Math.PI/2 - Math.atan2(localVector.z, localVector.x) 
+            if (angle < 0) { 
+              angle = angle + 2*Math.PI 
+            }
+            let delta = angle - this._rot_y
+            if (Math.abs(delta)>Math.PI){
+              if (this._rot_y<angle){
+                this._rot_y = this._rot_y + 2*Math.PI
+              }else{
+                this._rot_y = this._rot_y - 2*Math.PI
+              }
+              delta = angle - Math.PI - this._rot_y
+            }
+            this._rot_y = this._rot_y + delta*0.1
+          }
+        }
+
+        // aiming
+        if (this.getAimed()){
+          // hips
+          this.inputs.hmd.getWorldDirection(localVector)
+          localVector.x = -localVector.x
+          localVector.y = -localVector.y
+          localVector.z = -localVector.z
+
           let angle = Math.PI/2 - Math.atan2(localVector.z, localVector.x) 
           if (angle < 0) { 
             angle = angle + 2*Math.PI 
@@ -2028,13 +2061,28 @@ class Avatar {
             delta = angle - Math.PI - this._rot_y
           }
           this._rot_y = this._rot_y + delta*0.1
-        }
-      }
 
-      localEuler2.x = 0
-      localEuler2.y = this._rot_y 
-      localEuler2.z = 0
-      this.outputs.hips.quaternion.setFromEuler(localEuler2)
+          // chest rotation
+          delta = angle - this._rot_y
+          const deg = 30*Math.PI/180
+          delta = Math.max(Math.min(delta,deg),-deg)
+
+          angle = Math.PI/2 - (1+localVector.y)*Math.PI/2
+          
+          localEuler2.x = angle
+          localEuler2.y = delta
+          localEuler2.z = 0
+          this.outputs.chest.quaternion.setFromEuler(localEuler2)
+          
+          //
+        }
+
+      }
+      localEuler.x = 0
+      localEuler.y = this._rot_y 
+      localEuler.z = 0
+      this.outputs.hips.quaternion.setFromEuler(localEuler)
+   
     }
   }
 
