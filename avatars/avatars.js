@@ -38,6 +38,7 @@ const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3
 let emotionIndex = -1;
 let poseIndex = -1;
 
+
 window.addEventListener('keydown', e => {
   if (poseData) {
     if (e.which === 35) {
@@ -801,6 +802,8 @@ class Avatar {
       }
       return o.parent;
     };
+
+    this._rot_y = 0
 
     const tailBones = _getTailBones(skeleton);
 
@@ -1672,6 +1675,8 @@ class Avatar {
   }
 
   _applyAnimation(now) {
+
+    //console.log(this.inputs.hmd.quaternion)
     // const standKey = this.crouchState ? 'stand' : 'crouch';
     // const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
     let standKey, otherStandKey;
@@ -1989,14 +1994,47 @@ class Avatar {
       this.shoulderTransforms.Update();
       this.legsManager.Update();
     } else {
-      this.outputs.hips.position.copy(this.inputs.hmd.position)
-        .add(this.eyeToHipsOffset);
-      
-      localEuler.setFromQuaternion(this.inputs.hips.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+
+      localVector.copy(this.inputs.hmd.position)
+                 .add(this.eyeToHipsOffset)
+                 .sub(this.outputs.hips.position)
+
+      // position
+      this.outputs.hips.position.x = this.outputs.hips.position.x + localVector.x*0.3
+      this.outputs.hips.position.y = this.outputs.hips.position.y + localVector.y*0.3
+      this.outputs.hips.position.z = this.outputs.hips.position.z + localVector.z*0.3
+
+      // rotation
+      // firstperson
+      if (this.getTopEnabled()){
+        localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ')
+        this._rot_y = localEuler.y - Math.PI
+        this.outputs.hips.quaternion.setFromEuler(localEuler2)
+      }else{
+        // thirdperson
+        const distance = localVector.x*localVector.x + localVector.z*localVector.z
+        if (distance>0.001){
+          let angle = Math.PI/2 - Math.atan2(localVector.z, localVector.x) 
+          if (angle < 0) { 
+            angle = angle + 2*Math.PI 
+          }
+          let delta = angle - this._rot_y
+          if (Math.abs(delta)>Math.PI){
+            if (this._rot_y<angle){
+              this._rot_y = this._rot_y + 2*Math.PI
+            }else{
+              this._rot_y = this._rot_y - 2*Math.PI
+            }
+            delta = angle - Math.PI - this._rot_y
+          }
+          this._rot_y = this._rot_y + delta*0.1
+        }
+      }
+
+      localEuler2.x = 0
+      localEuler2.y = this._rot_y 
+      localEuler2.z = 0
+      this.outputs.hips.quaternion.setFromEuler(localEuler2)
     }
   }
 
@@ -2160,7 +2198,7 @@ class Avatar {
   }
 
   update(timeDiff) {
-    const now = Date.now();
+    const now = performance.now()
 
     this._applyAnimation(now);
     this._applyPose();
