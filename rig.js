@@ -25,105 +25,6 @@ const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
 class RigManager {
-  constructor(scene) {
-    this.scene = scene;
-
-    this.localRig = new Avatar(null, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: true,
-    });
-    this.localRig.aux = new RigAux({
-      rig: this.localRig,
-      scene: avatarScene,
-    });
-    unFrustumCull(this.localRig.model);
-    scene.add(this.localRig.model);
-
-    this.localRig.avatarUrl = null;
-
-    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
-    {
-      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
-      const img = new Image();
-      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        texture.needsUpdate = true;
-      };
-      img.onerror = err => {
-        console.warn(err.stack);
-      };
-      const texture = new THREE.Texture(img);
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-      });
-      const avatarMesh = new THREE.Mesh(geometry, material);
-      avatarMesh.position.x = -0.5;
-      avatarMesh.position.y = -0.02;
-      this.localRig.textMesh.add(avatarMesh);
-      this.localRig.textMesh.avatarMesh = avatarMesh;
-    }
-    {
-      const w = 1;
-      const h = 0.15;
-      const roundedRectShape = new THREE.Shape();
-      ( function roundedRect( ctx, x, y, width, height, radius ) {
-        ctx.moveTo( x, y + radius );
-        ctx.lineTo( x, y + height - radius );
-        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-        /* ctx.lineTo( x + radius + indentWidth, y + height );
-        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
-        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
-        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
-        ctx.lineTo( x + width - radius, y + height );
-        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
-        ctx.lineTo( x + width, y + radius );
-        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
-        ctx.lineTo( x + radius, y );
-        ctx.quadraticCurveTo( x, y, x, y + radius );
-      } )( roundedRectShape, 0, 0, w, h, h/2 );
-
-      const extrudeSettings = {
-        steps: 2,
-        depth: 0,
-        bevelEnabled: false,
-        /* bevelEnabled: true,
-        bevelThickness: 0,
-        bevelSize: 0,
-        bevelOffset: 0,
-        bevelSegments: 0, */
-      };
-      const geometry = BufferGeometryUtils.mergeBufferGeometries([
-        new THREE.CircleBufferGeometry(0.13, 32)
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
-        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
-      ]);
-      const material2 = new THREE.LineBasicMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-      });
-      const nametagMesh2 = new THREE.Mesh(geometry, material2);
-      this.localRig.textMesh.add(nametagMesh2);
-    }
-    this.scene.add(this.localRig.textMesh);
-
-    this.localRigMatrix = new THREE.Matrix4();
-    this.localRigMatrixEnabled = false;
-    
-    this.lastPosition = new THREE.Vector3();
-    this.smoothVelocity = new THREE.Vector3();
-
-    this.peerRigs = new Map();
-    
-    this.lastTimestamp = Date.now();
-  }
-  
   init() {
     // await loginManager.waitForLoad();
 
@@ -295,7 +196,8 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: false //!o,
+              debug: false,
+              ikEnabled: false, // XXX
             });
             localRig.model.isVrm = o.isVrm;
             localRig.model.contentId = o.contentId;
@@ -319,6 +221,7 @@ class RigManager {
             hair: true,
             visemes: true,
             debug: true,
+            ikEnabled: false, // XXX
           });
           localRig.aux = oldRig.aux;
           localRig.aux.rig = localRig;
@@ -348,7 +251,8 @@ class RigManager {
       fingers: true,
       hair: true,
       visemes: true,
-      debug: true
+      debug: true,
+      ikEnabled: false, // XXX
     });
     peerRig.aux = new RigAux({
       rig: peerRig,
@@ -416,6 +320,8 @@ class RigManager {
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
     const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
+    
+    const hipQuaternion = this.localRig.inputs.hips.quaternion.toArray();
 
     const floorHeight = this.localRig.getFloorHeight();
     const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
@@ -445,6 +351,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
       floorHeight,
       handsEnabled,
       topEnabled,
@@ -484,6 +391,8 @@ class RigManager {
     const rightGamepadQuaternion = peerRig.inputs.rightGamepad.quaternion.toArray();
     const rightGamepadPointer = peerRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
+    
+    const hipQuaternion = peerRig.inputs.hips.quaternion.toArray();
 
     const floorHeight = peerRig.getFloorHeight();
     const topEnabled = peerRig.getTopEnabled();
@@ -493,6 +402,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [hipQuaternion],
       floorHeight,
       topEnabled,
       bottomEnabled,
@@ -504,6 +414,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
     ] = poseArray;
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
@@ -521,6 +432,8 @@ class RigManager {
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
     this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
+    this.localRig.inputs.hips.quaternion.fromArray(hipQuaternion);
+
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
     this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
@@ -534,6 +447,7 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      [hipQuaternion],
       floorHeight,
       handsEnabled,
       topEnabled,
@@ -572,6 +486,8 @@ class RigManager {
       peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
       peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      
+      peerRig.inputs.hipQuaternion.fromArray(hipQuaternion);
 
       peerRig.setFloorHeight(floorHeight);
       for (let i = 0; i < 2; i++) {
@@ -660,6 +576,112 @@ class RigManager {
       },
     ];
   }
+  
+  injectDependencies(scene) {
+    this.scene = scene;
+    
+    this.localRig = new Avatar(null, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: true,
+      ikEnabled: false, // XXX
+    });
+    this.localRig.aux = new RigAux({
+      rig: this.localRig,
+      scene: avatarScene,
+    });
+    unFrustumCull(this.localRig.model);
+    scene.add(this.localRig.model);
+
+    console.log('got local rig 1', this.localRig);
+
+    this.localRig.avatarUrl = null;
+
+    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
+    
+    console.log('got local rig 2', this.localRig.textMesh);
+    
+    {
+      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+      const img = new Image();
+      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        texture.needsUpdate = true;
+      };
+      img.onerror = err => {
+        console.warn(err.stack);
+      };
+      const texture = new THREE.Texture(img);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+      const avatarMesh = new THREE.Mesh(geometry, material);
+      avatarMesh.position.x = -0.5;
+      avatarMesh.position.y = -0.02;
+      this.localRig.textMesh.add(avatarMesh);
+      this.localRig.textMesh.avatarMesh = avatarMesh;
+    }
+    console.log('got local rig 3', this.localRig.textMesh);
+    {
+      const w = 1;
+      const h = 0.15;
+      const roundedRectShape = new THREE.Shape();
+      ( function roundedRect( ctx, x, y, width, height, radius ) {
+        ctx.moveTo( x, y + radius );
+        ctx.lineTo( x, y + height - radius );
+        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+        /* ctx.lineTo( x + radius + indentWidth, y + height );
+        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
+        ctx.lineTo( x + width - radius, y + height );
+        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+        ctx.lineTo( x + width, y + radius );
+        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+        ctx.lineTo( x + radius, y );
+        ctx.quadraticCurveTo( x, y, x, y + radius );
+      } )( roundedRectShape, 0, 0, w, h, h/2 );
+
+      const extrudeSettings = {
+        steps: 2,
+        depth: 0,
+        bevelEnabled: false,
+        /* bevelEnabled: true,
+        bevelThickness: 0,
+        bevelSize: 0,
+        bevelOffset: 0,
+        bevelSegments: 0, */
+      };
+      const geometry = BufferGeometryUtils.mergeBufferGeometries([
+        new THREE.CircleBufferGeometry(0.13, 32)
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
+      ]);
+      const material2 = new THREE.LineBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      });
+      const nametagMesh2 = new THREE.Mesh(geometry, material2);
+      this.localRig.textMesh.add(nametagMesh2);
+    }
+    this.scene.add(this.localRig.textMesh);
+
+    this.localRigMatrix = new THREE.Matrix4();
+    this.localRigMatrixEnabled = false;
+    
+    this.lastPosition = new THREE.Vector3();
+    this.smoothVelocity = new THREE.Vector3();
+
+    this.peerRigs = new Map();
+    
+    this.lastTimestamp = Date.now();
+  }
 
   update() {
     const now = Date.now();
@@ -692,6 +714,7 @@ class RigManager {
     }
     this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || (cameraManager.getMode() === 'firstperson' && physicsManager.isUnlocked()) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
+    this.localRig.setAimed(appManager.aimed);
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
     this.localRig.jumpState = physicsManager.getJumpState();
@@ -733,6 +756,9 @@ class RigManager {
         physicsManager.setSitTarget(sittable.model);
       }
       physicsManager.setSitOffset(sitOffset);
+      
+      physicsManager.setButtOffset(localVector.copy(this.localRig.buttOffset).multiplyScalar(0.9));
+      
       if (typeof damping === 'number') {
         physicsManager.setDamping(damping);
       } else {
@@ -778,7 +804,7 @@ class RigManager {
     } */
   }
 }
-const rigManager = new RigManager(scene);
+const rigManager = new RigManager();
 
 export {
   // RigManager,

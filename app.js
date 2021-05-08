@@ -41,6 +41,7 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -72,6 +73,7 @@ export default class App extends EventTarget {
     ])
       .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
+        rigManager.injectDependencies(scene);
       });
     this.contentLoaded = false;
   }
@@ -231,6 +233,7 @@ export default class App extends EventTarget {
       const _updateRig = () => {
         let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
         let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
+        let hipQuaternion;
 
         if (rigManager.localRigMatrixEnabled) {
           localMatrix.copy(rigManager.localRigMatrix);
@@ -239,6 +242,11 @@ export default class App extends EventTarget {
         }
         localMatrix
           .decompose(localVector, localQuaternion, localVector2);
+        /* if (appManager.aimed) { // XXX
+          camera.matrixWorld
+            .decompose(localVector3, localQuaternion2, localVector4);
+          localQuaternion.copy(localQuaternion2);
+        } */
 
         if (session) {
           let inputSources = Array.from(session.inputSources);
@@ -334,11 +342,22 @@ export default class App extends EventTarget {
           rightGamepadGrip = 0;
           rightGamepadEnabled = false;
         }
+        if (!hipQuaternion) {
+          if (!appManager.aimed) {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            hipQuaternion = localQuaternion.setFromEuler(localEuler).toArray();
+          } else {
+            hipQuaternion = rigManager.localRig.inputs.hips.quaternion.toArray(); // copy old value
+          }
+        }
 
         rigManager.setLocalAvatarPose([
           [localVector.toArray(), localQuaternion.toArray()],
           [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
           [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+          [hipQuaternion],
         ]);
         rigManager.update();
       };
