@@ -2006,9 +2006,9 @@ class Avatar {
                  .sub(this.outputs.hips.position)
 
       // position
-      this.outputs.hips.position.x = this.outputs.hips.position.x + localVector.x*0.3
-      this.outputs.hips.position.y = this.outputs.hips.position.y + localVector.y*0.3
-      this.outputs.hips.position.z = this.outputs.hips.position.z + localVector.z*0.3
+      this.outputs.hips.position.x = this.outputs.hips.position.x + localVector.x*1.0
+      this.outputs.hips.position.y = this.outputs.hips.position.y + localVector.y*1.0
+      this.outputs.hips.position.z = this.outputs.hips.position.z + localVector.z*1.0
 
       if (this.getTopEnabled()){
         // firstperson
