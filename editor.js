@@ -6,8 +6,9 @@ import ReactDOM from 'react';
 import ReactThreeFiber from '@react-three/fiber';
 // import {render} from '@react-three/fiber';
 // import * as THREE from 'three';
-import {BabelStandalone} from '@babel/standalone';
-import {JSZip} from 'jszip';
+import BabelStandalone from '@babel/standalone';
+import JSZip from 'jszip';
+// import {EditorView, EditorState, basicSetup, javascript} from 'codemirror';
 import {storageHost} from './constants.js';
 // console.log('got jszip', BabelStandalone, JSZip);
 
@@ -16,6 +17,8 @@ import {storageHost} from './constants.js';
 window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
+
+const editorSize = 400;
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -131,6 +134,13 @@ const fetchAndCompile = async (scriptUrl) => {
   });
   return new Uint8Array(ab);
 };
+
+const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+  lineNumbers: true,
+  styleActiveLine: true,
+  matchBrackets: true
+});
+editor.setOption('theme', 'material-ocean');
 
 (async () => {
   /* const s = `\
@@ -266,7 +276,7 @@ const fetchAndCompile = async (scriptUrl) => {
       canvas,
       antialias: true,
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     const scene = new THREE.Scene();
     const camera = new THREE.Camera();
