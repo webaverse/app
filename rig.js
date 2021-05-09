@@ -1,6 +1,5 @@
-import * as THREE from './three.module.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {GLTFLoader, BufferGeometryUtils} from 'three';
 // import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';

@@ -1,5 +1,5 @@
-import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {BufferGeometryUtils} from 'three';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 // import inventory from './inventory.js';

@@ -1,4 +1,4 @@
-import { Color, DataTexture, LuminanceFormat, LinearFilter, Vector3, InstancedBufferGeometry, Sphere, InstancedBufferAttribute, PlaneBufferGeometry, Vector2, Vector4, Matrix3, MeshBasicMaterial, DoubleSide, Matrix4, Mesh } from './three.module.js';
+import { Color, DataTexture, LuminanceFormat, LinearFilter, Vector3, InstancedBufferGeometry, Sphere, InstancedBufferAttribute, PlaneBufferGeometry, Vector2, Vector4, Matrix3, MeshBasicMaterial, DoubleSide, Matrix4, Mesh } from 'three';
 import { defineWorkerModule, ThenableWorkerModule } from './troika-worker-utils.esm.js';
 import { createDerivedMaterial, voidMainRegExp } from './troika-three-utils.esm.js';
 

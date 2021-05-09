@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 
 /* const _makeHeightfieldShader = land => ({
   uniforms: {

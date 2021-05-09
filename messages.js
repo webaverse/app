@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const maxMessages = 8;

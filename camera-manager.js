@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import {appManager, renderer, camera/*, orbitControls*/} from './app-object.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
