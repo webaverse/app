@@ -1,4 +1,4 @@
-import THREE from '../../three.module.js';
+import THREE from 'three';
 
 const _makeFingers = () => {
   const result = Array(25);

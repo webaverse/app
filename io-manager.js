@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';

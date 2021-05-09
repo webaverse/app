@@ -1,5 +1,5 @@
-import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {BufferGeometryUtils} from 'three';
 import {renderer, scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
