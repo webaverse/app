@@ -75,10 +75,10 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
-  three: _importMapUrl('./three.module.js'),
-  BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
-  GLTFLoader: _importMapUrl('./GLTFLoader.js'),
-  GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
+  three: 'three',
+  BufferGeometryUtils: 'BufferGeometryUtils',
+  GLTFLoader: 'GLTFLoader',
+  // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   world: _importMapUrl('./world.js'),
   universe: _importMapUrl('./universe.js'),
