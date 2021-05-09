@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';

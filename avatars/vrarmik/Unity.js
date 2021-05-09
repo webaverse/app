@@ -1,4 +1,4 @@
-import THREE from '../../three.module.js';
+import THREE from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
 import dropManager from './drop-manager.js';

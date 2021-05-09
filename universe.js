@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import {rigManager} from './rig.js';
 import {renderer, scene, camera, dolly} from './app-object.js';
 import {world} from './world.js';

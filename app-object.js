@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 

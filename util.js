@@ -1,5 +1,5 @@
-import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {BufferGeometryUtils} from 'BufferGeometryUtils';
 import atlaspack from './atlaspack.js';
 import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 

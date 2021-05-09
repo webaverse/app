@@ -1,11 +1,9 @@
-import * as THREE from './three.module.js';
-import {GLTFLoader} from './GLTFLoader.js';
+import * as THREE from 'three';
+import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'three';
 // import {KTX2Loader} from './KTX2Loader.js';
-import {VOXLoader} from './VOXLoader.js';
 // import {CSS3DObject} from './CSS3DRenderer.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
-import {BasisTextureLoader} from './BasisTextureLoader.js';
+// import {BasisTextureLoader} from './BasisTextureLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
@@ -77,10 +75,10 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
-  three: _importMapUrl('./three.module.js'),
-  BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
-  GLTFLoader: _importMapUrl('./GLTFLoader.js'),
-  GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
+  three: 'three',
+  BufferGeometryUtils: 'BufferGeometryUtils',
+  GLTFLoader: 'GLTFLoader',
+  // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   world: _importMapUrl('./world.js'),
   universe: _importMapUrl('./universe.js'),

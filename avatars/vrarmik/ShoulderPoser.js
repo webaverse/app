@@ -1,4 +1,4 @@
-import THREE from '../../three.module.js';
+import THREE from 'three';
 import {
   Helpers
 } from './Unity.js';

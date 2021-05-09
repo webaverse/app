@@ -1,6 +1,5 @@
-import * as THREE from './three.module.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {GLTFLoader, BufferGeometryUtils} from 'three';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';

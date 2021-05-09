@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import uiManager from './ui-manager.js';
 import {renderer, camera, dolly} from './app-object.js';
 import geometryManager from './geometry-manager.js';
