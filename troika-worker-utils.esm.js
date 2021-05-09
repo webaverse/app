@@ -17,24 +17,24 @@
  * implementation I've found. And also, exercises like this are challenging and fun.)
  */
 function BespokeThenable() {
-  let state = 0; // 0=pending, 1=fulfilled, -1=rejected
-  let queue = [];
-  let value;
-  let scheduled = 0;
-  let completeCalled = 0;
+  var state = 0; // 0=pending, 1=fulfilled, -1=rejected
+  var queue = [];
+  var value;
+  var scheduled = 0;
+  var completeCalled = 0;
 
   function then(onResolve, onReject) {
-    const nextThenable = BespokeThenable();
+    var nextThenable = BespokeThenable();
 
     function handleNext() {
-      const cb = state > 0 ? onResolve : onReject;
+      var cb = state > 0 ? onResolve : onReject;
       if (isFn(cb)) {
         try {
-          const result = cb(value);
+          var result = cb(value);
           if (result === nextThenable) {
             recursiveError();
           }
-          const resultThen = getThenableThen(result);
+          var resultThen = getThenableThen(result);
           if (resultThen) {
             resultThen.call(result, nextThenable.resolve, nextThenable.reject);
           } else {
@@ -55,13 +55,13 @@ function BespokeThenable() {
     return nextThenable
   }
 
-  const resolve = oneTime(val => {
+  var resolve = oneTime(function (val) {
     if (!completeCalled) {
       complete(1, val);
     }
   });
 
-  const reject = oneTime(reason => {
+  var reject = oneTime(function (reason) {
     if (!completeCalled) {
       complete(-1, reason);
     }
@@ -69,17 +69,17 @@ function BespokeThenable() {
 
   function complete(st, val) {
     completeCalled++;
-    let ignoreThrow = 0;
+    var ignoreThrow = 0;
     try {
       if (val === thenableObj) {
         recursiveError();
       }
-      const valThen = st > 0 && getThenableThen(val);
+      var valThen = st > 0 && getThenableThen(val);
       if (valThen) {
-        valThen.call(val, oneTime(v => {
+        valThen.call(val, oneTime(function (v) {
           ignoreThrow++;
           complete(1, v);
-        }), oneTime(v => {
+        }), oneTime(function (v) {
           ignoreThrow++;
           complete(-1, v);
         }));
@@ -103,7 +103,7 @@ function BespokeThenable() {
   }
 
   function flushQueue() {
-    const q = queue;
+    var q = queue;
     scheduled = 0;
     queue = [];
     q.forEach(callIt);
@@ -114,13 +114,16 @@ function BespokeThenable() {
   }
 
   function getThenableThen(val) {
-    const valThen = val && (isFn(val) || typeof val === 'object') && val.then;
+    var valThen = val && (isFn(val) || typeof val === 'object') && val.then;
     return isFn(valThen) && valThen
   }
 
   function oneTime(fn) {
-    let called = 0;
-    return function(...args) {
+    var called = 0;
+    return function() {
+      var args = [], len = arguments.length;
+      while ( len-- ) args[ len ] = arguments[ len ];
+
       if (!called++) {
         fn.apply(this, args);
       }
@@ -131,12 +134,12 @@ function BespokeThenable() {
     throw new TypeError('Chaining cycle detected')
   }
 
-  const isFn = v => typeof v === 'function';
+  var isFn = function (v) { return typeof v === 'function'; };
 
-  const thenableObj = {
-    then,
-    resolve,
-    reject
+  var thenableObj = {
+    then: then,
+    resolve: resolve,
+    reject: reject
   };
   return thenableObj
 }
@@ -148,15 +151,15 @@ function BespokeThenable() {
  * @constructor
  */
 function NativePromiseThenable() {
-  let resolve, reject;
-  const promise = new Promise((res, rej) => {
+  var resolve, reject;
+  var promise = new Promise(function (res, rej) {
     resolve = res;
     reject = rej;
   });
   return {
     then: promise.then.bind(promise),
-    resolve,
-    reject
+    resolve: resolve,
+    reject: reject
   }
 }
 
@@ -164,16 +167,16 @@ function NativePromiseThenable() {
  * Promise.all() impl:
  */
 BespokeThenable.all = NativePromiseThenable.all = function(items) {
-  let resultCount = 0;
-  let results = [];
-  let out = DefaultThenable();
+  var resultCount = 0;
+  var results = [];
+  var out = DefaultThenable();
   if (items.length === 0) {
     out.resolve([]);
   } else {
-    items.forEach((item, i) => {
-      let itemThenable = DefaultThenable();
+    items.forEach(function (item, i) {
+      var itemThenable = DefaultThenable();
       itemThenable.resolve(item);
-      itemThenable.then(res => {
+      itemThenable.then(function (res) {
         resultCount++;
         results[i] = res;
         if (resultCount === items.length) {
@@ -189,26 +192,32 @@ BespokeThenable.all = NativePromiseThenable.all = function(items) {
 /**
  * Choose the best Thenable implementation and export it as the default.
  */
-const DefaultThenable = typeof Promise === 'function' ? NativePromiseThenable : BespokeThenable;
+var DefaultThenable = typeof Promise === 'function' ? NativePromiseThenable : BespokeThenable;
 
 /**
  * Main content for the worker that handles the loading and execution of
  * modules within it.
  */
 function workerBootstrap() {
-  const modules = Object.create(null);
+  var modules = Object.create(null);
 
   // Handle messages for registering a module
-  function registerModule({id, name, dependencies=[], init=function(){}, getTransferables=null}, callback) {
+  function registerModule(ref, callback) {
+    var id = ref.id;
+    var name = ref.name;
+    var dependencies = ref.dependencies; if ( dependencies === void 0 ) dependencies = [];
+    var init = ref.init; if ( init === void 0 ) init = function(){};
+    var getTransferables = ref.getTransferables; if ( getTransferables === void 0 ) getTransferables = null;
+
     // Only register once
-    if (modules[id]) return
+    if (modules[id]) { return }
 
     try {
       // If any dependencies are modules, ensure they're registered and grab their value
-      dependencies = dependencies.map(dep => {
+      dependencies = dependencies.map(function (dep) {
         if (dep && dep.isWorkerModule) {
-          registerModule(dep, depResult => {
-            if (depResult instanceof Error) throw depResult
+          registerModule(dep, function (depResult) {
+            if (depResult instanceof Error) { throw depResult }
           });
           dep = modules[dep.id].value;
         }
@@ -216,22 +225,22 @@ function workerBootstrap() {
       });
 
       // Rehydrate functions
-      init = rehydrate(`<${name}>.init`, init);
+      init = rehydrate(("<" + name + ">.init"), init);
       if (getTransferables) {
-        getTransferables = rehydrate(`<${name}>.getTransferables`, getTransferables);
+        getTransferables = rehydrate(("<" + name + ">.getTransferables"), getTransferables);
       }
 
       // Initialize the module and store its value
-      let value = null;
+      var value = null;
       if (typeof init === 'function') {
-        value = init(...dependencies);
+        value = init.apply(void 0, dependencies);
       } else {
         console.error('worker module init function failed to rehydrate');
       }
       modules[id] = {
-        id,
-        value,
-        getTransferables
+        id: id,
+        value: value,
+        getTransferables: getTransferables
       };
       callback(value);
     } catch(err) {
@@ -243,14 +252,18 @@ function workerBootstrap() {
   }
 
   // Handle messages for calling a registered module's result function
-  function callModule({id, args}, callback) {
+  function callModule(ref, callback) {
+    var ref$1;
+
+    var id = ref.id;
+    var args = ref.args;
     if (!modules[id] || typeof modules[id].value !== 'function') {
-      callback(new Error(`Worker module ${id}: not found or its 'init' did not return a function`));
+      callback(new Error(("Worker module " + id + ": not found or its 'init' did not return a function")));
     }
     try {
-      const result = modules[id].value(...args);
+      var result = (ref$1 = modules[id]).value.apply(ref$1, args);
       if (result && typeof result.then === 'function') {
-        result.then(handleResult, rej => callback(rej instanceof Error ? rej : new Error('' + rej)));
+        result.then(handleResult, function (rej) { return callback(rej instanceof Error ? rej : new Error('' + rej)); });
       } else {
         handleResult(result);
       }
@@ -259,7 +272,7 @@ function workerBootstrap() {
     }
     function handleResult(result) {
       try {
-        let tx = modules[id].getTransferables && modules[id].getTransferables(result);
+        var tx = modules[id].getTransferables && modules[id].getTransferables(result);
         if (!tx || !Array.isArray(tx) || !tx.length) {
           tx = undefined; //postMessage is very picky about not passing null or empty transferables
         }
@@ -272,11 +285,11 @@ function workerBootstrap() {
   }
 
   function rehydrate(name, str) {
-    let result = void 0;
-    self.troikaDefine = r => result = r;
-    let url = URL.createObjectURL(
+    var result = void 0;
+    self.troikaDefine = function (r) { return result = r; };
+    var url = URL.createObjectURL(
       new Blob(
-        [`/** ${name.replace(/\*/g, '')} **/\n\ntroikaDefine(\n${str}\n)`],
+        [("/** " + (name.replace(/\*/g, '')) + " **/\n\ntroikaDefine(\n" + str + "\n)")],
         {type: 'application/javascript'}
       )
     );
@@ -291,21 +304,24 @@ function workerBootstrap() {
   }
 
   // Handler for all messages within the worker
-  self.addEventListener('message', e => {
-    const {messageId, action, data} = e.data;
+  self.addEventListener('message', function (e) {
+    var ref = e.data;
+    var messageId = ref.messageId;
+    var action = ref.action;
+    var data = ref.data;
     try {
       // Module registration
       if (action === 'registerModule') {
-        registerModule(data, result => {
+        registerModule(data, function (result) {
           if (result instanceof Error) {
             postMessage({
-              messageId,
+              messageId: messageId,
               success: false,
               error: result.message
             });
           } else {
             postMessage({
-              messageId,
+              messageId: messageId,
               success: true,
               result: {isCallable: typeof result === 'function'}
             });
@@ -314,25 +330,25 @@ function workerBootstrap() {
       }
       // Invocation
       if (action === 'callModule') {
-        callModule(data, (result, transferables) => {
+        callModule(data, function (result, transferables) {
           if (result instanceof Error) {
             postMessage({
-              messageId,
+              messageId: messageId,
               success: false,
               error: result.message
             });
           } else {
             postMessage({
-              messageId,
+              messageId: messageId,
               success: true,
-              result
+              result: result
             }, transferables || undefined);
           }
         });
       }
     } catch(err) {
       postMessage({
-        messageId,
+        messageId: messageId,
         success: false,
         error: err.stack
       });
@@ -346,10 +362,13 @@ function workerBootstrap() {
  * are disallowed due to e.g. CSP security restrictions.
  */
 function defineMainThreadModule(options) {
-  let moduleFunc = function(...args) {
-    return moduleFunc._getInitResult().then(initResult => {
+  var moduleFunc = function() {
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+
+    return moduleFunc._getInitResult().then(function (initResult) {
       if (typeof initResult === 'function') {
-        return initResult(...args)
+        return initResult.apply(void 0, args)
       } else {
         throw new Error('Worker module function was called but `init` did not return a callable function')
       }
@@ -357,28 +376,28 @@ function defineMainThreadModule(options) {
   };
   moduleFunc._getInitResult = function() {
     // We can ignore getTransferables in main thread. TODO workerId?
-    let {dependencies, init} = options;
+    var dependencies = options.dependencies;
+    var init = options.init;
 
     // Resolve dependencies
-    dependencies = Array.isArray(dependencies) ? dependencies.map(dep =>
-      dep && dep._getInitResult ? dep._getInitResult() : dep
+    dependencies = Array.isArray(dependencies) ? dependencies.map(function (dep) { return dep && dep._getInitResult ? dep._getInitResult() : dep; }
     ) : [];
 
     // Invoke init with the resolved dependencies
-    let initThenable = DefaultThenable.all(dependencies).then(deps => {
+    var initThenable = DefaultThenable.all(dependencies).then(function (deps) {
       return init.apply(null, deps)
     });
 
     // Cache the resolved promise for subsequent calls
-    moduleFunc._getInitResult = () => initThenable;
+    moduleFunc._getInitResult = function () { return initThenable; };
 
     return initThenable
   };
   return moduleFunc
 }
 
-let supportsWorkers = () => {
-  let supported = false;
+var supportsWorkers = function () {
+  var supported = false;
 
   // Only attempt worker initialization in browsers; elsewhere it would just be
   // noise e.g. loading into a Node environment for SSR.
@@ -386,29 +405,34 @@ let supportsWorkers = () => {
     try {
       // TODO additional checks for things like importScripts within the worker?
       //  Would need to be an async check.
-      let worker = new Worker(
-        URL.createObjectURL(
-          new Blob([''], { type: 'application/javascript' })
-        )
+      var worker = new Worker(
+        URL.createObjectURL(new Blob([''], { type: 'application/javascript' }))
       );
       worker.terminate();
       supported = true;
     } catch (err) {
-      console.warn(`Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`);
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') ; else {
+        console.log(
+          ("Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [" + (err.message) + "]")
+        );
+      }
     }
   }
 
   // Cached result
-  supportsWorkers = () => supported;
+  supportsWorkers = function () { return supported; };
   return supported
 };
 
-let _workerModuleId = 0;
-let _messageId = 0;
-let _allowInitAsString = false;
-const workers = Object.create(null);
-const openRequests = Object.create(null);
-openRequests._count = 0;
+var _workerModuleId = 0;
+var _messageId = 0;
+var _allowInitAsString = false;
+var workers = Object.create(null);
+var openRequests = /*#__PURE__*/(function () {
+  var obj = Object.create(null);
+  obj._count = 0;
+  return obj
+})();
 
 
 /**
@@ -417,37 +441,21 @@ openRequests._count = 0;
  * among one another.
  *
  * @param {object} options
- * @param {function} options.init - The main function that initializes the module. This will be run
- *        within the worker, and will be passed the resolved dependencies as arguments. Its
- *        return value becomes the module's content, which can then be used by other modules
- *        that depend on it. This function can perform any logic using those dependencies, but
- *        must not depend on anything from its parent closures.
- * @param {array} [options.dependencies] - Provides any dependencies required by the init function:
- *        - Primitives like strings, numbers, booleans
- *        - Raw functions; these will be stringified and rehydrated within the worker so they
- *          must not depend on anything from their parent closures
- *        - Other worker modules; these will be resolved within the worker, and therefore modules
- *          that provide functions can be called without having to cross the worker/main thread
- *          boundary.
- * @param {function} [options.getTransferables] - An optional function that will be run in the worker
- *        just before posting the response value from a module call back to the main thread.
- *        It will be passed that response value, and if it returns an array then that will be
- *        used as the "transferables" parameter to `postMessage`. Use this if there are values
- *        in the response that can/should be transfered rather than cloned.
- * @param {string} [options.name] - A descriptive name for this module; this can be useful for
- *        debugging but is not currently used for anything else.
- * @param {string} [options.workerId] - By default all modules will run in the same dedicated worker,
- *        but if you want to use multiple workers you can pass a `workerId` to indicate a specific
- *        worker to spawn. Note that each worker is completely standalone and no data or state will
- *        be shared between them. If a worker module is used as a dependency by worker modules
- *        using different `workerId`s, then that dependency will be re-registered in each worker.
+ * @param {function} options.init
+ * @param {array} [options.dependencies]
+ * @param {function} [options.getTransferables]
+ * @param {string} [options.name]
+ * @param {string} [options.workerId]
  * @return {function(...[*]): {then}}
  */
 function defineWorkerModule(options) {
   if ((!options || typeof options.init !== 'function') && !_allowInitAsString) {
     throw new Error('requires `options.init` function')
   }
-  let {dependencies, init, getTransferables, workerId} = options;
+  var dependencies = options.dependencies;
+  var init = options.init;
+  var getTransferables = options.getTransferables;
+  var workerId = options.workerId;
 
   if (!supportsWorkers()) {
     return defineMainThreadModule(options)
@@ -456,18 +464,18 @@ function defineWorkerModule(options) {
   if (workerId == null) {
     workerId = '#default';
   }
-  const id = `workerModule${++_workerModuleId}`;
-  const name = options.name || id;
-  let registrationThenable = null;
+  var id = "workerModule" + (++_workerModuleId);
+  var name = options.name || id;
+  var registrationThenable = null;
 
-  dependencies = dependencies && dependencies.map(dep => {
+  dependencies = dependencies && dependencies.map(function (dep) {
     // Wrap raw functions as worker modules with no dependencies
     if (typeof dep === 'function' && !dep.workerModuleData) {
       _allowInitAsString = true;
       dep = defineWorkerModule({
-        workerId,
-        name: `<${name}> function dependency: ${dep.name}`,
-        init: `function(){return (\n${stringifyFunction(dep)}\n)}`
+        workerId: workerId,
+        name: ("<" + name + "> function dependency: " + (dep.name)),
+        init: ("function(){return (\n" + (stringifyFunction(dep)) + "\n)}")
       });
       _allowInitAsString = false;
     }
@@ -478,16 +486,21 @@ function defineWorkerModule(options) {
     return dep
   });
 
-  function moduleFunc(...args) {
+  function moduleFunc() {
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+
     // Register this module if needed
     if (!registrationThenable) {
       registrationThenable = callWorker(workerId,'registerModule', moduleFunc.workerModuleData);
     }
 
     // Invoke the module, returning a thenable
-    return registrationThenable.then(({isCallable}) => {
+    return registrationThenable.then(function (ref) {
+      var isCallable = ref.isCallable;
+
       if (isCallable) {
-        return callWorker(workerId,'callModule', {id, args})
+        return callWorker(workerId,'callModule', {id: id, args: args})
       } else {
         throw new Error('Worker module function was called but `init` did not return a callable function')
       }
@@ -495,9 +508,9 @@ function defineWorkerModule(options) {
   }
   moduleFunc.workerModuleData = {
     isWorkerModule: true,
-    id,
-    name,
-    dependencies,
+    id: id,
+    name: name,
+    dependencies: dependencies,
     init: stringifyFunction(init),
     getTransferables: getTransferables && stringifyFunction(getTransferables)
   };
@@ -509,7 +522,7 @@ function defineWorkerModule(options) {
  * @param fn
  */
 function stringifyFunction(fn) {
-  let str = fn.toString();
+  var str = fn.toString();
   // If it was defined in object method/property format, it needs to be modified
   if (!/^function/.test(str) && /^\w+\s*\(/.test(str)) {
     str = 'function ' + str;
@@ -519,31 +532,31 @@ function stringifyFunction(fn) {
 
 
 function getWorker(workerId) {
-  let worker = workers[workerId];
+  var worker = workers[workerId];
   if (!worker) {
     // Bootstrap the worker's content
-    const bootstrap = stringifyFunction(workerBootstrap);
+    var bootstrap = stringifyFunction(workerBootstrap);
 
     // Create the worker from the bootstrap function content
     worker = workers[workerId] = new Worker(
       URL.createObjectURL(
         new Blob(
-          [`/** Worker Module Bootstrap: ${workerId.replace(/\*/g, '')} **/\n\n;(${bootstrap})()`],
+          [("/** Worker Module Bootstrap: " + (workerId.replace(/\*/g, '')) + " **/\n\n;(" + bootstrap + ")()")],
           {type: 'application/javascript'}
         )
       )
     );
 
     // Single handler for response messages from the worker
-    worker.onmessage = e => {
-      const response = e.data;
-      const msgId = response.messageId;
-      const callback = openRequests[msgId];
+    worker.onmessage = function (e) {
+      var response = e.data;
+      var msgId = response.messageId;
+      var callback = openRequests[msgId];
       if (!callback) {
         throw new Error('WorkerModule response with empty or unknown messageId')
       }
       delete openRequests[msgId];
-      openRequests.count--;
+      openRequests._count--;
       callback(response);
     };
   }
@@ -552,23 +565,23 @@ function getWorker(workerId) {
 
 // Issue a call to the worker with a callback to handle the response
 function callWorker(workerId, action, data) {
-  const thenable = DefaultThenable();
-  const messageId = ++_messageId;
-  openRequests[messageId] = response => {
+  var thenable = DefaultThenable();
+  var messageId = ++_messageId;
+  openRequests[messageId] = function (response) {
     if (response.success) {
       thenable.resolve(response.result);
     } else {
-      thenable.reject(new Error(`Error in worker ${action} call: ${response.error}`));
+      thenable.reject(new Error(("Error in worker " + action + " call: " + (response.error))));
     }
   };
   openRequests._count++;
-  if (openRequests.count > 1000) { //detect leaks
+  if (openRequests._count > 1000) { //detect leaks
     console.warn('Large number of open WorkerModule requests, some may not be returning');
   }
   getWorker(workerId).postMessage({
-    messageId,
-    action,
-    data
+    messageId: messageId,
+    action: action,
+    data: data
   });
   return thenable
 }
@@ -578,7 +591,7 @@ function callWorker(workerId, action, data) {
  * module needs Thenable as a dependency, it's better to pass this module rather than
  * the raw function in its `dependencies` array so it only gets registered once.
  */
-var ThenableWorkerModule = defineWorkerModule({
+var ThenableWorkerModule = /*#__PURE__*/defineWorkerModule({
   name: 'Thenable',
   dependencies: [DefaultThenable],
   init: function(Thenable) {
