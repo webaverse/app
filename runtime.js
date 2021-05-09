@@ -46,11 +46,12 @@ runtime.injectDependencies = (newGeometryManager, newPhysicsManager, newWorld) =
 const textDecoder = new TextDecoder();
 const gltfLoader = new GLTFLoader();
 gltfLoader.setMeshoptDecoder(MeshoptDecoder);
-const basisLoader = new BasisTextureLoader();
+// const basisLoader = new BasisTextureLoader();
 // const ktx2Loader = new KTX2Loader();
-basisLoader.detectSupport(renderer);
-gltfLoader.setBasisLoader(basisLoader);
-basisLoader.detectSupport(renderer);
+// basisLoader.detectSupport(renderer);
+window.gltfLoader = gltfLoader;
+// gltfLoader.setBasisLoader(basisLoader);
+// basisLoader.detectSupport(renderer);
 
 const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
   if (!monetizationPointer) {
