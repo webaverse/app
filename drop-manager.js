@@ -113,7 +113,7 @@ const loadPromise = (async () => {
     const velocity = v.clone();
     let grounded = false;
     
-    const sphere = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
+    const sphere = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
     sphere.position.copy(p);
     const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
     sphere.scale.copy(defaultScale);
@@ -194,11 +194,13 @@ const loadPromise = (async () => {
 
       const time = timeOffset + performance.now() * 0.002;
       const k = 1;
-      for (var i = 0; i < sphere.geometry.vertices.length; i++) {
-        const p = sphere.geometry.vertices[i];
+      for (var i = 0; i < sphere.geometry.attributes.position.array.length; i += 3) {
+        const p = localVector.fromArray(sphere.geometry.attributes.position.array, i);
         const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
         p.normalize().multiplyScalar(f);
+        p.toArray(sphere.geometry.attributes.position.array, i);
       }
+      sphere.geometry.attributes.position.needsUpdate = true;
       sphere.geometry.computeVertexNormals();
       sphere.geometry.normalsNeedUpdate = true;
       sphere.geometry.verticesNeedUpdate = true;
