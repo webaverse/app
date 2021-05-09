@@ -1,5 +1,5 @@
-import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import * as THREE from 'three';
+import {BufferGeometryUtils} from 'three';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
 import {world} from './world.js';

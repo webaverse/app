@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 import {scene, camera} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {epochStartTime} from './util.js';

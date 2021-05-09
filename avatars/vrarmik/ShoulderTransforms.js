@@ -1,4 +1,4 @@
-import THREE from '../../three.module.js';
+import THREE from 'three';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VRArmIK from './VRArmIK.js';

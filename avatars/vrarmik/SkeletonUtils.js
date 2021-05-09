@@ -1,4 +1,4 @@
-import THREE from '../../three.module.js';
+import THREE from 'three';
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,
