@@ -1,7 +1,5 @@
-import * as THREE from './three.module.js';
-import {OrbitControls} from './OrbitControls.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
+import * as THREE from 'three';
+import {GLTFLoader, VOXLoader, OrbitControls} from 'three';
 import {parseQuery} from './util.js';
 import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
