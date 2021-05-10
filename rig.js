@@ -76,7 +76,7 @@ class RigManager {
       scene: avatarScene,
     });
     unFrustumCull(this.localRig.model);
-    scene.add(this.localRig.model);
+    this.scene.add(this.localRig.model);
 
     this.localRig.avatarUrl = null;
 
