@@ -13,8 +13,9 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
-import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import controlsManager from './controls-manager.js';
+import weaponsManager from './weapons-manager.js';
 import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
@@ -228,6 +229,10 @@ export default class App extends EventTarget {
     // dom render
     renderer2.render(scene2, camera);
   } */
+
+  setPossessed(possessed) {
+    controlsManager.setPossessed(possessed);
+  }
   
   startLoop() {
     let lastTimestamp = performance.now();
@@ -244,7 +249,9 @@ export default class App extends EventTarget {
       ioManager.update(timeDiffCapped);
       universe.update();
       if (this.contentLoaded) {
-        physicsManager.update(timeDiffCapped);
+        if (controlsManager.isPossessed()) {
+          physicsManager.update(timeDiffCapped);
+        }
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
@@ -364,6 +371,7 @@ export default class App extends EventTarget {
       };
       _updateRig();
 
+      controlsManager.update();
       weaponsManager.update();
       hpManager.update();
       activateManager.update();
