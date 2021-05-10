@@ -249,13 +249,14 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 const isDirectoryName = fileName => /\/$/.test(fileName);
 const uploadFiles = async files => {
+  const directoryMap = {};
   const fd = new FormData();
-  let hasRootDirectory = false;
   for (const file of files) {
     const {name} = file;
     const basename = name; // localFileNames[name];
-    console.log('append', basename, name);
+    // console.log('append', basename, name);
     if (isDirectoryName(name)) {
+      console.log('append dir', name);
       fd.append(
         name,
         new Blob([], {
@@ -263,24 +264,19 @@ const uploadFiles = async files => {
         }),
         basename
       );
-      if (basename === '') {
-        hasRootDirectory = true;
-      }
+      const p = name.replace(/\/+$/, '');
+      directoryMap[p] = true;
     } else {
+      console.log('append file', name);
       fd.append(name, file.data, basename);
     }
   }
 
-  const uploadFilesRes = await fetch(storageHost, {
-    method: 'POST',
-    body: fd,
-  });
-  const hashes = await uploadFilesRes.json();
-  const metaverseFile = hashes.find(h => h.name === '.metaversefile');
+  const metaverseFile = files.find(f => f.name === '.metaversefile');
+  // console.log('got', metaverseFile);
   const metaverseJson = await (async () => {
-    const u = `${storageHost}/ipfs/${metaverseFile.hash}`;
-    const res = await fetch(u);
-    const j = await res.json();
+    const s = await metaverseFile.data.text();
+    const j = JSON.parse(s);
     return j;    
   })();
   const {start_url} = metaverseJson;
@@ -289,16 +285,37 @@ const uploadFiles = async files => {
   let mainDirectoryName = match[1];
   let mainPathName = match[2];
   if (!mainPathName) {
-    mainPathName = mainDirectoryName;
+    mainPathName = '/' + mainDirectoryName;
     mainDirectoryName = '';
   }
+  [
+    mainDirectoryName,
+    '',
+  ].forEach(p => {
+    if (!directoryMap[p]) {
+      // console.log('missing main directory', {p, directoryMap, files});
+      console.log('add missing main directory', [p]);
+      fd.append(
+        p,
+        new Blob([], {
+          type: 'application/x-directory',
+        }),
+        p
+      );
+    }
+  });
 
-  const mainDirectory = hashes.find(h => h.name === mainDirectoryName);
+  const uploadFilesRes = await fetch(storageHost, {
+    method: 'POST',
+    body: fd,
+  });
+  const hashes = await uploadFilesRes.json();
+  
+  let mainDirectory = hashes.find(h => h.name === mainDirectoryName);
   console.log('got hashes', {mainDirectoryName, mainPathName, hashes, mainDirectory});
-  // const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
   const mainDirectoryHash = mainDirectory.hash;
-  // const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
   const ipfsUrl = `${storageHost}/ipfs/${mainDirectoryHash}${mainPathName}`;
+  console.log('got ipfs url', ipfsUrl);
   return ipfsUrl;
 };
 const loadModule = async u => {
