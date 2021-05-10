@@ -207,6 +207,17 @@ editor.setOption('theme', 'material-ocean');
   }
 }); */
 
+// const root = document.getElementById('root');
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+});
+renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+// const scene = new THREE.Scene();
+// const camera = new THREE.Camera();
+
 (async () => {
   const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
   const zipData = await fetchAndCompile(url.href);
@@ -277,17 +288,6 @@ editor.setOption('theme', 'material-ocean');
     // const indexJsFile = zip.files[url.pathname.slice(1)];
     // const data = await indexJsFile.async('uint8array');
     // const s = new TextDecoder().decode(data);
-  
-    const root = document.getElementById('root');
-    const canvas = document.getElementById('canvas');
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-    });
-    renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    const scene = new THREE.Scene();
-    const camera = new THREE.Camera();
 
     // console.log('got s', s);
 
