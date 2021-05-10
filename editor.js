@@ -39,6 +39,7 @@ app.bindXr({
 }); */
 app.waitForLoad()
   .then(() => {
+    app.contentLoaded = true;
     app.startLoop();
   });
 
