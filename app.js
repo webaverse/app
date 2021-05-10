@@ -54,8 +54,12 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-export default class App {
+const frameEvent = new MessageEvent('frame');
+
+export default class App extends EventTarget {
   constructor() {
+    super();
+
     this.loadPromise = Promise.all([
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
@@ -187,6 +191,8 @@ export default class App {
   }
   
   render() {
+    this.dispatchEvent(frameEvent);
+
     // high priority render
     renderer.render(scene3, camera);
     // main render

@@ -189,6 +189,7 @@ const fetchZipFiles = async zipData => {
 };
 
 const s = `\
+  import * as THREE from 'three';
   import React, {Fragment, useState, useRef} from 'react';
   import ReactThreeFiber from '@react-three/fiber';
   const {Canvas, useFrame, useThree} = ReactThreeFiber;
@@ -221,7 +222,7 @@ const s = `\
         onPointerOver={(event) => setHover(true)}
         onPointerOut={(event) => setHover(false)}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={props.color || (hovered ? 'hotpink' : 'orange')} />
+        <meshStandardMaterial color={props.color} roughness={1} metalness={0} />
       </mesh>
     )
   }
@@ -234,14 +235,15 @@ const s = `\
     useFrame(() => ref.current.updateMatrixWorld())
     return <perspectiveCamera ref={ref} {...props} />
   } */
+  const lightQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, -1, -1).normalize()).toArray();
   const render = () => {
     // console.log('render', r, React, r === React);
     return (
       <Fragment>
         <ambientLight />
-        <pointLight position={[10, 10, 10]} />
+        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} />
         <Box position={[0, 1, 0]} color="hotpink" animate />
-        <Box scale={[10, 0.1, 10]} position={[0, -2, 0]} color={0x333333} />
+        <Box position={[0, -2, 0]} color={0x0049ef4} scale={[10, 0.1, 10]} />
       </Fragment>
     );
   };
@@ -336,7 +338,7 @@ const uploadFiles = async files => {
 };
 // const container = document.getElementById('container');
 let rootDiv = null;
-let state = null;
+// let state = null;
 const loadModule = async u => {
   const m = await import(u);
   const fn = m.default;
@@ -369,34 +371,38 @@ const loadModule = async u => {
     }
   }
 
-  // const el = ReactDOM.render(fn(), root);
-  const size = renderer.getSize(new THREE.Vector2());
+  const options = {
+    gl: renderer,
+    camera,
+    size: {
+      width: sizeVector.x,
+      height: sizeVector.y,
+    },
+    events: createPointerEvents,
+    onCreated: state => {
+      // state = newState;
+      // scene.add(state.scene);
+      console.log('got state', state);
+    },
+    frameloop: 'demand',
+  };
+  const sizeVector = renderer.getSize(new THREE.Vector2());
   // window.THREE1 = THREE;
   // debugger;
   rootDiv = document.createElement('div');
 
-  const el = ReactThreeFiber.render(
-    React.createElement('object3D', {}, [
-      React.createElement(Camera, {key: 0}),
-      React.createElement(fn, {key: 1}),
-    ]),
-    rootDiv,
-    {
-      gl: renderer,
-      size: {
-        width: size.x,
-        height: size.y,
-      },
-      events: createPointerEvents,
-      onCreated: newState => {
-        state = newState;
-        scene.add(state.scene);
-        console.log('got state', state);
-      },
-      frameloop: 'demand',
-    }
-  );
-  return el;
+  /* renderer.render = () => {
+    debugger;
+  }; */
+
+  await app.waitForLoad();
+  app.addEventListener('frame', () => {
+    ReactThreeFiber.render(
+      React.createElement(fn),
+      rootDiv,
+      options
+    );
+  });
 };
 const loadText = async () => {
   const s = editor.getValue();
@@ -416,15 +422,6 @@ const loadText = async () => {
 const uploadNft = async () => {
   console.log('upload nft');
 };
-
-function Camera(props) {
-  const set = ReactThreeFiber.useThree(state => state.set);
-  // Make the camera known to the system
-  React.useEffect(() => void set({ camera }), []);
-  // Update it every frame
-  // useFrame(() => ref.current.updateMatrixWorld());
-  return React.createElement(React.Fragment);
-}
 
 // loadText();
 (async () => {
