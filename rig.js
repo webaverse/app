@@ -22,6 +22,45 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
+const roundedRectGeometry = (() => {
+  const w = 1;
+  const h = 0.15;
+  const roundedRectShape = new THREE.Shape();
+  ( function roundedRect( ctx, x, y, width, height, radius ) {
+    ctx.moveTo( x, y + radius );
+    ctx.lineTo( x, y + height - radius );
+    ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+    /* ctx.lineTo( x + radius + indentWidth, y + height );
+    ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+    ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+    ctx.lineTo( x + width - radius - indentWidth, y + height ); */
+    ctx.lineTo( x + width - radius, y + height );
+    ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+    ctx.lineTo( x + width, y + radius );
+    ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+    ctx.lineTo( x + radius, y );
+    ctx.quadraticCurveTo( x, y, x, y + radius );
+  } )( roundedRectShape, 0, 0, w, h, h/2 );
+
+  const extrudeSettings = {
+    steps: 2,
+    depth: 0,
+    bevelEnabled: false,
+    /* bevelEnabled: true,
+    bevelThickness: 0,
+    bevelSize: 0,
+    bevelOffset: 0,
+    bevelSegments: 0, */
+  };
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.CircleBufferGeometry(0.13, 32)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+    new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
+  ]);
+  return geometry;
+})();
+
 class RigManager {
   constructor(scene) {
     this.scene = scene;
@@ -65,41 +104,7 @@ class RigManager {
       this.localRig.textMesh.avatarMesh = avatarMesh;
     }
     {
-      const w = 1;
-      const h = 0.15;
-      const roundedRectShape = new THREE.Shape();
-      ( function roundedRect( ctx, x, y, width, height, radius ) {
-        ctx.moveTo( x, y + radius );
-        ctx.lineTo( x, y + height - radius );
-        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-        /* ctx.lineTo( x + radius + indentWidth, y + height );
-        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
-        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
-        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
-        ctx.lineTo( x + width - radius, y + height );
-        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
-        ctx.lineTo( x + width, y + radius );
-        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
-        ctx.lineTo( x + radius, y );
-        ctx.quadraticCurveTo( x, y, x, y + radius );
-      } )( roundedRectShape, 0, 0, w, h, h/2 );
-
-      const extrudeSettings = {
-        steps: 2,
-        depth: 0,
-        bevelEnabled: false,
-        /* bevelEnabled: true,
-        bevelThickness: 0,
-        bevelSize: 0,
-        bevelOffset: 0,
-        bevelSegments: 0, */
-      };
-      const geometry = BufferGeometryUtils.mergeBufferGeometries([
-        new THREE.CircleBufferGeometry(0.13, 32)
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
-        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
-      ]);
+      const geometry = roundedRectGeometry;
       const material2 = new THREE.LineBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
