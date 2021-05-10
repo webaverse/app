@@ -372,35 +372,28 @@ const loadModule = async u => {
   }
 
   const sizeVector = renderer.getSize(new THREE.Vector2());
-  const options = {
-    gl: renderer,
-    camera,
-    size: {
-      width: sizeVector.x,
-      height: sizeVector.y,
-    },
-    events: createPointerEvents,
-    onCreated: state => {
-      // state = newState;
-      // scene.add(state.scene);
-      console.log('got state', state);
-    },
-    frameloop: 'demand',
-  };
-  // window.THREE1 = THREE;
-  // debugger;
   rootDiv = document.createElement('div');
-
-  /* renderer.render = () => {
-    debugger;
-  }; */
 
   await app.waitForLoad();
   app.addEventListener('frame', () => {
     ReactThreeFiber.render(
       React.createElement(fn),
       rootDiv,
-      options
+      {
+        gl: renderer,
+        camera,
+        size: {
+          width: sizeVector.x,
+          height: sizeVector.y,
+        },
+        events: createPointerEvents,
+        onCreated: state => {
+          // state = newState;
+          // scene.add(state.scene);
+          console.log('got state', state);
+        },
+        frameloop: 'demand',
+      }
     );
   });
 };
