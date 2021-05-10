@@ -317,39 +317,70 @@ const uploadFiles = async files => {
 };
 const container = document.getElementById('container');
 let canvas = null;
+let renderer = null;
+let rootDiv = null;
+let state = null;
 const loadModule = async u => {
   const m = await import(u);
   const fn = m.default;
   // console.log('got fn', fn);
 
-  if (canvas) {
-    ReactThreeFiber.unmountComponentAtNode(canvas);
-    canvas.parentNode.removeChild(canvas);
-    canvas = null;
+  // window.ReactThreeFiber = ReactThreeFiber;
+
+  if (rootDiv) {
+    const roots = ReactThreeFiber._roots;
+    const root = roots.get(rootDiv);
+    const fiber = root?.fiber
+    if (fiber) {
+      const state = root?.store.getState()
+      if (state) state.internal.active = false
+      await new Promise((accept, reject) => {
+        ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+          if (state) {
+            // setTimeout(() => {
+              state.events.disconnect?.()
+              // state.gl?.renderLists?.dispose?.()
+              // state.gl?.forceContextLoss?.()
+              ReactThreeFiber.dispose(state)
+              roots.delete(canvas)
+              // if (callback) callback(canvas)
+            // }, 500)
+          }
+          accept();
+        });
+      });
+    }
   }
 
-  canvas = document.createElement('canvas');
-  container.appendChild(canvas);
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-  });
-  renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  // const scene = new THREE.Scene();
-  // const camera = new THREE.Camera();
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+    });
+    renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    // const scene = new THREE.Scene();
+    // const camera = new THREE.Camera();
+  }
 
   // const el = ReactDOM.render(fn(), root);
   const size = renderer.getSize(new THREE.Vector2());
   // window.THREE1 = THREE;
   // debugger;
-  const el = ReactThreeFiber.render(fn(), canvas, {
+  rootDiv = document.createElement('div');
+  const el = ReactThreeFiber.render(fn(), rootDiv, {
     gl: renderer,
     size: {
       width: size.x,
       height: size.y,
     },
     events: createPointerEvents,
+    onCreated: newState => {
+      state = newState;
+      console.log('got state', state);
+    },
   });
   return el;
 };
@@ -369,6 +400,7 @@ const loadText = async () => {
   const el = await loadModule(u);
 };
 
+// loadText();
 (async () => {
   const url = new URL(`https://avaer.github.io/chest-rtfjs/index.js`);
   const res = await fetch(url.href);
