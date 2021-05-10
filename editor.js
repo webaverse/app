@@ -1,51 +1,13 @@
-// import * as React2 from 'react';
-// import React from 'react';
-// import ReactDOM from 'react-dom';
 import * as THREE from 'three';
 import React from 'react';
-// import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom';
 import ReactThreeFiber from '@react-three/fiber';
-// import {render} from '@react-three/fiber';
-// import * as THREE from 'three';
 import BabelStandalone from '@babel/standalone';
 import JSZip from 'jszip';
-// import {EditorView, EditorState, basicSetup, javascript} from 'codemirror';
+// import {jsx} from 'jsx-tmpl';
 import {storageHost} from './constants.js';
-// console.log('got jszip', BabelStandalone, JSZip);
 
 import App from '/app.js';
-
-const app = new App();
-// app.bootstrapFromUrl(location);
-app.bindLogin();
-app.bindInput();
-app.bindInterface();
-/* const uploadFileInput = document.getElementById('upload-file-input');
-app.bindUploadFileInput(uploadFileInput);
-const mapCanvas = document.getElementById('map-canvas')
-app.bindMinimap(mapCanvas);
-
-const enterXrButton = document.getElementById('enter-xr-button');
-const noXrButton = document.getElementById('no-xr-button');
-app.bindXr({
-  enterXrButton,
-  noXrButton,
-  onSupported(ok) {
-    if (ok) {
-      enterXrButton.style.display = null;
-      noXrButton.style.display = 'none';
-    }
-  },
-}); */
-app.waitForLoad()
-  .then(() => {
-    app.contentLoaded = true;
-    app.startLoop();
-  });
-
-const renderer = app.getRenderer();
-const scene = app.getScene();
-const camera = app.getCamera();
 
 const editorSize = 500;
 function createPointerEvents(store) {
@@ -96,6 +58,120 @@ function createPointerEvents(store) {
 }
 
 window.onload = () => {
+
+const s = `\
+  import * as THREE from 'three';
+  import React, {Fragment, useState, useRef} from 'react';
+  import ReactThreeFiber from '@react-three/fiber';
+  const {Canvas, useFrame, useThree} = ReactThreeFiber;
+
+  function Box(props) {
+    // This reference will give us direct access to the THREE.Mesh object
+    const mesh = useRef()
+    // Set up state for the hovered and active state
+    const [hovered, setHover] = useState(false)
+    const [active, setActive] = useState(false)
+    // Subscribe this component to the render-loop, rotate the mesh every frame
+    /* useFrame((state, delta) => {
+      mesh.current.rotation.x += 0.01;
+    }); */
+    if (props.animate) {
+      useFrame((state, delta) => {
+        const t = 2000;
+        const f = (Date.now() % t) / t;
+        mesh.current.position.x = Math.cos(f * Math.PI * 2);
+        mesh.current.position.y = Math.sin(f * Math.PI * 2);
+      });
+    }
+    // Return the view, these are regular Threejs elements expressed in JSX
+    return (
+      <mesh
+        {...props}
+        ref={mesh}
+        // scale={active ? 1.5 : 1}
+        onClick={(event) => setActive(!active)}
+        onPointerOver={(event) => setHover(true)}
+        onPointerOut={(event) => setHover(false)}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color={props.color} roughness={1} metalness={0} />
+      </mesh>
+    )
+  }
+  /* function Camera(props) {
+    const ref = useRef()
+    const set = useThree(state => state.set)
+    // Make the camera known to the system
+    useEffect(() => void set({ camera: ref.current }), [])
+    // Update it every frame
+    useFrame(() => ref.current.updateMatrixWorld())
+    return <perspectiveCamera ref={ref} {...props} />
+  } */
+  const lightQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, -1, -1).normalize()).toArray();
+  const render = () => {
+    // console.log('render', r, React, r === React);
+    return (
+      <Fragment>
+        <ambientLight />
+        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} intensity={2}/>
+        <Box position={[0, 1, 0]} color="hotpink" animate />
+        <Box position={[0, -2, 0]} color={0x0049ef4} scale={[10, 0.1, 10]} />
+      </Fragment>
+    );
+  };
+  export default render;
+`;
+{
+  const _ = React.createElement;
+  const container = document.getElementById('container');
+  ReactDOM.render(
+    _('div', {}, [
+      _('canvas', {
+        id: 'canvas',
+        className: 'canvas',
+        key: 'canvas',
+      }),
+      _('textarea', {
+        id: 'code',
+        className: 'code',
+        defaultValue: s,
+        key: 'code',
+      }),
+    ]),
+    container
+  );
+}
+
+const app = new App();
+// app.bootstrapFromUrl(location);
+app.bindLogin();
+app.bindInput();
+app.bindInterface();
+/* const uploadFileInput = document.getElementById('upload-file-input');
+app.bindUploadFileInput(uploadFileInput);
+const mapCanvas = document.getElementById('map-canvas')
+app.bindMinimap(mapCanvas);
+
+const enterXrButton = document.getElementById('enter-xr-button');
+const noXrButton = document.getElementById('no-xr-button');
+app.bindXr({
+  enterXrButton,
+  noXrButton,
+  onSupported(ok) {
+    if (ok) {
+      enterXrButton.style.display = null;
+      noXrButton.style.display = 'none';
+    }
+  },
+}); */
+app.waitForLoad()
+  .then(() => {
+    app.contentLoaded = true;
+    app.startLoop();
+  });
+
+const renderer = app.getRenderer();
+const scene = app.getScene();
+const camera = app.getCamera();
 
 // console.log('got react three fiber', ReactThreeFiber);
 
@@ -189,67 +265,6 @@ const fetchZipFiles = async zipData => {
   return files;
 };
 
-const s = `\
-  import * as THREE from 'three';
-  import React, {Fragment, useState, useRef} from 'react';
-  import ReactThreeFiber from '@react-three/fiber';
-  const {Canvas, useFrame, useThree} = ReactThreeFiber;
-
-  function Box(props) {
-    // This reference will give us direct access to the THREE.Mesh object
-    const mesh = useRef()
-    // Set up state for the hovered and active state
-    const [hovered, setHover] = useState(false)
-    const [active, setActive] = useState(false)
-    // Subscribe this component to the render-loop, rotate the mesh every frame
-    /* useFrame((state, delta) => {
-      mesh.current.rotation.x += 0.01;
-    }); */
-    if (props.animate) {
-      useFrame((state, delta) => {
-        const t = 2000;
-        const f = (Date.now() % t) / t;
-        mesh.current.position.x = Math.cos(f * Math.PI * 2);
-        mesh.current.position.y = Math.sin(f * Math.PI * 2);
-      });
-    }
-    // Return the view, these are regular Threejs elements expressed in JSX
-    return (
-      <mesh
-        {...props}
-        ref={mesh}
-        // scale={active ? 1.5 : 1}
-        onClick={(event) => setActive(!active)}
-        onPointerOver={(event) => setHover(true)}
-        onPointerOut={(event) => setHover(false)}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={props.color} roughness={1} metalness={0} />
-      </mesh>
-    )
-  }
-  /* function Camera(props) {
-    const ref = useRef()
-    const set = useThree(state => state.set)
-    // Make the camera known to the system
-    useEffect(() => void set({ camera: ref.current }), [])
-    // Update it every frame
-    useFrame(() => ref.current.updateMatrixWorld())
-    return <perspectiveCamera ref={ref} {...props} />
-  } */
-  const lightQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, -1, -1).normalize()).toArray();
-  const render = () => {
-    // console.log('render', r, React, r === React);
-    return (
-      <Fragment>
-        <ambientLight />
-        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} intensity={2}/>
-        <Box position={[0, 1, 0]} color="hotpink" animate />
-        <Box position={[0, -2, 0]} color={0x0049ef4} scale={[10, 0.1, 10]} />
-      </Fragment>
-    );
-  };
-  export default render;
-`;
 const codeEl = document.getElementById('code');
 codeEl.innerHTML = s;
 const editor = CodeMirror.fromTextArea(codeEl, {
@@ -341,7 +356,6 @@ const uploadFiles = async files => {
   console.log('got ipfs url', ipfsUrl);
   return ipfsUrl;
 };
-// const container = document.getElementById('container');
 let rootDiv = null;
 // let state = null;
 const loadModule = async u => {
@@ -423,7 +437,7 @@ const uploadNft = async () => {
 
 // loadText();
 (async () => {
-  const url = new URL(`https://avaer.github.io/chest-rtfjs/index.js`);
+  const url = new URL(`https://127.0.0.1:3001/chest-rtfjs/index.js`);
   const res = await fetch(url.href);
   const b = await res.blob();
   b.name = url;
