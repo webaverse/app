@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import {appManager, renderer, camera/*, orbitControls*/} from './app-object.js';
-import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as notifications from './notifications.js';
@@ -132,18 +131,6 @@ const switchCamera = e => {
     }
   }
 }; */
-window.addEventListener('wheel', e => {
-  event.preventDefault();
-  
-  camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-  cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
-  camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-  camera.updateMatrixWorld();
-
-  physicsManager.unlockControls();
-}, {
-  passive: false,
-});
 const focusCamera = position => {
   camera.lookAt(position);
   camera.updateMatrixWorld();
@@ -170,6 +157,16 @@ const cameraManager = {
   },
   getCameraOffset() {
     return cameraOffset;
+  },
+  handleWheelEvent(e) {
+    e.preventDefault();
+  
+    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+
+    physicsManager.unlockControls();
   },
   // switchCamera,
   // selectTool,
