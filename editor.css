@@ -1,0 +1,26 @@
+body {
+  margin: 0;
+  --size: 500px;
+}
+.root {
+}
+.canvas {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: var(--size);
+}
+.code {
+  display: none;
+}
+.container,
+.CodeMirror
+{
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  width: var(--size);
+  height: 100vh !important;
+  z-index: 1;
+}
