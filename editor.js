@@ -265,6 +265,10 @@ const editor = CodeMirror.fromTextArea(codeEl, {
     },
   },
 });
+editor.display.wrapper.addEventListener('wheel', e => {
+  e.stopPropagation();
+});
+console.log('got editor', editor);
 editor.setOption('theme', 'material-ocean');
 /* editor.on('keydown', e => {
   if (e.ctrlKey && e.which === 83) { // ctrl-s
