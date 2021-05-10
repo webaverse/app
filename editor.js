@@ -124,13 +124,18 @@ const fetchAndCompileBlob = async file => {
   };
 
   s = await _mapScript(s, scriptUrl);
-  const p = new URL(scriptUrl).pathname.replace(/^\//, '');
+  const o = new URL(scriptUrl);
+  const p = o.pathname.replace(/^\//, '');
   urlCache[p] = s;
+
+  urlCache['.metaversefile'] = JSON.stringify({
+    start_url: p,
+  });
   
   const zip = new JSZip();
   for (const p in urlCache) {
     const d = urlCache[p];
-    console.log('add file', p);
+    // console.log('add file', p);
     zip.file(p, d);
   }
   const ab = await zip.generateAsync({
@@ -271,13 +276,26 @@ const uploadFiles = async files => {
     body: fd,
   });
   const hashes = await uploadFilesRes.json();
-  // console.log('got hashes', hashes);
-  const mainDirectory = hashes.find(h => h.name === 'chest-rtfjs');
-  const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
-  const mainDirectoryHash = mainDirectory.hash;
-  const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
+  const metaverseFile = hashes.find(h => h.name === '.metaversefile');
+  const metaverseJson = await (async () => {
+    const u = `${storageHost}/ipfs/${metaverseFile.hash}`;
+    const res = await fetch(u);
+    const j = await res.json();
+    return j;    
+  })();
+  const {start_url} = metaverseJson;
+  const match = start_url.match(/^([^\/]+)(\/.*)?$/);
+  // console.log('got url', {start_url, match});
+  const mainDirectoryName = match[1];
+  const mainPathName = match[2];
 
-  return `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`;
+  // console.log('got hashes', metaverseJson);
+  const mainDirectory = hashes.find(h => h.name === mainDirectoryName);
+  // const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
+  const mainDirectoryHash = mainDirectory.hash;
+  // const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
+  const ipfsUrl = `${storageHost}/ipfs/${mainDirectoryHash}${mainPathName}`;
+  return ipfsUrl;
 };
 const loadModule = async u => {
   const m = await import(u);
