@@ -69,6 +69,16 @@ export default class App {
   waitForLoad() {
     return this.loadPromise;
   }
+
+  getRenderer() {
+    return renderer;
+  }
+  getScene() {
+    return scene;
+  }
+  getCamera() {
+    return camera;
+  }
   
   async bootstrapFromUrl(urlSpec) {
     const q = parseQuery(urlSpec.search);
