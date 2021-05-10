@@ -18,7 +18,7 @@ window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
 
-const editorSize = 400;
+const editorSize = 500;
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -74,9 +74,9 @@ window.onload = () => {
 const fetchAndCompileBlob = async file => {
   const res = file;
   const scriptUrl = file.name;
-  if (!scriptUrl) {
+  /* if (!scriptUrl) {
     debugger;
-  }
+  } */
   let s = await file.text();
   
   const urlCache = {};
@@ -176,20 +176,28 @@ const s = `\
     const [hovered, setHover] = useState(false)
     const [active, setActive] = useState(false)
     // Subscribe this component to the render-loop, rotate the mesh every frame
-    useFrame((state, delta) => {
+    /* useFrame((state, delta) => {
       mesh.current.rotation.x += 0.01;
-    });
+    }); */
+    if (props.animate) {
+      useFrame((state, delta) => {
+        const t = 2000;
+        const f = (Date.now() % t) / t;
+        mesh.current.position.x = Math.cos(f * Math.PI * 2);
+        mesh.current.position.y = Math.sin(f * Math.PI * 2);
+      });
+    }
     // Return the view, these are regular Threejs elements expressed in JSX
     return (
       <mesh
         {...props}
         ref={mesh}
-        scale={active ? 1.5 : 1}
+        // scale={active ? 1.5 : 1}
         onClick={(event) => setActive(!active)}
         onPointerOver={(event) => setHover(true)}
         onPointerOut={(event) => setHover(false)}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+        <meshStandardMaterial color={props.color || (hovered ? 'hotpink' : 'orange')} />
       </mesh>
     )
   }
@@ -208,8 +216,8 @@ const s = `\
       <Fragment>
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
-        <Box position={[-1.2, 0, 0]} />
-        <Box position={[1.2, 0, 0]} />
+        <Box position={[0, 1, 0]} color="hotpink" animate />
+        <Box scale={[10, 0.1, 10]} position={[0, -2, 0]} color={0x333333} />
       </Fragment>
     );
   };
@@ -235,17 +243,6 @@ editor.setOption('theme', 'material-ocean');
     e.preventDefault();
   }
 }); */
-
-// const root = document.getElementById('root');
-const canvas = document.getElementById('canvas');
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: true,
-});
-renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-// const scene = new THREE.Scene();
-// const camera = new THREE.Camera();
 
 const isDirectoryName = fileName => /\/$/.test(fileName);
 const uploadFiles = async files => {
@@ -318,12 +315,29 @@ const uploadFiles = async files => {
   console.log('got ipfs url', ipfsUrl);
   return ipfsUrl;
 };
+const container = document.getElementById('container');
+let canvas = null;
 const loadModule = async u => {
   const m = await import(u);
   const fn = m.default;
   // console.log('got fn', fn);
 
-  ReactThreeFiber.unmountComponentAtNode(canvas);
+  if (canvas) {
+    ReactThreeFiber.unmountComponentAtNode(canvas);
+    canvas.parentNode.removeChild(canvas);
+    canvas = null;
+  }
+
+  canvas = document.createElement('canvas');
+  container.appendChild(canvas);
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+  });
+  renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  // const scene = new THREE.Scene();
+  // const camera = new THREE.Camera();
 
   // const el = ReactDOM.render(fn(), root);
   const size = renderer.getSize(new THREE.Vector2());
