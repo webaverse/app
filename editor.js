@@ -12,14 +12,9 @@ import JSZip from 'jszip';
 import {storageHost} from './constants.js';
 // console.log('got jszip', BabelStandalone, JSZip);
 
-// const {babelStandalone} = window.browser;
-/* window.React = React;
-window.ReactDOM = ReactDOM;
-window.babelStandalone = babelStandalone;
-window.reactThreeFiber = reactThreeFiber; */
+
 
 const editorSize = 500;
-
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
   const handlePointer = key => e => {
@@ -74,9 +69,6 @@ window.onload = () => {
 const fetchAndCompileBlob = async file => {
   const res = file;
   const scriptUrl = file.name;
-  /* if (!scriptUrl) {
-    debugger;
-  } */
   let s = await file.text();
   
   const urlCache = {};
@@ -259,14 +251,6 @@ const uploadFiles = async files => {
     return j;    
   })();
   const {start_url} = metaverseJson;
-  /* const match = start_url.match(/^([^\/]+)(\/?.*)$/);
-  // console.log('got url', {start_url, match});
-  let mainDirectoryName = match[1];
-  let mainPathName = match[2];
-  if (!mainPathName) {
-    mainPathName = '/' + mainDirectoryName;
-    mainDirectoryName = '';
-  } */
   [
     // mainDirectoryName,
     '',
