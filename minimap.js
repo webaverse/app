@@ -8,7 +8,21 @@ import {arrowGeometry, arrowMaterial} from './shaders.js';
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 
-let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
+let mapRenderer;
+const mapScene = new THREE.Scene();
+const mapCamera = new THREE.PerspectiveCamera(60, 200 / 140, 0.1, 1000);
+const mapCameraOffset = new THREE.Vector3(0, 4, 10);
+const mapIndicator = (() => {
+  const geometry = arrowGeometry;
+  const material =  new THREE.MeshBasicMaterial({
+    color: 0xef5350,
+    side: THREE.DoubleSide,
+  });
+  const mapIndicator = new THREE.Mesh(geometry, material);
+  mapIndicator.frustumCulled = false;
+  mapScene.add(mapIndicator);
+  return mapIndicator;
+})();
 const init = mapCanvas => {
   mapRenderer = new THREE.WebGLRenderer({
     canvas: mapCanvas,
@@ -16,24 +30,10 @@ const init = mapCanvas => {
     alpha: true,
   });
   mapRenderer.setPixelRatio(window.devicePixelRatio);
-  mapScene = new THREE.Scene();
 
-  mapCamera = new THREE.PerspectiveCamera(60, 200 / 140, 0.1, 1000);
-  mapCameraOffset = new THREE.Vector3(0, 4, 10);
   mapCamera.position.copy(mapCameraOffset);
   mapCamera.rotation.order = 'YXZ';
   mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  {
-    const geometry = arrowGeometry;
-    const material =  new THREE.MeshBasicMaterial({
-      color: 0xef5350,
-      side: THREE.DoubleSide,
-    });
-    mapIndicator = new THREE.Mesh(geometry, material);
-    mapIndicator.frustumCulled = false;
-    mapScene.add(mapIndicator);
-  }
 
   const planeMesh = (() => {
     const s = 0.1;
@@ -114,18 +114,20 @@ const _makeWorld = extents => {
 };
 
 const update = () => {
-  localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-  localEuler.x = 0;
-  localEuler.z = 0;
-  mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
-    .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
-  mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
-  mapIndicator.quaternion.setFromEuler(localEuler);
-  mapCamera.lookAt(mapIndicator.position);
-  mapRenderer.render(mapScene, mapCamera);
+  if (mapRenderer) {
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
+      .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
+    mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
+    mapIndicator.quaternion.setFromEuler(localEuler);
+    mapCamera.lookAt(mapIndicator.position);
+    mapRenderer.render(mapScene, mapCamera);
 
-  for (const object of objects) {
-    object.update();
+    for (const object of objects) {
+      object.update();
+    }
   }
 };
 
