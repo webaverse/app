@@ -135,63 +135,79 @@ const fetchAndCompile = async (scriptUrl) => {
   return new Uint8Array(ab);
 };
 
-const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+const s = `\
+  import React, {Fragment, useState, useRef} from 'react';
+  import ReactThreeFiber from 'react-three-fiber';
+  const {Canvas, useFrame, useThree} = ReactThreeFiber;
+
+  function Box(props) {
+    // This reference will give us direct access to the THREE.Mesh object
+    const mesh = useRef()
+    // Set up state for the hovered and active state
+    const [hovered, setHover] = useState(false)
+    const [active, setActive] = useState(false)
+    // Subscribe this component to the render-loop, rotate the mesh every frame
+    useFrame((state, delta) => {
+      mesh.current.rotation.x += 0.01;
+    });
+    // Return the view, these are regular Threejs elements expressed in JSX
+    return (
+      <mesh
+        {...props}
+        ref={mesh}
+        scale={active ? 1.5 : 1}
+        onClick={(event) => setActive(!active)}
+        onPointerOver={(event) => setHover(true)}
+        onPointerOut={(event) => setHover(false)}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+      </mesh>
+    )
+  }
+  function Camera(props) {
+    const ref = useRef()
+    const set = useThree(state => state.set)
+    // Make the camera known to the system
+    useEffect(() => void set({ camera: ref.current }), [])
+    // Update it every frame
+    useFrame(() => ref.current.updateMatrixWorld())
+    return <perspectiveCamera ref={ref} {...props} />
+  }
+  const render = () => {
+    // console.log('render', r, React, r === React);
+    return (
+      <Fragment>
+        <ambientLight />
+        <pointLight position={[10, 10, 10]} />
+        <Box position={[-1.2, 0, 0]} />
+        <Box position={[1.2, 0, 0]} />
+      </Fragment>
+    );
+  };
+  export default render;
+`;
+const codeEl = document.getElementById('code');
+codeEl.innerHTML = s;
+const editor = CodeMirror.fromTextArea(codeEl, {
   lineNumbers: true,
   styleActiveLine: true,
-  matchBrackets: true
+  matchBrackets: true,
+  lineWrapping: true,
+  extraKeys: {
+    'Ctrl-S': function(cm) {
+      _load();
+    },
+  },
 });
 editor.setOption('theme', 'material-ocean');
+/* editor.on('keydown', e => {
+  if (e.ctrlKey && e.which === 83) { // ctrl-s
+    console.log('got save', e);
+    e.preventDefault();
+  }
+}); */
 
 (async () => {
-  /* const s = `\
-    import {React, Fragment, useState, useRef, Canvas, useFrame, useThree} from 'react-all';
-  
-    function Box(props) {
-      // This reference will give us direct access to the THREE.Mesh object
-      const mesh = useRef()
-      // Set up state for the hovered and active state
-      const [hovered, setHover] = useState(false)
-      const [active, setActive] = useState(false)
-      // Subscribe this component to the render-loop, rotate the mesh every frame
-      useFrame((state, delta) => {
-        mesh.current.rotation.x += 0.01;
-      });
-      // Return the view, these are regular Threejs elements expressed in JSX
-      return (
-        <mesh
-          {...props}
-          ref={mesh}
-          scale={active ? 1.5 : 1}
-          onClick={(event) => setActive(!active)}
-          onPointerOver={(event) => setHover(true)}
-          onPointerOut={(event) => setHover(false)}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-        </mesh>
-      )
-    }
-    function Camera(props) {
-      const ref = useRef()
-      const set = useThree(state => state.set)
-      // Make the camera known to the system
-      useEffect(() => void set({ camera: ref.current }), [])
-      // Update it every frame
-      useFrame(() => ref.current.updateMatrixWorld())
-      return <perspectiveCamera ref={ref} {...props} />
-    }
-    const render = () => {
-      // console.log('render', r, React, r === React);
-      return (
-        <Fragment>
-          <ambientLight />
-          <pointLight position={[10, 10, 10]} />
-          <Box position={[-1.2, 0, 0]} />
-          <Box position={[1.2, 0, 0]} />
-        </Fragment>
-      );
-    };
-    export default render;
-  `; */
   const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
   const zipData = await fetchAndCompile(url.href);
   
@@ -209,24 +225,16 @@ editor.setOption('theme', 'material-ocean');
         // .replace(/^[^\/]*\/(.*)$/, '$1')
         // .slice(tail.length);
       localFileNames[fileName] = basename;
-
-      /* if (isFinite(_getStartableFileRegexIndex(basename))) {
-        startableFileNames.push(fileName);
-      } */
     // }
   }
   let files = await Promise.all(fileNames.map(async fileName => {
-    // if (fileName.startsWith(startDirectoryUrl)) {
-      const file = zip.file(fileName);
-      
-      const b = file && await file.async('blob');
-      return {
-        name: fileName,
-        data: b,
-      };
-    /* } else {
-      return null;
-    } */
+    const file = zip.file(fileName);
+    
+    const b = file && await file.async('blob');
+    return {
+      name: fileName,
+      data: b,
+    };
   }));
   // files = files.filter(f => !!f);
   // console.log('load file 9');
@@ -283,10 +291,6 @@ editor.setOption('theme', 'material-ocean');
 
     // console.log('got s', s);
 
-    /* const b = new Blob([s], {
-      type: 'application/javascript',
-    });
-    const u = URL.createObjectURL(b); */
     console.log('loading', `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
     const m = await import(`${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
     const fn = m.default;
@@ -307,10 +311,6 @@ editor.setOption('theme', 'material-ocean');
     
     console.log('done render', el);
   }
-  /* for (const fileName in zip.files) {
-    
-    console.log('got file', fileName, data, s);
-  } */
 })();
 
 // import browser from './dist/browser2.js';
