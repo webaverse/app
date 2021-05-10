@@ -42,6 +42,10 @@ app.waitForLoad()
     app.startLoop();
   });
 
+const renderer = app.getRenderer();
+const scene = app.getScene();
+const camera = app.getCamera();
+
 const editorSize = 500;
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -330,9 +334,7 @@ const uploadFiles = async files => {
   console.log('got ipfs url', ipfsUrl);
   return ipfsUrl;
 };
-const container = document.getElementById('container');
-let canvas = null;
-let renderer = null;
+// const container = document.getElementById('container');
 let rootDiv = null;
 let state = null;
 const loadModule = async u => {
@@ -367,36 +369,33 @@ const loadModule = async u => {
     }
   }
 
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    container.appendChild(canvas);
-    renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-    });
-    renderer.setSize(window.innerWidth - editorSize, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    // const scene = new THREE.Scene();
-    // const camera = new THREE.Camera();
-  }
-
   // const el = ReactDOM.render(fn(), root);
   const size = renderer.getSize(new THREE.Vector2());
   // window.THREE1 = THREE;
   // debugger;
   rootDiv = document.createElement('div');
-  const el = ReactThreeFiber.render(fn(), rootDiv, {
-    gl: renderer,
-    size: {
-      width: size.x,
-      height: size.y,
-    },
-    events: createPointerEvents,
-    onCreated: newState => {
-      state = newState;
-      console.log('got state', state);
-    },
-  });
+
+  const el = ReactThreeFiber.render(
+    React.createElement('object3D', {}, [
+      React.createElement(Camera, {key: 0}),
+      React.createElement(fn, {key: 1}),
+    ]),
+    rootDiv,
+    {
+      gl: renderer,
+      size: {
+        width: size.x,
+        height: size.y,
+      },
+      events: createPointerEvents,
+      onCreated: newState => {
+        state = newState;
+        scene.add(state.scene);
+        console.log('got state', state);
+      },
+      frameloop: 'demand',
+    }
+  );
   return el;
 };
 const loadText = async () => {
@@ -417,6 +416,15 @@ const loadText = async () => {
 const uploadNft = async () => {
   console.log('upload nft');
 };
+
+function Camera(props) {
+  const set = ReactThreeFiber.useThree(state => state.set);
+  // Make the camera known to the system
+  React.useEffect(() => void set({ camera }), []);
+  // Update it every frame
+  // useFrame(() => ref.current.updateMatrixWorld());
+  return React.createElement(React.Fragment);
+}
 
 // loadText();
 (async () => {
