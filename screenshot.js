@@ -1,7 +1,5 @@
-import * as THREE from './three.module.js';
-import {OrbitControls} from './OrbitControls.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
+import * as THREE from 'three';
+import {OrbitControls, GLTFLoader, VOXLoader} from 'three';
 import {bake, toggleElements} from './bakeUtils.js';
 import {getExt, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
