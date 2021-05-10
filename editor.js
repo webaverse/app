@@ -124,7 +124,7 @@ const fetchAndCompileBlob = async file => {
   };
 
   s = await _mapScript(s, scriptUrl);
-  const o = new URL(scriptUrl);
+  const o = new URL(scriptUrl, `https://webaverse.com/`);
   const p = o.pathname.replace(/^\//, '');
   urlCache[p] = s;
 
@@ -284,13 +284,17 @@ const uploadFiles = async files => {
     return j;    
   })();
   const {start_url} = metaverseJson;
-  const match = start_url.match(/^([^\/]+)(\/.*)?$/);
+  const match = start_url.match(/^([^\/]+)(\/?.*)$/);
   // console.log('got url', {start_url, match});
-  const mainDirectoryName = match[1];
-  const mainPathName = match[2];
+  let mainDirectoryName = match[1];
+  let mainPathName = match[2];
+  if (!mainPathName) {
+    mainPathName = mainDirectoryName;
+    mainDirectoryName = '';
+  }
 
-  // console.log('got hashes', metaverseJson);
   const mainDirectory = hashes.find(h => h.name === mainDirectoryName);
+  console.log('got hashes', {mainDirectoryName, mainPathName, hashes, mainDirectory});
   // const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
   const mainDirectoryHash = mainDirectory.hash;
   // const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
@@ -301,6 +305,8 @@ const loadModule = async u => {
   const m = await import(u);
   const fn = m.default;
   // console.log('got fn', fn);
+
+  ReactThreeFiber.unmountComponentAtNode(canvas);
 
   // const el = ReactDOM.render(fn(), root);
   const size = renderer.getSize(new THREE.Vector2());
@@ -324,11 +330,12 @@ const loadText = async () => {
     type: 'application/javascript',
   });
   // const u = URL.createObjectUrl(b);
-  b.name = 'https://webaverse.com/index.js';
+  b.name = 'index.js';
   const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
   const u = await uploadFiles(files);
   console.log('load text', u);
+  const el = await loadModule(u);
 };
 
 (async () => {
