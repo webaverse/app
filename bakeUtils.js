@@ -1,10 +1,8 @@
 /* eslint-disable no-inner-declarations */
 
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
+import {GLTFLoader, GLTFExporter, OrbitControls} from 'three';
 // import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {GLTFExporter} from './GLTFExporter.js';
-import {OrbitControls} from './OrbitControls.js';
 // import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
 // import {readFile} from './util.js';
 // import {screenshotEngine} from './screenshot-object.js';
