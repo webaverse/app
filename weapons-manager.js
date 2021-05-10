@@ -1035,135 +1035,137 @@ const _selectItemDelta = offset => {
 let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
 const _updateMenu = () => {
-  const {menuOpen} = weaponsManager;
+  if (menu1El && menu2El && menu3El && menu4El) {
+    const {menuOpen} = weaponsManager;
 
-  menu1El.classList.toggle('open', menuOpen === 1);
-  menu2El.classList.toggle('open', menuOpen === 2);
-  menu3El.classList.toggle('open', menuOpen === 3);
-  menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && menuOpen !== 4);
-  grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
-  editMenuEl.classList.toggle('open', !!editedObject);
-  locationIcon.classList.toggle('open', false);
-  locationIcon.classList.toggle('highlight', false);
-  profileIcon.classList.toggle('open', false);
-  itemIcon.classList.toggle('open', false);
-  itemMonetizedIcon.classList.toggle('open', false);
-  grabIcon.classList.toggle('open', false);
-  editIcon.classList.toggle('open', false);
+    menu1El.classList.toggle('open', menuOpen === 1);
+    menu2El.classList.toggle('open', menuOpen === 2);
+    menu3El.classList.toggle('open', menuOpen === 3);
+    menu4El.classList.toggle('open', menuOpen === 4);
+    unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject);
+    objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && menuOpen !== 4);
+    grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
+    editMenuEl.classList.toggle('open', !!editedObject);
+    locationIcon.classList.toggle('open', false);
+    locationIcon.classList.toggle('highlight', false);
+    profileIcon.classList.toggle('open', false);
+    itemIcon.classList.toggle('open', false);
+    itemMonetizedIcon.classList.toggle('open', false);
+    grabIcon.classList.toggle('open', false);
+    editIcon.classList.toggle('open', false);
 
-  deployMesh.visible = false;
+    deployMesh.visible = false;
 
-  const _updateTabs = () => {
-    const selectedTabIndex = menuOpen - 1;
-    for (let i = 0; i < tabs.length; i++) {
-      const tab = tabs[i];
-      const childNodes = Array.from(tab.querySelectorAll('.img'))
-        .concat(Array.from(tab.querySelectorAll('.name')));
-      for (const childNode of childNodes) {
-        childNode.classList.toggle('disabled', i !== selectedTabIndex);
-      }
-    }
-  };
-  _updateTabs();
-
-  const _updateSelectedItem = (itemsEl, selectedItemIndex) => {
-    for (const childNode of itemsEl.childNodes) {
-      childNode.classList.remove('selected');
-    }
-    const itemEl = itemsEl.childNodes[selectedItemIndex];
-    if (itemEl) {
-      itemEl.classList.add('selected');
-
-      const itemsBoundingRect = itemsEl.getBoundingClientRect();
-      const itemBoundingRect = itemEl.getBoundingClientRect();
-      if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
-        itemEl.scrollIntoView();
-      }
-    }
-  };
-
-  if (menuOpen === 1) {
-    profileIcon.classList.toggle('open', true);
-
-    _updateSelectedItem(items1El, selectedItemIndex);
-
-    deployMesh.visible = true;
-
-    if (lastSelectedBuild !== selectedItemIndex) {
-      const itemSpec = itemSpecs1[selectedItemIndex];
-      itemsDetails1El.innerHTML = itemSpec.detailsHtml;
-      lastSelectedBuild = selectedItemIndex;
-    }
-    
-    lastCameraFocus = -1;
-  } else if (menuOpen === 2) {
-    profileIcon.classList.toggle('open', true);
-
-    _updateSelectedItem(items2El, selectedItemIndex);
-    
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (menuOpen === 3) {
-    profileIcon.classList.toggle('open', true);
-
-    // profileLabel.innerText = 'parzival';
-
-    _updateSelectedItem(items3El, selectedItemIndex);
-
-    deployMesh.visible = true;
-    
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (menuOpen === 4) {
-    profileIcon.classList.toggle('open', true);
-
-    _updateSelectedItem(items4El, selectedItemIndex);
-
-    if (lastCameraFocus !== selectedItemIndex) {
-      const itemEl = items4El.childNodes[selectedItemIndex];
-      if (itemEl) {
-        const instanceId = itemEl.getAttribute('instanceid');
-        const object = world.getObjects().find(o => o.instanceId === instanceId);
-        if (object) {
-          cameraManager.focusCamera(object.position);
+    const _updateTabs = () => {
+      const selectedTabIndex = menuOpen - 1;
+      for (let i = 0; i < tabs.length; i++) {
+        const tab = tabs[i];
+        const childNodes = Array.from(tab.querySelectorAll('.img'))
+          .concat(Array.from(tab.querySelectorAll('.name')));
+        for (const childNode of childNodes) {
+          childNode.classList.toggle('disabled', i !== selectedTabIndex);
         }
       }
-      lastCameraFocus = selectedItemIndex;
+    };
+    _updateTabs();
+
+    const _updateSelectedItem = (itemsEl, selectedItemIndex) => {
+      for (const childNode of itemsEl.childNodes) {
+        childNode.classList.remove('selected');
+      }
+      const itemEl = itemsEl.childNodes[selectedItemIndex];
+      if (itemEl) {
+        itemEl.classList.add('selected');
+
+        const itemsBoundingRect = itemsEl.getBoundingClientRect();
+        const itemBoundingRect = itemEl.getBoundingClientRect();
+        if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+          itemEl.scrollIntoView();
+        }
+      }
+    };
+
+    if (menuOpen === 1) {
+      profileIcon.classList.toggle('open', true);
+
+      _updateSelectedItem(items1El, selectedItemIndex);
+
+      deployMesh.visible = true;
+
+      if (lastSelectedBuild !== selectedItemIndex) {
+        const itemSpec = itemSpecs1[selectedItemIndex];
+        itemsDetails1El.innerHTML = itemSpec.detailsHtml;
+        lastSelectedBuild = selectedItemIndex;
+      }
+      
+      lastCameraFocus = -1;
+    } else if (menuOpen === 2) {
+      profileIcon.classList.toggle('open', true);
+
+      _updateSelectedItem(items2El, selectedItemIndex);
+      
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
+    } else if (menuOpen === 3) {
+      profileIcon.classList.toggle('open', true);
+
+      // profileLabel.innerText = 'parzival';
+
+      _updateSelectedItem(items3El, selectedItemIndex);
+
+      deployMesh.visible = true;
+      
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
+    } else if (menuOpen === 4) {
+      profileIcon.classList.toggle('open', true);
+
+      _updateSelectedItem(items4El, selectedItemIndex);
+
+      if (lastCameraFocus !== selectedItemIndex) {
+        const itemEl = items4El.childNodes[selectedItemIndex];
+        if (itemEl) {
+          const instanceId = itemEl.getAttribute('instanceid');
+          const object = world.getObjects().find(o => o.instanceId === instanceId);
+          if (object) {
+            cameraManager.focusCamera(object.position);
+          }
+        }
+        lastCameraFocus = selectedItemIndex;
+      }
+
+      lastSelectedBuild = -1;
+    } else if (appManager.grabbedObjects[0]) {
+      grabIcon.classList.toggle('open', true);
+      // grabLabel.innerText = 'Grabbing';
+
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
+    } else if (editedObject) {
+      editIcon.classList.toggle('open', true);
+      // editLabel.innerText = 'Editing';
+
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
+    } else if (highlightedObject) {
+      const monetization = document[`monetization${highlightedObject.instanceId}`];
+      if (monetization && monetization.state === 'started') {
+        itemMonetizedIcon.classList.toggle('open', true);
+      }
+      itemIcon.classList.toggle('open', true);
+      itemLabel.innerText = 'lightsaber';
+
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
+    } else {
+      locationIcon.classList.toggle('open', true);
+
+      lastSelectedBuild = -1;
+      lastCameraFocus = -1;
     }
 
-    lastSelectedBuild = -1;
-  } else if (appManager.grabbedObjects[0]) {
-    grabIcon.classList.toggle('open', true);
-    // grabLabel.innerText = 'Grabbing';
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (editedObject) {
-    editIcon.classList.toggle('open', true);
-    // editLabel.innerText = 'Editing';
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (highlightedObject) {
-    const monetization = document[`monetization${highlightedObject.instanceId}`];
-    if (monetization && monetization.state === 'started') {
-      itemMonetizedIcon.classList.toggle('open', true);
-    }
-    itemIcon.classList.toggle('open', true);
-    itemLabel.innerText = 'lightsaber';
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else {
-    locationIcon.classList.toggle('open', true);
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
+    locationLabel.innerText = `Overworld`;
   }
-
-  locationLabel.innerText = `Overworld`;
 };
 
 const _loadItemSpec1 = async u => {
