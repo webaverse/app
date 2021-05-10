@@ -118,10 +118,15 @@ const update = () => {
     localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
-    mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
-      .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
-    mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
-    mapIndicator.quaternion.setFromEuler(localEuler);
+    if (rigManager.localRig) {
+      mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
+        .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
+      mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
+      mapIndicator.quaternion.setFromEuler(localEuler);
+      mapIndicator.visible = true;
+    } else {
+      mapIndicator.visible = false;
+    }
     mapCamera.lookAt(mapIndicator.position);
     mapRenderer.render(mapScene, mapCamera);
 
