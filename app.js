@@ -97,7 +97,7 @@ export default class App extends EventTarget {
       loginManager.waitForLoad()
         .then(() => {
           tryTutorial();
-          rigManager.init();
+          rigManager.setFromLogin();
         }),
       world.getWorldJson(q),
     ]);
@@ -197,12 +197,14 @@ export default class App extends EventTarget {
     // high priority render
     renderer.render(scene3, camera);
     // main render
-    scene.add(rigManager.localRig.model);
-    rigManager.localRig.model.visible = false;
+    if (rigManager.localRig) {
+      scene.add(rigManager.localRig.model);
+      rigManager.localRig.model.visible = false;
+    }
     renderer.render(scene, camera);
     renderer.render(orthographicScene, orthographicCamera);
     // local avatar render
-    {
+    if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
       const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
