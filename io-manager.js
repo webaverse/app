@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
+import controlsManager from './controls-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -158,8 +159,7 @@ const _updateIo = timeDiff => {
       }
     }
   } else if (document.pointerLockElement) {
-    localVector.set(0, 0, 0);
-    const direction = new THREE.Vector3(0, 0, 0);
+    const direction = localVector.set(0, 0, 0);
     if (ioManager.keys.left) {
       direction.x -= 1;
     }
@@ -172,42 +172,45 @@ const _updateIo = timeDiff => {
     if (ioManager.keys.down) {
       direction.z += 1;
     }
-    const flyState = physicsManager.getFlyState();
-    if (flyState) {
-      direction.applyQuaternion(camera.quaternion);
-      
-      if (ioManager.keys.space) {
-        direction.y += 1;
+    if (controlsManager.isPossessed()) {
+      const flyState = physicsManager.getFlyState();
+      if (flyState) {
+        direction.applyQuaternion(camera.quaternion);
+        
+        if (ioManager.keys.space) {
+          direction.y += 1;
+        }
+        if (ioManager.keys.ctrl) {
+          direction.y -= 1;
+        }
+      } else {  
+        const cameraEuler = camera.rotation.clone();
+        cameraEuler.x = 0;
+        cameraEuler.z = 0;
+        direction.applyEuler(cameraEuler);
+        
+        if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+          physicsManager.setCrouchState(!physicsManager.getCrouchState());
+        }
+        ioManager.lastCtrlKey = ioManager.keys.ctrl;
       }
-      if (ioManager.keys.ctrl) {
-        direction.y -= 1;
-      }
-    } else {  
-      const cameraEuler = camera.rotation.clone();
-      cameraEuler.x = 0;
-      cameraEuler.z = 0;
-      direction.applyEuler(cameraEuler);
-      
-      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
-        physicsManager.setCrouchState(!physicsManager.getCrouchState());
-      }
-      ioManager.lastCtrlKey = ioManager.keys.ctrl;
-    }
-    localVector.add(direction);
-    if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
-      const speed = weaponsManager.getSpeed() * sprintMultiplier;
-      localVector.normalize().multiplyScalar(speed * timeDiff);
+      if (localVector.length() > 0) {
+        const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
+        const speed = weaponsManager.getSpeed() * sprintMultiplier;
+        localVector.normalize().multiplyScalar(speed * timeDiff);
 
-      physicsManager.velocity.add(localVector);
+        physicsManager.velocity.add(localVector);
 
-      if (physicsManager.getJumpState()) {
-        physicsManager.velocity.x *= 0.7;
-        physicsManager.velocity.z *= 0.7;
-        if (flyState) {
-          physicsManager.velocity.y *= 0.7;
+        if (physicsManager.getJumpState()) {
+          physicsManager.velocity.x *= 0.7;
+          physicsManager.velocity.z *= 0.7;
+          if (flyState) {
+            physicsManager.velocity.y *= 0.7;
+          }
         }
       }
+    } else {
+      // cameraManager
     }
   }
 };
