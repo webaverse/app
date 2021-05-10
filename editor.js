@@ -370,7 +370,7 @@ const loadText = async () => {
 };
 
 (async () => {
-  const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
+  const url = new URL(`https://avaer.github.io/chest-rtfjs/index.js`);
   const res = await fetch(url.href);
   const b = await res.blob();
   b.name = url;
