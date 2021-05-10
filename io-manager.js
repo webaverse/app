@@ -670,7 +670,9 @@ ioManager.bindInput = () => {
     avatarCamera.aspect = window.innerWidth / window.innerHeight;
     avatarCamera.updateProjectionMatrix();
     
-    iframeContainer.updateSize();
+    if (iframeContainer) {
+      iframeContainer.updateSize();
+    }
     const objects = world.getObjects();
     for (const o of objects) {
       o.resize && o.resize();
