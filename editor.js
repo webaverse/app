@@ -234,6 +234,9 @@ const editor = CodeMirror.fromTextArea(codeEl, {
     'Ctrl-S': function(cm) {
       loadText();
     },
+    'Ctrl-L': function(cm) {
+      uploadNft();
+    },
   },
 });
 editor.setOption('theme', 'material-ocean');
@@ -398,6 +401,9 @@ const loadText = async () => {
   const u = await uploadFiles(files);
   console.log('load text', u);
   const el = await loadModule(u);
+};
+const uploadNft = async () => {
+  console.log('upload nft');
 };
 
 // loadText();
