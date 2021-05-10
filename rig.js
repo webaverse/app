@@ -65,6 +65,29 @@ class RigManager {
   constructor(scene) {
     this.scene = scene;
 
+    this.localRig = null;
+    this.localRigMatrix = new THREE.Matrix4();
+    this.localRigMatrixEnabled = false;
+    
+    this.lastPosition = new THREE.Vector3();
+    this.smoothVelocity = new THREE.Vector3();
+
+    this.peerRigs = new Map();
+    
+    this.lastTimetamp = Date.now();
+  }
+
+  clear() {
+    if (this.localRig) {
+      this.scene.remove(this.localRig);
+      this.scene.add(this.localRig.textMesh);
+      this.localRig = null;
+    }
+  }
+
+  setDefault() {
+    this.clear();
+
     this.localRig = new Avatar(null, {
       fingers: true,
       hair: true,
@@ -115,31 +138,12 @@ class RigManager {
       this.localRig.textMesh.add(nametagMesh2);
     }
     this.scene.add(this.localRig.textMesh);
-
-    this.localRigMatrix = new THREE.Matrix4();
-    this.localRigMatrixEnabled = false;
-    
-    this.lastPosition = new THREE.Vector3();
-    this.smoothVelocity = new THREE.Vector3();
-
-    this.peerRigs = new Map();
-    
-    this.lastTimetamp = Date.now();
   }
   
-  init() {
-    // await loginManager.waitForLoad();
-
-    const username = loginManager.getUsername() || 'Anonymous';
-    const avatarImage = loginManager.getAvatarPreview();
-    rigManager.setLocalAvatarName(username);
-
-    loginManager.addEventListener('usernamechange', e => {
-      const username = e.data || 'Anonymous';
-      if (username !== rigManager.localRig.textMesh.text) {
-        rigManager.setLocalAvatarName(username);
-      }
-    });
+  setFromLogin() {
+    if (!this.localRig) {
+      this.setDefault();
+    }
 
     const avatar = loginManager.getAvatar();
     if (avatar.url) {
@@ -205,6 +209,7 @@ class RigManager {
     // await this.localRigQueue.lock();
 
     await this.setAvatar(this.localRig, newLocalRig => {
+      this.clear();
       this.localRig = newLocalRig;
     }, url, ext);
 
@@ -442,33 +447,35 @@ class RigManager {
   } */
 
   setLocalAvatarPose(poseArray) {
-    const [
-      [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-    ] = poseArray;
+    if (this.localRig) {
+      const [
+        [hmdPosition, hmdQuaternion],
+        [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+        [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      ] = poseArray;
 
-    this.localRig.inputs.hmd.position.fromArray(hmdPosition);
-    this.localRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+      this.localRig.inputs.hmd.position.fromArray(hmdPosition);
+      this.localRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
 
-    this.localRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
-    this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
-    this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
-    this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
-    this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
+      this.localRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
+      this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+      this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
+      this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
+      this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
 
-    this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
-    this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
-    this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
-    this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
-    this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
+      this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
+      this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+      this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
+      this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
-    this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
-    this.localRig.textMesh.position.y += 0.5;
-    this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-    localEuler.z = 0;
-    this.localRig.textMesh.quaternion.setFromEuler(localEuler);
+      this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
+      this.localRig.textMesh.position.y += 0.5;
+      this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
+      localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.z = 0;
+      this.localRig.textMesh.quaternion.setFromEuler(localEuler);
+    }
   }
 
   setPeerAvatarPose(poseArray, peerId) {
@@ -595,133 +602,148 @@ class RigManager {
   }
   
   getRigTransforms() {
-    return [
-      {
-        position: this.localRig.inputs.leftGamepad.position,
-        quaternion: this.localRig.inputs.leftGamepad.quaternion,
-      },
-      {
-        position: this.localRig.inputs.rightGamepad.position,
-        quaternion: this.localRig.inputs.rightGamepad.quaternion,
-      },
-    ];
+    if (this.localRig) {
+      return [
+        {
+          position: this.localRig.inputs.leftGamepad.position,
+          quaternion: this.localRig.inputs.leftGamepad.quaternion,
+        },
+        {
+          position: this.localRig.inputs.rightGamepad.position,
+          quaternion: this.localRig.inputs.rightGamepad.quaternion,
+        },
+      ];
+    } else {
+      return [
+        {
+          position: [0, 0, 0],
+          quaternion: [0, 0, 0, 1],
+        },
+        {
+          position: [0, 0, 0],
+          quaternion: [0, 0, 0, 1],
+        },
+      ];
+    }
   }
 
   update() {
-    const now = Date.now();
-    const timeDiff = (now - this.lastTimetamp) / 1000;
-    
-    const session = renderer.xr.getSession();
-    let currentPosition, currentQuaternion;
-    if (!session) {
-      currentPosition = this.localRig.inputs.hmd.position;
-      currentQuaternion = this.localRig.inputs.hmd.quaternion;
-    } else {
-      currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-      currentQuaternion = this.localRig.inputs.hmd.quaternion;
-    }
-    const positionDiff = localVector2.copy(this.lastPosition)
-      .sub(currentPosition)
-      .multiplyScalar(0.1/timeDiff);
-    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    localEuler.y += Math.PI;
-    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-    positionDiff.applyEuler(localEuler2);
-    this.smoothVelocity.lerp(positionDiff, 0.5);
-    this.lastPosition.copy(currentPosition);
+    if  (this.localRig) {
+      const now = Date.now();
+      const timeDiff = (now - this.lastTimetamp) / 1000;
+      
+      const session = renderer.xr.getSession();
+      let currentPosition, currentQuaternion;
+      if (!session) {
+        currentPosition = this.localRig.inputs.hmd.position;
+        currentQuaternion = this.localRig.inputs.hmd.quaternion;
+      } else {
+        currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
+        currentQuaternion = this.localRig.inputs.hmd.quaternion;
+      }
+      const positionDiff = localVector2.copy(this.lastPosition)
+        .sub(currentPosition)
+        .multiplyScalar(0.1/timeDiff);
+      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+      positionDiff.applyEuler(localEuler2);
+      this.smoothVelocity.lerp(positionDiff, 0.5);
+      this.lastPosition.copy(currentPosition);
 
-    const useTime = physicsManager.getUseTime();
-    for (let i = 0; i < 2; i++) {
-      this.localRig.setHandEnabled(i, useTime === -1 && !!appManager.equippedObjects[i]);
-    }
-    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
-    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
-    this.localRig.direction.copy(positionDiff);
-    this.localRig.velocity.copy(this.smoothVelocity);
-    this.localRig.jumpState = physicsManager.getJumpState();
-    this.localRig.jumpTime = physicsManager.getJumpTime();
-    this.localRig.flyState = physicsManager.getFlyState();
-    this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.useTime = useTime;
-    const useAnimation = (() => {
-      if (appManager.equippedObjects[0]) {
-        const components = appManager.equippedObjects[0].getComponents();
-        const useComponent = components.find(c => c.type === 'use');
-        if (useComponent) {
-          return useComponent.useAnimation || null;
+      const useTime = physicsManager.getUseTime();
+      for (let i = 0; i < 2; i++) {
+        this.localRig.setHandEnabled(i, useTime === -1 && !!appManager.equippedObjects[i]);
+      }
+      this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
+      this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
+      this.localRig.direction.copy(positionDiff);
+      this.localRig.velocity.copy(this.smoothVelocity);
+      this.localRig.jumpState = physicsManager.getJumpState();
+      this.localRig.jumpTime = physicsManager.getJumpTime();
+      this.localRig.flyState = physicsManager.getFlyState();
+      this.localRig.flyTime = physicsManager.getFlyTime();
+      this.localRig.useTime = useTime;
+      const useAnimation = (() => {
+        if (appManager.equippedObjects[0]) {
+          const components = appManager.equippedObjects[0].getComponents();
+          const useComponent = components.find(c => c.type === 'use');
+          if (useComponent) {
+            return useComponent.useAnimation || null;
+          } else {
+            return null;
+          }
         } else {
           return null;
         }
-      } else {
-        return null;
-      }
-    })();
-    this.localRig.useAnimation = useAnimation;
+      })();
+      this.localRig.useAnimation = useAnimation;
 
-    this.localRig.update(now, timeDiff);
-    this.localRig.aux.update(now, timeDiff);
+      this.localRig.update(now, timeDiff);
+      this.localRig.aux.update(now, timeDiff);
 
-    let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
-    let sitAnimation;
-    if (sitState) {
-      const sittable = this.localRig.aux.sittables[0];
-      const {model, componentIndex} = sittable;
-      const component = model.getComponents()[componentIndex];
-      const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
-      physicsManager.setSitController(sittable.model);
-      sitAnimation = subtype;
-      const spineBone = sittable.model.getObjectByName(sitBone);
-      if (spineBone) {
-        physicsManager.setSitTarget(spineBone);
+      let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      let sitAnimation;
+      if (sitState) {
+        const sittable = this.localRig.aux.sittables[0];
+        const {model, componentIndex} = sittable;
+        const component = model.getComponents()[componentIndex];
+        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
+        physicsManager.setSitController(sittable.model);
+        sitAnimation = subtype;
+        const spineBone = sittable.model.getObjectByName(sitBone);
+        if (spineBone) {
+          physicsManager.setSitTarget(spineBone);
+        } else {
+          physicsManager.setSitTarget(sittable.model);
+        }
+        physicsManager.setSitOffset(sitOffset);
+        if (typeof damping === 'number') {
+          physicsManager.setDamping(damping);
+        } else {
+          physicsManager.setDamping();
+        }
       } else {
-        physicsManager.setSitTarget(sittable.model);
-      }
-      physicsManager.setSitOffset(sitOffset);
-      if (typeof damping === 'number') {
-        physicsManager.setDamping(damping);
-      } else {
+        sitAnimation = null;
         physicsManager.setDamping();
       }
-    } else {
-      sitAnimation = null;
-      physicsManager.setDamping();
+      const danceState = !!physicsManager.getDanceState();
+      const danceTime = physicsManager.getDanceTime();
+      const danceAnimation = physicsManager.getDanceState();
+      const throwState = physicsManager.getThrowState();
+      const throwTime = physicsManager.getThrowTime();
+      const crouchState = physicsManager.getCrouchState();
+      const crouchTime = physicsManager.getCrouchTime();
+      rigManager.localRig.sitState = sitState;
+      rigManager.localRig.sitAnimation = sitAnimation;
+      rigManager.localRig.danceState = danceState;
+      rigManager.localRig.danceTime = danceTime;
+      rigManager.localRig.danceAnimation = danceAnimation;
+      rigManager.localRig.throwState = throwState;
+      rigManager.localRig.throwTime = throwTime;
+      rigManager.localRig.crouchState = crouchState;
+      rigManager.localRig.crouchTime = crouchTime;
+      physicsManager.setSitState(sitState);
+
+      this.peerRigs.forEach(rig => {
+        rig.update(now, timeDiff);
+        rig.aux.update(now, timeDiff);
+      });
+      
+      this.lastTimetamp = now;
+
+      /* for (let i = 0; i < appManager.grabs.length; i++) {
+        const grab = appManager.grabs[i === 0 ? 1 : 0];
+        if (grab) {
+          const transforms = this.getRigTransforms();
+          const transform = transforms[i];
+          grab.position.copy(transform.position);
+          grab.quaternion.copy(transform.quaternion);
+        }
+      } */
     }
-    const danceState = !!physicsManager.getDanceState();
-    const danceTime = physicsManager.getDanceTime();
-    const danceAnimation = physicsManager.getDanceState();
-    const throwState = physicsManager.getThrowState();
-    const throwTime = physicsManager.getThrowTime();
-    const crouchState = physicsManager.getCrouchState();
-    const crouchTime = physicsManager.getCrouchTime();
-    rigManager.localRig.sitState = sitState;
-    rigManager.localRig.sitAnimation = sitAnimation;
-    rigManager.localRig.danceState = danceState;
-    rigManager.localRig.danceTime = danceTime;
-    rigManager.localRig.danceAnimation = danceAnimation;
-    rigManager.localRig.throwState = throwState;
-    rigManager.localRig.throwTime = throwTime;
-    rigManager.localRig.crouchState = crouchState;
-    rigManager.localRig.crouchTime = crouchTime;
-    physicsManager.setSitState(sitState);
-
-    this.peerRigs.forEach(rig => {
-      rig.update(now, timeDiff);
-      rig.aux.update(now, timeDiff);
-    });
-    
-    this.lastTimetamp = now;
-
-    /* for (let i = 0; i < appManager.grabs.length; i++) {
-      const grab = appManager.grabs[i === 0 ? 1 : 0];
-      if (grab) {
-        const transforms = this.getRigTransforms();
-        const transform = transforms[i];
-        grab.position.copy(transform.position);
-        grab.quaternion.copy(transform.quaternion);
-      }
-    } */
   }
 }
 const rigManager = new RigManager(scene);
