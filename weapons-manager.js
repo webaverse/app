@@ -1424,126 +1424,14 @@ const _selectTabDelta = offset => {
   _selectTab(newSelectedTabIndex);
 };
 const bindInterface = () => {
-  for (let i = 0; i < itemSpecs3.length; i++) {
-    const itemSpec = itemSpecs3[i];
-    const div = document.createElement('div');
-    div.classList.add('item');
-    div.innerHTML = `
-      <div class=card>
-        <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-      </div>
-      <div class=name>${itemSpec.name}</div>
-      <div class="key-helpers">
-        <div class="key-helper">
-          <div class=key>E</div>
-          <div class=label>Spawn</div>
-        </div>
-      </div>
-    `;
-    div.addEventListener('click', e => {
-      _use();
-    });
-    div.addEventListener('mouseenter', e => {
-      selectedItemIndex = i;
-      _updateMenu();
-    });
-    items3El.appendChild(div);
-  }
-
-  for (let i = 0; i < itemSpecs1.length; i++) {
-    const itemSpec = itemSpecs1[i];
-    const div = document.createElement('div');
-    div.classList.add('item');
-    div.innerHTML = `\
-      <div class=bar></div>
-      ${/^fa-/.test(itemSpec.icon) ?
-        `<i class="icon fa ${itemSpec.icon}"></i>`
-      :
-        `<img src="${itemSpec.icon}" class=icon>`
-      }
-      <div class=name>${itemSpec.name}</div>
-      <div class="key-helpers">
-        <div class="key-helper">
-          <div class=key>E</div>
-          <div class=label>Create</div>
-        </div>
-      </div>
-    `;
-    div.addEventListener('click', e => {
-      _use();
-    });
-    div.addEventListener('mouseenter', e => {
-      selectedItemIndex = i;
-      _updateMenu();
-    });
-    items1El.appendChild(div);
-  }
-
-  for (let i = 0; i < tabs.length; i++) {
-    const tab = tabs[i];
-    tab.addEventListener('click', e => {
-      _selectTab(i);
-    });
-  }
-
-  [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
-    el.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (appManager.grabbedObjects[0]) {
-        if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
-          _deselectLoadout();
-        }
-
-        _ungrab();
-      } else if (editedObject) {
-        if (editedObject.isBuild && editedObject.getShapes().length === 0) {
-          world.removeObject(editedObject.instanceId);
-        }
-
-        editedObject = null;
-        _updateMenu();
-      } else {
-        const hasMenu = !!weaponsManager.getMenu();
-        if (hasMenu && !document.pointerLockElement) {
-          cameraManager.requestPointerLock();
-        } else if (!hasMenu && document.pointerLockElement) {
-          document.exitPointerLock();
-        }
-
-        weaponsManager.setMenu(hasMenu ? 0 : 1);
-      }
-    });
-  });
-
-  {
-    const _stopPropagation = e => {
-      e.stopPropagation();
-    };
-    [
-      menu1El,
-      menu2El,
-      menu3El,
-      menu4El,
-      unmenuEl,
-      objectMenuEl,
-    ].forEach(menuEl => {
-      menuEl.addEventListener('wheel', _stopPropagation);
-    });
-  }
-
-  (async () => {
-    await loginManager.waitForLoad();
-
-    const inventory = loginManager.getInventory();
-    for (let i = 0; i < inventory.length; i++) {
-      const itemSpec = inventory[i];
+  if (items1El && items2El && items3El && chatInputEl) {
+    for (let i = 0; i < itemSpecs3.length; i++) {
+      const itemSpec = itemSpecs3[i];
       const div = document.createElement('div');
       div.classList.add('item');
       div.innerHTML = `
         <div class=card>
-          <img src="${itemSpec.image}">
+          <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
         </div>
         <div class=name>${itemSpec.name}</div>
         <div class="key-helpers">
@@ -1560,83 +1448,197 @@ const bindInterface = () => {
         selectedItemIndex = i;
         _updateMenu();
       });
-      items2El.appendChild(div);
+      items3El.appendChild(div);
     }
-  })();
-  (async () => {
-    await loginManager.waitForLoad();
 
-    const loadout = loginManager.getLoadout();
-    for (let i = 0; i < loadout.length; i++) {
-      const item = loadout[i];
-      const itemEl = itemsEls[i];
-
-      const boxEl = itemEl.querySelector('.box');
-      boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
-    }
-  })();
-  
-  world.addEventListener('trackedobjectsadd', async e => {
-    const {trackedObject, dynamic} = e.data;
-    if (dynamic) {
-      const trackedObjectJson = trackedObject.toJSON();
-      const {contentId, instanceId} = trackedObjectJson;
-
-      const div = document.createElement('a');
+    for (let i = 0; i < itemSpecs1.length; i++) {
+      const itemSpec = itemSpecs1[i];
+      const div = document.createElement('div');
       div.classList.add('item');
-      div.setAttribute('href', contentId);
-      div.setAttribute('instanceid', instanceId);
-      div.innerHTML = `
-        <div class=card>
-          <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-        </div>
-        <div class=name></div>
+      div.innerHTML = `\
+        <div class=bar></div>
+        ${/^fa-/.test(itemSpec.icon) ?
+          `<i class="icon fa ${itemSpec.icon}"></i>`
+        :
+          `<img src="${itemSpec.icon}" class=icon>`
+        }
+        <div class=name>${itemSpec.name}</div>
         <div class="key-helpers">
-          <div class="key-helper progress">
-            <div class=bar></div>
-            <div class=key>E</div>
-            <div class=label>Grab</div>
-          </div>
           <div class="key-helper">
-            <div class=key>X</div>
-            <div class=label>Delete</div>
+            <div class=key>E</div>
+            <div class=label>Create</div>
           </div>
         </div>
       `;
-      const name = div.querySelector('.name');
-      name.innerText = contentId;
       div.addEventListener('click', e => {
         _use();
       });
       div.addEventListener('mouseenter', e => {
-        const i = Array.from(items4El.childNodes).indexOf(div);
         selectedItemIndex = i;
         _updateMenu();
       });
-      items4El.appendChild(div);
+      items1El.appendChild(div);
     }
-  });
-  world.addEventListener('trackedobjectsremove', async e => {
-    const {trackedObject, dynamic} = e.data;
-    if (dynamic) {
-      const instanceId = trackedObject.get('instanceId');
-      const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
-      items4El.removeChild(itemEl);
-    }
-  });
 
-  chatInputEl.addEventListener('keydown', e => {
-    switch (e.which) {
-      case 13: { // enter
-        weaponsManager.enter();
-        break;
-      }
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      tab.addEventListener('click', e => {
+        _selectTab(i);
+      });
     }
-  });
-  chatInputEl.addEventListener('blur', e => {
-    chatInputEl.classList.remove('open');
-    chatInputEl.value = '';
-  });
+
+    [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (appManager.grabbedObjects[0]) {
+          if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+            _deselectLoadout();
+          }
+
+          _ungrab();
+        } else if (editedObject) {
+          if (editedObject.isBuild && editedObject.getShapes().length === 0) {
+            world.removeObject(editedObject.instanceId);
+          }
+
+          editedObject = null;
+          _updateMenu();
+        } else {
+          const hasMenu = !!weaponsManager.getMenu();
+          if (hasMenu && !document.pointerLockElement) {
+            cameraManager.requestPointerLock();
+          } else if (!hasMenu && document.pointerLockElement) {
+            document.exitPointerLock();
+          }
+
+          weaponsManager.setMenu(hasMenu ? 0 : 1);
+        }
+      });
+    });
+
+    {
+      const _stopPropagation = e => {
+        e.stopPropagation();
+      };
+      [
+        menu1El,
+        menu2El,
+        menu3El,
+        menu4El,
+        unmenuEl,
+        objectMenuEl,
+      ].forEach(menuEl => {
+        menuEl.addEventListener('wheel', _stopPropagation);
+      });
+    }
+
+    (async () => {
+      await loginManager.waitForLoad();
+
+      const inventory = loginManager.getInventory();
+      for (let i = 0; i < inventory.length; i++) {
+        const itemSpec = inventory[i];
+        const div = document.createElement('div');
+        div.classList.add('item');
+        div.innerHTML = `
+          <div class=card>
+            <img src="${itemSpec.image}">
+          </div>
+          <div class=name>${itemSpec.name}</div>
+          <div class="key-helpers">
+            <div class="key-helper">
+              <div class=key>E</div>
+              <div class=label>Spawn</div>
+            </div>
+          </div>
+        `;
+        div.addEventListener('click', e => {
+          _use();
+        });
+        div.addEventListener('mouseenter', e => {
+          selectedItemIndex = i;
+          _updateMenu();
+        });
+        items2El.appendChild(div);
+      }
+    })();
+    (async () => {
+      await loginManager.waitForLoad();
+
+      const loadout = loginManager.getLoadout();
+      for (let i = 0; i < loadout.length; i++) {
+        const item = loadout[i];
+        const itemEl = itemsEls[i];
+
+        const boxEl = itemEl.querySelector('.box');
+        boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
+      }
+    })();
+    
+    world.addEventListener('trackedobjectsadd', async e => {
+      const {trackedObject, dynamic} = e.data;
+      if (dynamic) {
+        const trackedObjectJson = trackedObject.toJSON();
+        const {contentId, instanceId} = trackedObjectJson;
+
+        const div = document.createElement('a');
+        div.classList.add('item');
+        div.setAttribute('href', contentId);
+        div.setAttribute('instanceid', instanceId);
+        div.innerHTML = `
+          <div class=card>
+            <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+          </div>
+          <div class=name></div>
+          <div class="key-helpers">
+            <div class="key-helper progress">
+              <div class=bar></div>
+              <div class=key>E</div>
+              <div class=label>Grab</div>
+            </div>
+            <div class="key-helper">
+              <div class=key>X</div>
+              <div class=label>Delete</div>
+            </div>
+          </div>
+        `;
+        const name = div.querySelector('.name');
+        name.innerText = contentId;
+        div.addEventListener('click', e => {
+          _use();
+        });
+        div.addEventListener('mouseenter', e => {
+          const i = Array.from(items4El.childNodes).indexOf(div);
+          selectedItemIndex = i;
+          _updateMenu();
+        });
+        items4El.appendChild(div);
+      }
+    });
+    world.addEventListener('trackedobjectsremove', async e => {
+      const {trackedObject, dynamic} = e.data;
+      if (dynamic) {
+        const instanceId = trackedObject.get('instanceId');
+        const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
+        items4El.removeChild(itemEl);
+      }
+    });
+
+    chatInputEl.addEventListener('keydown', e => {
+      switch (e.which) {
+        case 13: { // enter
+          weaponsManager.enter();
+          break;
+        }
+      }
+    });
+    chatInputEl.addEventListener('blur', e => {
+      chatInputEl.classList.remove('open');
+      chatInputEl.value = '';
+    });
+  }
 };
 
 renderer.domElement.addEventListener('dragover', e => {
