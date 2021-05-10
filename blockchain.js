@@ -199,7 +199,9 @@ const getAddressFromMnemonic = mnemonic => _getWalletFromMnemonic(mnemonic)
 
 const networkNameEl = document.getElementById('network-name');
 const bindInterface = () => {
-  networkNameEl.innerText = networkName;
+  if (networkNameEl) {
+    networkNameEl.innerText = networkName;
+  }
 };
 
 export {
