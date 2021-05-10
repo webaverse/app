@@ -2,7 +2,8 @@
 // import React from 'react';
 // import ReactDOM from 'react-dom';
 import * as THREE from 'three';
-import ReactDOM from 'react';
+import React from 'react';
+// import ReactDOM from 'react-dom';
 import ReactThreeFiber from '@react-three/fiber';
 // import {render} from '@react-three/fiber';
 // import * as THREE from 'three';
