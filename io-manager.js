@@ -697,4 +697,10 @@ ioManager.bindInput = () => {
   });
 };
 
+window.addEventListener('wheel', e => {
+  cameraManager.handleWheelEvent(e);
+}, {
+  passive: false,
+});
+
 export default ioManager;
