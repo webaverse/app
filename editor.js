@@ -221,7 +221,7 @@ const s = `\
       </mesh>
     )
   }
-  function Camera(props) {
+  /* function Camera(props) {
     const ref = useRef()
     const set = useThree(state => state.set)
     // Make the camera known to the system
@@ -229,7 +229,7 @@ const s = `\
     // Update it every frame
     useFrame(() => ref.current.updateMatrixWorld())
     return <perspectiveCamera ref={ref} {...props} />
-  }
+  } */
   const render = () => {
     // console.log('render', r, React, r === React);
     return (
