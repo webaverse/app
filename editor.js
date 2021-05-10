@@ -195,7 +195,7 @@ const editor = CodeMirror.fromTextArea(codeEl, {
   lineWrapping: true,
   extraKeys: {
     'Ctrl-S': function(cm) {
-      _load();
+      _loadText();
     },
   },
 });
@@ -218,44 +218,13 @@ renderer.setPixelRatio(window.devicePixelRatio);
 // const scene = new THREE.Scene();
 // const camera = new THREE.Camera();
 
-(async () => {
-  const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
-  const zipData = await fetchAndCompile(url.href);
-  
-  const zip = await JSZip.loadAsync(zipData);
-  // console.log('load file 4', zip.files);
-
-  const fileNames = [];
-  const localFileNames = {};
-  const isDirectoryName = fileName => /\/$/.test(fileName);
-  for (const fileName in zip.files) {
-    // if (filePredicate(fileName)) {
-      fileNames.push(fileName);
-
-      let basename = fileName
-        // .replace(/^[^\/]*\/(.*)$/, '$1')
-        // .slice(tail.length);
-      localFileNames[fileName] = basename;
-    // }
-  }
-  let files = await Promise.all(fileNames.map(async fileName => {
-    const file = zip.file(fileName);
-    
-    const b = file && await file.async('blob');
-    return {
-      name: fileName,
-      data: b,
-    };
-  }));
-  // files = files.filter(f => !!f);
-  // console.log('load file 9');
-  console.log('got files', files);
-  
+const isDirectoryName = fileName => /\/$/.test(fileName);
+const _uploadFiles = async files => {
   const fd = new FormData();
   let hasRootDirectory = false;
   for (const file of files) {
     const {name} = file;
-    const basename = localFileNames[name];
+    const basename = name; // localFileNames[name];
     console.log('append', basename, name);
     if (isDirectoryName(name)) {
       fd.append(
@@ -273,44 +242,76 @@ renderer.setPixelRatio(window.devicePixelRatio);
     }
   }
 
-  {
-    const uploadFilesRes = await fetch(storageHost, {
-      method: 'POST',
-      body: fd,
-    });
-    const hashes = await uploadFilesRes.json();
-    // console.log('got hashes', hashes);
-    const mainDirectory = hashes.find(h => h.name === 'chest-rtfjs');
-    const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
-    const mainDirectoryHash = mainDirectory.hash;
-    const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
-    
-    // const indexJsFile = zip.files[url.pathname.slice(1)];
-    // const data = await indexJsFile.async('uint8array');
-    // const s = new TextDecoder().decode(data);
+  const uploadFilesRes = await fetch(storageHost, {
+    method: 'POST',
+    body: fd,
+  });
+  const hashes = await uploadFilesRes.json();
+  // console.log('got hashes', hashes);
+  const mainDirectory = hashes.find(h => h.name === 'chest-rtfjs');
+  const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
+  const mainDirectoryHash = mainDirectory.hash;
+  const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
 
-    // console.log('got s', s);
+  return `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`;
+};
+const _loadText = () => {
+  const value = editor.getValue();
+  console.log('load text', value);
+};
 
-    console.log('loading', `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
-    const m = await import(`${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
-    const fn = m.default;
-    console.log('got fn', fn);
+(async () => {
+  const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
+  const zipData = await fetchAndCompile(url.href);
+  
+  const zip = await JSZip.loadAsync(zipData);
+  // console.log('load file 4', zip.files);
 
-    // const el = ReactDOM.render(fn(), root);
-    const size = renderer.getSize(new THREE.Vector2());
-    // window.THREE1 = THREE;
-    // debugger;
-    const el = ReactThreeFiber.render(fn(), canvas, {
-      gl: renderer,
-      size: {
-        width: size.x,
-        height: size.y,
-      },
-      events: createPointerEvents,
-    });
-    
-    console.log('done render', el);
+  const fileNames = [];
+  // const localFileNames = {};
+  for (const fileName in zip.files) {
+    fileNames.push(fileName);
   }
+  let files = await Promise.all(fileNames.map(async fileName => {
+    const file = zip.file(fileName);
+    
+    const b = file && await file.async('blob');
+    return {
+      name: fileName,
+      data: b,
+    };
+  }));
+  // files = files.filter(f => !!f);
+  // console.log('load file 9');
+  console.log('got files', files);
+
+  const u = await _uploadFiles(files);
+
+  // const indexJsFile = zip.files[url.pathname.slice(1)];
+  // const data = await indexJsFile.async('uint8array');
+  // const s = new TextDecoder().decode(data);
+
+  // console.log('got s', s);
+
+  // console.log('loading', `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
+  const m = await import(u);
+  const fn = m.default;
+  // console.log('got fn', fn);
+
+  // const el = ReactDOM.render(fn(), root);
+  const size = renderer.getSize(new THREE.Vector2());
+  // window.THREE1 = THREE;
+  // debugger;
+  const el = ReactThreeFiber.render(fn(), canvas, {
+    gl: renderer,
+    size: {
+      width: size.x,
+      height: size.y,
+    },
+    events: createPointerEvents,
+  });
+  
+  console.log('done render', el);
 })();
 
 // import browser from './dist/browser2.js';
