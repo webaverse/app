@@ -381,30 +381,4 @@ const loadText = async () => {
   console.log('done render', el);
 })();
 
-// import browser from './dist/browser2.js';
-// window.browser = browser;
-/* window.addEventListener('message', async e => {
-  const zip = new JSZip();
-  const spec = BabelStandalone.transform(e.data, {
-    presets: ['react'],
-  });
-  console.log('got spec', spec);
-  const {code} = spec;
-  const zipBuffer = new TextEncoder().encode(code);
-  const file = new Blob([
-    zipBuffer,
-  ], {
-    type: 'application/zip',
-  });
-  window.parent.postMessage({
-    file,
-  }, '*', [file]);
-});
-window.parent.addEventListener('message', e => {
-  console.log('got result', e.data);
-});
-window.postMessage(new MessageEvent('message', {
-  data: `<mesh x={7}/>`,
-}), '*'); */
-
 };
