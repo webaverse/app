@@ -249,29 +249,8 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 const isDirectoryName = fileName => /\/$/.test(fileName);
 const uploadFiles = async files => {
-  const directoryMap = {};
   const fd = new FormData();
-  for (const file of files) {
-    const {name} = file;
-    const basename = name; // localFileNames[name];
-    // console.log('append', basename, name);
-    if (isDirectoryName(name)) {
-      console.log('append dir', name);
-      fd.append(
-        name,
-        new Blob([], {
-          type: 'application/x-directory',
-        }),
-        basename
-      );
-      const p = name.replace(/\/+$/, '');
-      directoryMap[p] = true;
-    } else {
-      console.log('append file', name);
-      fd.append(name, file.data, basename);
-    }
-  }
-
+  const directoryMap = {};
   const metaverseFile = files.find(f => f.name === '.metaversefile');
   // console.log('got', metaverseFile);
   const metaverseJson = await (async () => {
@@ -280,16 +259,16 @@ const uploadFiles = async files => {
     return j;    
   })();
   const {start_url} = metaverseJson;
-  const match = start_url.match(/^([^\/]+)(\/?.*)$/);
+  /* const match = start_url.match(/^([^\/]+)(\/?.*)$/);
   // console.log('got url', {start_url, match});
   let mainDirectoryName = match[1];
   let mainPathName = match[2];
   if (!mainPathName) {
     mainPathName = '/' + mainDirectoryName;
     mainDirectoryName = '';
-  }
+  } */
   [
-    mainDirectoryName,
+    // mainDirectoryName,
     '',
   ].forEach(p => {
     if (!directoryMap[p]) {
@@ -305,16 +284,37 @@ const uploadFiles = async files => {
     }
   });
 
+  for (const file of files) {
+    const {name} = file;
+    const basename = name; // localFileNames[name];
+    // console.log('append', basename, name);
+    if (isDirectoryName(name)) {
+      const p = name.replace(/\/+$/, '');
+      console.log('append dir', p);
+      fd.append(
+        p,
+        new Blob([], {
+          type: 'application/x-directory',
+        }),
+        p
+      );
+      directoryMap[p] = true;
+    } else {
+      console.log('append file', name);
+      fd.append(name, file.data, basename);
+    }
+  }
+
   const uploadFilesRes = await fetch(storageHost, {
     method: 'POST',
     body: fd,
   });
   const hashes = await uploadFilesRes.json();
-  
-  let mainDirectory = hashes.find(h => h.name === mainDirectoryName);
-  console.log('got hashes', {mainDirectoryName, mainPathName, hashes, mainDirectory});
-  const mainDirectoryHash = mainDirectory.hash;
-  const ipfsUrl = `${storageHost}/ipfs/${mainDirectoryHash}${mainPathName}`;
+
+  const rootDirectory = hashes.find(h => h.name === '');
+  console.log('got hashes', {rootDirectory, hashes});
+  const rootDirectoryHash = rootDirectory.hash;
+  const ipfsUrl = `${storageHost}/ipfs/${rootDirectoryHash}/${start_url}`;
   console.log('got ipfs url', ipfsUrl);
   return ipfsUrl;
 };
