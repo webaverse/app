@@ -166,7 +166,7 @@ const fetchZipFiles = async zipData => {
 
 const s = `\
   import React, {Fragment, useState, useRef} from 'react';
-  import ReactThreeFiber from 'react-three-fiber';
+  import ReactThreeFiber from '@react-three/fiber';
   const {Canvas, useFrame, useThree} = ReactThreeFiber;
 
   function Box(props) {
