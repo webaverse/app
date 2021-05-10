@@ -219,7 +219,7 @@ const editor = CodeMirror.fromTextArea(codeEl, {
   lineWrapping: true,
   extraKeys: {
     'Ctrl-S': function(cm) {
-      _loadText();
+      loadText();
     },
   },
 });
@@ -298,17 +298,27 @@ const loadModule = async u => {
   });
   return el;
 };
-const _loadText = () => {
-  const value = editor.getValue();
-  console.log('load text', value);
+const loadText = async () => {
+  const s = editor.getValue();
+  const b = new Blob([
+    s,
+  ], {
+    type: 'application/javascript',
+  });
+  // const u = URL.createObjectUrl(b);
+  b.name = 'https://webaverse.com/index.js';
+  const zipData = await fetchAndCompileBlob(b);
+  const files = await fetchZipFiles(zipData);
+  const u = await uploadFiles(files);
+  console.log('load text', u);
 };
 
 (async () => {
   const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
   const res = await fetch(url.href);
-  const blob = await res.blob();
-  blob.name = url;
-  const zipData = await fetchAndCompileBlob(blob);
+  const b = await res.blob();
+  b.name = url;
+  const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
   const u = await uploadFiles(files);
   const el = await loadModule(u);
