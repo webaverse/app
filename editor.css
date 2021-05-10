@@ -14,7 +14,6 @@ body {
 .code {
   display: none;
 }
-.container,
 .CodeMirror
 {
   position: fixed !important;
