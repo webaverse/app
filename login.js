@@ -170,182 +170,183 @@ async function tryLogin() {
     unregisteredWarning && (unregisteredWarning.style.display = null);
   }
 };
+const loginForm = document.getElementById('login-form');
 async function bindLogin() {
-  const loginForm = document.getElementById('login-form');
-  
-  loginForm.classList.add('login-form');
-  loginForm.innerHTML = `
-    <div class=phase-content>
-      <div class=login-notice id=login-notice></div>
-      <div class=login-error id=login-error></div>
-    </div>
-    <div class="phase-content phase-1-content">
-      <input type=text placeholder="Email or key" autocomplete="off" id=login-email>
-      <input type=submit value="Log in" class="button highlight">
-      <input type=button value="Cancel" class="button highlight" id=login-cancel>
-    </div>
-    <div class="phase-content phase-2-content">
-      <input type=text placeholder="Verification code" autocomplete="off" id=login-verification-code>
-      <input type=submit value="Verify" class="button highlight">
-    </div>
-    <div class="phase-content phase-3-content">
-      <nav class=user-button id=user-button>
-        <img id=avatar-icon>
-        <div class=avatar-icon-placeholder></div>
-        <span class=name id=user-name></span>
-        <div class=unregistered-warning id=unregistered-warning style="display: none">
-          <i class="fal fa-exclamation-triangle"></i>
-          <div class=label>unreg</div>
-        </div>
-        <i class="fal fa-bars"></i>
-        <div class=user-details>
-          <nav class=subbutton id=address-button>
-            <i class="fal fa-address-card"></i>
-            Address copy
-          </nav>
-          <nav class=subbutton id=privatekey-button>
-            <i class="fal fa-key"></i>
-            Private key copy
-          </nav>
-          <nav class=subbutton id=changename-button>
-            <i class="fal fa-signature"></i>
-            Change name
-          </nav>
-          <nav class=subbutton id=signin-button>
-            <i class="fal fa-sign-in"></i>
-            Switch account
-          </nav>
-          <nav class=subbutton id=switch-chain-button>
-            <i class="fal fa-sign-in"></i>
-            <div>Switch to <span id=other-chain-name></span></div>
-          </nav>
-          <nav class=subbutton id=logout-button>
-            <i class="fal fa-sign-out"></i>
-            Log out
-          </nav>
-        </div>
-      </nav>
-    </div>
-    <div class="phase-content phaseless-content">
-      <div>Working...</div>
-    </div>
-  `;
-  const loginEmail = loginForm.querySelector('#login-email');
-  const loginNotice = loginForm.querySelector('#login-notice');
-  const loginError = loginForm.querySelector('#login-error');
+  if (loginForm) {
+    loginForm.classList.add('login-form');
+    loginForm.innerHTML = `
+      <div class=phase-content>
+        <div class=login-notice id=login-notice></div>
+        <div class=login-error id=login-error></div>
+      </div>
+      <div class="phase-content phase-1-content">
+        <input type=text placeholder="Email or key" autocomplete="off" id=login-email>
+        <input type=submit value="Log in" class="button highlight">
+        <input type=button value="Cancel" class="button highlight" id=login-cancel>
+      </div>
+      <div class="phase-content phase-2-content">
+        <input type=text placeholder="Verification code" autocomplete="off" id=login-verification-code>
+        <input type=submit value="Verify" class="button highlight">
+      </div>
+      <div class="phase-content phase-3-content">
+        <nav class=user-button id=user-button>
+          <img id=avatar-icon>
+          <div class=avatar-icon-placeholder></div>
+          <span class=name id=user-name></span>
+          <div class=unregistered-warning id=unregistered-warning style="display: none">
+            <i class="fal fa-exclamation-triangle"></i>
+            <div class=label>unreg</div>
+          </div>
+          <i class="fal fa-bars"></i>
+          <div class=user-details>
+            <nav class=subbutton id=address-button>
+              <i class="fal fa-address-card"></i>
+              Address copy
+            </nav>
+            <nav class=subbutton id=privatekey-button>
+              <i class="fal fa-key"></i>
+              Private key copy
+            </nav>
+            <nav class=subbutton id=changename-button>
+              <i class="fal fa-signature"></i>
+              Change name
+            </nav>
+            <nav class=subbutton id=signin-button>
+              <i class="fal fa-sign-in"></i>
+              Switch account
+            </nav>
+            <nav class=subbutton id=switch-chain-button>
+              <i class="fal fa-sign-in"></i>
+              <div>Switch to <span id=other-chain-name></span></div>
+            </nav>
+            <nav class=subbutton id=logout-button>
+              <i class="fal fa-sign-out"></i>
+              Log out
+            </nav>
+          </div>
+        </nav>
+      </div>
+      <div class="phase-content phaseless-content">
+        <div>Working...</div>
+      </div>
+    `;
+    const loginEmail = loginForm.querySelector('#login-email');
+    const loginNotice = loginForm.querySelector('#login-notice');
+    const loginError = loginForm.querySelector('#login-error');
 
-  const userButton = document.getElementById('user-button');
-  userButton.addEventListener('click', e => {
-    userButton.classList.toggle('open');
-  });
-
-  const loginCancel = document.getElementById('login-cancel');
-  loginCancel.addEventListener('click', e => {
-    loginForm.classList.remove('phase-1');
-    loginForm.classList.add('phase-3');
-  });
-
-  const userName = document.getElementById('user-name');
-  userName.addEventListener('keydown', e => {
-    if (e.which === 13) {
-      e.preventDefault();
-      e.stopPropagation();
-      userName.blur();
-    }
-  });
-  document.getElementById('address-button').addEventListener('click', e => {
-    const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-    const address = wallet.getAddressString();
-    navigator.clipboard.writeText(address);
-  });
-  document.getElementById('privatekey-button').addEventListener('click', async e => {
-    navigator.clipboard.writeText(loginToken.mnemonic);
-    delete loginToken.unregistered;
-    await storage.set('loginToken', loginToken);
-
-    unregisteredWarning.style.display = 'none';
-  });
-  document.getElementById('changename-button').addEventListener('click', e => {
-    userName.setAttribute('contenteditable', '');
-    userName.focus();
-    const oldUserName = userName.innerText;
-    userName.addEventListener('blur', async e => {
-      userName.removeAttribute('contenteditable');
-
-      const newUserName = userName.innerText;
-      if (newUserName !== oldUserName) {
-        const address = this.getAddress();
-        await runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name);
-      }
-    }, {
-      once: true,
+    const userButton = document.getElementById('user-button');
+    userButton.addEventListener('click', e => {
+      userButton.classList.toggle('open');
     });
-  });
-  document.getElementById('signin-button').addEventListener('click', e => {
-    loginForm.classList.remove('phase-3');
-    loginForm.classList.add('phase-1');
-    loginEmail.focus();
-  });
-  document.getElementById('logout-button').addEventListener('click', async e => {
-    await storage.remove('loginToken');
-    window.location.reload();
-  });
-  // TODO: Fix me with polygon
-  document.getElementById('switch-chain-button').addEventListener('click', e => {
-    if (/^main\./.test(location.hostname)) {
-      location.hostname = location.hostname.replace(/^main\./, '');
-    } else {
-      location.hostname = 'main.' + location.hostname;
-    }
-  });
-  document.getElementById('other-chain-name').innerText = otherChainName;
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
 
-    if (loginForm.classList.contains('phase-1') && loginEmail.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
+    const loginCancel = document.getElementById('login-cancel');
+    loginCancel.addEventListener('click', e => {
       loginForm.classList.remove('phase-1');
+      loginForm.classList.add('phase-3');
+    });
 
-      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
-      if (split.length === 12) {
-        const mnemonic = split.slice(0, 12).join(' ');
+    const userName = document.getElementById('user-name');
+    userName.addEventListener('keydown', e => {
+      if (e.which === 13) {
+        e.preventDefault();
+        e.stopPropagation();
+        userName.blur();
+      }
+    });
+    document.getElementById('address-button').addEventListener('click', e => {
+      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+      const address = wallet.getAddressString();
+      navigator.clipboard.writeText(address);
+    });
+    document.getElementById('privatekey-button').addEventListener('click', async e => {
+      navigator.clipboard.writeText(loginToken.mnemonic);
+      delete loginToken.unregistered;
+      await storage.set('loginToken', loginToken);
 
-        await finishLogin({
-          mnemonic,
-        });
+      unregisteredWarning.style.display = 'none';
+    });
+    document.getElementById('changename-button').addEventListener('click', e => {
+      userName.setAttribute('contenteditable', '');
+      userName.focus();
+      const oldUserName = userName.innerText;
+      userName.addEventListener('blur', async e => {
+        userName.removeAttribute('contenteditable');
 
-        location.reload();
-      } else {
-        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
-          method: 'POST',
-        });
-        if (res.status >= 200 && res.status < 300) {
-          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-          loginForm.classList.add('phase-2');
-
-          return res.blob();
-        } else {
-          loginError.innerText = 'Invalid email!';
-          loginForm.classList.add('phase-1');
-          throw new Error(`invalid status code: ${res.status}`);
+        const newUserName = userName.innerText;
+        if (newUserName !== oldUserName) {
+          const address = this.getAddress();
+          await runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name);
         }
-      }
-    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
-      loginForm.classList.remove('phase-2');
-
-      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
-      if (loginOk) {
-        location.reload();
-      }
-    } /* else if (loginForm.classList.contains('phase-3')) {
+      }, {
+        once: true,
+      });
+    });
+    document.getElementById('signin-button').addEventListener('click', e => {
+      loginForm.classList.remove('phase-3');
+      loginForm.classList.add('phase-1');
+      loginEmail.focus();
+    });
+    document.getElementById('logout-button').addEventListener('click', async e => {
       await storage.remove('loginToken');
+      window.location.reload();
+    });
+    // TODO: Fix me with polygon
+    document.getElementById('switch-chain-button').addEventListener('click', e => {
+      if (/^main\./.test(location.hostname)) {
+        location.hostname = location.hostname.replace(/^main\./, '');
+      } else {
+        location.hostname = 'main.' + location.hostname;
+      }
+    });
+    document.getElementById('other-chain-name').innerText = otherChainName;
+    loginForm.addEventListener('submit', async e => {
+      e.preventDefault();
 
-      location.reload();
-    } */
-  });
+      if (loginForm.classList.contains('phase-1') && loginEmail.value) {
+        loginNotice.innerHTML = '';
+        loginError.innerHTML = '';
+        loginForm.classList.remove('phase-1');
+
+        const split = loginEmail.value.split(/\s+/).filter(w => !!w);
+        if (split.length === 12) {
+          const mnemonic = split.slice(0, 12).join(' ');
+
+          await finishLogin({
+            mnemonic,
+          });
+
+          location.reload();
+        } else {
+          const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
+            method: 'POST',
+          });
+          if (res.status >= 200 && res.status < 300) {
+            loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+            loginForm.classList.add('phase-2');
+
+            return res.blob();
+          } else {
+            loginError.innerText = 'Invalid email!';
+            loginForm.classList.add('phase-1');
+            throw new Error(`invalid status code: ${res.status}`);
+          }
+        }
+      } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+        loginNotice.innerHTML = '';
+        loginError.innerHTML = '';
+        loginForm.classList.remove('phase-2');
+
+        const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
+        if (loginOk) {
+          location.reload();
+        }
+      } /* else if (loginForm.classList.contains('phase-3')) {
+        await storage.remove('loginToken');
+
+        location.reload();
+      } */
+    });
+  }
 };
 
 class LoginManager extends EventTarget {
