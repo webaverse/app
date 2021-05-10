@@ -241,7 +241,7 @@ const s = `\
     return (
       <Fragment>
         <ambientLight />
-        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} />
+        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} intensity={2}/>
         <Box position={[0, 1, 0]} color="hotpink" animate />
         <Box position={[0, -2, 0]} color={0x0049ef4} scale={[10, 0.1, 10]} />
       </Fragment>
