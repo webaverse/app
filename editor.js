@@ -371,6 +371,7 @@ const loadModule = async u => {
     }
   }
 
+  const sizeVector = renderer.getSize(new THREE.Vector2());
   const options = {
     gl: renderer,
     camera,
@@ -386,7 +387,6 @@ const loadModule = async u => {
     },
     frameloop: 'demand',
   };
-  const sizeVector = renderer.getSize(new THREE.Vector2());
   // window.THREE1 = THREE;
   // debugger;
   rootDiv = document.createElement('div');
