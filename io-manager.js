@@ -160,29 +160,35 @@ const _updateIo = timeDiff => {
     }
   } else if (document.pointerLockElement) {
     const direction = localVector.set(0, 0, 0);
-    if (ioManager.keys.left) {
-      direction.x -= 1;
-    }
-    if (ioManager.keys.right) {
-      direction.x += 1;
-    }
-    if (ioManager.keys.up) {
-      direction.z -= 1;
-    }
-    if (ioManager.keys.down) {
-      direction.z += 1;
-    }
+    const _updateHorizontal = () => {
+      if (ioManager.keys.left) {
+        direction.x -= 1;
+      }
+      if (ioManager.keys.right) {
+        direction.x += 1;
+      }
+      if (ioManager.keys.up) {
+        direction.z -= 1;
+      }
+      if (ioManager.keys.down) {
+        direction.z += 1;
+      }
+    };
+    _updateHorizontal();
+    const _updateVertical = () => {
+      if (ioManager.keys.space) {
+        direction.y += 1;
+      }
+      if (ioManager.keys.ctrl) {
+        direction.y -= 1;
+      }
+    };
     if (controlsManager.isPossessed()) {
       const flyState = physicsManager.getFlyState();
       if (flyState) {
         direction.applyQuaternion(camera.quaternion);
         
-        if (ioManager.keys.space) {
-          direction.y += 1;
-        }
-        if (ioManager.keys.ctrl) {
-          direction.y -= 1;
-        }
+        _updateVertical();
       } else {  
         const cameraEuler = camera.rotation.clone();
         cameraEuler.x = 0;
@@ -210,7 +216,9 @@ const _updateIo = timeDiff => {
         }
       }
     } else {
-      // cameraManager
+      _updateVertical();
+
+      camera.position.add(direction.normalize().multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1)).applyQuaternion(camera.quaternion));
     }
   }
 };
