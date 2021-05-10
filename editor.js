@@ -12,7 +12,34 @@ import JSZip from 'jszip';
 import {storageHost} from './constants.js';
 // console.log('got jszip', BabelStandalone, JSZip);
 
+import App from '/app.js';
 
+const app = new App();
+// app.bootstrapFromUrl(location);
+app.bindLogin();
+app.bindInput();
+app.bindInterface();
+/* const uploadFileInput = document.getElementById('upload-file-input');
+app.bindUploadFileInput(uploadFileInput);
+const mapCanvas = document.getElementById('map-canvas')
+app.bindMinimap(mapCanvas);
+
+const enterXrButton = document.getElementById('enter-xr-button');
+const noXrButton = document.getElementById('no-xr-button');
+app.bindXr({
+  enterXrButton,
+  noXrButton,
+  onSupported(ok) {
+    if (ok) {
+      enterXrButton.style.display = null;
+      noXrButton.style.display = 'none';
+    }
+  },
+}); */
+app.waitForLoad()
+  .then(() => {
+    app.startLoop();
+  });
 
 const editorSize = 500;
 function createPointerEvents(store) {
