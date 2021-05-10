@@ -609,7 +609,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     // elide expensive bone updates; this should not be called if wearing the avatar
     const skinnedMeshes = [];
     o.traverse(o => {
-      if (o instanceof THREE.SkinnedMesh) {
+      if (o.isSkinnedMesh) {
         skinnedMeshes.push(o);
       }
     });
