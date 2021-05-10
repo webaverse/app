@@ -1933,7 +1933,9 @@ const weaponsManager = {
     editedObject.setMode(mode);
   },
   canJumpOff() {
-    return rigManager.localRig.aux.sittables.length > 0;
+    return rigManager.localRig ? (
+      rigManager.localRig.aux.sittables.length > 0
+    ) : false;
   },
   jumpOff() {
     const auxPose = rigManager.localRig.aux.getPose();
