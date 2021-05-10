@@ -75,9 +75,9 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
-  three: 'https://lib.webaverse.com/three.js',
-  BufferGeometryUtils: 'https://lib.webaverse.com/BufferGeometryUtils.js',
-  GLTFLoader: 'https://lib.webaverse.com/GLTFLoader.js',
+  three: 'three',
+  BufferGeometryUtils: 'BufferGeometryUtils',
+  GLTFLoader: 'GLTFLoader',
   // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   world: _importMapUrl('./world.js'),
