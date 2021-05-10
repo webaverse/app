@@ -71,9 +71,13 @@ window.onload = () => {
 
 console.log('got react three fiber', ReactThreeFiber);
 
-const fetchAndCompile = async (scriptUrl) => {
-  const res = await fetch(scriptUrl);
-  let s = await res.text();
+const fetchAndCompileBlob = async file => {
+  const res = file;
+  const scriptUrl = file.name;
+  if (!scriptUrl) {
+    debugger;
+  }
+  let s = await file.text();
   
   const urlCache = {};
   const _mapUrl = async (u, scriptUrl) => {
@@ -133,6 +137,26 @@ const fetchAndCompile = async (scriptUrl) => {
     type: 'arraybuffer',
   });
   return new Uint8Array(ab);
+};
+const fetchZipFiles = async zipData => {
+  const zip = await JSZip.loadAsync(zipData);
+  // console.log('load file 4', zip.files);
+
+  const fileNames = [];
+  // const localFileNames = {};
+  for (const fileName in zip.files) {
+    fileNames.push(fileName);
+  }
+  const files = await Promise.all(fileNames.map(async fileName => {
+    const file = zip.file(fileName);
+    
+    const b = file && await file.async('blob');
+    return {
+      name: fileName,
+      data: b,
+    };
+  }));
+  return files;
 };
 
 const s = `\
@@ -219,7 +243,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 // const camera = new THREE.Camera();
 
 const isDirectoryName = fileName => /\/$/.test(fileName);
-const _uploadFiles = async files => {
+const uploadFiles = async files => {
   const fd = new FormData();
   let hasRootDirectory = false;
   for (const file of files) {
@@ -262,30 +286,12 @@ const _loadText = () => {
 
 (async () => {
   const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
-  const zipData = await fetchAndCompile(url.href);
-  
-  const zip = await JSZip.loadAsync(zipData);
-  // console.log('load file 4', zip.files);
-
-  const fileNames = [];
-  // const localFileNames = {};
-  for (const fileName in zip.files) {
-    fileNames.push(fileName);
-  }
-  let files = await Promise.all(fileNames.map(async fileName => {
-    const file = zip.file(fileName);
-    
-    const b = file && await file.async('blob');
-    return {
-      name: fileName,
-      data: b,
-    };
-  }));
-  // files = files.filter(f => !!f);
-  // console.log('load file 9');
-  console.log('got files', files);
-
-  const u = await _uploadFiles(files);
+  const res = await fetch(url.href);
+  const blob = await res.blob();
+  blob.name = url;
+  const zipData = await fetchAndCompileBlob(blob);
+  const files = await fetchZipFiles(zipData);
+  const u = await uploadFiles(files);
 
   // const indexJsFile = zip.files[url.pathname.slice(1)];
   // const data = await indexJsFile.async('uint8array');
