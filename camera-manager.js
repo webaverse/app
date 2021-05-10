@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {appManager, renderer, camera/*, orbitControls*/} from './app-object.js';
+import controlsManager from './controls-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as notifications from './notifications.js';
@@ -161,12 +162,14 @@ const cameraManager = {
   handleWheelEvent(e) {
     e.preventDefault();
   
-    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
-    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    camera.updateMatrixWorld();
+    if (controlsManager.isPossessed()) {
+      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
 
-    physicsManager.unlockControls();
+      physicsManager.unlockControls();
+    }
   },
   // switchCamera,
   // selectTool,
