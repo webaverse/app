@@ -69,7 +69,7 @@ function createPointerEvents(store) {
 
 window.onload = () => {
 
-console.log('got react three fiber', ReactThreeFiber);
+// console.log('got react three fiber', ReactThreeFiber);
 
 const fetchAndCompileBlob = async file => {
   const res = file;
@@ -279,27 +279,7 @@ const uploadFiles = async files => {
 
   return `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`;
 };
-const _loadText = () => {
-  const value = editor.getValue();
-  console.log('load text', value);
-};
-
-(async () => {
-  const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
-  const res = await fetch(url.href);
-  const blob = await res.blob();
-  blob.name = url;
-  const zipData = await fetchAndCompileBlob(blob);
-  const files = await fetchZipFiles(zipData);
-  const u = await uploadFiles(files);
-
-  // const indexJsFile = zip.files[url.pathname.slice(1)];
-  // const data = await indexJsFile.async('uint8array');
-  // const s = new TextDecoder().decode(data);
-
-  // console.log('got s', s);
-
-  // console.log('loading', `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
+const loadModule = async u => {
   const m = await import(u);
   const fn = m.default;
   // console.log('got fn', fn);
@@ -316,7 +296,22 @@ const _loadText = () => {
     },
     events: createPointerEvents,
   });
-  
+  return el;
+};
+const _loadText = () => {
+  const value = editor.getValue();
+  console.log('load text', value);
+};
+
+(async () => {
+  const url = new URL(`${window.location.protocol}//${window.location.host}/chest-rtfjs/index.js`);
+  const res = await fetch(url.href);
+  const blob = await res.blob();
+  blob.name = url;
+  const zipData = await fetchAndCompileBlob(blob);
+  const files = await fetchZipFiles(zipData);
+  const u = await uploadFiles(files);
+  const el = await loadModule(u);
   console.log('done render', el);
 })();
 
