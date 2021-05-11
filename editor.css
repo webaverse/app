@@ -1,7 +1,57 @@
+@font-face {
+  font-family: 'FuturaLT';
+  src: url('/assets/fonts/FuturaLT.woff2');
+}
+@font-face {
+  font-family: 'MS-Gothic';
+  src: url('/assets/fonts/MS Gothic.ttf');
+}
+@font-face {
+  font-family: 'FuturaStd-BoldOblique';
+  src: url('/assets/fonts/Futura Std Bold Oblique.otf');
+}
+@font-face {
+  font-family: 'GillSans';
+  src: url('/assets/fonts/Gill Sans.otf');
+}
+@font-face {
+  font-family: 'GillSans-CondensedBold';
+  src: url('/assets/fonts/Gill Sans Condensed Bold.ttf');
+}
+@font-face {
+  font-family: 'FuturaStd-Heavy';
+  src: url('/assets/fonts/Futura Std Heavy.otf');
+}
+@font-face {
+  font-family: 'FuturaLT-CondensedLight';
+  src: url('/assets/fonts/FuturaLT-CondensedLight.ttf');
+}
+@font-face {
+  font-family: 'SanvitoPro-LtCapt';
+  src: url('/assets/fonts/SanvitoPro-LtCapt.otf');
+}
+@font-face {
+  font-family: 'FuturaLT-Book';
+  src: url('/assets/fonts/FuturaLT-Book.ttf');
+}
+@font-face {
+  font-family: 'GeosansLight';
+  src: url('/assets/fonts/GeosansLight.ttf');
+}
+@font-face {
+  font-family: 'GeosansLight-Oblique';
+  src: url('/assets/fonts/GeosansLight-Oblique.ttf');
+}
+@font-face {
+  font-family: 'PressStart2P-Regular';
+  src: url('/assets/fonts/PressStart2P-Regular.ttf');
+}
+
 body {
   margin: 0;
   --code-size: 600px;
   --controls-size: 130px;
+  font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif
 }
 .root {
   display: flex;
@@ -57,8 +107,14 @@ body {
   border-color: transparent;
   color: #fff;
 }
+.controls .control:hover > .label {
+  color: #FFF;
+}
 .controls .control:hover .video {
   mix-blend-mode: normal;
+}
+.controls .control:hover > .icon {
+  filter: invert(95%) sepia(0%) saturate(0%) hue-rotate(213deg) brightness(105%) contrast(105%);  
 }
 .controls .control + .control {
   margin-top: 0;
@@ -66,7 +122,7 @@ body {
 .controls .top {
   flex: 1;
 }
-.controls .control .video {
+.controls .control > .video {
   width: 60px;
   height: 100px;
   margin: auto;
@@ -75,17 +131,26 @@ body {
   border-radius: 10px;
   mix-blend-mode: multiply;
 }
-.controls .control .label {
+.controls .control > .icon {
+  width: 60px;
+  height: 60px;
+  margin: auto;
+  margin-bottom: 10px;
+}
+.controls .control > .label {
+  font-family: 'FuturaStd-Heavy';
+  font-size: 13px;
+  color: #AAA;
   text-transform: uppercase;
 }
 .user {
   display: flex;
 }
-.user .img {
+.user > .img {
   width: 30px;
   height: 30px;
   margin-right: 10px;
 }
-.user .name {
+.user > .name {
   font-size: 20px;
 }
