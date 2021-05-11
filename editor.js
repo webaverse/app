@@ -139,24 +139,19 @@ const s = `\
             </div>
           </div>
           <div className="control">
-            <video
+            {/* <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
               className="video"
               autoPlay
               muted
               loop
-            />
-            <div className="label">3P</div>
+            /> */}
+            <img src="/assets/video-camera.svg" className="icon" />
+            <div className="label">First person</div>
           </div>
           <div className="control">
-            <video
-              src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
-              className="video"
-              autoPlay
-              muted
-              loop
-            />
-            <div className="label">3P</div>
+            <img src="/assets/teleport.svg" className="icon" />
+            <div className="label">Third person</div>
           </div>
         </div>
         <textarea id="code" className="code">
