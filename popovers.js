@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 
 const popoverMeshes = [];
 
-const context = renderer.getContext();
 function toScreenPosition(obj, camera, vector) {
+  const renderer = getRenderer();
+  const context = renderer.getContext();
   var widthHalf = 0.5*context.canvas.width;
   var heightHalf = 0.5*context.canvas.height;
 
@@ -39,6 +40,7 @@ const addPopover = (textMesh, {width, height, target} = {}) => {
           .sub(camera.position)
       );
     toScreenPosition(target, camera, localVector);
+    const renderer = getRenderer();
     const width = renderer.domElement.width;
     const height = renderer.domElement.height;
     popoverMesh.position.x = -1 + localVector.x/width*2;
