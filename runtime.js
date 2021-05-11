@@ -1067,7 +1067,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
         startMonetization(instanceId, monetizationPointer, ownerAddress);
       })
       .catch(err => {
-        console.error('load script failed', contentId, u, err);
+        console.error('load script failed: ' + JSON.stringify({srcUrl, contentId, u, error: err.stack}));
         debugger;
       })
       .finally(() => {
