@@ -82,6 +82,7 @@ const importMap = {
   GLTFLoader: 'GLTFLoader',
   // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
+  api: _importMapUrl('./api.js'),
   world: _importMapUrl('./world.js'),
   universe: _importMapUrl('./universe.js'),
   runtime: _importMapUrl('./runtime.js'),
