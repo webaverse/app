@@ -80,7 +80,7 @@ class RigManager {
   clearAvatar() {
     if (this.localRig) {
       this.scene.remove(this.localRig);
-      this.scene.add(this.localRig.textMesh);
+      this.scene.remove(this.localRig.textMesh);
       this.localRig = null;
     }
   }
