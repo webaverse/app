@@ -476,17 +476,23 @@ const loadText = async () => {
   console.log('load hash', hash);
   // const el = await loadModule(u);
 
+  await loadHash(hash);
+};
+let loadedObject = null;
+const loadHash = async hash => {
+  if (loadedObject) {
+    await world.removeObject(loadedObject.instanceId);
+    loadedObject = null;
+  }
+
   const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
   const position = new THREE.Vector3();
   const quaternion  = new THREE.Quaternion();
-  const o = await world.addObject(u, null, position, quaternion, {
+  loadedObject = await world.addObject(u, null, position, quaternion, {
     // physics,
     // physics_url,
     // autoScale,
   });
-  /* if (autoRun && o.useAux) {
-    o.useAux(rigManager.localRig.aux);
-  } */
 };
 const uploadNft = async () => {
   console.log('upload nft');
@@ -501,9 +507,10 @@ const uploadNft = async () => {
   const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
   const hash = await uploadFiles(files);
-  const u = `${storageHost}/ipfs/${hash}/chest-rtfjs/index.js`;
-  const el = await loadModule(u);
-  console.log('done render', el);
+  const o = await loadHash(hash);
+  // const u = `${storageHost}/ipfs/${hash}/chest-rtfjs/index.js`;
+  // const el = await loadModule(u);
+  // console.log('done render', el);
 })();
 
 };
