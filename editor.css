@@ -9,13 +9,14 @@ body {
   height: 100vh;
 }
 .canvas {
-  position: fixed;
+  position: absolute;
   top: 0;
-  bottom: 0;
+  /* bottom: 0; */
   left: 0;
-  right: calc(var(--code-size) + var(--controls-size));
+  /* right: calc(var(--code-size) + var(--controls-size)); */
 }
 .canvas-placeholder {
+  position: relative;
   display: flex;
   flex: 1;
 }
@@ -32,6 +33,9 @@ body {
   z-index: 1;
 }
 .controls {
+  position: absolute;
+  top: 0;
+  right: var(--code-size);
   display: flex;
   max-width: var(--controls-size);
   height: 100vh;
