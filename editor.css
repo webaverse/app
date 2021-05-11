@@ -32,15 +32,17 @@ body {
   z-index: 1;
 }
 .controls {
+  display: flex;
   max-width: var(--controls-size);
   height: 100vh;
-  overflow:  hidden;
+  flex-direction: column;
 }
 .controls .control {
   position: relative;
   display: flex;
-  margin: 20px;
+  margin: 10px;
   padding: 5px;
+  background-color: #FFF;
   border: 2px solid #333;
   border-radius: 10px;
   flex-direction: column;
@@ -53,6 +55,12 @@ body {
 }
 .controls .control:hover .video {
   mix-blend-mode: normal;
+}
+.controls .control + .control {
+  margin-top: 0;
+}
+.controls .top {
+  flex: 1;
 }
 .controls .control .video {
   width: 60px;
@@ -72,6 +80,7 @@ body {
 .user .img {
   width: 30px;
   height: 30px;
+  margin-right: 10px;
 }
 .user .name {
   font-size: 20px;
