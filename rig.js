@@ -4,7 +4,7 @@ import {GLTFLoader, BufferGeometryUtils} from 'three';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile, unFrustumCull} from './util.js';
-import {appManager, renderer, scene, camera, dolly, avatarScene} from './app-object.js';
+import {appManager, getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
@@ -632,6 +632,7 @@ class RigManager {
       const now = Date.now();
       const timeDiff = (now - this.lastTimetamp) / 1000;
       
+      const renderer = getRenderer();
       const session = renderer.xr.getSession();
       let currentPosition, currentQuaternion;
       if (!session) {
