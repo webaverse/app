@@ -81,6 +81,23 @@ window.onload = async () => {
       container.appendChild(el);
     }
   };
+  const metaversefileHandler = async ({
+    src,
+  }) => {
+    console.log('load metaversefile');
+    /* const img = new Image();
+    img.classList.add('content');
+    img.classList.add('img');
+    _setContainerContent(img);
+
+    await new Promise((accept, reject) => {
+      img.onload = () => {
+        accept();
+      };
+      img.onerror = reject;
+      img.src = src;
+    }); */
+  };
   const imageHandler = async ({
     src,
   }) => {
@@ -98,6 +115,7 @@ window.onload = async () => {
     });
   };
   const handlers = {
+    'metaversefile': metaversefileHandler,
     'png': imageHandler,
     'jpg': imageHandler,
     'gif': imageHandler,
