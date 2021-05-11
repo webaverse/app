@@ -127,8 +127,9 @@ const s = `\
   const jsx = `
     (() => {
       return <div className="root">
-        <canvas id="canvas" className="canvas" />
-        <div className="canvas-placeholder" />
+        <div className="canvas-placeholder">
+          <canvas id="canvas" className="canvas" />
+        </div>
         <div className="controls">
           <div className="top" />
           <div className="control">
