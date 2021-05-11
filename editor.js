@@ -126,22 +126,30 @@ const s = `\
   
   const jsx = `
     (() => {
-      return <div>
+      return <div className="root">
         <canvas id="canvas" className="canvas" />
+        <div className="canvas-placeholder" />
         <div className="controls">
           <div className="control">
             <div className="user">
-              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" />
+              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
               <div className="name">avaer</div>
             </div>
           </div>
           <div className="control">
-            <video src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm" />
+            <video
+              src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
+              className="video"
+              autoPlay
+              muted
+              loop
+            />
             <div className="label">3P</div>
           </div>
           <div className="control">
             <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
+              className="video"
               autoPlay
               muted
               loop
