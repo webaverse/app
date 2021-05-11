@@ -15,7 +15,7 @@ import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
@@ -519,6 +519,7 @@ const _upload = () => {
 };
 
 const _grab = object => {
+  const renderer = getRenderer();
   const {position, quaternion} = renderer.xr.getSession() ? rigManager.getRigTransforms()[0] : camera;
 
   appManager.grabbedObjects[0] = object;
@@ -556,8 +557,9 @@ const _unequip = () => {
 
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {
-  const transforms = rigManager.getRigTransforms();
   const now = Date.now();
+  const transforms = rigManager.getRigTransforms();
+  const renderer = getRenderer();
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1645,10 +1647,10 @@ const bindInterface = () => {
   }
 };
 
-renderer.domElement.addEventListener('dragover', e => {
+window.document.addEventListener('dragover', e => {
   e.preventDefault();
 });
-renderer.domElement.addEventListener('drop', async e => {
+window.document.addEventListener('drop', async e => {
   e.preventDefault();
   
   const files = Array.from(e.dataTransfer.files);
