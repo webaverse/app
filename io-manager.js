@@ -7,7 +7,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
-import {renderer, /*renderer2,*/ camera, avatarCamera, dolly, iframeContainer} from './app-object.js';
+import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, iframeContainer} from './app-object.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import geometryManager from './geometry-manager.js';
@@ -64,6 +64,7 @@ document.addEventListener('pointerlockchange', () => {
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
 
 const _updateIo = timeDiff => {
+  const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
     ioManager.currentWalked = false;
@@ -589,6 +590,7 @@ ioManager.bindInput = () => {
   const _updateMouseHover = e => {
     const {clientX, clientY} = e;
     
+    const renderer = getRenderer();
     renderer.getSize(localVector2D2);
     localVector2D.set(
       (clientX / localVector2D2.x) * 2 - 1,
@@ -637,10 +639,13 @@ ioManager.bindInput = () => {
     ioManager.currentTeleport = false;
   });
   window.document.addEventListener('mouseleave', e => {
+    const renderer = getRenderer();
     renderer.domElement.classList.remove('hover');
   });
-  renderer.domElement.addEventListener('click', e => {
-    if (document.pointerLockElement && e.buttons === 0) {
+  
+  scene.addEventListener('click', event => {
+    const e = event.event;
+	  if (document.pointerLockElement && e.buttons === 0) {
       weaponsManager.menuClick();
     }
     if (!document.pointerLockElement && e.buttons === 0) {
@@ -648,7 +653,8 @@ ioManager.bindInput = () => {
       cameraManager.requestPointerLock();
     }
   });
-  renderer.domElement.addEventListener('mousedown', e => {
+  scene.addEventListener('mousedown', event => {
+    const e = event.event;
     if (document.pointerLockElement) {
       if (e.buttons & 1) {
         weaponsManager.menuMouseDown();
@@ -658,7 +664,8 @@ ioManager.bindInput = () => {
       }
     }
   });
-  renderer.domElement.addEventListener('mouseup', e => {
+  scene.addEventListener('mouseup', event => {
+    const e = event.event;
     if (document.pointerLockElement) {
       if (!(e.buttons & 1)) {
         weaponsManager.menuMouseUp();
