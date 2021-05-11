@@ -208,6 +208,7 @@ class RigManager {
   async setLocalAvatarUrl(url, ext) {
     // await this.localRigQueue.lock();
 
+    this.setDefault();
     await this.setAvatar(this.localRig, newLocalRig => {
       this.clearAvatar();
       this.localRig = newLocalRig;
