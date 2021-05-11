@@ -237,7 +237,9 @@ export default class App extends EventTarget {
   } */
 
   async setAvatarUrl(url, ext) {
-    await rigManager.setLocalAvatarUrl(url, ext);
+    if (url) {
+      await rigManager.setLocalAvatarUrl(url, ext);
+    }
     controlsManager.setPossessed(!!url);
   }
   
