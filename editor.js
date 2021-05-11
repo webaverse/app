@@ -146,6 +146,8 @@ const app = new App();
 app.bindLogin();
 app.bindInput();
 app.bindInterface();
+const canvas = document.getElementById('canvas');
+app.bindCanvas(canvas);
 /* const uploadFileInput = document.getElementById('upload-file-input');
 app.bindUploadFileInput(uploadFileInput);
 const mapCanvas = document.getElementById('map-canvas')
