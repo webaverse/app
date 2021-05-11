@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {appManager, renderer, camera/*, orbitControls*/} from './app-object.js';
+import {appManager, getRenderer, camera/*, orbitControls*/} from './app-object.js';
 import controlsManager from './controls-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
@@ -42,6 +42,7 @@ const requestPointerLock = () => new Promise((accept, reject) => {
       document.removeEventListener('pointerlockchange', _pointerlockchange);
       document.removeEventListener('pointerlockerror', _pointerlockerror);
     };
+    const renderer = getRenderer();
     renderer.domElement.requestPointerLock();
   } else {
     accept();
