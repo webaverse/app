@@ -1,0 +1,1 @@
+export {default as physics} from './physics-manager.js';
