@@ -24,7 +24,7 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager} from './app-object.js';
+import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -76,7 +76,7 @@ export default class App extends EventTarget {
   }
 
   getRenderer() {
-    return renderer;
+    return getRenderer();
   }
   getScene() {
     return scene;
@@ -190,11 +190,15 @@ export default class App extends EventTarget {
         });
     }
   }
+  bindCanvas(c) {
+    bindCanvas(c);
+  }
   
   render() {
     this.dispatchEvent(frameEvent);
 
     // high priority render
+    const renderer = getRenderer();
     renderer.render(scene3, camera);
     // main render
     if (rigManager.localRig) {
@@ -237,6 +241,10 @@ export default class App extends EventTarget {
   }
   
   startLoop() {
+    const renderer = getRenderer();
+    if (!renderer) {
+      throw new Error('must bind canvas first');
+    }
     let lastTimestamp = performance.now();
     const startTime = Date.now();
     const animate = (timestamp, frame) => {      
