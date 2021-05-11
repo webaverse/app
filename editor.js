@@ -461,7 +461,8 @@ const loadModule = async u => {
     );
   });
 };
-const loadText = async () => {
+const selectedType = 'rtfjs'; // XXX implement a real selector
+const uploadHash = async () => {
   const s = editor.getValue();
   const b = new Blob([
     s,
@@ -469,13 +470,16 @@ const loadText = async () => {
     type: 'application/javascript',
   });
   // const u = URL.createObjectUrl(b);
-  b.name = 'index.rtfjs';
+  b.name = 'index.' + selectedType;
   const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
   const hash = await uploadFiles(files);
+  return hash;
+};
+const loadText = async () => {
+  const hash = await uploadHash();
   console.log('load hash', hash);
   // const el = await loadModule(u);
-
   await loadHash(hash);
 };
 let loadedObject = null;
@@ -495,7 +499,9 @@ const loadHash = async hash => {
   });
 };
 const uploadNft = async () => {
-  console.log('upload nft');
+  const hash = await uploadHash();
+  console.log('upload nft', hash);
+  window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=${selectedType}`;
 };
 
 // loadText();
