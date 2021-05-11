@@ -466,7 +466,7 @@ body.no-ui .unmenu
   display: none;
 }
 
-.hero, .detail {
+/* .hero, .detail {
   position: relative;
   display: flex;
   align-items: center;
@@ -489,7 +489,7 @@ body.no-ui .unmenu
   border-bottom: 2px solid #000;
   font-size: 40px;
   font-weight: 400;
-}
+} */
 
 /* header .wallet {
   display: flex;
@@ -1247,6 +1247,13 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   position: absolute;
   width: 100vw;
   height: 100vh;
+}
+.canvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   outline: none;
 }
 .canvas.hover {
