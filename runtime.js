@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'three';
+import React from 'react';
+import ReactThreeFiber from '@react-three/fiber';
 // import {KTX2Loader} from './KTX2Loader.js';
 // import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
@@ -219,6 +221,158 @@ const loadComponentTypes = [
 const runComponentTypes = [
   'effect',
 ];
+
+function createPointerEvents(store) {
+  // const { handlePointer } = createEvents(store)
+  const handlePointer = key => e => {
+    // const handlers = eventObject.__r3f.handlers;
+    // console.log('handle pointer', key, e);
+  };
+  const names = {
+    onClick: 'click',
+    onContextMenu: 'contextmenu',
+    onDoubleClick: 'dblclick',
+    onWheel: 'wheel',
+    onPointerDown: 'pointerdown',
+    onPointerUp: 'pointerup',
+    onPointerLeave: 'pointerleave',
+    onPointerMove: 'pointermove',
+    onPointerCancel: 'pointercancel',
+    onLostPointerCapture: 'lostpointercapture',
+  }
+
+  return {
+    connected: false,
+    handlers: (Object.keys(names).reduce(
+      (acc, key) => ({ ...acc, [key]: handlePointer(key) }),
+      {},
+    )),
+    connect: (target) => {
+      const { set, events } = store.getState()
+      events.disconnect?.()
+      set((state) => ({ events: { ...state.events, connected: target } }))
+      Object.entries(events?.handlers ?? []).forEach(([name, event]) =>
+        target.addEventListener(names[name], event, { passive: true }),
+      )
+    },
+    disconnect: () => {
+      const { set, events } = store.getState()
+      if (events.connected) {
+        Object.entries(events.handlers ?? []).forEach(([name, event]) => {
+          if (events && events.connected instanceof HTMLElement) {
+            events.connected.removeEventListener(names[name], event)
+          }
+        })
+        set((state) => ({ events: { ...state.events, connected: false } }))
+      }
+    },
+  }
+}
+const _loadMetaversefile = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const j = await res.json();
+  // console.log('got metaversefile', j);
+  let {start_url, physics, physics_url, components} = j;
+  if (typeof j.autoScale === 'boolean') {
+    autoScale = j.autoScale;
+  }
+  const u = new URL(start_url, srcUrl).href;
+
+  // console.log('got start url', start_url);
+  
+  const m = await import(u);
+  const fn = m.default;
+  // console.log('got fn', fn);
+  
+  const renderer = getRenderer();
+  const sizeVector = renderer.getSize(new THREE.Vector2());
+  const rootDiv = document.createElement('div');
+  const _render = () => {
+    ReactThreeFiber.render(
+      React.createElement(fn),
+      rootDiv,
+      {
+        gl: renderer,
+        camera,
+        size: {
+          width: sizeVector.x,
+          height: sizeVector.y,
+        },
+        events: createPointerEvents,
+        onCreated: state => {
+          // state = newState;
+          // scene.add(state.scene);
+          console.log('got state', state);
+        },
+        frameloop: 'demand',
+      }
+    );
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    _render();
+  });
+  
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+    
+    (async () => {
+      const roots = ReactThreeFiber._roots;
+      const root = roots.get(rootDiv);
+      const fiber = root?.fiber
+      if (fiber) {
+        const state = root?.store.getState()
+        if (state) state.internal.active = false
+        await new Promise((accept, reject) => {
+          ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+            if (state) {
+              // setTimeout(() => {
+                state.events.disconnect?.()
+                // state.gl?.renderLists?.dispose?.()
+                // state.gl?.forceContextLoss?.()
+                ReactThreeFiber.dispose(state)
+                roots.delete(canvas)
+                // if (callback) callback(canvas)
+              // }, 500)
+            }
+            accept();
+          });
+        });
+      }
+    })();
+  };
+
+  return o;
+  /* return await runtime.loadFile({
+    url: start_url,
+    name: start_url,
+  }, {
+    parentUrl: srcUrl,
+    physics,
+    physics_url,
+    components,
+    autoScale,
+    contentId,
+    instanceId,
+    ownerAddress,
+    monetizationPointer,
+  }); */
+};
+const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  console.log('got start url', {srcUrl, parentUrl});
+  
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  return o;
+};
 
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -1786,6 +1940,8 @@ const _loadGeo = async (file, {contentId = null}) => {
 };
 
 const typeHandlers = {
+  'metaversefile': _loadMetaversefile,
+  'rtfjs': _loadRtfjs,
   'gltf': _loadGltf,
   'glb': _loadGltf,
   'vrm': _loadVrm,
