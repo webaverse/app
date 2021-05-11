@@ -130,6 +130,7 @@ const s = `\
         <canvas id="canvas" className="canvas" />
         <div className="canvas-placeholder" />
         <div className="controls">
+          <div className="top" />
           <div className="control">
             <div className="user">
               <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
