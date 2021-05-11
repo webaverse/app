@@ -211,7 +211,7 @@ export default class App extends EventTarget {
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
-      const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
+      const decapitated = controlsManager.isPossessed() && (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
       if (decapitated) {
         rigManager.localRig.decapitate();
         rigManager.localRig.aux.decapitate();
