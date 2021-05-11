@@ -77,7 +77,7 @@ class RigManager {
     this.lastTimetamp = Date.now();
   }
 
-  clear() {
+  clearAvatar() {
     if (this.localRig) {
       this.scene.remove(this.localRig);
       this.scene.add(this.localRig.textMesh);
@@ -86,7 +86,7 @@ class RigManager {
   }
 
   setDefault() {
-    this.clear();
+    this.clearAvatar();
 
     this.localRig = new Avatar(null, {
       fingers: true,
@@ -209,7 +209,7 @@ class RigManager {
     // await this.localRigQueue.lock();
 
     await this.setAvatar(this.localRig, newLocalRig => {
-      this.clear();
+      this.clearAvatar();
       this.localRig = newLocalRig;
     }, url, ext);
 
