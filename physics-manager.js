@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import uiManager from './ui-manager.js';
-import {renderer, camera, dolly} from './app-object.js';
+import {getRenderer, camera, dolly} from './app-object.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
@@ -301,6 +301,7 @@ const _applyGravity = timeDiff => {
   physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y); */
 };
 const _getAvatarWorldObject = o => {
+  const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   o.matrix.copy(camera.matrixWorld)
     // .premultiply(dolly.matrix)
@@ -333,6 +334,7 @@ const _getAvatarCapsule = v => {
 };
 physicsManager.getAvatarCapsule = _getAvatarCapsule;
 const _getAvatarCameraOffset = () => {
+  const renderer = getRenderer();
   if (renderer.xr.getSession()) {
     return zeroVector;
   } else {
@@ -497,6 +499,7 @@ const _updatePhysics = timeDiff => {
   const avatarWorldObject = _getAvatarWorldObject(localObject);
   const avatarCameraOffset = _getAvatarCameraOffset();
 
+  const renderer = getRenderer();
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
 
