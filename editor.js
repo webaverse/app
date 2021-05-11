@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactThreeFiber from '@react-three/fiber';
-import BabelStandalone from '@babel/standalone';
+import Babel from '@babel/standalone';
 import JSZip from 'jszip';
 // import {jsx} from 'jsx-tmpl';
 import {storageHost} from './constants.js';
@@ -123,20 +123,47 @@ const s = `\
 {
   const _ = React.createElement;
   const container = document.getElementById('container');
+  
+  const jsx = `
+    (() => {
+      return <div>
+        <canvas id="canvas" className="canvas" />
+        <div className="controls">
+          <div className="control">
+            <div className="user">
+              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" />
+              <div className="name">avaer</div>
+            </div>
+          </div>
+          <div className="control">
+            <video src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm" />
+            <div className="label">3P</div>
+          </div>
+          <div className="control">
+            <video
+              src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
+              autoPlay
+              muted
+              loop
+            />
+            <div className="label">3P</div>
+          </div>
+        </div>
+        <textarea id="code" className="code">
+        </textarea>
+      </div>
+    })
+  `;
+  const spec = Babel.transform(jsx, {
+    presets: ['react'],
+    // compact: false,
+  });
+  const {code} = spec;
+  const fn = eval(code);
+  console.log('got fn', fn);
+  
   ReactDOM.render(
-    _('div', {}, [
-      _('canvas', {
-        id: 'canvas',
-        className: 'canvas',
-        key: 'canvas',
-      }),
-      _('textarea', {
-        id: 'code',
-        className: 'code',
-        defaultValue: s,
-        key: 'code',
-      }),
-    ]),
+    React.createElement(fn),
     container
   );
 }
@@ -218,7 +245,7 @@ const fetchAndCompileBlob = async file => {
     script = script.replace(r, function() {
       return arguments[1] + replacements[index++] + arguments[3];
     });
-    const spec = BabelStandalone.transform(script, {
+    const spec = Babel.transform(script, {
       presets: ['react'],
       // compact: false,
     });
