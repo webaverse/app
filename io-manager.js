@@ -608,7 +608,7 @@ ioManager.bindInput = () => {
     let htmlHover;
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
-      if (object.isHtml) {
+      if (object?.isHtml) {
         htmlHover = true;
       } else {
         htmlHover = false;
