@@ -49,6 +49,7 @@ const _makeRenderer = () => {
 
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
 
+
   /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
   scene.add(ambientLight); */
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);

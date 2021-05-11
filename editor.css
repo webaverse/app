@@ -1,25 +1,58 @@
 body {
   margin: 0;
-  --size: 500px;
+  --code-size: 600px;
+  --controls-size: 100px;
 }
 .root {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
 }
 .canvas {
   position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
-  right: var(--size);
+  right: calc(var(--code-size) + var(--controls-size));
+}
+.canvas-placeholder {
+  display: flex;
+  flex: 1;
 }
 .code {
   display: none;
 }
 .CodeMirror
 {
-  position: fixed !important;
+  position: relative !important;
   top: 0;
   right: 0;
-  width: var(--size);
+  width: var(--code-size);
   height: 100vh !important;
   z-index: 1;
+}
+.controls {
+  max-width: var(--controls-size);
+  height: 100vh;
+  overflow:  hidden;
+}
+.controls .control {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.user {
+  display: flex;
+}
+.user .img {
+  width: 40px;
+  height: 40px;
+}
+.user .name {
+  font-size: 20px;
+}
+.video {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
 }
