@@ -138,7 +138,7 @@ const s = `\
               <div className="name">avaer</div>
             </div>
           </div>
-          <div className="control">
+          <div className="control" onClick={() => setCameraMode('firstperson')}>
             {/* <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
               className="video"
@@ -147,11 +147,11 @@ const s = `\
               loop
             /> */}
             <img src="/assets/video-camera.svg" className="icon" />
-            <div className="label">First person</div>
+            <div className="label">Camera</div>
           </div>
-          <div className="control">
+          <div className="control" onClick={() => setCameraMode('avatar')}>
             <img src="/assets/teleport.svg" className="icon" />
-            <div className="label">Third person</div>
+            <div className="label">Avatar</div>
           </div>
         </div>
         <textarea id="code" className="code">
@@ -159,6 +159,16 @@ const s = `\
       </div>
     })
   `;
+  let cameraMode = 'camera';
+  const setCameraMode = newCameraMode => {
+    cameraMode = newCameraMode;
+    console.log('got new camera mode', {cameraMode});
+    if (cameraMode === 'avatar') {
+      app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm');
+    } else {
+      app.setAvatarUrl(null);
+    }
+  };
   const spec = Babel.transform(jsx, {
     presets: ['react'],
     // compact: false,
