@@ -236,8 +236,9 @@ export default class App extends EventTarget {
     renderer2.render(scene2, camera);
   } */
 
-  setPossessed(possessed) {
-    controlsManager.setPossessed(possessed);
+  async setAvatarUrl(url, ext) {
+    await rigManager.setLocalAvatarUrl(url, ext);
+    controlsManager.setPossessed(!!url);
   }
   
   startLoop() {
