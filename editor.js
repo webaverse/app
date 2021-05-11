@@ -9,7 +9,6 @@ import {storageHost} from './constants.js';
 
 import App from '/app.js';
 
-const editorSize = 500;
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
   const handlePointer = key => e => {
