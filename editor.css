@@ -1,7 +1,7 @@
 body {
   margin: 0;
   --code-size: 600px;
-  --controls-size: 100px;
+  --controls-size: 130px;
 }
 .root {
   display: flex;
@@ -39,20 +39,40 @@ body {
 .controls .control {
   position: relative;
   display: flex;
+  margin: 20px;
+  padding: 5px;
+  border: 2px solid #333;
+  border-radius: 10px;
   flex-direction: column;
+  cursor: pointer;
+}
+.controls .control:hover {
+  background-color: #000;
+  border-color: transparent;
+  color: #fff;
+}
+.controls .control:hover .video {
+  mix-blend-mode: normal;
+}
+.controls .control .video {
+  width: 60px;
+  height: 100px;
+  margin: auto;
+  margin-bottom: 10px;
+  object-fit: cover;
+  border-radius: 10px;
+  mix-blend-mode: multiply;
+}
+.controls .control .label {
+  text-transform: uppercase;
 }
 .user {
   display: flex;
 }
 .user .img {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
 }
 .user .name {
   font-size: 20px;
-}
-.video {
-  width: 80px;
-  height: 100px;
-  object-fit: cover;
 }
