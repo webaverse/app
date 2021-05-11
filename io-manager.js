@@ -676,6 +676,7 @@ ioManager.bindInput = () => {
     }
   });
   window.addEventListener('resize', e => {
+    const renderer = getRenderer();
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = false;
     }
