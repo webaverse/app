@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {rigManager} from './rig.js';
-import {renderer, scene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, camera, dolly} from './app-object.js';
 import {world} from './world.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
@@ -182,6 +182,7 @@ const enterWorld = async worldSpec => {
         avatarAABB.getCenter(localVector2);
         const offset = localVector.set(-localVector2.x, -localVector2.y, -localVector2.z);
 
+        const renderer = getRenderer();
         if (renderer.xr.getSession()) {
           dolly.position.add(offset);
         } else {
