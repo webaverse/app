@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {BufferGeometryUtils} from 'three';
-import {renderer, scene} from './app-object.js';
+import {getRenderer, scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -72,6 +72,7 @@ const teleportMaterial = new THREE.MeshBasicMaterial({
 const makeTeleportMesh = (lineMesh, index) => {
   const geometry = teleportGeometry;
   const material = teleportMaterial;
+  const renderer = getRenderer();
 
   const teleportMesh = new THREE.Mesh(geometry, material);
   teleportMesh.visible = false;
