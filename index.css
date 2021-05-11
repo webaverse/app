@@ -1243,13 +1243,13 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: var(--color);
 }
 
-#canvas {
+.container {
   position: absolute;
   width: 100vw;
   height: 100vh;
   outline: none;
 }
-#canvas.hover {
+.canvas.hover {
   pointer-events: none;
 }
 .crosshair {
