@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const maxMessages = 8;
 const chatMessagesEl = document.getElementById('chat-messages');
