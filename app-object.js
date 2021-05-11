@@ -2,37 +2,65 @@ import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 
-let canvas = document.getElementById('canvas') || undefined;
-let context = canvas && canvas.getContext('webgl2', {
-  antialias: true,
-  alpha: true,
-  preserveDrawingBuffer: false,
-  xrCompatible: true,
-});
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  context,
-  antialias: true,
-  alpha: true,
-  // preserveDrawingBuffer: false,
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.autoClear = false;
-renderer.sortObjects = false;
-renderer.physicallyCorrectLights = true;
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.gammaFactor = 2.2;
-// renderer.shadowMap.enabled = true;
-// renderer.shadowMap.type = THREE.PCFShadowMap;
-if (!canvas) {
-  canvas = renderer.domElement;
+let canvas = null, context = null, renderer = null;
+function bindCanvas(c) {
+  canvas = c;
+  context = canvas && canvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: false,
+    xrCompatible: true,
+  });
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    context,
+    antialias: true,
+    alpha: true,
+    // preserveDrawingBuffer: false,
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.autoClear = false;
+  renderer.sortObjects = false;
+  renderer.physicallyCorrectLights = true;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.gammaFactor = 2.2;
+  // renderer.shadowMap.enabled = true;
+  // renderer.shadowMap.type = THREE.PCFShadowMap;
+  if (!canvas) {
+    canvas = renderer.domElement;
+  }
+  if (!context) {
+    context = renderer.getContext();
+  }
+  context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  renderer.xr.enabled = true;
+  
+  renderer.domElement.addEventListener('click', e => {
+    scene.dispatchEvent({
+      type: 'click',
+      event: e,
+      // message: 'vroom vroom!',
+    });
+  });
+  renderer.domElement.addEventListener('mousedown', e => {
+    scene.dispatchEvent({
+      type: 'mousedown',
+      event: e,
+      // message: 'vroom vroom!',
+    });
+  })
+  renderer.domElement.addEventListener('mouseup', e => {
+    scene.dispatchEvent({
+      type: 'mousedown',
+      event: e,
+      // message: 'vroom vroom!',
+    });
+  });
 }
-if (!context) {
-  context = renderer.getContext();
+function getRenderer() {
+  return renderer;
 }
-context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
@@ -170,4 +198,20 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, iframeContainer, iframeContainer2, appManager};
+export {
+  bindCanvas,
+  getRenderer,
+  scene,
+  orthographicScene,
+  avatarScene,
+  camera,
+  orthographicCamera,
+  avatarCamera,
+  dolly,
+  /*orbitControls, renderer2,*/
+  scene2,
+  scene3,
+  iframeContainer,
+  iframeContainer2,
+  appManager,
+};
