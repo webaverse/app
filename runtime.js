@@ -13,7 +13,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {renderer, camera, scene2, scene3, appManager, iframeContainer, iframeContainer2} from './app-object.js';
+import {getRenderer, camera, scene2, scene3, appManager, iframeContainer, iframeContainer2} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -751,7 +751,7 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
 };
 const _makeAppUrl = appId => {
   const s = `\
-    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+    import {getRenderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import * as THREE from ${JSON.stringify(importMap.three)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
@@ -767,6 +767,7 @@ const _makeAppUrl = appId => {
     import npc from ${JSON.stringify(importMap.npc)};
     import * as constants from ${JSON.stringify(importMap.constants)};
 
+    const _renderer = getRenderer();
     const renderer = Object.create(_renderer);
     /* renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
