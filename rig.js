@@ -208,11 +208,15 @@ class RigManager {
   async setLocalAvatarUrl(url, ext) {
     // await this.localRigQueue.lock();
 
-    this.setDefault();
-    await this.setAvatar(this.localRig, newLocalRig => {
+    if (url) {
+      this.setDefault();
+      await this.setAvatar(this.localRig, newLocalRig => {
+        this.clearAvatar();
+        this.localRig = newLocalRig;
+      }, url, ext);
+    } else {
       this.clearAvatar();
-      this.localRig = newLocalRig;
-    }, url, ext);
+    }
 
     // await this.localRigQueue.unlock();
   }
