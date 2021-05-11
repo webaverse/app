@@ -14,7 +14,7 @@ import {
   objectTextureSize,
   MAX_NAME_LENGTH, */
 } from './constants.js';
-import {renderer, scene} from './app-object.js';
+import {getRenderer, scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -344,6 +344,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
       geometry.attributes.torchLight.needsUpdate = true;
 
+      const renderer = getRenderer();
       renderer.geometries.update(geometry);
     }
   };
@@ -923,6 +924,7 @@ const geometryWorker = (() => {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    const renderer = getRenderer();
     renderer.geometries.update(geometry);
 
     geometry.boundingBox = boundingBox;
@@ -962,6 +964,7 @@ const geometryWorker = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      const renderer = getRenderer();
       renderer.geometries.update(geometry);
 
       geometry.boundingBox = boundingBox;
@@ -1016,6 +1019,7 @@ const geometryWorker = (() => {
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      const renderer = getRenderer();
       renderer.geometries.update(geometry);
 
       w.free(positionsOffset);
