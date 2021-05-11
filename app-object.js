@@ -18,8 +18,18 @@ function bindCanvas(c) {
     alpha: true,
     // preserveDrawingBuffer: false,
   });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  const container = getContainerElement();
+  const rect = container.getBoundingClientRect();
+  renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
+  renderer._setSize = renderer.setSize;
+  renderer._setPixelRatio = renderer.setPixelRatio;
+  renderer.setSize = () => {
+    //
+  };
+  renderer.setPixelRatio = () => {
+    //
+  };
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
@@ -60,6 +70,11 @@ function bindCanvas(c) {
 }
 function getRenderer() {
   return renderer;
+}
+function getContainerElement() {
+  const canvas = renderer.domElement;
+  const container = canvas.parentNode;
+  return container;
 }
 
 const scene = new THREE.Scene();
@@ -201,6 +216,7 @@ class App extends EventTarget {
 export {
   bindCanvas,
   getRenderer,
+  getContainerElement,
   scene,
   orthographicScene,
   avatarScene,
