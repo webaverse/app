@@ -96,9 +96,10 @@ body {
   display: flex;
   margin: 10px;
   padding: 5px;
-  background-color: #FFF;
+  /* background-color: #FFF; */
   border: 2px solid #333;
   border-radius: 10px;
+  color: #333;
   flex-direction: column;
   cursor: pointer;
 }
@@ -106,9 +107,6 @@ body {
   background-color: #000;
   border-color: transparent;
   color: #fff;
-}
-.controls .control:hover > .label {
-  color: #FFF;
 }
 .controls .control:hover .video {
   mix-blend-mode: normal;
@@ -135,12 +133,12 @@ body {
   width: 60px;
   height: 60px;
   margin: auto;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  filter: invert(15%) sepia(1%) saturate(0%) hue-rotate(358deg) brightness(103%) contrast(87%);
 }
 .controls .control > .label {
   font-family: 'FuturaStd-Heavy';
-  font-size: 13px;
-  color: #AAA;
+  font-size: 11px;
   text-transform: uppercase;
 }
 .user {
