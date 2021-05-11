@@ -5,7 +5,7 @@ import {buildMaterial} from './shaders.js';
 import geometryManager from './geometry-manager.js';
 import {updateGrabbedObject, snapPosition, snapRotation} from './util.js';
 import {baseUnit} from './constants.js';
-import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, scene, camera, dolly} from './app-object.js';
 
 const texBase = 'vol_2_2';
 
