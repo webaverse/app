@@ -242,6 +242,9 @@ export default class App extends EventTarget {
     }
     controlsManager.setPossessed(!!url);
   }
+  setPossessed(possessed) {
+    controlsManager.setPossessed(possessed);
+  }
   
   startLoop() {
     const renderer = getRenderer();
