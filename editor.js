@@ -5,6 +5,7 @@ import ReactThreeFiber from '@react-three/fiber';
 import Babel from '@babel/standalone';
 import JSZip from 'jszip';
 // import {jsx} from 'jsx-tmpl';
+import {world} from './world.js';
 import {storageHost} from './constants.js';
 
 import App from '/app.js';
@@ -395,9 +396,10 @@ const uploadFiles = async files => {
   const rootDirectory = hashes.find(h => h.name === '');
   console.log('got hashes', {rootDirectory, hashes});
   const rootDirectoryHash = rootDirectory.hash;
-  const ipfsUrl = `${storageHost}/ipfs/${rootDirectoryHash}/${start_url}`;
+  return rootDirectoryHash;
+  /* const ipfsUrl = `${storageHost}/ipfs/${rootDirectoryHash}`;
   console.log('got ipfs url', ipfsUrl);
-  return ipfsUrl;
+  return ipfsUrl; */
 };
 let rootDiv = null;
 // let state = null;
@@ -467,12 +469,24 @@ const loadText = async () => {
     type: 'application/javascript',
   });
   // const u = URL.createObjectUrl(b);
-  b.name = 'index.js';
+  b.name = 'index.rtfjs';
   const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
-  const u = await uploadFiles(files);
-  console.log('load text', u);
-  const el = await loadModule(u);
+  const hash = await uploadFiles(files);
+  console.log('load hash', hash);
+  // const el = await loadModule(u);
+
+  const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+  const position = new THREE.Vector3();
+  const quaternion  = new THREE.Quaternion();
+  const o = await world.addObject(u, null, position, quaternion, {
+    // physics,
+    // physics_url,
+    // autoScale,
+  });
+  /* if (autoRun && o.useAux) {
+    o.useAux(rigManager.localRig.aux);
+  } */
 };
 const uploadNft = async () => {
   console.log('upload nft');
@@ -486,7 +500,8 @@ const uploadNft = async () => {
   b.name = url;
   const zipData = await fetchAndCompileBlob(b);
   const files = await fetchZipFiles(zipData);
-  const u = await uploadFiles(files);
+  const hash = await uploadFiles(files);
+  const u = `${storageHost}/ipfs/${hash}/chest-rtfjs/index.js`;
   const el = await loadModule(u);
   console.log('done render', el);
 })();
