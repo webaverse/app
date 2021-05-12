@@ -50,6 +50,7 @@
 body {
   margin: 0;
   --code-size: 600px;
+  --files-size: 200px;
   --controls-size: 130px;
   font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif
 }
@@ -86,7 +87,7 @@ body {
 .controls {
   position: absolute;
   top: 0;
-  right: var(--code-size);
+  right: calc(var(--code-size) + var(--files-size));
   display: flex;
   max-width: var(--controls-size);
   height: 100vh;
