@@ -222,6 +222,7 @@ body {
   height: 100vh;
   flex-direction: column;
   background: linear-gradient(to right, #eee, #FFF);
+  border-left: 3px solid #333;
 }
 .header {
   display: flex;
@@ -239,9 +240,8 @@ body {
   border: 2px solid currentColor;
   border-radius: 5px;
   /* color: #FFF; */
-  font-size: 12px;
-  font-family: 'MS-Gothic';
-  text-transform: uppercase;
+  font-size: 13px;
+  font-family: 'FuturaStd-Heavy';
 }
 .header .button, 
 .header .icon-button
@@ -270,6 +270,7 @@ body {
   align-items: center;
   font-family: 'FuturaStd-Heavy';
   font-size: 13px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
   user-select: none;
