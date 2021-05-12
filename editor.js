@@ -137,9 +137,20 @@ const bindTextarea = codeEl => {
       },
     },
   });
-  editor.display.wrapper.addEventListener('wheel', e => {
-    e.stopPropagation();
-  });
+  {
+    const stopPropagation = e => {
+      e.stopPropagation();
+    };
+    [
+      'wheel',
+      'keydown',
+      'keypress',
+      'keyup',
+      'paste',
+    ].forEach(n => {
+      editor.display.wrapper.addEventListener(n, stopPropagation);
+    });
+  }
   // console.log('got editor', editor);
   editor.setOption('theme', 'material-ocean');
   /* editor.on('keydown', e => {
