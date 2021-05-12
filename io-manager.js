@@ -718,12 +718,15 @@ ioManager.bindInput = () => {
       }
     }
   });
+  window.addEventListener('wheel', e => {
+    // console.log('target', e.target);
+    const renderer = getRenderer();
+    if (renderer && e.target === renderer.domElement) {
+      cameraManager.handleWheelEvent(e);
+    }
+  }, {
+    passive: false,
+  });
 };
-
-window.addEventListener('wheel', e => {
-  cameraManager.handleWheelEvent(e);
-}, {
-  passive: false,
-});
 
 export default ioManager;
