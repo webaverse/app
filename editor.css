@@ -99,9 +99,9 @@ body {
   display: flex;
   flex-direction: column;
 }
-.controls .bottom {
+/* .controls .bottom {
   align-items: flex-end;
-}
+} */
 .controls .control {
   position: relative;
   display: flex;

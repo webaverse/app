@@ -314,10 +314,10 @@ const bindTextarea = codeEl => {
               </div> */}
             </div>
             <div className="bottom">
-              <div className="control" onClick={() => reset()}>
+              {/* <div className="control" onClick={() => reset()}>
                 <img src="/assets/new-shoot.svg" className="icon" />
                 <div className="label">Reset</div>
-              </div>
+              </div> */}
               <div className="control" onClick={() => setCameraMode('firstperson')}>
                 {/* <video
                   src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
