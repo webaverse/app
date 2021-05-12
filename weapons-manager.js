@@ -1659,17 +1659,13 @@ window.document.addEventListener('drop', async e => {
   e.preventDefault();
   
   const renderer = getRenderer();
-  // console.log('got drop', e.target, renderer.domElement, e.target === renderer.domElement);
   if (renderer && e.target === renderer.domElement) {
     const s = e.dataTransfer.getData('application/json');
     if (s) {
       const j = JSON.parse(s);
-      // console.log('got j', j);
       const {hash, ext} = j;
 
       const rect = renderer.domElement.getBoundingClientRect();
-      // const x = (e.clientX - rect.x) / rect.width;
-      // const y = (e.clientY - rect.y) / rect.height;
       localVector2D.set(
         ( e.clientX / rect.width ) * 2 - 1,
         - ( e.clientY / rect.height ) * 2 + 1
