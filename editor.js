@@ -248,6 +248,10 @@ const bindTextarea = codeEl => {
       const Scene = React.memo(({cards, objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="section details">
+              <img src="/assets/cards-placeholder.png" className="section-icon" />
+              <div className="h1">Click to select</div>
+            </div>
             <div className="section objects">
               {objects.map((object, i) => {
                 return (
