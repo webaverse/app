@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import React from 'react';
-const {Fragment, useState} = React;
+const {Fragment, useState, useEffect, useRef} = React;
 import ReactDOM from 'react-dom';
 import ReactThreeFiber from '@react-three/fiber';
 import Babel from '@babel/standalone';
@@ -121,6 +121,33 @@ const s = `\
   };
   export default render;
 `;
+const bindTextarea = codeEl => {
+  const editor = CodeMirror.fromTextArea(codeEl, {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    lineWrapping: true,
+    extraKeys: {
+      'Ctrl-S': function(cm) {
+        run();
+      },
+      'Ctrl-L': function(cm) {
+        mintNft();
+      },
+    },
+  });
+  editor.display.wrapper.addEventListener('wheel', e => {
+    e.stopPropagation();
+  });
+  console.log('got editor', editor);
+  editor.setOption('theme', 'material-ocean');
+  /* editor.on('keydown', e => {
+    if (e.ctrlKey && e.which === 83) { // ctrl-s
+      console.log('got save', e);
+      e.preventDefault();
+    }
+  }); */
+};
 {
   const _ = React.createElement;
   const container = document.getElementById('container');
@@ -129,6 +156,47 @@ const s = `\
     (() => {
       const [open, setOpen] = useState(true);
       const [selectedTab, setSelectedTab] = useState('editor');
+      
+      const Textarea = () => {
+        const el = useRef();
+        useEffect(() => {
+          el.current.innerHTML = s;
+          bindTextarea(el.current);
+        }, []);
+        
+        return (
+          <textarea className="section code" ref={el} id="code"></textarea>
+        );
+      };
+      const Editor = ({open}) => {
+        return (
+          <div className={['page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="section files">
+              <div className="file selected">
+                <div className="file-inner">.metaversefile</div>
+              </div>
+              <div className="file">
+                <div className="file-inner">index.rtfjs</div>
+              </div>
+            </div>
+            <Textarea />
+          </div>
+        );
+      };
+      const Scene = ({open}) => {
+        return (
+          <div className={['page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="section objects">
+              <div className="object selected">
+                <div className="object-inner">[edited nft]</div>
+              </div>
+              <div className="object">
+                <div className="object-inner">Box</div>
+              </div>
+            </div>
+          </div>
+        );
+      };
       
       return <div className="root">
         <div className="canvas-placeholder">
@@ -208,17 +276,12 @@ const s = `\
               <option value="3d-model">3D model</option>
             </select>
           </div>
-          <div className="sections">
-            <div className="section files">
-              <div className="file selected">
-                <div className="file-inner">.metaversefile</div>
-              </div>
-              <div className="file">
-                <div className="file-inner">index.rtfjs</div>
-              </div>
-            </div>
-            <textarea className="section code" id="code"></textarea>
-          </div>
+          <Editor
+            open={selectedTab === 'editor'}
+          />
+          <Scene
+            open={selectedTab === 'scene'}
+          />
         </div>
       </div>
     })
@@ -382,34 +445,6 @@ const fetchZipFiles = async zipData => {
   }));
   return files;
 };
-
-const codeEl = document.getElementById('code');
-codeEl.innerHTML = s;
-const editor = CodeMirror.fromTextArea(codeEl, {
-  lineNumbers: true,
-  styleActiveLine: true,
-  matchBrackets: true,
-  lineWrapping: true,
-  extraKeys: {
-    'Ctrl-S': function(cm) {
-      run();
-    },
-    'Ctrl-L': function(cm) {
-      mintNft();
-    },
-  },
-});
-editor.display.wrapper.addEventListener('wheel', e => {
-  e.stopPropagation();
-});
-console.log('got editor', editor);
-editor.setOption('theme', 'material-ocean');
-/* editor.on('keydown', e => {
-  if (e.ctrlKey && e.which === 83) { // ctrl-s
-    console.log('got save', e);
-    e.preventDefault();
-  }
-}); */
 
 const isDirectoryName = fileName => /\/$/.test(fileName);
 const uploadFiles = async files => {
