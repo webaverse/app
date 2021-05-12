@@ -179,7 +179,9 @@ body {
   flex-direction: column;
   flex: 1;
 }
-.files .file {
+.files .file,
+.objects .object
+{
   padding: 1px 2px;
   color: #999;
   pointer: default;
@@ -333,6 +335,6 @@ body {
   color: #FFF;
   overflow: hidden;
 }
-.objects .object {
+/* .objects .object {
   padding: 5px 10px;
-}
+} */
