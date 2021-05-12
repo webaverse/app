@@ -128,6 +128,7 @@ const s = `\
   const jsx = `
     (() => {
       const [open, setOpen] = useState(true);
+      const [selectedTab, setSelectedTab] = useState('editor');
       
       return <div className="root">
         <div className="canvas-placeholder">
@@ -166,11 +167,11 @@ const s = `\
         </div>
         <div className="right">
           <div className="header">
-            <nav className="tab selected">
+            <nav className={['tab', selectedTab === 'editor' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('editor')}>
               <img src="/assets/noun_Plus_950.svg" className="icon" />
               <div className="label">Editor</div>
             </nav>
-            <nav className="tab">
+            <nav className={['tab', selectedTab === 'scene' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('scene')}>
               <img src="/assets/noun_Plus_950.svg" className="icon" />
               <div className="label">Scene</div>
             </nav>
