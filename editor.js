@@ -172,7 +172,19 @@ const bindTextarea = codeEl => {
       }, []);
       
       useEffect(async () => {
-        setObjects(world.getObjects());
+        const objects = world.getObjects();
+        setObjects(objects);
+        
+        const _objectsupdate = e => {
+          const objects = world.getObjects();
+          setObjects(objects);
+        };
+        world.addEventListener('objectsadd', _objectsupdate);
+        world.addEventListener('objectsremove', _objectsupdate);
+        return () => {
+          world.removeEventListener('objectsadd', _objectsupdate);
+          world.removeEventListener('objectsremove', _objectsupdate);
+        };
       }, []);
       
       const Textarea = () => {
@@ -240,7 +252,7 @@ const bindTextarea = codeEl => {
                     onClick={e => setSelectedObjectIndex(i)}
                     key={i}
                   >
-                    <div className="object-inner">{object.name}</div>
+                    <div className="object-inner">{object.contentId.match(/([^\/]*)$/)[1]}</div>
                   </div>
                 );
               })}
