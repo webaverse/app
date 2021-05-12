@@ -174,7 +174,9 @@ const bindTextarea = codeEl => {
     });
   }
   // console.log('got editor', editor);
-  editor.setOption('theme', 'material-ocean');
+  editor.setOption('theme', 'material');
+  // editor.setOption('theme', 'material-ocean');
+  // editor.setOption('theme', 'icecoder');
   /* editor.on('keydown', e => {
     if (e.ctrlKey && e.which === 83) { // ctrl-s
       console.log('got save', e);
