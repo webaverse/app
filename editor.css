@@ -153,6 +153,21 @@ body {
   font-size: 20px;
 }
 
+.middle {
+  position: absolute;
+  top: 0;
+  right: var(--code-size);
+  /* width: 200px; */
+}
+
+.icon-button {
+}
+.icon-button .icon {
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+}
+
 .right {
   display: flex;
   flex-direction: column;
@@ -162,10 +177,10 @@ body {
   padding: 10px;
   background: linear-gradient(to bottom, #333, #111);
   color: #FFF;
+  align-items: center;
 }
 .header .button {
   display: flex;
-  margin-right: 5px;
   align-items: center;
   background: transparent;
   border: 2px solid currentColor;
@@ -174,10 +189,17 @@ body {
   font-size: 12px;
   /* font-family: 'GillSans'; */
   text-transform: uppercase;
-  opacity: 0.7;
-  cursor: pointer;
 }
-.header .button:hover {
+.header .button, 
+.header .icon-button
+{
+  margin-right: 5px; 
+  cursor: pointer;
+  opacity: 0.7;
+}
+.header .button:hover,
+.header .icon-button:hover
+{
   opacity: 1;
 }
 .header .button .icon {
