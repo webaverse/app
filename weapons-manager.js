@@ -1675,9 +1675,11 @@ window.document.addEventListener('drop', async e => {
         - ( e.clientY / rect.height ) * 2 + 1
       );
       localRaycaster.setFromCamera(localVector2D, camera);
-      const quaternion = localQuaternion.setFromUnitVectors(
-        localVector2.set(0, 0, -1),
-        localRaycaster.ray.direction
+        const quaternion = localQuaternion.setFromRotationMatrix(localMatrix.lookAt(
+          localVector2.set(0, 0, 0),
+          localRaycaster.ray.direction,
+          localVector3.set(0, 1, 0)
+        )
       );
       const position = localVector.copy(localRaycaster.ray.origin)
         .add(
