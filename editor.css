@@ -297,9 +297,20 @@ body {
 }
 .cards .card {
   display: flex;
+  padding: 2px;
 }
 .cards .card .img {
-  --card-size: 80px;
+  --card-size: 50px;
   width: var(--card-size);
   height: calc(var(--card-size) / 2.5 * 3.5);
+  margin-right: 5px;
+}
+.cards .card .inner {
+  display: flex;
+  padding: 10px;
+  flex: 1;
+  border-radius: 5px;
+}
+.cards .card:hover .inner {
+  background-color: #e0e0e0;
 }
