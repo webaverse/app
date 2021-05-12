@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'GLTFLoader';
 import {OrbitControls} from 'OrbitControls';
 import {VOXLoader} from 'VOXLoader';
-import {parseQuery} from './util.js';
+import {world} from './world.js';
+import {parseQuery, addDefaultLights} from './util.js';
 import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
-import {addDefaultLights} from './util.js';
 import extractPeaks from './webaudio-peaks.js';
+
+import App from '/app.js';
 
 const _loadVrm = async src => {
   let o;
@@ -85,18 +87,47 @@ window.onload = async () => {
     src,
   }) => {
     console.log('load metaversefile');
-    /* const img = new Image();
-    img.classList.add('content');
-    img.classList.add('img');
-    _setContainerContent(img);
 
-    await new Promise((accept, reject) => {
-      img.onload = () => {
-        accept();
-      };
-      img.onerror = reject;
-      img.src = src;
-    }); */
+    const container = document.getElementById('container2');
+    container2.classList.remove('hidden');
+
+    const app = new App();
+    // app.bootstrapFromUrl(location);
+    app.bindLogin();
+    app.bindInput();
+    app.bindInterface();
+    const canvas = document.getElementById('canvas');
+    app.bindCanvas(canvas);
+    
+    await app.waitForLoad();    
+    app.contentLoaded = true;
+    app.startLoop();
+    
+    const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+    const position = new THREE.Vector3();
+    const quaternion  = new THREE.Quaternion();
+    const loadedObject = await world.addObject(u, null, position, quaternion, {
+      // physics,
+      // physics_url,
+      // autoScale,
+    });
+
+    /* let loadedObject = null;
+    const loadHash = async hash => {
+      if (loadedObject) {
+        await world.removeObject(loadedObject.instanceId);
+        loadedObject = null;
+      }
+
+      const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+      const position = new THREE.Vector3();
+      const quaternion  = new THREE.Quaternion();
+      loadedObject = await world.addObject(u, null, position, quaternion, {
+        // physics,
+        // physics_url,
+        // autoScale,
+      });
+    }; */
   };
   const imageHandler = async ({
     src,
