@@ -88,10 +88,10 @@ body {
 .controls {
   position: absolute;
   top: 0;
+  bottom: 300px;
   right: calc(var(--code-size) + var(--files-size));
   display: flex;
   max-width: var(--controls-size);
-  height: 100vh;
   flex-direction: column;
 }
 .controls > .top,
@@ -303,7 +303,7 @@ body {
 .cards {
   display: flex;
   height: 300px;
-  background-color: #111;
+  background-color: #e0e0e0;
   flex-wrap: wrap;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -311,7 +311,8 @@ body {
 .cards .card {
   display: flex;
   padding: 2px;
-  color: #FFF;
+  /* color: #FFF; */
+  font-family: 'MS-Gothic';
   cursor: pointer;
   user-select: none;
 }
@@ -319,17 +320,24 @@ body {
   --card-size: 50px;
   width: var(--card-size);
   height: calc(var(--card-size) / 2.5 * 3.5);
-  margin-right: 5px;
+  margin: auto;
 }
 .cards .card .inner {
   display: flex;
+  width: 100px;
+  height: 100px;
   padding: 10px;
   flex: 1;
-  background-color: #222;
+  background-color: #FFF;
+  /* background-image: radial-gradient(#7986cb, #3949ab); */
   border-radius: 5px;
+  flex-direction: column;
+  justify-content: center;
+  /* align-items: center; */
 }
 .cards .card:hover .inner {
   background-color: #5c6bc0;
+  color: #FFF;
 }
 
 .objects {
