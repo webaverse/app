@@ -287,3 +287,19 @@ body {
 .page:not(.open) {
   display: none;
 }
+
+.scene {
+  overflow: hidden;
+}
+.cards {
+  width: 200px;
+  overflow: scroll;
+}
+.cards .card {
+  display: flex;
+}
+.cards .card .img {
+  --card-size: 80px;
+  width: var(--card-size);
+  height: calc(var(--card-size) / 2.5 * 3.5);
+}
