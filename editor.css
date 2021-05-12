@@ -327,4 +327,5 @@ body {
   flex-direction: column;
   background-color: #333;
   color: #FFF;
+  overflow: hidden;
 }
