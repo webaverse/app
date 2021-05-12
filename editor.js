@@ -401,7 +401,7 @@ const uploadFiles = async files => {
   console.log('got ipfs url', ipfsUrl);
   return ipfsUrl; */
 };
-let rootDiv = null;
+/* let rootDiv = null;
 // let state = null;
 const loadModule = async u => {
   const m = await import(u);
@@ -460,7 +460,7 @@ const loadModule = async u => {
       }
     );
   });
-};
+}; */
 // const selectedType = 'rtfjs'; // XXX implement a real selector
 const uploadHash = async () => {
   const s = editor.getValue();
