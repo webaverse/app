@@ -350,11 +350,32 @@ body {
 
 .objects {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  width: 200px;
   /* background-color: #333;
   color: #FFF; */
   overflow: hidden;
+}
+.details {
+  display: flex;
+  /* background-color: #333; */
+  color: #333;
+  flex: 1;
+  flex-direction: column;
+}
+.details .section-icon {
+  --size: 150px;
+  width: var(--size);
+  height: calc(var(--size) / 2.5 * 3.5);
+  margin: 20px;
+  opacity: 0.5;
+}
+.details .h1 {
+  margin: 0 20px;
+  font-size: 20px;
+}
+.details .p {
+  
 }
 
 .root > .left,
@@ -372,28 +393,5 @@ body {
   height: 100%;
 }
 .root > .left > .bottom {
-  
-}
-/* .objects .object {
-  padding: 5px 10px;
-} */
-
-.details {
-  display: flex;
-  /* background-color: #333; */
-  color: #333;
-  flex-direction: column;
-}
-.details .section-icon {
-  --size: 150px;
-  width: var(--size);
-  height: calc(var(--size) / 2.5 * 3.5);
-  margin: 20px;
-}
-.details .h1 {
-  margin: 0 20px;
-  font-size: 20px;
-}
-.details .p {
   
 }
