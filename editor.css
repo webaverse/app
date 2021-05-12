@@ -193,7 +193,9 @@ body {
   padding: 5px 10px;
   border-radius: 5px;
 }
-.files .file:not(.selected) {
+.files .file:not(.selected),
+.objects .object:not(.selected)
+{
   cursor: pointer;
 }
 .files .file.selected .file-inner,
