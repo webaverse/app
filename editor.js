@@ -121,8 +121,9 @@ const s = `\
   };
   export default render;
 `;
+let editor = null;
 const bindTextarea = codeEl => {
-  const editor = CodeMirror.fromTextArea(codeEl, {
+  editor = CodeMirror.fromTextArea(codeEl, {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
@@ -139,7 +140,7 @@ const bindTextarea = codeEl => {
   editor.display.wrapper.addEventListener('wheel', e => {
     e.stopPropagation();
   });
-  console.log('got editor', editor);
+  // console.log('got editor', editor);
   editor.setOption('theme', 'material-ocean');
   /* editor.on('keydown', e => {
     if (e.ctrlKey && e.which === 83) { // ctrl-s
@@ -170,7 +171,7 @@ const bindTextarea = codeEl => {
       };
       const Editor = ({open}) => {
         return (
-          <div className={['page', open ? 'open' : '', 'sections'].join(' ')}>
+          <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section files">
               <div className="file selected">
                 <div className="file-inner">.metaversefile</div>
@@ -183,9 +184,43 @@ const bindTextarea = codeEl => {
           </div>
         );
       };
-      const Scene = ({open}) => {
+      const MiniCard = ({
+        url,
+        img,
+        name,
+      }) => {
+        // console.log('render url', {url, img, name});
         return (
-          <div className={['page', open ? 'open' : '', 'sections'].join(' ')}>
+          <nav className="card">
+            <img src={img} className="img" />
+            <div className="name">{name}</div>
+          </nav>
+        );
+      };
+      const Scene = ({open}) => {
+        const [cards, setCards] = useState([]);
+        
+        useEffect(async () => {
+          const res = await fetch('https://tokens.webaverse.com/1-100');
+          const j = await res.json();
+          setCards(j);
+        }, []);
+        
+        return (
+          <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="section cards">
+              {cards.map((card, i) => {
+                const img = "https://card-preview.exokit.org/?w=80&ext=jpg&t=" + card.id;
+                return (
+                  <MiniCard
+                    hash={card.hash}
+                    img={img}
+                    name={card.name}
+                    key={i}
+                  />
+                );
+              })}
+            </div>
             <div className="section objects">
               <div className="object selected">
                 <div className="object-inner">[edited nft]</div>
