@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import React from 'react';
+const {Fragment, useState} = React;
 import ReactDOM from 'react-dom';
 import ReactThreeFiber from '@react-three/fiber';
 import Babel from '@babel/standalone';
@@ -126,6 +127,8 @@ const s = `\
   
   const jsx = `
     (() => {
+      const [open, setOpen] = useState(false);
+      
       return <div className="root">
         <div className="canvas-placeholder">
           <canvas id="canvas" className="canvas" />
@@ -159,32 +162,46 @@ const s = `\
           </div>
         </div>
         <div className="middle">
-          <div className="header">
-            <div className="icon-button">
-              <img src="/assets/chevron-right.svg" className="icon" />
-            </div>
-            <button className="button">
-              <img src="/assets/noun_Plus_950.svg" className="icon" />
-              <div className="label">New file</div>
-            </button>
-            <button className="button">
-              <img src="/assets/family-tree.svg" className="icon" />
-              <div className="label">Import URL...</div>
-            </button>
-            <select name="nfttype" id="nfttype">
-              <option value="react-three-fiber">react-three-fiber</option>
-              <option value="threejs">three.js</option>
-              <option value="3d-model">3D model</option>
-            </select>
-          </div>
-          <div className="files">
-            <div className="file selected">
-              <div className="file-inner">.metaversefile</div>
-            </div>
-            <div className="file">
-              <div className="file-inner">index.rtfjs</div>
-            </div>
-          </div>
+          {open ?
+            <Fragment>
+              <div className="header">
+                <div className="icon-button" onClick={() => setOpen(!open)}>
+                  <img src="/assets/chevron-right.svg" className="icon" />
+                </div>
+                <button className="button">
+                  <img src="/assets/noun_Plus_950.svg" className="icon" />
+                  <div className="label">New file</div>
+                </button>
+                <button className="button">
+                  <img src="/assets/family-tree.svg" className="icon" />
+                  <div className="label">Import URL...</div>
+                </button>
+                <select name="nfttype" id="nfttype">
+                  <option value="react-three-fiber">react-three-fiber</option>
+                  <option value="threejs">three.js</option>
+                  <option value="3d-model">3D model</option>
+                </select>
+              </div>
+              <div className="files">
+                <div className="file selected">
+                  <div className="file-inner">.metaversefile</div>
+                </div>
+                <div className="file">
+                  <div className="file-inner">index.rtfjs</div>
+                </div>
+              </div>
+            </Fragment>
+          :
+            <Fragment>
+              <div className="header">
+                <div className="icon-button" onClick={() => setOpen(!open)}>
+                  <img src="/assets/chevron-left.svg" className="icon" />
+                </div>
+              </div>
+              <div className="files">
+              </div>
+            </Fragment>
+          }
         </div>
         <div className="right">
           <div className="header">
