@@ -245,6 +245,13 @@ app.waitForLoad()
     app.startLoop();
   });
 
+// make sure to update renderer when canvas size changes
+const ro = new ResizeObserver(entries => {
+  const resizeEvent = new UIEvent('resize');
+  window.dispatchEvent(resizeEvent);
+});
+ro.observe(canvas);
+
 const renderer = app.getRenderer();
 const scene = app.getScene();
 const camera = app.getCamera();
