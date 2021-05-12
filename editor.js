@@ -437,7 +437,7 @@ const bindTextarea = codeEl => {
   });
   const {code} = spec;
   const fn = eval(code);
-  console.log('got fn', fn);
+  // console.log('got fn', fn);
   
   ReactDOM.render(
     React.createElement(fn),
@@ -623,7 +623,7 @@ const uploadFiles = async files => {
       );
       directoryMap[p] = true;
     } else {
-      console.log('append file', name);
+      // console.log('append file', name);
       fd.append(name, file.data, basename);
     }
   }
