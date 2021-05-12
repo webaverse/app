@@ -134,31 +134,34 @@ const s = `\
           <canvas id="canvas" className="canvas" />
         </div>
         <div className="controls">
-          <div className="top" />
-          <div className="control">
-            <div className="user">
-              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
-              <div className="name">avaer</div>
+          <div className="top">
+            <div className="control">
+              <div className="user">
+                <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
+                <div className="name">avaer</div>
+              </div>
             </div>
           </div>
-          <div className="control" onClick={() => reset()}>
-            <img src="/assets/new-shoot.svg" className="icon" />
-            <div className="label">Reset</div>
-          </div>
-          <div className="control" onClick={() => setCameraMode('firstperson')}>
-            {/* <video
-              src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
-              className="video"
-              autoPlay
-              muted
-              loop
-            /> */}
-            <img src="/assets/video-camera.svg" className="icon" />
-            <div className="label">Camera</div>
-          </div>
-          <div className="control" onClick={() => setCameraMode('avatar')}>
-            <img src="/assets/teleport.svg" className="icon" />
-            <div className="label">Avatar</div>
+          <div className="bottom">
+            <div className="control" onClick={() => reset()}>
+              <img src="/assets/new-shoot.svg" className="icon" />
+              <div className="label">Reset</div>
+            </div>
+            <div className="control" onClick={() => setCameraMode('firstperson')}>
+              {/* <video
+                src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
+                className="video"
+                autoPlay
+                muted
+                loop
+              /> */}
+              <img src="/assets/video-camera.svg" className="icon" />
+              <div className="label">Camera</div>
+            </div>
+            <div className="control" onClick={() => setCameraMode('avatar')}>
+              <img src="/assets/teleport.svg" className="icon" />
+              <div className="label">Avatar</div>
+            </div>
           </div>
         </div>
         <div className="middle">
