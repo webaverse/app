@@ -57,6 +57,7 @@ body {
   display: flex;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
 .canvas {
   position: absolute;
@@ -163,16 +164,17 @@ body {
   font-size: 14px;
 }
 
-.middle {
+/* .middle {
   position: absolute;
   top: 0;
   bottom: 0;
   right: var(--code-size);
-  /* width: 200px; */
   background-color: #333;
-}
+} */
 .files {
   display: flex;
+  width: 200px;
+  background-color: #333;
   flex-direction: column;
   flex: 1;
 }
@@ -243,4 +245,37 @@ body {
   height: 20px;
   margin-right: 5px;
   filter: invert(1);
+}
+
+.header .tab {
+  display: flex;
+  height: 100%;
+  padding: 10px;
+  border-bottom: 3px solid transparent;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.header .tab.selected {
+  border-color: currentColor;
+  cursor: default;
+}
+.header .tab:hover,
+.header .tab.selected {
+  color: #5c6bc0;
+}
+.header .tab .icon {
+  display: none;
+}
+
+.header .user {
+  margin-left: auto;
+}
+
+.sections {
+  display: flex;
+}
+.sections .section {
+  display: flex;
+  flex-direction: column;
 }
