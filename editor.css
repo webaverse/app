@@ -293,13 +293,14 @@ body {
 }
 .cards {
   width: 200px;
-  background: linear-gradient(to right, #fff, #e0e0e0);
+  background-color: #111;
   overflow-x: hidden;
   overflow-y: scroll;
 }
 .cards .card {
   display: flex;
   padding: 2px;
+  color: #FFF;
   cursor: pointer;
   user-select: none;
 }
@@ -313,8 +314,17 @@ body {
   display: flex;
   padding: 10px;
   flex: 1;
+  background-color: #222;
   border-radius: 5px;
 }
 .cards .card:hover .inner {
-  background-color: #e0e0e0;
+  background-color: #5c6bc0;
+}
+
+.objects {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  background-color: #333;
+  color: #FFF;
 }
