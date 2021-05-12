@@ -158,13 +158,21 @@ const bindTextarea = codeEl => {
       const [open, setOpen] = useState(true);
       const [selectedTab, setSelectedTab] = useState('editor');
       const [cards, setCards] = useState([]);
+      const [objects, setObjects] = useState([]);
+      const [selectedObjectIndex, setSelectedObjectIndex] = useState(-1);
       
       const width = 50;
+      
+      console.log('set objects', objects);
       
       useEffect(async () => {
         const res = await fetch('https://tokens.webaverse.com/1-100');
         const j = await res.json();
         setCards(j);
+      }, []);
+      
+      useEffect(async () => {
+        setObjects(world.getObjects());
       }, []);
       
       const Textarea = () => {
@@ -225,12 +233,17 @@ const bindTextarea = codeEl => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section objects">
-              <div className="object selected">
-                <div className="object-inner">[edited nft]</div>
-              </div>
-              <div className="object">
-                <div className="object-inner">Box</div>
-              </div>
+              {objects.map((object, i) => {
+                return (
+                  <div
+                    className={['object', selectedObjectIndex === i ? 'selected' : ''].join(' ')}
+                    onClick={e => setSelectedObjectIndex(i)}
+                    key={i}
+                  >
+                    <div className="object-inner">{object.name}</div>
+                  </div>
+                );
+              })}
             </div>
             <div className="section cards">
               {cards.map((card, i) => {
