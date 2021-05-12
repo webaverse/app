@@ -217,9 +217,13 @@ const _updateIo = timeDiff => {
         }
       }
     } else {
+      direction.applyQuaternion(camera.quaternion);
       _updateVertical();
+      direction
+        .normalize()
+        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1))
 
-      camera.position.add(direction.normalize().multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1)).applyQuaternion(camera.quaternion));
+      camera.position.add(direction);
       camera.updateMatrixWorld();
     }
   }
