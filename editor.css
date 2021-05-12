@@ -176,7 +176,7 @@ body {
 .files {
   display: flex;
   width: 200px;
-  background-color: #333;
+  /* background-color: #333; */
   flex-direction: column;
   flex: 1;
 }
@@ -184,7 +184,7 @@ body {
 .objects .object
 {
   padding: 1px 2px;
-  color: #999;
+  color: #333;
   pointer: default;
   user-select: none;
 }
@@ -205,7 +205,7 @@ body {
 .objects .object:hover .object-inner
 {
   background-color: #111;
-  color: #5c6bc0;
+  color: #7986cb;
 }
 
 .icon-button {
@@ -219,13 +219,17 @@ body {
 .right {
   display: flex;
   width: 800px;
+  height: 100vh;
   flex-direction: column;
+  background: linear-gradient(to right, #eee, #FFF);
 }
 .header {
   display: flex;
   padding: 10px;
-  background: linear-gradient(to bottom, #333, #111);
-  color: #FFF;
+  /* background: linear-gradient(to bottom, #333, #111);
+  color: #FFF; */
+  align-items: center;
+  /* border-bottom: 2px solid #d8d8d8; */
   align-items: center;
 }
 .header .button {
@@ -234,9 +238,9 @@ body {
   background: transparent;
   border: 2px solid currentColor;
   border-radius: 5px;
-  color: #FFF;
+  /* color: #FFF; */
   font-size: 12px;
-  /* font-family: 'GillSans'; */
+  font-family: 'MS-Gothic';
   text-transform: uppercase;
 }
 .header .button, 
@@ -255,15 +259,18 @@ body {
   width: 20px;
   height: 20px;
   margin-right: 5px;
-  filter: invert(1);
+  /* filter: invert(1); */
 }
 
 .header .tab {
   display: flex;
   height: 100%;
   padding: 10px;
-  border-bottom: 3px solid transparent;
+  /* border-bottom: 3px solid transparent; */
   align-items: center;
+  font-family: 'FuturaStd-Heavy';
+  font-size: 13px;
+  text-transform: uppercase;
   cursor: pointer;
   user-select: none;
 }
@@ -298,6 +305,7 @@ body {
 }
 
 .scene {
+  flex: 1;
   overflow: hidden;
 }
 .cards {
@@ -344,8 +352,8 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  background-color: #333;
-  color: #FFF;
+  /* background-color: #333;
+  color: #FFF; */
   overflow: hidden;
 }
 
@@ -369,3 +377,23 @@ body {
 /* .objects .object {
   padding: 5px 10px;
 } */
+
+.details {
+  display: flex;
+  /* background-color: #333; */
+  color: #333;
+  flex-direction: column;
+}
+.details .section-icon {
+  --size: 150px;
+  width: var(--size);
+  height: calc(var(--size) / 2.5 * 3.5);
+  margin: 20px;
+}
+.details .h1 {
+  margin: 0 20px;
+  font-size: 20px;
+}
+.details .p {
+  
+}
