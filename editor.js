@@ -155,51 +155,9 @@ const bindTextarea = codeEl => {
   
   const jsx = `
     (() => {
-      const [open, setOpen] = useState(true);
-      const [selectedTab, setSelectedTab] = useState('editor');
-      const [cards, setCards] = useState([]);
-      const [files, setFiles] = useState([]);
-      const [objects, setObjects] = useState([]);
-      const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-      const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
-      
       const width = 50;
       
-      console.log('set objects', objects);
-      
-      useEffect(async () => {
-        const res = await fetch('https://tokens.webaverse.com/1-100');
-        const j = await res.json();
-        setCards(j);
-      }, []);
-      
-      
-      useEffect(async () => {
-        setFiles([
-          'index.rtfjs',
-          '.metaversefile',
-        ].map(name => ({
-          name,
-        })));
-      }, []);
-      
-      useEffect(async () => {
-        const objects = world.getObjects();
-        setObjects(objects);
-        
-        const _objectsupdate = e => {
-          const objects = world.getObjects();
-          setObjects(objects);
-        };
-        world.addEventListener('objectsadd', _objectsupdate);
-        world.addEventListener('objectsremove', _objectsupdate);
-        return () => {
-          world.removeEventListener('objectsadd', _objectsupdate);
-          world.removeEventListener('objectsremove', _objectsupdate);
-        };
-      }, []);
-      
-      const Textarea = () => {
+      const Textarea = React.memo(props => {
         const el = useRef();
         useEffect(() => {
           el.current.innerHTML = s;
@@ -209,8 +167,8 @@ const bindTextarea = codeEl => {
         return (
           <textarea className="section code" ref={el} id="code"></textarea>
         );
-      };
-      const Editor = ({open}) => {
+      });
+      const Editor = React.memo(({open, files, selectedFileIndex, setSelectedFileIndex}) => {
         return (
           <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section files">
@@ -225,8 +183,8 @@ const bindTextarea = codeEl => {
             <Textarea />
           </div>
         );
-      };
-      const MiniCard = ({
+      });
+      const MiniCard = React.memo(({
         // url,
         img,
         name,
@@ -253,8 +211,8 @@ const bindTextarea = codeEl => {
             </div>
           </nav>
         );
-      };
-      const Scene = ({cards, open}) => {
+      });
+      const Scene = React.memo(({cards, objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section objects">
@@ -286,96 +244,146 @@ const bindTextarea = codeEl => {
             </div>
           </div>
         );
-      };
+      });
       
-      return <div className="root">
-        <div className="canvas-placeholder">
-          <canvas id="canvas" className="canvas" />
-        </div>
-        <div className="controls">
-          <div className="top">
-            {/* <div className="control">
+      return () => {
+        const [open, setOpen] = useState(true);
+        const [selectedTab, setSelectedTab] = useState('editor');
+        const [cards, setCards] = useState([]);
+        const [files, setFiles] = useState([]);
+        const [objects, setObjects] = useState([]);
+        const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+        const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
+        
+        // console.log('set objects', objects);
+        
+        useEffect(async () => {
+          const res = await fetch('https://tokens.webaverse.com/1-100');
+          const j = await res.json();
+          setCards(j);
+        }, []);
+        
+        
+        useEffect(async () => {
+          setFiles([
+            'index.rtfjs',
+            '.metaversefile',
+          ].map(name => ({
+            name,
+          })));
+        }, []);
+        
+        useEffect(async () => {
+          const objects = world.getObjects();
+          setObjects(objects);
+          
+          const _objectsupdate = e => {
+            const objects = world.getObjects();
+            setObjects(objects);
+          };
+          world.addEventListener('objectsadd', _objectsupdate);
+          world.addEventListener('objectsremove', _objectsupdate);
+          return () => {
+            world.removeEventListener('objectsadd', _objectsupdate);
+            world.removeEventListener('objectsremove', _objectsupdate);
+          };
+        }, []);
+        
+        return <div className="root">
+          <div className="canvas-placeholder">
+            <canvas id="canvas" className="canvas" />
+          </div>
+          <div className="controls">
+            <div className="top">
+              {/* <div className="control">
+                <div className="user">
+                  <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
+                  <div className="name">avaer</div>
+                </div>
+              </div> */}
+            </div>
+            <div className="bottom">
+              <div className="control" onClick={() => reset()}>
+                <img src="/assets/new-shoot.svg" className="icon" />
+                <div className="label">Reset</div>
+              </div>
+              <div className="control" onClick={() => setCameraMode('firstperson')}>
+                {/* <video
+                  src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
+                  className="video"
+                  autoPlay
+                  muted
+                  loop
+                /> */}
+                <img src="/assets/video-camera.svg" className="icon" />
+                <div className="label">Camera</div>
+              </div>
+              <div className="control" onClick={() => setCameraMode('avatar')}>
+                <img src="/assets/teleport.svg" className="icon" />
+                <div className="label">Avatar</div>
+              </div>
+            </div>
+          </div>
+          <div className="right">
+            <div className="header">
+              <nav className={['tab', selectedTab === 'editor' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('editor')}>
+                <img src="/assets/noun_Plus_950.svg" className="icon" />
+                <div className="label">Editor</div>
+              </nav>
+              <nav className={['tab', selectedTab === 'scene' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('scene')}>
+                <img src="/assets/noun_Plus_950.svg" className="icon" />
+                <div className="label">Scene</div>
+              </nav>
               <div className="user">
                 <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
                 <div className="name">avaer</div>
               </div>
-            </div> */}
-          </div>
-          <div className="bottom">
-            <div className="control" onClick={() => reset()}>
-              <img src="/assets/new-shoot.svg" className="icon" />
-              <div className="label">Reset</div>
             </div>
-            <div className="control" onClick={() => setCameraMode('firstperson')}>
-              {/* <video
-                src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
-                className="video"
-                autoPlay
-                muted
-                loop
-              /> */}
-              <img src="/assets/video-camera.svg" className="icon" />
-              <div className="label">Camera</div>
+            <div className="header">
+              {!open ?
+                <div className="icon-button" onClick={() => setOpen(true)}>
+                  <img src="/assets/chevron-left.svg" className="icon" />
+                </div>
+              : null}
+              <button className="button" onClick={() => run()}>
+                <img src="/assets/comet-spark.svg" className="icon" />
+                <div className="label">Run code</div>
+              </button>
+              <button className="button" onClick={() => mintNft()}>
+                <img src="/assets/mint.svg" className="icon" />
+                <div className="label">Mint NFT</div>
+              </button>
+              <button className="button">
+                <img src="/assets/noun_Plus_950.svg" className="icon" />
+                <div className="label">New file</div>
+              </button>
+              <button className="button">
+                <img src="/assets/family-tree.svg" className="icon" />
+                <div className="label">Import URL...</div>
+              </button>
+              <select name="nfttype" id="nfttype">
+                <option value="react-three-fiber">react-three-fiber</option>
+                <option value="threejs">three.js</option>
+                <option value="3d-model">3D model</option>
+              </select>
             </div>
-            <div className="control" onClick={() => setCameraMode('avatar')}>
-              <img src="/assets/teleport.svg" className="icon" />
-              <div className="label">Avatar</div>
-            </div>
+            <Editor
+              open={selectedTab === 'editor'}
+              files={files}
+              selectedFileIndex={selectedFileIndex}
+              setSelectedFileIndex={setSelectedFileIndex}
+            />
+            <Scene
+              cards={cards}
+              open={selectedTab === 'scene'}
+              objects={objects}
+              selectedObjectIndex={selectedObjectIndex}
+              setSelectedObjectIndex={setSelectedObjectIndex}
+            />
           </div>
         </div>
-        <div className="right">
-          <div className="header">
-            <nav className={['tab', selectedTab === 'editor' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('editor')}>
-              <img src="/assets/noun_Plus_950.svg" className="icon" />
-              <div className="label">Editor</div>
-            </nav>
-            <nav className={['tab', selectedTab === 'scene' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('scene')}>
-              <img src="/assets/noun_Plus_950.svg" className="icon" />
-              <div className="label">Scene</div>
-            </nav>
-            <div className="user">
-              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
-              <div className="name">avaer</div>
-            </div>
-          </div>
-          <div className="header">
-            {!open ?
-              <div className="icon-button" onClick={() => setOpen(true)}>
-                <img src="/assets/chevron-left.svg" className="icon" />
-              </div>
-            : null}
-            <button className="button" onClick={() => run()}>
-              <img src="/assets/comet-spark.svg" className="icon" />
-              <div className="label">Run code</div>
-            </button>
-            <button className="button" onClick={() => mintNft()}>
-              <img src="/assets/mint.svg" className="icon" />
-              <div className="label">Mint NFT</div>
-            </button>
-            <button className="button">
-              <img src="/assets/noun_Plus_950.svg" className="icon" />
-              <div className="label">New file</div>
-            </button>
-            <button className="button">
-              <img src="/assets/family-tree.svg" className="icon" />
-              <div className="label">Import URL...</div>
-            </button>
-            <select name="nfttype" id="nfttype">
-              <option value="react-three-fiber">react-three-fiber</option>
-              <option value="threejs">three.js</option>
-              <option value="3d-model">3D model</option>
-            </select>
-          </div>
-          <Editor
-            open={selectedTab === 'editor'}
-          />
-          <Scene
-            cards={cards}
-            open={selectedTab === 'scene'}
-          />
-        </div>
-      </div>
-    })
+      };
+    })()
   `;
   const reset = () => {
     console.log('reset');
