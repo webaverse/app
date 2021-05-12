@@ -157,6 +157,15 @@ const bindTextarea = codeEl => {
     (() => {
       const [open, setOpen] = useState(true);
       const [selectedTab, setSelectedTab] = useState('editor');
+      const [cards, setCards] = useState([]);
+      
+      const width = 50;
+      
+      useEffect(async () => {
+        const res = await fetch('https://tokens.webaverse.com/1-100');
+        const j = await res.json();
+        setCards(j);
+      }, []);
       
       const Textarea = () => {
         const el = useRef();
@@ -192,25 +201,19 @@ const bindTextarea = codeEl => {
         // console.log('render url', {url, img, name});
         return (
           <nav className="card">
-            <img src={img} className="img" />
-            <div className="name">{name}</div>
+            <div className="inner">
+              <img src={img} className="img" />
+              <div className="name">{name}</div>
+            </div>
           </nav>
         );
       };
-      const Scene = ({open}) => {
-        const [cards, setCards] = useState([]);
-        
-        useEffect(async () => {
-          const res = await fetch('https://tokens.webaverse.com/1-100');
-          const j = await res.json();
-          setCards(j);
-        }, []);
-        
+      const Scene = ({cards, open}) => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section cards">
               {cards.map((card, i) => {
-                const img = "https://card-preview.exokit.org/?w=80&ext=jpg&t=" + card.id;
+                const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
                 return (
                   <MiniCard
                     hash={card.hash}
@@ -315,6 +318,7 @@ const bindTextarea = codeEl => {
             open={selectedTab === 'editor'}
           />
           <Scene
+            cards={cards}
             open={selectedTab === 'scene'}
           />
         </div>
