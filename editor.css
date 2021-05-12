@@ -58,6 +58,7 @@ body {
   display: flex;
   width: 100vw;
   height: 100vh;
+  /* flex-direction: column; */
   overflow: hidden;
 }
 .canvas {
@@ -93,8 +94,8 @@ body {
   height: 100vh;
   flex-direction: column;
 }
-.controls .top,
-.controls .bottom
+.controls > .top,
+.controls > .bottom
 {
   display: flex;
   flex-direction: column;
@@ -128,7 +129,7 @@ body {
 .controls .control + .control {
   margin-top: 0;
 }
-.controls .top {
+.controls > .top {
   flex: 1;
 }
 .controls .control > .video {
@@ -300,8 +301,10 @@ body {
   overflow: hidden;
 }
 .cards {
-  width: 200px;
+  display: flex;
+  height: 300px;
   background-color: #111;
+  flex-wrap: wrap;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -336,6 +339,24 @@ body {
   background-color: #333;
   color: #FFF;
   overflow: hidden;
+}
+
+.root > .left,
+.root > .right,
+.root > .left > .top,
+.root > .left > .bottom
+{
+  display: flex;
+}
+.root > .left {
+  flex: 1;
+  flex-direction: column;
+}
+.root > .left > .top {
+  height: 100%;
+}
+.root > .left > .bottom {
+  
 }
 /* .objects .object {
   padding: 5px 10px;
