@@ -127,7 +127,7 @@ const s = `\
   
   const jsx = `
     (() => {
-      const [open, setOpen] = useState(false);
+      const [open, setOpen] = useState(true);
       
       return <div className="root">
         <div className="canvas-placeholder">
@@ -135,12 +135,12 @@ const s = `\
         </div>
         <div className="controls">
           <div className="top">
-            <div className="control">
+            {/* <div className="control">
               <div className="user">
                 <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
                 <div className="name">avaer</div>
               </div>
-            </div>
+            </div> */}
           </div>
           <div className="bottom">
             <div className="control" onClick={() => reset()}>
@@ -164,41 +164,21 @@ const s = `\
             </div>
           </div>
         </div>
-        <div className="middle">
-          {open ?
-            <Fragment>
-              <div className="header">
-                <div className="icon-button" onClick={() => setOpen(!open)}>
-                  <img src="/assets/chevron-right.svg" className="icon" />
-                </div>
-                <button className="button">
-                  <img src="/assets/noun_Plus_950.svg" className="icon" />
-                  <div className="label">New file</div>
-                </button>
-                <button className="button">
-                  <img src="/assets/family-tree.svg" className="icon" />
-                  <div className="label">Import URL...</div>
-                </button>
-                <select name="nfttype" id="nfttype">
-                  <option value="react-three-fiber">react-three-fiber</option>
-                  <option value="threejs">three.js</option>
-                  <option value="3d-model">3D model</option>
-                </select>
-              </div>
-              <div className="files">
-                <div className="file selected">
-                  <div className="file-inner">.metaversefile</div>
-                </div>
-                <div className="file">
-                  <div className="file-inner">index.rtfjs</div>
-                </div>
-              </div>
-            </Fragment>
-          :
-            null
-          }
-        </div>
         <div className="right">
+          <div className="header">
+            <nav className="tab selected">
+              <img src="/assets/noun_Plus_950.svg" className="icon" />
+              <div className="label">Editor</div>
+            </nav>
+            <nav className="tab">
+              <img src="/assets/noun_Plus_950.svg" className="icon" />
+              <div className="label">Scene</div>
+            </nav>
+            <div className="user">
+              <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
+              <div className="name">avaer</div>
+            </div>
+          </div>
           <div className="header">
             {!open ?
               <div className="icon-button" onClick={() => setOpen(true)}>
@@ -213,9 +193,31 @@ const s = `\
               <img src="/assets/mint.svg" className="icon" />
               <div className="label">Mint NFT</div>
             </button>
+            <button className="button">
+              <img src="/assets/noun_Plus_950.svg" className="icon" />
+              <div className="label">New file</div>
+            </button>
+            <button className="button">
+              <img src="/assets/family-tree.svg" className="icon" />
+              <div className="label">Import URL...</div>
+            </button>
+            <select name="nfttype" id="nfttype">
+              <option value="react-three-fiber">react-three-fiber</option>
+              <option value="threejs">three.js</option>
+              <option value="3d-model">3D model</option>
+            </select>
           </div>
-          <textarea id="code" className="code">
-          </textarea>
+          <div className="sections">
+            <div className="section files">
+              <div className="file selected">
+                <div className="file-inner">.metaversefile</div>
+              </div>
+              <div className="file">
+                <div className="file-inner">index.rtfjs</div>
+              </div>
+            </div>
+            <textarea className="section code" id="code"></textarea>
+          </div>
         </div>
       </div>
     })
