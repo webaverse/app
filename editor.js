@@ -211,6 +211,14 @@ const bindTextarea = codeEl => {
       const Scene = ({cards, open}) => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="section objects">
+              <div className="object selected">
+                <div className="object-inner">[edited nft]</div>
+              </div>
+              <div className="object">
+                <div className="object-inner">Box</div>
+              </div>
+            </div>
             <div className="section cards">
               {cards.map((card, i) => {
                 const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
@@ -223,14 +231,6 @@ const bindTextarea = codeEl => {
                   />
                 );
               })}
-            </div>
-            <div className="section objects">
-              <div className="object selected">
-                <div className="object-inner">[edited nft]</div>
-              </div>
-              <div className="object">
-                <div className="object-inner">Box</div>
-              </div>
             </div>
           </div>
         );
