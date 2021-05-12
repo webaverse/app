@@ -177,7 +177,7 @@ const s = `\
               <img src="" />
               <div className="label">Import URL...</div>
             </button>
-            <button className="button">
+            <button className="button" onClick={() => mintNft()}>
               <img src="" />
               <div className="label">Mint NFT</div>
             </button>
@@ -360,7 +360,7 @@ const editor = CodeMirror.fromTextArea(codeEl, {
       run();
     },
     'Ctrl-L': function(cm) {
-      uploadNft();
+      mintNft();
     },
   },
 });
@@ -537,7 +537,7 @@ const loadHash = async hash => {
     // autoScale,
   });
 };
-const uploadNft = async () => {
+const mintNft = async () => {
   const hash = await uploadHash();
   console.log('upload nft', hash);
   window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=metaversefile`;
