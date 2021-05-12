@@ -158,7 +158,31 @@ body {
   flex-direction: column;
 }
 .header {
+  display: flex;
   padding: 10px;
   background: linear-gradient(to bottom, #333, #111);
   color: #FFF;
+}
+.header .button {
+  display: flex;
+  margin-right: 5px;
+  align-items: center;
+  background: transparent;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  color: #FFF;
+  font-size: 12px;
+  /* font-family: 'GillSans'; */
+  text-transform: uppercase;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.header .button:hover {
+  opacity: 1;
+}
+.header .button .icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  filter: invert(1);
 }
