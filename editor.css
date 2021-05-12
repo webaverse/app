@@ -209,6 +209,7 @@ body {
 
 .right {
   display: flex;
+  width: 800px;
   flex-direction: column;
 }
 .header {
@@ -279,4 +280,10 @@ body {
 .sections .section {
   display: flex;
   flex-direction: column;
+}
+
+.page {
+}
+.page:not(.open) {
+  display: none;
 }
