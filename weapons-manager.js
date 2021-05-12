@@ -28,6 +28,7 @@ import fx from './fx.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
@@ -1671,17 +1672,20 @@ window.document.addEventListener('drop', async e => {
         - ( e.clientY / rect.height ) * 2 + 1
       );
       localRaycaster.setFromCamera(localVector2D, camera);
-        const quaternion = localQuaternion.setFromRotationMatrix(localMatrix.lookAt(
-          localVector2.set(0, 0, 0),
-          localRaycaster.ray.direction,
-          localVector3.set(0, 1, 0)
-        )
-      );
+      const dropZOffset = 2;
       const position = localVector.copy(localRaycaster.ray.origin)
         .add(
-          localVector2.set(0, 0, -2)
-            .applyQuaternion(quaternion)
+          localVector2.set(0, 0, -dropZOffset)
+            .applyQuaternion(
+              localQuaternion
+                .setFromRotationMatrix(localMatrix.lookAt(
+                  localVector3.set(0, 0, 0),
+                  localRaycaster.ray.direction,
+                  localVector4.set(0, 1, 0)
+                ))
+            )
         );
+      const {quaternion} = camera;
         
       // const u = `${storageHost}/ipfs/${hash}/token.${ext}`;
       let u;
