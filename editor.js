@@ -192,19 +192,16 @@ const s = `\
               </div>
             </Fragment>
           :
-            <Fragment>
-              <div className="header">
-                <div className="icon-button" onClick={() => setOpen(!open)}>
-                  <img src="/assets/chevron-left.svg" className="icon" />
-                </div>
-              </div>
-              <div className="files">
-              </div>
-            </Fragment>
+            null
           }
         </div>
         <div className="right">
           <div className="header">
+            {!open ?
+              <div className="icon-button" onClick={() => setOpen(true)}>
+                <img src="/assets/chevron-left.svg" className="icon" />
+              </div>
+            : null}
             <button className="button" onClick={() => run()}>
               <img src="/assets/comet-spark.svg" className="icon" />
               <div className="label">Run code</div>
