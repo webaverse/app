@@ -293,11 +293,15 @@ body {
 }
 .cards {
   width: 200px;
-  overflow: scroll;
+  background: linear-gradient(to right, #fff, #e0e0e0);
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 .cards .card {
   display: flex;
   padding: 2px;
+  cursor: pointer;
+  user-select: none;
 }
 .cards .card .img {
   --card-size: 50px;
