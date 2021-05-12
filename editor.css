@@ -156,8 +156,34 @@ body {
 .middle {
   position: absolute;
   top: 0;
+  bottom: 0;
   right: var(--code-size);
   /* width: 200px; */
+  background-color: #333;
+}
+.files {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.files .file {
+  padding: 1px 2px;
+  color: #999;
+  pointer: default;
+  user-select: none;
+}
+.files .file .file-inner {
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+.files .file:not(.selected) {
+  cursor: pointer;
+}
+.files .file.selected .file-inner,
+.files .file:hover .file-inner
+{
+  background-color: #111;
+  color: #5c6bc0;
 }
 
 .icon-button {

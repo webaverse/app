@@ -178,8 +178,12 @@ const s = `\
             </select>
           </div>
           <div className="files">
-            <div className="file selected">.metaversefile</div>
-            <div className="file">index.rtfjs</div>
+            <div className="file selected">
+              <div className="file-inner">.metaversefile</div>
+            </div>
+            <div className="file">
+              <div className="file-inner">index.rtfjs</div>
+            </div>
           </div>
         </div>
         <div className="right">
