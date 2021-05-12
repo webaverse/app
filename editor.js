@@ -160,7 +160,7 @@ const s = `\
         </div>
         <div className="right">
           <div className="header">
-            <button className="button">
+            <button className="button" onClick={() => run()}>
               <img src="" />
               <div className="label">Run code</div>
             </button>
@@ -357,7 +357,7 @@ const editor = CodeMirror.fromTextArea(codeEl, {
   lineWrapping: true,
   extraKeys: {
     'Ctrl-S': function(cm) {
-      loadText();
+      run();
     },
     'Ctrl-L': function(cm) {
       uploadNft();
@@ -515,7 +515,7 @@ const uploadHash = async () => {
   const hash = await uploadFiles(files);
   return hash;
 };
-const loadText = async () => {
+const run = async () => {
   const hash = await uploadHash();
   console.log('load hash', hash);
   // const el = await loadModule(u);
