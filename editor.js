@@ -138,6 +138,10 @@ const s = `\
               <div className="name">avaer</div>
             </div>
           </div>
+          <div className="control" onClick={() => reset()}>
+            <img src="/assets/new-shoot.svg" className="icon" />
+            <div className="label">Spawn</div>
+          </div>
           <div className="control" onClick={() => setCameraMode('firstperson')}>
             {/* <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
@@ -154,11 +158,39 @@ const s = `\
             <div className="label">Avatar</div>
           </div>
         </div>
-        <textarea id="code" className="code">
-        </textarea>
+        <div className="right">
+          <div className="header">
+            <button className="button">
+              <img src="" />
+              <div className="label">Run code</div>
+            </button>
+            <select name="nfttype" id="nfttype">
+              <option value="react-three-fiber">react-three-fiber</option>
+              <option value="threejs">three.js</option>
+              <option value="3d-model">3D model</option>
+            </select>
+            <button className="button">
+              <img src="" />
+              <div className="label">New file</div>
+            </button>
+            <button className="button">
+              <img src="" />
+              <div className="label">Import URL...</div>
+            </button>
+            <button className="button">
+              <img src="" />
+              <div className="label">Mint NFT</div>
+            </button>
+          </div>
+          <textarea id="code" className="code">
+          </textarea>
+        </div>
       </div>
     })
   `;
+  const reset = () => {
+    console.log('reset');
+  };
   let cameraMode = 'camera';
   const setCameraMode = newCameraMode => {
     cameraMode = newCameraMode;
