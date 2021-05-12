@@ -158,8 +158,10 @@ const bindTextarea = codeEl => {
       const [open, setOpen] = useState(true);
       const [selectedTab, setSelectedTab] = useState('editor');
       const [cards, setCards] = useState([]);
+      const [files, setFiles] = useState([]);
       const [objects, setObjects] = useState([]);
-      const [selectedObjectIndex, setSelectedObjectIndex] = useState(-1);
+      const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+      const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
       
       const width = 50;
       
@@ -169,6 +171,16 @@ const bindTextarea = codeEl => {
         const res = await fetch('https://tokens.webaverse.com/1-100');
         const j = await res.json();
         setCards(j);
+      }, []);
+      
+      
+      useEffect(async () => {
+        setFiles([
+          'index.rtfjs',
+          '.metaversefile',
+        ].map(name => ({
+          name,
+        })));
       }, []);
       
       useEffect(async () => {
@@ -202,12 +214,13 @@ const bindTextarea = codeEl => {
         return (
           <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section files">
-              <div className="file selected">
-                <div className="file-inner">.metaversefile</div>
-              </div>
-              <div className="file">
-                <div className="file-inner">index.rtfjs</div>
-              </div>
+            {files.map((file, i) => {
+              return (
+                <div className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')} onClick={e => setSelectedFileIndex(i)} key={i}>
+                  <div className="file-inner">{file.name}</div>
+                </div>
+              );
+            })}
             </div>
             <Textarea />
           </div>
