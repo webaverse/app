@@ -140,7 +140,7 @@ const s = `\
           </div>
           <div className="control" onClick={() => reset()}>
             <img src="/assets/new-shoot.svg" className="icon" />
-            <div className="label">Spawn</div>
+            <div className="label">Reset</div>
           </div>
           <div className="control" onClick={() => setCameraMode('firstperson')}>
             {/* <video
@@ -161,7 +161,7 @@ const s = `\
         <div className="right">
           <div className="header">
             <button className="button" onClick={() => run()}>
-              <img src="" />
+              <img src="/assets/comet-spark.svg" className="icon" />
               <div className="label">Run code</div>
             </button>
             <select name="nfttype" id="nfttype">
@@ -170,15 +170,15 @@ const s = `\
               <option value="3d-model">3D model</option>
             </select>
             <button className="button">
-              <img src="" />
+              <img src="/assets/noun_Plus_950.svg" className="icon" />
               <div className="label">New file</div>
             </button>
             <button className="button">
-              <img src="" />
+              <img src="/assets/family-tree.svg" className="icon" />
               <div className="label">Import URL...</div>
             </button>
             <button className="button" onClick={() => mintNft()}>
-              <img src="" />
+              <img src="/assets/mint.svg" className="icon" />
               <div className="label">Mint NFT</div>
             </button>
           </div>
