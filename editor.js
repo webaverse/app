@@ -65,6 +65,8 @@ const s = `\
   import React, {Fragment, useState, useRef} from 'react';
   import ReactThreeFiber from '@react-three/fiber';
   const {Canvas, useFrame, useThree} = ReactThreeFiber;
+  import {physics} from 'webaverse';
+  const PhysicsBox = physics.Box;
 
   function Box(props) {
     // This reference will give us direct access to the THREE.Mesh object
@@ -81,7 +83,7 @@ const s = `\
         const t = 2000;
         const f = (Date.now() % t) / t;
         mesh.current.position.x = Math.cos(f * Math.PI * 2);
-        mesh.current.position.y = Math.sin(f * Math.PI * 2);
+        mesh.current.position.y = 2 + Math.sin(f * Math.PI * 2);
       });
     }
     // Return the view, these are regular Threejs elements expressed in JSX
@@ -107,6 +109,26 @@ const s = `\
     useFrame(() => ref.current.updateMatrixWorld())
     return <perspectiveCamera ref={ref} {...props} />
   } */
+  
+  const Floor = () => {
+    const h = 0.1;
+    const position = [0, -h/2, 0];
+    const scale = [10, h, 10];
+    return (
+      <Fragment>
+        <Box
+          position={position}
+          scale={scale}
+          color={0x0049ef4}
+        />
+        <PhysicsBox
+          position={position}
+          scale={scale}
+        />
+      </Fragment>
+    );
+  };
+  
   const lightQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, -1, -1).normalize()).toArray();
   const render = () => {
     // console.log('render', r, React, r === React);
@@ -115,7 +137,7 @@ const s = `\
         <ambientLight />
         <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} intensity={2}/>
         <Box position={[0, 1, 0]} color="hotpink" animate />
-        <Box position={[0, -2, 0]} color={0x0049ef4} scale={[10, 0.1, 10]} />
+        <Floor />
       </Fragment>
     );
   };
