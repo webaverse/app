@@ -194,13 +194,26 @@ const bindTextarea = codeEl => {
         );
       };
       const MiniCard = ({
-        url,
+        // url,
         img,
         name,
+        hash,
+        ext,
       }) => {
         // console.log('render url', {url, img, name});
         return (
-          <nav className="card">
+          <nav
+            className="card"
+            onDragStart={e => {
+              const j = {
+                hash,
+                ext,
+              };
+              e.dataTransfer.setData('application/json', JSON.stringify(j));
+              console.log('drag start', e);
+            }}
+            draggable
+          >
             <div className="inner">
               <img src={img} className="img" />
               <div className="name">{name}</div>
@@ -224,9 +237,10 @@ const bindTextarea = codeEl => {
                 const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
                 return (
                   <MiniCard
-                    hash={card.hash}
                     img={img}
                     name={card.name}
+                    hash={card.hash}
+                    ext={card.ext}
                     key={i}
                   />
                 );
