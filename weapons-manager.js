@@ -28,6 +28,7 @@ import fx from './fx.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -36,6 +37,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
+const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
 const equipArmQuaternions = [
@@ -1651,13 +1653,59 @@ const bindInterface = () => {
 
 window.document.addEventListener('dragover', e => {
   e.preventDefault();
+  // console.log('got drag over', e.dataTransfer);
 });
 window.document.addEventListener('drop', async e => {
   e.preventDefault();
   
-  const files = Array.from(e.dataTransfer.files);
-  for (const file of files) {
-    await _handleUpload(file);
+  const renderer = getRenderer();
+  // console.log('got drop', e.target, renderer.domElement, e.target === renderer.domElement);
+  if (renderer && e.target === renderer.domElement) {
+    const s = e.dataTransfer.getData('application/json');
+    if (s) {
+      const j = JSON.parse(s);
+      // console.log('got j', j);
+      const {hash, ext} = j;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      // const x = (e.clientX - rect.x) / rect.width;
+      // const y = (e.clientY - rect.y) / rect.height;
+      localVector2D.set(
+        ( e.clientX / rect.width ) * 2 - 1,
+        - ( e.clientY / rect.height ) * 2 + 1
+      );
+      localRaycaster.setFromCamera(localVector2D, camera);
+      const quaternion = localQuaternion.setFromUnitVectors(
+        localVector2.set(0, 0, -1),
+        localRaycaster.ray.direction
+      );
+      const position = localVector.copy(localRaycaster.ray.origin)
+        .add(
+          localVector2.set(0, 0, -2)
+            .applyQuaternion(quaternion)
+        );
+        
+      // const u = `${storageHost}/ipfs/${hash}/token.${ext}`;
+      let u;
+      if (ext === 'html') {
+        u = `${storageHost}/ipfs/${hash}/`;
+      } else if (ext === 'metaversefile') {
+        u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+      } else {
+        u = `${storageHost}/${hash}/token.${ext}`;
+      }
+      const loadedObject = await world.addObject(u, null, position, quaternion, {
+        // physics,
+        // physics_url,
+        // autoScale,
+      });
+    } else {
+      //console.log('got drop', Array.from(e.dataTransfer.items));
+      const files = Array.from(e.dataTransfer.files);
+      for (const file of files) {
+        await _handleUpload(file);
+      }
+    }
   }
 });
 
