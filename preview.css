@@ -44,3 +44,13 @@ body {
   width: 100vw;
   height: 100vh;
 }
+.container2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.container2.hidden {
+  display: none;
+}
