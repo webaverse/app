@@ -158,17 +158,11 @@ const s = `\
             <div className="label">Avatar</div>
           </div>
         </div>
-        <div className="right">
+        <div className="middle">
           <div className="header">
-            <button className="button" onClick={() => run()}>
-              <img src="/assets/comet-spark.svg" className="icon" />
-              <div className="label">Run code</div>
-            </button>
-            <select name="nfttype" id="nfttype">
-              <option value="react-three-fiber">react-three-fiber</option>
-              <option value="threejs">three.js</option>
-              <option value="3d-model">3D model</option>
-            </select>
+            <div className="icon-button">
+              <img src="/assets/chevron-right.svg" className="icon" />
+            </div>
             <button className="button">
               <img src="/assets/noun_Plus_950.svg" className="icon" />
               <div className="label">New file</div>
@@ -176,6 +170,23 @@ const s = `\
             <button className="button">
               <img src="/assets/family-tree.svg" className="icon" />
               <div className="label">Import URL...</div>
+            </button>
+            <select name="nfttype" id="nfttype">
+              <option value="react-three-fiber">react-three-fiber</option>
+              <option value="threejs">three.js</option>
+              <option value="3d-model">3D model</option>
+            </select>
+          </div>
+          <div className="files">
+            <div className="file selected">.metaversefile</div>
+            <div className="file">index.rtfjs</div>
+          </div>
+        </div>
+        <div className="right">
+          <div className="header">
+            <button className="button" onClick={() => run()}>
+              <img src="/assets/comet-spark.svg" className="icon" />
+              <div className="label">Run code</div>
             </button>
             <button className="button" onClick={() => mintNft()}>
               <img src="/assets/mint.svg" className="icon" />
