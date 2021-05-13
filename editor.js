@@ -12,7 +12,7 @@ import {storageHost} from './constants.js';
 
 import App from '/app.js';
 
-import BrowserFS from '/browserfs.js';
+/* import BrowserFS from '/browserfs.js';
 BrowserFS.configure({
     fs: "IndexedDB",
     options: {
@@ -32,6 +32,8 @@ const fs = (() => {
   const fs = require('fs');
   return fs;
 })();
+window.BrowserFS = BrowserFS;
+window.fs = fs; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
