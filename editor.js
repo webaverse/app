@@ -19,6 +19,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 
+let getEditor = () => null;
+
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
   const handlePointer = key => e => {
@@ -68,11 +70,8 @@ function createPointerEvents(store) {
 
 window.onload = async () => {
 
-const res = await fetch(`https://templates.webaverse.com/react-three-fiber/index.rtfjs`);
-const s = await res.text();
-let editor = null;
 const bindTextarea = codeEl => {
-  editor = CodeMirror.fromTextArea(codeEl, {
+  const editor = CodeMirror.fromTextArea(codeEl, {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
@@ -110,6 +109,7 @@ const bindTextarea = codeEl => {
       e.preventDefault();
     }
   }); */
+  return editor;
 };
 {
   const _ = React.createElement;
@@ -151,17 +151,20 @@ const bindTextarea = codeEl => {
         );
       };
       const Textarea = React.memo(props => {
+        const {setEditor} = props;
+        
         const el = useRef();
         useEffect(() => {
-          el.current.innerHTML = s;
-          bindTextarea(el.current);
+          // el.current.innerHTML = s;
+          const editor = bindTextarea(el.current);
+          setEditor(editor);
         }, []);
         
         return (
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, selectedTab, selectedFileIndex, setSelectedFileIndex}) => {
+      const Editor = React.memo(({open, files, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
         return (
           <Fragment>
             {open ?
@@ -187,10 +190,18 @@ const bindTextarea = codeEl => {
                   <img src="/assets/family-tree.svg" className="icon" />
                   <div className="label">Import URL...</div>
                 </button>
-                <select name="nfttype" id="nfttype">
-                  <option value="react-three-fiber">react-three-fiber</option>
-                  <option value="threejs">three.js</option>
-                  <option value="3d-model">3D model</option>
+                <select name="nfttype" id="nfttype" value={selectedTemplateOption} onChange={e => {
+                  // console.log('got change', e);
+                  setSelectedTemplateOption(e.target.value);
+                }}>
+                  {templateOptions.map((o, i) => {
+                    return (
+                      <option
+                        value={o}
+                        key={i}
+                      >{o}</option>
+                    );
+                  })}
                 </select>
               </div>
             : null}
@@ -204,7 +215,9 @@ const bindTextarea = codeEl => {
                 );
               })}
               </div>
-              <Textarea />
+              <Textarea
+                setEditor={setEditor}
+              />
             </div>
           </Fragment>
         );
@@ -452,6 +465,11 @@ const bindTextarea = codeEl => {
         const [q, setQ] = useState('');
         const [currentQ, setCurrentQ] = useState('');
         const [lastQ, setLastQ] = useState('');
+        const [templateOptions, setTemplateOptions] = useState([]);
+        const [selectedTemplateOption, setSelectedTemplateOption] = useState();
+        const [editor, setEditor] = useState(null);
+        
+        getEditor = () => editor;
         
         // console.log('set objects', objects);
         
@@ -460,7 +478,6 @@ const bindTextarea = codeEl => {
           const j = await res.json();
           setCards(j);
         }, []);
-        
         
         useEffect(async () => {
           setFiles([
@@ -486,9 +503,7 @@ const bindTextarea = codeEl => {
             world.removeEventListener('objectsremove', _objectsupdate);
           };
         }, []);
-        
-        /* const qs = parseQuery(router.asPath.match(/(\?.*)$/)?.[1] || '');
-        const {q: currentQ} = qs; */
+
         useEffect(() => {
           if (currentQ !== lastQ) {
             setLastQ(currentQ);
@@ -508,6 +523,25 @@ const bindTextarea = codeEl => {
             }
           }
         }, [currentQ, lastQ]);
+        
+        useEffect(async () => {
+          const res = await fetch('https://templates.webaverse.com/index.json');
+          const j = await res.json();
+          const {templates} = j;
+          setTemplateOptions(templates);
+          setSelectedTemplateOption(templates[0]);
+        }, []);
+        
+        useEffect(async () => {
+          if (editor && selectedTemplateOption) {
+            console.log('load', );
+            
+            const u = 'https://templates.webaverse.com/' + selectedTemplateOption;
+            const res = await fetch(u);
+            const text = await res.text();
+            editor.setValue(text);
+          }
+        }, [editor, selectedTemplateOption]);
         
         return <div className="root">
           <div className="left">
@@ -569,6 +603,10 @@ const bindTextarea = codeEl => {
                 selectedTab={selectedTab}
                 selectedFileIndex={selectedFileIndex}
                 setSelectedFileIndex={setSelectedFileIndex}
+                templateOptions={templateOptions}
+                selectedTemplateOption={selectedTemplateOption}
+                setSelectedTemplateOption={setSelectedTemplateOption}
+                setEditor={setEditor}
               />
               <Scene
                 open={selectedTab === 'scene'}
@@ -614,6 +652,7 @@ const bindTextarea = codeEl => {
     // compact: false,
   });
   const {code} = spec;
+  // console.log('got code', code);
   const fn = eval(code);
   // console.log('got fn', fn);
   
@@ -882,6 +921,7 @@ const loadModule = async u => {
 }; */
 // const selectedType = 'rtfjs'; // XXX implement a real selector
 const uploadHash = async () => {
+  const editor = getEditor();
   const s = editor.getValue();
   const b = new Blob([
     s,
