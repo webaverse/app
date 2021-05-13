@@ -576,10 +576,10 @@ const bindTextarea = codeEl => {
         }, [editor, selectedTemplateOption]);
         
         useEffect(async () => {
-          console.log('render', files, selectedFileIndex);
+          // console.log('render', files, selectedFileIndex);
           if (editor) {
             const file = files[selectedFileIndex];
-            console.log('load file', file);
+            // console.log('load file', file);
             if (file) {
               editor.swapDoc(file.doc);
             }
