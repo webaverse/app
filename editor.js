@@ -195,7 +195,7 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
+      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
         return (
           <Fragment>
             {open ?
@@ -213,7 +213,13 @@ const bindTextarea = codeEl => {
                   <img src="/assets/mint.svg" className="icon" />
                   <div className="label">Mint NFT</div>
                 </button>
-                <button className="button">
+                <button className="button" onClick={e => {
+                  const newFiles = files.concat({
+                    name: 'untitled',
+                    value: '',
+                  });
+                  setFiles(newFiles);
+                }}>
                   <img src="/assets/noun_Plus_950.svg" className="icon" />
                   <div className="label">New file</div>
                 </button>
@@ -574,15 +580,13 @@ const bindTextarea = codeEl => {
         }, [editor, selectedTemplateOption]);
         
         useEffect(async () => {
-          if (editor && selectedFileIndex === 0) {
+          if (editor) {
             const file = files[selectedFileIndex];
             if (file) {
               editor.setValue(file.value);
             } else {
               editor.setValue('');
             }
-          } else {
-            editor.setValue('');
           }
         }, [editor, files, selectedFileIndex]);
         
@@ -643,6 +647,7 @@ const bindTextarea = codeEl => {
               <Editor
                 open={selectedTab === 'editor'}
                 files={files}
+                setFiles={setFiles}
                 selectedTab={selectedTab}
                 selectedFileIndex={selectedFileIndex}
                 setSelectedFileIndex={setSelectedFileIndex}
