@@ -12,6 +12,27 @@ import {storageHost} from './constants.js';
 
 import App from '/app.js';
 
+import BrowserFS from '/browserfs.js';
+BrowserFS.configure({
+    fs: "IndexedDB",
+    options: {
+       storeName : "webaverse-editor",
+    }
+  }, function(e) {
+    if (e) {
+      // An error happened!
+      throw e;
+    }
+    // Otherwise, BrowserFS is ready-to-use!
+  });
+const fs = (() => {
+  const exports = {};
+  BrowserFS.install(exports);
+  const {require} = exports;
+  const fs = require('fs');
+  return fs;
+})();
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
