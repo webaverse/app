@@ -687,7 +687,7 @@ ioManager.bindInput = () => {
 
     const containerElement = getContainerElement();
     const rect = containerElement.getBoundingClientRect();
-    renderer._setSize(rect.width, rect.height);
+    renderer.setSize(rect.width, rect.height);
     // renderer2.setSize(window.innerWidth, window.innerHeight);
 
     const aspect = rect.width / rect.height;

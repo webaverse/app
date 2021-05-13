@@ -22,14 +22,6 @@ function bindCanvas(c) {
   const rect = container.getBoundingClientRect();
   renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer._setSize = renderer.setSize;
-  renderer._setPixelRatio = renderer.setPixelRatio;
-  renderer.setSize = () => {
-    //
-  };
-  renderer.setPixelRatio = () => {
-    //
-  };
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
