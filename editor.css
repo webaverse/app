@@ -409,13 +409,45 @@ body {
   display: flex;
   margin: 10px;
   margin-top: 0;
+  padding: 10px;
   background: linear-gradient(to bottom, #333, #222);
   border-radius: 10px;
   color: #333;
   flex: 1;
   flex-direction: column;
 }
-.details .section-icon {
+.details .label,
+.details .sublabel
+{
+  font-family: 'FuturaStd-Heavy';
+  text-transform: uppercase;
+  color: #AAA;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1px;
+}
+.details .row {
+  display: flex;
+  width: 150px;
+  margin-bottom: 2px;
+  align-items: center;
+}
+.details .sublabel {
+  display: inline-flex;
+  margin-right: 5px;
+  flex: 1;
+  justify-content: flex-end;
+}
+.details .value {
+  display: inline-flex;
+  width: 30px;
+  padding: 5px;  
+  background: #666;
+  border: 0;
+  border-radius: 3px;
+  color: #FFF;
+}
+/* .details .section-icon {
   --size: 150px;
   width: var(--size);
   height: calc(var(--size) / 2.5 * 3.5);
@@ -428,7 +460,7 @@ body {
 }
 .details .p {
   
-}
+} */
 
 .settings {
   color: #FFF;
