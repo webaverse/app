@@ -561,7 +561,7 @@ const bindTextarea = codeEl => {
         
         useEffect(async () => {
           if (editor && selectedTemplateOption) {
-            const u = 'https://templates.webaverse.com/' + selectedTemplateOption;
+            const u = 'https://templates.webaverse.com/' + selectedTemplateOption + '/index.rtfjs';
             const res = await fetch(u);
             const text = await res.text();
             const files = [
