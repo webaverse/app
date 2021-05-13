@@ -425,7 +425,7 @@ body {
   border-radius: 10px;
   color: #333;
   flex: 1;
-  flex-direction: column;
+  flex-direction: row !important;
 }
 .details .label {
   margin: 10px 0;
@@ -536,4 +536,34 @@ body {
   height: 15px;
   cursor: pointer;
   filter: invert(1);
+}
+
+.scene .details > .left,
+.scene .details > .right
+{
+  display: flex;
+  flex-direction: column;
+}
+.scene .details > .left {
+  flex: 1;
+}
+
+.scene .details .button {
+  background-color: transparent;
+  border: 2px solid currentColor;
+  color: #FFF;
+  cursor: pointer;
+}
+.scene .details .button.warning {
+  padding: 5px 10px;
+  color: #ef5350;
+  border-radius: 5px;
+}
+.scene .details .button.warning:hover {
+  background-color: #ef5350;
+  border-color: transparent;
+  color: #FFF;
+}
+.scene .details .button.warning:hover:active {
+  background-color: #e53935;
 }

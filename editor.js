@@ -724,6 +724,7 @@ const bindTextarea = codeEl => {
           rx, ry, rz, rw,
           sx, sy, sz,
         ]);
+        const object = objects[selectedObjectIndex];
         
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
@@ -741,83 +742,93 @@ const bindTextarea = codeEl => {
               })}
             </div>
             <div className="section details">
-              {/* <img src="/assets/cards-placeholder.png" className="section-icon" /> */}
-              
-              <div className="label">Position</div>
-              <label className="row">
-                <span className="sublabel">X</span>
-                <input type="number" className="value" value={px} onChange={e => {
-                  setPX(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Y</span>
-                <input type="number" className="value" value={py} onChange={e => {
-                  setPY(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Z</span>
-                <input type="number" className="value" value={pz} onChange={e => {
-                  setPZ(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              
-              <div className="label">Rotation</div>
-              <label className="row">
-                <span className="sublabel">X</span>
-                <input type="number" className="value" value={rx} onChange={e => {
-                  setRX(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Y</span>
-                <input type="number" className="value" value={ry} onChange={e => {
-                  setRY(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Z</span>
-                <input type="number" className="value" value={rz} onChange={e => {
-                  setRZ(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">W</span>
-                <input type="number" className="value" value={rw} onChange={e => {
-                  setRW(e.target.value);
-                  // updateObject();
-               }} />
-              </label>
-              
-              <div className="label">Scale</div>
-              <label className="row">
-                <span className="sublabel">X</span>
-                <input type="number" className="value" value={sx} onChange={e => {
-                  setSX(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Y</span>
-                <input type="number" className="value" value={sy} onChange={e => {
-                  setSY(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
-              <label className="row">
-                <span className="sublabel">Z</span>
-                <input type="number" className="value" value={sz} onChange={e => {
-                  setSZ(e.target.value);
-                  // updateObject();
-                }} />
-              </label>
+              {object ?
+                <Fragment>              
+                  <div className="left">
+                    <div className="label">Position</div>
+                    <label className="row">
+                      <span className="sublabel">X</span>
+                      <input type="number" className="value" value={px} onChange={e => {
+                        setPX(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Y</span>
+                      <input type="number" className="value" value={py} onChange={e => {
+                        setPY(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Z</span>
+                      <input type="number" className="value" value={pz} onChange={e => {
+                        setPZ(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    
+                    <div className="label">Rotation</div>
+                    <label className="row">
+                      <span className="sublabel">X</span>
+                      <input type="number" className="value" value={rx} onChange={e => {
+                        setRX(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Y</span>
+                      <input type="number" className="value" value={ry} onChange={e => {
+                        setRY(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Z</span>
+                      <input type="number" className="value" value={rz} onChange={e => {
+                        setRZ(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">W</span>
+                      <input type="number" className="value" value={rw} onChange={e => {
+                        setRW(e.target.value);
+                        // updateObject();
+                     }} />
+                    </label>
+                    
+                    <div className="label">Scale</div>
+                    <label className="row">
+                      <span className="sublabel">X</span>
+                      <input type="number" className="value" value={sx} onChange={e => {
+                        setSX(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Y</span>
+                      <input type="number" className="value" value={sy} onChange={e => {
+                        setSY(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                    <label className="row">
+                      <span className="sublabel">Z</span>
+                      <input type="number" className="value" value={sz} onChange={e => {
+                        setSZ(e.target.value);
+                        // updateObject();
+                      }} />
+                    </label>
+                  </div>
+                  <div className="right" onClick={e => {
+                    console.log('remove', object, selectedObjectIndex);
+                  }}>
+                    <div className="label">Actions</div>
+                    <button className="button warning">Remove</button>
+                  </div>
+                </Fragment>
+              : null}
             </div>
           </div>
         );
