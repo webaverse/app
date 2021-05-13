@@ -314,6 +314,13 @@ const bindTextarea = codeEl => {
         const [px, setPX] = useState(0);
         const [py, setPY] = useState(0);
         const [pz, setPZ] = useState(0);
+        const [rx, setRX] = useState(0);
+        const [ry, setRY] = useState(0);
+        const [rz, setRZ] = useState(0);
+        const [rw, setRW] = useState(0);
+        const [sx, setSX] = useState(1);
+        const [sy, setSY] = useState(1);
+        const [sz, setSZ] = useState(1);
         
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
@@ -332,6 +339,7 @@ const bindTextarea = codeEl => {
             </div>
             <div className="section details">
               {/* <img src="/assets/cards-placeholder.png" className="section-icon" /> */}
+              
               <div className="label">Position</div>
               <label className="row">
                 <span className="sublabel">X</span>
@@ -345,7 +353,38 @@ const bindTextarea = codeEl => {
                 <span className="sublabel">Z</span>
                 <input type="number" className="value" value={pz} onChange={e => setPZ(e.target.value)} />
               </label>
+              
               <div className="label">Rotation</div>
+              <label className="row">
+                <span className="sublabel">X</span>
+                <input type="number" className="value" value={rx} onChange={e => setRX(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Y</span>
+                <input type="number" className="value" value={ry} onChange={e => setRY(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Z</span>
+                <input type="number" className="value" value={rz} onChange={e => setRZ(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">W</span>
+                <input type="number" className="value" value={rw} onChange={e => setRW(e.target.value)} />
+              </label>
+              
+              <div className="label">Scale</div>
+              <label className="row">
+                <span className="sublabel">X</span>
+                <input type="number" className="value" value={sx} onChange={e => setSX(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Y</span>
+                <input type="number" className="value" value={sy} onChange={e => setSY(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Z</span>
+                <input type="number" className="value" value={sz} onChange={e => setSZ(e.target.value)} />
+              </label>
             </div>
           </div>
         );

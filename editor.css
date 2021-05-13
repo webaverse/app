@@ -416,6 +416,9 @@ body {
   flex: 1;
   flex-direction: column;
 }
+.details .label {
+  margin-bottom: 10px;
+}
 .details .label,
 .details .sublabel
 {
