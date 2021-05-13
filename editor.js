@@ -139,16 +139,6 @@ const bindTextarea = codeEl => {
   const _ = React.createElement;
   const container = document.getElementById('container');
   
-  const defaultFiles = [
-    {
-      name: 'index.rtfjs',
-      value: '// default content',
-    },
-    {
-      name: '.metaversefile',
-      value: '{}',
-    },
-  ];
   const jsx = `
     (() => {
       const width = 50;
@@ -503,15 +493,14 @@ const bindTextarea = codeEl => {
         const [cards, setCards] = useState([]);
         const [searchResults, setSearchResults] = useState(null);
         const [objects, setObjects] = useState([]);
-        const [selectedFileIndex, setSelectedFileIndex] = useState(-1);
-        const [lastSelectedFileIndex, setLastSelectedFileIndex] = useState(0);
+        const [selectedFileIndex, setSelectedFileIndex] = useState(0);
         const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
         const [q, setQ] = useState('');
         const [currentQ, setCurrentQ] = useState('');
         const [lastQ, setLastQ] = useState('');
         const [templateOptions, setTemplateOptions] = useState([]);
         const [selectedTemplateOption, setSelectedTemplateOption] = useState();
-        const [files, setFiles] = useState(defaultFiles);
+        const [files, setFiles] = useState([]);
         const [editor, setEditor] = useState(null);
         
         getEditor = () => editor;
@@ -587,17 +576,15 @@ const bindTextarea = codeEl => {
         }, [editor, selectedTemplateOption]);
         
         useEffect(async () => {
-          if (editor && selectedFileIndex !== lastSelectedFileIndex) {
+          console.log('render', files, selectedFileIndex);
+          if (editor) {
             const file = files[selectedFileIndex];
             console.log('load file', file);
             if (file) {
               editor.swapDoc(file.doc);
-            } /* else {
-              editor.setValue('');
-            } */
-            setLastSelectedFileIndex(selectedFileIndex);
+            }
           }
-        }, [editor, files, selectedFileIndex, lastSelectedFileIndex]);
+        }, [editor, files, files.length, selectedFileIndex]);
         
         return <div className="root">
           <div className="left">
@@ -660,8 +647,6 @@ const bindTextarea = codeEl => {
                 selectedTab={selectedTab}
                 selectedFileIndex={selectedFileIndex}
                 setSelectedFileIndex={setSelectedFileIndex}
-                // lastSelectedFileIndex={lastSelectedFileIndex}
-                // setLastSelectedFileIndex={setLastSelectedFileIndex}
                 templateOptions={templateOptions}
                 selectedTemplateOption={selectedTemplateOption}
                 setSelectedTemplateOption={setSelectedTemplateOption}
