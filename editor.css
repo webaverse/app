@@ -516,8 +516,24 @@ body {
   pointer-events: none;
 }
 .editor .errors .error {
-  padding: 10px;
+  position: relative;
+  display: flex;
+  padding: 10px 20px;
   color: #FFF;
   background: radial-gradient(#b22222, #7d0b0b);
   pointer-events: all;
+}
+.editor .errors .error .text {
+  white-space: pre-wrap;
+}
+.editor .x-icon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+.editor .x-icon .img {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  filter: invert(1);
 }

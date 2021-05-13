@@ -599,7 +599,17 @@ const bindTextarea = codeEl => {
               <div className="errors">
                 {errors.map((error, i) => {
                   return (
-                    <div className="error" key={i}>{error.stack}</div>
+                    <div className="error" key={i}>
+                      <nav className="x-icon" onClick={e => {
+                        let errors = getErrors();
+                        errors = errors.slice();
+                        errors.splice(i, 1);
+                        setErrors(errors);
+                      }}>
+                        <img src="/assets/x.svg" className="img" />
+                      </nav>
+                      <div className="text">{error.stack}</div>
+                    </div>
                   );
                 })}
               </div>
