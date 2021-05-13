@@ -100,7 +100,7 @@ function createPointerEvents(store) {
   }
 }
 
-const fetchAndCompileBlob = async file => {
+const fetchAndCompileBlob = async (file, files) => {
   const res = file;
   const scriptUrl = file.name;
   let s = await file.text();
@@ -112,16 +112,27 @@ const fetchAndCompileBlob = async file => {
       // return u;
       // nothing
     } else {
-      const fullUrl = new URL(u, scriptUrl).href;
-      const res = await fetch(fullUrl);
-      if (res.ok) {
-        let importScript = await res.text();
-        importScript = await _mapScript(importScript, fullUrl);
-        const p = new URL(fullUrl).pathname.replace(/^\//, '');
-        urlCache[p] = importScript;
+      const baseUrl = /https?:\/\//.test(scriptUrl) ? scriptUrl : `https://webaverse.com/${scriptUrl}`;
+      const pathUrl = new URL(u, baseUrl).pathname.replace(/^\//, '');
+      const file = files.find(file => file.name === pathUrl);
+      // console.log('got script url', {scriptUrl, baseUrl, pathUrl, file});
+      if (file) {
+        let importScript = await file.blob.text();
+        importScript = await _mapScript(importScript, pathUrl);
+        // const p = new URL(fullUrl).pathname.replace(/^\//, '');
+        urlCache[pathUrl] = importScript;
       } else {
-        throw new Error('failed to load import url: ' + u);
-      }
+        // const fullUrl = new URL(u, scriptUrl).href;
+        const res = await fetch(u);
+        if (res.ok) {
+          let importScript = await res.text();
+          importScript = await _mapScript(importScript, fullUrl);
+          const p = new URL(fullUrl).pathname.replace(/^\//, '');
+          urlCache[p] = importScript;
+        } else {
+          throw new Error('failed to load import url: ' + u);
+        }
+     }
     }
   };
   const _mapScript = async (script, scriptUrl) => {
@@ -343,7 +354,7 @@ const collectZip = async () => {
       });
     }
     startUrlFile.blob.name = start_url;
-    const urlCache = await fetchAndCompileBlob(startUrlFile.blob);
+    const urlCache = await fetchAndCompileBlob(startUrlFile.blob, files);
     for (const name in urlCache) {
       const value = urlCache[name];
       const file = files.find(file => file.name === name);
@@ -435,6 +446,7 @@ const bindTextarea = codeEl => {
         try {
           await run();
         } catch (err) {
+          console.warn(err);
           const errors = [err].concat(getErrors());
           setErrors(errors);
         }
@@ -443,6 +455,7 @@ const bindTextarea = codeEl => {
         try {
           await mintNft();
         } catch (err) {
+          console.warn(err);
           const errors = [err].concat(getErrors());
           setErrors(errors);
         }
