@@ -11,6 +11,12 @@ import {storageHost} from './constants.js';
 
 import App from '/app.js';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
   const handlePointer = key => e => {
@@ -310,7 +316,7 @@ const bindTextarea = codeEl => {
           </nav>
         );
       });
-      const Scene = React.memo(({objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
+      const Scene = React.memo(({objects, open, selectedObjectIndex, setSelectedObjectIndex, selectedObject}) => {
         const [px, setPX] = useState(0);
         const [py, setPY] = useState(0);
         const [pz, setPZ] = useState(0);
@@ -321,6 +327,42 @@ const bindTextarea = codeEl => {
         const [sx, setSX] = useState(1);
         const [sy, setSY] = useState(1);
         const [sz, setSZ] = useState(1);
+        
+        useEffect(() => {
+          // console.log('update selected object', selectedObject);
+          
+          if (selectedObject) {
+            selectedObject.position.set(px, py, pz);
+            selectedObject.quaternion.set(rx, ry, rz, rw);
+            selectedObject.scale.set(sx, sy, sz);
+            selectedObject.updateMatrixWorld();
+            const newMatrix = localMatrix.copy(selectedObject.matrixWorld);
+
+            if (selectedObject.getPhysicsIds) {
+              const physicsIds = selectedObject.getPhysicsIds();
+              for (const physicsId of physicsIds) {
+                const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+
+                const oldTransformMatrix = localMatrix2.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
+                oldTransformMatrix.clone()
+                  .premultiply(oldMatrix.invert())
+                  .premultiply(newMatrix)
+                  .decompose(localVector, localQuaternion, localVector2);
+                physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion, localVector2);
+              }
+            }
+
+            selectedObject.setPose(
+              localVector.copy(selectedObject.position),
+              localQuaternion.copy(selectedObject.quaternion),
+              localVector2.copy(selectedObject.scale)
+            );
+          }
+        }, [
+          px, py, pz,
+          rx, ry, rz, rw,
+          sx, sy, sz,
+        ]);
         
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
@@ -343,47 +385,77 @@ const bindTextarea = codeEl => {
               <div className="label">Position</div>
               <label className="row">
                 <span className="sublabel">X</span>
-                <input type="number" className="value" value={px} onChange={e => setPX(e.target.value)} />
+                <input type="number" className="value" value={px} onChange={e => {
+                  setPX(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Y</span>
-                <input type="number" className="value" value={py} onChange={e => setPY(e.target.value)} />
+                <input type="number" className="value" value={py} onChange={e => {
+                  setPY(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Z</span>
-                <input type="number" className="value" value={pz} onChange={e => setPZ(e.target.value)} />
+                <input type="number" className="value" value={pz} onChange={e => {
+                  setPZ(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               
               <div className="label">Rotation</div>
               <label className="row">
                 <span className="sublabel">X</span>
-                <input type="number" className="value" value={rx} onChange={e => setRX(e.target.value)} />
+                <input type="number" className="value" value={rx} onChange={e => {
+                  setRX(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Y</span>
-                <input type="number" className="value" value={ry} onChange={e => setRY(e.target.value)} />
+                <input type="number" className="value" value={ry} onChange={e => {
+                  setRY(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Z</span>
-                <input type="number" className="value" value={rz} onChange={e => setRZ(e.target.value)} />
+                <input type="number" className="value" value={rz} onChange={e => {
+                  setRZ(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">W</span>
-                <input type="number" className="value" value={rw} onChange={e => setRW(e.target.value)} />
+                <input type="number" className="value" value={rw} onChange={e => {
+                  setRW(e.target.value);
+                  // updateObject();
+               }} />
               </label>
               
               <div className="label">Scale</div>
               <label className="row">
                 <span className="sublabel">X</span>
-                <input type="number" className="value" value={sx} onChange={e => setSX(e.target.value)} />
+                <input type="number" className="value" value={sx} onChange={e => {
+                  setSX(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Y</span>
-                <input type="number" className="value" value={sy} onChange={e => setSY(e.target.value)} />
+                <input type="number" className="value" value={sy} onChange={e => {
+                  setSY(e.target.value);
+                  // updateObject();
+                }} />
               </label>
               <label className="row">
                 <span className="sublabel">Z</span>
-                <input type="number" className="value" value={sz} onChange={e => setSZ(e.target.value)} />
+                <input type="number" className="value" value={sz} onChange={e => {
+                  setSZ(e.target.value);
+                  // updateObject();
+                }} />
               </label>
             </div>
           </div>
@@ -563,6 +635,7 @@ const bindTextarea = codeEl => {
                 objects={objects}
                 selectedObjectIndex={selectedObjectIndex}
                 setSelectedObjectIndex={setSelectedObjectIndex}
+                selectedObject={objects[selectedObjectIndex]}
               />
               <Library
                 cards={cards}
