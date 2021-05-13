@@ -279,7 +279,29 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
   if (typeof j.autoScale === 'boolean') {
     autoScale = j.autoScale;
   }
-  const u = new URL(start_url, srcUrl).href;
+  
+  console.log('load rtfjs', start_url);
+  
+  return await runtime.loadFile({
+    url: start_url,
+    name: start_url,
+  }, {
+    // files,
+    parentUrl: srcUrl,
+    physics,
+    physics_url,
+    components,
+    autoScale,
+    contentId,
+    instanceId,
+    ownerAddress,
+    monetizationPointer,
+  });
+};
+const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  const u = new URL(srcUrl, parentUrl).href;
 
   // console.log('got start url', start_url);
   
@@ -348,30 +370,6 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
       }
     })();
   };
-
-  return o;
-  /* return await runtime.loadFile({
-    url: start_url,
-    name: start_url,
-  }, {
-    parentUrl: srcUrl,
-    physics,
-    physics_url,
-    components,
-    autoScale,
-    contentId,
-    instanceId,
-    ownerAddress,
-    monetizationPointer,
-  }); */
-};
-const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
-  let srcUrl = file.url || URL.createObjectURL(file);
-
-  console.log('got start url', {srcUrl, parentUrl});
-  
-  const o = new THREE.Object3D();
-  o.contentId = contentId;
   return o;
 };
 
