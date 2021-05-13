@@ -953,12 +953,6 @@ const bindTextarea = codeEl => {
             
             for (const file of files) {
               file.name = file.path;
-              /* const match = file.path.match(/([^\/]+)$/);
-              if (match) {
-                file.name = match[1];
-              } else {
-                file.name = '';
-              } */
               
               if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(file.path)) {
                 const text = await file.blob.text();
