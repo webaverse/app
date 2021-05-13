@@ -7,6 +7,7 @@ import Babel from '@babel/standalone';
 import JSZip from 'jszip';
 // import {jsx} from 'jsx-tmpl';
 import {world} from './world.js';
+import physicsManager from './physics-manager.js';
 import {storageHost} from './constants.js';
 
 import App from '/app.js';
