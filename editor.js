@@ -17,6 +17,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -342,24 +343,28 @@ const bindTextarea = codeEl => {
             
             setSX(selectedObject.scale.x);
             setSY(selectedObject.scale.y);
-            setSZ(selectedObject.scale.z);          }
+            setSZ(selectedObject.scale.z);
+          }
         }, [selectedObject]);
+        
         useEffect(() => {
           // console.log('update selected object', selectedObject);
           
           if (selectedObject) {
+            const oldMatrix = localMatrix.copy(selectedObject.matrixWorld);
+            
             selectedObject.position.set(px, py, pz);
             selectedObject.quaternion.set(rx, ry, rz, rw);
             selectedObject.scale.set(sx, sy, sz);
             selectedObject.updateMatrixWorld();
-            const newMatrix = localMatrix.copy(selectedObject.matrixWorld);
+            const newMatrix = localMatrix2.copy(selectedObject.matrixWorld);
 
             if (selectedObject.getPhysicsIds) {
               const physicsIds = selectedObject.getPhysicsIds();
               for (const physicsId of physicsIds) {
                 const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
 
-                const oldTransformMatrix = localMatrix2.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
+                const oldTransformMatrix = localMatrix3.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
                 oldTransformMatrix.clone()
                   .premultiply(oldMatrix.invert())
                   .premultiply(newMatrix)

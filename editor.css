@@ -417,7 +417,7 @@ body {
   flex-direction: column;
 }
 .details .label {
-  margin-bottom: 10px;
+  margin: 10px 0;
 }
 .details .label,
 .details .sublabel
@@ -443,7 +443,7 @@ body {
 }
 .details .value {
   display: inline-flex;
-  width: 30px;
+  width: 100px;
   padding: 5px;  
   background: #666;
   border: 0;
