@@ -561,12 +561,13 @@ const bindTextarea = codeEl => {
         
         useEffect(async () => {
           if (editor && selectedTemplateOption) {
-            const u = 'https://templates.webaverse.com/' + selectedTemplateOption + '/index.rtfjs';
+            const filename = 'index.rtfjs';
+            const u = 'https://templates.webaverse.com/' + selectedTemplateOption + '/' + filename;
             const res = await fetch(u);
             const text = await res.text();
             const files = [
               {
-                name: selectedTemplateOption,
+                name: filename,
                 doc: new CodeMirror.Doc(text, 'javascript'),
               },
             ];
