@@ -1006,8 +1006,9 @@ const mintNft = async () => {
 
 // loadText();
 (async () => {
-  const url = new URL(`https://127.0.0.1:3001/chest-rtfjs/index.js`);
-  const res = await fetch(url.href);
+  const url = new URL(`https://avaer.github.io/chest-rtfjs/index.rtfjs`);
+  // const url = new URL(`chest-rtfjs/index.rtfjs`, window.location.href);
+  const res = await fetch(url);
   const b = await res.blob();
   b.name = url;
   const zipData = await fetchAndCompileBlob(b);
