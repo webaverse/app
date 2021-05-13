@@ -152,6 +152,11 @@ const fetchAndCompileBlob = async file => {
   const o = new URL(scriptUrl, `https://webaverse.com/`);
   const p = o.pathname.replace(/^\//, '');
   urlCache[p] = s;
+  return urlCache;
+  // return s;
+  /* const o = new URL(scriptUrl, `https://webaverse.com/`);
+  const p = o.pathname.replace(/^\//, '');
+  urlCache[p] = s;
 
   urlCache['.metaversefile'] = JSON.stringify({
     start_url: p,
@@ -166,7 +171,7 @@ const fetchAndCompileBlob = async file => {
   const ab = await zip.generateAsync({
     type: 'arraybuffer',
   });
-  return new Uint8Array(ab);
+  return new Uint8Array(ab); */
 };
 const fetchZipFiles = async zipData => {
   const zip = await JSZip.loadAsync(zipData);
@@ -323,7 +328,51 @@ const downloadZip = async () => {
   await downloadFile(blob, 'nft.zip');
 };
 const collectZip = async () => {
-  const editor = getEditor();
+  const zip = new JSZip();
+  const files = getFiles();
+  const metaversefile = files.find(file => file.path === '.metaversefile');
+  const metaversefileJson = JSON.parse(metaversefile.doc.getValue());
+  const {start_url} = metaversefileJson;
+  // console.log('got start url', start_url);
+  const startUrlFile = files.find(file => file.path === start_url);
+  if (startUrlFile) {
+    if (startUrlFile.doc) {
+      startUrlFile.blob = new Blob([startUrlFile.doc.getValue()], {
+        type: 'application/javascript',
+      });
+    }
+    startUrlFile.blob.name = start_url;
+    const urlCache = await fetchAndCompileBlob(startUrlFile.blob);
+    for (const name in urlCache) {
+      const value = urlCache[name];
+      const file = files.find(file => file.name === name);
+      if (file) {
+        if (file.doc) {
+          file.doc.setValue(value);
+        }
+        file.blob = new Blob([value], {
+          type: 'application/javascript',
+        });
+      } else {
+        console.warn('could not find compiled file updat target', {files, name, urlCache});
+      }
+    }
+    // console.log('compiled', startUrlFile.blob, urlCache);
+    // startUrlFile.blob = ;
+  } else {
+    console.warn('could not find start file');
+  }
+  for (const file of files) {
+    const value = file.doc ? file.doc.getValue() : file.blob;
+    zip.file(file.path, value);
+  }
+  const ab = await zip.generateAsync({
+    type: 'arraybuffer',
+  });
+  console.log('got b', ab);
+  const uint8Array = new Uint8Array(ab);
+  return uint8Array;
+  /* const editor = getEditor();
   const s = editor.getValue();
   const b = new Blob([
     s,
@@ -333,7 +382,7 @@ const collectZip = async () => {
   // const u = URL.createObjectUrl(b);
   b.name = 'index.rtfjs';
   const zipData = await fetchAndCompileBlob(b);
-  return zipData;
+  return zipData; */
 };
 const uploadHash = async () => {
   const zipData = await collectZip();
@@ -845,14 +894,15 @@ const bindTextarea = codeEl => {
             const files = await ghDownload('https://github.com/webaverse/templates/tree/main/' + selectedTemplateOption);
             
             for (const file of files) {
-              const match = file.path.match(/([^\/]+)$/);
+              file.name = file.path;
+              /* const match = file.path.match(/([^\/]+)$/);
               if (match) {
                 file.name = match[1];
               } else {
                 file.name = '';
-              }
+              } */
               
-              if (/\.(?:html|js|rtfjs|tjs|txt|jsx)$/.test(file.path)) {
+              if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(file.path)) {
                 const text = await file.blob.text();
                 file.doc = new CodeMirror.Doc(text, 'javascript');
               } else {
@@ -1055,21 +1105,5 @@ const scene = app.getScene();
 const camera = app.getCamera();
 
 // console.log('got react three fiber', ReactThreeFiber);
-
-// loadText();
-(async () => {
-  const url = new URL(`https://avaer.github.io/chest-rtfjs/index.rtfjs`);
-  // const url = new URL(`chest-rtfjs/index.rtfjs`, window.location.href);
-  const res = await fetch(url);
-  const b = await res.blob();
-  b.name = url;
-  const zipData = await fetchAndCompileBlob(b);
-  const files = await fetchZipFiles(zipData);
-  const hash = await uploadFiles(files);
-  const o = await loadHash(hash);
-  // const u = `${storageHost}/ipfs/${hash}/chest-rtfjs/index.js`;
-  // const el = await loadModule(u);
-  // console.log('done render', el);
-})();
 
 };
