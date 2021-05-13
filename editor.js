@@ -12,6 +12,10 @@ import {storageHost} from './constants.js';
 
 import App from '/app.js';
 
+import ghDownloadDirectory from './gh-download-directory.js';
+const ghDownload = ghDownloadDirectory.default;
+// window.ghDownload = ghDownload;
+
 /* import BrowserFS from '/browserfs.js';
 BrowserFS.configure({
     fs: "IndexedDB",
@@ -567,7 +571,25 @@ const bindTextarea = codeEl => {
         
         useEffect(async () => {
           if (editor && selectedTemplateOption) {
-            const filename = 'index.rtfjs';
+            const files = await ghDownload('https://github.com/webaverse/templates/tree/main/' + selectedTemplateOption);
+            
+            for (const file of files) {
+              const match = file.path.match(/([^\/]+)$/);
+              if (match) {
+                file.name = match[1];
+              } else {
+                file.name = '';
+              }
+              
+              if (/\.(?:html|js|rtfjs|tjs|txt|jsx)$/.test(file.path)) {
+                const text = await file.blob.text();
+                file.doc = new CodeMirror.Doc(text, 'javascript');
+              } else {
+                file.doc = null;
+              }
+            }
+            
+            /* const filename = 'index.rtfjs';
             const u = 'https://templates.webaverse.com/' + selectedTemplateOption + '/' + filename;
             const res = await fetch(u);
             const text = await res.text();
@@ -576,7 +598,7 @@ const bindTextarea = codeEl => {
                 name: filename,
                 doc: new CodeMirror.Doc(text, 'javascript'),
               },
-            ];
+            ]; */
             setFiles(files);
             setSelectedFileIndex(0);
           }
