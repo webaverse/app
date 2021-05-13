@@ -349,6 +349,11 @@ body {
   background-color: #5c6bc0;
   color: #FFF;
 }
+.cards .card .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .cards .card .img {
   --card-size: 50px;
   width: var(--card-size);
