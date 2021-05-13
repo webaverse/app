@@ -192,6 +192,14 @@ const bindTextarea = codeEl => {
     (() => {
       const width = 50;
       
+      const User = () => {
+        return (
+          <div className="user">
+            <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
+            <div className="name">avaer</div>
+          </div>
+        );
+      };
       const Textarea = React.memo(props => {
         const el = useRef();
         useEffect(() => {
@@ -342,10 +350,7 @@ const bindTextarea = codeEl => {
             <div className="controls">
               <div className="top">
                 {/* <div className="control">
-                  <div className="user">
-                    <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
-                    <div className="name">avaer</div>
-                  </div>
+                  <User />
                 </div> */}
               </div>
               <div className="bottom">
@@ -380,10 +385,7 @@ const bindTextarea = codeEl => {
                   <img src="/assets/noun_Plus_950.svg" className="icon" />
                   <div className="label">Scene</div>
                 </nav>
-                <div className="user">
-                  <img src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.png" className="img" />
-                  <div className="name">avaer</div>
-                </div>
+                <User />
               </div>
               <div className="header">
                 {!open ?
