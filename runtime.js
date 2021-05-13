@@ -312,12 +312,25 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   const renderer = getRenderer();
   const sizeVector = renderer.getSize(new THREE.Vector2());
   const rootDiv = document.createElement('div');
+  let rtfScene = null;
   const _render = () => {
+    const renderer2 = Object.create(renderer);
+    renderer2.render = () => {
+      // nothing
+      // console.log('elide render');
+    };
+    renderer2.setSize = () => {
+      // nothing
+    };
+    renderer2.setPixelRatio = () => {
+      // nothing
+    };
+    
     ReactThreeFiber.render(
       React.createElement(fn),
       rootDiv,
       {
-        gl: renderer,
+        gl: renderer2,
         camera,
         size: {
           width: sizeVector.x,
@@ -328,6 +341,15 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
           // state = newState;
           // scene.add(state.scene);
           console.log('got state', state);
+          const {scene: newRtfScene} = state;
+          if (newRtfScene !== rtfScene) {
+            if (rtfScene) {
+              o.remove(rtfScene);
+              rtfScene = null;
+            }
+            rtfScene = newRtfScene;
+            o.add(rtfScene);
+          }
         },
         frameloop: 'demand',
       }
