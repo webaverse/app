@@ -881,7 +881,14 @@ const bindTextarea = codeEl => {
             const file = files[selectedFileIndex];
             // console.log('load file', file);
             if (file) {
-              editor.swapDoc(file.doc);
+              if (file.doc) {
+                editor.swapDoc(file.doc);
+                editor.display.wrapper.style.visibility = null;
+              } else {
+                editor.display.wrapper.style.visibility = 'hidden';
+              }
+            } else {
+              editor.display.wrapper.style.visibility = 'hidden';
             }
           }
         }, [editor, files, files.length, selectedFileIndex]);
