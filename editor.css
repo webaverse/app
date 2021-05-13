@@ -394,6 +394,10 @@ body {
   
 }
 
+.settings {
+  color: #FFF;
+}
+
 .root > .left,
 .root > .right,
 .root > .left > .top,

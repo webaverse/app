@@ -310,7 +310,7 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
-      const Library = React.memo(({cards, open, selectedObjectIndex, setSelectedObjectIndex}) => {
+      const Library = React.memo(({cards, open}) => {
         return (
           <div className={['cards', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             {cards.map((card, i) => {
@@ -325,6 +325,16 @@ const bindTextarea = codeEl => {
                 />
               );
             })}
+          </div>
+        );
+      });
+      const Settings = React.memo(({open}) => {
+        return (
+          <div className={['settings', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <label>
+              <input type="checkbox" />
+              <span className="label">Green screen</span>
+            </label>
           </div>
         );
       });
@@ -421,6 +431,9 @@ const bindTextarea = codeEl => {
                 <nav className={['tab', selectedTab === 'library' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('library')}>
                   <div className="label">Library</div>
                 </nav>
+                <nav className={['tab', selectedTab === 'settings' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('settings')}>
+                  <div className="label">Settings</div>
+                </nav>
                 <User />
               </div>
               <Editor
@@ -440,6 +453,9 @@ const bindTextarea = codeEl => {
                 cards={cards}
                 open={selectedTab === 'library'}
                 objects={objects}
+              />
+              <Settings
+                open={selectedTab === 'settings'}
               />
             </div>
           </div>
