@@ -342,11 +342,11 @@ const downloadZip = async () => {
 const collectZip = async () => {
   const zip = new JSZip();
   const files = getFiles();
-  const metaversefile = files.find(file => file.path === '.metaversefile');
+  const metaversefile = files.find(file => file.name === '.metaversefile');
   const metaversefileJson = JSON.parse(metaversefile.doc.getValue());
   const {start_url} = metaversefileJson;
   // console.log('got start url', start_url);
-  const startUrlFile = files.find(file => file.path === start_url);
+  const startUrlFile = files.find(file => file.name === start_url);
   if (startUrlFile) {
     if (startUrlFile.doc) {
       startUrlFile.blob = new Blob([startUrlFile.doc.getValue()], {
@@ -376,7 +376,7 @@ const collectZip = async () => {
   }
   for (const file of files) {
     const value = file.doc ? file.doc.getValue() : file.blob;
-    zip.file(file.path, value);
+    zip.file(file.name, value);
   }
   const ab = await zip.generateAsync({
     type: 'arraybuffer',
@@ -888,6 +888,7 @@ const bindTextarea = codeEl => {
         const [files, setFiles] = useState([]);
         const [editor, setEditor] = useState(null);
         const [errors, localSetErrors] = useState([]);
+        const [firstRun, setFirstRun] = useState(false);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -949,18 +950,23 @@ const bindTextarea = codeEl => {
         
         useEffect(async () => {
           if (editor && selectedTemplateOption) {
-            const files = await ghDownload('https://github.com/webaverse/templates/tree/main/' + selectedTemplateOption);
+            const filesSrc = await ghDownload('https://github.com/webaverse/templates/tree/main/' + selectedTemplateOption);
             
-            for (const file of files) {
-              file.name = file.path;
-              
-              if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(file.path)) {
+            const files = await Promise.all(filesSrc.map(async file => {
+              const {path: name, blob} = file;
+              let doc;
+              if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(name)) {
                 const text = await file.blob.text();
-                file.doc = new CodeMirror.Doc(text, 'javascript');
+                doc = new CodeMirror.Doc(text, 'javascript');
               } else {
-                file.doc = null;
+                doc = null;
               }
-            }
+              return {
+                name,
+                blob,
+                doc,
+              };
+            }));
             
             setFiles(files);
             setSelectedFileIndex(0);
@@ -984,6 +990,14 @@ const bindTextarea = codeEl => {
             }
           }
         }, [editor, files, files.length, selectedFileIndex]);
+        
+        useEffect(() => {
+          if (!firstRun && editor && files.length > 0) {
+            console.log('run files', files.slice());
+            setFirstRun(true);
+            run();
+          }
+        }, [firstRun, editor, files, files.length]);
         
         return <div className="root">
           <div className="left">
