@@ -321,6 +321,8 @@ body {
 .library {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 .library .search {
   display: flex;
@@ -331,18 +333,15 @@ body {
   background: #333;
   border-radius: 5px;
   align-items: center;
-  flex: 1;
 }
 .library .search .search-image {
   width: 30px;
   height: 30px;
   margin-left: 5px;
-  filteR: invert(1);
+  filter: invert(1);
 }
 .library .search input[type="text"] {
   display: flex;
-  width: 100%;
-  height: 100%;
   margin: 0;
   /* padding-left: 30px; */
   background: transparent;
@@ -358,7 +357,8 @@ body {
   background-color: #111;
   flex-wrap: wrap;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
+  flex: 1;
 }
 .cards .card {
   display: flex;
