@@ -223,7 +223,7 @@ body {
   filter: invert(1);
 }
 
-.right {
+.root > .right {
   display: flex;
   width: 800px;
   height: 100vh;
@@ -231,6 +231,11 @@ body {
   /* background: linear-gradient(to right, #eee, #FFF); */
   background: #000;
   /* border-left: 3px solid #333; */
+}
+.root > .right > .right {
+  display: flex;
+  height: inherit;
+  flex-direction: column;
 }
 .header {
   display: flex;
@@ -491,4 +496,28 @@ body {
 }
 .root > .left > .bottom {
   
+}
+
+.editor {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.editor .errors {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 1;
+  pointer-events: none;
+}
+.editor .errors .error {
+  padding: 10px;
+  color: #FFF;
+  background: radial-gradient(#b22222, #7d0b0b);
+  pointer-events: all;
 }
