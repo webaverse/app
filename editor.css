@@ -366,7 +366,10 @@ body {
 }
 .details {
   display: flex;
-  /* background-color: #333; */
+  margin: 10px;
+  margin-top: 0;
+  background: linear-gradient(to bottom, #333, #222);
+  border-radius: 10px;
   color: #333;
   flex: 1;
   flex-direction: column;
