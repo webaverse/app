@@ -311,6 +311,10 @@ const bindTextarea = codeEl => {
         );
       });
       const Scene = React.memo(({objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
+        const [px, setPX] = useState(0);
+        const [py, setPY] = useState(0);
+        const [pz, setPZ] = useState(0);
+        
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section objects">
@@ -327,8 +331,21 @@ const bindTextarea = codeEl => {
               })}
             </div>
             <div className="section details">
-              {/* <img src="/assets/cards-placeholder.png" className="section-icon" />
-              <div className="h1">Click to select</div> */}
+              {/* <img src="/assets/cards-placeholder.png" className="section-icon" /> */}
+              <div className="label">Position</div>
+              <label className="row">
+                <span className="sublabel">X</span>
+                <input type="number" className="value" value={px} onChange={e => setPX(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Y</span>
+                <input type="number" className="value" value={py} onChange={e => setPY(e.target.value)} />
+              </label>
+              <label className="row">
+                <span className="sublabel">Z</span>
+                <input type="number" className="value" value={pz} onChange={e => setPZ(e.target.value)} />
+              </label>
+              <div className="label">Rotation</div>
             </div>
           </div>
         );
