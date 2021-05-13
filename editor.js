@@ -8,6 +8,7 @@ import JSZip from 'jszip';
 // import {jsx} from 'jsx-tmpl';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
+import {downloadFile} from './util.js';
 import {storageHost} from './constants.js';
 
 import App from '/app.js';
@@ -97,6 +98,276 @@ function createPointerEvents(store) {
     },
   }
 }
+
+const fetchAndCompileBlob = async file => {
+  const res = file;
+  const scriptUrl = file.name;
+  let s = await file.text();
+  
+  const urlCache = {};
+  const _mapUrl = async (u, scriptUrl) => {
+    const cachedContent = urlCache[u];
+    if (cachedContent !== undefined) {
+      // return u;
+      // nothing
+    } else {
+      const fullUrl = new URL(u, scriptUrl).href;
+      const res = await fetch(fullUrl);
+      if (res.ok) {
+        let importScript = await res.text();
+        importScript = await _mapScript(importScript, fullUrl);
+        const p = new URL(fullUrl).pathname.replace(/^\//, '');
+        urlCache[p] = importScript;
+      } else {
+        throw new Error('failed to load import url: ' + u);
+      }
+    }
+  };
+  const _mapScript = async (script, scriptUrl) => {
+    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    // console.log('map script');
+    const r = /((?:im|ex)port(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+    // console.log('got replacements', script, Array.from(script.matchAll(r)));
+    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+      let u = match[2];
+      // console.log('replacement', u);
+      if (/^\.+\//.test(u)) {
+        await _mapUrl(u, scriptUrl);
+      }
+      return u;
+    }));
+    let index = 0;
+    script = script.replace(r, function() {
+      return arguments[1] + replacements[index++] + arguments[3];
+    });
+    const spec = Babel.transform(script, {
+      presets: ['react'],
+      // compact: false,
+    });
+    script = spec.code;
+    return script;
+  };
+
+  s = await _mapScript(s, scriptUrl);
+  const o = new URL(scriptUrl, `https://webaverse.com/`);
+  const p = o.pathname.replace(/^\//, '');
+  urlCache[p] = s;
+
+  urlCache['.metaversefile'] = JSON.stringify({
+    start_url: p,
+  });
+  
+  const zip = new JSZip();
+  for (const p in urlCache) {
+    const d = urlCache[p];
+    // console.log('add file', p);
+    zip.file(p, d);
+  }
+  const ab = await zip.generateAsync({
+    type: 'arraybuffer',
+  });
+  return new Uint8Array(ab);
+};
+const fetchZipFiles = async zipData => {
+  const zip = await JSZip.loadAsync(zipData);
+  // console.log('load file 4', zip.files);
+
+  const fileNames = [];
+  // const localFileNames = {};
+  for (const fileName in zip.files) {
+    fileNames.push(fileName);
+  }
+  const files = await Promise.all(fileNames.map(async fileName => {
+    const file = zip.file(fileName);
+    
+    const b = file && await file.async('blob');
+    return {
+      name: fileName,
+      data: b,
+    };
+  }));
+  return files;
+};
+
+const isDirectoryName = fileName => /\/$/.test(fileName);
+const uploadFiles = async files => {
+  const fd = new FormData();
+  const directoryMap = {};
+  const metaverseFile = files.find(f => f.name === '.metaversefile');
+  // console.log('got', metaverseFile);
+  const metaverseJson = await (async () => {
+    const s = await metaverseFile.data.text();
+    const j = JSON.parse(s);
+    return j;    
+  })();
+  const {start_url} = metaverseJson;
+  [
+    // mainDirectoryName,
+    '',
+  ].forEach(p => {
+    if (!directoryMap[p]) {
+      // console.log('missing main directory', {p, directoryMap, files});
+      console.log('add missing main directory', [p]);
+      fd.append(
+        p,
+        new Blob([], {
+          type: 'application/x-directory',
+        }),
+        p
+      );
+    }
+  });
+
+  for (const file of files) {
+    const {name} = file;
+    const basename = name; // localFileNames[name];
+    // console.log('append', basename, name);
+    if (isDirectoryName(name)) {
+      const p = name.replace(/\/+$/, '');
+      console.log('append dir', p);
+      fd.append(
+        p,
+        new Blob([], {
+          type: 'application/x-directory',
+        }),
+        p
+      );
+      directoryMap[p] = true;
+    } else {
+      // console.log('append file', name);
+      fd.append(name, file.data, basename);
+    }
+  }
+
+  const uploadFilesRes = await fetch(storageHost, {
+    method: 'POST',
+    body: fd,
+  });
+  const hashes = await uploadFilesRes.json();
+
+  const rootDirectory = hashes.find(h => h.name === '');
+  console.log('got hashes', {rootDirectory, hashes});
+  const rootDirectoryHash = rootDirectory.hash;
+  return rootDirectoryHash;
+  /* const ipfsUrl = `${storageHost}/ipfs/${rootDirectoryHash}`;
+  console.log('got ipfs url', ipfsUrl);
+  return ipfsUrl; */
+};
+/* let rootDiv = null;
+// let state = null;
+const loadModule = async u => {
+  const m = await import(u);
+  const fn = m.default;
+  // console.log('got fn', fn);
+
+  // window.ReactThreeFiber = ReactThreeFiber;
+
+  if (rootDiv) {
+    const roots = ReactThreeFiber._roots;
+    const root = roots.get(rootDiv);
+    const fiber = root?.fiber
+    if (fiber) {
+      const state = root?.store.getState()
+      if (state) state.internal.active = false
+      await new Promise((accept, reject) => {
+        ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+          if (state) {
+            // setTimeout(() => {
+              state.events.disconnect?.()
+              // state.gl?.renderLists?.dispose?.()
+              // state.gl?.forceContextLoss?.()
+              ReactThreeFiber.dispose(state)
+              roots.delete(canvas)
+              // if (callback) callback(canvas)
+            // }, 500)
+          }
+          accept();
+        });
+      });
+    }
+  }
+
+  const sizeVector = renderer.getSize(new THREE.Vector2());
+  rootDiv = document.createElement('div');
+
+  await app.waitForLoad();
+  app.addEventListener('frame', () => {
+    ReactThreeFiber.render(
+      React.createElement(fn),
+      rootDiv,
+      {
+        gl: renderer,
+        camera,
+        size: {
+          width: sizeVector.x,
+          height: sizeVector.y,
+        },
+        events: createPointerEvents,
+        onCreated: state => {
+          // state = newState;
+          // scene.add(state.scene);
+          console.log('got state', state);
+        },
+        frameloop: 'demand',
+      }
+    );
+  });
+}; */
+// const selectedType = 'rtfjs'; // XXX implement a real selector
+const downloadZip = async () => {
+  const zipData = await collectZip();
+  // console.log('got zip data', zipData);
+  const blob = new Blob([zipData], {
+    type: 'application/zip',
+  });
+  await downloadFile(blob, 'nft.zip');
+};
+const collectZip = async () => {
+  const editor = getEditor();
+  const s = editor.getValue();
+  const b = new Blob([
+    s,
+  ], {
+    type: 'application/javascript',
+  });
+  // const u = URL.createObjectUrl(b);
+  b.name = 'index.rtfjs';
+  const zipData = await fetchAndCompileBlob(b);
+  return zipData;
+};
+const uploadHash = async () => {
+  const zipData = await collectZip();
+  const files = await fetchZipFiles(zipData);
+  const hash = await uploadFiles(files);
+  return hash;
+};
+const run = async () => {
+  const hash = await uploadHash();
+  console.log('load hash', hash);
+  // const el = await loadModule(u);
+  await loadHash(hash);
+};
+let loadedObject = null;
+const loadHash = async hash => {
+  if (loadedObject) {
+    await world.removeObject(loadedObject.instanceId);
+    loadedObject = null;
+  }
+
+  const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+  const position = new THREE.Vector3();
+  const quaternion  = new THREE.Quaternion();
+  loadedObject = await world.addObject(u, null, position, quaternion, {
+    // physics,
+    // physics_url,
+    // autoScale,
+  });
+};
+const mintNft = async () => {
+  const hash = await uploadHash();
+  console.log('upload nft', hash);
+  window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=metaversefile`;
+};
 
 window.onload = async () => {
 
@@ -226,7 +497,7 @@ const bindTextarea = codeEl => {
                   <img src="/assets/family-tree.svg" className="icon" />
                   <div className="label">Import URL...</div>
                 </button>
-                <button className="button">
+                <button className="button" onClick={downloadZip}>
                   <img src="/assets/download.svg" className="icon" />
                   <div className="label">Download zip</div>
                 </button>
@@ -777,264 +1048,6 @@ const scene = app.getScene();
 const camera = app.getCamera();
 
 // console.log('got react three fiber', ReactThreeFiber);
-
-const fetchAndCompileBlob = async file => {
-  const res = file;
-  const scriptUrl = file.name;
-  let s = await file.text();
-  
-  const urlCache = {};
-  const _mapUrl = async (u, scriptUrl) => {
-    const cachedContent = urlCache[u];
-    if (cachedContent !== undefined) {
-      // return u;
-      // nothing
-    } else {
-      const fullUrl = new URL(u, scriptUrl).href;
-      const res = await fetch(fullUrl);
-      if (res.ok) {
-        let importScript = await res.text();
-        importScript = await _mapScript(importScript, fullUrl);
-        const p = new URL(fullUrl).pathname.replace(/^\//, '');
-        urlCache[p] = importScript;
-      } else {
-        throw new Error('failed to load import url: ' + u);
-      }
-    }
-  };
-  const _mapScript = async (script, scriptUrl) => {
-    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-    // console.log('map script');
-    const r = /((?:im|ex)port(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
-    // console.log('got replacements', script, Array.from(script.matchAll(r)));
-    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
-      let u = match[2];
-      // console.log('replacement', u);
-      if (/^\.+\//.test(u)) {
-        await _mapUrl(u, scriptUrl);
-      }
-      return u;
-    }));
-    let index = 0;
-    script = script.replace(r, function() {
-      return arguments[1] + replacements[index++] + arguments[3];
-    });
-    const spec = Babel.transform(script, {
-      presets: ['react'],
-      // compact: false,
-    });
-    script = spec.code;
-    return script;
-  };
-
-  s = await _mapScript(s, scriptUrl);
-  const o = new URL(scriptUrl, `https://webaverse.com/`);
-  const p = o.pathname.replace(/^\//, '');
-  urlCache[p] = s;
-
-  urlCache['.metaversefile'] = JSON.stringify({
-    start_url: p,
-  });
-  
-  const zip = new JSZip();
-  for (const p in urlCache) {
-    const d = urlCache[p];
-    // console.log('add file', p);
-    zip.file(p, d);
-  }
-  const ab = await zip.generateAsync({
-    type: 'arraybuffer',
-  });
-  return new Uint8Array(ab);
-};
-const fetchZipFiles = async zipData => {
-  const zip = await JSZip.loadAsync(zipData);
-  // console.log('load file 4', zip.files);
-
-  const fileNames = [];
-  // const localFileNames = {};
-  for (const fileName in zip.files) {
-    fileNames.push(fileName);
-  }
-  const files = await Promise.all(fileNames.map(async fileName => {
-    const file = zip.file(fileName);
-    
-    const b = file && await file.async('blob');
-    return {
-      name: fileName,
-      data: b,
-    };
-  }));
-  return files;
-};
-
-const isDirectoryName = fileName => /\/$/.test(fileName);
-const uploadFiles = async files => {
-  const fd = new FormData();
-  const directoryMap = {};
-  const metaverseFile = files.find(f => f.name === '.metaversefile');
-  // console.log('got', metaverseFile);
-  const metaverseJson = await (async () => {
-    const s = await metaverseFile.data.text();
-    const j = JSON.parse(s);
-    return j;    
-  })();
-  const {start_url} = metaverseJson;
-  [
-    // mainDirectoryName,
-    '',
-  ].forEach(p => {
-    if (!directoryMap[p]) {
-      // console.log('missing main directory', {p, directoryMap, files});
-      console.log('add missing main directory', [p]);
-      fd.append(
-        p,
-        new Blob([], {
-          type: 'application/x-directory',
-        }),
-        p
-      );
-    }
-  });
-
-  for (const file of files) {
-    const {name} = file;
-    const basename = name; // localFileNames[name];
-    // console.log('append', basename, name);
-    if (isDirectoryName(name)) {
-      const p = name.replace(/\/+$/, '');
-      console.log('append dir', p);
-      fd.append(
-        p,
-        new Blob([], {
-          type: 'application/x-directory',
-        }),
-        p
-      );
-      directoryMap[p] = true;
-    } else {
-      // console.log('append file', name);
-      fd.append(name, file.data, basename);
-    }
-  }
-
-  const uploadFilesRes = await fetch(storageHost, {
-    method: 'POST',
-    body: fd,
-  });
-  const hashes = await uploadFilesRes.json();
-
-  const rootDirectory = hashes.find(h => h.name === '');
-  console.log('got hashes', {rootDirectory, hashes});
-  const rootDirectoryHash = rootDirectory.hash;
-  return rootDirectoryHash;
-  /* const ipfsUrl = `${storageHost}/ipfs/${rootDirectoryHash}`;
-  console.log('got ipfs url', ipfsUrl);
-  return ipfsUrl; */
-};
-/* let rootDiv = null;
-// let state = null;
-const loadModule = async u => {
-  const m = await import(u);
-  const fn = m.default;
-  // console.log('got fn', fn);
-
-  // window.ReactThreeFiber = ReactThreeFiber;
-
-  if (rootDiv) {
-    const roots = ReactThreeFiber._roots;
-    const root = roots.get(rootDiv);
-    const fiber = root?.fiber
-    if (fiber) {
-      const state = root?.store.getState()
-      if (state) state.internal.active = false
-      await new Promise((accept, reject) => {
-        ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-          if (state) {
-            // setTimeout(() => {
-              state.events.disconnect?.()
-              // state.gl?.renderLists?.dispose?.()
-              // state.gl?.forceContextLoss?.()
-              ReactThreeFiber.dispose(state)
-              roots.delete(canvas)
-              // if (callback) callback(canvas)
-            // }, 500)
-          }
-          accept();
-        });
-      });
-    }
-  }
-
-  const sizeVector = renderer.getSize(new THREE.Vector2());
-  rootDiv = document.createElement('div');
-
-  await app.waitForLoad();
-  app.addEventListener('frame', () => {
-    ReactThreeFiber.render(
-      React.createElement(fn),
-      rootDiv,
-      {
-        gl: renderer,
-        camera,
-        size: {
-          width: sizeVector.x,
-          height: sizeVector.y,
-        },
-        events: createPointerEvents,
-        onCreated: state => {
-          // state = newState;
-          // scene.add(state.scene);
-          console.log('got state', state);
-        },
-        frameloop: 'demand',
-      }
-    );
-  });
-}; */
-// const selectedType = 'rtfjs'; // XXX implement a real selector
-const uploadHash = async () => {
-  const editor = getEditor();
-  const s = editor.getValue();
-  const b = new Blob([
-    s,
-  ], {
-    type: 'application/javascript',
-  });
-  // const u = URL.createObjectUrl(b);
-  b.name = 'index.rtfjs';
-  const zipData = await fetchAndCompileBlob(b);
-  const files = await fetchZipFiles(zipData);
-  const hash = await uploadFiles(files);
-  return hash;
-};
-const run = async () => {
-  const hash = await uploadHash();
-  console.log('load hash', hash);
-  // const el = await loadModule(u);
-  await loadHash(hash);
-};
-let loadedObject = null;
-const loadHash = async hash => {
-  if (loadedObject) {
-    await world.removeObject(loadedObject.instanceId);
-    loadedObject = null;
-  }
-
-  const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
-  const position = new THREE.Vector3();
-  const quaternion  = new THREE.Quaternion();
-  loadedObject = await world.addObject(u, null, position, quaternion, {
-    // physics,
-    // physics_url,
-    // autoScale,
-  });
-};
-const mintNft = async () => {
-  const hash = await uploadHash();
-  console.log('upload nft', hash);
-  window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=metaversefile`;
-};
 
 // loadText();
 (async () => {
