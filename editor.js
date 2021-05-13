@@ -142,8 +142,8 @@ const s = `\
     // console.log('render', r, React, r === React);
     return (
       <Fragment>
-        <ambientLight />
-        <directionalLight position={[1, 1, 1]} quaternion={lightQuaternion} intensity={2}/>
+        {/* <ambientLight /> */}
+        <directionalLight position={[10, 10, 10]} quaternion={lightQuaternion} />
         <Box position={[0, 1, 0]} color="hotpink" animate />
         <Floor />
       </Fragment>

@@ -85,6 +85,9 @@ body {
   height: 100vh !important;
   z-index: 1;
 }
+.CodeMirror-wrap pre.CodeMirror-line {
+  line-height: 1.6 !important;
+}
 .controls {
   position: absolute;
   top: 0;
