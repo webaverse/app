@@ -962,16 +962,6 @@ const bindTextarea = codeEl => {
               }
             }
             
-            /* const filename = 'index.rtfjs';
-            const u = 'https://templates.webaverse.com/' + selectedTemplateOption + '/' + filename;
-            const res = await fetch(u);
-            const text = await res.text();
-            const files = [
-              {
-                name: filename,
-                doc: new CodeMirror.Doc(text, 'javascript'),
-              },
-            ]; */
             setFiles(files);
             setSelectedFileIndex(0);
           }
