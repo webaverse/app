@@ -330,6 +330,21 @@ const bindTextarea = codeEl => {
         const [sz, setSZ] = useState(1);
         
         useEffect(() => {
+          if (selectedObject) {
+            setPX(selectedObject.position.x);
+            setPY(selectedObject.position.y);
+            setPZ(selectedObject.position.z);
+            
+            setRX(selectedObject.quaternion.x);
+            setRY(selectedObject.quaternion.y);
+            setRZ(selectedObject.quaternion.z);
+            setRW(selectedObject.quaternion.w);
+            
+            setSX(selectedObject.scale.x);
+            setSY(selectedObject.scale.y);
+            setSZ(selectedObject.scale.z);          }
+        }, [selectedObject]);
+        useEffect(() => {
           // console.log('update selected object', selectedObject);
           
           if (selectedObject) {
