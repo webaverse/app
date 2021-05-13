@@ -185,15 +185,12 @@ const bindTextarea = codeEl => {
         );
       };
       const Textarea = React.memo(props => {
-        const {setEditor, onChange} = props;
+        const {setEditor} = props;
         
         const el = useRef();
         useEffect(() => {
           // el.current.innerHTML = s;
           const editor = bindTextarea(el.current);
-          editor.on('change', (cm, changeObj) => {
-            onChange(changeObj);
-          });
           setEditor(editor);
         }, []);
         
@@ -201,7 +198,7 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, onChange}) => {
+      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
         return (
           <Fragment>
             {open ?
@@ -222,7 +219,7 @@ const bindTextarea = codeEl => {
                 <button className="button" onClick={e => {
                   const newFiles = files.concat({
                     name: 'untitled',
-                    value: '',
+                    doc: new CodeMirror.Doc('', 'javascript'),
                   });
                   setFiles(newFiles);
                 }}>
@@ -264,7 +261,6 @@ const bindTextarea = codeEl => {
               </div>
               <Textarea
                 setEditor={setEditor}
-                onChange={onChange}
               />
             </div>
           </Fragment>
@@ -582,7 +578,7 @@ const bindTextarea = codeEl => {
             const files = [
               {
                 name: selectedTemplateOption,
-                value: text,
+                doc: new CodeMirror.Doc(text, 'javascript'),
               },
             ];
             setFiles(files);
@@ -595,10 +591,10 @@ const bindTextarea = codeEl => {
             const file = files[selectedFileIndex];
             console.log('load file', file);
             if (file) {
-              editor.setValue(file.value);
-            } else {
+              editor.swapDoc(file.doc);
+            } /* else {
               editor.setValue('');
-            }
+            } */
             setLastSelectedFileIndex(selectedFileIndex);
           }
         }, [editor, files, selectedFileIndex, lastSelectedFileIndex]);
@@ -670,19 +666,6 @@ const bindTextarea = codeEl => {
                 selectedTemplateOption={selectedTemplateOption}
                 setSelectedTemplateOption={setSelectedTemplateOption}
                 setEditor={setEditor}
-                onChange={changeObj => {
-                  // console.log('editor change');
-                  const editor = getEditor();
-                  if (editor) {
-                    const files = getFiles();
-                    const selectedFileIndex = getSelectedFileIndex();
-                    const file = files[selectedFileIndex];
-                    // console.log('got file', file);
-                    if (file) {
-                      file.value = editor.getValue();
-                    }
-                  }
-                }}
               />
               <Scene
                 open={selectedTab === 'scene'}
