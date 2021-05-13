@@ -287,7 +287,7 @@ const bindTextarea = codeEl => {
           </nav>
         );
       });
-      const Scene = React.memo(({cards, objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
+      const Scene = React.memo(({objects, open, selectedObjectIndex, setSelectedObjectIndex}) => {
         return (
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section objects">
@@ -307,6 +307,24 @@ const bindTextarea = codeEl => {
               {/* <img src="/assets/cards-placeholder.png" className="section-icon" />
               <div className="h1">Click to select</div> */}
             </div>
+          </div>
+        );
+      });
+      const Library = React.memo(({cards, open, selectedObjectIndex, setSelectedObjectIndex}) => {
+        return (
+          <div className={['cards', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            {cards.map((card, i) => {
+              const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
+              return (
+                <MiniCard
+                  img={img}
+                  name={card.name}
+                  hash={card.hash}
+                  ext={card.ext}
+                  key={i}
+                />
+              );
+            })}
           </div>
         );
       });
@@ -361,22 +379,7 @@ const bindTextarea = codeEl => {
                 <canvas id="canvas" className="canvas" />
               </div>
             </div>
-            <div className="bottom">
-              <div className="cards">
-                {cards.map((card, i) => {
-                  const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
-                  return (
-                    <MiniCard
-                      img={img}
-                      name={card.name}
-                      hash={card.hash}
-                      ext={card.ext}
-                      key={i}
-                    />
-                  );
-                })}
-              </div>
-            </div>
+            <div className="bottom"></div>
           </div>
           <div className="right">
             <div className="controls">
@@ -410,12 +413,13 @@ const bindTextarea = codeEl => {
             <div className="right">
               <div className="header">
                 <nav className={['tab', selectedTab === 'editor' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('editor')}>
-                  <img src="/assets/noun_Plus_950.svg" className="icon" />
                   <div className="label">Editor</div>
                 </nav>
                 <nav className={['tab', selectedTab === 'scene' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('scene')}>
-                  <img src="/assets/noun_Plus_950.svg" className="icon" />
                   <div className="label">Scene</div>
+                </nav>
+                <nav className={['tab', selectedTab === 'library' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('library')}>
+                  <div className="label">Library</div>
                 </nav>
                 <User />
               </div>
@@ -427,11 +431,15 @@ const bindTextarea = codeEl => {
                 setSelectedFileIndex={setSelectedFileIndex}
               />
               <Scene
-                cards={cards}
                 open={selectedTab === 'scene'}
                 objects={objects}
                 selectedObjectIndex={selectedObjectIndex}
                 setSelectedObjectIndex={setSelectedObjectIndex}
+              />
+              <Library
+                cards={cards}
+                open={selectedTab === 'library'}
+                objects={objects}
               />
             </div>
           </div>
