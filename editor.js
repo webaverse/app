@@ -41,6 +41,9 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 
 let getEditor = () => null;
+let getFiles = () => null;
+let getSelectedFileIndex = () => null;
+// let isChanging = false;
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -182,12 +185,15 @@ const bindTextarea = codeEl => {
         );
       };
       const Textarea = React.memo(props => {
-        const {setEditor} = props;
+        const {setEditor, onChange} = props;
         
         const el = useRef();
         useEffect(() => {
           // el.current.innerHTML = s;
           const editor = bindTextarea(el.current);
+          editor.on('change', (cm, changeObj) => {
+            onChange(changeObj);
+          });
           setEditor(editor);
         }, []);
         
@@ -195,7 +201,7 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
+      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, onChange}) => {
         return (
           <Fragment>
             {open ?
@@ -258,6 +264,7 @@ const bindTextarea = codeEl => {
               </div>
               <Textarea
                 setEditor={setEditor}
+                onChange={onChange}
               />
             </div>
           </Fragment>
@@ -500,7 +507,8 @@ const bindTextarea = codeEl => {
         const [cards, setCards] = useState([]);
         const [searchResults, setSearchResults] = useState(null);
         const [objects, setObjects] = useState([]);
-        const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+        const [selectedFileIndex, setSelectedFileIndex] = useState(-1);
+        const [lastSelectedFileIndex, setLastSelectedFileIndex] = useState(0);
         const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
         const [q, setQ] = useState('');
         const [currentQ, setCurrentQ] = useState('');
@@ -511,6 +519,8 @@ const bindTextarea = codeEl => {
         const [editor, setEditor] = useState(null);
         
         getEditor = () => editor;
+        getFiles = () => files;
+        getSelectedFileIndex = () => selectedFileIndex;
         
         // console.log('set objects', objects);
         
@@ -576,19 +586,22 @@ const bindTextarea = codeEl => {
               },
             ];
             setFiles(files);
+            setSelectedFileIndex(0);
           }
         }, [editor, selectedTemplateOption]);
         
         useEffect(async () => {
-          if (editor) {
+          if (editor && selectedFileIndex !== lastSelectedFileIndex) {
             const file = files[selectedFileIndex];
+            console.log('load file', file);
             if (file) {
               editor.setValue(file.value);
             } else {
               editor.setValue('');
             }
+            setLastSelectedFileIndex(selectedFileIndex);
           }
-        }, [editor, files, selectedFileIndex]);
+        }, [editor, files, selectedFileIndex, lastSelectedFileIndex]);
         
         return <div className="root">
           <div className="left">
@@ -651,10 +664,25 @@ const bindTextarea = codeEl => {
                 selectedTab={selectedTab}
                 selectedFileIndex={selectedFileIndex}
                 setSelectedFileIndex={setSelectedFileIndex}
+                // lastSelectedFileIndex={lastSelectedFileIndex}
+                // setLastSelectedFileIndex={setLastSelectedFileIndex}
                 templateOptions={templateOptions}
                 selectedTemplateOption={selectedTemplateOption}
                 setSelectedTemplateOption={setSelectedTemplateOption}
                 setEditor={setEditor}
+                onChange={changeObj => {
+                  // console.log('editor change');
+                  const editor = getEditor();
+                  if (editor) {
+                    const files = getFiles();
+                    const selectedFileIndex = getSelectedFileIndex();
+                    const file = files[selectedFileIndex];
+                    // console.log('got file', file);
+                    if (file) {
+                      file.value = editor.getValue();
+                    }
+                  }
+                }}
               />
               <Scene
                 open={selectedTab === 'scene'}
