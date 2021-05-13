@@ -50,7 +50,8 @@ const localMatrix3 = new THREE.Matrix4();
 let getEditor = () => null;
 let getFiles = () => null;
 let getSelectedFileIndex = () => null;
-// let isChanging = false;
+let getErrors = () => null;
+let setErrors = () => {};
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -369,7 +370,7 @@ const collectZip = async () => {
   const ab = await zip.generateAsync({
     type: 'arraybuffer',
   });
-  console.log('got b', ab);
+  // console.log('got b', ab);
   const uint8Array = new Uint8Array(ab);
   return uint8Array;
   /* const editor = getEditor();
@@ -385,14 +386,17 @@ const collectZip = async () => {
   return zipData; */
 };
 const uploadHash = async () => {
+  // console.log('collect zip 1');
   const zipData = await collectZip();
+  // console.log('collect zip 2');
   const files = await fetchZipFiles(zipData);
   const hash = await uploadFiles(files);
+  // console.log('got hash', hash);
   return hash;
 };
 const run = async () => {
   const hash = await uploadHash();
-  console.log('load hash', hash);
+  // console.log('load hash', hash);
   // const el = await loadModule(u);
   await loadHash(hash);
 };
@@ -427,11 +431,21 @@ const bindTextarea = codeEl => {
     matchBrackets: true,
     lineWrapping: true,
     extraKeys: {
-      'Ctrl-S': function(cm) {
-        run();
+      'Ctrl-S': async cm => {
+        try {
+          await run();
+        } catch (err) {
+          const errors = [err].concat(getErrors());
+          setErrors(errors);
+        }
       },
-      'Ctrl-L': function(cm) {
-        mintNft();
+      'Ctrl-L': async cm => {
+        try {
+          await mintNft();
+        } catch (err) {
+          const errors = [err].concat(getErrors());
+          setErrors(errors);
+        }
       },
     },
   });
@@ -514,7 +528,7 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor}) => {
+      const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, errors}) => {
         return (
           <Fragment>
             {open ?
@@ -582,6 +596,13 @@ const bindTextarea = codeEl => {
               <Textarea
                 setEditor={setEditor}
               />
+              <div className="errors">
+                {errors.map((error, i) => {
+                  return (
+                    <div className="error" key={i}>{error.stack}</div>
+                  );
+                })}
+              </div>
             </div>
           </Fragment>
         );
@@ -832,10 +853,13 @@ const bindTextarea = codeEl => {
         const [selectedTemplateOption, setSelectedTemplateOption] = useState();
         const [files, setFiles] = useState([]);
         const [editor, setEditor] = useState(null);
+        const [errors, localSetErrors] = useState([]);
         
         getEditor = () => editor;
         getFiles = () => files;
         getSelectedFileIndex = () => selectedFileIndex;
+        getErrors = () => errors;
+        setErrors = localSetErrors;
         
         // console.log('set objects', objects);
         
@@ -1008,6 +1032,7 @@ const bindTextarea = codeEl => {
                 selectedTemplateOption={selectedTemplateOption}
                 setSelectedTemplateOption={setSelectedTemplateOption}
                 setEditor={setEditor}
+                errors={errors}
               />
               <Scene
                 open={selectedTab === 'scene'}
