@@ -220,6 +220,10 @@ const bindTextarea = codeEl => {
                   <img src="/assets/family-tree.svg" className="icon" />
                   <div className="label">Import URL...</div>
                 </button>
+                <button className="button">
+                  <img src="/assets/download.svg" className="icon" />
+                  <div className="label">Download zip</div>
+                </button>
                 <select name="nfttype" id="nfttype" value={selectedTemplateOption} onChange={e => {
                   // console.log('got change', e);
                   setSelectedTemplateOption(e.target.value);
