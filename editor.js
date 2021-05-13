@@ -192,6 +192,29 @@ const bindTextarea = codeEl => {
     (() => {
       const width = 50;
       
+      const Search = React.memo(({
+        q,
+        setQ,
+        onEnter,
+      }) => {
+        return (
+          <label className="search">
+            <img className="search-image" src="/assets/search.svg" />
+            <input
+              type="text"
+              value={q}
+              onChange={e => {
+                setQ(e.target.value);
+              }}
+              onKeyDown={e => {
+                if (e.which === 13) {
+                  onEnter && onEnter(e, {q});
+                }
+              }}
+            />
+          </label>
+        );
+      });
       const User = () => {
         return (
           <div className="user">
@@ -310,21 +333,30 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
-      const Library = React.memo(({cards, open}) => {
+      const Library = React.memo(({cards, open, q, setQ}) => {
         return (
-          <div className={['cards', 'page', open ? 'open' : '', 'sections'].join(' ')}>
-            {cards.map((card, i) => {
-              const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
-              return (
-                <MiniCard
-                  img={img}
-                  name={card.name}
-                  hash={card.hash}
-                  ext={card.ext}
-                  key={i}
-                />
-              );
-            })}
+          <div className={['library', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <Search
+              q={q}
+              setQ={setQ}
+              onEnter={(e, {q}) => {
+                console.log('get search', {q});
+              }}
+            />
+            <div className="cards">
+              {cards.map((card, i) => {
+                const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
+                return (
+                  <MiniCard
+                    img={img}
+                    name={card.name}
+                    hash={card.hash}
+                    ext={card.ext}
+                    key={i}
+                  />
+                );
+              })}
+            </div>
           </div>
         );
       });
@@ -347,6 +379,7 @@ const bindTextarea = codeEl => {
         const [objects, setObjects] = useState([]);
         const [selectedFileIndex, setSelectedFileIndex] = useState(0);
         const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
+        const [q, setQ] = useState('');
         
         // console.log('set objects', objects);
         
@@ -453,6 +486,8 @@ const bindTextarea = codeEl => {
                 cards={cards}
                 open={selectedTab === 'library'}
                 objects={objects}
+                q={q}
+                setQ={setQ}
               />
               <Settings
                 open={selectedTab === 'settings'}
