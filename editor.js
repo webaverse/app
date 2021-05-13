@@ -333,18 +333,19 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
-      const Library = React.memo(({cards, open, q, setQ}) => {
+      const Library = React.memo(({cards, open, q, setQ, setCurrentQ, searchResults, setSearchResults}) => {
         return (
           <div className={['library', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <Search
               q={q}
               setQ={setQ}
               onEnter={(e, {q}) => {
-                console.log('get search', {q});
+                setCurrentQ(q);
+                // console.log('get search', {q});
               }}
             />
             <div className="cards">
-              {cards.map((card, i) => {
+              {(searchResults || cards).map((card, i) => {
                 const img = "https://card-preview.exokit.org/?w=" + Math.floor(width * window.devicePixelRatio) + "&ext=jpg&t=" + card.id;
                 return (
                   <MiniCard
@@ -375,11 +376,14 @@ const bindTextarea = codeEl => {
         const [open, setOpen] = useState(true);
         const [selectedTab, setSelectedTab] = useState('editor');
         const [cards, setCards] = useState([]);
+        const [searchResults, setSearchResults] = useState(null);
         const [files, setFiles] = useState([]);
         const [objects, setObjects] = useState([]);
         const [selectedFileIndex, setSelectedFileIndex] = useState(0);
         const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
         const [q, setQ] = useState('');
+        const [currentQ, setCurrentQ] = useState('');
+        const [lastQ, setLastQ] = useState('');
         
         // console.log('set objects', objects);
         
@@ -414,6 +418,28 @@ const bindTextarea = codeEl => {
             world.removeEventListener('objectsremove', _objectsupdate);
           };
         }, []);
+        
+        /* const qs = parseQuery(router.asPath.match(/(\?.*)$/)?.[1] || '');
+        const {q: currentQ} = qs; */
+        useEffect(() => {
+          if (currentQ !== lastQ) {
+            setLastQ(currentQ);
+
+            if (currentQ) {
+              setQ(currentQ);
+              (async () => {      
+                const res = await fetch('https://tokens.webaverse.com/search?q=' + currentQ);
+                const tokens = await res.json();
+                setSearchResults(tokens);
+              })().catch(err => {
+                console.warn(err);
+              });
+            } else {
+              setQ('');
+              setSearchResults(null);
+            }
+          }
+        }, [currentQ, lastQ]);
         
         return <div className="root">
           <div className="left">
@@ -488,6 +514,9 @@ const bindTextarea = codeEl => {
                 objects={objects}
                 q={q}
                 setQ={setQ}
+                setCurrentQ={setCurrentQ}
+                searchResults={searchResults}
+                setSearchResults={setSearchResults}
               />
               <Settings
                 open={selectedTab === 'settings'}
