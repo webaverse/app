@@ -136,6 +136,16 @@ const bindTextarea = codeEl => {
   const _ = React.createElement;
   const container = document.getElementById('container');
   
+  const defaultFiles = [
+    {
+      name: 'index.rtfjs',
+      value: '// default content',
+    },
+    {
+      name: '.metaversefile',
+      value: '{}',
+    },
+  ];
   const jsx = `
     (() => {
       const width = 50;
@@ -230,7 +240,11 @@ const bindTextarea = codeEl => {
               <div className="section files">
               {files.map((file, i) => {
                 return (
-                  <div className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')} onClick={e => setSelectedFileIndex(i)} key={i}>
+                  <div
+                    className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')}
+                    onClick={e => setSelectedFileIndex(i)}
+                    key={i}
+                  >
                     <div className="file-inner">{file.name}</div>
                   </div>
                 );
@@ -479,7 +493,6 @@ const bindTextarea = codeEl => {
         const [selectedTab, setSelectedTab] = useState('editor');
         const [cards, setCards] = useState([]);
         const [searchResults, setSearchResults] = useState(null);
-        const [files, setFiles] = useState([]);
         const [objects, setObjects] = useState([]);
         const [selectedFileIndex, setSelectedFileIndex] = useState(0);
         const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
@@ -488,6 +501,7 @@ const bindTextarea = codeEl => {
         const [lastQ, setLastQ] = useState('');
         const [templateOptions, setTemplateOptions] = useState([]);
         const [selectedTemplateOption, setSelectedTemplateOption] = useState();
+        const [files, setFiles] = useState(defaultFiles);
         const [editor, setEditor] = useState(null);
         
         getEditor = () => editor;
@@ -498,15 +512,6 @@ const bindTextarea = codeEl => {
           const res = await fetch('https://tokens.webaverse.com/1-100');
           const j = await res.json();
           setCards(j);
-        }, []);
-        
-        useEffect(async () => {
-          setFiles([
-            'index.rtfjs',
-            '.metaversefile',
-          ].map(name => ({
-            name,
-          })));
         }, []);
         
         useEffect(async () => {
@@ -555,14 +560,31 @@ const bindTextarea = codeEl => {
         
         useEffect(async () => {
           if (editor && selectedTemplateOption) {
-            console.log('load', );
-            
             const u = 'https://templates.webaverse.com/' + selectedTemplateOption;
             const res = await fetch(u);
             const text = await res.text();
-            editor.setValue(text);
+            const files = [
+              {
+                name: selectedTemplateOption,
+                value: text,
+              },
+            ];
+            setFiles(files);
           }
         }, [editor, selectedTemplateOption]);
+        
+        useEffect(async () => {
+          if (editor && selectedFileIndex === 0) {
+            const file = files[selectedFileIndex];
+            if (file) {
+              editor.setValue(file.value);
+            } else {
+              editor.setValue('');
+            }
+          } else {
+            editor.setValue('');
+          }
+        }, [editor, files, selectedFileIndex]);
         
         return <div className="root">
           <div className="left">
