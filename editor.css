@@ -156,6 +156,7 @@ body {
 .user {
   display: flex;
   align-items: center;
+  color: #FFF;
 }
 .user > .img {
   width: 30px;
@@ -184,7 +185,7 @@ body {
 .objects .object
 {
   padding: 1px 2px;
-  color: #333;
+  color: #FFF;
   pointer: default;
   user-select: none;
 }
@@ -192,7 +193,7 @@ body {
 .objects .object .object-inner
 {
   padding: 5px 10px;
-  border-radius: 5px;
+  /* border-radius: 5px; */
 }
 .files .file:not(.selected),
 .objects .object:not(.selected)
@@ -204,7 +205,7 @@ body {
 .objects .object.selected .object-inner,
 .objects .object:hover .object-inner
 {
-  background-color: #111;
+  background-color: #333;
   color: #7986cb;
 }
 
@@ -221,8 +222,9 @@ body {
   width: 800px;
   height: 100vh;
   flex-direction: column;
-  background: linear-gradient(to right, #eee, #FFF);
-  border-left: 3px solid #333;
+  /* background: linear-gradient(to right, #eee, #FFF); */
+  background: #000;
+  /* border-left: 3px solid #333; */
 }
 .header {
   display: flex;
@@ -239,7 +241,7 @@ body {
   background: transparent;
   border: 2px solid currentColor;
   border-radius: 5px;
-  /* color: #FFF; */
+  color: #FFF;
   font-size: 13px;
   font-family: 'FuturaStd-Heavy';
 }
@@ -248,7 +250,7 @@ body {
 {
   margin-right: 5px; 
   cursor: pointer;
-  opacity: 0.7;
+  /* opacity: 0.7; */
 }
 .header .button:hover,
 .header .icon-button:hover
@@ -259,7 +261,7 @@ body {
   width: 20px;
   height: 20px;
   margin-right: 5px;
-  /* filter: invert(1); */
+  filter: invert(1);
 }
 
 .header .tab {
@@ -268,6 +270,7 @@ body {
   padding: 10px;
   /* border-bottom: 3px solid transparent; */
   align-items: center;
+  color: #ffffff80;
   font-family: 'FuturaStd-Heavy';
   font-size: 13px;
   letter-spacing: 1px;
@@ -281,7 +284,7 @@ body {
 }
 .header .tab:hover,
 .header .tab.selected {
-  color: #5c6bc0;
+  color: #FFF;
 }
 .header .tab .icon {
   display: none;
