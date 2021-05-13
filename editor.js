@@ -211,20 +211,52 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
-      const Editor = React.memo(({open, files, selectedFileIndex, setSelectedFileIndex}) => {
+      const Editor = React.memo(({open, files, selectedTab, selectedFileIndex, setSelectedFileIndex}) => {
         return (
-          <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
-            <div className="section files">
-            {files.map((file, i) => {
-              return (
-                <div className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')} onClick={e => setSelectedFileIndex(i)} key={i}>
-                  <div className="file-inner">{file.name}</div>
-                </div>
-              );
-            })}
+          <Fragment>
+            {open ?
+              <div className="header">
+                {/* !open ?
+                  <div className="icon-button" onClick={() => setOpen(true)}>
+                    <img src="/assets/chevron-left.svg" className="icon" />
+                  </div>
+                : null */}
+                <button className="button" onClick={() => run()}>
+                  <img src="/assets/comet-spark.svg" className="icon" />
+                  <div className="label">Run code</div>
+                </button>
+                <button className="button" onClick={() => mintNft()}>
+                  <img src="/assets/mint.svg" className="icon" />
+                  <div className="label">Mint NFT</div>
+                </button>
+                <button className="button">
+                  <img src="/assets/noun_Plus_950.svg" className="icon" />
+                  <div className="label">New file</div>
+                </button>
+                <button className="button">
+                  <img src="/assets/family-tree.svg" className="icon" />
+                  <div className="label">Import URL...</div>
+                </button>
+                <select name="nfttype" id="nfttype">
+                  <option value="react-three-fiber">react-three-fiber</option>
+                  <option value="threejs">three.js</option>
+                  <option value="3d-model">3D model</option>
+                </select>
+              </div>
+            : null}
+            <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+              <div className="section files">
+              {files.map((file, i) => {
+                return (
+                  <div className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')} onClick={e => setSelectedFileIndex(i)} key={i}>
+                    <div className="file-inner">{file.name}</div>
+                  </div>
+                );
+              })}
+              </div>
+              <Textarea />
             </div>
-            <Textarea />
-          </div>
+          </Fragment>
         );
       });
       const MiniCard = React.memo(({
@@ -272,8 +304,8 @@ const bindTextarea = codeEl => {
               })}
             </div>
             <div className="section details">
-              <img src="/assets/cards-placeholder.png" className="section-icon" />
-              {/* <div className="h1">Click to select</div> */}
+              {/* <img src="/assets/cards-placeholder.png" className="section-icon" />
+              <div className="h1">Click to select</div> */}
             </div>
           </div>
         );
@@ -387,37 +419,10 @@ const bindTextarea = codeEl => {
                 </nav>
                 <User />
               </div>
-              <div className="header">
-                {!open ?
-                  <div className="icon-button" onClick={() => setOpen(true)}>
-                    <img src="/assets/chevron-left.svg" className="icon" />
-                  </div>
-                : null}
-                <button className="button" onClick={() => run()}>
-                  <img src="/assets/comet-spark.svg" className="icon" />
-                  <div className="label">Run code</div>
-                </button>
-                <button className="button" onClick={() => mintNft()}>
-                  <img src="/assets/mint.svg" className="icon" />
-                  <div className="label">Mint NFT</div>
-                </button>
-                <button className="button">
-                  <img src="/assets/noun_Plus_950.svg" className="icon" />
-                  <div className="label">New file</div>
-                </button>
-                <button className="button">
-                  <img src="/assets/family-tree.svg" className="icon" />
-                  <div className="label">Import URL...</div>
-                </button>
-                <select name="nfttype" id="nfttype">
-                  <option value="react-three-fiber">react-three-fiber</option>
-                  <option value="threejs">three.js</option>
-                  <option value="3d-model">3D model</option>
-                </select>
-              </div>
               <Editor
                 open={selectedTab === 'editor'}
                 files={files}
+                selectedTab={selectedTab}
                 selectedFileIndex={selectedFileIndex}
                 setSelectedFileIndex={setSelectedFileIndex}
               />
