@@ -197,6 +197,9 @@ body {
 {
   padding: 5px 10px;
   /* border-radius: 5px; */
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .files .file:not(.selected),
 .objects .object:not(.selected)
