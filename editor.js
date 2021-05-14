@@ -568,41 +568,39 @@ const bindTextarea = codeEl => {
         
         return (
           <Fragment>
-            {open ?
-              <div className="header">
-                <button className="button" onClick={() => run()}>
-                  <img src="/assets/comet-spark.svg" className="icon" />
-                  <div className="label">Run code</div>
-                </button>
-                <button className="button" onClick={() => mintNft()}>
-                  <img src="/assets/mint.svg" className="icon" />
-                  <div className="label">Mint NFT</div>
-                </button>
-                <button className="button" onClick={e => {
-                  const newFiles = files.concat({
-                    name: 'untitled',
-                    doc: new CodeMirror.Doc('', 'javascript'),
-                  });
-                  setFiles(newFiles);
-                }}>
-                  <img src="/assets/noun_Plus_950.svg" className="icon" />
-                  <div className="label">New file</div>
-                </button>
-                <button className="button">
-                  <img src="/assets/family-tree.svg" className="icon" />
-                  <div className="label">Import URL...</div>
-                </button>
-                <button className="button" onClick={downloadZip}>
-                  <img src="/assets/download.svg" className="icon" />
-                  <div className="label">Download zip</div>
-                </button>
-                <Dropdown
-                  options={templateOptions}
-                  selectedOption={selectedTemplateOption}
-                  setSelectedOption={setSelectedTemplateOption}
-                />
-              </div>
-            : null}
+            <div className="header">
+              <button className="button" onClick={() => run()}>
+                <img src="/assets/comet-spark.svg" className="icon" />
+                <div className="label">Run code</div>
+              </button>
+              <button className="button" onClick={() => mintNft()}>
+                <img src="/assets/mint.svg" className="icon" />
+                <div className="label">Mint NFT</div>
+              </button>
+              <button className="button" onClick={e => {
+                const newFiles = files.concat({
+                  name: 'untitled',
+                  doc: new CodeMirror.Doc('', 'javascript'),
+                });
+                setFiles(newFiles);
+              }}>
+                <img src="/assets/noun_Plus_950.svg" className="icon" />
+                <div className="label">New file</div>
+              </button>
+              <button className="button">
+                <img src="/assets/family-tree.svg" className="icon" />
+                <div className="label">Import URL...</div>
+              </button>
+              <button className="button" onClick={downloadZip}>
+                <img src="/assets/download.svg" className="icon" />
+                <div className="label">Download zip</div>
+              </button>
+              <Dropdown
+                options={templateOptions}
+                selectedOption={selectedTemplateOption}
+                setSelectedOption={setSelectedTemplateOption}
+              />
+            </div>
             <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
               <div className="section files">
               {files.map((file, i) => {
