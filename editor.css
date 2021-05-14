@@ -82,7 +82,8 @@ body {
   top: 0;
   right: 0;
   width: var(--code-size);
-  height: 100vh !important;
+  /* height: 100vh !important; */
+  flex: 1;
   z-index: 1;
 }
 .CodeMirror-wrap pre.CodeMirror-line {
@@ -585,6 +586,16 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+.editor > .right {
+  display: flex;
+  flex-direction: column;
+}
+.editor > .right > .bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 .editor .errors {
   position: absolute;
