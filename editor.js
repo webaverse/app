@@ -359,9 +359,9 @@ const collectZip = async () => {
       const value = urlCache[name];
       const file = files.find(file => file.name === name);
       if (file) {
-        if (file.doc) {
+        /* if (file.doc) {
           file.doc.setValue(value);
-        }
+        } */
         file.blob = new Blob([value], {
           type: 'application/javascript',
         });
@@ -375,8 +375,7 @@ const collectZip = async () => {
     console.warn('could not find start file');
   }
   for (const file of files) {
-    const value = file.doc ? file.doc.getValue() : file.blob;
-    zip.file(file.name, value);
+    zip.file(file.name, file.blob);
   }
   const ab = await zip.generateAsync({
     type: 'arraybuffer',
