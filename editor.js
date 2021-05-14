@@ -1208,6 +1208,11 @@ const bindTextarea = codeEl => {
           }
         }, [secondRun, editor, files]);
         
+        useEffect(() => {
+          const object = objects[selectedObjectIndex] || null;
+          app.bindTransformControls(object);
+        }, [objects, objects.length, selectedObjectIndex]);
+        
         return <div className="root">
           <div className="left">
             <div className="top">
