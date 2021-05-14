@@ -703,8 +703,8 @@ const bindTextarea = codeEl => {
                       file={file}
                       setFile={setFile}
                     >
-                      <img src="/assets/noun_Plus_950.svg" className="icon" />
-                      <div className="label">Upload file</div>
+                      <img src="/assets/upload.svg" className="icon" />
+                      <div className="label">Upload...</div>
                     </FileInput>
                   </div>
                 </div>
