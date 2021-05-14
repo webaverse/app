@@ -196,6 +196,9 @@ export default class App extends EventTarget {
   bindCanvas(c) {
     bindCanvas(c);
   }
+  bindTransformControls(c) {
+    transformControls.bind(c);
+  }
   
   render() {
     this.dispatchEvent(frameEvent);
@@ -369,6 +372,7 @@ export default class App extends EventTarget {
       _updateRig();
 
       controlsManager.update();
+      transformControls.update();
       weaponsManager.update();
       hpManager.update();
       activateManager.update();
