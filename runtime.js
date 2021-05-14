@@ -364,6 +364,7 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   
   const o = new THREE.Object3D();
   o.contentId = contentId;
+  o.isRtfjs = true;
   o.destroy = () => {
     appManager.destroyApp(appId);
     
