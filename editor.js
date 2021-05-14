@@ -541,6 +541,27 @@ const bindTextarea = codeEl => {
           <textarea className="section code" ref={el} id="code"></textarea>
         );
       });
+      const Dropdown = ({
+        options,
+        selectedOption,
+        setSelectedOption,
+      }) => {
+        return (
+          <select className="select" name="nfttype" id="nfttype" value={selectedOption} onChange={e => {
+            // console.log('got change', e);
+            setSelectedOption(e.target.value);
+          }}>
+            {options.map((o, i) => {
+              return (
+                <option
+                  value={o}
+                  key={i}
+                >{o}</option>
+              );
+            })}
+          </select> 
+        );
+      };
       const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, errors}) => {
         const [fileRenameIndex, setFileRenameIndex] = useState(-1);
         const [fileRenameName, setFileRenameName] = useState('');
@@ -580,19 +601,11 @@ const bindTextarea = codeEl => {
                   <img src="/assets/download.svg" className="icon" />
                   <div className="label">Download zip</div>
                 </button>
-                <select name="nfttype" id="nfttype" value={selectedTemplateOption} onChange={e => {
-                  // console.log('got change', e);
-                  setSelectedTemplateOption(e.target.value);
-                }}>
-                  {templateOptions.map((o, i) => {
-                    return (
-                      <option
-                        value={o}
-                        key={i}
-                      >{o}</option>
-                    );
-                  })}
-                </select>
+                <Dropdown
+                  options={templateOptions}
+                  selectedOption={selectedTemplateOption}
+                  setSelectedOption={setSelectedTemplateOption}
+                />
               </div>
             : null}
             <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
