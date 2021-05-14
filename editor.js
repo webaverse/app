@@ -572,6 +572,7 @@ const bindTextarea = codeEl => {
               <div className="left">
                 <div className="top">
                   <div className="header">
+                    <div className="super">Template</div>
                     <Dropdown
                       options={templateOptions}
                       selectedOption={selectedTemplateOption}

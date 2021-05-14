@@ -279,9 +279,21 @@ body {
   margin-right: 5px;
   filter: invert(1);
 }
+.header .super {
+  position: absolute;
+  margin-left: 20px;
+  margin-top: -52px;
+  font-family: 'FuturaStd-Heavy';
+  text-transform: uppercase;
+  color: #FFFFFF80;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1px;
+}
 .header .select {
   flex: 1;
   margin: 0 5px;
+  margin-left: 20px;
   padding: 5px;
   border: 2px solid currentColor;
   border-radius: 5px;
@@ -550,7 +562,7 @@ body {
 }
 
 .editor {
-  position: relative;
+  /* position: relative; */
   flex: 1;
   overflow: hidden;
 }
