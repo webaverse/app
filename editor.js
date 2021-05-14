@@ -1014,6 +1014,22 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
+      const Multiplayer = React.memo(({open, servers}) => {
+        return (
+          <div className={['multiplayer', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+            <div className="servers">
+              {servers.map((server, i) => {
+                return (
+                  <div className="server" key={i}>
+                    <img src="/assets/circuitry.svg" className="icon" />
+                    <div className="name">{server.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      });
       const Settings = React.memo(({open}) => {
         return (
           <div className={['settings', 'page', open ? 'open' : '', 'sections'].join(' ')}>
@@ -1155,6 +1171,15 @@ const bindTextarea = codeEl => {
           }
         }, [secondRun, editor, files]);
         
+        const servers = [
+          {
+            name: 'magic land',
+          },
+          {
+            name: 'lollercopter landing pad',
+          },
+        ];
+        
         return <div className="root">
           <div className="left">
             <div className="top">
@@ -1204,6 +1229,9 @@ const bindTextarea = codeEl => {
                 <nav className={['tab', selectedTab === 'library' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('library')}>
                   <div className="label">Library</div>
                 </nav>
+                <nav className={['tab', selectedTab === 'multiplayer' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('multiplayer')}>
+                  <div className="label">Multiplayer</div>
+                </nav>
                 <nav className={['tab', selectedTab === 'settings' ? 'selected' : ''].join(' ')} onClick={e => setSelectedTab('settings')}>
                   <div className="label">Settings</div>
                 </nav>
@@ -1239,6 +1267,10 @@ const bindTextarea = codeEl => {
                 setCurrentQ={setCurrentQ}
                 searchResults={searchResults}
                 setSearchResults={setSearchResults}
+              />
+              <Multiplayer
+                servers={servers}
+                open={selectedTab === 'multiplayer'}
               />
               <Settings
                 open={selectedTab === 'settings'}
