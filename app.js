@@ -26,6 +26,7 @@ import {parseCoord} from './util.js';
 // import './procgen.js';
 import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
+import TransformGizmo from './TransformGizmo.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -64,6 +65,7 @@ export default class App extends EventTarget {
     this.loadPromise = Promise.all([
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
+      TransformGizmo.load(),
     ])
       .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
