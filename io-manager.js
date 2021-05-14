@@ -664,12 +664,13 @@ ioManager.bindInput = () => {
   
   scene.addEventListener('click', event => {
     const e = event.event;
-	  if (document.pointerLockElement && e.buttons === 0) {
-      weaponsManager.menuClick();
-    }
-    if (!document.pointerLockElement && e.buttons === 0) {
-      weaponsManager.setMenu(0);
-      cameraManager.requestPointerLock();
+	  if (e.buttons === 0) {
+      if (document.pointerLockElement) {
+        weaponsManager.menuClick();
+      } else {
+        weaponsManager.setMenu(0);
+        cameraManager.requestPointerLock();
+      }
     }
   });
   scene.addEventListener('mousedown', event => {

@@ -197,6 +197,9 @@ scene.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
 
+let mouseHoverObject = null;
+let mouseHoverPhysicsId = 0;
+
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
 scene.add(editMesh);
@@ -438,12 +441,16 @@ const _delete = () => {
   }
 };
 const _click = () => {
+  console.log('got click 1');
   if (weaponsManager.canBuild()) {
+    console.log('got click 2');
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
+    console.log('got click 3');
     _deselectLoadout();
     _ungrab();
   } else {
+    console.log('got click 4', !!highlightedPhysicsObject);
     if (highlightedPhysicsObject) {
       if (world.getObjects().includes(highlightedPhysicsObject)) {
         _grab(highlightedPhysicsObject);
@@ -755,9 +762,11 @@ const _updateWeapons = () => {
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
 
-    if (highlightedPhysicsObject) {
-      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
-        const physics = physicsManager.getGeometry(highlightedPhysicsId);
+    const h = mouseHoverObject || highlightedPhysicsObject
+    if (h) {
+      const physicsId = mouseHoverObject ? mouseHoverPhysicsId : highlightedPhysicsId;
+      if (highlightPhysicsMesh.physicsId !== physicsId) {
+        const physics = physicsManager.getGeometry(physicsId);
 
         if (physics) {
           let geometry = new THREE.BufferGeometry();
@@ -769,11 +778,11 @@ const _updateWeapons = () => {
           highlightPhysicsMesh.geometry.dispose();
           highlightPhysicsMesh.geometry = geometry;
           // highlightPhysicsMesh.scale.setScalar(1.05);
-          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
+          highlightPhysicsMesh.physicsId = physicsId;
         }
       }
 
-      const physicsTransform = physicsManager.getPhysicsTransform(highlightedPhysicsId);
+      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.scale.copy(physicsTransform.scale);
@@ -1998,6 +2007,10 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
+  },
+  setMouseHoverObject(o, physicsIds) {
+    mouseHoverObject = o;
+    mouseHoverPhysicsId = physicsIds;
   },
   getSpeed() {
     const defaultSpeed = 0.1;
