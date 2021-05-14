@@ -542,6 +542,9 @@ const bindTextarea = codeEl => {
         );
       });
       const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, errors}) => {
+        const [fileRenameIndex, setFileRenameIndex] = useState(-1);
+        const [fileRenameName, setFileRenameName] = useState('');
+        
         return (
           <Fragment>
             {open ?
@@ -595,13 +598,39 @@ const bindTextarea = codeEl => {
             <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
               <div className="section files">
               {files.map((file, i) => {
-                return (
+                return (fileRenameIndex === i ?
+                  <input
+                    type="text"
+                    className="file-rename"
+                    value={fileRenameName}
+                    onChange={e => {
+                      setFileRenameName(e.target.value);
+                    }}
+                    onKeyDown={e => {
+                      if (e.which === 13) {
+                        setFileRenameIndex(-1);
+                      } else if (e.which === 27) {
+                        setFileRenameIndex(-1);
+                      }
+                    }}
+                    key={i}
+                  />
+                :
                   <div
                     className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')}
                     onClick={e => setSelectedFileIndex(i)}
                     key={i}
                   >
-                    <div className="file-inner">{file.name}</div>
+                    <div className="file-inner">
+                      <span className="text">{file.name}</span>
+                      <nav className="rename-icon" onClick={e => {
+                        e.stopPropagation();
+                        setFileRenameName(file.name);
+                        setFileRenameIndex(i);
+                      }}>
+                        <img src="/assets/pencil.svg" className="img" />
+                      </nav>
+                    </div>
                   </div>
                 );
               })}
@@ -756,12 +785,9 @@ const bindTextarea = codeEl => {
                     key={i}
                   >
                     <div className="object-inner">
-                      <span
-                        className="text"
-                      >
-                        {object.name}
-                      </span>
+                      <span className="text">{object.name}</span>
                       <nav className="rename-icon" onClick={e => {
+                        e.stopPropagation();
                         setObjectRenameName(object.name);
                         setObjectRenameIndex(i);
                       }}>
