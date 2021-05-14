@@ -258,7 +258,7 @@ body {
   font-size: 13px;
   font-family: 'FuturaStd-Heavy';
 }
-.header .button, 
+.header .button,
 .header .icon-button
 {
   margin-right: 5px; 
@@ -280,16 +280,26 @@ body {
   filter: invert(1);
 }
 .header .select {
+  flex: 1;
+  margin: 0 5px;
   padding: 5px;
   border: 2px solid currentColor;
   border-radius: 5px;
   background-color: transparent;
   color: #FFF;
   cursor: pointer;
-  appearance: none;
+  outline: none;
+  opacity: 0.5;
+}
+.header .select:hover {
+  opacity: 1;
 }
 .header .select > option {
-  background-color: transparent;
+  background: #333;
+}
+.header.footer {
+  margin-top: auto;
+  padding-left: 5px;
 }
 
 .header .tab {
@@ -543,6 +553,13 @@ body {
   position: relative;
   flex: 1;
   overflow: hidden;
+}
+.editor > .left,
+.editor > .left > .bottom
+{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 .editor .errors {
   position: absolute;

@@ -577,26 +577,6 @@ const bindTextarea = codeEl => {
                       selectedOption={selectedTemplateOption}
                       setSelectedOption={setSelectedTemplateOption}
                     />
-                    <button className="button" onClick={e => {
-                      const newFiles = files.concat({
-                        name: 'untitled',
-                        doc: new CodeMirror.Doc('', 'javascript'),
-                      });
-                      setFiles(newFiles);
-                    }}>
-                      <img src="/assets/noun_Plus_950.svg" className="icon" />
-                      <div className="label">New file</div>
-                    </button>
-                    <button className="button" onClick={e => {
-                      const newFiles = files.concat({
-                        name: 'untitled',
-                        doc: new CodeMirror.Doc('', 'javascript'),
-                      });
-                      setFiles(newFiles);
-                    }}>
-                      <img src="/assets/noun_Plus_950.svg" className="icon" />
-                      <div className="label">Upload file</div>
-                    </button>
                   </div>
                 </div>
                 <div className="bottom">
@@ -638,6 +618,28 @@ const bindTextarea = codeEl => {
                         </div>
                       );
                     })}
+                  </div>
+                  <div className="header footer">
+                    <button className="button" onClick={e => {
+                      const newFiles = files.concat({
+                        name: 'untitled',
+                        doc: new CodeMirror.Doc('', 'javascript'),
+                      });
+                      setFiles(newFiles);
+                    }}>
+                      <img src="/assets/noun_Plus_950.svg" className="icon" />
+                      <div className="label">New file</div>
+                    </button>
+                    <button className="button" onClick={e => {
+                      const newFiles = files.concat({
+                        name: 'untitled',
+                        doc: new CodeMirror.Doc('', 'javascript'),
+                      });
+                      setFiles(newFiles);
+                    }}>
+                      <img src="/assets/noun_Plus_950.svg" className="icon" />
+                      <div className="label">Upload file</div>
+                    </button>
                   </div>
                 </div>
               </div>
