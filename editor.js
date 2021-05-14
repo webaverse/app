@@ -497,25 +497,23 @@ const bindTextarea = codeEl => {
       const width = 50;
       
       const FileInput = ({
+        className,
         file,
         setFile,
+        children,
       }) => {
-        return (file ?
-          <div className="file">
-            <div className="text">{file.name}</div>
-            <img className="cancel-button" src="/cancel.svg" onClick={e => {
-              setFile(null);
+        return (
+          <div className={'file-input ' + className}>
+            {children}
+            <input type="file" placeholder="File" onChange={e => {
+              const files = Array.from(e.target.files);
+              if (files.length > 0) {
+                setFile(files[0]);
+              } else {
+                setFile(null);
+              }
             }} />
           </div>
-        :
-          <input type="file" placeholder="File" onChange={e => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-              setFile(files[0]);
-            } else {
-              setFile(null);
-            }
-          }} />
         );
       };
       const Search = React.memo(({
@@ -587,6 +585,7 @@ const bindTextarea = codeEl => {
       const Editor = React.memo(({open, files, setFiles, selectedTab, selectedFileIndex, setSelectedFileIndex, templateOptions, selectedTemplateOption, setSelectedTemplateOption, setEditor, errors}) => {
         const [fileRenameIndex, setFileRenameIndex] = useState(-1);
         const [fileRenameName, setFileRenameName] = useState('');
+        const [file, setFile] = useState(null);
         
         return (
           <Fragment>
@@ -653,16 +652,14 @@ const bindTextarea = codeEl => {
                       <img src="/assets/noun_Plus_950.svg" className="icon" />
                       <div className="label">New file</div>
                     </button>
-                    <button className="button" onClick={e => {
-                      const newFiles = files.concat({
-                        name: 'untitled',
-                        doc: new CodeMirror.Doc('', 'javascript'),
-                      });
-                      setFiles(newFiles);
-                    }}>
+                    <FileInput
+                      className="button"
+                      file={file}
+                      setFile={setFile}
+                    >
                       <img src="/assets/noun_Plus_950.svg" className="icon" />
                       <div className="label">Upload file</div>
-                    </button>
+                    </FileInput>
                   </div>
                 </div>
               </div>
@@ -1112,6 +1109,7 @@ const bindTextarea = codeEl => {
           }
         }, [firstRun, editor, files]);
         useEffect(() => {
+          console.log('run files', secondRun, files.slice());
           if (!secondRun && editor && files.length > 0) {
             setSecondRun(true);
             run();
