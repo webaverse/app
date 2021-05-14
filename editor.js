@@ -570,11 +570,6 @@ const bindTextarea = codeEl => {
           <Fragment>
             {open ?
               <div className="header">
-                {/* !open ?
-                  <div className="icon-button" onClick={() => setOpen(true)}>
-                    <img src="/assets/chevron-left.svg" className="icon" />
-                  </div>
-                : null */}
                 <button className="button" onClick={() => run()}>
                   <img src="/assets/comet-spark.svg" className="icon" />
                   <div className="label">Run code</div>
