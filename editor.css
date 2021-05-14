@@ -266,6 +266,13 @@ body {
   cursor: pointer;
   /* opacity: 0.7; */
 }
+.editor > .left .header .button .icon {
+  width: 15px;
+  height: 15px;
+}
+.editor > .left .header .button {
+  flex: 1;
+}
 .header .button:hover {
   background-color: #5c6bc0;
 }
