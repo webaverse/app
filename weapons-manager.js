@@ -1701,6 +1701,7 @@ window.document.addEventListener('drop', async e => {
         // physics_url,
         // autoScale,
       });
+      loadedObject.name = u.match(/([^\/]+)$/)[1];
     } else {
       //console.log('got drop', Array.from(e.dataTransfer.items));
       const files = Array.from(e.dataTransfer.files);
