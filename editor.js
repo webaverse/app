@@ -1035,6 +1035,7 @@ const bindTextarea = codeEl => {
                   >
                     <img src="/assets/circuitry.svg" className="icon" />
                     <div className="name">{server.name}</div>
+                    <button className="button connect">Connect</button>
                   </div>
                 );
               })}

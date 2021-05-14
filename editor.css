@@ -674,18 +674,19 @@ body {
 }
 .servers .server {
   display: flex;
-  width: 100%;
+  width: 400px;
   margin-bottom: 2px;
   padding: 10px;
-  background-color: #333;
+  background-color: #222;
   border-radius: 5px;
   color: #FFF;
+  font-family: 'MS-Gothic';
   cursor: pointer;
 }
 .servers .server:hover,
 .servers .server.selected
 {
-  background-color: #444;
+  background-color: #333;
 }
 .servers .server.selected {
   color: #7986cb;
@@ -697,5 +698,23 @@ body {
   filter: invert(1);
 }
 .servers .server .name {
-  font-family: 'MS-Gothic';
+  margin-right: auto;
+}
+.servers .server:not(.selected) .button {
+  visibility: hidden;
+}
+.servers .server .button {
+  color: #fff;
+  background-image: linear-gradient(180deg,#654ea3,#eaafc8);
+  background-repeat: no-repeat;
+  padding: 12px;
+  font-size: 13px;
+  border: 0;
+  border-radius: 5px;
+  /* font-family: MS-Gothic; */
+  outline: none;
+  cursor: pointer;
+}
+.servers .server .button:hover {
+  filter: brightness(80%);
 }
