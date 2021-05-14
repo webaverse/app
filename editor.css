@@ -239,7 +239,7 @@ body {
 }
 .header {
   display: flex;
-  padding: 10px;
+  padding: 10px 0;
   /* background: linear-gradient(to bottom, #333, #111);
   color: #FFF; */
   align-items: center;
