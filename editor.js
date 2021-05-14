@@ -743,6 +743,8 @@ const bindTextarea = codeEl => {
                     onKeyDown={e => {
                       if (e.which === 13) {
                         setObjectRenameIndex(-1);
+                      } else if (e.which === 27) {
+                        setObjectRenameIndex(-1);
                       }
                     }}
                     key={i}
