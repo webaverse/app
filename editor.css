@@ -746,8 +746,8 @@ body {
 }
 .servers .server .button.connect {
   padding: 12px;
-  background-image: linear-gradient(180deg,#654ea3,#eaafc8);
-  background-repeat: no-repeat;
+  background-color: #7986cb;
+  /* background-color: #654ea3; */
   border: 0;
   color: #FFFFFF;
   cursor: pointer;
