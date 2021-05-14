@@ -668,6 +668,7 @@ const bindTextarea = codeEl => {
         const [sx, setSX] = useState(1);
         const [sy, setSY] = useState(1);
         const [sz, setSZ] = useState(1);
+        const [renameIndex, setRenameIndex] = useState(-1);
         
         useEffect(() => {
           if (selectedObject) {
@@ -735,7 +736,18 @@ const bindTextarea = codeEl => {
                     onClick={e => setSelectedObjectIndex(i)}
                     key={i}
                   >
-                    <div className="object-inner">{object.contentId.match(/([^\/]*)$/)[1]}</div>
+                    <div className="object-inner">
+                      <span
+                        className="text"
+                      >
+                        {object.contentId.match(/([^\/]*)$/)[1]}
+                      </span>
+                      <nav className="rename-icon" onClick={e => {
+                        setRenameIndex(i);
+                      }}>
+                        <img src="/assets/pencil.svg" className="img" />
+                      </nav>
+                    </div>
                   </div>
                 );
               })}

@@ -416,6 +416,25 @@ body {
   color: #FFF; */
   overflow: hidden;
 }
+.objects .object .object-inner {
+  display: flex;
+}
+.objects .object .object-inner:hover > .rename-icon {
+  visibility: visible;
+}
+.objects .object .object-inner > .text {
+  margin-right: auto;
+}
+.objects .object .object-inner > .rename-icon {
+  cursor: pointer;
+  opacity: 0.5;
+  visibility: hidden;
+}
+.objects .object .object-inner > .rename-icon .img {
+  width: 15px;
+  height: 15px;
+  filter: invert(1);
+}
 .details {
   display: flex;
   margin: 10px;
