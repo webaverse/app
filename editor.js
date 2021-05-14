@@ -978,6 +978,7 @@ const bindTextarea = codeEl => {
         const [editor, setEditor] = useState(null);
         const [errors, localSetErrors] = useState([]);
         const [firstRun, setFirstRun] = useState(false);
+        const [secondRun, setSecondRun] = useState(true);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -1059,14 +1060,15 @@ const bindTextarea = codeEl => {
             
             setFiles(files);
             setSelectedFileIndex(0);
+            if (firstRun) {
+              setSecondRun(false);
+            }
           }
         }, [editor, selectedTemplateOption]);
         
         useEffect(async () => {
-          // console.log('render', files, selectedFileIndex);
           if (editor) {
             const file = files[selectedFileIndex];
-            // console.log('load file', file);
             if (file) {
               if (file.doc) {
                 editor.swapDoc(file.doc);
@@ -1078,15 +1080,21 @@ const bindTextarea = codeEl => {
               editor.display.wrapper.style.visibility = 'hidden';
             }
           }
-        }, [editor, files, files.length, selectedFileIndex]);
+        }, [editor, files, selectedFileIndex]);
         
         useEffect(() => {
           if (!firstRun && editor && files.length > 0) {
-            console.log('run files', files.slice());
+            // console.log('run files 1', files.slice());
             setFirstRun(true);
             run();
           }
-        }, [firstRun, editor, files, files.length]);
+        }, [firstRun, editor, files]);
+        useEffect(() => {
+          if (!secondRun && editor && files.length > 0) {
+            setSecondRun(true);
+            run();
+          }
+        }, [secondRun, editor, files]);
         
         return <div className="root">
           <div className="left">
