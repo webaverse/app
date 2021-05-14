@@ -601,7 +601,7 @@ const _unlatchMediaStream = async () => {
 
 const micButton = document.getElementById('key-t');
 world.toggleMic = async () => {
-  if (!animationMediaStream) {
+  if (micButton && !animationMediaStream) {
     micButton.classList.add('enabled');
 
     animationMediaStream = await navigator.mediaDevices.getUserMedia({
