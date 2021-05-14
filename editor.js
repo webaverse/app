@@ -1083,7 +1083,7 @@ const bindTextarea = codeEl => {
         const [searchResults, setSearchResults] = useState(null);
         const [objects, setObjects] = useState([]);
         const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-        const [selectedObjectIndex, setSelectedObjectIndex] = useState(0);
+        const [selectedObjectIndex, setSelectedObjectIndex] = useState(-1);
         const [q, setQ] = useState('');
         const [currentQ, setCurrentQ] = useState('');
         const [lastQ, setLastQ] = useState('');
