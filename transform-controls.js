@@ -15,6 +15,9 @@ const transformControls = {
   setTransformMode(transformMode) {
     transformGizmo.setTransformMode(capitalize(transformMode));
   },
+  getTransformMode() {
+    return transformGizmo.transformMode.toLowerCase();
+  },
   waitForLoad() {
     return loadPromise;
   },
