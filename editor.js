@@ -425,6 +425,7 @@ const loadHash = async hash => {
     // physics_url,
     // autoScale,
   });
+  loadedObject.name = loadedObject.contentId.match(/([^\/]*)$/)[1];
 };
 const mintNft = async () => {
   const hash = await uploadHash();
@@ -657,7 +658,7 @@ const bindTextarea = codeEl => {
           </nav>
         );
       });
-      const Scene = React.memo(({objects, open, selectedObjectIndex, setSelectedObjectIndex, selectedObject}) => {
+      const Scene = React.memo(({objects, setObjects, open, selectedObjectIndex, setSelectedObjectIndex, selectedObject}) => {
         const [px, setPX] = useState(0);
         const [py, setPY] = useState(0);
         const [pz, setPZ] = useState(0);
@@ -668,7 +669,8 @@ const bindTextarea = codeEl => {
         const [sx, setSX] = useState(1);
         const [sy, setSY] = useState(1);
         const [sz, setSZ] = useState(1);
-        const [renameIndex, setRenameIndex] = useState(-1);
+        const [objectRenameName, setObjectRenameName] = useState('');
+        const [objectRenameIndex, setObjectRenameIndex] = useState(-1);
         
         useEffect(() => {
           if (selectedObject) {
@@ -730,7 +732,22 @@ const bindTextarea = codeEl => {
           <div className={['scene', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="section objects">
               {objects.map((object, i) => {
-                return (
+                return (objectRenameIndex === i ?
+                  <input
+                    type="text"
+                    className="object-rename"
+                    value={objectRenameName}
+                    onChange={e => {
+                      setObjectRenameName(e.target.value);
+                    }}
+                    onKeyDown={e => {
+                      if (e.which === 13) {
+                        setObjectRenameIndex(-1);
+                      }
+                    }}
+                    key={i}
+                  />
+                :
                   <div
                     className={['object', selectedObjectIndex === i ? 'selected' : ''].join(' ')}
                     onClick={e => setSelectedObjectIndex(i)}
@@ -740,10 +757,11 @@ const bindTextarea = codeEl => {
                       <span
                         className="text"
                       >
-                        {object.contentId.match(/([^\/]*)$/)[1]}
+                        {object.name}
                       </span>
                       <nav className="rename-icon" onClick={e => {
-                        setRenameIndex(i);
+                        setObjectRenameName(object.name);
+                        setObjectRenameIndex(i);
                       }}>
                         <img src="/assets/pencil.svg" className="img" />
                       </nav>
@@ -1083,6 +1101,7 @@ const bindTextarea = codeEl => {
               <Scene
                 open={selectedTab === 'scene'}
                 objects={objects}
+                setObjects={setObjects}
                 selectedObjectIndex={selectedObjectIndex}
                 setSelectedObjectIndex={setSelectedObjectIndex}
                 selectedObject={objects[selectedObjectIndex]}
