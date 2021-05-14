@@ -11,6 +11,7 @@ import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, iframeCo
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import geometryManager from './geometry-manager.js';
+import transformControls from './transform-controls.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -248,6 +249,13 @@ ioManager.bindInterface = () => {
     document.body.classList.remove('no-ui');
   }
 };
+const _setTransformMode = transformMode => {
+  if (transformControls.getTransformMode() !== transformMode) {
+    transformControls.setTransformMode(transformMode);
+  } else {
+    transformControls.setTransformMode('disabled');
+  }
+};
 ioManager.bindInput = () => {
   window.addEventListener('keydown', e => {
     if (_inputFocused() || e.repeat) {
@@ -292,7 +300,11 @@ ioManager.bindInput = () => {
         if (document.pointerLockElement) {
           ioManager.keys.down = true;
         } else {
-          weaponsManager.menuVertical(1);
+          if (weaponsManager.menuOpen) {
+            weaponsManager.menuVertical(1);
+          } else {
+            _setTransformMode('scale');
+          }
         }
         break;
       }
@@ -309,11 +321,8 @@ ioManager.bindInput = () => {
           if (weaponsManager.canRotate()) {
             weaponsManager.menuRotate(1);
           }
-          // pe.equip('back');
-        /* } else {
-          if (selectTarget && selectTarget.control) {
-            selectTarget.control.setMode('scale');
-          } */
+        } else {
+          _setTransformMode('rotate');
         }
         break;
       }
@@ -335,6 +344,8 @@ ioManager.bindInput = () => {
           if (weaponsManager.canTry()) {
             weaponsManager.menuTry();
           }
+        } else {
+          _setTransformMode('translate');
         }
         break;
       }
