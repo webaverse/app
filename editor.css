@@ -679,10 +679,16 @@ body {
   padding: 10px;
   background-color: #333;
   border-radius: 5px;
+  color: #FFF;
   cursor: pointer;
 }
-.servers .server:hover {
-  background-color: #666;
+.servers .server:hover,
+.servers .server.selected
+{
+  background-color: #444;
+}
+.servers .server.selected {
+  color: #7986cb;
 }
 .servers .server .icon {
   width: 30px;
@@ -691,6 +697,5 @@ body {
   filter: invert(1);
 }
 .servers .server .name {
-  color: #FFF;
   font-family: 'MS-Gothic';
 }

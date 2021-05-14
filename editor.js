@@ -497,6 +497,14 @@ const bindTextarea = codeEl => {
   const jsx = `
     (() => {
       const width = 50;
+      const defaultServers = [
+        {
+          name: 'magic land',
+        },
+        {
+          name: 'lollercopter landing pad',
+        },
+      ];
       
       const getDocFromFile = async (blob, name) => {
         let doc;
@@ -1014,13 +1022,17 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
-      const Multiplayer = React.memo(({open, servers}) => {
+      const Multiplayer = React.memo(({open, servers, selectedServerIndex, setSelectedServerIndex}) => {
         return (
           <div className={['multiplayer', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="servers">
               {servers.map((server, i) => {
                 return (
-                  <div className="server" key={i}>
+                  <div
+                    className={['server', selectedServerIndex === i ? 'selected' : ''].join(' ')}
+                    onClick={e => setSelectedServerIndex(i)}
+                    key={i}
+                  >
                     <img src="/assets/circuitry.svg" className="icon" />
                     <div className="name">{server.name}</div>
                   </div>
@@ -1059,6 +1071,8 @@ const bindTextarea = codeEl => {
         const [errors, localSetErrors] = useState([]);
         const [firstRun, setFirstRun] = useState(false);
         const [secondRun, setSecondRun] = useState(true);
+        const [servers, setServers] = useState(defaultServers);
+        const [selectedServerIndex, setSelectedServerIndex] = useState(0);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -1171,15 +1185,6 @@ const bindTextarea = codeEl => {
           }
         }, [secondRun, editor, files]);
         
-        const servers = [
-          {
-            name: 'magic land',
-          },
-          {
-            name: 'lollercopter landing pad',
-          },
-        ];
-        
         return <div className="root">
           <div className="left">
             <div className="top">
@@ -1270,6 +1275,8 @@ const bindTextarea = codeEl => {
               />
               <Multiplayer
                 servers={servers}
+                selectedServerIndex={selectedServerIndex}
+                setSelectedServerIndex={setSelectedServerIndex}
                 open={selectedTab === 'multiplayer'}
               />
               <Settings
