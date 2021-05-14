@@ -2,7 +2,26 @@ import { Object3D, Color, Vector3 } from "three";
 import { GLTFLoader } from "../gltf/GLTFLoader";
 import transformGizmoUrl from "../../assets/TransformGizmo.glb";
 import cloneObject3D from "../utils/cloneObject3D";
-import { TransformMode, TransformAxis } from "../controls/SpokeControls";
+// import { TransformMode, TransformAxis } from "./SpokeControls.js";
+
+const TransformMode = {
+  Disabled: "Disabled",
+  Grab: "Grab",
+  Placement: "Placement",
+  Translate: "Translate",
+  Rotate: "Rotate",
+  Scale: "Scale"
+};
+
+const TransformAxis = {
+  X: "X",
+  Y: "Y",
+  Z: "Z",
+  XY: "XY",
+  YZ: "YZ",
+  XZ: "XZ",
+  XYZ: "XYZ"
+};
 
 let gizmoGltf = null;
 
