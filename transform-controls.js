@@ -11,15 +11,31 @@ const loadPromise = (async () => {
   scene.add(transformGizmo);
 })();
 
+let binding = null;
 const transformControls = {
+  waitForLoad() {
+    return loadPromise;
+  },
   setTransformMode(transformMode) {
     transformGizmo.setTransformMode(capitalize(transformMode));
   },
   getTransformMode() {
     return transformGizmo.transformMode.toLowerCase();
   },
-  waitForLoad() {
-    return loadPromise;
+  bind(o) {
+    if (o) {
+      transformGizmo.position.copy(o.position);
+      transformGizmo.quaternion.copy(o.quaternion);
+      transformGizmo.scale.copy(o.scale);
+    }
+    binding = o;
+  },
+  update() {
+    if (binding) {
+      binding.position.copy(transformGizmo.position);
+      binding.quaternion.copy(transformGizmo.quaternion);
+      binding.scale.copy(transformGizmo.scale);
+    }
   },
 };
 export default transformControls;
