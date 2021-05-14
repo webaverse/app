@@ -192,6 +192,7 @@ body {
   color: #FFF;
   pointer: default;
   user-select: none;
+  outline: none;
 }
 .files .file .file-inner,
 .objects .object .object-inner
