@@ -49,7 +49,7 @@ gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 // const basisLoader = new BasisTextureLoader();
 // const ktx2Loader = new KTX2Loader();
 // basisLoader.detectSupport(renderer);
-window.gltfLoader = gltfLoader;
+// window.gltfLoader = gltfLoader;
 // gltfLoader.setBasisLoader(basisLoader);
 // basisLoader.detectSupport(renderer);
 
