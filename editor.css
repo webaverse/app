@@ -710,16 +710,23 @@ body {
 }
 .servers .server .button {
   color: #fff;
-  background-image: linear-gradient(180deg,#654ea3,#eaafc8);
-  background-repeat: no-repeat;
   padding: 10px;
   font-size: 13px;
-  border: 0;
+  background-color: transparent;
+  border: 2px solid currentColor;
   border-radius: 3px;
-  /* font-family: MS-Gothic; */
+  color: #FFFFFF40;
   outline: none;
-  cursor: pointer;
+  cursor: default;
 }
-.servers .server .button:hover {
+.servers .server .button.connect:hover {
   filter: brightness(80%);
+}
+.servers .server .button.connect {
+  padding: 12px;
+  background-image: linear-gradient(180deg,#654ea3,#eaafc8);
+  background-repeat: no-repeat;
+  border: 0;
+  color: #FFFFFF;
+  cursor: pointer;
 }

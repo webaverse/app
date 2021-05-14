@@ -1022,7 +1022,7 @@ const bindTextarea = codeEl => {
           </div>
         );
       });
-      const Multiplayer = React.memo(({open, servers, selectedServerIndex, setSelectedServerIndex}) => {
+      const Multiplayer = React.memo(({open, servers, selectedServerIndex, setSelectedServerIndex, connectingServerIndex, setConnectingServerIndex}) => {
         return (
           <div className={['multiplayer', 'page', open ? 'open' : '', 'sections'].join(' ')}>
             <div className="servers">
@@ -1035,7 +1035,21 @@ const bindTextarea = codeEl => {
                   >
                     <img src="/assets/circuitry.svg" className="icon" />
                     <div className="name">{server.name}</div>
-                    <button className="button connect">Connect</button>
+                    {connectingServerIndex !== i ?
+                      <button
+                        className="button connect"
+                        onClick={e => {
+                          setConnectingServerIndex(i);
+                        }}
+                      >Connect</button>
+                    :
+                      <button
+                        className="button"
+                        onClick={e => {
+                          setConnectingServerIndex(-1);
+                        }}
+                      >Connecting...</button>
+                    }
                   </div>
                 );
               })}
@@ -1074,6 +1088,7 @@ const bindTextarea = codeEl => {
         const [secondRun, setSecondRun] = useState(true);
         const [servers, setServers] = useState(defaultServers);
         const [selectedServerIndex, setSelectedServerIndex] = useState(0);
+        const [connectingServerIndex, setConnectingServerIndex] = useState(-1);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -1276,9 +1291,11 @@ const bindTextarea = codeEl => {
               />
               <Multiplayer
                 servers={servers}
+                open={selectedTab === 'multiplayer'}
                 selectedServerIndex={selectedServerIndex}
                 setSelectedServerIndex={setSelectedServerIndex}
-                open={selectedTab === 'multiplayer'}
+                connectingServerIndex={connectingServerIndex}
+                setConnectingServerIndex={setConnectingServerIndex}
               />
               <Settings
                 open={selectedTab === 'settings'}
