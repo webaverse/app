@@ -7,6 +7,7 @@ import Babel from '@babel/standalone';
 import JSZip from 'jszip';
 // import {jsx} from 'jsx-tmpl';
 import {world} from './world.js';
+import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
 import {storageHost} from './constants.js';
@@ -1210,7 +1211,10 @@ const bindTextarea = codeEl => {
         
         useEffect(() => {
           const object = objects[selectedObjectIndex] || null;
-          app.bindTransformControls(object);
+          transformControls.bind(object);
+          if (object && transformControls.getTransformMode() === 'disabled') {
+            transformControls.setTransformMode('translate');
+          }
         }, [objects, objects.length, selectedObjectIndex]);
         
         return <div className="root">
