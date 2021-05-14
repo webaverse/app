@@ -11,7 +11,7 @@ import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
-import transformControls from './transform-controls.js';
+// import transformControls from './transform-controls.js';
 
 import App from '/app.js';
 
@@ -1305,8 +1305,6 @@ app.waitForLoad()
   .then(async () => {
     app.contentLoaded = true;
     app.startLoop();
-    
-    transformControls.setTransformMode('translate');
   });
 
 // make sure to update renderer when canvas size changes
