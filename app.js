@@ -196,9 +196,6 @@ export default class App extends EventTarget {
   bindCanvas(c) {
     bindCanvas(c);
   }
-  bindTransformControls(c) {
-    transformControls.bind(c);
-  }
   
   render() {
     this.dispatchEvent(frameEvent);
