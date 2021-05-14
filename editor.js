@@ -10,6 +10,7 @@ import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
 import {storageHost} from './constants.js';
+import TransformGizmo from './TransformGizmo.js';
 
 import App from '/app.js';
 
@@ -1300,7 +1301,35 @@ app.bindXr({
   },
 }); */
 app.waitForLoad()
-  .then(() => {
+  .then(async () => {
+    const transformGizmo = new TransformGizmo();
+    transformGizmo.setTransformMode('Translate');
+    // transformGizmo.visible = true;
+    const scene = app.getScene();
+    scene.add(transformGizmo);
+    
+    /* const gltf = await new Promise((accept, reject) => {
+      const gltfLoader = new GLTFLoader();
+      const transformGizmoUrl = './assets/TransformGizmo.glb';
+      gltfLoader.load(transformGizmoUrl, accept, function onprogress() {}, reject);
+    });
+    scene.add(gltf.scene); */
+    
+    /* const pos = transformGizmo.children[0].children[0];
+    for (const child of pos.children) {
+      scene.add(child);
+      child.material = new THREE.MeshBasicMaterial({color: 0xFF0000});
+      child.scale.setScalar(10);
+      child.frustumCulled = false;
+      child.onBeforeRender = () => {
+        console.log('got before render');
+      };
+    } */
+    
+    // window.transformGizmo = transformGizmo;
+    // window.THREE = THREE;
+    // window.scene = scene;
+    
     app.contentLoaded = true;
     app.startLoop();
   });
