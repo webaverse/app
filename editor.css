@@ -314,6 +314,19 @@ body {
   padding-left: 5px;
 }
 
+.file-input {
+  position: relative;
+  overflow: hidden;
+}
+.file-input input[type="file"] {
+  position: absolute;
+  top: -200px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  cursor: pointer;
+}
+
 .header .tab {
   display: flex;
   height: 100%;
