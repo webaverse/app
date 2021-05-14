@@ -1958,16 +1958,18 @@ const weaponsManager = {
   }, */
   menuUpload: _upload,
   enter() {
-    chatInputEl.classList.toggle('open');
-    if (chatInputEl.classList.contains('open')) {
-      chatInputEl.focus();
-    } else {
-      const s = chatInputEl.value;
-      if (s) {
-        const username = loginManager.getUsername();
-        messages.addMessage(username, s);
-        
-        chatInputEl.value = '';
+    if (chatInputEl) {
+      chatInputEl.classList.toggle('open');
+      if (chatInputEl.classList.contains('open')) {
+        chatInputEl.focus();
+      } else {
+        const s = chatInputEl.value;
+        if (s) {
+          const username = loginManager.getUsername();
+          messages.addMessage(username, s);
+          
+          chatInputEl.value = '';
+        }
       }
     }
   },
