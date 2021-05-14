@@ -821,7 +821,10 @@ const bindTextarea = codeEl => {
                     </label>
                   </div>
                   <div className="right" onClick={e => {
-                    console.log('remove', object, selectedObjectIndex);
+                    // console.log('remove', object, selectedObjectIndex);
+                    if (object) {
+                      world.removeObject(object.instanceId);
+                    }
                   }}>
                     <div className="label">Actions</div>
                     <button className="button warning">Remove</button>
