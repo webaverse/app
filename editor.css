@@ -282,7 +282,7 @@ body {
 }
 .header .super {
   position: absolute;
-  margin-left: 20px;
+  margin-left: 10px;
   margin-top: -52px;
   font-family: 'FuturaStd-Heavy';
   text-transform: uppercase;
@@ -294,7 +294,7 @@ body {
 .header .select {
   flex: 1;
   margin: 0 5px;
-  margin-left: 20px;
+  margin-left: 10px;
   padding: 5px;
   border: 2px solid currentColor;
   border-radius: 5px;
@@ -373,8 +373,18 @@ body {
 }
 
 .scene {
+  display: flex;
   flex: 1;
   overflow: hidden;
+}
+.scene > .left,
+.scene > .right
+{
+  display: flex;
+  flex-direction: column;
+}
+.scene > .right {
+  flex: 1;
 }
 
 .library {
@@ -510,7 +520,10 @@ body {
   margin: 10px 0;
 }
 .details .label,
-.details .sublabel
+.details .sublabel,
+.editor > .left > .bottom > .label,
+.scene > .left > .label,
+.multiplayer > .label
 {
   font-family: 'FuturaStd-Heavy';
   text-transform: uppercase;
@@ -518,6 +531,13 @@ body {
   font-size: 12px;
   line-height: 16px;
   letter-spacing: 1px;
+}
+.editor > .left > .bottom > .label,
+.scene > .left > .label,
+.multiplayer > .label
+{
+  margin-left: 10px;
+  color: #FFFFFF80;
 }
 .details .row {
   display: flex;
