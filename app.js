@@ -202,32 +202,9 @@ export default class App extends EventTarget {
     // high priority render
     const renderer = getRenderer();
     renderer.clear();
-    renderer.render(scene3, camera);
-    // main render
-    if (rigManager.localRig) {
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-    }
+    window.scene2 = scene;
     renderer.render(scene, camera);
-    renderer.render(orthographicScene, orthographicCamera);
     // local avatar render
-    if (rigManager.localRig) {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = controlsManager.isPossessed() && (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
-      }
-    }
     // highlight render
     // renderer.render(highlightScene, camera);
   }
