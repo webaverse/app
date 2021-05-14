@@ -496,6 +496,16 @@ const bindTextarea = codeEl => {
     (() => {
       const width = 50;
       
+      const getDocFromFile = async (blob, name) => {
+        let doc;
+        if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(name)) {
+          const text = await blob.text();
+          doc = new CodeMirror.Doc(text, 'javascript');
+        } else {
+          doc = null;
+        }
+        return doc;
+      };
       const FileInput = ({
         className,
         file,
@@ -586,6 +596,21 @@ const bindTextarea = codeEl => {
         const [fileRenameIndex, setFileRenameIndex] = useState(-1);
         const [fileRenameName, setFileRenameName] = useState('');
         const [file, setFile] = useState(null);
+        
+        useEffect(async () => {
+          if (file) {
+            // console.log('got file', file);
+            const {name} = file;
+            const doc = await getDocFromFile(file, name);
+            const files = getFiles();
+            const newFiles = files.concat({
+              name,
+              doc,
+            });
+            setFiles(newFiles);
+            setFile(null);
+          }
+        }, [file]);
         
         return (
           <Fragment>
@@ -1063,13 +1088,7 @@ const bindTextarea = codeEl => {
             
             const files = await Promise.all(filesSrc.map(async file => {
               const {path: name, blob} = file;
-              let doc;
-              if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(name)) {
-                const text = await file.blob.text();
-                doc = new CodeMirror.Doc(text, 'javascript');
-              } else {
-                doc = null;
-              }
+              const doc = await getDocFromFile(blob, name);
               return {
                 name,
                 blob,
