@@ -568,98 +568,118 @@ const bindTextarea = codeEl => {
         
         return (
           <Fragment>
-            <div className="header">
-              <button className="button" onClick={() => run()}>
-                <img src="/assets/comet-spark.svg" className="icon" />
-                <div className="label">Run code</div>
-              </button>
-              <button className="button" onClick={() => mintNft()}>
-                <img src="/assets/mint.svg" className="icon" />
-                <div className="label">Mint NFT</div>
-              </button>
-              <button className="button" onClick={e => {
-                const newFiles = files.concat({
-                  name: 'untitled',
-                  doc: new CodeMirror.Doc('', 'javascript'),
-                });
-                setFiles(newFiles);
-              }}>
-                <img src="/assets/noun_Plus_950.svg" className="icon" />
-                <div className="label">New file</div>
-              </button>
-              <button className="button">
-                <img src="/assets/family-tree.svg" className="icon" />
-                <div className="label">Import URL...</div>
-              </button>
-              <button className="button" onClick={downloadZip}>
-                <img src="/assets/download.svg" className="icon" />
-                <div className="label">Download zip</div>
-              </button>
-              <Dropdown
-                options={templateOptions}
-                selectedOption={selectedTemplateOption}
-                setSelectedOption={setSelectedTemplateOption}
-              />
-            </div>
             <div className={['editor', 'page', open ? 'open' : '', 'sections'].join(' ')}>
-              <div className="section files">
-              {files.map((file, i) => {
-                return (fileRenameIndex === i ?
-                  <input
-                    type="text"
-                    className="file-rename"
-                    value={fileRenameName}
-                    onChange={e => {
-                      setFileRenameName(e.target.value);
-                    }}
-                    onKeyDown={e => {
-                      if (e.which === 13) {
-                        setFileRenameIndex(-1);
-                      } else if (e.which === 27) {
-                        setFileRenameIndex(-1);
-                      }
-                    }}
-                    key={i}
-                  />
-                :
-                  <div
-                    className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')}
-                    onClick={e => setSelectedFileIndex(i)}
-                    key={i}
-                  >
-                    <div className="file-inner">
-                      <span className="text">{file.name}</span>
-                      <nav className="rename-icon" onClick={e => {
-                        e.stopPropagation();
-                        setFileRenameName(file.name);
-                        setFileRenameIndex(i);
-                      }}>
-                        <img src="/assets/pencil.svg" className="img" />
-                      </nav>
-                    </div>
+              <div className="left">
+                <div className="top">
+                  <div className="header">
+                    <Dropdown
+                      options={templateOptions}
+                      selectedOption={selectedTemplateOption}
+                      setSelectedOption={setSelectedTemplateOption}
+                    />
+                    <button className="button" onClick={e => {
+                      const newFiles = files.concat({
+                        name: 'untitled',
+                        doc: new CodeMirror.Doc('', 'javascript'),
+                      });
+                      setFiles(newFiles);
+                    }}>
+                      <img src="/assets/noun_Plus_950.svg" className="icon" />
+                      <div className="label">New file</div>
+                    </button>
+                    <button className="button" onClick={e => {
+                      const newFiles = files.concat({
+                        name: 'untitled',
+                        doc: new CodeMirror.Doc('', 'javascript'),
+                      });
+                      setFiles(newFiles);
+                    }}>
+                      <img src="/assets/noun_Plus_950.svg" className="icon" />
+                      <div className="label">Upload file</div>
+                    </button>
                   </div>
-                );
-              })}
+                </div>
+                <div className="bottom">
+                  <div className="section files">
+                    {files.map((file, i) => {
+                      return (fileRenameIndex === i ?
+                        <input
+                          type="text"
+                          className="file-rename"
+                          value={fileRenameName}
+                          onChange={e => {
+                            setFileRenameName(e.target.value);
+                          }}
+                          onKeyDown={e => {
+                            if (e.which === 13) {
+                              setFileRenameIndex(-1);
+                            } else if (e.which === 27) {
+                              setFileRenameIndex(-1);
+                            }
+                          }}
+                          key={i}
+                        />
+                      :
+                        <div
+                          className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')}
+                          onClick={e => setSelectedFileIndex(i)}
+                          key={i}
+                        >
+                          <div className="file-inner">
+                            <span className="text">{file.name}</span>
+                            <nav className="rename-icon" onClick={e => {
+                              e.stopPropagation();
+                              setFileRenameName(file.name);
+                              setFileRenameIndex(i);
+                            }}>
+                              <img src="/assets/pencil.svg" className="img" />
+                            </nav>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <Textarea
-                setEditor={setEditor}
-              />
-              <div className="errors">
-                {errors.map((error, i) => {
-                  return (
-                    <div className="error" key={i}>
-                      <nav className="x-icon" onClick={e => {
-                        let errors = getErrors();
-                        errors = errors.slice();
-                        errors.splice(i, 1);
-                        setErrors(errors);
-                      }}>
-                        <img src="/assets/x.svg" className="img" />
-                      </nav>
-                      <div className="text">{error.stack}</div>
-                    </div>
-                  );
-                })}
+              <div className="right">
+                <div className="top">
+                  <div className="header">
+                    <button className="button" onClick={() => run()}>
+                      <img src="/assets/comet-spark.svg" className="icon" />
+                      <div className="label">Run code</div>
+                    </button>
+                    <button className="button" onClick={() => mintNft()}>
+                      <img src="/assets/mint.svg" className="icon" />
+                      <div className="label">Mint NFT</div>
+                    </button>
+                    <button className="button" onClick={downloadZip}>
+                      <img src="/assets/download.svg" className="icon" />
+                      <div className="label">Download zip</div>
+                    </button>
+                  </div>
+                </div>
+                <div className="bottom">
+                  <Textarea
+                    setEditor={setEditor}
+                  />
+                </div>
+                <div className="errors">
+                  {errors.map((error, i) => {
+                    return (
+                      <div className="error" key={i}>
+                        <nav className="x-icon" onClick={e => {
+                          let errors = getErrors();
+                          errors = errors.slice();
+                          errors.splice(i, 1);
+                          setErrors(errors);
+                        }}>
+                          <img src="/assets/x.svg" className="img" />
+                        </nav>
+                        <div className="text">{error.stack}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </Fragment>
