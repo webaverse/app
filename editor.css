@@ -279,6 +279,18 @@ body {
   margin-right: 5px;
   filter: invert(1);
 }
+.header .select {
+  padding: 5px;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  background-color: transparent;
+  color: #FFF;
+  cursor: pointer;
+  appearance: none;
+}
+.header .select > option {
+  background-color: transparent;
+}
 
 .header .tab {
   display: flex;
