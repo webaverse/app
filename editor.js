@@ -638,6 +638,7 @@ const bindTextarea = codeEl => {
                             setFileRenameName(e.target.value);
                           }}
                           onKeyDown={e => {
+                            console.log('got which', e.which);
                             if (e.which === 13) {
                               setFileRenameIndex(-1);
                             } else if (e.which === 27) {
@@ -650,6 +651,15 @@ const bindTextarea = codeEl => {
                         <div
                           className={['file', selectedFileIndex === i ? 'selected' : ''].join(' ')}
                           onClick={e => setSelectedFileIndex(i)}
+                          tabIndex={-1}
+                          onKeyDown={e => {
+                            if (e.which === 46) {
+                              let newFiles = getFiles();
+                              newFiles = newFiles.slice();
+                              newFiles.splice(i, 1);
+                              setFiles(newFiles);
+                            }
+                          }}
                           key={i}
                         >
                           <div className="file-inner">
@@ -855,6 +865,14 @@ const bindTextarea = codeEl => {
                   <div
                     className={['object', selectedObjectIndex === i ? 'selected' : ''].join(' ')}
                     onClick={e => setSelectedObjectIndex(i)}
+                    tabIndex={-1}
+                    onKeyDown={e => {
+                      if (e.which === 46) {
+                        if (object) {
+                          world.removeObject(object.instanceId);
+                        }
+                      }
+                    }}
                     key={i}
                   >
                     <div className="object-inner">
