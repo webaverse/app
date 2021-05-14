@@ -661,3 +661,36 @@ body {
 .scene .details .button.warning:hover:active {
   background-color: #b71c1c;
 }
+
+.multiplayer {
+  display: flex;
+  flex-direction: column;
+}
+.servers {
+  display: flex;
+  padding: 2px;
+  flex-direction: column;
+  flex: 1;
+}
+.servers .server {
+  display: flex;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 10px;
+  background-color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.servers .server:hover {
+  background-color: #666;
+}
+.servers .server .icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  filter: invert(1);
+}
+.servers .server .name {
+  color: #FFF;
+  font-family: 'MS-Gothic';
+}
