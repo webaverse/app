@@ -418,9 +418,11 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
 }
 .cards .card {
-  display: flex;
   padding: 2px;
   font-family: 'MS-Gothic';
   cursor: pointer;
