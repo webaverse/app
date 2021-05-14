@@ -416,21 +416,31 @@ body {
   color: #FFF; */
   overflow: hidden;
 }
-.objects .object .object-inner {
+.objects .object .object-inner,
+.files .file .file-inner
+{
   display: flex;
 }
-.objects .object .object-inner:hover > .rename-icon {
+.objects .object .object-inner:hover > .rename-icon,
+.files .file .file-inner:hover > .rename-icon
+{
   visibility: visible;
 }
-.objects .object .object-inner > .text {
+.objects .object .object-inner > .text,
+.files .file .file-inner > .text
+{
   margin-right: auto;
 }
-.objects .object .object-inner > .rename-icon {
+.objects .object .object-inner > .rename-icon,
+.files .file .file-inner > .rename-icon
+{
   cursor: pointer;
   opacity: 0.5;
   visibility: hidden;
 }
-.objects .object .object-inner > .rename-icon .img {
+.objects .object .object-inner > .rename-icon .img,
+.files .file .file-inner > .rename-icon .img
+{
   width: 15px;
   height: 15px;
   filter: invert(1);
