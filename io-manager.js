@@ -627,8 +627,13 @@ ioManager.bindInput = () => {
     let htmlHover;
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
-      if (object?.isHtml) {
-        htmlHover = true;
+      if (object) {
+        if (object.isHtml) {
+          htmlHover = true;
+        } else {
+          weaponsManager.setMouseHoverObject(object, result.objectId);
+          htmlHover = false;
+        }
       } else {
         htmlHover = false;
       }
