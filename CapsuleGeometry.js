@@ -61,7 +61,7 @@ function CapsuleGeometry(
   radius = 0.5,
   profile = "ASPECT"
 ) {
-  const geom = new THREE.Geometry();
+  const geom = new THREE.BufferGeometry();
 
   // Validate input arguments.
   const verifLons = Math.max(3, longitudes);
@@ -599,9 +599,9 @@ function CapsuleGeometry(
     }
   }
 
-  geom.vertices = vs;
-  geom.faces = tris;
-  geom.faceVertexUvs[0] = vtLayer;
+  geom.setAttribute('position', new THREE.BufferAttribute(Float32Array.from(vs), 3));
+  geom.setAttribute('uv', new THREE.BufferAttribute(Float32Array.from(vtLayer), 2));
+  geom.setIndex(new THREE.BufferAttribute(Uint16Array.from(tris), 1));
   return geom;
 }
 
