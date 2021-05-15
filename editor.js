@@ -168,6 +168,36 @@ class CameraGeometry extends THREE.BufferGeometry {
     this.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 }
+const _makeUiMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(2, 1);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    map: new THREE.Texture(),
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  
+  (async () => {
+    const img = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `/assets/popup.svg`;
+    });
+    material.map.image = img;
+    material.map.needsUpdate = true;
+    material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+    material.map.magFilter = THREE.LinearFilter;
+    material.map.anisotropy = 16;
+  })();
+  
+  const m = new THREE.Mesh(geometry, material);
+  m.frustumCulled = false;
+  return m;
+};
 
 const fetchAndCompileBlob = async (file, files) => {
   const res = file;
@@ -1466,13 +1496,21 @@ app.waitForLoad()
     
     {
       const scene = app.getScene();
-      const g = new CameraGeometry();
-      const m = new THREE.MeshBasicMaterial({
-        color: 0x333333,
-      });
-      const o = new THREE.Mesh(g, m);
-      o.frustumCulled = false;
-      scene.add(o);
+      {
+        const g = new CameraGeometry();
+        const m = new THREE.MeshBasicMaterial({
+          color: 0x333333,
+        });
+        const o = new THREE.Mesh(g, m);
+        o.frustumCulled = false;
+        scene.add(o);
+      }
+      {
+        const o = _makeUiMesh();
+        o.position.set(0, 2, -2);
+        o.frustumCulled = false;
+        scene.add(o);
+      }
     }
     
     const scene = [
