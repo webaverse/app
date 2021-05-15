@@ -386,9 +386,12 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
     };
     
     ReactThreeFiber.render(
-      React.createElement(fn, {
-        app: appContextObject,
-      }),
+      React.createElement(ErrorBoundary, {}, [
+        React.createElement(fn, {
+          app: appContextObject,
+          key: 0,
+        }),
+      ]),
       rootDiv,
       {
         gl: renderer2,
