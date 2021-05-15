@@ -103,6 +103,89 @@ function createPointerEvents(store) {
   }
 }
 
+class CameraGeometry extends THREE.BufferGeometry {
+  constructor() {
+    super();
+    
+    const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+    const positions = new Float32Array(boxGeometry.attributes.position.array.length * 8);
+    const indices = new Uint16Array(boxGeometry.index.array.length * 8);
+    
+    const _pushBoxGeometry = m => {
+      const g = boxGeometry.clone();
+      g.applyMatrix4(m);
+      positions.set(g.attributes.position.array, positionIndex);
+      for (let i = 0; i < g.index.array.length; i++) {
+        indices[indexIndex + i] = g.index.array[i] + positionIndex/3;
+      }
+      positionIndex += g.attributes.position.array.length;
+      indexIndex += g.index.array.length;
+    };
+    
+    let positionIndex = 0;
+    let indexIndex = 0;
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-1, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-2, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-3, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-4, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-5, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-6, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-7, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    _pushBoxGeometry(
+      localMatrix.compose(
+        localVector.set(-8, 1, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
+      )
+    );
+    
+    this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+}
+
 const fetchAndCompileBlob = async (file, files) => {
   const res = file;
   const scriptUrl = file.name;
@@ -1397,6 +1480,17 @@ app.waitForLoad()
   .then(async () => {
     app.contentLoaded = true;
     app.startLoop();
+    
+    {
+      const scene = app.getScene();
+      const g = new CameraGeometry();
+      const m = new THREE.MeshBasicMaterial({
+        color: 0x333333,
+      });
+      const o = new THREE.Mesh(g, m);
+      o.frustumCulled = false;
+      scene.add(o);
+    }
     
     const scene = [
       {
