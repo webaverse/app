@@ -8,6 +8,7 @@ const loadPromise = (async () => {
 
   transformGizmo = new TransformGizmo();
   // transformGizmo.setTransformMode('Translate');
+  transformGizmo.visible = false;
   scene.add(transformGizmo);
 })();
 
@@ -22,11 +23,17 @@ const transformControls = {
   getTransformMode() {
     return transformGizmo.transformMode.toLowerCase();
   },
+  getBinding() {
+    return binding;
+  },
   bind(o) {
     if (o) {
       transformGizmo.position.copy(o.position);
       transformGizmo.quaternion.copy(o.quaternion);
       transformGizmo.scale.copy(o.scale);
+      transformGizmo.visible = true;
+    } else {
+      transformGizmo.visible = false;
     }
     binding = o;
   },
