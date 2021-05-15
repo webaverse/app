@@ -21,6 +21,7 @@ import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
+import {makeAppContextObject} from './api.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -309,6 +310,39 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   const fn = m.default;
   // console.log('got fn', fn);
   
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.isRtfjs = true;
+  o.getPhysicsIds = () => app.physicsIds;
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+    
+    (async () => {
+      const roots = ReactThreeFiber._roots;
+      const root = roots.get(rootDiv);
+      const fiber = root?.fiber
+      if (fiber) {
+        const state = root?.store.getState()
+        if (state) state.internal.active = false
+        await new Promise((accept, reject) => {
+          ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+            if (state) {
+              // setTimeout(() => {
+                state.events.disconnect?.()
+                // state.gl?.renderLists?.dispose?.()
+                // state.gl?.forceContextLoss?.()
+                ReactThreeFiber.dispose(state)
+                roots.delete(canvas)
+                // if (callback) callback(canvas)
+              // }, 500)
+            }
+            accept();
+          });
+        });
+      }
+    })();
+  };
+  
   const renderer = getRenderer();
   const sizeVector = renderer.getSize(new THREE.Vector2());
   const rootDiv = document.createElement('div');
@@ -327,7 +361,9 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
     };
     
     ReactThreeFiber.render(
-      React.createElement(fn),
+      React.createElement(fn, {
+        app: appContextObject,
+      }),
       rootDiv,
       {
         gl: renderer2,
@@ -361,38 +397,9 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   app.addEventListener('frame', e => {
     _render();
   });
+  app.rootObject = o;
+  const appContextObject = makeAppContextObject(app);
   
-  const o = new THREE.Object3D();
-  o.contentId = contentId;
-  o.isRtfjs = true;
-  o.destroy = () => {
-    appManager.destroyApp(appId);
-    
-    (async () => {
-      const roots = ReactThreeFiber._roots;
-      const root = roots.get(rootDiv);
-      const fiber = root?.fiber
-      if (fiber) {
-        const state = root?.store.getState()
-        if (state) state.internal.active = false
-        await new Promise((accept, reject) => {
-          ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-            if (state) {
-              // setTimeout(() => {
-                state.events.disconnect?.()
-                // state.gl?.renderLists?.dispose?.()
-                // state.gl?.forceContextLoss?.()
-                ReactThreeFiber.dispose(state)
-                roots.delete(canvas)
-                // if (callback) callback(canvas)
-              // }, 500)
-            }
-            accept();
-          });
-        });
-      }
-    })();
-  };
   return o;
 };
 
