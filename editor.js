@@ -226,8 +226,7 @@ const uploadFiles = async files => {
     '',
   ].forEach(p => {
     if (!directoryMap[p]) {
-      // console.log('missing main directory', {p, directoryMap, files});
-      console.log('add missing main directory', [p]);
+      // console.log('add missing main directory', [p]);
       fd.append(
         p,
         new Blob([], {
