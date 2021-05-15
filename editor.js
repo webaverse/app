@@ -1151,6 +1151,7 @@ const bindTextarea = codeEl => {
           const res = await fetch('https://templates.webaverse.com/index.json');
           const j = await res.json();
           const {templates} = j;
+          console.log('got templates', templates);
           setTemplateOptions(templates);
           setSelectedTemplateOption(templates[0]);
         }, []);
@@ -1384,21 +1385,21 @@ app.waitForLoad()
         quaternion: new THREE.Quaternion(),
         u: `https://avaer.github.io/home/home.glb`,
       },
-      /* {
+      {
         position: new THREE.Vector3(-3, 0, -2),
         quaternion: new THREE.Quaternion().setFromUnitVectors(
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
         ),
         u: `https://webaverse.github.io/assets/table.glb`,
-      }, */
-      {
+      },
+      /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
         u: `https://avaer.github.io/lightsaber/manifest.json`,
       },
-      /* {
-        position: new THREE.Vector3(),
+      {
+        position: new THREE.Vector3(-3, 1.5, -2),
         quaternion: new THREE.Quaternion(),
         u: `https://avaer.github.io/hookshot/index.js`,
       }, */
