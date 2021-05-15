@@ -6,6 +6,7 @@ import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
+import transformControls from './transform-controls.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import {camera, appManager, scene, scene3} from './app-object.js';
@@ -448,6 +449,11 @@ for (const arrayName of [
       object.parent.remove(object);
       objects.splice(index, 1);
       trackedObject.unobserve();
+
+      const binding = transformControls.getBinding();
+      if (binding === object) {
+        transformControls.bind(null);
+      }
 
       world.dispatchEvent(new MessageEvent(arrayName + 'remove', {
         data: object,
