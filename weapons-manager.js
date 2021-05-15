@@ -2008,9 +2008,9 @@ const weaponsManager = {
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
   },
-  setMouseHoverObject(o, physicsIds) {
+  setMouseHoverObject(o, physicsId) {
     mouseHoverObject = o;
-    mouseHoverPhysicsId = physicsIds;
+    mouseHoverPhysicsId = physicsId;
   },
   getSpeed() {
     const defaultSpeed = 0.1;
