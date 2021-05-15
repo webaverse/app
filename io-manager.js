@@ -672,8 +672,13 @@ ioManager.bindInput = () => {
       if (document.pointerLockElement) {
         weaponsManager.menuClick();
       } else {
-        weaponsManager.setMenu(0);
-        cameraManager.requestPointerLock();
+        const mouseHoverObject = weaponsManager.getMouseHoverObject();
+        if (mouseHoverObject) {
+          console.log('click object', mouseHoverObject);
+        } else {
+          weaponsManager.setMenu(0);
+          cameraManager.requestPointerLock();
+        }
       }
     }
   });
