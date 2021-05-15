@@ -624,22 +624,21 @@ ioManager.bindInput = () => {
     
     const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
     
-    let htmlHover;
+    let mouseHoverObject = null;
+    let mouseHoverPhysicsId = 0;
+    let htmlHover = false;
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
       if (object) {
         if (object.isHtml) {
           htmlHover = true;
         } else {
-          weaponsManager.setMouseHoverObject(object, result.objectId);
-          htmlHover = false;
+          mouseHoverObject = object;
+          mouseHoverPhysicsId = result.objectId;
         }
-      } else {
-        htmlHover = false;
       }
-    } else {
-      htmlHover = false;
     }
+    weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
     if (htmlHover) {
       renderer.domElement.classList.add('hover');
     } else {
