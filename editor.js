@@ -1377,6 +1377,41 @@ app.waitForLoad()
   .then(async () => {
     app.contentLoaded = true;
     app.startLoop();
+    
+    const scene = [
+      {
+        position: new THREE.Vector3(),
+        quaternion: new THREE.Quaternion(),
+        u: `https://avaer.github.io/home/home.glb`,
+      },
+      {
+        position: new THREE.Vector3(),
+        quaternion: new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0, 0, -1),
+          new THREE.Vector3(-1, 0, 0),
+        ),
+        u: `https://webaverse.github.io/assets/table.glb`,
+      },
+      {
+        position: new THREE.Vector3(0, 1.5, 0),
+        quaternion: new THREE.Quaternion(),
+        u: `https://avaer.github.io/lightsaber/manifest.json`,
+      },
+      /* {
+        position: new THREE.Vector3(),
+        quaternion: new THREE.Quaternion(),
+        u: `https://avaer.github.io/hookshot/index.js`,
+      }, */
+    ];
+    for (const e of scene) {
+      const {position, quaternion, u} = e;
+      const loadedObject = await world.addObject(u, null, position, quaternion, {
+        // physics,
+        // physics_url,
+        // autoScale,
+      });
+      loadedObject.name = u.match(/([^\/]*)$/)[1];
+    }
   });
 
 // make sure to update renderer when canvas size changes
