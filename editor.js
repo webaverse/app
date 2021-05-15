@@ -1045,8 +1045,27 @@ const bindTextarea = codeEl => {
                     {connectingServerIndex !== i ?
                       <button
                         className="button connect"
-                        onClick={e => {
+                        onClick={async e => {
                           setConnectingServerIndex(i);
+                          
+                          const tryConnect = async server => {
+                            const {publicIp, privateIp, port} = server;
+                            await world.connectRoom('room', 'https://' + publicIp + ':' + port);
+                          };
+   
+                          const res = await fetch('https://127.0.0.1:1112/');
+                          const j = await res.json();
+                          const server = j[i];
+                          if (server) {
+                            console.log('trying to connect...');
+                            await tryConnect(server);
+                          } else {
+                            console.log('creating server...');
+                            const res2 = await fetch('https://127.0.0.1:1112/' + i, {
+                              method: 'post',
+                            });
+                            const j = await res2.json();
+                          }                            
                         }}
                       >Connect</button>
                     :
