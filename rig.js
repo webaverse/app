@@ -355,71 +355,75 @@ class RigManager {
   }
 
   getLocalAvatarPose() {
-    const hmdPosition = this.localRig.inputs.hmd.position.toArray();
-    const hmdQuaternion = this.localRig.inputs.hmd.quaternion.toArray();
+    if (this.localRig) {
+      const hmdPosition = this.localRig.inputs.hmd.position.toArray();
+      const hmdQuaternion = this.localRig.inputs.hmd.quaternion.toArray();
 
-    const leftGamepadPosition = this.localRig.inputs.leftGamepad.position.toArray();
-    const leftGamepadQuaternion = this.localRig.inputs.leftGamepad.quaternion.toArray();
-    const leftGamepadPointer = this.localRig.inputs.leftGamepad.pointer;
-    const leftGamepadGrip = this.localRig.inputs.leftGamepad.grip;
-    const leftGamepadEnabled = this.localRig.inputs.leftGamepad.enabled;
+      const leftGamepadPosition = this.localRig.inputs.leftGamepad.position.toArray();
+      const leftGamepadQuaternion = this.localRig.inputs.leftGamepad.quaternion.toArray();
+      const leftGamepadPointer = this.localRig.inputs.leftGamepad.pointer;
+      const leftGamepadGrip = this.localRig.inputs.leftGamepad.grip;
+      const leftGamepadEnabled = this.localRig.inputs.leftGamepad.enabled;
 
-    const rightGamepadPosition = this.localRig.inputs.rightGamepad.position.toArray();
-    const rightGamepadQuaternion = this.localRig.inputs.rightGamepad.quaternion.toArray();
-    const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
-    const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
-    const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
+      const rightGamepadPosition = this.localRig.inputs.rightGamepad.position.toArray();
+      const rightGamepadQuaternion = this.localRig.inputs.rightGamepad.quaternion.toArray();
+      const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
+      const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
+      const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
-    const floorHeight = this.localRig.getFloorHeight();
-    const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
-    const topEnabled = this.localRig.getTopEnabled();
-    const bottomEnabled = this.localRig.getBottomEnabled();
-    const direction = this.localRig.direction.toArray();
-    const velocity = this.localRig.velocity.toArray();
-    const {
-      jumpState,
-      jumpTime,
-      flyState,
-      flyTime,
-      useTime,
-      useAnimation,
-      sitState,
-      sitAnimation,
-      danceState,
-      danceTime,
-      danceAnimation,
-      throwState,
-      throwTime,
-      crouchState,
-      crouchTime,
-    } = this.localRig;
+      const floorHeight = this.localRig.getFloorHeight();
+      const handsEnabled = [this.localRig.getHandEnabled(0), this.localRig.getHandEnabled(1)];
+      const topEnabled = this.localRig.getTopEnabled();
+      const bottomEnabled = this.localRig.getBottomEnabled();
+      const direction = this.localRig.direction.toArray();
+      const velocity = this.localRig.velocity.toArray();
+      const {
+        jumpState,
+        jumpTime,
+        flyState,
+        flyTime,
+        useTime,
+        useAnimation,
+        sitState,
+        sitAnimation,
+        danceState,
+        danceTime,
+        danceAnimation,
+        throwState,
+        throwTime,
+        crouchState,
+        crouchTime,
+      } = this.localRig;
 
-    return [
-      [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-      floorHeight,
-      handsEnabled,
-      topEnabled,
-      bottomEnabled,
-      direction,
-      velocity,
-      jumpState,
-      jumpTime,
-      flyState,
-      flyTime,
-      useTime,
-      useAnimation,
-      sitState,
-      sitAnimation,
-      danceState,
-      danceTime,
-      danceAnimation,
-      throwState,
-      throwTime,
-      crouchState,
-      crouchTime,
-    ];
+      return [
+        [hmdPosition, hmdQuaternion],
+        [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+        [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+        floorHeight,
+        handsEnabled,
+        topEnabled,
+        bottomEnabled,
+        direction,
+        velocity,
+        jumpState,
+        jumpTime,
+        flyState,
+        flyTime,
+        useTime,
+        useAnimation,
+        sitState,
+        sitAnimation,
+        danceState,
+        danceTime,
+        danceAnimation,
+        throwState,
+        throwTime,
+        crouchState,
+        crouchTime,
+      ];
+    } else {
+      return null;
+    }
   }
 
   /* getPeerAvatarPose(peerId) {
