@@ -633,8 +633,10 @@ ioManager.bindInput = () => {
         if (object.isHtml) {
           htmlHover = true;
         } else {
-          mouseHoverObject = object;
-          mouseHoverPhysicsId = result.objectId;
+          if (!controlsManager.isPossessed()) {
+            mouseHoverObject = object;
+            mouseHoverPhysicsId = result.objectId;
+          }
         }
       }
     }
