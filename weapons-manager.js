@@ -2008,6 +2008,9 @@ const weaponsManager = {
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
   },
+  getMouseHoverObject() {
+    return mouseHoverObject;
+  },
   setMouseHoverObject(o, physicsId) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
