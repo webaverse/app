@@ -202,6 +202,7 @@ export default class App extends EventTarget {
 
     // high priority render
     const renderer = getRenderer();
+    renderer.clear();
     renderer.render(scene3, camera);
     // main render
     if (rigManager.localRig) {
