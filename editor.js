@@ -1050,7 +1050,7 @@ const bindTextarea = codeEl => {
                           
                           const tryConnect = async server => {
                             const {publicIp, privateIp, port} = server;
-                            await world.connectRoom('room', 'https://' + publicIp + ':' + port);
+                            await world.connectRoom('room', publicIp + ':' + port);
                           };
    
                           const res = await fetch('https://127.0.0.1:1112/');
