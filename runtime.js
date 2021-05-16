@@ -1077,14 +1077,18 @@ const _makeAppUrl = appId => {
       recursion++;
       if (recursion === 1) {
         // scene.directionalLight.castShadow = false;
-        rig.localRig.model.visible = true;
+        if (rig.localRig) {
+          rig.localRig.model.visible = true;
+        }
       }
     };
     app.onAfterRender = () => {
       recursion--;
       if (recursion === 0) {
         // scene.directionalLight.castShadow = true;
-        rig.localRig.model.visible = false;
+        if (rig.localRig) {
+          rig.localRig.model.visible = false;
+        }
       }
     };
     export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, drop, npc, constants, rig, app, appManager};
