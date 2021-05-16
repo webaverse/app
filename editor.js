@@ -201,12 +201,13 @@ const _makeUiMesh = () => {
 };
 const eps = 0.00001;
 const cardPreviewHost = `https://card-preview.exokit.org`;
-const cardsBufferFactor = 1.1;
-const menuWidth = 0.063 * cardsBufferFactor * 4;
-const menuHeight = menuWidth;
-const menuRadius = 0.0025;
+
 const cardWidth = 0.063;
 const cardHeight = cardWidth / 2.5 * 3.5;
+const cardsBufferFactor = 1.1;
+const menuWidth = cardWidth * cardsBufferFactor * 4;
+const menuHeight = cardHeight * cardsBufferFactor * 4;
+const menuRadius = 0.0025;
 const _loadImage = u => new Promise((accept, reject) => {
   const img = new Image();
   img.crossOrigin = 'Anonymous';
