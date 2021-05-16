@@ -760,3 +760,8 @@ body {
   color: #FFFFFF;
   cursor: pointer;
 }
+
+.enter-xr-button:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}

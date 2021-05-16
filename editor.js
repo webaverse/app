@@ -1211,6 +1211,7 @@ const bindTextarea = codeEl => {
         const [servers, setServers] = useState(defaultServers);
         const [selectedServerIndex, setSelectedServerIndex] = useState(0);
         const [connectingServerIndex, setConnectingServerIndex] = useState(-1);
+        const [isXrSupported, setIsXrSuported] = useState(false);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -1332,6 +1333,11 @@ const bindTextarea = codeEl => {
           }
         }, [objects, objects.length, selectedObjectIndex]);
         
+        useEffect(async () => {
+          const ok = await app.isXrSupported();
+          setIsXrSuported(ok);
+        }, []);
+        
         return <div className="root">
           <div className="left">
             <div className="top">
@@ -1367,6 +1373,12 @@ const bindTextarea = codeEl => {
                 <div className="control" onClick={() => setCameraMode('avatar')}>
                   <img src="/assets/teleport.svg" className="icon" />
                   <div className="label">Avatar</div>
+                </div>
+                <div className="control enter-xr-button" disabled={!isXrSupported} onClick={() => {
+                  app.enterXr();
+                }}>
+                  <img src="/assets/protection-glasses.svg" className="icon" />
+                  <div className="label">VR</div>
                 </div>
               </div>
             </div>
