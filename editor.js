@@ -294,9 +294,51 @@ const _makeCardMesh = img => {
   return mesh;
 };
 const _makeInventoryMesh = () => {
-  const geometry = createBoxWithRoundedEdges(menuWidth + menuRadius*2, menuHeight + menuRadius*2, 0, menuRadius, 1);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x42a5f5,
+  const w = menuWidth + menuRadius*2;
+  const h = menuHeight + menuRadius*2;
+  const geometry = createBoxWithRoundedEdges(w, h, 0, menuRadius, 1);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      // uniform float uTime;
+      varying vec3 vPosition;
+      // varying vec3 vNormal;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        
+        vPosition = (position + ${(w / 2).toFixed(8)}) / ${w.toFixed(8)};
+        // vNormal = normal;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      uniform float uTime;
+      varying vec3 vPosition;
+      // varying vec3 vNormal;
+
+      void main() {
+        gl_FragColor = vec4(vPosition, 1.);
+      }
+    `,
+    // transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+    // polygonOffsetUnits: 1,
   });
   const mesh = new THREE.Mesh(geometry, material);
   
@@ -340,11 +382,16 @@ const _makeInventoryMesh = () => {
     }
     await Promise.all(promises);
   })();
+
   
   mesh.update = () => {
     const maxTime = 2000;
     const f = (Date.now() % maxTime) / maxTime;
-    window.cards = cards;
+    
+    material.uniforms.uTime.value = f;
+    material.uniforms.uTime.needsUpdate = true;
+    
+    // window.cards = cards;
     for (const card of cards) {
       const {index} = card;
       const cardStartTime = index * 0.02;
