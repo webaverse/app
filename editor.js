@@ -858,7 +858,7 @@ const bindTextarea = codeEl => {
       
       const getDocFromFile = async (blob, name) => {
         let doc;
-        if (/\.(?:html|js|metaversefile|rtfjs|tjs|txt|jsx)$/.test(name)) {
+        if (/\.(?:html|js|metaversefile|rtf.js|t.js|txt|jsx)$/.test(name)) {
           const text = await blob.text();
           doc = new CodeMirror.Doc(text, 'javascript');
         } else {
