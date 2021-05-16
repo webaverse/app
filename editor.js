@@ -587,7 +587,6 @@ const bindTextarea = codeEl => {
   return editor;
 };
 {
-  const _ = React.createElement;
   const container = document.getElementById('container');
   
   const jsx = `
