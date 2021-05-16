@@ -18,6 +18,7 @@ import easing from './easing.js';
 import ghDownloadDirectory from './gh-download-directory.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
+// const cubicBezier2 = easing(0, 0.7, 0, 0.7);
 const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 
@@ -299,9 +300,26 @@ const _makeInventoryMesh = () => {
   const w = menuWidth + menuRadius*2;
   const h = menuHeight + menuRadius*2;
   const geometry = createBoxWithRoundedEdges(w, h, 0, menuRadius, 1);
+  const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
+  console.log('got bounding box', boundingBox);
   const material = new THREE.ShaderMaterial({
     uniforms: {
+      uBoundingBox: {
+        type: 'vec4',
+        value: new THREE.Vector4(
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y
+        ),
+        needsUpdate: true,
+      },
       uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+      uTimeCubic: {
         type: 'f',
         value: 0,
         needsUpdate: true,
@@ -312,6 +330,7 @@ const _makeInventoryMesh = () => {
       precision highp int;
 
       // uniform float uTime;
+      uniform vec4 uBoundingBox;
       varying vec3 vPosition;
       // varying vec3 vNormal;
 
@@ -319,7 +338,9 @@ const _makeInventoryMesh = () => {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
-        vPosition = (position + ${(w / 2).toFixed(8)}) / ${w.toFixed(8)};
+        vPosition = (
+          position - vec3(uBoundingBox.x, uBoundingBox.y, 0.)
+        ) / vec3(uBoundingBox.z, uBoundingBox.w, 1.);
         // vNormal = normal;
       }
     `,
@@ -329,7 +350,9 @@ const _makeInventoryMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
+      // uniform vec4 uBoundingBox;
       uniform float uTime;
+      uniform float uTimeCubic;
       varying vec3 vPosition;
       // varying vec3 vNormal;
 
@@ -359,7 +382,14 @@ const _makeInventoryMesh = () => {
     }
 
       void main() {
-        gl_FragColor = vec4(hueShift(vPosition, uTime * PI * 2.), 1.);
+        if (
+          (1. - vPosition.y) < uTimeCubic &&
+          abs(vPosition.x - 0.5) < uTimeCubic
+        ) {
+          gl_FragColor = vec4(hueShift(vPosition, uTime * PI * 2.), 1.);
+        } else {
+          discard;
+        }
       }
     `,
     // transparent: true,
@@ -410,6 +440,8 @@ const _makeInventoryMesh = () => {
     
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
+    material.uniforms.uTimeCubic.value = cubicBezier(f);
+    material.uniforms.uTimeCubic.needsUpdate = true;
     
     // window.cards = cards;
     for (const card of cards) {
