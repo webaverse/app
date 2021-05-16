@@ -43,7 +43,7 @@ export function uint8Array2hex(uint8Array) {
 export function getExt(fileName) {
   const match = fileName
     .replace(/^[a-z]+:\/\/[^\/]+\//, '')
-    .match(/\.([^\.]+)(?:\?.*)?$/);
+    .match(/\.([^\.]+|t\.js|rtf\.js)(?:\?.*)?$/);
   return match ? match[1].toLowerCase() : '';
 }
 export function downloadFile(file, filename) {
