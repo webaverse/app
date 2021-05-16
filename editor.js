@@ -122,11 +122,11 @@ class CameraGeometry extends THREE.BufferGeometry {
       indexIndex += g.index.array.length;
     };
     
-    const topLeft = new THREE.Vector3(-1, 0.5, -1);
-    const topRight = new THREE.Vector3(1, 0.5, -1);
-    const bottomLeft = new THREE.Vector3(-1, -0.5, -1);
-    const bottomRight = new THREE.Vector3(1, -0.5, -1);
-    const back = new THREE.Vector3(0, 0, 1);
+    const topLeft = new THREE.Vector3(-1, 0.5, -2);
+    const topRight = new THREE.Vector3(1, 0.5, -2);
+    const bottomLeft = new THREE.Vector3(-1, -0.5, -2);
+    const bottomRight = new THREE.Vector3(1, -0.5, -2);
+    const back = new THREE.Vector3(0, 0, 0);
     
     const _setMatrixBetweenPoints = (m, p1, p2) => {
       const quaternion = localQuaternion.setFromRotationMatrix(
@@ -139,7 +139,7 @@ class CameraGeometry extends THREE.BufferGeometry {
       const position = localVector.copy(p1)
         .add(p2)
         .divideScalar(2)
-        .add(new THREE.Vector3(0, 2, 0));
+        // .add(new THREE.Vector3(0, 2, 0));
       const sc = 0.01;
       const scale = localVector2.set(sc, sc, p1.distanceTo(p2));
       m.compose(position, quaternion, scale);
@@ -1505,6 +1505,7 @@ app.waitForLoad()
     app.contentLoaded = true;
     app.startLoop();
     
+    // hacks
     {
       const scene = app.getScene();
       {
@@ -1513,12 +1514,13 @@ app.waitForLoad()
           color: 0x333333,
         });
         const o = new THREE.Mesh(g, m);
+        o.position.set(0, 2, -5);
         o.frustumCulled = false;
         scene.add(o);
       }
       {
         const o = _makeUiMesh();
-        o.position.set(0, 2, -2);
+        o.position.set(0, 2, -5);
         o.frustumCulled = false;
         scene.add(o);
       }
