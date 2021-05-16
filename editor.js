@@ -695,7 +695,6 @@ const loadModule = async u => {
     );
   });
 }; */
-// const selectedType = 'rtfjs'; // XXX implement a real selector
 const downloadZip = async () => {
   const zipData = await collectZip();
   // console.log('got zip data', zipData);
@@ -748,17 +747,6 @@ const collectZip = async () => {
   // console.log('got b', ab);
   const uint8Array = new Uint8Array(ab);
   return uint8Array;
-  /* const editor = getEditor();
-  const s = editor.getValue();
-  const b = new Blob([
-    s,
-  ], {
-    type: 'application/javascript',
-  });
-  // const u = URL.createObjectUrl(b);
-  b.name = 'index.rtfjs';
-  const zipData = await fetchAndCompileBlob(b);
-  return zipData; */
 };
 const uploadHash = async () => {
   // console.log('collect zip 1');
