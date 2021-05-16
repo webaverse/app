@@ -347,7 +347,7 @@ const _makeInventoryMesh = () => {
     window.cards = cards;
     for (const card of cards) {
       const {index} = card;
-      const cardStartTime = index * 0.1;
+      const cardStartTime = index * 0.02;
       card.position.copy(card.basePosition)
         .lerp(
           card.basePosition.clone()
