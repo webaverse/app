@@ -1810,7 +1810,7 @@ app.waitForLoad()
         u: `https://webaverse.github.io/assets/table.glb`,
       },
       {
-        position: new THREE.Vector3(2, 0, -2),
+        position: new THREE.Vector3(2, 0, -3),
         quaternion: new THREE.Quaternion()/* .setFromUnitVectors(
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
