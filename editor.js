@@ -216,21 +216,18 @@ const _loadImage = u => new Promise((accept, reject) => {
   };
   img.onerror = reject;
 });
-function makeShape(shape, width, height, radius0, smoothness) {
-  let radius = radius0 - eps;
-  shape.absarc( eps, eps, eps, -Math.PI / 2, -Math.PI, true );
-  shape.absarc( eps, height -  radius * 2, eps, Math.PI, Math.PI / 2, true );
-  shape.absarc( width - radius * 2, height -  radius * 2, eps, Math.PI / 2, 0, true );
-  shape.absarc( width - radius * 2, eps, eps, 0, -Math.PI / 2, true );
+function makeShape(shape, x, y, width, height, radius, smoothness) {
+  shape.absarc( x, y, radius, -Math.PI / 2, -Math.PI, true );
+  shape.absarc( x, y + height - radius * 2, radius, Math.PI, Math.PI / 2, true );
+  shape.absarc( x + width - radius * 2, y + height -  radius * 2, radius, Math.PI / 2, 0, true );
+  shape.absarc( x + width - radius * 2, y, radius, 0, -Math.PI / 2, true );
   return shape;
 }
 function createBoxWithRoundedEdges( width, height, depth, radius0, smoothness ) {
-  const shape = makeShape(new THREE.Shape(), width, height, radius0, smoothness);
+  const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius0, smoothness);
   const innerFactor = 0.99;
-  const hole = makeShape(new THREE.Path(), width * innerFactor, height * innerFactor, radius0, smoothness);
+  const hole = makeShape(new THREE.Path(), radius0/2, radius0/2, width * innerFactor, height * innerFactor, radius0, smoothness);
   shape.holes.push(hole);
-
-  let radius = radius0 - eps;
 
   let geometry = new THREE.ExtrudeBufferGeometry( shape, {
     amount: 0,
@@ -326,8 +323,8 @@ const _makeInventoryMesh = () => {
           
           const cardMesh = _makeCardMesh(img);
           cardMesh.position.set(
-            menuRadius/2 - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
-            -menuRadius*2 + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
+            menuRadius - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
+            -menuRadius + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
             0
           );
           mesh.add(cardMesh);
