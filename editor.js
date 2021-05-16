@@ -255,7 +255,7 @@ const cardBackGeometry = cardFrontGeometry.clone()
       new THREE.Vector3(1, 1, 1)
     )
   );
-const cardBackMaterial = (() => {
+const _makeCardBackMaterial = () => {
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
@@ -270,7 +270,7 @@ const cardBackMaterial = (() => {
     material.map.needsUpdate = true;
   })();
   return material;
-})();
+};
 const _makeCardMesh = img => {
   const geometry = cardFrontGeometry;
   const material = new THREE.MeshBasicMaterial({
@@ -287,9 +287,10 @@ const _makeCardMesh = img => {
   
   {
     const geometry = cardBackGeometry;
-    const material = cardBackMaterial;
+    const material = _makeCardBackMaterial();
     const back = new THREE.Mesh(geometry, material);
     mesh.add(back);
+    mesh.back = back;
   }
   
   return mesh;
@@ -414,13 +415,17 @@ const _makeInventoryMesh = () => {
     for (const card of cards) {
       const {index} = card;
       const cardStartTime = index * 0.02;
+      const g = cubicBezier(f - cardStartTime);
+      const h = 1 - g;
       card.position.copy(card.basePosition)
         .lerp(
           card.basePosition.clone()
             .add(new THREE.Vector3(0, -0.1, 0))
           ,
-          1 - cubicBezier(f - cardStartTime)
+          h
         );
+      card.material.opacity = g;
+      card.back.material.opacity = g;
     }
   };
   
