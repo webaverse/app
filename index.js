@@ -4,6 +4,13 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 
+function getExt(fileName) {
+  const match = fileName
+    .replace(/^[a-z]+:\/\/[^\/]+\//, '')
+    .match(/\.([^\.]+)(?:\?.*)?$/);
+  return match ? match[1].toLowerCase() : '';
+}
+
 const fullchainPath = './certs/fullchain.pem';
 const privkeyPath = './certs/privkey.pem';
 
@@ -32,6 +39,13 @@ app.use((req, res, next) => {
   next();
 });
 const appStatic = express.static(__dirname);
+app.get('*', (req, res, next) => {
+  const ext = getExt(req.url);
+  if (['tjs', 'rtfjs'].includes(ext)) {
+    res.set('Content-Type', 'application/javascript');
+  }
+  next();
+});
 app.use(appStatic);
 app.get('*', (req, res, next) => {
   req.url = '404.html';
