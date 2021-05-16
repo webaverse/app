@@ -203,9 +203,19 @@ const cardPreviewHost = `https://card-preview.exokit.org`;
 const cardsBufferFactor = 1.1;
 const menuWidth = 0.063 * cardsBufferFactor * 4;
 const menuHeight = menuWidth;
-const menuRadius = 0.005;
+const menuRadius = 0.0025;
 const cardWidth = 0.063;
 const cardHeight = cardWidth / 2.5 * 3.5;
+const _loadImage = u => new Promise((accept, reject) => {
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  
+  img.src = u;
+  img.onload = () => {
+    accept(img);
+  };
+  img.onerror = reject;
+});
 function makeShape(shape, width, height, radius0, smoothness) {
   let radius = radius0 - eps;
   shape.absarc( eps, eps, eps, -Math.PI / 2, -Math.PI, true );
@@ -236,16 +246,53 @@ function createBoxWithRoundedEdges( width, height, depth, radius0, smoothness ) 
   
   return geometry;
 }
+const cardFrontGeometry = new THREE.PlaneBufferGeometry(cardWidth, cardHeight);
+const cardBackGeometry = cardFrontGeometry.clone()
+  .applyMatrix4(
+    new THREE.Matrix4().compose(
+      new THREE.Vector3(0, 0, -0.001),
+      new THREE.Quaternion()
+        .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI),
+      new THREE.Vector3(1, 1, 1)
+    )
+  );
+const cardBackMaterial = (() => {
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    map: new THREE.Texture(),
+    transparent: true,
+  });
+  (async () => {
+    const img = await _loadImage('./assets/cardback.png');
+    material.map.image = img;
+    material.map.minFilter = THREE.LinearMipmapLinearFilter;
+    material.map.magFilter = THREE.LinearFilter;
+    material.map.anisotropy = 16;
+    material.map.needsUpdate = true;
+  })();
+  return material;
+})();
 const _makeCardMesh = img => {
-  const geometry = new THREE.PlaneBufferGeometry(cardWidth, cardHeight);
+  const geometry = cardFrontGeometry;
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(img),
     side: THREE.DoubleSide,
     transparent: true,
   });
+  material.map.minFilter = THREE.LinearMipmapLinearFilter;
+  material.map.magFilter = THREE.LinearFilter;
+  material.map.anisotropy = 16;
   material.map.needsUpdate = true;
   const mesh = new THREE.Mesh(geometry, material);
+  
+  {
+    const geometry = cardBackGeometry;
+    const material = cardBackMaterial;
+    const back = new THREE.Mesh(geometry, material);
+    mesh.add(back);
+  }
+  
   return mesh;
 };
 const _makeInventoryMesh = () => {
@@ -271,23 +318,16 @@ const _makeInventoryMesh = () => {
     for (let row = 0; row < numRows; row++) {
       for (let col = 0; col < numCols; col++) {
         const promise = (async () => {
-          const img = await new Promise((accept, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous';
-            const id = ++i;
-            const ext = 'png';
-            const u = `${cardPreviewHost}/?t=${id}&w=${500}&ext=${ext}`;
-            img.src = u;
-            img.onload = () => {
-              accept(img);
-            };
-            img.onerror = reject;
-          });
+          const id = ++i;
+          const w = 1024;
+          const ext = 'png';
+          const u = `${cardPreviewHost}/?t=${id}&w=${w}&ext=${ext}`;
+          const img = await _loadImage(u);
           
           const cardMesh = _makeCardMesh(img);
           cardMesh.position.set(
-            0.0025 - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
-            -0.005 + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
+            menuRadius/2 - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
+            -menuRadius*2 + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
             0
           );
           mesh.add(cardMesh);
