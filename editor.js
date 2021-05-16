@@ -1809,6 +1809,14 @@ app.waitForLoad()
         ),
         u: `https://webaverse.github.io/assets/table.glb`,
       },
+      {
+        position: new THREE.Vector3(2, 0, -2),
+        quaternion: new THREE.Quaternion()/* .setFromUnitVectors(
+          new THREE.Vector3(0, 0, -1),
+          new THREE.Vector3(-1, 0, 0),
+        ) */,
+        u: `https://avaer.github.io/mirror/index.js`,
+      },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
