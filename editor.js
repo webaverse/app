@@ -10,13 +10,14 @@ import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
+import App from '/app.js';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
-
-import App from '/app.js';
-
+import easing from './easing.js';
 import ghDownloadDirectory from './gh-download-directory.js';
+
+const cubicBezier = easing(0, 1, 0, 1);
 const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 
@@ -299,6 +300,7 @@ const _makeInventoryMesh = () => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   
+  const cards = [];
   (async () => {
     const tokens = await (async () => {
       const res = await fetch(`https://tokens.webaverse.com/1-100`);
@@ -315,6 +317,7 @@ const _makeInventoryMesh = () => {
     for (let row = 0; row < numRows; row++) {
       for (let col = 0; col < numCols; col++) {
         const promise = (async () => {
+          const index = i;
           const id = ++i;
           const w = 1024;
           const ext = 'png';
@@ -322,18 +325,38 @@ const _makeInventoryMesh = () => {
           const img = await _loadImage(u);
           
           const cardMesh = _makeCardMesh(img);
-          cardMesh.position.set(
+          cardMesh.basePosition = new THREE.Vector3(
             menuRadius - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
             -menuRadius + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
             0
           );
+          cardMesh.position.copy(cardMesh.basePosition);
+          cardMesh.index = index;
           mesh.add(cardMesh);
+          cards.push(cardMesh);
         })();
         promises.push(promise);
       }
     }
     await Promise.all(promises);
   })();
+  
+  mesh.update = () => {
+    const maxTime = 2000;
+    const f = (Date.now() % maxTime) / maxTime;
+    window.cards = cards;
+    for (const card of cards) {
+      const {index} = card;
+      const cardStartTime = index * 0.1;
+      card.position.copy(card.basePosition)
+        .lerp(
+          card.basePosition.clone()
+            .add(new THREE.Vector3(0, -0.1, 0))
+          ,
+          1 - cubicBezier(f - cardStartTime)
+        );
+    }
+  };
   
   return mesh;
 };
@@ -1645,34 +1668,31 @@ app.waitForLoad()
     app.startLoop();
     
     // hacks
-    {
-      const scene = app.getScene();
-      {
-        const g = new CameraGeometry();
-        const m = new THREE.MeshBasicMaterial({
-          color: 0x333333,
-        });
-        const o = new THREE.Mesh(g, m);
-        o.position.set(0, 2, -5);
-        o.frustumCulled = false;
-        scene.add(o);
-      }
-      {
-        const o = _makeUiMesh();
-        o.position.set(0, 2, -5);
-        o.frustumCulled = false;
-        scene.add(o);
-      }
-      {
-        const o = _makeInventoryMesh();
-        o.position.set(0, 1.2, -1);
-        o.frustumCulled = false;
-        scene.add(o);
-      }
-    }
+    const scene = app.getScene();
+      
+    const g = new CameraGeometry();
+    const m = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+    });
+    const cameraMesh = new THREE.Mesh(g, m);
+    cameraMesh.position.set(0, 2, -5);
+    cameraMesh.frustumCulled = false;
+    scene.add(cameraMesh);
+
+    const uiMesh = _makeUiMesh();
+    uiMesh.position.set(0, 2, -5);
+    uiMesh.frustumCulled = false;
+    scene.add(uiMesh);
+
+    const inventoryMesh = _makeInventoryMesh();
+    inventoryMesh.position.set(0, 1.2, -1);
+    inventoryMesh.frustumCulled = false;
+    scene.add(inventoryMesh);
+    app.addEventListener('frame', () => {
+      inventoryMesh.update();
+    });
     
-    
-    const scene = [
+    const defaultScene = [
       {
         position: new THREE.Vector3(),
         quaternion: new THREE.Quaternion(),
@@ -1697,7 +1717,7 @@ app.waitForLoad()
         u: `https://avaer.github.io/hookshot/index.js`,
       }, */
     ];
-    for (const e of scene) {
+    for (const e of defaultScene) {
       const {position, quaternion, u} = e;
       const loadedObject = await world.addObject(u, null, position, quaternion, {
         // physics,
