@@ -72,7 +72,6 @@ const teleportMaterial = new THREE.MeshBasicMaterial({
 const makeTeleportMesh = (lineMesh, index) => {
   const geometry = teleportGeometry;
   const material = teleportMaterial;
-  const renderer = getRenderer();
 
   const teleportMesh = new THREE.Mesh(geometry, material);
   teleportMesh.visible = false;
@@ -86,6 +85,7 @@ const makeTeleportMesh = (lineMesh, index) => {
 
     if (visible) {
       localVector.copy(position);
+      const renderer = getRenderer();
       if (renderer.xr.getSession()) {
         localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI*0.25));
       } else {
