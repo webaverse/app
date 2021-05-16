@@ -569,10 +569,10 @@
     app.setPossessed(true);
 
     const enterXrButton = document.getElementById('enter-xr-button');
-    const noXrButton = document.getElementById('no-xr-button');
-    app.bindXr({
+    // const noXrButton = document.getElementById('no-xr-button');
+    app.bindXrButton({
       enterXrButton,
-      noXrButton,
+      // noXrButton,
       onSupported(ok) {
         if (ok) {
           enterXrButton.style.display = null;

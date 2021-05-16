@@ -52,6 +52,17 @@ const localArray2 = Array(4);
 const localArray3 = Array(4);
 const localArray4 = Array(4);
 
+const sessionMode = 'immersive-vr';
+const sessionOpts = {
+  requiredFeatures: [
+    'local-floor',
+    // 'bounded-floor',
+  ],
+  optionalFeatures: [
+    'hand-tracking',
+  ],
+};
+
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
@@ -149,52 +160,55 @@ export default class App extends EventTarget {
   bindMinimap(mapCanvas) {
     minimap.init(mapCanvas);
   }
-  bindXr({
+  bindXrButton({
     enterXrButton,
-    noXrButton,
+    // noXrButton,
     onSupported,
   }) {
-    let currentSession = null;
-    function onSessionStarted(session) {
-      session.addEventListener('end', onSessionEnded);
-      renderer.xr.setSession(session);
-      // renderer.xr.setReferenceSpaceType('local-floor');
-      currentSession = session;
-    }
-    function onSessionEnded() {
-      currentSession.removeEventListener('end', onSessionEnded);
-      renderer.xr.setSession(null);
-      currentSession = null;
-    }
-    const sessionMode = 'immersive-vr';
-    const sessionOpts = {
-      requiredFeatures: [
-        'local-floor',
-        // 'bounded-floor',
-      ],
-      optionalFeatures: [
-        'hand-tracking',
-      ],
-    };
     enterXrButton.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      if (currentSession === null) {
-        navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
-      } else {
-        currentSession.end();
-      }
+      this.enterXr();
     });
-    if (navigator.xr) {
-      navigator.xr.isSessionSupported(sessionMode)
-        .then(onSupported)
-        .catch(err => {
-          console.warn(err);
-        });
-    }
+    (async () => {
+      const ok = await this.isXrSupported();
+      onSupported(ok);
+    })();
   }
   bindCanvas(c) {
     bindCanvas(c);
+  }
+  async isXrSupported() {
+    if (navigator.xr) {
+      let ok = false;
+      try {
+        ok = await navigator.xr.isSessionSupported(sessionMode);
+      } catch (err) {
+        console.warn(err);
+      }
+      return ok;
+    } else {
+      return false;
+    }
+  }
+  enterXr() {
+    function onSessionStarted(session) {
+      function onSessionEnded(e) {
+        session.removeEventListener('end', onSessionEnded);
+        renderer.xr.setSession(null);
+      }
+      session.addEventListener('end', onSessionEnded);
+      renderer.xr.setSession(session);
+      // renderer.xr.setReferenceSpaceType('local-floor');
+    }
+
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    if (session === null) {
+      navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
+    } else {
+      session.end();
+    }
   }
   
   render() {
@@ -434,7 +448,7 @@ export default class App extends EventTarget {
 
           renderer.xr.enabled = false;
           renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
-          renderer.setFramebuffer(null);
+          // renderer.setFramebuffer(null);
 
           const oldOutputEncoding = renderer.outputEncoding;
           renderer.outputEncoding = THREE.LinearEncoding;
