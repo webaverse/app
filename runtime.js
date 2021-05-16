@@ -431,6 +431,46 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   return o;
 };
 
+const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+
+  const u = new URL(srcUrl, parentUrl || window.location.href).href;
+
+  // console.log('got start url', u);
+  
+  const m = await import(u);
+  const fn = m.default;
+  // console.log('got fn', fn);
+  
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.isTjs = true;
+  o.getPhysicsIds = () => app.physicsIds;
+  o.destroy = () => {
+    if (userObject.destroy) {
+      userObject.destroy();
+    }
+    appManager.destroyApp(appId);
+  };
+  
+  let userObject = null;
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    if (userObject?.update) {
+      userObject.update();
+    }
+  });
+  app.rootObject = o;
+  const appContextObject = makeAppContextObject(app);
+  userObject = await fn(appContextObject);
+  if (userObject) {
+    o.add(userObject);
+  }
+  
+  return o;
+};
+
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
@@ -2002,7 +2042,8 @@ const _loadGeo = async (file, {contentId = null}) => {
 
 const typeHandlers = {
   'metaversefile': _loadMetaversefile,
-  'rtfjs': _loadRtfjs,
+  'rtf.js': _loadRtfjs,
+  't.js': _loadTjs,
   'gltf': _loadGltf,
   'glb': _loadGltf,
   'vrm': _loadVrm,
