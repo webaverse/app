@@ -370,13 +370,6 @@ const _makeInventoryMesh = () => {
   
   const cards = [];
   (async () => {
-    /* const tokens = await (async () => {
-      const res = await fetch(`https://tokens.webaverse.com/1-100`);
-      const j = await res.json();
-      return j;
-    })(); */
-    // console.log('got tokens', tokens);
-    
     const cardImgs = [];
     const numCols = 4;
     const numRows = 6;
