@@ -198,6 +198,108 @@ const _makeUiMesh = () => {
   m.frustumCulled = false;
   return m;
 };
+const eps = 0.00001;
+const cardPreviewHost = `https://card-preview.exokit.org`;
+const cardsBufferFactor = 1.1;
+const menuWidth = 0.063 * cardsBufferFactor * 4;
+const menuHeight = menuWidth;
+const menuRadius = 0.005;
+const cardWidth = 0.063;
+const cardHeight = cardWidth / 2.5 * 3.5;
+function makeShape(shape, width, height, radius0, smoothness) {
+  let radius = radius0 - eps;
+  shape.absarc( eps, eps, eps, -Math.PI / 2, -Math.PI, true );
+  shape.absarc( eps, height -  radius * 2, eps, Math.PI, Math.PI / 2, true );
+  shape.absarc( width - radius * 2, height -  radius * 2, eps, Math.PI / 2, 0, true );
+  shape.absarc( width - radius * 2, eps, eps, 0, -Math.PI / 2, true );
+  return shape;
+}
+function createBoxWithRoundedEdges( width, height, depth, radius0, smoothness ) {
+  const shape = makeShape(new THREE.Shape(), width, height, radius0, smoothness);
+  const innerFactor = 0.99;
+  const hole = makeShape(new THREE.Path(), width * innerFactor, height * innerFactor, radius0, smoothness);
+  shape.holes.push(hole);
+
+  let radius = radius0 - eps;
+
+  let geometry = new THREE.ExtrudeBufferGeometry( shape, {
+    amount: 0,
+    bevelEnabled: true,
+    bevelSegments: smoothness * 2,
+    steps: 1,
+    bevelSize: radius0,
+    bevelThickness: 0,
+    curveSegments: smoothness
+  });
+  
+  geometry.center();
+  
+  return geometry;
+}
+const _makeCardMesh = img => {
+  const geometry = new THREE.PlaneBufferGeometry(cardWidth, cardHeight);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    map: new THREE.Texture(img),
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  material.map.needsUpdate = true;
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
+const _makeInventoryMesh = () => {
+  const geometry = createBoxWithRoundedEdges(menuWidth + menuRadius*2, menuHeight + menuRadius*2, 0, menuRadius, 1);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x42a5f5,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  
+  (async () => {
+    const tokens = await (async () => {
+      const res = await fetch(`https://tokens.webaverse.com/1-100`);
+      const j = await res.json();
+      return j;
+    })();
+    console.log('got tokens', tokens);
+    
+    const cardImgs = [];
+    const numCols = 4;
+    const numRows = 6;
+    const promises = [];
+    let i = 0;
+    for (let row = 0; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const promise = (async () => {
+          const img = await new Promise((accept, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            const id = ++i;
+            const ext = 'png';
+            const u = `${cardPreviewHost}/?t=${id}&w=${500}&ext=${ext}`;
+            img.src = u;
+            img.onload = () => {
+              accept(img);
+            };
+            img.onerror = reject;
+          });
+          
+          const cardMesh = _makeCardMesh(img);
+          cardMesh.position.set(
+            0.0025 - menuWidth/2 + cardWidth/2 + col * cardWidth * cardsBufferFactor,
+            -0.005 + menuHeight/2 - cardHeight/2 - row * cardHeight * cardsBufferFactor,
+            0
+          );
+          mesh.add(cardMesh);
+        })();
+        promises.push(promise);
+      }
+    }
+    await Promise.all(promises);
+  })();
+  
+  return mesh;
+};
 
 const fetchAndCompileBlob = async (file, files) => {
   const res = file;
@@ -1524,7 +1626,14 @@ app.waitForLoad()
         o.frustumCulled = false;
         scene.add(o);
       }
+      {
+        const o = _makeInventoryMesh();
+        o.position.set(0, 1.2, -1);
+        o.frustumCulled = false;
+        scene.add(o);
+      }
     }
+    
     
     const scene = [
       {
