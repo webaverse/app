@@ -97,6 +97,7 @@ _bindState(states.dynamic, true);
 world.connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
+  let interval;
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
     console.log('Channel Open!');
@@ -104,6 +105,41 @@ world.connectRoom = async (roomName, worldURL) => {
     if (networkMediaStream) {
       channelConnection.setMicrophoneMediaStream(networkMediaStream);
     }
+    
+    if (live) {
+      interval = setInterval(() => {
+        const name = loginManager.getUsername();
+        const avatarSpec = loginManager.getAvatar();
+        const avatarUrl = avatarSpec && avatarSpec.url;
+        const avatarExt = avatarSpec && avatarSpec.ext;
+        const address = loginManager.getAddress();
+        const aux = rigManager.localRig?.aux.getPose();
+        channelConnection.send(JSON.stringify({
+          method: 'status',
+          data: {
+            peerId: channelConnection.connectionId,
+            status: {
+              name,
+              avatarUrl,
+              avatarExt,
+              address,
+              aux,
+            },
+          },
+        }));
+        const pose = rigManager.getLocalAvatarPose();
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          data: {
+            pose,
+          },
+        }));
+      }, 10);
+    }
+
+    /* world.dispatchEvent(new MessageEvent('peersupdate', {
+      data: Array.from(rigManager.peerRigs.values()),
+    })); */
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -201,42 +237,6 @@ world.connectRoom = async (roomName, worldURL) => {
       }
     });
     peerConnections.push(peerConnection);
-
-    let interval;
-    if (live) {
-      interval = setInterval(() => {
-        const name = loginManager.getUsername();
-        const avatarSpec = loginManager.getAvatar();
-        const avatarUrl = avatarSpec && avatarSpec.url;
-        const avatarExt = avatarSpec && avatarSpec.ext;
-        const address = loginManager.getAddress();
-        const aux = rigManager.localRig?.aux.getPose();
-        channelConnection.send(JSON.stringify({
-          method: 'status',
-          data: {
-            peerId: channelConnection.connectionId,
-            status: {
-              name,
-              avatarUrl,
-              avatarExt,
-              address,
-              aux,
-            },
-          },
-        }));
-        const pose = rigManager.getLocalAvatarPose();
-        channelConnection.send(JSON.stringify({
-          method: 'pose',
-          data: {
-            pose,
-          },
-        }));
-      }, 10);
-    }
-
-    /* world.dispatchEvent(new MessageEvent('peersupdate', {
-      data: Array.from(rigManager.peerRigs.values()),
-    })); */
   });
   channelConnection.close = (close => function() {
     close.apply(this, arguments);
