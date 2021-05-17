@@ -1,14 +1,14 @@
 (() => {
 
 const width = 50;
-const defaultServers = [
+/* const defaultServers = [
   {
     name: 'magic land',
   },
   {
     name: 'lollercopter landing pad',
   },
-];
+]; */
 
 const getDocFromFile = async (blob, name) => {
   let doc;
@@ -532,57 +532,87 @@ const Library = React.memo(({cards, open, q, setQ, setCurrentQ, searchResults, s
     </div>
   );
 });
-const Multiplayer = React.memo(({open, servers, selectedServerIndex, setSelectedServerIndex, connectingServerIndex, setConnectingServerIndex}) => {
+const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIndex, setSelectedServerIndex, connectingServerIndex, setConnectingServerIndex}) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [serverName, setServerName] = useState('');
+
+  const _createServer = async () => {
+    const res = await fetch(`https://worlds.exokit.org/${serverName}`, {
+      method: 'POST',
+    });
+    const j = await res.json();
+    
+    await refreshServers();
+  };
+  
   return (
     <div className={['multiplayer', 'page', open ? 'open' : '', 'sections'].join(' ')}>
+      {modalOpen ?
+        <form className="modal">
+          <div className="label">Server name</div>
+          <input type="text" value={serverName} onChange={e => setServerName(e.target.value)} placeholder="erithor" />
+          <button className="button ok"></button>
+        </form>
+      : null}
       <div className="label">Servers</div>
       <div className="servers">
-        {servers.map((server, i) => {
-          return (
-            <div
-              className={['server', selectedServerIndex === i ? 'selected' : ''].join(' ')}
-              onClick={e => setSelectedServerIndex(i)}
-              key={i}
-            >
-              <img src="/assets/circuitry.svg" className="icon" />
-              <div className="name">{server.name}</div>
-              {connectingServerIndex !== i ?
-                <button
-                  className="button connect"
-                  onClick={async e => {
-                    setConnectingServerIndex(i);
-                    
-                    const tryConnect = async server => {
-                      const {publicIp, privateIp, port} = server;
-                      await world.connectRoom('room', publicIp + ':' + port);
-                    };
+        {servers.length > 0 ?
+          servers.map((server, i) => {
+            return (
+              <div
+                className={['server', selectedServerIndex === i ? 'selected' : ''].join(' ')}
+                onClick={e => setSelectedServerIndex(i)}
+                key={i}
+              >
+                <img src="/assets/circuitry.svg" className="icon" />
+                <div className="name">{server.name}</div>
+                {connectingServerIndex !== i ?
+                  <button
+                    className="button connect"
+                    onClick={async e => {
+                      setConnectingServerIndex(i);
+                      
+                      const tryConnect = async server => {
+                        const {publicIp, privateIp, port} = server;
+                        await world.connectRoom('room', publicIp + ':' + port);
+                      };
 
-                    const res = await fetch('https://127.0.0.1:1112/');
-                    const j = await res.json();
-                    const server = j[i];
-                    if (server) {
-                      console.log('trying to connect...');
-                      await tryConnect(server);
-                    } else {
-                      console.log('creating server...');
-                      const res2 = await fetch('https://127.0.0.1:1112/' + i, {
-                        method: 'post',
-                      });
-                      const j = await res2.json();
-                    }                            
-                  }}
-                >Connect</button>
-              :
-                <button
-                  className="button"
-                  onClick={e => {
-                    setConnectingServerIndex(-1);
-                  }}
-                >Connecting...</button>
-              }
-            </div>
-          );
-        })}
+                      const res = await fetch('https://127.0.0.1:1112/');
+                      const j = await res.json();
+                      const server = j[i];
+                      if (server) {
+                        console.log('trying to connect...');
+                        await tryConnect(server);
+                      } else {
+                        console.log('creating server...');
+                        const res2 = await fetch('https://127.0.0.1:1112/' + i, {
+                          method: 'post',
+                        });
+                        const j = await res2.json();
+                      }                            
+                    }}
+                  >Connect</button>
+                :
+                  <button
+                    className="button"
+                    onClick={e => {
+                      setConnectingServerIndex(-1);
+                    }}
+                  >Connecting...</button>
+                }
+              </div>
+            );
+          })
+        :
+          <div className="servers-placeholder">No servers</div>
+        }
+        <button
+          className="button create-server-button"
+          onClick={e => setModalOpen(true)}
+        >
+          <img src="/assets/circuitry.svg" className="icon" />
+          <div className="label">Create server</div>
+        </button>
       </div>
     </div>
   );
@@ -616,7 +646,7 @@ return () => {
   const [errors, localSetErrors] = useState([]);
   const [firstRun, setFirstRun] = useState(false);
   const [secondRun, setSecondRun] = useState(true);
-  const [servers, setServers] = useState(defaultServers);
+  const [servers, setServers] = useState([]);
   const [selectedServerIndex, setSelectedServerIndex] = useState(0);
   const [connectingServerIndex, setConnectingServerIndex] = useState(-1);
   const [microphoneMediaStream, setMicrophoneMediaStream] = useState(null);
@@ -636,6 +666,13 @@ return () => {
     const j = await res.json();
     setCards(j);
   }, []);
+  
+  const refreshServers = async () => {
+    const res = await fetch('https://worlds.exokit.org');
+    const j = await res.json();
+    setServers(j);
+  };
+  useEffect(refreshServers, []);
   
   useEffect(async () => {
     const objects = world.getObjects();
@@ -875,6 +912,7 @@ return () => {
         />
         <Multiplayer
           servers={servers}
+          refreshServers={refreshServers}
           open={selectedTab === 'multiplayer'}
           selectedServerIndex={selectedServerIndex}
           setSelectedServerIndex={setSelectedServerIndex}
