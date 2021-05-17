@@ -465,17 +465,20 @@ const _makeInventoryMesh = () => {
   return mesh;
 };
 const _makeLoaderMesh = () => {
-  const size = 10;
-  const cubeGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
+  const size = 0.1;
+  const count = 10;
+  const crunchFactor = 0.9;
+  const innerSize = size * crunchFactor;
+  const cubeGeometry = new THREE.BoxBufferGeometry(innerSize, innerSize, innerSize);
   
   let numCubes = 0;
-  for (let x = 0; x < size; x++) {
-    for (let y = 0; y < size; y++) {
-      for (let z = 0; z < size; z++) {
+  for (let x = 0; x < count; x++) {
+    for (let y = 0; y < count; y++) {
+      for (let z = 0; z < count; z++) {
         if (
-          (x === 0 || x === (size - 1)) ||
-          (y === 0 || y === (size - 1)) ||
-          (z === 0 || z === (size - 1))
+          (x === 0 || x === (count - 1)) ||
+          (y === 0 || y === (count - 1)) ||
+          (z === 0 || z === (count - 1))
         ) {
           numCubes++;
         }
@@ -484,25 +487,39 @@ const _makeLoaderMesh = () => {
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
-  geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length), 1));
+  geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.normal.array.length * numCubes), 3));
+  geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length * numCubes), 1));
   
   let positionIndex = 0;
+  let normalIndex = 0;
   let indexIndex = 0;
-  for (let x = 0; x < size; x++) {
-    for (let y = 0; y < size; y++) {
-      for (let z = 0; z < size; z++) {
+  for (let x = 0; x < count; x++) {
+    for (let y = 0; y < count; y++) {
+      for (let z = 0; z < count; z++) {
         if (
-          (x === 0 || x === (size - 1)) ||
-          (y === 0 || y === (size - 1)) ||
-          (z === 0 || z === (size - 1))
+          (x === 0 || x === (count - 1)) ||
+          (y === 0 || y === (count - 1)) ||
+          (z === 0 || z === (count - 1))
         ) {
-          geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
-          for (let i = 0; i < cubeGeometry.index.array.length; i++) {
-            geometry.index.array[indexIndex + i] = positionIndex/3 + cubeGeometry.index.array[i];
+          const g = cubeGeometry.clone()
+            .applyMatrix4(
+              new THREE.Matrix4()
+                .compose(
+                  new THREE.Vector3(x * size, y * size, z * size),
+                  new THREE.Quaternion(),
+                  new THREE.Vector3(1, 1, 1)
+                )
+            );
+          // console.log('got g offset', [x * size, y * size, z * size]);
+          geometry.attributes.position.array.set(g.attributes.position.array, positionIndex);
+          geometry.attributes.normal.array.set(g.attributes.normal.array, normalIndex);
+          for (let i = 0; i < g.index.array.length; i++) {
+            geometry.index.array[indexIndex + i] = positionIndex/3 + g.index.array[i];
           }
           
-          positionIndex += cubeGeometry.attributes.position.array.length;
-          indexIndex += cubeGeometry.index.array.length;
+          positionIndex += g.attributes.position.array.length;
+          normalIndex += g.attributes.normal.array.length;
+          indexIndex += g.index.array.length;
         }
       }
     }
@@ -539,10 +556,12 @@ const _makeLoaderMesh = () => {
       // uniform vec4 uBoundingBox;
       // varying vec3 vPosition;
       // varying vec3 vNormal;
+      varying vec3 vNormal;
 
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
+        vNormal = normal;
       }
     `,
     fragmentShader: `\
@@ -555,7 +574,7 @@ const _makeLoaderMesh = () => {
       // uniform float uTime;
       // uniform float uTimeCubic;
       // varying vec3 vPosition;
-      // varying vec3 vNormal;
+      varying vec3 vNormal;
 
       vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
@@ -583,7 +602,7 @@ const _makeLoaderMesh = () => {
     }
 
       void main() {
-        gl_FragColor = vec4(${new THREE.Color(0x29b6f6).toArray().join(', ')}, 1.);
+        gl_FragColor = vec4(vNormal, 1.);
       }
     `,
     // transparent: true,
