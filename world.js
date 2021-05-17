@@ -248,6 +248,8 @@ world.connectRoom = async (roomName, worldURL) => {
 
   states.dynamic = channelConnection.state;
   _bindState(states.dynamic, true);
+  
+  return channelConnection;
 };
 world.disconnectRoom = () => {
   if (channelConnection) {
@@ -261,6 +263,7 @@ world.disconnectRoom = () => {
     states.dynamic = new Y.Doc();
     _bindState(states.dynamic, true);
   }
+  return channelConnection;
 };
 
 world.initializeIfEmpty = spec => {
