@@ -455,6 +455,7 @@ export default class App extends EventTarget {
 
           const oldOutputEncoding = renderer.outputEncoding;
           renderer.outputEncoding = THREE.LinearEncoding;
+          renderer.clear();
           renderer.setViewport(0, 0, canvas.width, canvas.height);
           renderer.render(xrscene, xrscenecam);
           renderer.xr.enabled = true;
