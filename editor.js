@@ -488,7 +488,10 @@ const _makeLoaderMesh = () => {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.normal.array.length * numCubes), 3));
+  geometry.setAttribute('time', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length/3 * numCubes), 1));
   geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length * numCubes), 1));
+  
+  geometry.attributes.time.array.fill(-1);
   
   let positionIndex = 0;
   let normalIndex = 0;
@@ -556,12 +559,15 @@ const _makeLoaderMesh = () => {
       // uniform vec4 uBoundingBox;
       // varying vec3 vPosition;
       // varying vec3 vNormal;
+      attribute float time;
       varying vec3 vNormal;
+      varying float vTime;
 
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         vNormal = normal;
+        vTime = time;
       }
     `,
     fragmentShader: `\
@@ -575,6 +581,7 @@ const _makeLoaderMesh = () => {
       // uniform float uTimeCubic;
       // varying vec3 vPosition;
       varying vec3 vNormal;
+      varying float vTime;
 
       vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
@@ -605,7 +612,7 @@ const _makeLoaderMesh = () => {
         gl_FragColor = vec4(
           vNormal * 0.1 +
             vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-          1.
+          max(vTime, 0.)
         );
       }
     `,
@@ -616,7 +623,22 @@ const _makeLoaderMesh = () => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = () => {
-    // XXX
+    const x = Math.floor(Math.random() * count);
+    const y = Math.floor(Math.random() * count);
+    const z = Math.floor(Math.random() * count);
+    const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
+    const index = (
+      x +
+      y * count +
+      z * count * count
+    );
+    const startIndex = index * numTimesPerGeometry;
+    const endIndex = (index + 1) * numTimesPerGeometry;
+      
+    for (let i = startIndex; i < endIndex; i++) {
+      geometry.attributes.time.array[i] = 1;
+    }
+    geometry.attributes.time.needsUpdate = true;
   };
   window.mesh = mesh;
   return mesh;
