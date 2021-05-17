@@ -542,78 +542,95 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
     });
     const j = await res.json();
     
+    setModalOpen(false);
+    
     await refreshServers();
   };
   
   return (
     <div className={['multiplayer', 'page', open ? 'open' : '', 'sections'].join(' ')}>
       {modalOpen ?
-        <form className="modal">
+        <div className="modal create-server-modal">
           <div className="label">Server name</div>
           <input type="text" value={serverName} onChange={e => setServerName(e.target.value)} placeholder="erithor" />
-          <button className="button ok"></button>
-        </form>
-      : null}
-      <div className="label">Servers</div>
-      <div className="servers">
-        {servers.length > 0 ?
-          servers.map((server, i) => {
-            return (
-              <div
-                className={['server', selectedServerIndex === i ? 'selected' : ''].join(' ')}
-                onClick={e => setSelectedServerIndex(i)}
-                key={i}
-              >
-                <img src="/assets/circuitry.svg" className="icon" />
-                <div className="name">{server.name}</div>
-                {connectingServerIndex !== i ?
-                  <button
-                    className="button connect"
-                    onClick={async e => {
-                      setConnectingServerIndex(i);
-                      
-                      const tryConnect = async server => {
-                        const {publicIp, privateIp, port} = server;
-                        await world.connectRoom('room', publicIp + ':' + port);
-                      };
+          <div className="row">
+            <button
+              className="button ok"
+              onClick={_createServer}
+            >
+              <img src="/assets/check-mark.svg" className="icon" />
+              <div className="label">Create server</div>
+            </button>
+            <button
+              className="button cancel"
+              onClick={e => setModalOpen(false)}
+            >Cancel</button>
+          </div>
+        </div>
+      :
+        <Fragment>
+          <div className="label">Servers</div>
+          {servers.length > 0 ?
+            <div className="servers">
+              {servers.map((server, i) => {
+                return (
+                  <div
+                    className={['server', selectedServerIndex === i ? 'selected' : ''].join(' ')}
+                    onClick={e => setSelectedServerIndex(i)}
+                    key={i}
+                  >
+                    <img src="/assets/circuitry.svg" className="icon" />
+                    <div className="name">{server.name}</div>
+                    {connectingServerIndex !== i ?
+                      <button
+                        className="button connect"
+                        onClick={async e => {
+                          setConnectingServerIndex(i);
+                          
+                          const tryConnect = async server => {
+                            const {publicIp, privateIp, port} = server;
+                            await world.connectRoom('room', publicIp + ':' + port);
+                          };
 
-                      const res = await fetch('https://127.0.0.1:1112/');
-                      const j = await res.json();
-                      const server = j[i];
-                      if (server) {
-                        console.log('trying to connect...');
-                        await tryConnect(server);
-                      } else {
-                        console.log('creating server...');
-                        const res2 = await fetch('https://127.0.0.1:1112/' + i, {
-                          method: 'post',
-                        });
-                        const j = await res2.json();
-                      }                            
-                    }}
-                  >Connect</button>
-                :
-                  <button
-                    className="button"
-                    onClick={e => {
-                      setConnectingServerIndex(-1);
-                    }}
-                  >Connecting...</button>
-                }
-              </div>
-            );
-          })
-        :
-          <div className="servers-placeholder">No servers</div>
-        }
-        <button
-          className="button create-server-button"
-          onClick={e => setModalOpen(true)}
-        >
-          <img src="/assets/circuitry.svg" className="icon" />
-          <div className="label">Create server</div>
-        </button>
-      </div>
+                          const res = await fetch('https://127.0.0.1:1112/');
+                          const j = await res.json();
+                          const server = j[i];
+                          if (server) {
+                            console.log('trying to connect...');
+                            await tryConnect(server);
+                          } else {
+                            console.log('creating server...');
+                            const res2 = await fetch('https://127.0.0.1:1112/' + i, {
+                              method: 'post',
+                            });
+                            const j = await res2.json();
+                          }                            
+                        }}
+                      >Connect</button>
+                    :
+                      <button
+                        className="button"
+                        onClick={e => {
+                          setConnectingServerIndex(-1);
+                        }}
+                      >Connecting...</button>
+                    }
+                  </div>
+                );
+              })}
+            </div>
+          :
+            <div className="servers-placeholder">No servers found o;_o</div>
+          }
+          <button
+            className="button create-server-button"
+            onClick={e => setModalOpen(true)}
+          >
+            <img src="/assets/noun_Plus_950.svg" className="icon" />
+            <div className="label">Create server</div>
+          </button>
+        </Fragment>
+      }
     </div>
   );
 });
