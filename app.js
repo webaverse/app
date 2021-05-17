@@ -434,15 +434,27 @@ export default class App extends EventTarget {
       const _mirrorRender = () => {
         if (session && document.visibilityState == 'visible') {
           const {baseLayer} = session.renderState;
-          if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
-            xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
+          const w = baseLayer.framebufferWidth * renderer.getPixelRatio() / 2;
+          const h = baseLayer.framebufferHeight * renderer.getPixelRatio();
+          if (
+           !xrscenetexture ||
+           (xrscenetexture.image.width !== w) ||
+           (xrscenetexture.image.height !== h)
+          ) {
+            xrscenetexture = new THREE.DataTexture(null, w, h, THREE.RGBAFormat);
             xrscenetexture.minFilter = THREE.NearestFilter;
             xrscenetexture.magFilter = THREE.NearestFilter;
           }
           if (!xrscene) {
             xrscene = new THREE.Scene();
-
-            xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
+            
+            const geometry = new THREE.PlaneBufferGeometry(1, 1);
+            const material = new THREE.MeshBasicMaterial({
+              map: xrscenetexture,
+              // side: THREE.DoubleSide,
+              color: 0xffffff,
+            });
+            xrsceneplane = new THREE.Mesh(geometry, material);
             xrscene.add(xrsceneplane);
 
             xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
