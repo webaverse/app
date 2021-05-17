@@ -585,11 +585,13 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
                     <div className="name">{server.name}</div>
                     {connectedServerName === server.name ? (
                       <button
-                        className="button"
-                        /* onClick={e => {
-                          setConnectingServerName('');
-                        }} */
-                      >Connected</button>
+                        className="button disconnect"
+                        onClick={e => {
+                          console.log('disconnect 1');
+                          world.disconnectRoom();
+                          console.log('disconnect 2');
+                        }}
+                      >Disconect</button>
                     ) : (connectingServerName === server.name ?
                         <button
                           className="button"
@@ -607,7 +609,11 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
                             // publicIp = `worlds.exokit.org`;
                             const endpoint = publicIp + ':' + port;
                             // console.log('connect to server', server, endpoint);
-                            await world.connectRoom('room', endpoint);
+                            const channelConnection = await world.connectRoom('room', endpoint);
+                            
+                            channelConnection.addEventListener('close', () => {
+                              setConnectedServerName('');
+                            });
                             
                             setConnectedServerName(server.name);
                             setConnectingServerName('');
