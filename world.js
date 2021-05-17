@@ -254,6 +254,7 @@ world.connectRoom = async (roomName, worldURL) => {
 world.disconnectRoom = () => {
   if (channelConnection) {
     channelConnection.close();
+    channelConnection = null;
 
     const localObjects = objects.objects.dynamic.slice();
     for (const object of localObjects) {
