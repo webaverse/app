@@ -667,7 +667,7 @@ class RigManager {
 
       const useTime = physicsManager.getUseTime();
       for (let i = 0; i < 2; i++) {
-        this.localRig.setHandEnabled(i, useTime === -1 && !!appManager.equippedObjects[i]);
+        this.localRig.setHandEnabled(i, !!session || (useTime === -1 && !!appManager.equippedObjects[i]));
       }
       this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
       this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
