@@ -806,6 +806,13 @@ body {
   color: #FFFFFF;
   cursor: pointer;
 }
+.servers .server .button.disconnect {
+  color: #ef5350;
+  cursor: pointer;
+}
+.servers .server .button.disconnect:hover {
+  color: #b71c1c;
+}
 
 .enter-xr-button:disabled {
   opacity: 0.3;
