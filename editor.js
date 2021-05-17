@@ -466,7 +466,7 @@ const _makeInventoryMesh = () => {
 };
 const _makeLoaderMesh = () => {
   const size = 0.1;
-  const count = 10;
+  const count = 5;
   const crunchFactor = 0.9;
   const innerSize = size * crunchFactor;
   const cubeGeometry = new THREE.BoxBufferGeometry(innerSize, innerSize, innerSize);
@@ -521,9 +521,9 @@ const _makeLoaderMesh = () => {
           geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
           geometry.attributes.normal.array.set(cubeGeometry.attributes.normal.array, normalIndex);
           for (let i = 0; i < cubeGeometry.attributes.position.array.length/3; i++) {
-            geometry.attributes.position2.array[positionIndex + i*3] = x * size;
-            geometry.attributes.position2.array[positionIndex + i*3+1] = y * size;
-            geometry.attributes.position2.array[positionIndex + i*3+2] = z * size;
+            geometry.attributes.position2.array[positionIndex + i*3] = -(count * size / 2) + x * size;
+            geometry.attributes.position2.array[positionIndex + i*3+1] = -(count * size / 2) + y * size;
+            geometry.attributes.position2.array[positionIndex + i*3+2] = -(count * size / 2) + z * size;
           }
           for (let i = 0; i < cubeGeometry.index.array.length; i++) {
             geometry.index.array[indexIndex + i] = positionIndex/3 + cubeGeometry.index.array[i];
@@ -574,8 +574,27 @@ const _makeLoaderMesh = () => {
       varying vec3 vNormal;
       varying float vTime;
 
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+      float easing2(float x) {
+        return easing(easing(x));
+      }
+      
+      const float moveDistance = 30.;
+
       void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position + position2 * (1. + time), 1.0);
+        float offsetTime = min(time + 0.5, 1.);
+        
+        vec4 mvPosition = modelViewMatrix * vec4(
+          position * easing(offsetTime) +
+          position2 * (1. + moveDistance * (1. - easing(offsetTime))), 1.0);
         gl_Position = projectionMatrix * mvPosition;
         vPosition2 = position2;
         vNormal = normal;
@@ -618,15 +637,28 @@ const _makeLoaderMesh = () => {
         vec3    yIQ   = vec3 (YPrime, I, Q);
 
         return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
-    }
+      }
+    
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
 
       void main() {
         if (vTime > 0.) {
+          float offsetTime = max(vTime - 0.5, 0.) * 10.;
+          
           gl_FragColor = vec4(
             vNormal * 0.1 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            1. - vTime
+            1.
           );
+          gl_FragColor.rgb *= offsetTime;
         } else {
           discard;
         }
@@ -650,9 +682,9 @@ const _makeLoaderMesh = () => {
       y,
       z,
       startTime: now,
-      endTime: now + 1000,
+      endTime: now + 2000,
     });
-  }, 50);
+  }, 10);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
@@ -660,7 +692,8 @@ const _makeLoaderMesh = () => {
     const now = Date.now();
     dots = dots.filter(dot => {
       const {x, y, z, startTime, endTime} = dot;
-      if (now < endTime) {
+      const f = (now - startTime) / (endTime - startTime);
+      if (f <= 1) {
         const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
         const index = (
           x +
@@ -673,8 +706,6 @@ const _makeLoaderMesh = () => {
         if (index > geometry.attributes.time.array.length) {
           debugger;
         } */
-        
-        const f = (now - startTime) / (endTime - startTime);
         
         const startIndex = index * numTimesPerGeometry;
         const endIndex = (index + 1) * numTimesPerGeometry;
