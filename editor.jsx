@@ -532,7 +532,7 @@ const Library = React.memo(({cards, open, q, setQ, setCurrentQ, searchResults, s
     </div>
   );
 });
-const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIndex, setSelectedServerIndex, connectingServerIndex, setConnectingServerIndex}) => {
+const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIndex, setSelectedServerIndex, connectedServerName, setConnectedServerName, connectingServerName, setConnectingServerName}) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [serverName, setServerName] = useState('');
 
@@ -583,39 +583,37 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
                   >
                     <img src="/assets/circuitry.svg" className="icon" />
                     <div className="name">{server.name}</div>
-                    {connectingServerIndex !== i ?
-                      <button
-                        className="button connect"
-                        onClick={async e => {
-                          setConnectingServerIndex(i);
-                          
-                          const tryConnect = async server => {
-                            const {publicIp, privateIp, port} = server;
-                            await world.connectRoom('room', publicIp + ':' + port);
-                          };
-
-                          const res = await fetch('https://127.0.0.1:1112/');
-                          const j = await res.json();
-                          const server = j[i];
-                          if (server) {
-                            console.log('trying to connect...');
-                            await tryConnect(server);
-                          } else {
-                            console.log('creating server...');
-                            const res2 = await fetch('https://127.0.0.1:1112/' + i, {
-                              method: 'post',
-                            });
-                            const j = await res2.json();
-                          }                            
-                        }}
-                      >Connect</button>
-                    :
+                    {connectedServerName === server.name ? (
                       <button
                         className="button"
-                        onClick={e => {
-                          setConnectingServerIndex(-1);
-                        }}
-                      >Connecting...</button>
+                        /* onClick={e => {
+                          setConnectingServerName('');
+                        }} */
+                      >Connected</button>
+                    ) : (connectingServerName === server.name ?
+                        <button
+                          className="button"
+                          /* onClick={e => {
+                            setConnectingServerName('');
+                          }} */
+                        >Connecting...</button>
+                      :
+                        <button
+                          className="button connect"
+                          onClick={async e => {
+                            setConnectingServerName(server.name);
+                            
+                            const {publicIp, privateIp, port} = server;
+                            // publicIp = `worlds.exokit.org`;
+                            const endpoint = publicIp + ':' + port;
+                            // console.log('connect to server', server, endpoint);
+                            await world.connectRoom('room', endpoint);
+                            
+                            setConnectedServerName(server.name);
+                            setConnectingServerName('');
+                          }}
+                        >Connect</button>
+                      )
                     }
                   </div>
                 );
@@ -667,7 +665,8 @@ return () => {
   const [secondRun, setSecondRun] = useState(true);
   const [servers, setServers] = useState([]);
   const [selectedServerIndex, setSelectedServerIndex] = useState(0);
-  const [connectingServerIndex, setConnectingServerIndex] = useState(-1);
+  const [connectedServerName, setConnectedServerName] = useState('');
+  const [connectingServerName, setConnectingServerName] = useState('');
   const [microphoneMediaStream, setMicrophoneMediaStream] = useState(null);
   const [isXrSupported, setIsXrSuported] = useState(false);
   const [session, setSession] = useState(null);
@@ -935,8 +934,10 @@ return () => {
           open={selectedTab === 'multiplayer'}
           selectedServerIndex={selectedServerIndex}
           setSelectedServerIndex={setSelectedServerIndex}
-          connectingServerIndex={connectingServerIndex}
-          setConnectingServerIndex={setConnectingServerIndex}
+          connectedServerName={connectedServerName}
+          setConnectedServerName={setConnectedServerName}
+          connectingServerName={connectingServerName}
+          setConnectingServerName={setConnectingServerName}
         />
         <Settings
           open={selectedTab === 'settings'}
