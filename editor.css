@@ -540,7 +540,8 @@ body {
 .details .sublabel,
 .editor > .left > .bottom > .label,
 .scene > .left > .label,
-.multiplayer > .label
+.multiplayer > .label,
+.multiplayer > .modal > .label
 {
   font-family: 'FuturaStd-Heavy';
   text-transform: uppercase;
@@ -551,7 +552,8 @@ body {
 }
 .editor > .left > .bottom > .label,
 .scene > .left > .label,
-.multiplayer > .label
+.multiplayer > .label,
+.multiplayer > .modal > .label
 {
   margin-left: 10px;
   color: #FFFFFF80;
@@ -711,10 +713,39 @@ body {
 .multiplayer {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+}
+.multiplayer .row {
+  display: flex;
+}
+/* .multiplayer .row > .button + .button {
+  margin-left: 10px;
+} */
+.multiplayer .servers-placeholder {
+  padding: 10px;
+  background-color: #333;
+  border-radius: 10px;
+  color: #FFF;
+}
+.multiplayer .servers,
+.multiplayer .servers-placeholder,
+.multiplayer > .button,
+.multiplayer > .modal > input[type="text"],
+.multiplayer > .modal > .button
+{
+  margin: 10px;
+}
+.multiplayer > .button,
+.multiplayer > .modal > .button
+{
+  margin-top: 0;
+  background-color: #5c6bc0;
+}
+.multiplayer > .button:hover {
+  background-color: #303f9f;
 }
 .servers {
   display: flex;
-  padding: 2px;
   flex-direction: column;
   flex: 1;
 }
