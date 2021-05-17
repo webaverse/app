@@ -208,9 +208,9 @@ export default class App extends EventTarget {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     if (session === null) {
-      navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
+      await navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
     } else {
-      session.end();
+      await session.end();
     }
   }
   
