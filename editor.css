@@ -264,7 +264,7 @@ body {
   /* border-bottom: 2px solid #d8d8d8; */
   align-items: center;
 }
-.header .button {
+.button {
   display: flex;
   padding: 5px 10px;
   align-items: center;
@@ -276,29 +276,22 @@ body {
   font-size: 13px;
   font-family: 'FuturaStd-Heavy';
 }
-.header .button,
-.header .icon-button
+.button,
+.icon-button
 {
   margin-right: 5px; 
   cursor: pointer;
   /* opacity: 0.7; */
 }
-.editor > .left .header .button .icon {
-  width: 15px;
-  height: 15px;
-}
-.editor > .left .header .button {
-  flex: 1;
-}
-.header .button:hover {
+.button:hover {
   background-color: #5c6bc0;
 }
-.header .button:hover,
-.header .icon-button:hover
+.button:hover,
+.icon-button:hover
 {
   /* opacity: 1; */
 }
-.header .button .icon {
+.button .icon {
   width: 20px;
   height: 20px;
   margin-right: 5px;
@@ -625,6 +618,13 @@ body {
   /* position: relative; */
   flex: 1;
   overflow: hidden;
+}
+.editor > .left .header .button .icon {
+  width: 15px;
+  height: 15px;
+}
+.editor > .left .header .button {
+  flex: 1;
 }
 .editor > .left,
 .editor > .left > .bottom
