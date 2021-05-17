@@ -448,7 +448,7 @@ export default class App extends EventTarget {
 
           renderer.xr.enabled = false;
           renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
-          // renderer.setFramebuffer(null);
+          renderer.state.bindXRFramebuffer(null);
 
           const oldOutputEncoding = renderer.outputEncoding;
           renderer.outputEncoding = THREE.LinearEncoding;
