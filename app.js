@@ -191,6 +191,9 @@ export default class App extends EventTarget {
       return false;
     }
   }
+  toggleMic() {
+    return world.toggleMic();
+  }
   enterXr() {
     function onSessionStarted(session) {
       function onSessionEnded(e) {
