@@ -1629,8 +1629,8 @@ const bindTextarea = codeEl => {
                   <img src="/assets/teleport.svg" className="icon" />
                   <div className="label">Avatar</div>
                 </div>
-                <div className={['control', 'mic-button', microphoneMediaStream ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={() => {
-                  const microphoneMediaStream = app.toggleMic();
+                <div className={['control', 'mic-button', microphoneMediaStream ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={async () => {
+                  const microphoneMediaStream = await app.toggleMic();
                   setMicrophoneMediaStream(microphoneMediaStream);
                 }}>
                   <img src="/assets/microphone.svg" className="icon" />
