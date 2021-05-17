@@ -543,9 +543,9 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
       });
       const j = await res.json();
       
-      setModalOpen(false);
-      
       await refreshServers();
+      
+      setModalOpen(false);
     }
   };
   
