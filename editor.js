@@ -602,7 +602,11 @@ const _makeLoaderMesh = () => {
     }
 
       void main() {
-        gl_FragColor = vec4(vNormal, 1.);
+        gl_FragColor = vec4(
+          vNormal * 0.1 +
+            vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
+          1.
+        );
       }
     `,
     // transparent: true,
