@@ -537,14 +537,16 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
   const [serverName, setServerName] = useState('');
 
   const _createServer = async () => {
-    const res = await fetch(`https://worlds.exokit.org/${serverName}`, {
-      method: 'POST',
-    });
-    const j = await res.json();
-    
-    setModalOpen(false);
-    
-    await refreshServers();
+    if (serverName) {
+      const res = await fetch(`https://worlds.exokit.org/${serverName}`, {
+        method: 'POST',
+      });
+      const j = await res.json();
+      
+      setModalOpen(false);
+      
+      await refreshServers();
+    }
   };
   
   return (
