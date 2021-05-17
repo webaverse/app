@@ -131,12 +131,20 @@ body {
   filter: invert(95%) sepia(0%) saturate(0%) hue-rotate(213deg) brightness(105%) contrast(105%);  
 }
 .controls .control.enabled {
+  background-color: transparent;
+  border-color: currentColor;
   /* color: #66bb6a; */
   color: #9ccc65;
 }
 .controls .control.enabled .icon {
   /* filter: invert(87%) sepia(6%) saturate(3278%) hue-rotate(64deg) brightness(77%) contrast(90%); */
   filter: invert(71%) sepia(92%) saturate(238%) hue-rotate(40deg) brightness(91%) contrast(88%);
+}
+.controls .control.enabled:hover {
+  color: #679e37;
+}
+.controls .control.enabled:hover .icon {
+  filter: invert(69%) sepia(14%) saturate(7498%) hue-rotate(50deg) brightness(88%) contrast(57%);
 }
 .controls .control + .control {
   margin-top: 0;
