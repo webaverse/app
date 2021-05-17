@@ -489,6 +489,7 @@ const _makeLoaderMesh = () => {
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.normal.array.length * numCubes), 3));
   geometry.setAttribute('time', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length/3 * numCubes), 1));
+  geometry.setAttribute('position2', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
   geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length * numCubes), 1));
   
   geometry.attributes.time.array.fill(-1);
@@ -504,7 +505,7 @@ const _makeLoaderMesh = () => {
           (y === 0 || y === (count - 1)) ||
           (z === 0 || z === (count - 1))
         ) {
-          const g = cubeGeometry.clone()
+          /* const g = cubeGeometry.clone()
             .applyMatrix4(
               new THREE.Matrix4()
                 .compose(
@@ -512,17 +513,25 @@ const _makeLoaderMesh = () => {
                   new THREE.Quaternion(),
                   new THREE.Vector3(1, 1, 1)
                 )
-            );
+            ); */
           // console.log('got g offset', [x * size, y * size, z * size]);
-          geometry.attributes.position.array.set(g.attributes.position.array, positionIndex);
-          geometry.attributes.normal.array.set(g.attributes.normal.array, normalIndex);
-          for (let i = 0; i < g.index.array.length; i++) {
-            geometry.index.array[indexIndex + i] = positionIndex/3 + g.index.array[i];
+          
+          
+          
+          geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
+          geometry.attributes.normal.array.set(cubeGeometry.attributes.normal.array, normalIndex);
+          for (let i = 0; i < cubeGeometry.attributes.position.array.length/3; i++) {
+            geometry.attributes.position2.array[positionIndex + i*3] = x * size;
+            geometry.attributes.position2.array[positionIndex + i*3+1] = y * size;
+            geometry.attributes.position2.array[positionIndex + i*3+2] = z * size;
+          }
+          for (let i = 0; i < cubeGeometry.index.array.length; i++) {
+            geometry.index.array[indexIndex + i] = positionIndex/3 + cubeGeometry.index.array[i];
           }
           
-          positionIndex += g.attributes.position.array.length;
-          normalIndex += g.attributes.normal.array.length;
-          indexIndex += g.index.array.length;
+          positionIndex += cubeGeometry.attributes.position.array.length;
+          normalIndex += cubeGeometry.attributes.normal.array.length;
+          indexIndex += cubeGeometry.index.array.length;
         }
       }
     }
@@ -559,13 +568,16 @@ const _makeLoaderMesh = () => {
       // uniform vec4 uBoundingBox;
       // varying vec3 vPosition;
       // varying vec3 vNormal;
+      attribute vec3 position2;
       attribute float time;
+      varying vec3 vPosition2;
       varying vec3 vNormal;
       varying float vTime;
 
       void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vec4 mvPosition = modelViewMatrix * vec4(position + position2 * (1. + time), 1.0);
         gl_Position = projectionMatrix * mvPosition;
+        vPosition2 = position2;
         vNormal = normal;
         vTime = time;
       }
@@ -579,7 +591,7 @@ const _makeLoaderMesh = () => {
       // uniform vec4 uBoundingBox;
       // uniform float uTime;
       // uniform float uTimeCubic;
-      // varying vec3 vPosition;
+      varying vec3 vPosition2;
       varying vec3 vNormal;
       varying float vTime;
 
@@ -609,38 +621,73 @@ const _makeLoaderMesh = () => {
     }
 
       void main() {
-        gl_FragColor = vec4(
-          vNormal * 0.1 +
-            vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-          max(vTime, 0.)
-        );
+        if (vTime > 0.) {
+          gl_FragColor = vec4(
+            vNormal * 0.1 +
+              vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
+            1. - vTime
+          );
+        } else {
+          discard;
+        }
       }
     `,
-    // transparent: true,
+    transparent: true,
     // polygonOffset: true,
     // polygonOffsetFactor: -1,
     // polygonOffsetUnits: 1,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.update = () => {
+  
+  let dots = [];
+  const interval = setInterval(() => {
+    const now = Date.now();
     const x = Math.floor(Math.random() * count);
     const y = Math.floor(Math.random() * count);
     const z = Math.floor(Math.random() * count);
-    const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
-    const index = (
-      x +
-      y * count +
-      z * count * count
-    );
-    const startIndex = index * numTimesPerGeometry;
-    const endIndex = (index + 1) * numTimesPerGeometry;
-      
-    for (let i = startIndex; i < endIndex; i++) {
-      geometry.attributes.time.array[i] = 1;
-    }
+    dots.push({
+      x,
+      y,
+      z,
+      startTime: now,
+      endTime: now + 1000,
+    });
+  }, 50);
+  
+  mesh.update = () => {
+    geometry.attributes.time.array.fill(-1);
+    
+    const now = Date.now();
+    dots = dots.filter(dot => {
+      const {x, y, z, startTime, endTime} = dot;
+      if (now < endTime) {
+        const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
+        const index = (
+          x +
+          y * count +
+          z * count * count
+        );
+        /* if (index < 0) {
+          debugger;
+        }
+        if (index > geometry.attributes.time.array.length) {
+          debugger;
+        } */
+        
+        const f = (now - startTime) / (endTime - startTime);
+        
+        const startIndex = index * numTimesPerGeometry;
+        const endIndex = (index + 1) * numTimesPerGeometry;
+        for (let i = startIndex; i < endIndex; i++) {
+          geometry.attributes.time.array[i] = f;
+        }
+        return true;
+      } else {
+        return false;
+      }
+    });
     geometry.attributes.time.needsUpdate = true;
   };
-  window.mesh = mesh;
   return mesh;
 };
 
