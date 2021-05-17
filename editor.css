@@ -802,7 +802,6 @@ body {
 .servers .server .button.connect {
   padding: 12px;
   background-color: #7986cb;
-  /* background-color: #654ea3; */
   border: 0;
   color: #FFFFFF;
   cursor: pointer;
