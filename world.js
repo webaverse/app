@@ -240,6 +240,9 @@ world.connectRoom = async (roomName, worldURL) => {
   });
   channelConnection.close = (close => function() {
     close.apply(this, arguments);
+    
+    channelConnection.dispatchEvent(new MessageEvent('close'));
+    
     const localPeerConnections = peerConnections.slice();
     for (const peerConnection of localPeerConnections) {
       peerConnection.close();
