@@ -11,6 +11,7 @@ import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
 import App from '/app.js';
+import {getRenderer} from '/app-object.js';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
@@ -1463,7 +1464,9 @@ const bindTextarea = codeEl => {
         const [servers, setServers] = useState(defaultServers);
         const [selectedServerIndex, setSelectedServerIndex] = useState(0);
         const [connectingServerIndex, setConnectingServerIndex] = useState(-1);
+        const [microphoneMediaStream, setMicrophoneMediaStream] = useState(null);
         const [isXrSupported, setIsXrSuported] = useState(false);
+        const [session, setSession] = useState(null);
         
         getEditor = () => editor;
         getFiles = () => files;
@@ -1626,8 +1629,39 @@ const bindTextarea = codeEl => {
                   <img src="/assets/teleport.svg" className="icon" />
                   <div className="label">Avatar</div>
                 </div>
-                <div className="control enter-xr-button" disabled={!isXrSupported} onClick={() => {
-                  app.enterXr();
+                <div className={['control', 'mic-button', microphoneMediaStream ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={() => {
+                  const microphoneMediaStream = app.toggleMic();
+                  setMicrophoneMediaStream(microphoneMediaStream);
+                }}>
+                  <img src="/assets/microphone.svg" className="icon" />
+                  <div className="label">Mic {microphoneMediaStream ? 'on' : 'off'}</div>
+                </div>
+                <div className={['control', 'enter-xr-button', session ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={async () => {
+                  const promises = [];
+                  if (!microphoneMediaStream) {
+                    const p = app.toggleMic()
+                      .then(microphoneMediaStream => {
+                        setMicrophoneMediaStream(microphoneMediaStream);
+                      });
+                    promises.push(p);
+                  }
+                  {
+                    const p = app.enterXr()
+                      .then(() => {
+                        const renderer = getRenderer();
+                        const session = renderer.xr.getSession();
+                        console.log('got session', session);
+                        setSession(session);
+                        
+                        function onSessionEnded(e) {
+                          session.removeEventListener('end', onSessionEnded);
+                          setSession(null);
+                        }
+                        session.addEventListener('end', onSessionEnded);
+                      });
+                    promises.push(p);
+                  }
+                  await Promise.all(promises);
                 }}>
                   <img src="/assets/protection-glasses.svg" className="icon" />
                   <div className="label">VR</div>
