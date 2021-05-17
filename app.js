@@ -194,7 +194,7 @@ export default class App extends EventTarget {
   toggleMic() {
     return world.toggleMic();
   }
-  enterXr() {
+  async enterXr() {
     function onSessionStarted(session) {
       function onSessionEnded(e) {
         session.removeEventListener('end', onSessionEnded);
