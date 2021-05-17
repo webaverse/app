@@ -16,6 +16,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -626,12 +627,12 @@ class RigManager {
     } else {
       return [
         {
-          position: [0, 0, 0],
-          quaternion: [0, 0, 0, 1],
+          position: localVector.set(0, 0, 0),
+          quaternion: localQuaternion.set(0, 0, 0, 1),
         },
         {
-          position: [0, 0, 0],
-          quaternion: [0, 0, 0, 1],
+          position: localVector2.set(0, 0, 0),
+          quaternion: localQuaternion2.set(0, 0, 0, 1),
         },
       ];
     }
