@@ -607,30 +607,30 @@ const _unlatchMediaStream = async () => {
 
 const micButton = document.getElementById('key-t');
 world.toggleMic = async () => {
-  if (micButton) {
-    if (!animationMediaStream) {
-      micButton.classList.add('enabled');
+  if (!animationMediaStream) {
+    micButton && micButton.classList.add('enabled');
 
-      animationMediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+    animationMediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
 
-      rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+    rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
 
-      _latchMediaStream();
-    } else {
-      micButton.classList.remove('enabled');
+    _latchMediaStream();
+  } else {
+    micButton && micButton.classList.remove('enabled');
 
-      rigManager.localRig.setMicrophoneMediaStream(null);
-      const tracks = animationMediaStream.getTracks();
-      for (const track of tracks) {
-        track.stop();
-      }
-      animationMediaStream = null;
-
-      _unlatchMediaStream();
+    rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(null);
+    const tracks = animationMediaStream.getTracks();
+    for (const track of tracks) {
+      track.stop();
     }
+    animationMediaStream = null;
+
+    _unlatchMediaStream();
   }
+
+  return animationMediaStream;
 };
 micButton && micButton.addEventListener('click', async e => {
   world.toggleMic()
