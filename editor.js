@@ -464,6 +464,140 @@ const _makeInventoryMesh = () => {
   
   return mesh;
 };
+const _makeLoaderMesh = () => {
+  const size = 10;
+  const cubeGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
+  
+  let numCubes = 0;
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      for (let z = 0; z < size; z++) {
+        if (
+          (x === 0 || x === (size - 1)) ||
+          (y === 0 || y === (size - 1)) ||
+          (z === 0 || z === (size - 1))
+        ) {
+          numCubes++;
+        }
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
+  geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length), 1));
+  
+  let positionIndex = 0;
+  let indexIndex = 0;
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      for (let z = 0; z < size; z++) {
+        if (
+          (x === 0 || x === (size - 1)) ||
+          (y === 0 || y === (size - 1)) ||
+          (z === 0 || z === (size - 1))
+        ) {
+          geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
+          for (let i = 0; i < cubeGeometry.index.array.length; i++) {
+            geometry.index.array[indexIndex + i] = positionIndex/3 + cubeGeometry.index.array[i];
+          }
+          
+          positionIndex += cubeGeometry.attributes.position.array.length;
+          indexIndex += cubeGeometry.index.array.length;
+        }
+      }
+    }
+  }
+  
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      /* uBoundingBox: {
+        type: 'vec4',
+        value: new THREE.Vector4(
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y
+        ),
+        needsUpdate: true,
+      }, */
+      uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+      uTimeCubic: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      // uniform float uTime;
+      // uniform vec4 uBoundingBox;
+      // varying vec3 vPosition;
+      // varying vec3 vNormal;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      // uniform vec4 uBoundingBox;
+      // uniform float uTime;
+      // uniform float uTimeCubic;
+      // varying vec3 vPosition;
+      // varying vec3 vNormal;
+
+      vec3 hueShift( vec3 color, float hueAdjust ){
+        const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+        const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+        const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+        const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+        const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+        const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+        float   YPrime  = dot (color, kRGBToYPrime);
+        float   I       = dot (color, kRGBToI);
+        float   Q       = dot (color, kRGBToQ);
+        float   hue     = atan (Q, I);
+        float   chroma  = sqrt (I * I + Q * Q);
+
+        hue += hueAdjust;
+
+        Q = chroma * sin (hue);
+        I = chroma * cos (hue);
+
+        vec3    yIQ   = vec3 (YPrime, I, Q);
+
+        return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+    }
+
+      void main() {
+        gl_FragColor = vec4(${new THREE.Color(0x29b6f6).toArray().join(', ')}, 1.);
+      }
+    `,
+    // transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+    // polygonOffsetUnits: 1,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.update = () => {
+    // XXX
+  };
+  window.mesh = mesh;
+  return mesh;
+};
 
 const fetchAndCompileBlob = async (file, files) => {
   const res = file;
@@ -907,29 +1041,39 @@ app.waitForLoad()
     app.startLoop();
     
     // hacks
-    const scene = app.getScene();
+    {
+      const scene = app.getScene();
+        
+      const g = new CameraGeometry();
+      const m = new THREE.MeshBasicMaterial({
+        color: 0x333333,
+      });
+      const cameraMesh = new THREE.Mesh(g, m);
+      cameraMesh.position.set(0, 2, -5);
+      cameraMesh.frustumCulled = false;
+      scene.add(cameraMesh);
+
+      const uiMesh = _makeUiMesh();
+      uiMesh.position.set(0, 2, -5);
+      uiMesh.frustumCulled = false;
+      scene.add(uiMesh);
+
+      const inventoryMesh = _makeInventoryMesh();
+      inventoryMesh.position.set(2, 1.2, -1);
+      inventoryMesh.frustumCulled = false;
+      scene.add(inventoryMesh);
+      app.addEventListener('frame', () => {
+        inventoryMesh.update();
+      });
       
-    const g = new CameraGeometry();
-    const m = new THREE.MeshBasicMaterial({
-      color: 0x333333,
-    });
-    const cameraMesh = new THREE.Mesh(g, m);
-    cameraMesh.position.set(0, 2, -5);
-    cameraMesh.frustumCulled = false;
-    scene.add(cameraMesh);
-
-    const uiMesh = _makeUiMesh();
-    uiMesh.position.set(0, 2, -5);
-    uiMesh.frustumCulled = false;
-    scene.add(uiMesh);
-
-    const inventoryMesh = _makeInventoryMesh();
-    inventoryMesh.position.set(0, 1.2, -1);
-    inventoryMesh.frustumCulled = false;
-    scene.add(inventoryMesh);
-    app.addEventListener('frame', () => {
-      inventoryMesh.update();
-    });
+      const loaderMesh = _makeLoaderMesh();
+      loaderMesh.position.set(0, 1.2, -1);
+      loaderMesh.frustumCulled = false;
+      scene.add(loaderMesh);
+      app.addEventListener('frame', () => {
+        loaderMesh.update();
+      });
+    }
     
     const defaultScene = [
       {
