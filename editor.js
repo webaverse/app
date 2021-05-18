@@ -731,7 +731,7 @@ const _makeLoadingBarMesh = basePosition => {
       .applyMatrix4(
         new THREE.Matrix4()
           .compose(
-            new THREE.Vector3(0, 0.07, 0),
+            new THREE.Vector3(0, 0.03, 0),
             new THREE.Quaternion(),
             new THREE.Vector3(1, 1, 1)
           )
@@ -740,7 +740,7 @@ const _makeLoadingBarMesh = basePosition => {
       .applyMatrix4(
         new THREE.Matrix4()
           .compose(
-            new THREE.Vector3(0, -0.07, 0),
+            new THREE.Vector3(0, -0.03, 0),
             new THREE.Quaternion(),
             new THREE.Vector3(1, 1, 1)
           )
@@ -770,7 +770,7 @@ const _makeLoadingBarMesh = basePosition => {
   const outerMesh = new THREE.Mesh(geometry1, material1);
   o.add(outerMesh);
 
-  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.1)
+  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.03)
     .applyMatrix4(
       new THREE.Matrix4()
         .compose(
