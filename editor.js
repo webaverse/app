@@ -659,7 +659,7 @@ const _makeVaccumMesh = () => {
         float offsetTime2 = vTime * 20.;
         if (offsetTime2 > 0.) {
           gl_FragColor = vec4(
-            vNormal * 0.1 +
+            vNormal * 0.3 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
             1. - max((vTime-q2)/(1.-q2), 0.)
           );
@@ -886,19 +886,14 @@ const _makeFractureMesh = () => {
       // const float q = 0.7;
 
       void main() {
-        vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime * 0.1);
+        vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime * 0.2);
         vec4 mvPosition = modelViewMatrix * vec4(
           applyQuaternion(position, q) +
             position2 +
-            vec3(0., -9.8 * 0.3 * uTime * uTime, 0.) +
+            vec3(0., -9.8 * 0.2 * uTime * uTime, 0.) +
             velocity * uTime * 0.5,
           1.
         );
-        /* vec4 mvPosition = modelViewMatrix * vec4(
-          position +
-            position2,
-          1.
-        ); */
         gl_Position = projectionMatrix * mvPosition;
         vNormal = normal;
       }
@@ -910,7 +905,7 @@ const _makeFractureMesh = () => {
       #define PI 3.1415926535897932384626433832795
 
       // uniform vec4 uBoundingBox;
-      // uniform float uTime;
+      uniform float uTime;
       // uniform float uTimeCubic;
       // varying vec3 vPosition2;
       varying vec3 vNormal;
@@ -955,11 +950,18 @@ const _makeFractureMesh = () => {
       // const float q2 = 0.9;
       
       void main() {
-        gl_FragColor = vec4(
-          vNormal * 0.1 +
-            vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-          1.
-        );
+        float f = 1. - uTime;
+        float a = 1. - uTime*1.2;
+        if (a > 0.) {
+          gl_FragColor = vec4(
+            vNormal * 0.3 +
+              vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
+            a
+          );
+          gl_FragColor.rgb *= (0.3 + pow(f, 2.));
+        } else {
+          discard;
+        }
       }
     `,
     transparent: true,
