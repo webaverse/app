@@ -10,6 +10,7 @@ import JSZip from 'jszip';
 import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
+import weaponsManager from './weapons-manager.js';
 import {downloadFile} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
@@ -19,6 +20,8 @@ import {storageHost} from './constants.js';
 // import transformControls from './transform-controls.js';
 import easing from './easing.js';
 import ghDownloadDirectory from './gh-download-directory.js';
+
+weaponsManager.editorHack = true;
 
 const cubicBezier = easing(0, 1, 0, 1);
 // const cubicBezier2 = easing(0, 0.7, 0, 0.7);
