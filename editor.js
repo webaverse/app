@@ -11,8 +11,9 @@ import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
-import App from '/app.js';
-import {getRenderer} from '/app-object.js';
+import App from './app.js';
+import {getRenderer} from './app-object.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
@@ -463,6 +464,161 @@ const _makeInventoryMesh = () => {
     }
   };
   
+  return mesh;
+};
+const _makeHeartMesh = () => {
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035),
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(),
+            new THREE.Quaternion()
+              .setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(),
+            new THREE.Quaternion()
+              .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+  ]);
+  
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const material2 = new THREE.ShaderMaterial({
+    uniforms: {
+      /* uBoundingBox: {
+        type: 'vec4',
+        value: new THREE.Vector4(
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y
+        ),
+        needsUpdate: true,
+      }, */
+      uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+      uTimeCubic: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      // uniform float uTime;
+      // uniform vec4 uBoundingBox;
+      // varying vec3 vPosition;
+      // varying vec3 vNormal;
+      // attribute vec3 position2;
+      // attribute float time;
+      // varying vec3 vPosition2;
+      varying vec3 vNormal;
+      // varying float vTime;
+
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+      float easing2(float x) {
+        return easing(easing(x));
+      }
+      
+      const float moveDistance = 20.;
+      const float q = 0.7;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+        gl_Position = projectionMatrix * mvPosition;
+        vNormal = normal;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      // uniform vec4 uBoundingBox;
+      // uniform float uTime;
+      // uniform float uTimeCubic;
+      varying vec3 vPosition2;
+      varying vec3 vNormal;
+      varying float vTime;
+
+      vec3 hueShift( vec3 color, float hueAdjust ){
+        const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+        const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+        const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+        const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+        const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+        const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+        float   YPrime  = dot (color, kRGBToYPrime);
+        float   I       = dot (color, kRGBToI);
+        float   Q       = dot (color, kRGBToQ);
+        float   hue     = atan (Q, I);
+        float   chroma  = sqrt (I * I + Q * Q);
+
+        hue += hueAdjust;
+
+        Q = chroma * sin (hue);
+        I = chroma * cos (hue);
+
+        vec3    yIQ   = vec3 (YPrime, I, Q);
+
+        return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+      }
+    
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+
+      const float q = 0.7;
+      const float q2 = 0.9;
+      
+      void main() {
+          gl_FragColor = vec4(
+            vNormal * 0.3 +
+              vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
+            1.
+          );
+      }
+    `,
+    transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+    // polygonOffsetUnits: 1,
+  });
+  console.log('got geo', geometry);
+  const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
 const _makeVaccumMesh = () => {
@@ -1207,6 +1363,9 @@ const _makeLoadingBarMesh = basePosition => {
 
 const _makeLoaderMesh = () => {
   const o = new THREE.Object3D();
+  
+  const heartMesh = _makeHeartMesh();
+  o.add(heartMesh);
   
   const vaccumMesh = _makeVaccumMesh();
   o.add(vaccumMesh);
