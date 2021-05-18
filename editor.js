@@ -641,7 +641,7 @@ const _makeHeartMesh = () => {
         p /= (1. + vF);
         vec3 p2 = p / 0.1;
         float d = length(p2);
-        float cF = (1. - pow(d, 2.) / 3.) * 1.2 * vF;
+        float cF = (1. - pow(d, 2.) / 5.) * 1.2 * vF;
         
         vec3 c = (c1 * (1. - d/0.1)) + (c2 * d/0.1);
         gl_FragColor = vec4(c * cF, 1.);
