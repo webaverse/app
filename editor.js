@@ -780,7 +780,7 @@ const _makeFractureMesh = () => {
                 )
                 .normalize();
             _getRandomDirection(localVector)
-              .toArray(geometry.attributes.velocity, positionIndex + i*3);
+              .toArray(geometry.attributes.velocity.array, positionIndex + i*3);
             const _getRandomQuaternion = () =>
               localQuaternion
                 .set(
@@ -791,10 +791,10 @@ const _makeFractureMesh = () => {
                 )
                 .normalize();
             _getRandomQuaternion(localQuaternion)
-              .toArray(geometry.attributes.quaternion, positionIndex + i*4);
+              .toArray(geometry.attributes.quaternion.array, quaternionIndex + i*4);
           }
           for (let i = 0; i < cubeGeometry.index.array.length; i++) {
-            geometry.index.array[indexIndex + i] = quaternionIndex/3 + cubeGeometry.index.array[i];
+            geometry.index.array[indexIndex + i] = positionIndex/3 + cubeGeometry.index.array[i];
           }
           
           positionIndex += cubeGeometry.attributes.position.array.length;
@@ -882,11 +882,17 @@ const _makeFractureMesh = () => {
       // const float q = 0.7;
 
       void main() {
+        vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime);
         vec4 mvPosition = modelViewMatrix * vec4(
+          applyQuaternion(position, q) +
+            velocity * uTime,
+          1.
+        );
+        /* vec4 mvPosition = modelViewMatrix * vec4(
           position +
             position2,
           1.
-        );
+        ); */
         gl_Position = projectionMatrix * mvPosition;
         vNormal = normal;
       }
@@ -956,6 +962,7 @@ const _makeFractureMesh = () => {
     // polygonOffsetUnits: 1,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
   
   /* let dots = [];
   const interval = setInterval(() => {
