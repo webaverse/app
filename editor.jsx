@@ -587,9 +587,9 @@ const Multiplayer = React.memo(({open, servers, refreshServers, selectedServerIn
                       <button
                         className="button disconnect"
                         onClick={e => {
-                          console.log('disconnect 1');
+                          // console.log('disconnect 1');
                           world.disconnectRoom();
-                          console.log('disconnect 2');
+                          // console.log('disconnect 2');
                         }}
                       >Disconect</button>
                     ) : (connectingServerName === server.name ?
