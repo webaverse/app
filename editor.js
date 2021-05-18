@@ -723,7 +723,7 @@ const _makeVaccumMesh = () => {
   };
   return mesh;
 };
-const _makeLoadingBarMesh = () => {
+const _makeLoadingBarMesh = basePosition => {
   const o = new THREE.Object3D();
 
   const geometry1 = BufferGeometryUtils.mergeBufferGeometries([
@@ -795,6 +795,18 @@ const _makeLoadingBarMesh = () => {
 
   o.update = () => {
     innerMesh.update();
+    
+    o.position.copy(basePosition)
+      .add(
+        localVector
+          .set(
+            -1 + Math.random() * 2,
+            -1 + Math.random() * 2,
+            -1 + Math.random() * 2
+          )
+          .normalize()
+          .multiplyScalar(0.02)
+        );
   };
 
   return o;
@@ -806,8 +818,7 @@ const _makeLoaderMesh = () => {
   const vaccumMesh = _makeVaccumMesh();
   o.add(vaccumMesh);
   
-  const loadingBarMesh = _makeLoadingBarMesh();
-  loadingBarMesh.position.y = 0.5;
+  const loadingBarMesh = _makeLoadingBarMesh(new THREE.Vector3(0, 0.5, 0));
   o.add(loadingBarMesh);
   
   o.update = () => {
