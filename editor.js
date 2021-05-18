@@ -465,7 +465,7 @@ const _makeInventoryMesh = () => {
   return mesh;
 };
 const _makeLoaderMesh = () => {
-  const size = 0.1;
+  const size = 0.05;
   const count = 5;
   const crunchFactor = 0.9;
   const innerSize = size * crunchFactor;
@@ -587,7 +587,7 @@ const _makeLoaderMesh = () => {
         return easing(easing(x));
       }
       
-      const float moveDistance = 30.;
+      const float moveDistance = 50.;
 
       void main() {
         float offsetTime = min(time + 0.5, 1.);
@@ -650,13 +650,13 @@ const _makeLoaderMesh = () => {
       }
 
       void main() {
-        if (vTime > 0.) {
-          float offsetTime = max(vTime - 0.5, 0.) * 10.;
-          
+        float offsetTime = max(vTime - 0.5, 0.) * 20.;
+        float offsetTime2 = max(vTime - 0.3, 0.) * 10.;
+        if (offsetTime2 > 0.) {
           gl_FragColor = vec4(
             vNormal * 0.1 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            1.
+            offsetTime2
           );
           gl_FragColor.rgb *= offsetTime;
         } else {
@@ -677,38 +677,35 @@ const _makeLoaderMesh = () => {
     const x = Math.floor(Math.random() * count);
     const y = Math.floor(Math.random() * count);
     const z = Math.floor(Math.random() * count);
+    const index = Math.floor(Math.random() * numCubes);
     dots.push({
       x,
       y,
       z,
+      index,
       startTime: now,
-      endTime: now + 2000,
+      endTime: now + 1000,
     });
-  }, 10);
+  }, 200);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
     
     const now = Date.now();
     dots = dots.filter(dot => {
-      const {x, y, z, startTime, endTime} = dot;
+      const {x, y, z, index, startTime, endTime} = dot;
       const f = (now - startTime) / (endTime - startTime);
       if (f <= 1) {
         const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
-        const index = (
-          x +
-          y * count +
-          z * count * count
-        );
-        /* if (index < 0) {
-          debugger;
-        }
-        if (index > geometry.attributes.time.array.length) {
-          debugger;
-        } */
-        
         const startIndex = index * numTimesPerGeometry;
         const endIndex = (index + 1) * numTimesPerGeometry;
+        if (startIndex < 0) {
+          debugger;
+        }
+        if (endIndex > geometry.attributes.time.array.length) {
+          debugger;
+        }
+        
         for (let i = startIndex; i < endIndex; i++) {
           geometry.attributes.time.array[i] = f;
         }
