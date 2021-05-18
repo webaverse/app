@@ -687,10 +687,9 @@ ioManager.bindInput = () => {
       if (e.buttons & 2) { // right
         weaponsManager.menuAim();
       }
-    } else {
-      if (e.buttons & 4) { // middle
-        weaponsManager.menuDragdown();
-      }
+    }
+    if (e.buttons & 4) { // middle
+      weaponsManager.menuDragdown();
     }
   });
   scene.addEventListener('mouseup', event => {
@@ -702,10 +701,9 @@ ioManager.bindInput = () => {
       if (!(e.buttons & 2)) { // right
         weaponsManager.menuUnaim();
       }
-    } else {
-      if (!(e.buttons & 4)) { // middle
-        weaponsManager.menuDragup();
-      }
+    }
+    if (!(e.buttons & 4)) { // middle
+      weaponsManager.menuDragup();
     }
   });
   window.addEventListener('resize', e => {
