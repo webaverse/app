@@ -491,10 +491,7 @@ const _makeHeartMesh = () => {
       ),
   ]);
   
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xFF0000,
-  });
-  const material2 = new THREE.ShaderMaterial({
+  const material = new THREE.ShaderMaterial({
     uniforms: {
       /* uBoundingBox: {
         type: 'vec4',
@@ -511,17 +508,12 @@ const _makeHeartMesh = () => {
         value: 0,
         needsUpdate: true,
       },
-      uTimeCubic: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      },
     },
     vertexShader: `\
       precision highp float;
       precision highp int;
 
-      // uniform float uTime;
+      uniform float uTime;
       // uniform vec4 uBoundingBox;
       // varying vec3 vPosition;
       // varying vec3 vNormal;
@@ -544,11 +536,18 @@ const _makeHeartMesh = () => {
         return easing(easing(x));
       }
       
-      const float moveDistance = 20.;
-      const float q = 0.7;
+      // const float moveDistance = 20.;
+      const float q = 0.1;
 
       void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+        float f = uTime < q ?
+          easing(uTime/q)
+        :
+          1. - (uTime - q)/(1. - q);
+        vec4 mvPosition = modelViewMatrix * vec4(
+          position * (1. + f),
+          1.
+        );
         gl_Position = projectionMatrix * mvPosition;
         vNormal = normal;
       }
@@ -617,8 +616,11 @@ const _makeHeartMesh = () => {
     // polygonOffsetFactor: -1,
     // polygonOffsetUnits: 1,
   });
-  console.log('got geo', geometry);
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.update = () => {
+    mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+    mesh.material.uniforms.uTime.needsUpdate = true;
+  };
   return mesh;
 };
 const _makeVaccumMesh = () => {
@@ -1378,6 +1380,7 @@ const _makeLoaderMesh = () => {
   o.add(loadingBarMesh);
   
   o.update = () => {
+    heartMesh.update();
     vaccumMesh.update();
     fractureMesh.update();
     loadingBarMesh.update();
