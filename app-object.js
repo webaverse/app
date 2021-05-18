@@ -49,14 +49,12 @@ function bindCanvas(c) {
     scene.dispatchEvent({
       type: 'mousedown',
       event: e,
-      // message: 'vroom vroom!',
     });
   })
   renderer.domElement.addEventListener('mouseup', e => {
     scene.dispatchEvent({
-      type: 'mousedown',
+      type: 'mouseup',
       event: e,
-      // message: 'vroom vroom!',
     });
   });
 }
