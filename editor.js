@@ -622,7 +622,8 @@ const _makeHeartMesh = () => {
         return getBezierT(x, 0., 1., 0., 1.);
       }
 
-      const vec3 c = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+      const vec3 c2 = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+      const vec3 c1 = vec3(${new THREE.Color(0xff7043).toArray().join(', ')});
       // const float q = 0.7;
       // const float q2 = 0.9;
       
@@ -638,10 +639,12 @@ const _makeHeartMesh = () => {
         
         vec3 p = (modelViewMatrixInverse * eyePos).xyz;
         p /= (1. + vF);
-        vec3 p2 = p;
-        float d = pow(length(p2), 0.5);
+        vec3 p2 = p / 0.1;
+        float d = length(p2);
+        float cF = (1. - pow(d, 2.) / 3.) * 1.2 * vF;
         
-        gl_FragColor = vec4(c * (1. - d * 2.) * 1.5 * vF, 1.);
+        vec3 c = (c1 * (1. - d/0.1)) + (c2 * d/0.1);
+        gl_FragColor = vec4(c * cF, 1.);
       }
     `,
     // transparent: true,
