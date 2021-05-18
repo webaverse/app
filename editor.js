@@ -588,9 +588,10 @@ const _makeLoaderMesh = () => {
       }
       
       const float moveDistance = 10.;
+      const float q = 0.6;
 
       void main() {
-        float offsetTime = min(time + 0.5, 1.);
+        float offsetTime = min(max(time + (1. - q), 0.), 1.);
         
         vec4 mvPosition = modelViewMatrix * vec4(
           position * offsetTime +
@@ -649,14 +650,16 @@ const _makeLoaderMesh = () => {
         return getBezierT(x, 0., 1., 0., 1.);
       }
 
+      const float q = 0.6;
+      
       void main() {
-        float offsetTime = max(vTime - 0.5, 0.) * 20.;
+        float offsetTime = max(vTime - q, 0.) * 20.;
         float offsetTime2 = vTime * 20.;
         if (offsetTime2 > 0.) {
           gl_FragColor = vec4(
             vNormal * 0.1 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            1.
+            1./* sin((vTime < q ? vTime/q : (q - vTime)/(1. - q)) * PI/2.) */
           );
           gl_FragColor.rgb *= offsetTime;
         } else {
@@ -684,9 +687,9 @@ const _makeLoaderMesh = () => {
       z,
       index,
       startTime: now,
-      endTime: now + 1000,
+      endTime: now + 500,
     });
-  }, 50);
+  }, 100);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
