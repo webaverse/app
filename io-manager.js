@@ -64,6 +64,29 @@ document.addEventListener('pointerlockchange', () => {
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
 
+const _updateHorizontal = direction => {
+  if (ioManager.keys.left) {
+    direction.x -= 1;
+  }
+  if (ioManager.keys.right) {
+    direction.x += 1;
+  }
+  if (ioManager.keys.up) {
+    direction.z -= 1;
+  }
+  if (ioManager.keys.down) {
+    direction.z += 1;
+  }
+};
+const _updateVertical = direction => {
+  if (ioManager.keys.space) {
+    direction.y += 1;
+  }
+  if (ioManager.keys.ctrl) {
+    direction.y -= 1;
+  }
+};
+
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
@@ -162,35 +185,13 @@ const _updateIo = timeDiff => {
     }
   } else if (document.pointerLockElement) {
     const direction = localVector.set(0, 0, 0);
-    const _updateHorizontal = () => {
-      if (ioManager.keys.left) {
-        direction.x -= 1;
-      }
-      if (ioManager.keys.right) {
-        direction.x += 1;
-      }
-      if (ioManager.keys.up) {
-        direction.z -= 1;
-      }
-      if (ioManager.keys.down) {
-        direction.z += 1;
-      }
-    };
-    _updateHorizontal();
-    const _updateVertical = () => {
-      if (ioManager.keys.space) {
-        direction.y += 1;
-      }
-      if (ioManager.keys.ctrl) {
-        direction.y -= 1;
-      }
-    };
+    _updateHorizontal(direction);
     if (controlsManager.isPossessed()) {
       const flyState = physicsManager.getFlyState();
       if (flyState) {
         direction.applyQuaternion(camera.quaternion);
         
-        _updateVertical();
+        _updateVertical(direction);
       } else {  
         const cameraEuler = camera.rotation.clone();
         cameraEuler.x = 0;
@@ -219,7 +220,7 @@ const _updateIo = timeDiff => {
       }
     } else {
       direction.applyQuaternion(camera.quaternion);
-      _updateVertical();
+      _updateVertical(direction);
       direction
         .normalize()
         .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
