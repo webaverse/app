@@ -864,26 +864,37 @@ const _makeVaccumMesh = () => {
       const float q2 = 0.9;
       
       void main() {
-        float offsetTime = max(vTime - q, 0.) * 20.;
-        float offsetTime2 = vTime * 20.;
-        if (offsetTime2 > 0.) {
+        float offsetTime = max(vTime - q, 0.);
+        float a = 1. - max((vTime-q2)/(1.-q2), 0.);
+        if (a > 0.) {
           gl_FragColor = vec4(
             vNormal * 0.3 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            1. - max((vTime-q2)/(1.-q2), 0.)
+            a
           );
-          gl_FragColor.rgb *= offsetTime;
+          gl_FragColor.rgb *= (0.1 + offsetTime);
         } else {
           discard;
         }
       }
     `,
     transparent: true,
+    depthWrite: false,
     // polygonOffset: true,
     // polygonOffsetFactor: -1,
     // polygonOffsetUnits: 1,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  /* mesh.onBeforeRender = () => {
+    const renderer = getRenderer();
+    const context = renderer.getContext();
+    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  };
+  mesh.onAfterRender = () => {
+    const renderer = getRenderer();
+    const context = renderer.getContext();
+    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  }; */
   
   let dots = [];
   const interval = setInterval(() => {
@@ -900,7 +911,7 @@ const _makeVaccumMesh = () => {
       startTime: now,
       endTime: now + 500,
     });
-  }, 50);
+  }, 20);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
