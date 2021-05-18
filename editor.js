@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {BufferGeometryUtils} from 'BufferGeometryUtils';
 import React from 'react';
 const {Fragment, useState, useEffect, useRef} = React;
 import ReactDOM from 'react-dom';
@@ -464,7 +465,7 @@ const _makeInventoryMesh = () => {
   
   return mesh;
 };
-const _makeLoaderMesh = () => {
+const _makeVaccumMesh = () => {
   const size = 0.1;
   const count = 5;
   const crunchFactor = 0.9;
@@ -721,6 +722,100 @@ const _makeLoaderMesh = () => {
     geometry.attributes.time.needsUpdate = true;
   };
   return mesh;
+};
+const _makeLoadingBarMesh = () => {
+  const o = new THREE.Object3D();
+
+  const geometry1 = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(1.04, 0.02, 0.02)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(0, 0.07, 0),
+            new THREE.Quaternion(),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+    new THREE.BoxBufferGeometry(1.04, 0.02, 0.02)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(0, -0.07, 0),
+            new THREE.Quaternion(),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+    new THREE.BoxBufferGeometry(0.02, 0.13, 0.02)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(-1/2 - 0.02, 0, 0),
+            new THREE.Quaternion(),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+    new THREE.BoxBufferGeometry(0.02, 0.13, 0.02)
+      .applyMatrix4(
+        new THREE.Matrix4()
+          .compose(
+            new THREE.Vector3(1/2 + 0.02, 0, 0),
+            new THREE.Quaternion(),
+            new THREE.Vector3(1, 1, 1)
+          )
+      ),
+  ]);
+  const material1 = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  });
+  const outerMesh = new THREE.Mesh(geometry1, material1);
+  o.add(outerMesh);
+
+  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.1)
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .compose(
+          new THREE.Vector3(1/2, 0, 0),
+          new THREE.Quaternion(),
+          new THREE.Vector3(1, 1, 1)
+        )
+    );
+  const material2 = new THREE.MeshBasicMaterial({
+    color: 0x3333333,
+    side: THREE.DoubleSide,
+  });
+  const innerMesh = new THREE.Mesh(geometry2, material2);
+  innerMesh.position.x = -1/2;
+  innerMesh.update = () => {
+    const f = (Date.now() % 1000) / 1000;
+    innerMesh.scale.x = f;
+    innerMesh.material.color.setHSL((f * 5) % 5, 0.5, 0.5);
+    innerMesh.material.needsUpdate = true;
+  };
+  o.add(innerMesh);
+
+  o.update = () => {
+    innerMesh.update();
+  };
+
+  return o;
+};
+
+const _makeLoaderMesh = () => {
+  const o = new THREE.Object3D();
+  
+  const vaccumMesh = _makeVaccumMesh();
+  o.add(vaccumMesh);
+  
+  const loadingBarMesh = _makeLoadingBarMesh();
+  loadingBarMesh.position.y = 0.5;
+  o.add(loadingBarMesh);
+  
+  o.update = () => {
+    vaccumMesh.update();
+    loadingBarMesh.update();
+  };
+  
+  return o;
 };
 
 const fetchAndCompileBlob = async (file, files) => {
