@@ -1848,6 +1848,9 @@ const weaponsManager = {
     if (this.editorHack) {
       this.dragging = true;
 
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
       /* if (url) {
         await rigManager.setLocalAvatarUrl(url, ext);
       } */
