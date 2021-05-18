@@ -435,9 +435,7 @@ ioManager.bindInput = () => {
         break;
       }
       case 16: { // shift
-        if (document.pointerLockElement) {
-          ioManager.keys.shift = true;
-        }
+        ioManager.keys.shift = true;
         break;
       }
       case 32: { // space
@@ -566,9 +564,7 @@ ioManager.bindInput = () => {
         break;
       }
       case 16: { // shift
-        if (document.pointerLockElement) {
-          ioManager.keys.shift = false;
-        }
+        ioManager.keys.shift = false;
         break;
       }
     }
