@@ -468,8 +468,8 @@ const _makeInventoryMesh = () => {
 };
 const _makeHeartMesh = () => {
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035),
-    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035)
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.02),
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.02)
       .applyMatrix4(
         new THREE.Matrix4()
           .compose(
@@ -479,7 +479,7 @@ const _makeHeartMesh = () => {
             new THREE.Vector3(1, 1, 1)
           )
       ),
-    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.035)
+    new CapsuleGeometry(undefined, undefined, undefined, 0.1, 0.02)
       .applyMatrix4(
         new THREE.Matrix4()
           .compose(
@@ -536,7 +536,7 @@ const _makeHeartMesh = () => {
       // attribute float time;
       // varying vec3 vPosition2;
       varying vec3 vNormal;
-      // varying float vTime;
+      varying float vF;
 
       float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) * 
@@ -565,6 +565,7 @@ const _makeHeartMesh = () => {
         );
         gl_Position = projectionMatrix * mvPosition;
         vNormal = normal;
+        vF = f;
       }
     `,
     fragmentShader: `\
@@ -579,9 +580,9 @@ const _makeHeartMesh = () => {
       // uniform vec4 uBoundingBox;
       // uniform float uTime;
       // uniform float uTimeCubic;
-      varying vec3 vPosition2;
+      // varying vec3 vPosition2;
       varying vec3 vNormal;
-      varying float vTime;
+      varying float vF;
 
       vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
@@ -618,8 +619,9 @@ const _makeHeartMesh = () => {
         return getBezierT(x, 0., 1., 0., 1.);
       }
 
-      const float q = 0.7;
-      const float q2 = 0.9;
+      const vec3 c = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+      // const float q = 0.7;
+      // const float q2 = 0.9;
       
       void main() {
         vec4 ndcPos;
@@ -632,7 +634,11 @@ const _makeHeartMesh = () => {
         vec4 eyePos = projectionMatrixInverse * clipPos;
         
         vec3 p = (modelViewMatrixInverse * eyePos).xyz;
-        gl_FragColor = vec4(p / 0.1, 1.);
+        p /= (1. + vF);
+        vec3 p2 = p;
+        float d = pow(length(p2), 0.5);
+        
+        gl_FragColor = vec4(c * (1. - d * 2.) * 1.5 * vF, 1.);
       }
     `,
     // transparent: true,
