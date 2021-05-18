@@ -779,17 +779,138 @@ const _makeLoadingBarMesh = basePosition => {
           new THREE.Vector3(1, 1, 1)
         )
     );
-  const material2 = new THREE.MeshBasicMaterial({
-    color: 0x3333333,
+  const material2 = new THREE.ShaderMaterial({
+    uniforms: {
+      /* uBoundingBox: {
+        type: 'vec4',
+        value: new THREE.Vector4(
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y
+        ),
+        needsUpdate: true,
+      }, */
+      color: {
+        type: 'c',
+        value: new THREE.Color(),
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      // uniform float uTime;
+      // uniform vec4 uBoundingBox;
+      // varying vec3 vPosition;
+      // varying vec3 vNormal;
+      // uniform vec3 color;
+      // attribute float time;
+      // varying vec3 vPosition2;
+      // varying vec3 vNormal;
+      // varying float vTime;
+      varying vec2 vUv;
+      varying vec3 vColor;
+
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+      float easing2(float x) {
+        return easing(easing(x));
+      }
+      
+      // const float moveDistance = 20.;
+      // const float q = 0.7;
+
+      void main() {
+        // float offsetTime = min(max((time + (1. - q)) / q, 0.), 1.);
+        
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+        gl_Position = projectionMatrix * mvPosition;
+        // vPosition2 = position2;
+        // vColor = color;
+        // vNormal = normal;
+        // vTime = time;
+        vUv = uv;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      uniform vec3 color;
+      // uniform vec4 uBoundingBox;
+      // uniform float uTime;
+      // uniform float uTimeCubic;
+      // varying vec3 vPosition2;
+      varying vec2 vUv;
+      // varying vec3 vColor;
+      // varying float vTime;
+
+      vec3 hueShift( vec3 color, float hueAdjust ){
+        const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+        const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+        const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+        const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+        const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+        const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+        float   YPrime  = dot (color, kRGBToYPrime);
+        float   I       = dot (color, kRGBToI);
+        float   Q       = dot (color, kRGBToQ);
+        float   hue     = atan (Q, I);
+        float   chroma  = sqrt (I * I + Q * Q);
+
+        hue += hueAdjust;
+
+        Q = chroma * sin (hue);
+        I = chroma * cos (hue);
+
+        vec3    yIQ   = vec3 (YPrime, I, Q);
+
+        return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+      }
+    
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+
+      // const float q = 0.7;
+      // const float q2 = 0.9;
+      
+      void main() {
+        gl_FragColor = vec4(hueShift(color, vUv.x * PI) * 1.5, 1.);
+      }
+    `,
+    // transparent: true,
     side: THREE.DoubleSide,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+    // polygonOffsetUnits: 1,
   });
   const innerMesh = new THREE.Mesh(geometry2, material2);
   innerMesh.position.x = -1/2;
   innerMesh.update = () => {
     const f = (Date.now() % 1000) / 1000;
     innerMesh.scale.x = f;
-    innerMesh.material.color.setHSL((f * 5) % 5, 0.5, 0.5);
-    innerMesh.material.needsUpdate = true;
+    innerMesh.material.uniforms.color.value.setHSL((f * 5) % 5, 0.5, 0.5);
+    innerMesh.material.uniforms.color.needsUpdate = true;
   };
   o.add(innerMesh);
 
