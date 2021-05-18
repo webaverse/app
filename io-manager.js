@@ -281,25 +281,22 @@ ioManager.bindInput = () => {
         break;
       }
       case 87: { // W
-        if (document.pointerLockElement) {
-          ioManager.keys.up = true;
-        } else {
+        ioManager.keys.up = true;
+        if (!document.pointerLockElement) {
           weaponsManager.menuVertical(-1);
         }
         break;
       }
       case 65: { // A
-        if (document.pointerLockElement) {
-          ioManager.keys.left = true;
-        } else {
+        ioManager.keys.left = true;
+        if (!document.pointerLockElement) {
           weaponsManager.menuHorizontal(-1);
         }
         break;
       }
       case 83: { // S
-        if (document.pointerLockElement) {
-          ioManager.keys.down = true;
-        } else {
+        ioManager.keys.down = true;
+        if (!document.pointerLockElement) {
           if (weaponsManager.menuOpen) {
             weaponsManager.menuVertical(1);
           } else {
@@ -309,9 +306,8 @@ ioManager.bindInput = () => {
         break;
       }
       case 68: { // D
-        if (document.pointerLockElement) {
-          ioManager.keys.right = true;
-        } else {
+        ioManager.keys.right = true;
+        if (!document.pointerLockElement) {
           weaponsManager.menuHorizontal(1);
         }
         break;
@@ -508,27 +504,19 @@ ioManager.bindInput = () => {
         break;
       } */
       case 87: { // W
-        if (document.pointerLockElement) {
-          ioManager.keys.up = false;
-        }
+        ioManager.keys.up = false;
         break;
       }
       case 65: { // A
-        if (document.pointerLockElement) {
-          ioManager.keys.left = false;
-        }
+        ioManager.keys.left = false;
         break;
       }
       case 83: { // S
-        if (document.pointerLockElement) {
-          ioManager.keys.down = false;
-        }
+        ioManager.keys.down = false;
         break;
       }
       case 68: { // D
-        if (document.pointerLockElement) {
-          ioManager.keys.right = false;
-        }
+        ioManager.keys.right = false;
         break;
       }
       case 32: { // space
