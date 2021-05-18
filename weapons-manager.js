@@ -17,6 +17,7 @@ import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
+import controlsManager from './controls-manager.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
@@ -1736,6 +1737,7 @@ const weaponsManager = {
   // weaponWheel: false,
   gridSnap: 0,
   editMode: false,
+  dragging: false,
   inventoryHack: false,
   /* getWeapon() {
     return selectedWeapon;
@@ -1840,6 +1842,31 @@ const weaponsManager = {
   },
   menuUnaim() {
     _unaim();
+  },
+  menuDragdown(e) {
+    this.dragging = true;
+
+    /* if (url) {
+      await rigManager.setLocalAvatarUrl(url, ext);
+    } */
+    controlsManager.setPossessed(false);
+  },
+  menuDrag(e) {
+    const {movementX, movementY} = e;
+    // console.log('menu drag', movementX, movementY);
+    if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+      camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+      camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+      camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+      camera.quaternion.setFromEuler(camera.rotation);
+
+      // camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+
+      camera.updateMatrixWorld();
+    }
+  },
+  menuDragup() {
+    this.dragging = false;
   },
   canTry() {
     return !!appManager.grabbedObjects[0];
