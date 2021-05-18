@@ -228,6 +228,17 @@ const _updateIo = timeDiff => {
       camera.position.add(direction);
       camera.updateMatrixWorld();
     }
+  } else if (weaponsManager.editorHack) {
+    const direction = localVector.set(0, 0, 0);
+    _updateHorizontal(direction);
+    direction.applyQuaternion(camera.quaternion);
+    _updateVertical(direction);
+    direction
+      .normalize()
+      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
+    
+    camera.position.add(direction);
+    camera.updateMatrixWorld();
   }
 };
 ioManager.update = _updateIo;
