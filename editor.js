@@ -587,13 +587,13 @@ const _makeLoaderMesh = () => {
         return easing(easing(x));
       }
       
-      const float moveDistance = 50.;
+      const float moveDistance = 10.;
 
       void main() {
         float offsetTime = min(time + 0.5, 1.);
         
         vec4 mvPosition = modelViewMatrix * vec4(
-          position * easing(offsetTime) +
+          position * offsetTime +
           position2 * (1. + moveDistance * (1. - easing(offsetTime))), 1.0);
         gl_Position = projectionMatrix * mvPosition;
         vPosition2 = position2;
@@ -651,12 +651,12 @@ const _makeLoaderMesh = () => {
 
       void main() {
         float offsetTime = max(vTime - 0.5, 0.) * 20.;
-        float offsetTime2 = max(vTime - 0.3, 0.) * 10.;
+        float offsetTime2 = vTime * 20.;
         if (offsetTime2 > 0.) {
           gl_FragColor = vec4(
             vNormal * 0.1 +
               vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            offsetTime2
+            1.
           );
           gl_FragColor.rgb *= offsetTime;
         } else {
@@ -686,7 +686,7 @@ const _makeLoaderMesh = () => {
       startTime: now,
       endTime: now + 1000,
     });
-  }, 200);
+  }, 50);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
@@ -699,12 +699,12 @@ const _makeLoaderMesh = () => {
         const numTimesPerGeometry = cubeGeometry.attributes.position.array.length/3;
         const startIndex = index * numTimesPerGeometry;
         const endIndex = (index + 1) * numTimesPerGeometry;
-        if (startIndex < 0) {
+        /* if (startIndex < 0) {
           debugger;
         }
         if (endIndex > geometry.attributes.time.array.length) {
           debugger;
-        }
+        } */
         
         for (let i = startIndex; i < endIndex; i++) {
           geometry.attributes.time.array[i] = f;
