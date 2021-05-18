@@ -563,7 +563,7 @@ const _makeHeartMesh = () => {
         :
           1. - (uTime - q)/(1. - q);
         vec4 mvPosition = modelViewMatrix * vec4(
-          position * (1. + f),
+          position * (1. + f * 2.),
           1.
         );
         gl_Position = projectionMatrix * mvPosition;
