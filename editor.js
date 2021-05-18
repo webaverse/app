@@ -911,7 +911,7 @@ const _makeVaccumMesh = () => {
       startTime: now,
       endTime: now + 500,
     });
-  }, 20);
+  }, 50);
   
   mesh.update = () => {
     geometry.attributes.time.array.fill(-1);
