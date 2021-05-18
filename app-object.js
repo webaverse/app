@@ -51,12 +51,12 @@ function bindCanvas(c) {
       event: e,
     });
   })
-  renderer.domElement.addEventListener('mouseup', e => {
+  /* renderer.domElement.addEventListener('mouseup', e => {
     scene.dispatchEvent({
       type: 'mouseup',
       event: e,
     });
-  });
+  }); */
 }
 function getRenderer() {
   return renderer;

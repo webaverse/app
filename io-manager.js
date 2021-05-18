@@ -678,6 +678,7 @@ ioManager.bindInput = () => {
       }
     }
   });
+  let mouseDown = false;
   scene.addEventListener('mousedown', event => {
     const e = event.event;
     if (document.pointerLockElement) {
@@ -691,19 +692,22 @@ ioManager.bindInput = () => {
     if (e.buttons & 4) { // middle
       weaponsManager.menuDragdown();
     }
+    mouseDown = true;
   });
-  scene.addEventListener('mouseup', event => {
-    const e = event.event;
-    if (document.pointerLockElement) {
-      if (!(e.buttons & 1)) { // left
-        weaponsManager.menuMouseUp();
+  window.document.addEventListener('mouseup', e => {
+    if (mouseDown) {
+      if (document.pointerLockElement) {
+        if (!(e.buttons & 1)) { // left
+          weaponsManager.menuMouseUp();
+        }
+        if (!(e.buttons & 2)) { // right
+          weaponsManager.menuUnaim();
+        }
       }
-      if (!(e.buttons & 2)) { // right
-        weaponsManager.menuUnaim();
+      if (!(e.buttons & 4)) { // middle
+        weaponsManager.menuDragup();
       }
-    }
-    if (!(e.buttons & 4)) { // middle
-      weaponsManager.menuDragup();
+      mouseDown = false;
     }
   });
   window.addEventListener('resize', e => {
