@@ -465,7 +465,7 @@ const _makeInventoryMesh = () => {
   return mesh;
 };
 const _makeLoaderMesh = () => {
-  const size = 0.05;
+  const size = 0.1;
   const count = 5;
   const crunchFactor = 0.9;
   const innerSize = size * crunchFactor;
@@ -587,7 +587,7 @@ const _makeLoaderMesh = () => {
         return easing(easing(x));
       }
       
-      const float moveDistance = 10.;
+      const float moveDistance = 20.;
       const float q = 0.7;
 
       void main() {
