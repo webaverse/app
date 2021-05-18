@@ -12,7 +12,7 @@ import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import {downloadFile} from './util.js';
 import App from './app.js';
-import {getRenderer} from './app-object.js';
+import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
@@ -508,6 +508,21 @@ const _makeHeartMesh = () => {
         value: 0,
         needsUpdate: true,
       },
+      modelViewMatrixInverse: {
+        type: 'm',
+        value: new THREE.Matrix4(),
+        needsUpdate: true,
+      },
+      projectionMatrixInverse: {
+        type: 'm',
+        value: new THREE.Matrix4(),
+        needsUpdate: true,
+      },
+      viewport: {
+        type: 'm',
+        value: new THREE.Vector4(0, 0, 1, 1),
+        needsUpdate: true,
+      },
     },
     vertexShader: `\
       precision highp float;
@@ -558,6 +573,9 @@ const _makeHeartMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
+      uniform mat4 modelViewMatrixInverse;
+      uniform mat4 projectionMatrixInverse;
+      uniform vec4 viewport;
       // uniform vec4 uBoundingBox;
       // uniform float uTime;
       // uniform float uTimeCubic;
@@ -604,14 +622,20 @@ const _makeHeartMesh = () => {
       const float q2 = 0.9;
       
       void main() {
-          gl_FragColor = vec4(
-            vNormal * 0.3 +
-              vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
-            1.
-          );
+        vec4 ndcPos;
+        ndcPos.xy = ((2.0 * gl_FragCoord.xy) - (2.0 * viewport.xy)) / (viewport.zw) - 1.;
+        ndcPos.z = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) /
+            (gl_DepthRange.far - gl_DepthRange.near);
+        ndcPos.w = 1.0;
+
+        vec4 clipPos = ndcPos / gl_FragCoord.w;
+        vec4 eyePos = projectionMatrixInverse * clipPos;
+        
+        vec3 p = (modelViewMatrixInverse * eyePos).xyz;
+        gl_FragColor = vec4(p / 0.1, 1.);
       }
     `,
-    transparent: true,
+    // transparent: true,
     // polygonOffset: true,
     // polygonOffsetFactor: -1,
     // polygonOffsetUnits: 1,
@@ -620,6 +644,21 @@ const _makeHeartMesh = () => {
   mesh.update = () => {
     mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
     mesh.material.uniforms.uTime.needsUpdate = true;
+    
+    mesh.material.uniforms.modelViewMatrixInverse.value
+      .copy(camera.matrixWorldInverse)
+      .multiply(mesh.matrixWorld)
+      .invert();
+    mesh.material.uniforms.modelViewMatrixInverse.needsUpdate = true;
+
+    mesh.material.uniforms.projectionMatrixInverse.value
+      .copy(camera.projectionMatrix)
+      .invert();
+    mesh.material.uniforms.projectionMatrixInverse.needsUpdate = true;
+  
+    const renderer = getRenderer();
+    mesh.material.uniforms.viewport.value.set(0, 0, renderer.domElement.width, renderer.domElement.height);
+    mesh.material.uniforms.viewport.needsUpdate = true;
   };
   return mesh;
 };
