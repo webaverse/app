@@ -886,11 +886,12 @@ const _makeFractureMesh = () => {
       // const float q = 0.7;
 
       void main() {
-        vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime);
+        vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime * 0.1);
         vec4 mvPosition = modelViewMatrix * vec4(
           applyQuaternion(position, q) +
             position2 +
-            velocity * uTime,
+            vec3(0., -9.8 * 0.3 * uTime * uTime, 0.) +
+            velocity * uTime * 0.5,
           1.
         );
         /* vec4 mvPosition = modelViewMatrix * vec4(
