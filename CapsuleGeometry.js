@@ -653,9 +653,24 @@ function CapsuleGeometry(
     }
   }
 
-  geom.setAttribute('position', new THREE.BufferAttribute(Float32Array.from(vs), 3));
+  const positions = new Float32Array(vs.length * 3);
+  for (let i = 0; i < vs.length; i++) {
+    const v = vs[i];
+    positions[i*3] = v.x;
+    positions[i*3+1] = v.y;
+    positions[i*3+2] = v.z;
+  }
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  
   geom.setAttribute('uv', new THREE.BufferAttribute(Float32Array.from(vtLayer), 2));
-  geom.setIndex(new THREE.BufferAttribute(Uint16Array.from(tris), 1));
+  const indices = new Uint16Array(tris.length * 3);
+  for (let i = 0; i < tris.length; i++) {
+    const tri = tris[i];
+    indices[i*3] = tri.a;
+    indices[i*3+1] = tri.b;
+    indices[i*3+2] = tri.c;
+  }
+  geom.setIndex(new THREE.BufferAttribute(indices, 1));
   return geom;
 }
 
