@@ -222,7 +222,7 @@ const _updateIo = timeDiff => {
       _updateVertical();
       direction
         .normalize()
-        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1))
+        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
 
       camera.position.add(direction);
       camera.updateMatrixWorld();
