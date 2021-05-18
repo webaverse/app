@@ -441,8 +441,8 @@ ioManager.bindInput = () => {
         break;
       }
       case 32: { // space
+        ioManager.keys.space = true;
         if (document.pointerLockElement) {
-          ioManager.keys.space = true;
           if (!physicsManager.getJumpState()) {
             if (weaponsManager.canJumpOff()) {
               weaponsManager.jumpOff();
@@ -455,9 +455,7 @@ ioManager.bindInput = () => {
         break;
       }
       case 17: { // ctrl
-        if (document.pointerLockElement) {
-          ioManager.keys.ctrl = true;
-        }
+        ioManager.keys.ctrl = true;
         break;
       }
       case 81: { // Q
@@ -520,15 +518,11 @@ ioManager.bindInput = () => {
         break;
       }
       case 32: { // space
-        if (document.pointerLockElement) {
-          ioManager.keys.space = false;
-        }
+        ioManager.keys.space = false;
         break;
       }
       case 17: { // ctrl
-        if (document.pointerLockElement) {
-          ioManager.keys.ctrl = false;
-        }
+        ioManager.keys.ctrl = false;
         break;
       }
       case 69: { // E
