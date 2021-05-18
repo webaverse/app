@@ -723,6 +723,263 @@ const _makeVaccumMesh = () => {
   };
   return mesh;
 };
+const _makeFractureMesh = () => {
+  const size = 0.1;
+  const count = 5;
+  const crunchFactor = 0.9;
+  const innerSize = size * crunchFactor;
+  const cubeGeometry = new THREE.BoxBufferGeometry(innerSize, innerSize, innerSize);
+  
+  let numCubes = 0;
+  for (let x = 0; x < count; x++) {
+    for (let y = 0; y < count; y++) {
+      for (let z = 0; z < count; z++) {
+        if (
+          (x === 0 || x === (count - 1)) ||
+          (y === 0 || y === (count - 1)) ||
+          (z === 0 || z === (count - 1))
+        ) {
+          numCubes++;
+        }
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
+  geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.normal.array.length * numCubes), 3));
+  geometry.setAttribute('position2', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
+  geometry.setAttribute('velocity', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length * numCubes), 3));
+  geometry.setAttribute('quaternion', new THREE.BufferAttribute(new Float32Array(cubeGeometry.attributes.position.array.length/3*4 * numCubes), 4));
+  geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(cubeGeometry.index.array.length * numCubes), 1));
+  
+  let positionIndex = 0;
+  let quaternionIndex = 0;
+  let normalIndex = 0;
+  let indexIndex = 0;
+  for (let x = 0; x < count; x++) {
+    for (let y = 0; y < count; y++) {
+      for (let z = 0; z < count; z++) {
+        if (
+          (x === 0 || x === (count - 1)) ||
+          (y === 0 || y === (count - 1)) ||
+          (z === 0 || z === (count - 1))
+        ) {
+          geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
+          geometry.attributes.normal.array.set(cubeGeometry.attributes.normal.array, normalIndex);
+          for (let i = 0; i < cubeGeometry.attributes.position.array.length/3; i++) {
+            geometry.attributes.position2.array[positionIndex + i*3] = -(count * size / 2) + x * size;
+            geometry.attributes.position2.array[positionIndex + i*3+1] = -(count * size / 2) + y * size;
+            geometry.attributes.position2.array[positionIndex + i*3+2] = -(count * size / 2) + z * size;
+            
+            const _getRandomDirection = localVector => 
+              localVector
+                .set(
+                  -1 + Math.random() * 2,
+                  0,
+                  -1 + Math.random() * 2
+                )
+                .normalize();
+            _getRandomDirection(localVector)
+              .toArray(geometry.attributes.velocity, positionIndex + i*3);
+            const _getRandomQuaternion = () =>
+              localQuaternion
+                .set(
+                  Math.random(),
+                  Math.random(),
+                  Math.random(),
+                  Math.random()
+                )
+                .normalize();
+            _getRandomQuaternion(localQuaternion)
+              .toArray(geometry.attributes.quaternion, positionIndex + i*4);
+          }
+          for (let i = 0; i < cubeGeometry.index.array.length; i++) {
+            geometry.index.array[indexIndex + i] = quaternionIndex/3 + cubeGeometry.index.array[i];
+          }
+          
+          positionIndex += cubeGeometry.attributes.position.array.length;
+          quaternionIndex += cubeGeometry.attributes.position.array.length/3*4;
+          normalIndex += cubeGeometry.attributes.normal.array.length;
+          indexIndex += cubeGeometry.index.array.length;
+        }
+      }
+    }
+  }
+  
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      /* uBoundingBox: {
+        type: 'vec4',
+        value: new THREE.Vector4(
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y
+        ),
+        needsUpdate: true,
+      }, */
+      uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      uniform float uTime;
+      // uniform vec4 uBoundingBox;
+      // varying vec3 vPosition;
+      varying vec3 vNormal;
+      attribute vec3 position2;
+      attribute vec3 velocity;
+      attribute vec4 quaternion;
+      
+      vec4 slerp(vec4 p0, vec4 p1, float t) {
+        float dotp = dot(normalize(p0), normalize(p1));
+        if ((dotp > 0.9999) || (dotp<-0.9999))
+        {
+          if (t<=0.5)
+            return p0;
+          return p1;
+        }
+        float theta = acos(dotp * 3.14159/180.0);
+        vec4 P = ((p0*sin((1.-t)*theta) + p1*sin(t*theta)) / sin(theta));
+        P.w = 1.;
+        return P;
+      }
+
+      vec4 quat_conj(vec4 q)
+      { 
+        return vec4(-q.x, -q.y, -q.z, q.w); 
+      }
+        
+      vec4 quat_mult(vec4 q1, vec4 q2)
+      { 
+        vec4 qr;
+        qr.x = (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y);
+        qr.y = (q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x);
+        qr.z = (q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w);
+        qr.w = (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z);
+        return qr;
+      }
+
+      vec3 applyQuaternion(vec3 position, vec4 qr)
+      { 
+        // vec4 qr = quat_from_axis_angle(axis, angle);
+        vec4 qr_conj = quat_conj(qr);
+        vec4 q_pos = vec4(position.x, position.y, position.z, 0);
+        
+        vec4 q_tmp = quat_mult(qr, q_pos);
+        qr = quat_mult(q_tmp, qr_conj);
+        
+        return vec3(qr.x, qr.y, qr.z);
+      }
+      
+      
+      // const float moveDistance = 20.;
+      // const float q = 0.7;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(
+          position +
+            position2,
+          1.
+        );
+        gl_Position = projectionMatrix * mvPosition;
+        vNormal = normal;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      // uniform vec4 uBoundingBox;
+      // uniform float uTime;
+      // uniform float uTimeCubic;
+      // varying vec3 vPosition2;
+      varying vec3 vNormal;
+      // varying float vTime;
+
+      vec3 hueShift( vec3 color, float hueAdjust ){
+        const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+        const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+        const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+        const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+        const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+        const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+        float   YPrime  = dot (color, kRGBToYPrime);
+        float   I       = dot (color, kRGBToI);
+        float   Q       = dot (color, kRGBToQ);
+        float   hue     = atan (Q, I);
+        float   chroma  = sqrt (I * I + Q * Q);
+
+        hue += hueAdjust;
+
+        Q = chroma * sin (hue);
+        I = chroma * cos (hue);
+
+        vec3    yIQ   = vec3 (YPrime, I, Q);
+
+        return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+      }
+    
+      float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      }
+
+      // const float q = 0.7;
+      // const float q2 = 0.9;
+      
+      void main() {
+        gl_FragColor = vec4(
+          vNormal * 0.1 +
+            vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')}),
+          1.
+        );
+      }
+    `,
+    transparent: true,
+    // polygonOffset: true,
+    // polygonOffsetFactor: -1,
+    // polygonOffsetUnits: 1,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  
+  /* let dots = [];
+  const interval = setInterval(() => {
+    const now = Date.now();
+    const x = Math.floor(Math.random() * count);
+    const y = Math.floor(Math.random() * count);
+    const z = Math.floor(Math.random() * count);
+    const index = Math.floor(Math.random() * numCubes);
+    dots.push({
+      x,
+      y,
+      z,
+      index,
+      startTime: now,
+      endTime: now + 500,
+    });
+  }, 50); */
+  
+  mesh.update = () => {
+    mesh.material.uniforms.uTime.value = (Date.now() % 1000) / 1000;
+    mesh.material.uniforms.uTime.needsUpdate = true;
+  };
+  return mesh;
+};
 const _makeLoadingBarMesh = basePosition => {
   const o = new THREE.Object3D();
 
@@ -939,11 +1196,16 @@ const _makeLoaderMesh = () => {
   const vaccumMesh = _makeVaccumMesh();
   o.add(vaccumMesh);
   
+  const fractureMesh = _makeFractureMesh();
+  fractureMesh.position.x = -1;
+  o.add(fractureMesh);
+  
   const loadingBarMesh = _makeLoadingBarMesh(new THREE.Vector3(0, 0.5, 0));
   o.add(loadingBarMesh);
   
   o.update = () => {
     vaccumMesh.update();
+    fractureMesh.update();
     loadingBarMesh.update();
   };
   
