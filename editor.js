@@ -766,31 +766,35 @@ const _makeFractureMesh = () => {
         ) {
           geometry.attributes.position.array.set(cubeGeometry.attributes.position.array, positionIndex);
           geometry.attributes.normal.array.set(cubeGeometry.attributes.normal.array, normalIndex);
+          
+          const _getRandomDirection = localVector => 
+            localVector
+              .set(
+                -1 + Math.random() * 2,
+                0,
+                -1 + Math.random() * 2
+              )
+              .normalize();
+          const _getRandomQuaternion = () =>
+            localQuaternion
+              .set(
+                Math.random(),
+                Math.random(),
+                Math.random(),
+                Math.random()
+              )
+              .normalize();
+          
+          const velocity = _getRandomDirection(localVector);
+          const quaternion = _getRandomQuaternion(localQuaternion);
           for (let i = 0; i < cubeGeometry.attributes.position.array.length/3; i++) {
             geometry.attributes.position2.array[positionIndex + i*3] = -(count * size / 2) + x * size;
             geometry.attributes.position2.array[positionIndex + i*3+1] = -(count * size / 2) + y * size;
             geometry.attributes.position2.array[positionIndex + i*3+2] = -(count * size / 2) + z * size;
             
-            const _getRandomDirection = localVector => 
-              localVector
-                .set(
-                  -1 + Math.random() * 2,
-                  0,
-                  -1 + Math.random() * 2
-                )
-                .normalize();
-            _getRandomDirection(localVector)
+            velocity
               .toArray(geometry.attributes.velocity.array, positionIndex + i*3);
-            const _getRandomQuaternion = () =>
-              localQuaternion
-                .set(
-                  Math.random(),
-                  Math.random(),
-                  Math.random(),
-                  Math.random()
-                )
-                .normalize();
-            _getRandomQuaternion(localQuaternion)
+            quaternion
               .toArray(geometry.attributes.quaternion.array, quaternionIndex + i*4);
           }
           for (let i = 0; i < cubeGeometry.index.array.length; i++) {
@@ -885,6 +889,7 @@ const _makeFractureMesh = () => {
         vec4 q = slerp(vec4(0., 0., 0., 1.), quaternion, uTime);
         vec4 mvPosition = modelViewMatrix * vec4(
           applyQuaternion(position, q) +
+            position2 +
             velocity * uTime,
           1.
         );
