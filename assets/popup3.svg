@@ -1202,9 +1202,9 @@
 	<text id="right" transform="matrix(1 0 0 1 1036.5565 100.6849)"><tspan x="0" y="0" class="st6 st7 st8 st9">CREATOR</tspan><tspan x="0" y="70" class="st2 st4 st10">avaer</tspan><tspan x="0" y="178" class="st6 st7 st8 st9">OWNER</tspan><tspan x="0" y="248" class="st2 st4 st10">sacks</tspan></text>
 </g>
 <g id="mask2">
-	<rect id="creator-image-wrap_2_" x="885.4" y="246.6" class="st2" width="128" height="128"/>
+	<rect id="owner-image-bg" x="885.4" y="246.6" class="st2" width="128" height="128"/>
 	
-		<image style="overflow:visible;" width="128" height="128" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAgAElEQVR4XuW9B5xkVZk+/NxKXdU5
+		<image style="overflow:visible;" width="128" height="128" id="owner-image" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAgAElEQVR4XuW9B5xkVZk+/NxKXdU5
 zvTk3NNDEASBIXcrLBkRWdO6Jv6uiiLIAOIqTCPqGgARRFkVRddVFAMwCIpAN0kGGARJE3pyjp1D
 5fP9nvec99atmkHA6YFxv+I3VHf1rRvO+7w5HA//P31Nj6MtCyCfx4lcAs/z2uTdrYe+G89czY82
 JtH1f3Gp9Dn/Lz4bDq1EWzILJAtPd2IOXhsM2swenjj4GRfGB4P7wQBdIfncEAwPr/0/AIr/MwBo
@@ -1593,9 +1593,9 @@ Ew6FPKUJF7ipoQ7TJjWjmgUjleWy+fb/B+dC4KYZnt4rAAAAAElFTkSuQmCC" transform="matrix(
 	</image>
 </g>
 <g id="mask1">
-	<rect id="creator-image-wrap_1_" x="885.4" y="64.6" class="st2" width="128" height="128"/>
+	<rect id="creator-image-bg" x="885.4" y="64.6" class="st2" width="128" height="128"/>
 	
-		<image style="overflow:visible;" width="128" height="128" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAgAElEQVR4XuW9B5xkVZk+/NxKXdU5
+		<image style="overflow:visible;" width="128" height="128" id="creator-image" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAgAElEQVR4XuW9B5xkVZk+/NxKXdU5
 zvTk3NNDEASBIXcrLBkRWdO6Jv6uiiLIAOIqTCPqGgARRFkVRddVFAMwCIpAN0kGGARJE3pyjp1D
 5fP9nvec99atmkHA6YFxv+I3VHf1rRvO+7w5HA//P31Nj6MtCyCfx4lcAs/z2uTdrYe+G89czY82
 JtH1f3Gp9Dn/Lz4bDq1EWzILJAtPd2IOXhsM2swenjj4GRfGB4P7wQBdIfncEAwPr/0/AIr/MwBo
