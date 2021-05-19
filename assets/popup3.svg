@@ -1196,7 +1196,7 @@
 	<polygon class="st2" points="118.3,938.9 255.3,1074.8 403.5,1074.8 267.2,938.6 	"/>
 </g>
 <rect x="62" y="53" class="st3" width="983.7" height="719.1"/>
-<text id="left" transform="matrix(1 0 0 1 61.9903 108.5459)"><tspan x="0" y="0" class="st2 st4 st5">name:  </tspan><tspan x="0" y="88.8" class="st2 st4 st5">type: </tspan><tspan x="0" y="177.6" class="st2 st4 st5">id: </tspan><tspan x="0" y="266.4" class="st2 st4 st5">hash: </tspan><tspan x="0" y="355.2" class="st2 st4 st5">description: </tspan></text>
+<text id="left" transform="matrix(1 0 0 1 61.9903 108.5459)"><tspan x="0" y="0" class="st2 st4 st5">name:  </tspan><tspan x="0" y="88.8" class="st2 st4 st5">id: </tspan><tspan x="0" y="177.6" class="st2 st4 st5">type: </tspan><tspan x="0" y="266.4" class="st2 st4 st5">hash: </tspan><tspan x="0" y="355.2" class="st2 st4 st5">description: </tspan></text>
 <rect x="1036.6" y="66.8" class="st3" width="549.6" height="394.5"/>
 <text id="right" transform="matrix(1 0 0 1 1036.5565 100.6849)"><tspan x="0" y="0" class="st6 st7 st8 st9">CREATOR</tspan><tspan x="0" y="70" class="st2 st4 st10">avaer</tspan><tspan x="0" y="178" class="st6 st7 st8 st9">OWNER</tspan><tspan x="0" y="248" class="st2 st4 st10">sacks</tspan></text>
 <circle id="creator-image" class="st2" cx="949.4" cy="128.6" r="64"/>
