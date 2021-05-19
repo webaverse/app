@@ -169,7 +169,7 @@ const cameraManager = {
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
 
-      physicsManager.unlockControls();
+      // physicsManager.unlockControls();
     } else {
       camera.position.add(
         localVector.set(0, 0, e.deltaY * 0.01)
