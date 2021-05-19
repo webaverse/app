@@ -170,6 +170,12 @@ const cameraManager = {
       camera.updateMatrixWorld();
 
       physicsManager.unlockControls();
+    } else {
+      camera.position.add(
+        localVector.set(0, 0, e.deltaY * 0.01)
+          .applyQuaternion(camera.quaternion)
+      );
+      camera.updateMatrixWorld();
     }
   },
   // switchCamera,
