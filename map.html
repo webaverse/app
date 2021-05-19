@@ -52,7 +52,6 @@
       parcelsJson,
     ] = await Promise.all([
       (async () => {
-        await app.waitForLoad();
         await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
       })(),
       universe.getParcels(),
