@@ -27,7 +27,7 @@
 <script type=module>
   import * as THREE from 'three';
   import App from './app.js';
-  import {renderer, scene, camera, orthographicCamera} from './app-object.js';
+  import {getRenderer, scene, camera, orthographicCamera} from './app-object.js';
   import {world} from './world.js';
   import * as universe from './universe.js';
   import {parseQuery, parseExtents, isInIframe} from './util.js';
@@ -56,6 +56,8 @@
       })(),
       universe.getParcels(),
     ]);
+    
+    const renderer = getRenderer();
     
     const q = parseQuery(location.search);
     const extents = parseExtents(q.e);
