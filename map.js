@@ -28,7 +28,7 @@ camera.up.set(0, 0, -1);
       await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
     })(),
     (async () => {
-      await universe.getParcels();
+      return await universe.getParcels();
     })(),
   ]);
   
