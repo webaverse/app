@@ -7,8 +7,8 @@ import wbn from './wbn.js';
 import * as icons from './icons.js';
 import './gif.js';
 
-const width = 512;
-const height = 512;
+const defaultWidth = 512;
+const defaultHeight = 512;
 const cameraPosition = new THREE.Vector3(0, 1, -2);
 const cameraTarget = new THREE.Vector3(0, 0, 0);
 const FPS = 60;
@@ -23,7 +23,7 @@ const _makePromise = () => {
   p.reject = reject;
   return p;
 };
-const _makeRenderer = () => {
+const _makeRenderer = (width, height) => {
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true,
@@ -128,9 +128,7 @@ const _makeUiRenderer = () => {
     },
   };
 };
-const _makeIconString = (hash, ext) => {
-  const w = width;
-  const h = height;
+const _makeIconString = (hash, ext, w, h) => {
   const icon = {
     'gltf': icons.vrCardboard,
     'glb': icons.vrCardboard,
@@ -220,7 +218,15 @@ const _makeIconString = (hash, ext) => {
   toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+  let {url, hash, ext, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
+  width = parseInt(width, 10);
+  if (isNaN(width)) {
+    width = defaultWidth;
+  }
+  height = parseInt(height, 10);
+  if (isNaN(height)) {
+    height = defaultHeight;
+  }
   const isVrm = ext === 'vrm';
   const isImage = ['png', 'jpg'].includes(ext);
   const isVideo = type === 'webm';
@@ -365,7 +371,7 @@ const _makeIconString = (hash, ext) => {
         const _renderDefaultCanvas = async () => {
           const uiRenderer = _makeUiRenderer();
 
-          const htmlString = _makeIconString(hash, ext);
+          const htmlString = _makeIconString(hash, ext, width, height);
           const result = await uiRenderer.render(htmlString, width, height);
           const {data, anchors} = result;
           const canvas = document.createElement('canvas');
@@ -377,7 +383,7 @@ const _makeIconString = (hash, ext) => {
         };
 
         if (['glb', 'vrm', 'vox', 'wbn'].includes(ext)) {
-          const {renderer, scene, camera} = _makeRenderer();
+          const {renderer, scene, camera} = _makeRenderer(width, height);
 
           let o;
           try {
@@ -587,7 +593,7 @@ const _makeIconString = (hash, ext) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'gif' && ext !== 'gif') {
-      const {renderer, scene, camera} = _makeRenderer();
+      const {renderer, scene, camera} = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
@@ -672,7 +678,7 @@ const _makeIconString = (hash, ext) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'webm') {
-      const {renderer, scene, camera} = _makeRenderer();
+      const {renderer, scene, camera} = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
