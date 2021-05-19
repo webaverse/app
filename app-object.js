@@ -19,7 +19,7 @@ function bindCanvas(c) {
     // preserveDrawingBuffer: false,
   });
   const container = getContainerElement();
-  const rect = container.getBoundingClientRect();
+  const rect = (container || canvas).getBoundingClientRect();
   renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
