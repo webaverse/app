@@ -45,6 +45,8 @@
   (async () => {
     const app = new App();
     await app.waitForLoad();
+    app.bindCanvas(document.createElement('canvas'));
+    
     const [
       appResult,
       parcelsJson,
