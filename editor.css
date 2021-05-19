@@ -46,6 +46,14 @@
   font-family: 'PressStart2P-Regular';
   src: url('/assets/fonts/PressStart2P-Regular.ttf');
 }
+@font-face {
+  font-family: 'RobotoCondensed-Regular';
+  src: url('/assets/fonts/RobotoCondensed-Regular.ttf');
+}
+@font-face {
+  font-family: 'RobotoCondensed-Light';
+  src: url('/assets/fonts/RobotoCondensed-Light.ttf');
+}
 
 body {
   margin: 0;
