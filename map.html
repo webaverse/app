@@ -54,7 +54,9 @@
       (async () => {
         await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
       })(),
-      universe.getParcels(),
+      (async () => {
+        await universe.getParcels();
+      })(),
     ]);
     
     const renderer = getRenderer();
