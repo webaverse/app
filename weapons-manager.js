@@ -1732,7 +1732,9 @@ scene.addEventListener('contextmenu', e => {
   // console.log('got contextmenu event', e);
   event.preventDefault();
   
-  weaponsManager.setContextMenu(true);
+  if (mouseHoverObject) {
+    weaponsManager.setContextMenu(true);
+  }
 });
 
 let droppedThrow = false;
