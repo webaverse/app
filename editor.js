@@ -203,6 +203,7 @@ const _makeUiMesh = () => {
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
     transparent: true,
+    alphaTest: 0.5,
   });
   const model = new THREE.Mesh(geometry, material);
   model.frustumCulled = false;
