@@ -182,7 +182,7 @@ class CameraGeometry extends THREE.BufferGeometry {
   }
 }
 const _makeUiMesh = () => {
-  const geometry = new THREE.PlaneBufferGeometry(2, 1);
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
   for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
     const j = i + 1;
     geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
@@ -217,6 +217,8 @@ const _makeUiMesh = () => {
     material.map.anisotropy = 16;
     // material.map.flipY = false;
     material.map.needsUpdate = true;
+    
+    m.scale.set(1, result.height/result.width, 1);
   })();
   
   const m = new THREE.Mesh(geometry, material);
