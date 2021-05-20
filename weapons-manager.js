@@ -442,16 +442,16 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  console.log('got click 1');
+  // console.log('got click 1');
   if (weaponsManager.canBuild()) {
-    console.log('got click 2');
+    // console.log('got click 2');
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
-    console.log('got click 3');
+    // console.log('got click 3');
     _deselectLoadout();
     _ungrab();
   } else {
-    console.log('got click 4', !!highlightedPhysicsObject);
+    // console.log('got click 4', !!highlightedPhysicsObject);
     if (highlightedPhysicsObject) {
       if (world.getObjects().includes(highlightedPhysicsObject)) {
         _grab(highlightedPhysicsObject);
