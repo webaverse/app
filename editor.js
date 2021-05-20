@@ -332,6 +332,7 @@ const _makeContextMenuMesh = uiMesh => {
         localVector2.set(1, 1, 1),
       )
     );
+  _flipGeomeryUvs(geometry);
   const material = new THREE.MeshBasicMaterial({
     // color: 0x808080,
     map: new THREE.Texture(),
