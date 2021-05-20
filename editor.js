@@ -263,8 +263,7 @@ const _makeUiMesh = () => {
     
     m.position.copy(m.target.position)
       .add(camera.position);
-    m.quaternion.copy(m.target.quaternion)
-      // .premultiply(camera.quaternion);
+    m.quaternion.copy(m.target.quaternion);
     
     const hoverObject = weaponsManager.getMouseHoverObject();
     if (hoverObject !== lastHoverObject) {
