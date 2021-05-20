@@ -2105,9 +2105,7 @@ const bindTextarea = codeEl => {
   const reset = () => {
     console.log('reset');
   };
-  let cameraMode = 'camera';
-  const setCameraMode = newCameraMode => {
-    cameraMode = newCameraMode;
+  const setCameraMode = cameraMode => {
     console.log('got new camera mode', {cameraMode});
     if (cameraMode === 'avatar') {
       app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm');
