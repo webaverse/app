@@ -185,6 +185,12 @@ class CameraGeometry extends THREE.BufferGeometry {
     this.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 }
+const _flipGeomeryUvs = geometry => {
+  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+    const j = i + 1;
+    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
+  }
+};
 const _makeUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
@@ -194,10 +200,7 @@ const _makeUiMesh = () => {
         localVector2.set(1, 1, 1),
       )
     );
-  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-    const j = i + 1;
-    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
-  }
+  _flipGeomeryUvs(geometry);
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
