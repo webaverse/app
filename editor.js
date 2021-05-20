@@ -352,21 +352,28 @@ const _makeContextMenuMesh = uiMesh => {
       null,
       'Remove',
     ];
-    const result = await htmlRenderer.renderContextMenu({
-      options,
-      selectedOptionIndex: 0,
-      width: 512,
-      height: 512,
-    });
-    console.log('got result', result);
-    material.map.image = result.imageBitmap;
+    const results = await Promise.all(options.map(async (_option, i) => {
+      const result = await htmlRenderer.renderContextMenu({
+        options,
+        selectedOptionIndex: i,
+        width: 512,
+        height: 512,
+      });
+      return result;
+    }));
+    
+    const result = results[0];
+    const {width, height, imageBitmap, anchors} = result;
+    material.map.image = imageBitmap;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
     material.map.encoding = THREE.sRGBEncoding;
     material.map.anisotropy = 16;
     material.map.needsUpdate = true;
     
-    model.scale.set(1, result.height/result.width, 1);
+    console.log('anchors', anchors);
+    
+    model.scale.set(1, height / width, 1);
   })();
   
   const m = new THREE.Object3D();
