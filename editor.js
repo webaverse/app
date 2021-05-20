@@ -2094,6 +2094,26 @@ Promise.all([
         quaternion: new THREE.Quaternion(),
         u: `https://silk.webaverse.com/index.t.js`,
       },
+      {
+        position: new THREE.Vector3(-3, 0, -3.5),
+        quaternion: new THREE.Quaternion()
+          .setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            -Math.PI/2
+          ),
+        u: `https://webaverse.github.io/assets/
+shilo.vrm`,
+      },
+      {
+        position: new THREE.Vector3(-3, 0, -4.5),
+        quaternion: new THREE.Quaternion()
+          .setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            -Math.PI/2
+          ),
+        u: `https://webaverse.github.io/assets/
+sacks3.vrm`,
+      },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
@@ -2105,6 +2125,7 @@ Promise.all([
         u: `https://avaer.github.io/hookshot/index.js`,
       }, */
     ];
+    window.THREE = THREE;
     for (const e of defaultScene) {
       const {position, quaternion, u} = e;
       const loadedObject = await world.addObject(u, null, position, quaternion, {
