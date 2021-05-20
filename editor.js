@@ -350,11 +350,11 @@ const _makeContextMenuMesh = uiMesh => {
       options,
     });
     console.log('got result', result);
-    // material.map.image = result.imageBitmap;
+    material.map.image = result.imageBitmap;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
     material.map.anisotropy = 16;
-    // material.map.needsUpdate = true;
+    material.map.needsUpdate = true;
     
     model.scale.set(1, result.height/result.width, 1);
   })();
