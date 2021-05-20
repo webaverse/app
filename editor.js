@@ -354,6 +354,7 @@ const _makeContextMenuMesh = uiMesh => {
     ];
     const result = await htmlRenderer.renderContextMenu({
       options,
+      selectedOptionIndex: 0,
       width: 512,
       height: 512,
     });
