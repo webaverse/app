@@ -261,11 +261,13 @@ const _makeUiMesh = () => {
   m.update = () => {
     // model.position.set(model.scale.x/2, model.scale.y/2, 0);
     
+    const hoverObject = weaponsManager.getMouseHoverObject();
+    
     m.position.copy(m.target.position)
       .add(camera.position);
     m.quaternion.copy(m.target.quaternion);
+    m.visible = !!hoverObject;
     
-    const hoverObject = weaponsManager.getMouseHoverObject();
     if (hoverObject !== lastHoverObject) {
       const now = Date.now();
       animationSpec = {
