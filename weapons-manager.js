@@ -1727,6 +1727,14 @@ window.document.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
+scene.addEventListener('contextmenu', e => {
+  const {event} = e;
+  // console.log('got contextmenu event', e);
+  event.preventDefault();
+  
+  weaponsManager.setContextMenu(true);
+});
+
 let droppedThrow = false;
 const weaponsManager = {
   // weapons,
@@ -1738,6 +1746,7 @@ const weaponsManager = {
   gridSnap: 0,
   editMode: false,
   dragging: false,
+  contextMenu: false,
   editorHack: false,
   inventoryHack: false,
   /* getWeapon() {
@@ -1816,6 +1825,9 @@ const weaponsManager = {
     if (this.menuOpen) {
       _selectTabDelta(offset);
     }
+  },
+  setContextMenu(contextMenu) {
+    this.contextMenu = contextMenu;
   },
   menuUse() {
     _use();
