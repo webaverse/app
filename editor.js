@@ -321,6 +321,59 @@ const _makeUiMesh = () => {
     });
   return m;
 };
+const _makeContextMenuMesh = uiMesh => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(
+      localMatrix.compose(
+        localVector.set(1/2, -1/2, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1),
+      )
+    );
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const model = new THREE.Mesh(geometry, material);
+  model.frustumCulled = false;
+  
+  const m = new THREE.Object3D();
+  m.add(model);
+  let animationSpec = null;
+  let lastContextMenu = false;
+  m.update = () => {
+    if (weaponsManager.contextMenu && !lastContextMenu) {
+      m.position.copy(uiMesh.position);
+      
+      const now = Date.now();
+      animationSpec = {
+        startTime: now,
+        endTime: now + 1000,
+      };
+    }
+    m.quaternion.copy(uiMesh.quaternion);
+    m.visible = weaponsManager.contextMenu;
+    lastContextMenu = weaponsManager.contextMenu;
+    
+    const _setDefaultScale = () => {
+      m.scale.set(1, 1, 1);
+    };
+    if (animationSpec) {
+      const now = Date.now();
+      const {startTime, endTime} = animationSpec;
+      const f = (now - startTime) / (endTime - startTime);
+      if (f >= 0 && f < 1) {
+        const fv = cubicBezier(f);
+        m.scale.set(fv, fv, 1);
+        // model.material.opacity = fv;
+      } else {
+        _setDefaultScale();
+      }
+    } else {
+      _setDefaultScale();
+    }
+  };
+  return m;
+};
 const eps = 0.00001;
 const cardPreviewHost = `https://card-preview.exokit.org`;
 
