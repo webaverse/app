@@ -15,6 +15,7 @@ import {downloadFile} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
+import HtmlRenderer from 'html-render';
 import {storageHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
@@ -27,6 +28,10 @@ const cubicBezier = easing(0, 1, 0, 1);
 // const cubicBezier2 = easing(0, 0.7, 0, 0.7);
 const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
+const htmlRenderer = new HtmlRenderer();
+
+const testImgUrl = 'https://127.0.0.1:3001/assets/popup3.svg'/*'https://app.webaverse.com/assets/popup3.svg'*/;
+const testUserImgUrl = `https://preview.exokit.org/[https://app.webaverse.com/assets/type/robot.glb]/preview.png?width=128&height=128`;
 
 /* import BrowserFS from '/browserfs.js';
 BrowserFS.configure({
@@ -178,6 +183,10 @@ class CameraGeometry extends THREE.BufferGeometry {
 }
 const _makeUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(2, 1);
+  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+    const j = i + 1;
+    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
+  }
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
@@ -186,7 +195,14 @@ const _makeUiMesh = () => {
   });
   
   (async () => {
-    const img = await new Promise((accept, reject) => {
+    const result = await htmlRenderer.renderPopup({
+      imgUrl: testImgUrl,
+      minterAvatarUrl: testUserImgUrl,
+      ownerAvatarUrl: testUserImgUrl,
+      transparent: true,
+    });
+    // console.log('got result', result);
+    /* const img = await new Promise((accept, reject) => {
       const img = new Image();
       img.crossOrigin = 'Anonymous';
       img.onload = () => {
@@ -194,12 +210,13 @@ const _makeUiMesh = () => {
       };
       img.onerror = reject;
       img.src = `/assets/popup.svg`;
-    });
-    material.map.image = img;
-    material.map.needsUpdate = true;
+    }); */
+    material.map.image = result;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
     material.map.anisotropy = 16;
+    // material.map.flipY = false;
+    material.map.needsUpdate = true;
   })();
   
   const m = new THREE.Mesh(geometry, material);
@@ -1887,7 +1904,10 @@ app.bindXr({
     }
   },
 }); */
-app.waitForLoad()
+Promise.all([
+  app.waitForLoad(),
+  htmlRenderer.waitForLoad(),
+])
   .then(async () => {
     app.contentLoaded = true;
     app.startLoop();
@@ -1906,7 +1926,7 @@ app.waitForLoad()
       scene.add(cameraMesh);
 
       const uiMesh = _makeUiMesh();
-      uiMesh.position.set(0, 2, -5);
+      uiMesh.position.set(0, 2, -2);
       uiMesh.frustumCulled = false;
       scene.add(uiMesh);
 
