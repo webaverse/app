@@ -247,6 +247,7 @@ const _makeUiMesh = () => {
     material.map.image = result;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
+    material.map.encoding = THREE.sRGBEncoding;
     material.map.anisotropy = 16;
     material.map.needsUpdate = true;
     
@@ -352,6 +353,7 @@ const _makeContextMenuMesh = uiMesh => {
     material.map.image = result.imageBitmap;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
+    material.map.encoding = THREE.sRGBEncoding;
     material.map.anisotropy = 16;
     material.map.needsUpdate = true;
     
@@ -463,6 +465,7 @@ const _makeCardBackMaterial = () => {
     material.map.image = img;
     material.map.minFilter = THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
+    material.map.encoding = THREE.sRGBEncoding;
     material.map.anisotropy = 16;
     material.map.needsUpdate = true;
   })();
@@ -478,6 +481,7 @@ const _makeCardMesh = img => {
   });
   material.map.minFilter = THREE.LinearMipmapLinearFilter;
   material.map.magFilter = THREE.LinearFilter;
+  material.map.encoding = THREE.sRGBEncoding;
   material.map.anisotropy = 16;
   material.map.needsUpdate = true;
   const mesh = new THREE.Mesh(geometry, material);
