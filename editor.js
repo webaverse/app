@@ -58,6 +58,7 @@ window.fs = fs; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -196,8 +197,12 @@ const _makeUiMesh = () => {
     side: THREE.DoubleSide,
     transparent: true,
   });
-  const m = new THREE.Mesh(geometry, material);
-  m.frustumCulled = false;
+  const model = new THREE.Mesh(geometry, material);
+  model.frustumCulled = false;
+  
+  const m = new THREE.Object3D();
+  m.add(model);
+  m.target = new THREE.Object3D();
   m.render = async ({
     name,
     tokenId,
@@ -239,7 +244,40 @@ const _makeUiMesh = () => {
     // material.map.flipY = false;
     material.map.needsUpdate = true;
     
-    m.scale.set(1, result.height/result.width, 1);
+    model.scale.set(1, result.height/result.width, 1);
+  };
+  let animationSpec = null;
+  let lastHoverObject = null;
+  m.update = () => {
+    m.position.copy(m.target.position)
+      .add(camera.position);
+    m.quaternion.copy(m.target.quaternion)
+      // .premultiply(camera.quaternion);
+    
+    const hoverObject = weaponsManager.getMouseHoverObject();
+    if (hoverObject !== lastHoverObject) {
+      const now = Date.now();
+      animationSpec = {
+        startTime: now,
+        endTime: now + 5000,
+      };
+      lastHoverObject = hoverObject;
+    }
+    const _setDefaultScale = () => {
+      m.scale.set(1, 1, 1);
+    };
+    if (animationSpec) {
+      const now = Date.now();
+      const {startTime, endTime} = animationSpec;
+      const f = (now - startTime) / (endTime - startTime);
+      if (f >= 0 && f < 1) {
+        m.scale.set(1, cubicBezier(f), 1);
+      } else {
+        _setDefaultScale();
+      }
+    } else {
+      _setDefaultScale();
+    }
   };
   
   const name = 'shiva';
@@ -1974,14 +2012,14 @@ Promise.all([
       scene.add(cameraMesh);
 
       const uiMesh = _makeUiMesh();
-      uiMesh.position.set(0, 2, -2);
-      uiMesh.frustumCulled = false;
+      // uiMesh.position.set(0, 2, -2);
+      // uiMesh.frustumCulled = false;
       scene.add(uiMesh);
+      app.addEventListener('frame', () => {
+        uiMesh.update();
+      });
       
-      renderer.domElement.addEventListener('mousemove', e => {
-        // const {clientX, clientY} = e;
-        // console.log('got mouse move', clientX, clientY);
-        
+      renderer.domElement.addEventListener('mousemove', e => {   
         const mouse = localVector2D;
         mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
 	      mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
@@ -1989,15 +2027,15 @@ Promise.all([
           mouse,
           camera
         );
-        uiMesh.position.copy(localRaycaster.ray.origin)
-          .add(
-            localVector2.copy(localRaycaster.ray.direction)
-              .multiplyScalar(2)
-          );
-        localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        uiMesh.quaternion.setFromEuler(localEuler);
+        uiMesh.target.position.copy(localRaycaster.ray.direction)
+          .multiplyScalar(2);
+        uiMesh.target.quaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.set(0, 0, 0),
+            localVector2.set(0, 0, -1).applyQuaternion(camera.quaternion),
+            localVector3.set(0, 1, 0)
+          )
+        );
       });
 
       const inventoryMesh = _makeInventoryMesh();
