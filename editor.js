@@ -2140,11 +2140,10 @@ Promise.all([
         );
         const intersection = localRaycaster.ray.intersectPlane(localPlane, localVector);
         if (!intersection) {
-          debugger;
+          throw new Error('could not intersect in front of the camera; the math went wrong');
         }
         uiMesh.target.position.copy(intersection)
           .sub(camera.position);
-        // console.log('got distance', uiMesh.target.position.length());
         uiMesh.target.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             localVector.set(0, 0, 0),
