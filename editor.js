@@ -249,7 +249,6 @@ const _makeUiMesh = () => {
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
     material.map.anisotropy = 16;
-    // material.map.flipY = false;
     material.map.needsUpdate = true;
     
     model.scale.set(1, result.height/result.width, 1);
@@ -331,10 +330,34 @@ const _makeContextMenuMesh = uiMesh => {
       )
     );
   const material = new THREE.MeshBasicMaterial({
-    color: 0xFF0000,
+    color: 0xFFFFFF,
+    map: new THREE.Texture(),
+    side: THREE.DoubleSide,
+    transparent: true,
   });
   const model = new THREE.Mesh(geometry, material);
   model.frustumCulled = false;
+  
+  (async () => {
+    const options = [
+      'Select',
+      'Possess',
+      'Edit',
+      null,
+      'Remove',
+    ];
+    const result = await htmlRenderer.renderContextMenu({
+      options,
+    });
+    console.log('got result', result);
+    // material.map.image = result.imageBitmap;
+    material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+    material.map.magFilter = THREE.LinearFilter;
+    material.map.anisotropy = 16;
+    // material.map.needsUpdate = true;
+    
+    model.scale.set(1, result.height/result.width, 1);
+  })();
   
   const m = new THREE.Object3D();
   m.add(model);
