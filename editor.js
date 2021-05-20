@@ -30,7 +30,7 @@ const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 const htmlRenderer = new HtmlRenderer();
 
-const testImgUrl = 'https://127.0.0.1:3001/assets/popup3.svg'/*'https://app.webaverse.com/assets/popup3.svg'*/;
+const testImgUrl = 'https://app.webaverse.com/assets/popup3.svg';
 const testUserImgUrl = `https://preview.exokit.org/[https://app.webaverse.com/assets/type/robot.glb]/preview.png?width=128&height=128`;
 
 /* import BrowserFS from '/browserfs.js';
@@ -58,10 +58,12 @@ window.fs = fs; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localRaycaster = new THREE.Raycaster();
 
 let getEditor = () => null;
 let getFiles = () => null;
@@ -1974,6 +1976,24 @@ Promise.all([
       uiMesh.position.set(0, 2, -2);
       uiMesh.frustumCulled = false;
       scene.add(uiMesh);
+      
+      renderer.domElement.addEventListener('mousemove', e => {
+        // const {clientX, clientY} = e;
+        // console.log('got mouse move', clientX, clientY);
+        
+        const mouse = localVector2D;
+        mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
+	      mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
+        localRaycaster.setFromCamera(
+          mouse,
+          camera
+        );
+        uiMesh.position.copy(localRaycaster.ray.origin)
+          .add(
+            localVector2.copy(localRaycaster.ray.direction)
+              .multiplyScalar(2)
+          );
+      });
 
       const inventoryMesh = _makeInventoryMesh();
       inventoryMesh.position.set(2, 1.2, -1);
