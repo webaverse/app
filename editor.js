@@ -60,6 +60,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -1993,6 +1994,10 @@ Promise.all([
             localVector2.copy(localRaycaster.ray.direction)
               .multiplyScalar(2)
           );
+        localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        uiMesh.quaternion.setFromEuler(localEuler);
       });
 
       const inventoryMesh = _makeInventoryMesh();
