@@ -233,8 +233,6 @@ const _makeUiMesh = () => {
       imgUrl: testImgUrl,
       minterAvatarUrl,
       ownerAvatarUrl,
-      transparent: true,
-      alphaTest: 0.9,
     });
     // console.log('got result', result);
     /* const img = await new Promise((accept, reject) => {
