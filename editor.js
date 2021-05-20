@@ -280,7 +280,9 @@ const _makeUiMesh = () => {
       const {startTime, endTime} = animationSpec;
       const f = (now - startTime) / (endTime - startTime);
       if (f >= 0 && f < 1) {
-        m.scale.set(1, cubicBezier(f), 1);
+        const fv = cubicBezier(f);
+        m.scale.set(1, fv, 1);
+        model.material.opacity = fv;
       } else {
         _setDefaultScale();
       }
