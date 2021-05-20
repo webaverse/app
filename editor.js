@@ -25,7 +25,7 @@ import ghDownloadDirectory from './gh-download-directory.js';
 weaponsManager.editorHack = true;
 
 const cubicBezier = easing(0, 1, 0, 1);
-// const cubicBezier2 = easing(0, 0.7, 0, 0.7);
+// const cubicBezier2 = v => cubicBezier(cubicBezier(v));
 const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 const htmlRenderer = new HtmlRenderer();
@@ -186,7 +186,14 @@ class CameraGeometry extends THREE.BufferGeometry {
   }
 }
 const _makeUiMesh = () => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  const geometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(
+      localMatrix.compose(
+        localVector.set(1/2, 1/2, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1),
+      )
+    );
   for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
     const j = i + 1;
     geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
@@ -249,6 +256,8 @@ const _makeUiMesh = () => {
   let animationSpec = null;
   let lastHoverObject = null;
   m.update = () => {
+    // model.position.set(model.scale.x/2, model.scale.y/2, 0);
+    
     m.position.copy(m.target.position)
       .add(camera.position);
     m.quaternion.copy(m.target.quaternion)
@@ -259,7 +268,7 @@ const _makeUiMesh = () => {
       const now = Date.now();
       animationSpec = {
         startTime: now,
-        endTime: now + 5000,
+        endTime: now + 1000,
       };
       lastHoverObject = hoverObject;
     }
