@@ -338,6 +338,14 @@ const _makeUiMesh = () => {
     });
   return m;
 };
+const contextMenuOptions = [
+  'Select',
+  'Possess',
+  'Edit',
+  null,
+  'Remove',
+];
+const realContextMenuOptions = contextMenuOptions.filter(o => !!o);
 const _makeContextMenuMesh = uiMesh => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
@@ -362,24 +370,21 @@ const _makeContextMenuMesh = uiMesh => {
   let anchors = null;
   let optionsTextures = [];
   (async () => {
-    const options = [
-      'Select',
-      'Possess',
-      'Edit',
-      null,
-      'Remove',
-    ];
-    const results = await Promise.all(options.map(async (_option, i) => {
-      const result = await htmlRenderer.renderContextMenu({
-        options,
-        selectedOptionIndex: i,
-        width: 512,
-        height: 512,
-      });
-      return result;
+    const results = await Promise.all(contextMenuOptions.map(async (option, i) => {
+      if (option) {
+        const result = await htmlRenderer.renderContextMenu({
+          options: contextMenuOptions,
+          selectedOptionIndex: i,
+          width: 512,
+          height: 512,
+        });
+        return result;
+      } else {
+        return null;
+      }
     }));
     optionsTextures = results
-      .filter((result, i) => options[i] !== null)
+      .filter((result, i) => contextMenuOptions[i] !== null)
       .map(result => {
         const {
           width: newWidth,
@@ -407,7 +412,7 @@ const _makeContextMenuMesh = uiMesh => {
     } = result;
     model.scale.set(1, newHeight / newWidth, 1);
     
-    console.log('anchors', anchors);
+    // console.log('anchors', anchors);
     anchors = newAnchors;
     width = newWidth;
     height = newHeight;
@@ -2215,11 +2220,27 @@ Promise.all([
       });
       renderer.domElement.addEventListener('click', e => {   
         // _updateRaycasterFromMouseEvent(localRaycaster, e);
-        const highlightedIndex = contextMenuMesh.getHighlightedIndex()
-        if (highlightedIndex === 3) {
-          const object = weaponsManager.getContextMenuObject();
-          // console.log('remove context menu object', object);
-          world.removeObject(object.instanceId);
+        const highlightedIndex = contextMenuMesh.getHighlightedIndex();
+        const option = realContextMenuOptions[highlightedIndex];
+        switch (option) {
+          case 'Select': {
+            console.log('click select');
+            break;
+          }
+          case 'Possess': {
+            console.log('click possess');
+            break;
+          }
+          case 'Edit': {
+            console.log('click edit');
+            break;
+          }
+          case 'Remove': {
+            const object = weaponsManager.getContextMenuObject();
+            // console.log('remove context menu object', object);
+            world.removeObject(object.instanceId);
+            break;
+          }
         }
       });
       renderer.domElement.addEventListener('mousemove', e => {   
