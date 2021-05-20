@@ -193,12 +193,30 @@ const _makeUiMesh = () => {
     side: THREE.DoubleSide,
     transparent: true,
   });
-  
-  (async () => {
+  const m = new THREE.Mesh(geometry, material);
+  m.frustumCulled = false;
+  m.render = async ({
+    name,
+    tokenId,
+    type,
+    hash,
+    description,
+    minterUsername,
+    ownerUsername,
+    minterAvatarUrl,
+    ownerAvatarUrl,
+  }) => {
     const result = await htmlRenderer.renderPopup({
+      name,
+      tokenId,
+      type,
+      hash,
+      description,
+      minterUsername,
+      ownerUsername,
       imgUrl: testImgUrl,
-      minterAvatarUrl: testUserImgUrl,
-      ownerAvatarUrl: testUserImgUrl,
+      minterAvatarUrl,
+      ownerAvatarUrl,
       transparent: true,
     });
     // console.log('got result', result);
@@ -219,10 +237,35 @@ const _makeUiMesh = () => {
     material.map.needsUpdate = true;
     
     m.scale.set(1, result.height/result.width, 1);
-  })();
+  };
   
-  const m = new THREE.Mesh(geometry, material);
-  m.frustumCulled = false;
+  const name = 'shiva';
+  const tokenId = 42;
+  const type = 'vrm';
+  let hash = 'Qmej4c9FDJLTeSFhopvjF1f3KBi43xAk2j6v8jrzPQ4iRG';
+  hash = hash.slice(0, 6) + '...' + hash.slice(-2);
+  const description = 'This is an awesome Synoptic on his first day in Webaverse This is an awesome Synoptic on his first day in Webaverse';
+  const minterUsername = 'robo';
+  const ownerUsername = 'sacks';
+  const minterAvatarUrl = testUserImgUrl;
+  const ownerAvatarUrl = testUserImgUrl;
+  m.render({
+    name,
+    tokenId,
+    type,
+    hash,
+    description,
+    minterUsername,
+    ownerUsername,
+    minterAvatarUrl,
+    ownerAvatarUrl,
+  })
+    .then(() => {
+      console.log('rendered');
+    })
+    .catch(err => {
+      console.warn(err);
+    });
   return m;
 };
 const eps = 0.00001;
