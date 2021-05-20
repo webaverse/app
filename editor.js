@@ -65,6 +65,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localPlane = new THREE.Plane();
 const localRaycaster = new THREE.Raycaster();
 
 let getEditor = () => null;
@@ -2124,8 +2125,26 @@ Promise.all([
           mouse,
           camera
         );
-        uiMesh.target.position.copy(localRaycaster.ray.direction)
-          .multiplyScalar(2);
+        
+        localPlane.setFromNormalAndCoplanarPoint(
+          localVector
+            .set(0, 0, 1)
+            .applyQuaternion(camera.quaternion),
+          localVector2
+            .copy(camera.position)
+            .add(
+              localVector3
+                .copy(localRaycaster.ray.direction)
+                .multiplyScalar(2)
+            )
+        );
+        const intersection = localRaycaster.ray.intersectPlane(localPlane, localVector);
+        if (!intersection) {
+          debugger;
+        }
+        uiMesh.target.position.copy(intersection)
+          .sub(camera.position);
+        // console.log('got distance', uiMesh.target.position.length());
         uiMesh.target.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             localVector.set(0, 0, 0),
