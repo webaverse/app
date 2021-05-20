@@ -407,7 +407,6 @@ const _makeContextMenuMesh = uiMesh => {
   };
   return m;
 };
-const eps = 0.00001;
 const cardPreviewHost = `https://card-preview.exokit.org`;
 
 const cardWidth = 0.063;
