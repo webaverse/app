@@ -664,17 +664,17 @@ ioManager.bindInput = () => {
   
   scene.addEventListener('click', event => {
     const e = event.event;
-	  if (e.buttons === 0) {
-      if (document.pointerLockElement) {
-        weaponsManager.menuClick();
+    if (document.pointerLockElement) {
+      weaponsManager.menuClick();
+    } else {
+      weaponsManager.setContextMenu(false);
+      
+      const mouseHoverObject = weaponsManager.getMouseHoverObject();
+      if (mouseHoverObject) {
+        console.log('click object', mouseHoverObject);
       } else {
-        const mouseHoverObject = weaponsManager.getMouseHoverObject();
-        if (mouseHoverObject) {
-          console.log('click object', mouseHoverObject);
-        } else {
-          weaponsManager.setMenu(0);
-          cameraManager.requestPointerLock();
-        }
+        weaponsManager.setMenu(0);
+        cameraManager.requestPointerLock();
       }
     }
   });
