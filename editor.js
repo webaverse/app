@@ -60,6 +60,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -67,12 +68,24 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 const localRaycaster = new THREE.Raycaster();
+const localArray = [];
 
 let getEditor = () => null;
 let getFiles = () => null;
 let getSelectedFileIndex = () => null;
 let getErrors = () => null;
 let setErrors = () => {};
+
+const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+  const renderer = getRenderer();
+  const mouse = localVector2D;
+  mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
+  mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
+  raycaster.setFromCamera(
+    mouse,
+    camera
+  );
+};
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -344,6 +357,10 @@ const _makeContextMenuMesh = uiMesh => {
   const model = new THREE.Mesh(geometry, material);
   model.frustumCulled = false;
   
+  let width = 0;
+  let height = 0;
+  let anchors = null;
+  let optionsTextures = [];
   (async () => {
     const options = [
       'Select',
@@ -361,19 +378,39 @@ const _makeContextMenuMesh = uiMesh => {
       });
       return result;
     }));
+    optionsTextures = results
+      .filter((result, i) => options[i] !== null)
+      .map(result => {
+        const {
+          width: newWidth,
+          height: newHeight,
+          imageBitmap,
+          anchors: newAnchors,
+        } = result;
+        const map = new THREE.Texture(imageBitmap);
+        map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+        map.magFilter = THREE.LinearFilter;
+        map.encoding = THREE.sRGBEncoding;
+        map.anisotropy = 16;
+        map.needsUpdate = true;
+        return map;
+      });
     
-    const result = results[0];
-    const {width, height, imageBitmap, anchors} = result;
-    material.map.image = imageBitmap;
-    material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
-    material.map.magFilter = THREE.LinearFilter;
-    material.map.encoding = THREE.sRGBEncoding;
-    material.map.anisotropy = 16;
-    material.map.needsUpdate = true;
+    material.map = optionsTextures[0];
+
+    const result = results[0];    
+    const {
+      width: newWidth,
+      height: newHeight,
+      imageBitmap,
+      anchors: newAnchors,
+    } = result;
+    model.scale.set(1, newHeight / newWidth, 1);
     
     console.log('anchors', anchors);
-    
-    model.scale.set(1, height / width, 1);
+    anchors = newAnchors;
+    width = newWidth;
+    height = newHeight;
   })();
   
   const m = new THREE.Object3D();
@@ -410,6 +447,19 @@ const _makeContextMenuMesh = uiMesh => {
       }
     } else {
       _setDefaultScale();
+    }
+  };
+  m.intersectUv = uv => {
+    if (anchors && width && height && optionsTextures) {
+      const coords = localVector2D.copy(uv)
+        .multiply(localVector2D2.set(width, height));
+      const anchorIndex = anchors.findIndex(anchor => {
+        return (
+          (coords.x >= anchor.left && coords.x < anchor.right) &&
+          (coords.y >= anchor.top && coords.y < anchor.bottom)
+        );
+      });
+      material.map = optionsTextures[anchorIndex];
     }
   };
   return m;
@@ -2125,14 +2175,9 @@ Promise.all([
         uiMesh.update();
       });
       renderer.domElement.addEventListener('mousemove', e => {   
-        const mouse = localVector2D;
-        mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
-	      mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
-        localRaycaster.setFromCamera(
-          mouse,
-          camera
-        );
+        _updateRaycasterFromMouseEvent(localRaycaster, e);
         
+        // project mesh outwards
         localPlane.setFromNormalAndCoplanarPoint(
           localVector
             .set(0, 0, 1)
@@ -2164,6 +2209,17 @@ Promise.all([
       scene.add(contextMenuMesh);
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
+      });
+      renderer.domElement.addEventListener('mousemove', e => {   
+        _updateRaycasterFromMouseEvent(localRaycaster, e);
+        
+        if (contextMenuMesh.visible) {
+          localArray.length = 0;
+          const intersections = localRaycaster.intersectObject(contextMenuMesh, true, localArray);
+          if (intersections.length > 0) {
+            contextMenuMesh.intersectUv(intersections[0].uv);
+          }
+        }
       });
 
       const inventoryMesh = _makeInventoryMesh();
