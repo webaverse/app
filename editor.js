@@ -449,17 +449,20 @@ const _makeContextMenuMesh = uiMesh => {
       _setDefaultScale();
     }
   };
+  let highlightedIndex = -1;
+  m.getHighlightedIndex = () => highlightedIndex;
   m.intersectUv = uv => {
+    highlightedIndex = -1;
     if (anchors && width && height && optionsTextures) {
       const coords = localVector2D.copy(uv)
         .multiply(localVector2D2.set(width, height));
-      const anchorIndex = anchors.findIndex(anchor => {
+      highlightedIndex = anchors.findIndex(anchor => {
         return (
           (coords.x >= anchor.left && coords.x < anchor.right) &&
           (coords.y >= anchor.top && coords.y < anchor.bottom)
         );
       });
-      material.map = optionsTextures[anchorIndex];
+      material.map = optionsTextures[highlightedIndex];
     }
   };
   return m;
@@ -2209,6 +2212,11 @@ Promise.all([
       scene.add(contextMenuMesh);
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
+      });
+      renderer.domElement.addEventListener('click', e => {   
+        // _updateRaycasterFromMouseEvent(localRaycaster, e);
+        const highlightedIndex = contextMenuMesh.getHighlightedIndex();
+        console.log('got highlighted index', highlightedIndex);
       });
       renderer.domElement.addEventListener('mousemove', e => {   
         _updateRaycasterFromMouseEvent(localRaycaster, e);
