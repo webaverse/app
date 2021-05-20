@@ -352,6 +352,8 @@ const _makeContextMenuMesh = uiMesh => {
     ];
     const result = await htmlRenderer.renderContextMenu({
       options,
+      width: 512,
+      height: 512,
     });
     console.log('got result', result);
     material.map.image = result.imageBitmap;
