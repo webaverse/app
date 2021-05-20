@@ -8,12 +8,13 @@
 	.st1{fill:none;stroke:#FFFFFF;stroke-width:7;stroke-miterlimit:10;}
 	.st2{fill:#FFFFFF;}
 	.st3{fill:none;}
-	.st4{font-family:'RobotoCondensed-Regular';}
-	.st5{font-size:74px;}
-	.st6{opacity:0.3;fill:#FFFFFF;}
-	.st7{font-size:40px;}
-	.st8{letter-spacing:2;}
-	.st9{font-size:70px;}
+	.st4{fill:#999999;}
+	.st5{font-family:'RobotoCondensed-Regular';}
+	.st6{font-size:74px;}
+	.st7{opacity:0.3;fill:#FFFFFF;}
+	.st8{font-size:40px;}
+	.st9{letter-spacing:2;}
+	.st10{font-size:70px;}
 </style>
 <font horiz-adv-x="2048">
 <!-- Roboto Condensed is a trademark of Google. -->
@@ -939,9 +940,9 @@
 	<polygon class="st2" points="118.31,938.87 255.28,1074.85 403.45,1074.85 267.17,938.57 	"/>
 </g>
 <rect x="61.99" y="53.05" class="st3" width="983.68" height="719.09"/>
-<text id="left" transform="matrix(1 0 0 1 61.9903 108.5459)"><tspan x="0" y="0" class="st2 st4 st5">name:  </tspan><tspan x="0" y="88.8" class="st2 st4 st5">id: </tspan><tspan x="0" y="177.6" class="st2 st4 st5">type: </tspan><tspan x="0" y="266.4" class="st2 st4 st5">hash: </tspan><tspan x="0" y="355.2" class="st2 st4 st5">description: </tspan><tspan x="0" y="444" class="st2 st4 st5">-</tspan></text>
+<text id="left" transform="matrix(1 0 0 1 61.9903 108.5459)"><tspan x="0" y="0" class="st4 st5 st6">name</tspan><tspan x="161.59" y="0" class="st2 st5 st6"> </tspan><tspan x="0" y="88.8" class="st4 st5 st6">id</tspan><tspan x="0" y="177.6" class="st4 st5 st6">type</tspan><tspan x="0" y="266.4" class="st4 st5 st6">hash</tspan></text>
 <rect x="1036.56" y="66.77" class="st3" width="549.59" height="394.47"/>
-<text id="right" transform="matrix(1 0 0 1 1036.5565 96.7654)"><tspan x="0" y="0" class="st6 st4 st7 st8">CREATOR</tspan><tspan x="0" y="70" class="st2 st4 st9">avaer</tspan><tspan x="0" y="178" class="st6 st4 st7 st8">OWNER</tspan><tspan x="0" y="248" class="st2 st4 st9">sacks</tspan></text>
+<text id="right" transform="matrix(1 0 0 1 1036.5565 96.7654)"><tspan x="0" y="0" class="st7 st5 st8 st9">CREATOR</tspan><tspan x="0" y="70" class="st2 st5 st10">avaer</tspan><tspan x="0" y="178" class="st7 st5 st8 st9">OWNER</tspan><tspan x="0" y="248" class="st2 st5 st10">sacks</tspan></text>
 <rect id="owner-image-bg" x="885.36" y="246.59" class="st2" width="128" height="128"/>
 <rect id="creator-image-bg" x="885.36" y="64.58" class="st2" width="128" height="128"/>
 <image style="overflow:visible;" width="128" height="128" id="creator-image" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAgAElEQVR4XuW9B5xkVZk+/NxKXdU5
@@ -1718,4 +1719,6 @@ s2xt8wY3d3RVLH5dmy2q4AJ+9P3vRlmsDFluniA6Niq5IEqGgw88SHILZfG4xAt+e9ciAcEr2QK7
 +559CVvS8Jjg4YsgWDoMrHOdwCXquhCS3V2Sl9A9oDJKT1KMaz/crh+LB+bi+b50dDgkk1IFuAJT
 Ew6FPKUJF7ipoQ7TJjWjmgUjleWy+fb/B+dC4KYZnt4rAAAAAElFTkSuQmCC" transform="matrix(1 0 0 1 885.3552 246.59)">
 </image>
+<rect x="250.04" y="53.05" class="st3" width="339.93" height="428.01"/>
+<text id="middle" transform="matrix(1 0 0 1 250.0361 108.5459)"><tspan x="0" y="0" class="st2 st5 st6">X </tspan><tspan x="0" y="88.8" class="st2 st5 st6">X</tspan><tspan x="0" y="177.6" class="st2 st5 st6">X</tspan><tspan x="0" y="266.4" class="st2 st5 st6">X</tspan><tspan x="0" y="355.2" class="st2 st5 st6">X</tspan></text>
 </svg>
