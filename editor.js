@@ -2215,8 +2215,12 @@ Promise.all([
       });
       renderer.domElement.addEventListener('click', e => {   
         // _updateRaycasterFromMouseEvent(localRaycaster, e);
-        const highlightedIndex = contextMenuMesh.getHighlightedIndex();
-        console.log('got highlighted index', highlightedIndex);
+        const highlightedIndex = contextMenuMesh.getHighlightedIndex()
+        if (highlightedIndex === 3) {
+          const object = weaponsManager.getContextMenuObject();
+          // console.log('remove context menu object', object);
+          world.removeObject(object.instanceId);
+        }
       });
       renderer.domElement.addEventListener('mousemove', e => {   
         _updateRaycasterFromMouseEvent(localRaycaster, e);

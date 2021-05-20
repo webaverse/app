@@ -1734,6 +1734,7 @@ scene.addEventListener('contextmenu', e => {
   
   if (mouseHoverObject) {
     weaponsManager.setContextMenu(true);
+    weaponsManager.setContextMenuObject(mouseHoverObject);
   }
 });
 
@@ -1749,6 +1750,7 @@ const weaponsManager = {
   editMode: false,
   dragging: false,
   contextMenu: false,
+  contextMenuObject: null,
   editorHack: false,
   inventoryHack: false,
   /* getWeapon() {
@@ -1830,6 +1832,12 @@ const weaponsManager = {
   },
   setContextMenu(contextMenu) {
     this.contextMenu = contextMenu;
+  },
+  getContextMenuObject() {
+    return this.contextMenuObject;
+  },
+  setContextMenuObject(contextMenuObject) {
+    this.contextMenuObject = contextMenuObject;
   },
   menuUse() {
     _use();
