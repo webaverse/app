@@ -2030,7 +2030,6 @@ Promise.all([
       app.addEventListener('frame', () => {
         uiMesh.update();
       });
-      
       renderer.domElement.addEventListener('mousemove', e => {   
         const mouse = localVector2D;
         mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
@@ -2048,6 +2047,12 @@ Promise.all([
             localVector3.set(0, 1, 0)
           )
         );
+      });
+      
+      const contextMenuMesh = _makeContextMenuMesh(uiMesh);
+      scene.add(contextMenuMesh);
+      app.addEventListener('frame', () => {
+        contextMenuMesh.update();
       });
 
       const inventoryMesh = _makeInventoryMesh();

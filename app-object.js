@@ -50,13 +50,19 @@ function bindCanvas(c) {
       type: 'mousedown',
       event: e,
     });
-  })
+  });
   /* renderer.domElement.addEventListener('mouseup', e => {
     scene.dispatchEvent({
       type: 'mouseup',
       event: e,
     });
   }); */
+  renderer.domElement.addEventListener('contextmenu', e => {
+    scene.dispatchEvent({
+      type: 'contextmenu',
+      event: e,
+    });
+  });
 }
 function getRenderer() {
   return renderer;

@@ -688,6 +688,10 @@ ioManager.bindInput = () => {
       if (e.buttons & 2) { // right
         weaponsManager.menuAim();
       }
+    } else {
+      if (e.buttons & 2) { // right
+        weaponsManager.setContextMenu(false);
+      }
     }
     if (e.buttons & 4) { // middle
       weaponsManager.menuDragdown();
