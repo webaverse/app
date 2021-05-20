@@ -333,7 +333,7 @@ const _makeContextMenuMesh = uiMesh => {
       )
     );
   const material = new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
+    // color: 0x808080,
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
     transparent: true,
