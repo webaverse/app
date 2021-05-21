@@ -374,7 +374,9 @@ const _makeMouseUiMesh = () => {
   return m;
 };
 const lineBaseGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 1);
-const _makeLineMesh = (start, end, lineLength) => {
+const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
+  const start = new THREE.Vector3(0, 0, 0);
+  const end = new THREE.Vector3(0, lineLength, 0);
   const geometry = (() => {
     const distance = start.distanceTo(end);
     const geometries = [];
@@ -382,12 +384,12 @@ const _makeLineMesh = (start, end, lineLength) => {
     const direction = localVector2.copy(end)
       .sub(start)
       .normalize();
-    for (let d = 0; d < distance; d += lineLength*2) {
+    for (let d = 0; d < distance; d += lineSubLength*2) {
       const intervalStart = v;
       const intervalEnd = localVector3.copy(v)
         .add(
           localVector4.copy(direction)
-            .multiplyScalar(lineLength*2)
+            .multiplyScalar(lineSubLength*2)
         );
       const intervalMiddle = localVector5.copy(intervalStart)
         .add(intervalEnd)
@@ -403,7 +405,7 @@ const _makeLineMesh = (start, end, lineLength) => {
                 .sub(intervalStart)
                 .normalize()
             ),
-            localVector6.set(1, 1, lineLength)
+            localVector6.set(1, 1, lineSubLength)
           )
         );
       geometries.push(g);
@@ -417,9 +419,22 @@ const _makeLineMesh = (start, end, lineLength) => {
     color: 0xFFFFFF,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.update = () => {
+    mesh.position.copy(object.position);
+    mesh.quaternion.setFromUnitVectors(
+      localVector.set(0, 1, 0),
+      localVector2.copy(objectUiMesh.position)
+        .sub(object.position)
+        .normalize()
+    );
+    mesh.scale.y = object.position
+      .distanceTo(objectUiMesh.position) / lineLength;
+  };
   mesh.frustumCulled = false;
   return mesh;
 };
+const lineLength = 2;
+const lineSubLength = 0.1;
 const _makeObjectUiMesh = object => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
@@ -440,16 +455,8 @@ const _makeObjectUiMesh = object => {
   const model = new THREE.Mesh(geometry, material);
   model.frustumCulled = false;
   
-  const lineTotalLength = 1;
-  const lineMesh = _makeLineMesh(
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, -lineTotalLength, 0),
-    0.1
-  );
-  
   const m = new THREE.Object3D();
   m.add(model);
-  m.add(lineMesh);
   m.target = new THREE.Object3D();
   m.render = async ({
     name,
@@ -494,7 +501,7 @@ const _makeObjectUiMesh = object => {
     // cameraUiPlane.normal.multiplyScalar(-1);
     
     const objectPosition = localVector.copy(object.position)
-      .add(localVector2.set(0, 2, 0));
+      .add(localVector2.set(0, lineLength, 0));
     
     localRay.set(
       objectPosition,
@@ -2516,8 +2523,13 @@ Promise.all([
         const object = e.data;
         const objectUiMesh = _makeObjectUiMesh(object);
         scene.add(objectUiMesh);
+        
+        const lineMesh = _makeLineMesh(object, objectUiMesh, lineLength, lineSubLength);
+        scene.add(lineMesh);
+        
         app.addEventListener('frame', () => {
           objectUiMesh.update();
+          lineMesh.update();
         });
         objectUiMeshes.push(objectUiMesh);
       });
