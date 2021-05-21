@@ -451,6 +451,8 @@ const _makeObjectUiMesh = object => {
     localEuler.x = 0;
     localEuler.z = 0;
     m.quaternion.setFromEuler(localEuler);
+    
+    m.visible = !intersection || object.position.distanceTo(camera.position) < 8;
   };
   
   const name = 'shiva';
