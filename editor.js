@@ -2285,7 +2285,14 @@ Promise.all([
       });
       
       renderer.domElement.addEventListener('select', e => {
-        console.log('got select event', e);
+        const {object, physicsId} = e.data;
+        const objects = getObjects();
+        const index = objects.indexOf(object);
+        if (index !== -1) {
+          // console.log('got select', objects, object, index);
+          setSelectedObjectIndex(index);
+          setSelectedTab('scene');
+        }
       });
     }
     
