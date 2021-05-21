@@ -437,7 +437,6 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
 const lineLength = 0;
 const lineSubLength = 0.1;
 const _makeObjectUiMesh = object => {
-  console.log('got content id', object.contentId);
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
@@ -466,6 +465,7 @@ const _makeObjectUiMesh = object => {
     type,
     hash,
     description,
+    previewUrl,
     minterUsername,
     ownerUsername,
     minterAvatarUrl,
@@ -477,6 +477,7 @@ const _makeObjectUiMesh = object => {
       type,
       hash,
       description,
+      previewUrl,
       minterUsername,
       ownerUsername,
       imgUrl: testImgUrl,
@@ -527,27 +528,50 @@ const _makeObjectUiMesh = object => {
     return !intersection || objectPosition.distanceTo(camera.position) < 8;
   };
   
-  const name = 'shiva';
-  const tokenId = 42;
-  const type = 'vrm';
-  let hash = 'Qmej4c9FDJLTeSFhopvjF1f3KBi43xAk2j6v8jrzPQ4iRG';
-  hash = hash.slice(0, 6) + '...' + hash.slice(-2);
-  const description = 'This is an awesome Synoptic on his first day in Webaverse This is an awesome Synoptic on his first day in Webaverse';
-  const minterUsername = 'robo';
-  const ownerUsername = 'sacks';
-  const minterAvatarUrl = testUserImgUrl;
-  const ownerAvatarUrl = testUserImgUrl;
-  m.render({
-    name,
-    tokenId,
-    type,
-    hash,
-    description,
-    minterUsername,
-    ownerUsername,
-    minterAvatarUrl,
-    ownerAvatarUrl,
-  })
+  (async () => {
+    let name = '';
+    let tokenId = 0;
+    let type = '';
+    let hash = '';
+    let description = '';
+    let previewUrl = '';
+    let ownerUsername = '';
+    let minterUsername = '';
+    let ownerAvatarUrl = '';
+    let minterAvatarUrl = '';
+    const {contentId} = object;
+    if (typeof contentId === 'number') {
+      const res = await fetch(`${tokensHost}/${contentId}`);
+      const j = await res.json();
+      name = j.name;
+      hash = j.hash;
+      hash = hash.slice(0, 6) + '...' + hash.slice(-2);
+      type = j.ext;
+      description = j.description;
+      previewUrl = j.image;
+      minterUsername = j.minter.username;
+      ownerUsername = j.currentOwnerUsername;
+    } else if (typeof contentId === 'string') {
+      const match = contentId.match(/([^\/]*)$/);
+      const tail = match ? match[1] : contentId;
+      type = getExt(tail);
+      name = type ? tail.slice(0, tail.length - (type.length + 1)) : tail;
+      hash = '<url>';
+      description = contentId;
+    }
+    await m.render({
+      name,
+      tokenId,
+      type,
+      hash,
+      description,
+      previewUrl,
+      minterUsername,
+      ownerUsername,
+      minterAvatarUrl,
+      ownerAvatarUrl,
+    })
+  })()
     .then(() => {
       console.log('rendered');
     })
