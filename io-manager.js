@@ -599,34 +599,40 @@ ioManager.bindInput = () => {
   const _updateMouseHover = e => {
     const {clientX, clientY} = e;
     
+    let mouseHoverObject = null;
+    let mouseSelectedObject = null;
+    let mouseHoverPhysicsId = 0;
+    let htmlHover = false;
+    
     const renderer = getRenderer();
     renderer.getSize(localVector2D2);
     localVector2D.set(
       (clientX / localVector2D2.x) * 2 - 1,
       -(clientY / localVector2D2.y) * 2 + 1
     );
-    localRaycaster.setFromCamera(localVector2D, camera);
-    const position = localRaycaster.ray.origin;
-    const quaternion = localQuaternion.setFromUnitVectors(
-      localVector.set(0, 0, -1),
-      localRaycaster.ray.direction
-    );
-    
-    const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-    
-    let mouseHoverObject = null;
-    let mouseSelectedObject = null;
-    let mouseHoverPhysicsId = 0;
-    let htmlHover = false;
-    if (result) {
-      const object = world.getObjectFromPhysicsId(result.objectId);
-      if (object) {
-        if (object.isHtml) {
-          htmlHover = true;
-        } else {
-          if (!controlsManager.isPossessed()) {
-            mouseHoverObject = object;
-            mouseHoverPhysicsId = result.objectId;
+    if (
+      localVector2D.x >= -1 && localVector2D.x <= 1 &&
+      localVector2D.y >= -1 && localVector2D.y <= 1
+    ) {
+      localRaycaster.setFromCamera(localVector2D, camera);
+      const position = localRaycaster.ray.origin;
+      const quaternion = localQuaternion.setFromUnitVectors(
+        localVector.set(0, 0, -1),
+        localRaycaster.ray.direction
+      );
+      
+      const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      
+      if (result) {
+        const object = world.getObjectFromPhysicsId(result.objectId);
+        if (object) {
+          if (object.isHtml) {
+            htmlHover = true;
+          } else {
+            if (!controlsManager.isPossessed()) {
+              mouseHoverObject = object;
+              mouseHoverPhysicsId = result.objectId;
+            }
           }
         }
       }
