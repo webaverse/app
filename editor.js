@@ -94,7 +94,7 @@ const _updateRaycasterFromMouseEvent = (camera, raycaster, e) => {
     camera
   );
 };
-const _getCameraUiPlane = (camera, raycaster, plane) => {
+const _getCameraUiPlane = (camera, raycaster, plane, distance) => {
   plane.setFromNormalAndCoplanarPoint(
     localVector
       .set(0, 0, 1)
@@ -104,7 +104,7 @@ const _getCameraUiPlane = (camera, raycaster, plane) => {
       .add(
         localVector3
           .copy(raycaster.ray.direction)
-          .multiplyScalar(2)
+          .multiplyScalar(distance)
       )
   );
   return plane;
@@ -112,7 +112,7 @@ const _getCameraUiPlane = (camera, raycaster, plane) => {
 const _getUiForwardIntersection = (camera, e, raycaster) => {
   _updateRaycasterFromMouseEvent(camera, raycaster, e);
   // project mesh outwards
-  const cameraUiPlane = _getCameraUiPlane(camera, raycaster, localPlane);
+  const cameraUiPlane = _getCameraUiPlane(camera, raycaster, localPlane, 2);
   const intersection = raycaster.ray.intersectPlane(cameraUiPlane, localVector);
   return intersection;
 };
@@ -424,8 +424,13 @@ const _makeObjectUiMesh = object => {
     model.scale.set(1, result.height/result.width, 1);
   };
   m.update = () => {
-    
-    const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane);
+    const renderer = getRenderer();
+    const e = {
+      clientX: canvas.width / renderer.getPixelRatio(),
+      clientY: canvas.height / renderer.getPixelRatio(),
+    };
+    _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+    const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
     // cameraUiPlane.normal.multiplyScalar(-1);
     
     localRay.set(
