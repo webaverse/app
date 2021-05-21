@@ -1037,7 +1037,7 @@ class Avatar {
             },
           };
         }
-        if (!object.parser.json.extensions) {
+        /* if (!object.parser.json.extensions) {
           object.parser.json.extensions = {};
         }
         if (!object.parser.json.extensions.VRM) {
@@ -1077,7 +1077,7 @@ class Avatar {
               throw new Error('unsupported type');
             }
           };
-        }
+        } */
 
         springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
