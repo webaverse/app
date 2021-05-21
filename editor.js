@@ -59,6 +59,11 @@ window.fs = fs; */
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
@@ -368,6 +373,53 @@ const _makeMouseUiMesh = () => {
     });
   return m;
 };
+const lineBaseGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 1);
+const _makeLineMesh = (start, end, lineLength) => {
+  const geometry = (() => {
+    const distance = start.distanceTo(end);
+    const geometries = [];
+    const v = localVector.copy(start);
+    const direction = localVector2.copy(end)
+      .sub(start)
+      .normalize();
+    for (let d = 0; d < distance; d += lineLength*2) {
+      const intervalStart = v;
+      const intervalEnd = localVector3.copy(v)
+        .add(
+          localVector4.copy(direction)
+            .multiplyScalar(lineLength*2)
+        );
+      const intervalMiddle = localVector5.copy(intervalStart)
+        .add(intervalEnd)
+        .divideScalar(2);      
+      
+      const g = lineBaseGeometry.clone()
+        .applyMatrix4(
+          localMatrix.compose(
+            intervalMiddle,
+            localQuaternion.setFromUnitVectors(
+              localVector7.set(0, 0, -1),
+              localVector8.copy(intervalEnd)
+                .sub(intervalStart)
+                .normalize()
+            ),
+            localVector6.set(1, 1, lineLength)
+          )
+        );
+      geometries.push(g);
+        
+      v.copy(intervalEnd);
+    }
+    const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+    return geometry;
+  })();
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
 const _makeObjectUiMesh = object => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
@@ -388,8 +440,16 @@ const _makeObjectUiMesh = object => {
   const model = new THREE.Mesh(geometry, material);
   model.frustumCulled = false;
   
+  const lineTotalLength = 1;
+  const lineMesh = _makeLineMesh(
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, -lineTotalLength, 0),
+    0.1
+  );
+  
   const m = new THREE.Object3D();
   m.add(model);
+  m.add(lineMesh);
   m.target = new THREE.Object3D();
   m.render = async ({
     name,
@@ -433,18 +493,21 @@ const _makeObjectUiMesh = object => {
     const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
     // cameraUiPlane.normal.multiplyScalar(-1);
     
+    const objectPosition = localVector.copy(object.position)
+      .add(localVector2.set(0, 2, 0));
+    
     localRay.set(
-      localVector.copy(object.position),
+      objectPosition,
       localVector2.copy(camera.position)
-        .sub(object.position)
+        .sub(objectPosition)
         .normalize()
     );
     
-    const intersection = localRay.intersectPlane(cameraUiPlane, localVector);
-    if (intersection) {
+    const intersection = localRay.intersectPlane(cameraUiPlane, localVector2);
+    if (intersection && localRay.direction.dot(cameraUiPlane.normal) > 0) {
       m.position.copy(intersection);
     } else {
-      m.position.copy(object.position);
+      m.position.copy(objectPosition);
     }
     
     localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
@@ -452,7 +515,7 @@ const _makeObjectUiMesh = object => {
     localEuler.z = 0;
     m.quaternion.setFromEuler(localEuler);
     
-    m.visible = !intersection || object.position.distanceTo(camera.position) < 8;
+    m.visible = !intersection || objectPosition.distanceTo(camera.position) < 8;
   };
   
   const name = 'shiva';
