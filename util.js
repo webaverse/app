@@ -530,7 +530,9 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene, shadowMap) => {
+export const addDefaultLights = (scene, {
+  shadowMap = false,
+} = {}) => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
