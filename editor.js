@@ -2494,7 +2494,7 @@ Promise.all([
       app.addEventListener('frame', () => {
         mouseUiMesh.update();
       });
-      renderer.domElement.addEventListener('mousemove', e => {   
+      renderer.domElement.addEventListener('mousemove', e => {
         const intersection = _getUiForwardIntersection(camera, e, localRaycaster);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
