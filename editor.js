@@ -2305,8 +2305,6 @@ Promise.all([
       scene.add(cameraMesh);
 
       const uiMesh = _makeUiMesh();
-      // uiMesh.position.set(0, 2, -2);
-      // uiMesh.frustumCulled = false;
       scene.add(uiMesh);
       app.addEventListener('frame', () => {
         uiMesh.update();
