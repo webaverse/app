@@ -231,7 +231,7 @@ export default class App extends EventTarget {
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
-    }s
+    }
     renderer.render(scene, camera);
     renderer.render(orthographicScene, orthographicCamera);
     // low priority render
