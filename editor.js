@@ -2212,7 +2212,7 @@ Promise.all([
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
       });
-      renderer.domElement.addEventListener('click', async e => {   
+      renderer.domElement.addEventListener('click', async e => {
         // _updateRaycasterFromMouseEvent(localRaycaster, e);
         if (contextMenuMesh.visible) {
           const highlightedIndex = contextMenuMesh.getHighlightedIndex();
