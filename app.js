@@ -24,7 +24,7 @@ import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord} from './util.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager, bindCanvas} from './app-object.js';
+import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 import transformControls from './transform-controls.js';
@@ -94,6 +94,12 @@ export default class App extends EventTarget {
   }
   getScene() {
     return scene;
+  }
+  getSceneHighPriority() {
+    return sceneHighPriority;
+  }
+  getSceneLowPriority() {
+    return sceneLowPriority;
   }
   getCamera() {
     return camera;
@@ -220,14 +226,16 @@ export default class App extends EventTarget {
     // high priority render
     const renderer = getRenderer();
     renderer.clear();
-    renderer.render(scene3, camera);
+    renderer.render(sceneHighPriority, camera);
     // main render
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
-    }
+    }s
     renderer.render(scene, camera);
     renderer.render(orthographicScene, orthographicCamera);
+    // low priority render
+    renderer.render(sceneLowPriority, camera);
     // local avatar render
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
