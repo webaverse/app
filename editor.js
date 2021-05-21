@@ -70,6 +70,7 @@ const localPlane = new THREE.Plane();
 const localBox2D = new THREE.Box2();
 const localBox2D2 = new THREE.Box2();
 const localRaycaster = new THREE.Raycaster();
+const localRay = new THREE.Ray();
 const localArray = [];
 
 let getEditor = () => null;
@@ -98,7 +99,7 @@ const _getCameraUiPlane = (camera, raycaster, plane) => {
     localVector
       .set(0, 0, 1)
       .applyQuaternion(camera.quaternion),
-    localVector2sd
+    localVector2
       .copy(camera.position)
       .add(
         localVector3
@@ -423,8 +424,23 @@ const _makeObjectUiMesh = object => {
     model.scale.set(1, result.height/result.width, 1);
   };
   m.update = () => {
-    m.position.copy(object.position)
-      // .add(camera.position);
+    
+    const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane);
+    // cameraUiPlane.normal.multiplyScalar(-1);
+    
+    localRay.set(
+      localVector.copy(object.position),
+      localVector2.copy(camera.position)
+        .sub(object.position)
+        .normalize()
+    );
+    
+    const intersection = localRay.intersectPlane(cameraUiPlane, localVector);
+    if (intersection) {
+      m.position.copy(intersection);
+    } else {
+      m.position.copy(object.position);
+    }
     
     localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.x = 0;
