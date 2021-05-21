@@ -657,8 +657,8 @@ return () => {
   const [cards, setCards] = useState([]);
   const [searchResults, setSearchResults] = useState(null);
   const [objects, setObjects] = useState([]);
-  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-  const [selectedObjectIndex, setSelectedObjectIndex] = useState(-1);
+  const [selectedFileIndex, localSetSelectedFileIndex] = useState(0);
+  const [selectedObjectIndex, localSetSelectedObjectIndex] = useState(-1);
   const [q, setQ] = useState('');
   const [currentQ, setCurrentQ] = useState('');
   const [lastQ, setLastQ] = useState('');
@@ -680,6 +680,9 @@ return () => {
   getEditor = () => editor;
   getFiles = () => files;
   getSelectedFileIndex = () => selectedFileIndex;
+  setSelectedFileIndex = localSetSelectedFileIndex;
+  getSelectedObjectIndex = () => selectedObjectIndex;
+  setSelectedObjectIndex = localSetSelectedObjectIndex;
   getErrors = () => errors;
   setErrors = localSetErrors;
   
