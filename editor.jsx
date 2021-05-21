@@ -653,7 +653,7 @@ const Settings = React.memo(({open}) => {
 
 return () => {
   const [open, setOpen] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('editor');
+  const [selectedTab, localSetSelectedTab] = useState('editor');
   const [cards, setCards] = useState([]);
   const [searchResults, setSearchResults] = useState(null);
   const [objects, setObjects] = useState([]);
@@ -679,6 +679,8 @@ return () => {
   
   getEditor = () => editor;
   getFiles = () => files;
+  setSelectedTab = localSetSelectedTab;
+  getObjects = () => objects;
   getSelectedFileIndex = () => selectedFileIndex;
   setSelectedFileIndex = localSetSelectedFileIndex;
   getSelectedObjectIndex = () => selectedObjectIndex;
