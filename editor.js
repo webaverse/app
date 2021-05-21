@@ -16,7 +16,7 @@ import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import HtmlRenderer from 'html-render';
-import {storageHost} from './constants.js';
+import {storageHost, tokensHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
 import easing from './easing.js';
@@ -2212,7 +2212,7 @@ Promise.all([
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
       });
-      renderer.domElement.addEventListener('click', e => {   
+      renderer.domElement.addEventListener('click', async e => {   
         // _updateRaycasterFromMouseEvent(localRaycaster, e);
         if (contextMenuMesh.visible) {
           const highlightedIndex = contextMenuMesh.getHighlightedIndex();
@@ -2224,12 +2224,14 @@ Promise.all([
             }
             case 'Possess': {
               const object = weaponsManager.getContextMenuObject();
-              console.log('possesss context menu object', object);
+              // console.log('possesss context menu object', object);
               const {contentId} = object;
               if (typeof contentId === 'number') {
-                throw new Error('possessing number content ids not supported yet');
-                /* const ext = getExt(contentId);
-                app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm'); */
+                const res = await fetch(`${tokensHost}/${contentId}`);
+                const j = await res.json();
+                const {hash, name, ext} = j;
+                const u = `${storageHost}/ipfs/${hash}`;
+                app.setAvatarUrl(u, ext);
               } else if (typeof contentId === 'string') {
                 const ext = getExt(contentId);
                 app.setAvatarUrl(contentId, ext);
