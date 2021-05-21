@@ -72,6 +72,8 @@ const localArray = [];
 
 let getEditor = () => null;
 let getFiles = () => null;
+let setSelectedTab = () => null;
+let getObjects = () => null;
 let getSelectedFileIndex = () => null;
 let setSelectedFileIndex = () => null;
 let getSelectedObjectIndex = () => null;
