@@ -370,23 +370,32 @@ const contextMenuOptions = [
   'Remove',
 ];
 const realContextMenuOptions = contextMenuOptions.filter(o => !!o);
-const _makeContextMenuMesh = uiMesh => {
+const _makeContextMenuGeomery = (y, x) => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
-        localVector.set(1/2, -1/2, 0),
+        localVector.set(x/2, y/2, 0),
         localQuaternion.set(0, 0, 0, 1),
         localVector2.set(1, 1, 1),
       )
     );
   _flipGeomeryUvs(geometry);
+  return geometry;
+};
+const contextMenuGeometries = {
+  'top-left': _makeContextMenuGeomery(1, -1),
+  'top-right': _makeContextMenuGeomery(1, 1),
+  'bottom-left': _makeContextMenuGeomery(-1, -1),
+  'bottom-right': _makeContextMenuGeomery(-1, 1),
+};
+const _makeContextMenuMesh = uiMesh => {
   const material = new THREE.MeshBasicMaterial({
     // color: 0x808080,
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
     transparent: true,
   });
-  const model = new THREE.Mesh(geometry, material);
+  const model = new THREE.Mesh(contextMenuGeometries['bottom-right'], material);
   model.frustumCulled = false;
   
   let width = 0;
@@ -491,42 +500,66 @@ const _makeContextMenuMesh = uiMesh => {
             )
         ),
       );
+      
+      // try to fit the context menu on the screen
+      let overflowX = false;
+      let overflowY = false;
+      const bboxWidth = boundingBox.max.x - boundingBox.min.x;
+      const bboxHeight = boundingBox.max.y - boundingBox.min.y;
+      if (boundingBox.max.y > canvasBox.max.y && boundingBox.min.y - bboxHeight >= canvasBox.min.y) {
+        boundingBox.min.y -= bboxHeight;
+        boundingBox.max.y -= bboxHeight;
+        /* _updateRaycasterFromMouseEvent(localRaycaster, {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        });
+        
+        const intersection = _getUiForwardIntersection(localRaycaster);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection); */
+        
+        overflowY = true;
+      }
+      if (boundingBox.max.x > canvasBox.max.x && boundingBox.min.x - bboxWidth >= canvasBox.min.x) {
+        boundingBox.min.x -= bboxWidth;
+        boundingBox.max.x -= bboxWidth;
 
+        /* _updateRaycasterFromMouseEvent(localRaycaster, {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        });
+        
+        const intersection = _getUiForwardIntersection(localRaycaster);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection); */
+        
+        overflowX = true;
+      }
+      /* // abandon hope if we cannot fit
+      if (overflowX && overflowY) {
+        boundingBox.min.x += bboxWidth;
+        boundingBox.max.x += bboxWidth;
+        boundingBox.min.y += bboxHeight;
+        boundingBox.max.y += bboxHeight;
+        
+        overflowX = false;
+        overflowY = false;
+      } */
+      
+      const geometryKey =
+        (overflowY ? 'top' : 'bottom') +
+        '-' +
+        (overflowX ? 'left' : 'right');
+      model.geometry = contextMenuGeometries[geometryKey];
+      
       /* redElement.style.top = `${boundingBox.min.y}px`;
       redElement.style.left = `${boundingBox.min.x}px`;
       redElement.style.height = `${boundingBox.max.y - boundingBox.min.y}px`;
       redElement.style.width = `${boundingBox.max.x - boundingBox.min.x}px`; */
-      
-      if (boundingBox.max.y > canvasBox.max.y) {
-        const height = boundingBox.max.y - boundingBox.min.y;
-        boundingBox.min.y -= height;
-        boundingBox.max.y -= height;
-        _updateRaycasterFromMouseEvent(localRaycaster, {
-          clientX: boundingBox.min.x,
-          clientY: boundingBox.min.y,
-        });
-        
-        const intersection = _getUiForwardIntersection(localRaycaster);
-        if (!intersection) {
-          throw new Error('could not intersect in front of the camera; the math went wrong');
-        }
-        m.position.copy(intersection);
-      }
-      if (boundingBox.max.x > canvasBox.max.x) {
-        const width = boundingBox.max.x - boundingBox.min.x;
-        boundingBox.min.x -= width;
-        boundingBox.max.x -= width;
-        _updateRaycasterFromMouseEvent(localRaycaster, {
-          clientX: boundingBox.min.x,
-          clientY: boundingBox.min.y,
-        });
-        
-        const intersection = _getUiForwardIntersection(localRaycaster);
-        if (!intersection) {
-          throw new Error('could not intersect in front of the camera; the math went wrong');
-        }
-        m.position.copy(intersection);
-      }
       
       const now = Date.now();
       animationSpec = {
