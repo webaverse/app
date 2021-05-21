@@ -11,7 +11,7 @@ import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import weaponsManager from './weapons-manager.js';
-import {downloadFile} from './util.js';
+import {downloadFile, getExt} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
@@ -2225,7 +2225,15 @@ Promise.all([
             case 'Possess': {
               const object = weaponsManager.getContextMenuObject();
               console.log('possesss context menu object', object);
-              app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm');
+              const {contentId} = object;
+              if (typeof contentId === 'number') {
+                throw new Error('possessing number content ids not supported yet');
+                /* const ext = getExt(contentId);
+                app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm'); */
+              } else if (typeof contentId === 'string') {
+                const ext = getExt(contentId);
+                app.setAvatarUrl(contentId, ext);
+              }
               break;
             }
             case 'Edit': {
