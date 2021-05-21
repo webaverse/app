@@ -229,7 +229,7 @@ const _flipGeomeryUvs = geometry => {
     geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
   }
 };
-const _makeUiMesh = () => {
+const _makeMouseUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
@@ -331,6 +331,111 @@ const _makeUiMesh = () => {
     } else {
       _setDefaultScale();
     }
+  };
+  
+  const name = 'shiva';
+  const tokenId = 42;
+  const type = 'vrm';
+  let hash = 'Qmej4c9FDJLTeSFhopvjF1f3KBi43xAk2j6v8jrzPQ4iRG';
+  hash = hash.slice(0, 6) + '...' + hash.slice(-2);
+  const description = 'This is an awesome Synoptic on his first day in Webaverse This is an awesome Synoptic on his first day in Webaverse';
+  const minterUsername = 'robo';
+  const ownerUsername = 'sacks';
+  const minterAvatarUrl = testUserImgUrl;
+  const ownerAvatarUrl = testUserImgUrl;
+  m.render({
+    name,
+    tokenId,
+    type,
+    hash,
+    description,
+    minterUsername,
+    ownerUsername,
+    minterAvatarUrl,
+    ownerAvatarUrl,
+  })
+    .then(() => {
+      console.log('rendered');
+    })
+    .catch(err => {
+      console.warn(err);
+    });
+  return m;
+};
+const _makeObjectUiMesh = object => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(
+      localMatrix.compose(
+        localVector.set(1/2, 1/2, 0),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1),
+      )
+    );
+  _flipGeomeryUvs(geometry);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    map: new THREE.Texture(),
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.5,
+  });
+  const model = new THREE.Mesh(geometry, material);
+  model.frustumCulled = false;
+  
+  const m = new THREE.Object3D();
+  m.add(model);
+  m.target = new THREE.Object3D();
+  m.render = async ({
+    name,
+    tokenId,
+    type,
+    hash,
+    description,
+    minterUsername,
+    ownerUsername,
+    minterAvatarUrl,
+    ownerAvatarUrl,
+  }) => {
+    const result = await htmlRenderer.renderPopup({
+      name,
+      tokenId,
+      type,
+      hash,
+      description,
+      minterUsername,
+      ownerUsername,
+      imgUrl: testImgUrl,
+      minterAvatarUrl,
+      ownerAvatarUrl,
+    });
+    // console.log('got result', result);
+    /* const img = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `/assets/popup.svg`;
+    }); */
+    material.map.image = result;
+    material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+    material.map.magFilter = THREE.LinearFilter;
+    material.map.encoding = THREE.sRGBEncoding;
+    material.map.anisotropy = 16;
+    material.map.needsUpdate = true;
+    
+    model.scale.set(1, result.height/result.width, 1);
+  };
+  // let animationSpec = null;
+  // let lastHoverObject = null;
+  m.update = () => {
+    m.position.copy(object.position)
+      // .add(camera.position);
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    m.quaternion.setFromEuler(localEuler);
   };
   
   const name = 'shiva';
@@ -2304,10 +2409,10 @@ Promise.all([
       cameraMesh.frustumCulled = false;
       scene.add(cameraMesh);
 
-      const uiMesh = _makeUiMesh();
-      scene.add(uiMesh);
+      const mouseUiMesh = _makeMouseUiMesh();
+      scene.add(mouseUiMesh);
       app.addEventListener('frame', () => {
-        uiMesh.update();
+        mouseUiMesh.update();
       });
       renderer.domElement.addEventListener('mousemove', e => {   
         _updateRaycasterFromMouseEvent(localRaycaster, e);
@@ -2316,9 +2421,9 @@ Promise.all([
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
-        uiMesh.target.position.copy(intersection)
+        mouseUiMesh.target.position.copy(intersection)
           .sub(camera.position);
-        uiMesh.target.quaternion.setFromRotationMatrix(
+        mouseUiMesh.target.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             localVector.set(0, 0, 0),
             localVector2.set(0, 0, -1).applyQuaternion(camera.quaternion),
@@ -2327,7 +2432,19 @@ Promise.all([
         );
       });
       
-      const contextMenuMesh = _makeContextMenuMesh(uiMesh);
+      const objectUiMeshes = [];
+      world.addEventListener('objectsadd', e => {
+        // console.log('got object add', e);
+        const object = e.data;
+        const objectUiMesh = _makeObjectUiMesh(object);
+        scene.add(objectUiMesh);
+        app.addEventListener('frame', () => {
+          objectUiMesh.update();
+        });
+        objectUiMeshes.push(objectUiMesh);
+      });
+      
+      const contextMenuMesh = _makeContextMenuMesh(mouseUiMesh);
       scene.add(contextMenuMesh);
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
