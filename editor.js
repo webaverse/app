@@ -523,7 +523,7 @@ const _makeObjectUiMesh = object => {
     localEuler.z = 0;
     m.quaternion.setFromEuler(localEuler);
     
-    m.visible = !intersection || objectPosition.distanceTo(camera.position) < 8;
+    return !intersection || objectPosition.distanceTo(camera.position) < 8;
   };
   
   const name = 'shiva';
@@ -2521,6 +2521,7 @@ Promise.all([
       const objectUiMeshes = [];
       world.addEventListener('objectsadd', e => {
         const object = e.data;
+
         const objectUiMesh = _makeObjectUiMesh(object);
         scene.add(objectUiMesh);
         
@@ -2528,8 +2529,11 @@ Promise.all([
         scene.add(lineMesh);
         
         app.addEventListener('frame', () => {
-          objectUiMesh.update();
+          const visible = objectUiMesh.update();
           lineMesh.update();
+          
+          objectUiMesh.visible = visible;
+          lineMesh.visible = visible;
         });
         objectUiMeshes.push(objectUiMesh);
       });
