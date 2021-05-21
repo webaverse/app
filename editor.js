@@ -2349,7 +2349,6 @@ sacks3.vrm`,
         contentId: `https://avaer.github.io/hookshot/index.js`,
       }, */
     ];
-    window.THREE = THREE;
     for (const e of defaultScene) {
       const {position, quaternion, contentId} = e;
       const loadedObject = await world.addObject(contentId, null, position, quaternion, {
