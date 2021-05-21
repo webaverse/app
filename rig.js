@@ -259,9 +259,9 @@ class RigManager {
             localRig = new Avatar();
             localRig.aux = oldRig.aux;
             localRig.aux.rig = localRig;
-            // localRig.model = o;
-            console.log('local rig model', o);
-            debugger;
+            localRig.model = o;
+            // console.log('local rig model', o, localRig.model);
+            // debugger;
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
               localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
