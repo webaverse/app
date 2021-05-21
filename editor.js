@@ -458,6 +458,7 @@ const _makeObjectUiMesh = object => {
   
   const m = new THREE.Object3D();
   m.add(model);
+  m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
     name,
@@ -2565,6 +2566,15 @@ Promise.all([
           // lineMesh.visible = visible;
         });
         objectUiMeshes.push(objectUiMesh);
+      });
+      world.addEventListener('objectsremove', e => {
+        const object = e.data;
+        const objectUiMeshIndex = objectUiMeshes.findIndex(objectUiMesh => objectUiMesh.object === object);
+        if (objectUiMeshIndex !== -1) {
+          const objectUiMesh = objectUiMeshes[objectUiMeshIndex];
+          objectUiMesh.parent.remove(objectUiMesh);
+          objectUiMeshes.splice(objectUiMeshIndex, 1);
+        }
       });
       
       const contextMenuMesh = _makeContextMenuMesh(mouseUiMesh);
