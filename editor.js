@@ -2278,6 +2278,10 @@ Promise.all([
       app.addEventListener('frame', () => {
         loaderMesh.update();
       });
+      
+      renderer.domElement.addEventListener('select', e => {
+        console.log('got select event', e);
+      });
     }
     
     // load scene
