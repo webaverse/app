@@ -67,6 +67,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
+const localBox2D = new THREE.Box2();
+const localBox2D2 = new THREE.Box2();
 const localRaycaster = new THREE.Raycaster();
 const localArray = [];
 
@@ -90,6 +92,23 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
     mouse,
     camera
   );
+};
+const _getUiForwardIntersection = raycaster => {
+  // project mesh outwards
+  localPlane.setFromNormalAndCoplanarPoint(
+    localVector
+      .set(0, 0, 1)
+      .applyQuaternion(camera.quaternion),
+    localVector2
+      .copy(camera.position)
+      .add(
+        localVector3
+          .copy(raycaster.ray.direction)
+          .multiplyScalar(2)
+      )
+  );
+  const intersection = raycaster.ray.intersectPlane(localPlane, localVector);
+  return intersection;
 };
 
 function createPointerEvents(store) {
@@ -381,7 +400,7 @@ const _makeContextMenuMesh = uiMesh => {
           options: contextMenuOptions,
           selectedOptionIndex: i,
           width: 512,
-          height: 512,
+          height: 320,
         });
         return result;
       } else {
@@ -427,9 +446,87 @@ const _makeContextMenuMesh = uiMesh => {
   m.add(model);
   let animationSpec = null;
   let lastContextMenu = false;
+  
+  /* const redElement = document.createElement('div');
+  redElement.style.cssText = `\
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
+    background: #FF0000;
+    opacity: 0.5;
+    pointer-events: none;
+  `;
+  document.body.appendChild(redElement);
+  // window.redElement = redElement; */
+  
   m.update = () => {
     if (weaponsManager.contextMenu && !lastContextMenu) {
       m.position.copy(uiMesh.position);
+      m.updateMatrixWorld();
+
+      const renderer = getRenderer();
+      const projectVector = v => {
+        const canvas = renderer.domElement; 
+        v.project(camera);
+        v.x = Math.round((0.5 + v.x / 2) * (canvas.width / renderer.getPixelRatio()));
+        v.y = Math.round((0.5 - v.y / 2) * (canvas.height / renderer.getPixelRatio()));
+        return v;
+      };
+      const vector = projectVector(localVector.copy(m.position));
+      
+      const canvasBox = localBox2D.set(
+        localVector.set(0, 0, 0),
+        localVector2.set(canvas.width / renderer.getPixelRatio(), canvas.height / renderer.getPixelRatio(), 0),
+      );
+      // console.log('got ratio', width/height, model.scale.y);
+      const boundingBox = localBox2D2.set(
+        projectVector(localVector.copy(m.position)),
+        projectVector(
+          localVector2.copy(m.position)
+            .add(
+              localVector3.set(1, -height/width, 0)
+                .applyQuaternion(m.quaternion)
+            )
+        ),
+      );
+
+      /* redElement.style.top = `${boundingBox.min.y}px`;
+      redElement.style.left = `${boundingBox.min.x}px`;
+      redElement.style.height = `${boundingBox.max.y - boundingBox.min.y}px`;
+      redElement.style.width = `${boundingBox.max.x - boundingBox.min.x}px`; */
+      
+      if (boundingBox.max.y > canvasBox.max.y) {
+        const height = boundingBox.max.y - boundingBox.min.y;
+        boundingBox.min.y -= height;
+        boundingBox.max.y -= height;
+        _updateRaycasterFromMouseEvent(localRaycaster, {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        });
+        
+        const intersection = _getUiForwardIntersection(localRaycaster);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection);
+      }
+      if (boundingBox.max.x > canvasBox.max.x) {
+        const width = boundingBox.max.x - boundingBox.min.x;
+        boundingBox.min.x -= width;
+        boundingBox.max.x -= width;
+        _updateRaycasterFromMouseEvent(localRaycaster, {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        });
+        
+        const intersection = _getUiForwardIntersection(localRaycaster);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection);
+      }
       
       const now = Date.now();
       animationSpec = {
@@ -2184,20 +2281,7 @@ Promise.all([
       renderer.domElement.addEventListener('mousemove', e => {   
         _updateRaycasterFromMouseEvent(localRaycaster, e);
         
-        // project mesh outwards
-        localPlane.setFromNormalAndCoplanarPoint(
-          localVector
-            .set(0, 0, 1)
-            .applyQuaternion(camera.quaternion),
-          localVector2
-            .copy(camera.position)
-            .add(
-              localVector3
-                .copy(localRaycaster.ray.direction)
-                .multiplyScalar(2)
-            )
-        );
-        const intersection = localRaycaster.ray.intersectPlane(localPlane, localVector);
+        const intersection = _getUiForwardIntersection(localRaycaster);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
