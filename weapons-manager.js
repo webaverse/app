@@ -10,7 +10,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial} from './shaders.js';
+import {buildMaterial, highlightMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
@@ -178,9 +178,9 @@ const _makeTargetMesh = (() => {
     return mesh;
   };
 })();
-const _makeHighlightPhysicsMesh = () => {
+const _makeHighlightPhysicsMesh = material => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  const material = buildMaterial.clone();
+  material = material.clone();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.physicsId = 0;
@@ -192,12 +192,15 @@ highlightMesh.visible = false;
 scene.add(highlightMesh);
 let highlightedObject = null;
 
-const highlightPhysicsMesh = _makeHighlightPhysicsMesh();
+const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
 highlightPhysicsMesh.visible = false;
 scene.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
 
+const mouseHighlightPhysicsMesh = _makeHighlightPhysicsMesh(highlightMaterial);
+mouseHighlightPhysicsMesh.visible = false;
+scene.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
 let mouseSelectedObject = null;
@@ -765,9 +768,9 @@ const _updateWeapons = () => {
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
 
-    const h = mouseHoverObject || highlightedPhysicsObject
+    const h = highlightedPhysicsObject;
     if (h) {
-      const physicsId = mouseHoverObject ? mouseHoverPhysicsId : highlightedPhysicsId;
+      const physicsId = highlightedPhysicsId;
       if (highlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
 
@@ -795,6 +798,40 @@ const _updateWeapons = () => {
     }
   };
   _updatePhysicsHighlight();
+
+  const _updateMouseHighlight = () => {
+    mouseHighlightPhysicsMesh.visible = false;
+
+    const h = mouseHoverObject;
+    if (h) {
+      const physicsId = mouseHoverPhysicsId;
+      if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
+        const physics = physicsManager.getGeometry(physicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          mouseHighlightPhysicsMesh.geometry.dispose();
+          mouseHighlightPhysicsMesh.geometry = geometry;
+          // mouseHighlightPhysicsMesh.scale.setScalar(1.05);
+          mouseHighlightPhysicsMesh.physicsId = physicsId;
+        }
+      }
+
+      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+      mouseHighlightPhysicsMesh.position.copy(physicsTransform.position);
+      mouseHighlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+      mouseHighlightPhysicsMesh.scale.copy(physicsTransform.scale);
+      mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+      mouseHighlightPhysicsMesh.visible = true;
+    }
+  };
+  _updateMouseHighlight();
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
