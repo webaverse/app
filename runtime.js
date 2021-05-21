@@ -1000,6 +1000,27 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.contentId = contentId;
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  mesh.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      mesh.position,        
+      mesh.quaternion,
+      new THREE.Vector3(width/2, height/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.hit = () => {
     console.log('hit', mesh); // XXX
     return {
