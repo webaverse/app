@@ -1712,70 +1712,6 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   return o;
 };
-/* const _loadIframe = async (file, {contentId = null}) => {
-  let href;
-  if (file.url) {
-    const res = await fetch(file.url);
-    href = await res.text();
-  } else {
-    href = await file.text();
-  }
-  href = href.replace(/^([\S]*)/, '$1');
-
-  const width = 600;
-  const height = 400;
-
-  const iframe = document.createElement('iframe');
-  iframe.src = href;
-  iframe.allow = 'monetization';
-  iframe.style.width = width + 'px';
-  iframe.style.height = height + 'px';
-  // iframe.style.opacity = 0.75;
-  iframe.style.background = 'white';
-  // iframe.style.backfaceVisibility = 'visible';
-
-  const object = new CSS3DObject(iframe);
-  // object.position.set(0, 1, 0);
-  // object.scale.setScalar(0.01);
-  object.frustumCulled = false;
-
-  const object2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(width, height), new THREE.MeshBasicMaterial({
-    transparent: true,
-    // color: 0xFF0000,
-    opacity: 0,
-    side: THREE.DoubleSide,
-  }));
-  // object2.position.copy(object.position);
-  // object2.quaternion.copy(object.quaternion);
-  // object2.scale.copy(object.scale);
-  object2.scale.setScalar(0.01);
-  object2.frustumCulled = false;
-  object2.renderOrder = -Infinity;
-  // scene3.add(object2);
-  object2.onAfterRender = () => {
-    object.position.copy(object2.position);
-    object.quaternion.copy(object2.quaternion);
-    object.scale.copy(object2.scale);
-    object.matrix.copy(object2.matrix);
-    object.matrixWorld.copy(object2.matrixWorld);
-  };
-  object2.contentId = contentId;
-  object2.run = async () => {
-    scene2.add(object);
-  };
-  object2.destroy = () => {
-    scene2.remove(object);
-  };
-  object2.hit = () => {
-    console.log('hit', object2); // XXX
-    return {
-      hit: false,
-      died: false,
-    };
-  };
-  
-  return object2;
-}; */
 class IFrameMesh extends THREE.Mesh {
   constructor({
     iframe,
@@ -2087,7 +2023,6 @@ const typeHandlers = {
   'wbn': _loadWebBundle,
   'scn': _loadScene,
   'url': _loadPortal,
-  // 'iframe': _loadIframe,
   'html': _loadHtml,
   'mediastream': _loadMediaStream,
   'geo': _loadGeo,
