@@ -615,6 +615,7 @@ ioManager.bindInput = () => {
     const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
     
     let mouseHoverObject = null;
+    let mouseSelectedObject = null;
     let mouseHoverPhysicsId = 0;
     let htmlHover = false;
     if (result) {
@@ -670,8 +671,9 @@ ioManager.bindInput = () => {
       weaponsManager.setContextMenu(false);
       
       const mouseHoverObject = weaponsManager.getMouseHoverObject();
+      const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
       if (mouseHoverObject) {
-        console.log('click object', mouseHoverObject);
+        weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
       } else {
         weaponsManager.setMenu(0);
         cameraManager.requestPointerLock();

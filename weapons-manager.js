@@ -200,6 +200,8 @@ let highlightedPhysicsId = 0;
 
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
+let mouseSelectedObject = null;
+let mouseSelectedPhysicsId = 0;
 
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -2070,9 +2072,30 @@ const weaponsManager = {
   getMouseHoverObject() {
     return mouseHoverObject;
   },
+  getMouseHoverPhysicsId() {
+    return mouseHoverPhysicsId;
+  },
   setMouseHoverObject(o, physicsId) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
+  },
+  getMouseSelectedObject() {
+    return mouseSelectedObject;
+  },
+  getMouseSelectedPhysicsId() {
+    return mouseSelectedPhysicsId;
+  },
+  setMouseSelectedObject(o, physicsId) {
+    mouseSelectedObject = o;
+    mouseSelectedPhysicsId = physicsId;
+    
+    const renderer = getRenderer();
+    renderer.domElement.dispatchEvent(new MessageEvent('select', {
+      data: {
+        object: mouseSelectedObject,
+        physicsId: mouseSelectedPhysicsId,
+      },
+    }));
   },
   getSpeed() {
     const defaultSpeed = 0.1;
