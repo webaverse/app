@@ -9,7 +9,7 @@ import physicsManager from './physics-manager.js';
 import transformControls from './transform-controls.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {camera, appManager, scene, scene3} from './app-object.js';
+import {camera, appManager, scene, sceneHighPriority} from './app-object.js';
 import {baseUnit} from './constants.js';
 import {contentIdToFile, unFrustumCull} from './util.js';
 import {
@@ -387,7 +387,7 @@ for (const arrayName of [
           mesh.parentId = parentId;
 
           if (mesh.renderOrder === -Infinity) {
-            scene3.add(mesh);
+            sceneHighPriority.add(mesh);
           } else {
             scene.add(mesh);
           }

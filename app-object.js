@@ -96,8 +96,21 @@ scene.add(dolly);
 const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 scene.add(orthographicCamera);
 
-addDefaultLights(scene, true);
-addDefaultLights(avatarScene, false);
+const sceneHighPriority = new THREE.Scene();
+const sceneLowPriority = new THREE.Scene();
+
+addDefaultLights(scene, {
+  shadowMap: true,
+});
+addDefaultLights(sceneHighPriority, {
+  shadowMap: false,
+});
+addDefaultLights(sceneLowPriority, {
+  shadowMap: false,
+});
+addDefaultLights(avatarScene, {
+  shadowMap: false,
+});
 
 /* const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
@@ -106,9 +119,6 @@ renderer2.domElement.style.top = 0;
 if (canvas.parentNode) {
   document.body.insertBefore(renderer2.domElement, canvas);
 } */
-
-const scene2 = new THREE.Scene();
-const scene3 = new THREE.Scene();
 
 const localData = {
   timestamp: 0,
@@ -221,8 +231,8 @@ export {
   avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/
-  scene2,
-  scene3,
+  sceneHighPriority,
+  sceneLowPriority,
   iframeContainer,
   iframeContainer2,
   appManager,

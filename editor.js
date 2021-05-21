@@ -2514,6 +2514,8 @@ Promise.all([
     // hacks
     {
       const scene = app.getScene();
+      // const sceneHighPriority = app.getSceneHighPriority();
+      const sceneLowPriority = app.getSceneLowPriority();
         
       const g = new CameraGeometry();
       const m = new THREE.MeshBasicMaterial({
@@ -2550,7 +2552,7 @@ Promise.all([
         const object = e.data;
 
         const objectUiMesh = _makeObjectUiMesh(object);
-        scene.add(objectUiMesh);
+        sceneLowPriority.add(objectUiMesh);
         
         /* const lineMesh = _makeLineMesh(object, objectUiMesh, lineLength, lineSubLength);
         scene.add(lineMesh); */
