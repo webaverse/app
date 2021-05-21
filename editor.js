@@ -73,6 +73,9 @@ const localArray = [];
 let getEditor = () => null;
 let getFiles = () => null;
 let getSelectedFileIndex = () => null;
+let setSelectedFileIndex = () => null;
+let getSelectedObjectIndex = () => null;
+let setSelectedObjectIndex = () => null;
 let getErrors = () => null;
 let setErrors = () => {};
 
