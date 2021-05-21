@@ -413,16 +413,6 @@ const _makeObjectUiMesh = object => {
       minterAvatarUrl,
       ownerAvatarUrl,
     });
-    // console.log('got result', result);
-    /* const img = await new Promise((accept, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `/assets/popup.svg`;
-    }); */
     material.map.image = result;
     material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
     material.map.magFilter = THREE.LinearFilter;
@@ -432,13 +422,10 @@ const _makeObjectUiMesh = object => {
     
     model.scale.set(1, result.height/result.width, 1);
   };
-  // let animationSpec = null;
-  // let lastHoverObject = null;
   m.update = () => {
-    
-    
     m.position.copy(object.position)
       // .add(camera.position);
+    
     localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
