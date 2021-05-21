@@ -695,7 +695,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
         boundingBox.min.y -= bboxHeight;
         boundingBox.max.y -= bboxHeight;
         
-        const e = {
+        /* const e = {
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
         };
@@ -703,7 +703,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
-        m.position.copy(intersection);
+        m.position.copy(intersection); */
         
         overflowY = true;
       }
