@@ -373,7 +373,10 @@ const _makeMouseUiMesh = () => {
     });
   return m;
 };
-const lineBaseGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 1);
+const lineBaseGeometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
+const lineMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFFFFFF,
+});
 const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
   const start = new THREE.Vector3(0, 0, 0);
   const end = new THREE.Vector3(0, lineLength, 0);
@@ -415,9 +418,7 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
     const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
     return geometry;
   })();
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
-  });
+  const material = lineMaterial;
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = () => {
     mesh.position.copy(object.position);
@@ -2519,7 +2520,6 @@ Promise.all([
       
       const objectUiMeshes = [];
       world.addEventListener('objectsadd', e => {
-        // console.log('got object add', e);
         const object = e.data;
         const objectUiMesh = _makeObjectUiMesh(object);
         scene.add(objectUiMesh);
