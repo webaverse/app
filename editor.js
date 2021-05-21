@@ -2325,6 +2325,11 @@ shilo.vrm`,
         u: `https://webaverse.github.io/assets/
 sacks3.vrm`,
       },
+      {
+        position: new THREE.Vector3(-2, 0, -6),
+        quaternion: new THREE.Quaternion(),
+        u: `https://avaer.github.io/dragon-pet/manifest.json`,
+      },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
