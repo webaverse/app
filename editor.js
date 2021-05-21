@@ -2280,6 +2280,7 @@ Promise.all([
       });
     }
     
+    // load scene
     const defaultScene = [
       {
         position: new THREE.Vector3(),
