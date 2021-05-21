@@ -2101,10 +2101,6 @@ const bindTextarea = codeEl => {
     const s = await res.text();
     return s;
   })();
-  
-  const reset = () => {
-    console.log('reset');
-  };
   const setCameraMode = cameraMode => {
     console.log('got new camera mode', {cameraMode});
     if (cameraMode === 'avatar') {
@@ -2218,26 +2214,30 @@ Promise.all([
       });
       renderer.domElement.addEventListener('click', e => {   
         // _updateRaycasterFromMouseEvent(localRaycaster, e);
-        const highlightedIndex = contextMenuMesh.getHighlightedIndex();
-        const option = realContextMenuOptions[highlightedIndex];
-        switch (option) {
-          case 'Select': {
-            console.log('click select');
-            break;
-          }
-          case 'Possess': {
-            console.log('click possess');
-            break;
-          }
-          case 'Edit': {
-            console.log('click edit');
-            break;
-          }
-          case 'Remove': {
-            const object = weaponsManager.getContextMenuObject();
-            // console.log('remove context menu object', object);
-            world.removeObject(object.instanceId);
-            break;
+        if (contextMenuMesh.visible) {
+          const highlightedIndex = contextMenuMesh.getHighlightedIndex();
+          const option = realContextMenuOptions[highlightedIndex];
+          switch (option) {
+            case 'Select': {
+              console.log('click select');
+              break;
+            }
+            case 'Possess': {
+              const object = weaponsManager.getContextMenuObject();
+              console.log('possesss context menu object', object);
+              app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm');
+              break;
+            }
+            case 'Edit': {
+              console.log('click edit');
+              break;
+            }
+            case 'Remove': {
+              const object = weaponsManager.getContextMenuObject();
+              // console.log('remove context menu object', object);
+              world.removeObject(object.instanceId);
+              break;
+            }
           }
         }
       });
