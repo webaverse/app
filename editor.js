@@ -2282,7 +2282,7 @@ Promise.all([
       {
         position: new THREE.Vector3(),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/home/home.glb`,
+        contentId: `https://avaer.github.io/home/home.glb`,
       },
       {
         position: new THREE.Vector3(-3, 0, -2),
@@ -2290,7 +2290,7 @@ Promise.all([
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
         ),
-        u: `https://webaverse.github.io/assets/table.glb`,
+        contentId: `https://webaverse.github.io/assets/table.glb`,
       },
       {
         position: new THREE.Vector3(2, 0, -3),
@@ -2298,12 +2298,12 @@ Promise.all([
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
         ) */,
-        u: `https://avaer.github.io/mirror/index.js`,
+        contentId: `https://avaer.github.io/mirror/index.js`,
       },
       {
         position: new THREE.Vector3(-1, 1.5, -1.5),
         quaternion: new THREE.Quaternion(),
-        u: `https://silk.webaverse.com/index.t.js`,
+        contentId: `https://silk.webaverse.com/index.t.js`,
       },
       {
         position: new THREE.Vector3(-3, 0, -3.5),
@@ -2312,7 +2312,7 @@ Promise.all([
             new THREE.Vector3(0, 1, 0),
             -Math.PI/2
           ),
-        u: `https://webaverse.github.io/assets/
+        contentId: `https://webaverse.github.io/assets/
 shilo.vrm`,
       },
       {
@@ -2322,34 +2322,47 @@ shilo.vrm`,
             new THREE.Vector3(0, 1, 0),
             -Math.PI/2
           ),
-        u: `https://webaverse.github.io/assets/
+        contentId: `https://webaverse.github.io/assets/
 sacks3.vrm`,
       },
       {
         position: new THREE.Vector3(-2, 0, -6),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/dragon-pet/manifest.json`,
+        contentId: `https://avaer.github.io/dragon-pet/manifest.json`,
+      },
+      {
+        position: new THREE.Vector3(3, 3, -7),
+        quaternion: new THREE.Quaternion()
+          .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+        contentId: 188,
       },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/lightsaber/manifest.json`,
+        contentId: `https://avaer.github.io/lightsaber/manifest.json`,
       },
       {
         position: new THREE.Vector3(-3, 1.5, -2),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/hookshot/index.js`,
+        contentId: `https://avaer.github.io/hookshot/index.js`,
       }, */
     ];
     window.THREE = THREE;
     for (const e of defaultScene) {
-      const {position, quaternion, u} = e;
-      const loadedObject = await world.addObject(u, null, position, quaternion, {
+      const {position, quaternion, contentId} = e;
+      const loadedObject = await world.addObject(contentId, null, position, quaternion, {
         // physics,
         // physics_url,
         // autoScale,
       });
-      loadedObject.name = u.match(/([^\/]*)$/)[1];
+      const _getName = contentId => {
+        if (typeof contentId === 'number') {
+          return contentId + '';
+        } else {
+          return contentId.match(/([^\/]*)$/)[1];
+        }
+      };
+      loadedObject.name = _getName(contentId);
     }
   });
 
