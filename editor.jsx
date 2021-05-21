@@ -381,7 +381,11 @@ const Scene = React.memo(({objects, setObjects, open, selectedObjectIndex, setSe
             :
               <div
                 className={['object', selectedObjectIndex === i ? 'selected' : ''].join(' ')}
-                onClick={e => setSelectedObjectIndex(i)}
+                onClick={e => {
+                  const object = objects[i];
+                  const physicsId = object.getPhysicsIds ? object.getPhysicsIds() : 0;
+                  weaponsManager.setMouseSelectedObject(object, physicsId);
+                }}
                 tabIndex={-1}
                 onKeyDown={e => {
                   if (e.which === 46) {
