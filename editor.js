@@ -315,7 +315,7 @@ const _makeMouseUiMesh = () => {
     m.position.copy(m.target.position)
       .add(camera.position);
     m.quaternion.copy(m.target.quaternion);
-    m.visible = !!hoverObject;
+    m.visible = false; // !!hoverObject;
     
     if (hoverObject !== lastHoverObject) {
       const now = Date.now();
