@@ -853,7 +853,16 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   let physicsIds = [];
   let staticPhysicsIds = [];
   o.run = async () => {
-    const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
+    const physicsId = physicsManager.addBoxGeometry(
+      o.position.clone()
+        .add(
+          new THREE.Vector3(0, 1.5/2, 0)
+            .applyQuaternion(o.quaternion)
+        ),
+        o.quaternion,
+        new THREE.Vector3(0.3, 1.5/2, 0.3),
+        false
+    );
     physicsIds.push(physicsId);
     staticPhysicsIds.push(physicsId);
     
