@@ -434,7 +434,7 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
   mesh.frustumCulled = false;
   return mesh;
 };
-const lineLength = 2;
+const lineLength = 0;
 const lineSubLength = 0.1;
 const _makeObjectUiMesh = object => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
