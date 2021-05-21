@@ -573,7 +573,7 @@ const contextMenuGeometries = {
   'bottom-left': _makeContextMenuGeomery(-1, -1),
   'bottom-right': _makeContextMenuGeomery(-1, 1),
 };
-const _makeContextMenuMesh = uiMesh => {
+const _makeContextMenuMesh = mouseUiMesh => {
   const material = new THREE.MeshBasicMaterial({
     // color: 0x808080,
     map: new THREE.Texture(),
@@ -657,7 +657,7 @@ const _makeContextMenuMesh = uiMesh => {
   
   m.update = () => {
     if (weaponsManager.contextMenu && !lastContextMenu) {
-      m.position.copy(uiMesh.position);
+      m.position.copy(mouseUiMesh.position);
       m.updateMatrixWorld();
 
       const renderer = getRenderer();
@@ -752,7 +752,7 @@ const _makeContextMenuMesh = uiMesh => {
         endTime: now + 1000,
       };
     }
-    m.quaternion.copy(uiMesh.quaternion);
+    m.quaternion.copy(mouseUiMesh.quaternion);
     m.visible = weaponsManager.contextMenu;
     lastContextMenu = weaponsManager.contextMenu;
     
