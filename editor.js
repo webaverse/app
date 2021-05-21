@@ -550,7 +550,9 @@ const _makeObjectUiMesh = object => {
       description = j.description;
       previewUrl = j.image;
       minterUsername = j.minter.username;
-      ownerUsername = j.currentOwnerUsername;
+      minterAvatarUrl = j.minter.avatarPreview;
+      ownerUsername = j.owner.username;
+      ownerAvatarUrl = j.owner.avatarPreview;
     } else if (typeof contentId === 'string') {
       const match = contentId.match(/([^\/]*)$/);
       const tail = match ? match[1] : contentId;
@@ -573,7 +575,7 @@ const _makeObjectUiMesh = object => {
     })
   })()
     .then(() => {
-      console.log('rendered');
+      // console.log('rendered');
     })
     .catch(err => {
       console.warn(err);
