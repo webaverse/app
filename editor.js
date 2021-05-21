@@ -2525,15 +2525,15 @@ Promise.all([
         const objectUiMesh = _makeObjectUiMesh(object);
         scene.add(objectUiMesh);
         
-        const lineMesh = _makeLineMesh(object, objectUiMesh, lineLength, lineSubLength);
-        scene.add(lineMesh);
+        /* const lineMesh = _makeLineMesh(object, objectUiMesh, lineLength, lineSubLength);
+        scene.add(lineMesh); */
         
         app.addEventListener('frame', () => {
           const visible = objectUiMesh.update();
-          lineMesh.update();
+          // lineMesh.update();
           
           objectUiMesh.visible = visible;
-          lineMesh.visible = visible;
+          // lineMesh.visible = visible;
         });
         objectUiMeshes.push(objectUiMesh);
       });
