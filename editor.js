@@ -83,7 +83,7 @@ let setSelectedObjectIndex = () => null;
 let getErrors = () => null;
 let setErrors = () => {};
 
-const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+const _updateRaycasterFromMouseEvent = (camera, raycaster, e) => {
   const renderer = getRenderer();
   const mouse = localVector2D;
   mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
@@ -93,13 +93,12 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
     camera
   );
 };
-const _getUiForwardIntersection = raycaster => {
-  // project mesh outwards
-  localPlane.setFromNormalAndCoplanarPoint(
+const _getCameraUiPlane = (camera, raycaster, plane) => {
+  plane.setFromNormalAndCoplanarPoint(
     localVector
       .set(0, 0, 1)
       .applyQuaternion(camera.quaternion),
-    localVector2
+    localVector2sd
       .copy(camera.position)
       .add(
         localVector3
@@ -107,7 +106,13 @@ const _getUiForwardIntersection = raycaster => {
           .multiplyScalar(2)
       )
   );
-  const intersection = raycaster.ray.intersectPlane(localPlane, localVector);
+  return plane;
+};
+const _getUiForwardIntersection = (camera, e, raycaster) => {
+  _updateRaycasterFromMouseEvent(camera, raycaster, e);
+  // project mesh outwards
+  const cameraUiPlane = _getCameraUiPlane(camera, raycaster, localPlane);
+  const intersection = raycaster.ray.intersectPlane(cameraUiPlane, localVector);
   return intersection;
 };
 
@@ -430,6 +435,8 @@ const _makeObjectUiMesh = object => {
   // let animationSpec = null;
   // let lastHoverObject = null;
   m.update = () => {
+    
+    
     m.position.copy(object.position)
       // .add(camera.position);
     localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
@@ -614,16 +621,16 @@ const _makeContextMenuMesh = uiMesh => {
       if (boundingBox.max.y > canvasBox.max.y && boundingBox.min.y - bboxHeight >= canvasBox.min.y) {
         boundingBox.min.y -= bboxHeight;
         boundingBox.max.y -= bboxHeight;
-        /* _updateRaycasterFromMouseEvent(localRaycaster, {
+        
+        const e = {
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
-        });
-        
-        const intersection = _getUiForwardIntersection(localRaycaster);
+        };
+        const intersection = _getUiForwardIntersection(camera, e, localRaycaster);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
-        m.position.copy(intersection); */
+        m.position.copy(intersection);
         
         overflowY = true;
       }
@@ -631,12 +638,12 @@ const _makeContextMenuMesh = uiMesh => {
         boundingBox.min.x -= bboxWidth;
         boundingBox.max.x -= bboxWidth;
 
-        /* _updateRaycasterFromMouseEvent(localRaycaster, {
+        /* _updateRaycasterFromMouseEvent(camera, localRaycaster, {
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
         });
         
-        const intersection = _getUiForwardIntersection(localRaycaster);
+        const intersection = _getUiForwardIntersection(camera, localRaycaster);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2415,9 +2422,7 @@ Promise.all([
         mouseUiMesh.update();
       });
       renderer.domElement.addEventListener('mousemove', e => {   
-        _updateRaycasterFromMouseEvent(localRaycaster, e);
-        
-        const intersection = _getUiForwardIntersection(localRaycaster);
+        const intersection = _getUiForwardIntersection(camera, e, localRaycaster);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2450,7 +2455,7 @@ Promise.all([
         contextMenuMesh.update();
       });
       renderer.domElement.addEventListener('click', async e => {
-        // _updateRaycasterFromMouseEvent(localRaycaster, e);
+        // _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
         if (contextMenuMesh.visible) {
           const highlightedIndex = contextMenuMesh.getHighlightedIndex();
           const option = realContextMenuOptions[highlightedIndex];
@@ -2489,7 +2494,7 @@ Promise.all([
         }
       });
       renderer.domElement.addEventListener('mousemove', e => {   
-        _updateRaycasterFromMouseEvent(localRaycaster, e);
+        _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
         
         if (contextMenuMesh.visible) {
           localArray.length = 0;
