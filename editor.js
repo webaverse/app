@@ -437,6 +437,7 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
 const lineLength = 0;
 const lineSubLength = 0.1;
 const _makeObjectUiMesh = object => {
+  console.log('got content id', object.contentId);
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
