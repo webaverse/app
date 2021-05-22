@@ -450,6 +450,7 @@ const _makeObjectUiMesh = object => {
     color: 0xFFFFFF,
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
+    depthTest: false,
     transparent: true,
     alphaTest: 0.5,
   });
