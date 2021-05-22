@@ -855,6 +855,9 @@ const highlightMaterial = new THREE.ShaderMaterial({
   // polygonOffsetUnits: 1,
 });
 
+const selectMaterial = highlightMaterial.clone();
+selectMaterial.uniforms.uColor.value = new THREE.Color(0x7e57c2);
+
 const damageMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uTime: {
@@ -1782,6 +1785,7 @@ export {
   makeDrawMaterial, */
   buildMaterial,
   highlightMaterial,
+  selectMaterial,
   damageMaterial,
   activateMaterial,
   portalMaterial,
