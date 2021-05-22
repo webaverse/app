@@ -272,6 +272,9 @@ export default class App extends EventTarget {
       cameraOffset.z = 0;
     }
     controlsManager.setPossessed(!!url);
+    if (!url) {
+      rigManager.setLocalRigMatrix(null);
+    }
   }
   setPossessed(possessed) {
     controlsManager.setPossessed(possessed);
