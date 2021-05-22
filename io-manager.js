@@ -312,7 +312,9 @@ ioManager.bindInput = () => {
           if (weaponsManager.menuOpen) {
             weaponsManager.menuVertical(1);
           } else {
-            _setTransformMode('scale');
+            // if (!weaponsManager.dragging) {
+              // _setTransformMode('scale');
+            // }
           }
         }
         break;
@@ -330,7 +332,9 @@ ioManager.bindInput = () => {
             weaponsManager.menuRotate(1);
           }
         } else {
-          _setTransformMode('rotate');
+          // if (!weaponsManager.dragging) {
+            // _setTransformMode('rotate');
+          // }
         }
         break;
       }
@@ -353,7 +357,9 @@ ioManager.bindInput = () => {
             weaponsManager.menuTry();
           }
         } else {
-          _setTransformMode('translate');
+          // if (!weaponsManager.dragging) {
+            // _setTransformMode('translate');
+          // }
         }
         break;
       }
