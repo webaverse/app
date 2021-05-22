@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {scene} from './app-object.js';
+import {scene, sceneLowPriority} from './app-object.js';
 import TransformGizmo from './TransformGizmo.js';
 import {capitalize} from './util.js';
 
@@ -28,7 +28,7 @@ const loadPromise = (async () => {
   transformControls.transformGizmo = new TransformGizmo();
   // transformGizmo.setTransformMode('Translate');
   transformControls.transformGizmo.visible = false;
-  scene.add(transformControls.transformGizmo);
+  sceneLowPriority.add(transformControls.transformGizmo);
 })();
 
 let binding = null;
