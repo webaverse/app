@@ -630,6 +630,7 @@ const contextMenuOptions = [
   'Select',
   'Possess',
   'Edit',
+  'Break',
   null,
   'Remove',
 ];
@@ -2716,6 +2717,11 @@ Promise.all([
             }
             case 'Edit': {
               console.log('click edit');
+              break;
+            }
+            case 'Break': {
+              const object = weaponsManager.getContextMenuObject();
+              object.hit();
               break;
             }
             case 'Remove': {
