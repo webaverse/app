@@ -624,6 +624,9 @@ ioManager.bindInput = () => {
       localVector2D.y >= -1 && localVector2D.y <= 1
     ) {
       localRaycaster.setFromCamera(localVector2D, camera);
+      
+      transformControls.handleMouseMove(localRaycaster);
+      
       const position = localRaycaster.ray.origin;
       const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),

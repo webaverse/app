@@ -37,6 +37,9 @@ const transformControls = {
     }
     binding = o;
   },
+  handleMouseMove(raycaster) {
+    transformGizmo.highlightHoveredAxis(raycaster);
+  },
   update() {
     if (binding) {
       binding.position.copy(transformGizmo.position);
