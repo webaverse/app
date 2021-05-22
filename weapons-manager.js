@@ -1830,6 +1830,11 @@ scene.addEventListener('contextmenu', e => {
 });
 
 let droppedThrow = false;
+const lastMouseEvent = {
+  clientX: 0,
+  clientY: 0,
+  valid: false,
+};
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -2202,6 +2207,22 @@ const weaponsManager = {
     }
   },
   teleportTo: _teleportTo,
+  getLastMouseEvent() {
+    if (lastMouseEvent.valid) {
+      return lastMouseEvent;
+    } else {
+      return null;
+    }
+  },
+  setLastMouseEvent(e) {
+    if (e) {
+      lastMouseEvent.clientX = e.clientX;
+      lastMouseEvent.clientY = e.clientY;
+      lastMouseEvent.valid = true;
+    } else {
+      lastMouseEvent.valid = false;
+    }
+  },
   update: _updateWeapons,
 };
 export default weaponsManager;

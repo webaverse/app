@@ -665,6 +665,9 @@ ioManager.bindInput = () => {
           }
         }
       }
+      weaponsManager.setLastMouseEvent(e);
+    } else {
+      weaponsManager.setLastMouseEvent(null);
     }
     weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
     const renderer = getRenderer();
