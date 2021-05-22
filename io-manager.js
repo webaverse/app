@@ -681,8 +681,10 @@ ioManager.bindInput = () => {
       if (mouseHoverObject) {
         weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
       } else {
-        weaponsManager.setMenu(0);
-        cameraManager.requestPointerLock();
+        if (!weaponsManager.editorHack) {
+          weaponsManager.setMenu(0);
+          cameraManager.requestPointerLock();
+        }
       }
     }
   });
