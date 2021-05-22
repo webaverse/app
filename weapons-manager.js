@@ -10,7 +10,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial, highlightMaterial} from './shaders.js';
+import {buildMaterial, highlightMaterial, selectMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
@@ -203,6 +203,10 @@ mouseHighlightPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
+
+const mouseSelectPhysicsMesh = _makeHighlightPhysicsMesh(selectMaterial);
+mouseSelectPhysicsMesh.visible = false;
+sceneLowPriority.add(mouseSelectPhysicsMesh);
 let mouseSelectedObject = null;
 let mouseSelectedPhysicsId = 0;
 
@@ -863,6 +867,42 @@ const _updateWeapons = () => {
     }
   };
   _updateMouseHighlight();
+  
+  const _updateMouseSelect = () => {
+    mouseSelectPhysicsMesh.visible = false;
+
+    const h = mouseSelectedObject;
+    if (h) {
+      const physicsId = mouseSelectedPhysicsId;
+      if (mouseSelectPhysicsMesh.physicsId !== physicsId) {
+        const physics = physicsManager.getGeometry(physicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          mouseSelectPhysicsMesh.geometry.dispose();
+          mouseSelectPhysicsMesh.geometry = geometry;
+          // mouseSelectPhysicsMesh.scale.setScalar(1.05);
+          mouseSelectPhysicsMesh.physicsId = physicsId;
+        }
+      }
+
+      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+      mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
+      mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+      mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
+      mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+      mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
+      mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+      mouseSelectPhysicsMesh.visible = true;
+    }
+  };
+  _updateMouseSelect();
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
