@@ -30,7 +30,7 @@ const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 const htmlRenderer = new HtmlRenderer();
 
-const testImgUrl = 'https://app.webaverse.com/assets/popup3.svg';
+const testImgUrl = window.location.protocol + '//' + window.location.host + '/assets/popup3.svg';
 const testUserImgUrl = `https://preview.exokit.org/[https://app.webaverse.com/assets/type/robot.glb]/preview.png?width=128&height=128`;
 
 /* import BrowserFS from '/browserfs.js';
@@ -579,6 +579,7 @@ const _makeObjectUiMesh = object => {
     if (typeof contentId === 'number') {
       const res = await fetch(`${tokensHost}/${contentId}`);
       const j = await res.json();
+      // console.log('got json', j);
       name = j.name;
       hash = j.hash;
       hash = hash.slice(0, 6) + '...' + hash.slice(-2);
@@ -597,6 +598,13 @@ const _makeObjectUiMesh = object => {
       hash = '<url>';
       description = contentId;
     }
+    /* console.log('render name', {
+      contentId,
+      name,
+      type,
+      hash,
+      description,
+    }); */
     await m.render({
       name,
       tokenId,
@@ -659,38 +667,50 @@ const _makeContextMenuMesh = mouseUiMesh => {
   let height = 0;
   let anchors = null;
   let optionsTextures = [];
+  let blankOptionTexture = null;
   (async () => {
-    const results = await Promise.all(contextMenuOptions.map(async (option, i) => {
-      if (option) {
-        const result = await htmlRenderer.renderContextMenu({
-          options: contextMenuOptions,
-          selectedOptionIndex: i,
-          width: 512,
-          height: 320,
-        });
-        return result;
-      } else {
-        return null;
-      }
-    }));
-    optionsTextures = results
-      .filter((result, i) => contextMenuOptions[i] !== null)
-      .map(result => {
-        const {
-          width: newWidth,
-          height: newHeight,
-          imageBitmap,
-          anchors: newAnchors,
-        } = result;
-        const map = new THREE.Texture(imageBitmap);
-        map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
-        map.magFilter = THREE.LinearFilter;
-        map.encoding = THREE.sRGBEncoding;
-        map.anisotropy = 16;
-        map.needsUpdate = true;
-        return map;
+    const _getContextMenuData = (options, selectedOptionIndex) =>
+      htmlRenderer.renderContextMenu({
+        options,
+        selectedOptionIndex,
+        width: 512,
+        height: 320,
       });
-    
+    const _makeContextMenuTexture = spec => {
+      const {
+        width: newWidth,
+        height: newHeight,
+        imageBitmap,
+        anchors: newAnchors,
+      } = spec;
+      const map = new THREE.Texture(imageBitmap);
+      map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+      map.magFilter = THREE.LinearFilter;
+      map.encoding = THREE.sRGBEncoding;
+      map.anisotropy = 16;
+      map.needsUpdate = true;
+      return map;
+    };
+    let results;
+    await Promise.all([
+      (async () => {
+        results = await Promise.all(contextMenuOptions.map(async (object, i) => {
+          if (object) {
+            return await _getContextMenuData(contextMenuOptions, i);
+          } else {
+            return null;
+          }
+        }));
+        optionsTextures = results
+          .filter((result, i) => contextMenuOptions[i] !== null)
+          .map(_makeContextMenuTexture);
+      })(),
+      (async () => {
+        const blankResult = await _getContextMenuData(contextMenuOptions, -1);
+        blankOptionTexture = _makeContextMenuTexture(blankResult);
+      })(),
+    ]);
+
     material.map = optionsTextures[0];
 
     const result = results[0];    
@@ -852,7 +872,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
   m.getHighlightedIndex = () => highlightedIndex;
   m.intersectUv = uv => {
     highlightedIndex = -1;
-    if (anchors && width && height && optionsTextures) {
+    if (uv && anchors && width && height && optionsTextures) {
       const coords = localVector2D.copy(uv)
         .multiply(localVector2D2.set(width, height));
       highlightedIndex = anchors.findIndex(anchor => {
@@ -861,8 +881,11 @@ const _makeContextMenuMesh = mouseUiMesh => {
           (coords.y >= anchor.top && coords.y < anchor.bottom)
         );
       });
-      material.map = optionsTextures[highlightedIndex];
     }
+    material.map = highlightedIndex !== -1 ?
+      optionsTextures[highlightedIndex]
+    :
+      blankOptionTexture;
   };
   return m;
 };
@@ -2698,6 +2721,8 @@ Promise.all([
           const intersections = localRaycaster.intersectObject(contextMenuMesh, true, localArray);
           if (intersections.length > 0) {
             contextMenuMesh.intersectUv(intersections[0].uv);
+          } else {
+            contextMenuMesh.intersectUv(null);
           }
         }
       });
