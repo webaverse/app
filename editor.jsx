@@ -797,13 +797,13 @@ return () => {
     }
   }, [secondRun, editor, files]);
   
-  useEffect(() => {
+  /* useEffect(() => {
     const object = objects[selectedObjectIndex] || null;
     transformControls.bind(object);
     if (object && transformControls.getTransformMode() === 'disabled') {
       transformControls.setTransformMode('translate');
     }
-  }, [objects, objects.length, selectedObjectIndex]);
+  }, [objects, objects.length, selectedObjectIndex]); */
   
   useEffect(async () => {
     const ok = await app.isXrSupported();
