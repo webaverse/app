@@ -594,6 +594,11 @@ ioManager.bindInput = () => {
         }
         break;
       }
+      case 27: {
+        // if (weaponsManager.getMouseSelectedObject()) {
+          weaponsManager.setMouseSelectedObject(null);
+        // }
+      }
     }
   });
   const _updateMouseMovement = e => {
