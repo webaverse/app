@@ -836,7 +836,7 @@ const _updateWeapons = () => {
     mouseHighlightPhysicsMesh.visible = false;
 
     const h = mouseHoverObject;
-    if (h) {
+    if (h && !weaponsManager.dragging && !mouseSelectedObject) {
       const physicsId = mouseHoverPhysicsId;
       if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
