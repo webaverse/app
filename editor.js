@@ -2684,6 +2684,7 @@ Promise.all([
       // double-click to focus
       renderer.domElement.addEventListener('dblclick', async e => {
         const hoverObject = weaponsManager.getMouseHoverObject();
+        const hoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
         if (hoverObject) {
           camera.quaternion.setFromRotationMatrix(
             localMatrix.lookAt(
@@ -2692,6 +2693,8 @@ Promise.all([
               localVector.set(0, 1, 0),
             )
           );
+          
+          weaponsManager.setMouseSelectedObject(hoverObject, hoverPhysicsId);
         }
       });
       
