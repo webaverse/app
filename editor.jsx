@@ -386,14 +386,6 @@ const Scene = React.memo(({objects, setObjects, open, selectedObjectIndex, setSe
                   const physicsId = object.getPhysicsIds ? object.getPhysicsIds() : 0;
                   weaponsManager.setMouseSelectedObject(object, physicsId);
                 }}
-                tabIndex={-1}
-                onKeyDown={e => {
-                  if (e.which === 46) {
-                    if (object) {
-                      world.removeObject(object.instanceId);
-                    }
-                  }
-                }}
                 key={i}
               >
                 <div className="object-inner">
