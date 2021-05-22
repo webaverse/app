@@ -2646,7 +2646,7 @@ Promise.all([
       app.addEventListener('frame', () => {
         if (objectUiMeshes.length > 0) {
           let closestObjectUiMesh;
-          if (!weaponsManager.contextMenu) {
+          if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
