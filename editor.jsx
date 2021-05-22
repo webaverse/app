@@ -827,25 +827,21 @@ return () => {
           </div> */}
         </div>
         <div className="bottom">
-          {/* <div className="control" onClick={() => reset()}>
-            <img src="/assets/new-shoot.svg" className="icon" />
-            <div className="label">Reset</div>
-          </div> */}
-          <div className="control" onClick={() => setCameraMode('firstperson')}>
-            {/* <video
+          {/* <div className="control" onClick={() => setCameraMode('firstperson')}>
+            <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
               className="video"
               autoPlay
               muted
               loop
-            /> */}
+            />
             <img src="/assets/video-camera.svg" className="icon" />
             <div className="label">Camera</div>
           </div>
           <div className="control" onClick={() => setCameraMode('avatar')}>
             <img src="/assets/teleport.svg" className="icon" />
             <div className="label">Avatar</div>
-          </div>
+          </div> */}
           <div className={['control', 'mic-button', microphoneMediaStream ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={async () => {
             const microphoneMediaStream = await app.toggleMic();
             setMicrophoneMediaStream(microphoneMediaStream);
