@@ -891,15 +891,22 @@ const _updateWeapons = () => {
         }
       }
 
+      // update matrix
       const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-      mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
-      mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
-      mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-      mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
-      mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
-      mouseSelectPhysicsMesh.visible = true;
+      {
+        mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
+        mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+        mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
+        mouseSelectPhysicsMesh.visible = true;
+      }
+      // update uniforms
+      {
+        mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+        mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+        
+        mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
+        mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+      }
     }
   };
   _updateMouseSelect();
