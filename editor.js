@@ -2715,46 +2715,8 @@ Promise.all([
               break;
             }
             case 'Possess': {
-              await cameraManager.requestPointerLock();
-              
               const object = weaponsManager.getContextMenuObject();
-              const {contentId} = object;
-              if (typeof contentId === 'number') {
-                const res = await fetch(`${tokensHost}/${contentId}`);
-                const j = await res.json();
-                const {hash, name, ext} = j;
-                const u = `${storageHost}/ipfs/${hash}`;
-                await app.setAvatarUrl(u, ext);
-              } else if (typeof contentId === 'string') {
-                const ext = getExt(contentId);
-                await app.setAvatarUrl(contentId, ext);
-              }
-              const targetVector = localVector.copy(object.position)
-                .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0));
-              camera.quaternion.setFromRotationMatrix(
-                localMatrix.lookAt(
-                  camera.position,
-                  targetVector,
-                  localVector2.set(0, 1, 0)
-                )
-              );
-              const distance = camera.position.distanceTo(targetVector);
-              
-              const offset = cameraManager.getCameraOffset();
-              offset.set(0, 0, -distance);
-
-              camera.position.copy(targetVector)
-                .sub(localVector2.copy(offset).applyQuaternion(camera.quaternion));
-              camera.updateMatrixWorld();
-              
-              rigManager.setLocalRigMatrix(
-                localMatrix.compose(
-                  targetVector,
-                  camera.quaternion,
-                  localVector2.set(1, 1, 1)
-                )
-              );
-              
+              await app.possess(object);
               world.removeObject(object.instanceId);
               break;
             }
