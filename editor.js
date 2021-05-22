@@ -650,6 +650,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
     transparent: true,
+    alphaTest: 0.5,
   });
   const model = new THREE.Mesh(contextMenuGeometries['bottom-right'], material);
   model.frustumCulled = false;
