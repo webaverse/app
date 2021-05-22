@@ -2589,7 +2589,7 @@ Promise.all([
         color: 0x333333,
       });
       const cameraMesh = new THREE.Mesh(g, m);
-      cameraMesh.position.set(0, 2, -5);
+      cameraMesh.position.set(0, 10, -8);
       cameraMesh.frustumCulled = false;
       scene.add(cameraMesh);
 
