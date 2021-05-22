@@ -2648,7 +2648,7 @@ Promise.all([
         if (objectUiMeshes.length > 0) {
           let closestObjectUiMesh;
           if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
-            if (controlsManager.isPossessed()) {
+            if (controlsManager.isPossessed() && cameraManager.getMode() !== 'firstperson') {
               rigManager.localRigMatrix.decompose(
                 localVector,
                 localQuaternion,
