@@ -2676,27 +2676,32 @@ Promise.all([
                   localVector.set(0, 0, -1)
                     .applyQuaternion(camera.quaternion)
                 );
-              } else {
-                const e = weaponsManager.getLastMouseEvent();
-                if (e) {
-                  _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
-                  localRay.copy(localRaycaster.ray);
+                
+                const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
+                  const distance =
+                    objectUiMesh.object.position.distanceTo(camera.position) < 8 ?
+                      localRay.distanceToPoint(objectUiMesh.object.position)
+                    :
+                      Infinity;
+                  return {
+                    distance,
+                    objectUiMesh,
+                  };
+                }).sort((a, b) => a.distance - b.distance);
+                const closestDistanceSpec = distanceSpecs[0];
+                if (isFinite(closestDistanceSpec.distance)) {
+                  closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
                 }
-              }
-              const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-                const distance =
-                  objectUiMesh.object.position.distanceTo(camera.position) < 8 ?
-                    localRay.distanceToPoint(objectUiMesh.object.position)
-                  :
-                    Infinity;
-                return {
-                  distance,
-                  objectUiMesh,
-                };
-              }).sort((a, b) => a.distance - b.distance);
-              const closestDistanceSpec = distanceSpecs[0];
-              if (isFinite(closestDistanceSpec.distance)) {
-                closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
+              } else {
+                const mouseHoverObject = weaponsManager.getMouseHoverObject();
+                if (mouseHoverObject) {
+                  closestObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === mouseHoverObject) || null;
+                  /* const e = weaponsManager.getLastMouseEvent();
+                  if (e) {
+                    _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+                    localRay.copy(localRaycaster.ray);
+                  } */
+                }
               }
             }
           } else {
