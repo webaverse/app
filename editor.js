@@ -495,6 +495,13 @@ const _makeObjectUiMesh = object => {
     
     model.scale.set(1, result.height/result.width, 1);
   };
+  let localVisible = false;
+  m.show = () => {
+    localVisible = true;
+  };
+  m.hide = () => {
+    localVisible = false;
+  };
   m.update = () => {
     const renderer = getRenderer();
     const e = {
@@ -527,7 +534,7 @@ const _makeObjectUiMesh = object => {
     localEuler.z = 0;
     m.quaternion.setFromEuler(localEuler);
     
-    return !intersection || objectPosition.distanceTo(camera.position) < 8;
+    return localVisible && (!intersection || objectPosition.distanceTo(camera.position) < 8);
   };
   
   (async () => {
@@ -2575,6 +2582,33 @@ Promise.all([
           const objectUiMesh = objectUiMeshes[objectUiMeshIndex];
           objectUiMesh.parent.remove(objectUiMesh);
           objectUiMeshes.splice(objectUiMeshIndex, 1);
+        }
+      });
+      let lastClosestObjectUiMesh = null;
+      app.addEventListener('frame', () => {
+        if (objectUiMeshes.length > 0) {
+          localRay.set(
+            camera.position,
+            localVector.set(0, 0, -1)
+              .applyQuaternion(camera.quaternion)
+          );
+          const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
+            const distance = localRay.distanceToPoint(objectUiMesh.position);
+            return {
+              distance,
+              objectUiMesh,
+            };
+          }).sort((a, b) => a.distance - b.distance);
+          const closestObjectUiMesh = distanceSpecs[0].objectUiMesh;
+          // console.log('got', closestObjectUiMesh !== lastClosestObjectUiMesh);
+          if (closestObjectUiMesh !== lastClosestObjectUiMesh) {
+            // console.log('change', closestObjectUiMesh);
+            for (const objectUiMesh of objectUiMeshes) {
+              objectUiMesh.hide();
+            }
+            closestObjectUiMesh.show();
+            lastClosestObjectUiMesh = closestObjectUiMesh;
+          }
         }
       });
       
