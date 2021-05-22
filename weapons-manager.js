@@ -1980,9 +1980,8 @@ const weaponsManager = {
     }
   },
   menuDrag(e) {
-    if (this.editorHack) {
+    // if (this.editorHack) {
       const {movementX, movementY} = e;
-      // console.log('menu drag', movementX, movementY);
       if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
         camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
         camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
@@ -1993,7 +1992,7 @@ const weaponsManager = {
 
         camera.updateMatrixWorld();
       }
-    }
+    // }
   },
   menuDragup() {
     if (this.editorHack) {
