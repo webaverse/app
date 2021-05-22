@@ -2654,6 +2654,7 @@ Promise.all([
                 localQuaternion,
                 localVector2
               );
+              localVector.y -= physicsManager.getAvatarHeight() / 2;
               const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
                 let distance = objectUiMesh.object.position.distanceTo(localVector);
                 if (distance > 30) {
