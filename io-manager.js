@@ -579,6 +579,15 @@ ioManager.bindInput = () => {
         ioManager.keys.shift = false;
         break;
       }
+      case 46: { // delete
+        const object = weaponsManager.getMouseSelectedObject();
+        if (object) {
+          weaponsManager.setMouseHoverObject(null);
+          weaponsManager.setMouseSelectedObject(null);
+          world.removeObject(object.instanceId);
+        }
+        break;
+      }
     }
   });
   const _updateMouseMovement = e => {
