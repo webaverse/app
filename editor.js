@@ -627,6 +627,8 @@ const _makeObjectUiMesh = object => {
   return m;
 };
 const contextMenuOptions = [
+  'New...',
+  null,
   'Select',
   'Possess',
   'Edit',
@@ -675,7 +677,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
         options,
         selectedOptionIndex,
         width: 512,
-        height: 320,
+        height: 480,
       });
     const _makeContextMenuTexture = spec => {
       const {
@@ -2695,6 +2697,10 @@ Promise.all([
           const highlightedIndex = contextMenuMesh.getHighlightedIndex();
           const option = realContextMenuOptions[highlightedIndex];
           switch (option) {
+            case 'New...': {
+              console.log('click new');
+              break;
+            }
             case 'Select': {
               console.log('click select');
               break;
