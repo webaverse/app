@@ -457,10 +457,10 @@ for (const arrayName of [
       objects.splice(index, 1);
       trackedObject.unobserve();
 
-      const binding = transformControls.getBinding();
+      /* const binding = transformControls.getBinding();
       if (binding === object) {
         transformControls.bind(null);
-      }
+      } */
 
       world.dispatchEvent(new MessageEvent(arrayName + 'remove', {
         data: object,

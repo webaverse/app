@@ -28,11 +28,12 @@ const loadPromise = (async () => {
 
   transformControls.transformGizmo = new TransformGizmo();
   // transformGizmo.setTransformMode('Translate');
-  transformControls.transformGizmo.visible = false;
+  // transformControls.transformGizmo.visible = false;
   sceneLowPriority.add(transformControls.transformGizmo);
+  transformControls.setTransformMode('translate');
 })();
 
-let binding = null;
+// let binding = null;
 const transformControls = {
   transformGizmo: null,
   planeNormal: new THREE.Vector3(),
@@ -50,7 +51,7 @@ const transformControls = {
   getTransformMode() {
     return this.transformGizmo.transformMode.toLowerCase();
   },
-  getBinding() {
+  /* getBinding() {
     return binding;
   },
   bind(o) {
@@ -61,7 +62,7 @@ const transformControls = {
       
     }
     binding = o;
-  },
+  }, */
   handleMouseDown(raycaster) {
     this.transformAxis = this.transformGizmo.selectAxisWithRaycaster(raycaster);
     if (this.transformAxis) {
@@ -124,13 +125,12 @@ const transformControls = {
     }
   },
   update() {
-    if (binding) {
-      binding.position.copy(this.transformGizmo.position);
-      binding.quaternion.copy(this.transformGizmo.quaternion);
-      binding.scale.copy(this.transformGizmo.scale);
-      this.transformGizmo.visible = !weaponsManager.contextMenu;
-    } else {
-      this.transformGizmo.visible = false;
+    const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+    this.transformGizmo.visible = !!mouseSelectedObject && !weaponsManager.contextMenu;
+    if (this.transformGizmo.visible) {
+      this.transformGizmo.position.copy(mouseSelectedObject.position);
+      this.transformGizmo.quaternion.copy(mouseSelectedObject.quaternion);
+      this.transformGizmo.scale.copy(mouseSelectedObject.scale);
     }
   },
 };
