@@ -871,8 +871,8 @@ const _updateWeapons = () => {
   const _updateMouseSelect = () => {
     mouseSelectPhysicsMesh.visible = false;
 
-    const h = mouseSelectedObject;
-    if (h) {
+    const o = mouseSelectedObject;
+    if (o) {
       const physicsId = mouseSelectedPhysicsId;
       if (mouseSelectPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
@@ -891,22 +891,26 @@ const _updateWeapons = () => {
         }
       }
 
-      // update matrix
       const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-      {
-        mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
-        mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-        mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
-        mouseSelectPhysicsMesh.visible = true;
-      }
-      // update uniforms
-      {
-        mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
-        mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        
-        mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
-        mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
-      }
+      if (physicsTransform) {
+        // update matrix
+        {
+          mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
+          mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+          mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
+          mouseSelectPhysicsMesh.visible = true;
+        }
+        // update uniforms
+        {
+          mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+          mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          
+          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
+          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+        }
+      } /* else {
+        console.warn('no physics transform for object', o, physicsId, physicsTransform);
+      } */
     }
   };
   _updateMouseSelect();
