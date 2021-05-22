@@ -1817,6 +1817,8 @@ scene.addEventListener('contextmenu', e => {
   if (mouseHoverObject) {
     weaponsManager.setContextMenu(true);
     weaponsManager.setContextMenuObject(mouseHoverObject);
+  
+    weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
   }
 });
 
