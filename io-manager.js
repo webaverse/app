@@ -616,14 +616,8 @@ ioManager.bindInput = () => {
       camera.updateMatrixWorld();
     }
   };
-  const _updateMouseHover = e => {
+  const _getMouseRaycaster = (e, raycaster) => {
     const {clientX, clientY} = e;
-    
-    let mouseHoverObject = null;
-    let mouseSelectedObject = null;
-    let mouseHoverPhysicsId = 0;
-    let htmlHover = false;
-    
     const renderer = getRenderer();
     renderer.getSize(localVector2D2);
     localVector2D.set(
@@ -634,14 +628,26 @@ ioManager.bindInput = () => {
       localVector2D.x >= -1 && localVector2D.x <= 1 &&
       localVector2D.y >= -1 && localVector2D.y <= 1
     ) {
-      localRaycaster.setFromCamera(localVector2D, camera);
+      raycaster.setFromCamera(localVector2D, camera);
+      return raycaster;
+    } else {
+      return null;
+    }
+  };
+  const _updateMouseHover = e => {
+    let mouseHoverObject = null;
+    let mouseSelectedObject = null;
+    let mouseHoverPhysicsId = 0;
+    let htmlHover = false;
+    
+    const raycaster = _getMouseRaycaster(e, localRaycaster);
+    if (raycaster) {
+      transformControls.handleMouseMove(raycaster);
       
-      transformControls.handleMouseMove(localRaycaster);
-      
-      const position = localRaycaster.ray.origin;
+      const position = raycaster.ray.origin;
       const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
-        localRaycaster.ray.direction
+        raycaster.ray.direction
       );
       
       const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
@@ -661,6 +667,7 @@ ioManager.bindInput = () => {
       }
     }
     weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
+    const renderer = getRenderer();
     if (htmlHover) {
       renderer.domElement.classList.add('hover');
     } else {
