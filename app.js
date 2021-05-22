@@ -268,6 +268,8 @@ export default class App extends EventTarget {
   async setAvatarUrl(url, ext) {
     if (url) {
       await rigManager.setLocalAvatarUrl(url, ext);
+      const cameraOffset = cameraManager.getCameraOffset();
+      cameraOffset.z = 0;
     }
     controlsManager.setPossessed(!!url);
   }
