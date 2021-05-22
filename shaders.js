@@ -682,6 +682,11 @@ const highlightMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
+    distanceOffset: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
   },
   vertexShader: `\
     precision highp float;
@@ -772,7 +777,8 @@ const highlightMaterial = new THREE.ShaderMaterial({
     uniform float sunIntensity;
     uniform sampler2D tex;
     uniform float uTime;
-    uniform vec3 sunDirection;
+    // uniform vec3 sunDirection;
+    uniform float distanceOffset;
     float parallaxScale = 0.3;
     float parallaxMinLayers = 50.;
     float parallaxMaxLayers = 50.;
@@ -832,8 +838,8 @@ const highlightMaterial = new THREE.ShaderMaterial({
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
-      float f2 = 1. - d/10.0;
-      gl_FragColor = vec4(c, 0.1 + max(f, 0.3) * f2 * 0.7);
+      float f2 = max(1. - (d + distanceOffset)/10.0, 0.);
+      gl_FragColor = vec4(c, 0.05 + max(f, 0.3) * f2 * 0.5);
     }
   `,
   transparent: true,
