@@ -12,6 +12,7 @@ import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import {rigManager} from './rig.js';
 import {downloadFile, getExt} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
@@ -2717,25 +2718,43 @@ Promise.all([
               await cameraManager.requestPointerLock();
               
               const object = weaponsManager.getContextMenuObject();
-              // console.log('possesss context menu object', object);
               const {contentId} = object;
               if (typeof contentId === 'number') {
                 const res = await fetch(`${tokensHost}/${contentId}`);
                 const j = await res.json();
                 const {hash, name, ext} = j;
                 const u = `${storageHost}/ipfs/${hash}`;
-                app.setAvatarUrl(u, ext);
+                await app.setAvatarUrl(u, ext);
               } else if (typeof contentId === 'string') {
                 const ext = getExt(contentId);
-                app.setAvatarUrl(contentId, ext);
+                await app.setAvatarUrl(contentId, ext);
               }
-              camera.lookAt(object.position);
-              camera.updateMatrixWorld();
-              weaponsManager.teleportTo(
-                localVector.copy(object.position)
-                  .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0)),
-                camera.quaternion
+              const targetVector = localVector.copy(object.position)
+                .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0));
+              camera.quaternion.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  camera.position,
+                  targetVector,
+                  localVector2.set(0, 1, 0)
+                )
               );
+              const distance = camera.position.distanceTo(targetVector);
+              
+              const offset = cameraManager.getCameraOffset();
+              offset.set(0, 0, -distance);
+
+              camera.position.copy(targetVector)
+                .sub(localVector2.copy(offset).applyQuaternion(camera.quaternion));
+              camera.updateMatrixWorld();
+              
+              rigManager.setLocalRigMatrix(
+                localMatrix.compose(
+                  targetVector,
+                  camera.quaternion,
+                  localVector2.set(1, 1, 1)
+                )
+              );
+              
               world.removeObject(object.instanceId);
               break;
             }
