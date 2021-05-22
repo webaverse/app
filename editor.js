@@ -2647,23 +2647,49 @@ Promise.all([
         if (objectUiMeshes.length > 0) {
           let closestObjectUiMesh;
           if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
-            localRay.set(
-              camera.position,
-              localVector.set(0, 0, -1)
-                .applyQuaternion(camera.quaternion)
-            );
-            const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-              const distance =
-                objectUiMesh.position.distanceTo(camera.position) < 8 ?
-                  localRay.distanceToPoint(objectUiMesh.position)
-                :
-                  Infinity;
-              return {
-                distance,
-                objectUiMesh,
-              };
-            }).sort((a, b) => a.distance - b.distance);
-            closestObjectUiMesh = distanceSpecs[0].objectUiMesh;
+            const maxDistance = 8;
+            if (!rigManager.localRigMatrixEnabled) {
+              rigManager.localRigMatrix.decompose(
+                localVector,
+                localQuaternion,
+                localVector2
+              );
+              const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
+                let distance = objectUiMesh.position.distanceTo(localVector);
+                if (distance > maxDistance) {
+                  distance = Infinity;
+                }
+                return {
+                  distance,
+                  objectUiMesh,
+                };
+              }).sort((a, b) => a.distance - b.distance);
+              const closestDistanceSpec = distanceSpecs[0];
+              if (isFinite(closestDistanceSpec.distance)) {
+                closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
+              }
+            } else {
+              localRay.set(
+                camera.position,
+                localVector.set(0, 0, -1)
+                  .applyQuaternion(camera.quaternion)
+              );
+              const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
+                const distance =
+                  objectUiMesh.position.distanceTo(camera.position) < maxDistance ?
+                    localRay.distanceToPoint(objectUiMesh.position)
+                  :
+                    Infinity;
+                return {
+                  distance,
+                  objectUiMesh,
+                };
+              }).sort((a, b) => a.distance - b.distance);
+              const closestDistanceSpec = distanceSpecs[0];
+              if (isFinite(closestDistanceSpec.distance)) {
+                closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
+              }
+            }
           } else {
             closestObjectUiMesh = null;
           }
