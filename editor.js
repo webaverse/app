@@ -561,7 +561,7 @@ const _makeObjectUiMesh = object => {
       animationSpec = null;
     }
     
-    return localVisible && (!intersection || objectPosition.distanceTo(camera.position) < 8);
+    return localVisible;
   };
   
   (async () => {
@@ -2622,7 +2622,11 @@ Promise.all([
               .applyQuaternion(camera.quaternion)
           );
           const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-            const distance = localRay.distanceToPoint(objectUiMesh.position);
+            const distance =
+              objectUiMesh.position.distanceTo(camera.position) < 8 ?
+                localRay.distanceToPoint(objectUiMesh.position)
+              :
+                Infinity;
             return {
               distance,
               objectUiMesh,
