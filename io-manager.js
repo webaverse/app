@@ -183,42 +183,57 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-  } else if (document.pointerLockElement) {
+  } else if (controlsManager.isPossessed()) {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
-    if (controlsManager.isPossessed()) {
-      const flyState = physicsManager.getFlyState();
-      if (flyState) {
-        direction.applyQuaternion(camera.quaternion);
-        
-        _updateVertical(direction);
-      } else {  
-        const cameraEuler = camera.rotation.clone();
-        cameraEuler.x = 0;
-        cameraEuler.z = 0;
-        direction.applyEuler(cameraEuler);
-        
-        if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
-          physicsManager.setCrouchState(!physicsManager.getCrouchState());
-        }
-        ioManager.lastCtrlKey = ioManager.keys.ctrl;
+    
+    const flyState = physicsManager.getFlyState();
+    if (flyState) {
+      direction.applyQuaternion(camera.quaternion);
+      
+      _updateVertical(direction);
+    } else {  
+      const cameraEuler = camera.rotation.clone();
+      cameraEuler.x = 0;
+      cameraEuler.z = 0;
+      direction.applyEuler(cameraEuler);
+      
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+        physicsManager.setCrouchState(!physicsManager.getCrouchState());
       }
-      if (localVector.length() > 0) {
-        const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
-        const speed = weaponsManager.getSpeed() * sprintMultiplier;
-        localVector.normalize().multiplyScalar(speed * timeDiff);
+      ioManager.lastCtrlKey = ioManager.keys.ctrl;
+    }
+    if (localVector.length() > 0) {
+      const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
+      const speed = weaponsManager.getSpeed() * sprintMultiplier;
+      localVector.normalize().multiplyScalar(speed * timeDiff);
 
-        physicsManager.velocity.add(localVector);
+      physicsManager.velocity.add(localVector);
 
-        if (physicsManager.getJumpState()) {
-          physicsManager.velocity.x *= 0.7;
-          physicsManager.velocity.z *= 0.7;
-          if (flyState) {
-            physicsManager.velocity.y *= 0.7;
-          }
+      if (physicsManager.getJumpState()) {
+        physicsManager.velocity.x *= 0.7;
+        physicsManager.velocity.z *= 0.7;
+        if (flyState) {
+          physicsManager.velocity.y *= 0.7;
         }
       }
+    }
+  } else {
+    if (weaponsManager.editorHack) {
+      const direction = localVector.set(0, 0, 0);
+      _updateHorizontal(direction);
+      direction.applyQuaternion(camera.quaternion);
+      _updateVertical(direction);
+      direction
+        .normalize()
+        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
+      
+      camera.position.add(direction);
+      camera.updateMatrixWorld();
     } else {
+      const direction = localVector.set(0, 0, 0);
+      _updateHorizontal(direction);
+
       direction.applyQuaternion(camera.quaternion);
       _updateVertical(direction);
       direction
@@ -228,17 +243,6 @@ const _updateIo = timeDiff => {
       camera.position.add(direction);
       camera.updateMatrixWorld();
     }
-  } else if (weaponsManager.editorHack) {
-    const direction = localVector.set(0, 0, 0);
-    _updateHorizontal(direction);
-    direction.applyQuaternion(camera.quaternion);
-    _updateVertical(direction);
-    direction
-      .normalize()
-      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-    
-    camera.position.add(direction);
-    camera.updateMatrixWorld();
   }
 };
 ioManager.update = _updateIo;
@@ -458,7 +462,7 @@ ioManager.bindInput = () => {
       }
       case 32: { // space
         ioManager.keys.space = true;
-        if (document.pointerLockElement) {
+        if (controlsManager.isPossessed()) {
           if (!physicsManager.getJumpState()) {
             if (weaponsManager.canJumpOff()) {
               weaponsManager.jumpOff();
@@ -603,9 +607,10 @@ ioManager.bindInput = () => {
   });
   const _updateMouseMovement = e => {
     const {movementX, movementY} = e;
-    camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+      camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+    
       camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
       camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
       camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
