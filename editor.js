@@ -13,6 +13,7 @@ import physicsManager from './physics-manager.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import {rigManager} from './rig.js';
+import controlsManager from './controls-manager.js';
 import {downloadFile, getExt} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
@@ -2647,16 +2648,15 @@ Promise.all([
         if (objectUiMeshes.length > 0) {
           let closestObjectUiMesh;
           if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
-            const maxDistance = 8;
-            if (!rigManager.localRigMatrixEnabled) {
+            if (controlsManager.isPossessed()) {
               rigManager.localRigMatrix.decompose(
                 localVector,
                 localQuaternion,
                 localVector2
               );
               const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-                let distance = objectUiMesh.position.distanceTo(localVector);
-                if (distance > maxDistance) {
+                let distance = objectUiMesh.object.position.distanceTo(localVector);
+                if (distance > 30) {
                   distance = Infinity;
                 }
                 return {
@@ -2676,8 +2676,8 @@ Promise.all([
               );
               const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
                 const distance =
-                  objectUiMesh.position.distanceTo(camera.position) < maxDistance ?
-                    localRay.distanceToPoint(objectUiMesh.position)
+                  objectUiMesh.object.position.distanceTo(camera.position) < 8 ?
+                    localRay.distanceToPoint(objectUiMesh.object.position)
                   :
                     Infinity;
                 return {
