@@ -828,6 +828,8 @@ const _updateWeapons = () => {
       mouseHighlightPhysicsMesh.scale.copy(physicsTransform.scale);
       mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
       mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
+      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
       mouseHighlightPhysicsMesh.visible = true;
     }
   };
