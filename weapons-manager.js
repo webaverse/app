@@ -15,7 +15,7 @@ import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import controlsManager from './controls-manager.js';
 import buildTool from './build-tool.js';
@@ -189,7 +189,7 @@ const _makeHighlightPhysicsMesh = material => {
 
 const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
-scene.add(highlightMesh);
+sceneLowPriority.add(highlightMesh);
 let highlightedObject = null;
 
 const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
@@ -200,7 +200,7 @@ let highlightedPhysicsId = 0;
 
 const mouseHighlightPhysicsMesh = _makeHighlightPhysicsMesh(highlightMaterial);
 mouseHighlightPhysicsMesh.visible = false;
-scene.add(mouseHighlightPhysicsMesh);
+sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
 let mouseSelectedObject = null;
