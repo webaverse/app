@@ -2670,7 +2670,7 @@ Promise.all([
                 closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
               }
             } else {
-              if ((!!rigManager.localRig && cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
+              if ((!!rigManager.localRig && controlsManager.isPossessed() && cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
                 localRay.set(
                   camera.position,
                   localVector.set(0, 0, -1)
