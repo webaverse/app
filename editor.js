@@ -495,9 +495,16 @@ const _makeObjectUiMesh = object => {
     
     model.scale.set(1, result.height/result.width, 1);
   };
+  let animationSpec = null;
   let localVisible = false;
   m.show = () => {
     localVisible = true;
+    
+    const now = Date.now();
+    animationSpec = {
+      startTime: now,
+      endTime: now + 1000,
+    };
   };
   m.hide = () => {
     localVisible = false;
@@ -533,6 +540,26 @@ const _makeObjectUiMesh = object => {
     localEuler.x = 0;
     localEuler.z = 0;
     m.quaternion.setFromEuler(localEuler);
+    
+    const _setDefaultScale = () => {
+      m.scale.set(1, 1, 1);
+    };
+    if (animationSpec) {
+      const now = Date.now();
+      const {startTime, endTime} = animationSpec;
+      const f = (now - startTime) / (endTime - startTime);
+      if (f >= 0 && f < 1) {
+        const fv = cubicBezier(f);
+        m.scale.set(fv, fv, 1);
+        // model.material.opacity = fv;
+      } else {
+        _setDefaultScale();
+        animationSpec = null;
+      }
+    } else {
+      _setDefaultScale();
+      animationSpec = null;
+    }
     
     return localVisible && (!intersection || objectPosition.distanceTo(camera.position) < 8);
   };
