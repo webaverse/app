@@ -22,7 +22,7 @@ import dropManager from './drop-manager.js';
 import npcManager from './npc-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
-import {parseCoord} from './util.js';
+import {parseCoord, getExt} from './util.js';
 // import './procgen.js';
 import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
@@ -275,6 +275,46 @@ export default class App extends EventTarget {
   }
   setPossessed(possessed) {
     controlsManager.setPossessed(possessed);
+  }
+  async possess(object) {
+    await cameraManager.requestPointerLock();
+
+    const {contentId} = object;
+    if (typeof contentId === 'number') {
+      const res = await fetch(`${tokensHost}/${contentId}`);
+      const j = await res.json();
+      const {hash, name, ext} = j;
+      const u = `${storageHost}/ipfs/${hash}`;
+      await this.setAvatarUrl(u, ext);
+    } else if (typeof contentId === 'string') {
+      const ext = getExt(contentId);
+      await this.setAvatarUrl(contentId, ext);
+    }
+    const targetVector = localVector.copy(object.position)
+      .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0));
+    camera.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        camera.position,
+        targetVector,
+        localVector2.set(0, 1, 0)
+      )
+    );
+    const distance = camera.position.distanceTo(targetVector);
+    
+    const offset = cameraManager.getCameraOffset();
+    offset.set(0, 0, -distance);
+
+    camera.position.copy(targetVector)
+      .sub(localVector2.copy(offset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+    
+    rigManager.setLocalRigMatrix(
+      localMatrix.compose(
+        targetVector,
+        camera.quaternion,
+        localVector2.set(1, 1, 1)
+      )
+    );
   }
   
   startLoop() {
