@@ -813,9 +813,11 @@ const _makeContextMenuMesh = mouseUiMesh => {
         // model.material.opacity = fv;
       } else {
         _setDefaultScale();
+        animationSpec = null;
       }
     } else {
       _setDefaultScale();
+      animationSpec = null;
     }
   };
   let highlightedIndex = -1;
