@@ -692,7 +692,12 @@ ioManager.bindInput = () => {
           const mouseHoverObject = weaponsManager.getMouseHoverObject();
           const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
           if (mouseHoverObject) {
-            weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+            const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+            if (mouseHoverObject !== mouseSelectedObject) {
+              weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+            } else {
+              weaponsManager.setMouseSelectedObject(null);
+            }
           }
         }
       } else {
