@@ -2681,7 +2681,7 @@ Promise.all([
         }
       });
       
-      // double-click to focus
+      // double-click to look at object
       renderer.domElement.addEventListener('dblclick', async e => {
         const hoverObject = weaponsManager.getMouseHoverObject();
         const hoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
