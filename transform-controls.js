@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {scene, sceneLowPriority} from './app-object.js';
+import weaponsManager from './weapons-manager.js';
 import TransformGizmo from './TransformGizmo.js';
 import {capitalize} from './util.js';
 
@@ -57,9 +58,7 @@ const transformControls = {
       this.transformGizmo.position.copy(o.position);
       this.transformGizmo.quaternion.copy(o.quaternion);
       this.transformGizmo.scale.copy(o.scale);
-      this.transformGizmo.visible = true;
-    } else {
-      this.transformGizmo.visible = false;
+      
     }
     binding = o;
   },
@@ -129,6 +128,9 @@ const transformControls = {
       binding.position.copy(this.transformGizmo.position);
       binding.quaternion.copy(this.transformGizmo.quaternion);
       binding.scale.copy(this.transformGizmo.scale);
+      this.transformGizmo.visible = !weaponsManager.contextMenu;
+    } else {
+      this.transformGizmo.visible = false;
     }
   },
 };
