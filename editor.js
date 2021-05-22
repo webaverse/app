@@ -2643,30 +2643,37 @@ Promise.all([
       let lastClosestObjectUiMesh = null;
       app.addEventListener('frame', () => {
         if (objectUiMeshes.length > 0) {
-          localRay.set(
-            camera.position,
-            localVector.set(0, 0, -1)
-              .applyQuaternion(camera.quaternion)
-          );
-          const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-            const distance =
-              objectUiMesh.position.distanceTo(camera.position) < 8 ?
-                localRay.distanceToPoint(objectUiMesh.position)
-              :
-                Infinity;
-            return {
-              distance,
-              objectUiMesh,
-            };
-          }).sort((a, b) => a.distance - b.distance);
-          const closestObjectUiMesh = distanceSpecs[0].objectUiMesh;
+          let closestObjectUiMesh;
+          if (!weaponsManager.contextMenu) {
+            localRay.set(
+              camera.position,
+              localVector.set(0, 0, -1)
+                .applyQuaternion(camera.quaternion)
+            );
+            const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
+              const distance =
+                objectUiMesh.position.distanceTo(camera.position) < 8 ?
+                  localRay.distanceToPoint(objectUiMesh.position)
+                :
+                  Infinity;
+              return {
+                distance,
+                objectUiMesh,
+              };
+            }).sort((a, b) => a.distance - b.distance);
+            closestObjectUiMesh = distanceSpecs[0].objectUiMesh;
+          } else {
+            closestObjectUiMesh = null;
+          }
           // console.log('got', closestObjectUiMesh !== lastClosestObjectUiMesh);
           if (closestObjectUiMesh !== lastClosestObjectUiMesh) {
             // console.log('change', closestObjectUiMesh);
             for (const objectUiMesh of objectUiMeshes) {
               objectUiMesh.hide();
             }
-            closestObjectUiMesh.show();
+            if (closestObjectUiMesh) {
+              closestObjectUiMesh.show();
+            }
             lastClosestObjectUiMesh = closestObjectUiMesh;
           }
         }
