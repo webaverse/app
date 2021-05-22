@@ -438,7 +438,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     
     const offset = physicsManager.getAvatarCameraOffset();
     camera.position.copy(localVector)
-      .sub(offset.clone().applyQuaternion(camera.quaternion));
+      .sub(localVector3.copy(offset).applyQuaternion(camera.quaternion));
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
