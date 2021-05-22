@@ -11,6 +11,7 @@ import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import weaponsManager from './weapons-manager.js';
+import cameraManager from './camera-manager.js';
 import {downloadFile, getExt} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
@@ -2713,6 +2714,8 @@ Promise.all([
               break;
             }
             case 'Possess': {
+              await cameraManager.requestPointerLock();
+              
               const object = weaponsManager.getContextMenuObject();
               // console.log('possesss context menu object', object);
               const {contentId} = object;
@@ -2726,6 +2729,14 @@ Promise.all([
                 const ext = getExt(contentId);
                 app.setAvatarUrl(contentId, ext);
               }
+              camera.lookAt(object.position);
+              camera.updateMatrixWorld();
+              weaponsManager.teleportTo(
+                localVector.copy(object.position)
+                  .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0)),
+                camera.quaternion
+              );
+              world.removeObject(object.instanceId);
               break;
             }
             case 'Edit': {

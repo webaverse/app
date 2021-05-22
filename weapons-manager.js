@@ -573,6 +573,35 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+const _teleportTo = (position, quaternion) => {
+  const renderer = getRenderer();
+  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  // console.log(position, quaternion, pose, avatar)
+  /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+    .decompose(localVector2, localQuaternion2, localVector3); */
+
+  if (renderer.xr.getSession()) {
+    localMatrix.copy(xrCamera.matrix)
+      .premultiply(dolly.matrix)
+      .decompose(localVector2, localQuaternion2, localVector3);
+    dolly.matrix
+      .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+      // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+      // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+      .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+      .decompose(dolly.position, dolly.quaternion, dolly.scale);
+  } else {
+    camera.matrix
+      .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+      // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+      // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+      .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+      .decompose(camera.position, camera.quaternion, camera.scale);
+  }
+
+  physicsManager.velocity.set(0, 0, 0);
+};
+
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {
   const now = Date.now();
@@ -863,34 +892,6 @@ const _updateWeapons = () => {
 
   const _handleTeleport = () => {
     if (rigManager.localRig) {
-      const _teleportTo = (position, quaternion) => {
-        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-        // console.log(position, quaternion, pose, avatar)
-        /* localMatrix.fromArray(rigManager.localRig.model.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3); */
-
-        if (renderer.xr.getSession()) {
-          localMatrix.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
-            .decompose(localVector2, localQuaternion2, localVector3);
-          dolly.matrix
-            .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
-            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-            .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-            .decompose(dolly.position, dolly.quaternion, dolly.scale);
-        } else {
-          camera.matrix
-            .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-            .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-            .decompose(camera.position, camera.quaternion, camera.scale);
-        }
-
-        physicsManager.velocity.set(0, 0, 0);
-      };
-
       teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, p, q), (position, quaternion) => {
         _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
       });
@@ -2151,6 +2152,7 @@ const weaponsManager = {
       return defaultSpeed;
     }
   },
+  teleportTo: _teleportTo,
   update: _updateWeapons,
 };
 export default weaponsManager;
