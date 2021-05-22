@@ -2669,6 +2669,20 @@ Promise.all([
         }
       });
       
+      // double-click to focus
+      renderer.domElement.addEventListener('dblclick', async e => {
+        const hoverObject = weaponsManager.getMouseHoverObject();
+        if (hoverObject) {
+          camera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              camera.position,
+              hoverObject.position,
+              localVector.set(0, 1, 0),
+            )
+          );
+        }
+      });
+      
       const contextMenuMesh = _makeContextMenuMesh(mouseUiMesh);
       scene.add(contextMenuMesh);
       app.addEventListener('frame', () => {
