@@ -279,6 +279,9 @@ export default class App extends EventTarget {
   async possess(object) {
     await cameraManager.requestPointerLock();
 
+    weaponsManager.setMouseHoverObject(null);
+    weaponsManager.setMouseSelectedObject(null);
+
     const {contentId} = object;
     if (typeof contentId === 'number') {
       const res = await fetch(`${tokensHost}/${contentId}`);
