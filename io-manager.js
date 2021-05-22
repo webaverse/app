@@ -674,17 +674,21 @@ ioManager.bindInput = () => {
     if (document.pointerLockElement) {
       weaponsManager.menuClick();
     } else {
-      weaponsManager.setContextMenu(false);
-      
-      const mouseHoverObject = weaponsManager.getMouseHoverObject();
-      const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
-      if (mouseHoverObject) {
-        weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
-      } else {
-        if (!weaponsManager.editorHack) {
-          weaponsManager.setMenu(0);
+      if (weaponsManager.editorHack) {
+        weaponsManager.setContextMenu(false);
+        
+        if (controlsManager.isPossessed()) {
           cameraManager.requestPointerLock();
+        } else {
+          const mouseHoverObject = weaponsManager.getMouseHoverObject();
+          const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+          if (mouseHoverObject) {
+            weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+          }
         }
+      } else {
+        weaponsManager.setMenu(0);
+        cameraManager.requestPointerLock();
       }
     }
   });
