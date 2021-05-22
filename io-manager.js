@@ -693,6 +693,9 @@ ioManager.bindInput = () => {
     ioManager.currentWeaponDown = false;
     ioManager.currentWeaponValue = 0;
     ioManager.currentTeleport = false;
+    
+    const raycaster = _getMouseRaycaster(e, localRaycaster);
+    transformControls.handleMouseUp(raycaster);
   });
   window.document.addEventListener('mouseleave', e => {
     const renderer = getRenderer();
@@ -738,6 +741,10 @@ ioManager.bindInput = () => {
         weaponsManager.menuAim();
       }
     } else {
+      if (e.buttons & 1) { // left
+        const raycaster = _getMouseRaycaster(e, localRaycaster);
+        transformControls.handleMouseDown(raycaster);
+      }
       if (e.buttons & 2) { // right
         weaponsManager.setContextMenu(false);
       }
