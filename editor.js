@@ -443,6 +443,8 @@ const objectUiMeshGeometry = new THREE.PlaneBufferGeometry(1, 1)
   );
 flipGeomeryUvs(objectUiMeshGeometry);
 const keySize = 0.3;
+const keyRadius = 0.045;
+const keyInnerFactor = 0.8;
 const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
 const eKeyMaterial = (() => {
   const texture = new THREE.Texture();
@@ -472,9 +474,78 @@ const eKeyMaterial = (() => {
   });
   return material;
 })();
-const keyRadius = 0.045;
-const keyInnerFactor = 0.85;
 const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
+const keyCircleMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uColor: {
+      type: 'c',
+      value: new THREE.Color(0x42a5f5),
+    },
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+    uTimeCubic: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    // uniform float uTime;
+    // uniform vec4 uBoundingBox;
+    // varying vec3 vPosition;
+    // varying vec3 vNormal;
+    varying vec2 vUv;
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      
+      vUv = uv;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    #define PI 3.1415926535897932384626433832795
+
+    uniform vec3 uColor;
+    uniform float uTime;
+    // uniform float uTimeCubic;
+    // varying vec3 vPosition;
+    // varying vec3 vNormal;
+    varying vec2 vUv;
+
+    const float glowDistance = 0.2;
+    const float glowIntensity = 0.3;
+
+    void main() {
+      vec3 c;
+      float angle = mod((atan(vUv.x, vUv.y))/(PI*2.), 1.);
+      if (angle <= uTime) {
+        c = uColor;
+        float angleDiff1 = (1. - min(max(uTime - angle, 0.), glowDistance)/glowDistance)*glowIntensity;
+        // float angleDiff2 = min(max(angle - uTime, 0.), glowDistance)/glowDistance;
+        // c *= 1. + angleDiff1 + angleDiff2;
+        c *= 1. + angleDiff1;
+      } else {
+        c = vec3(0.2);
+      }
+      gl_FragColor = vec4(c, 1.);
+    }
+  `,
+  transparent: true,
+  depthTest: false,
+  // polygonOffset: true,
+  // polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
+});
 const _makeObjectUiMesh = object => {
   const model = (() => {
     const geometry = objectUiMeshGeometry;
@@ -502,11 +573,7 @@ const _makeObjectUiMesh = object => {
   
   const keyCircleMesh = (() => {
     const geometry = keyCircleGeometry;
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x42a5f5,
-      transparent: true,
-      depthTest: false,
-    });
+    const material = keyCircleMaterial.clone();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     return mesh;
@@ -572,6 +639,8 @@ const _makeObjectUiMesh = object => {
     localVisible = false;
   };
   m.update = () => {
+    const now = Date.now();
+    
     const _updateMatrix = () => {
       const renderer = getRenderer();
       const e = {
@@ -611,7 +680,6 @@ const _makeObjectUiMesh = object => {
         m.scale.set(1, 1, 1);
       };
       if (animationSpec) {
-        const now = Date.now();
         const {startTime, endTime} = animationSpec;
         const f = (now - startTime) / (endTime - startTime);
         if (f >= 0 && f < 1) {
@@ -628,6 +696,18 @@ const _makeObjectUiMesh = object => {
       }
     };
     _updateAnimation();
+    
+    const _updateKeyMesh = () => {
+      const f = (now % 1000) / 1000;
+      
+      const s = 1 - f*0.3;
+      keyMesh.scale.setScalar(s);
+      keyCircleMesh.scale.setScalar(s);
+      
+      keyCircleMesh.material.uniforms.uTime.value = f;
+      keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+    };
+    _updateKeyMesh();
     
     return localVisible;
   };
