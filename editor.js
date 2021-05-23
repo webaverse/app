@@ -1050,7 +1050,7 @@ const _makeInventoryMesh = () => {
   const h = menuHeight + menuRadius*2;
   const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.99);
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
-  console.log('got bounding box', boundingBox);
+  // console.log('got bounding box', boundingBox);
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uBoundingBox: {
