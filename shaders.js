@@ -845,7 +845,7 @@ const highlightMaterial = new THREE.ShaderMaterial({
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = uColor; // diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
       float f2 = max(1. - (d + distanceOffset)/10.0, 0.);
-      gl_FragColor = vec4(c, 0.05 + max(f, 0.3) * f2 * 0.5);
+      gl_FragColor = vec4(c, 0.05 + max(f, 0.3) * f2 * 0.7);
     }
   `,
   transparent: true,
@@ -856,7 +856,7 @@ const highlightMaterial = new THREE.ShaderMaterial({
 });
 
 const selectMaterial = highlightMaterial.clone();
-selectMaterial.uniforms.uColor.value = new THREE.Color(0x7e57c2);
+selectMaterial.uniforms.uColor.value = new THREE.Color(0x66bb6a);
 
 const damageMaterial = new THREE.ShaderMaterial({
   uniforms: {
