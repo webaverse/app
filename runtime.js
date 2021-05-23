@@ -1946,7 +1946,131 @@ const _loadHtml = async (file, {contentId = null}) => {
   
   return object;
 };
-const _loadMediaStream = async (file, {contentId = null}) => {
+const _loadGlfs = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  
+  const fullscreenShader = new FullscreenShader(shader);
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.useAux = rigAux => {
+    compositor.add(fullscreenShader);
+  };
+  o.destroy = () => {
+    compositor.remove(fullscreenShader);
+    appManager.destroyApp(appId);
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    fullscreenShader.pass.enabled = !!o.parent;
+  });
+  
+  return o;
+};
+const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (/^\.+\//.test(srcUrl)) {
+    console.log('base url', parentUrl);
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  window.text = text;
+  const shader = json6.parse(text);
+
+  const shadertoyRenderer = new ShadertoyRenderer(shader);
+  let loaded = false;
+  (async () => {
+    await shadertoyRenderer.waitForLoad();
+    loaded = true;
+  })();
+  const o = shadertoyRenderer.mesh;
+  o.contentId = contentId;
+  // o.frustumCulled = false;
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+  };
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    if (loaded) {
+      shadertoyRenderer.update(e.data.timeDiff/1000);
+    }
+  });
+
+  return o;
+};
+const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = json6.parse(text);
+  const {vertexShader, fragmentShader} = shader;
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      opacity: {
+        value: 1,
+        needsUpdate: true,
+      },
+    },
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+  });
+  material.skinning = true;
+  material.morphTargets = true;
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.material = material;
+  const componentUnloadFns = [];
+  o.useAux = rigAux => {
+    let used = false;
+    for (const componentType of loadComponentTypes) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
+        const componentHandler = componentHandlers[component.type];
+        const unloadFn = componentHandler.load(o, componentIndex, rigAux);
+        componentUnloadFns.push(unloadFn);
+        used = true;
+      }
+    }
+    return used;
+  };
+  o.destroy = () => {
+    // appManager.destroyApp(appId);
+    
+    for (const fn of componentUnloadFns) {
+      fn();
+    }
+    componentUnloadFns.length = 0;
+  };
+  
+  /* const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    // nothing
+  }); */
+  
+  return o;
+};
+/* const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
     const res = await fetch(file.url);
@@ -1970,7 +2094,7 @@ const _loadMediaStream = async (file, {contentId = null}) => {
     };
   };
   return object;
-};
+}; */
 
 const _loadAudio = async (file, {contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -2026,7 +2150,10 @@ const typeHandlers = {
   'scn': _loadScene,
   'url': _loadPortal,
   'html': _loadHtml,
-  'mediastream': _loadMediaStream,
+  'glfs': _loadGlfs,
+  'glbb': _loadGlbb,
+  // 'glom': _loadGlom,
+  // 'mediastream': _loadMediaStream,
   'geo': _loadGeo,
   'mp3': _loadAudio,
   'mp4': _loadVideo,
