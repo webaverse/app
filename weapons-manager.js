@@ -1081,8 +1081,7 @@ const _updateWeapons = () => {
       if (
         !weaponsManager.getMouseSelectedObject() &&
         !weaponsManager.contextMenu &&
-        controlsManager.isPossessed() &&
-        cameraManager.getMode() !== 'firstperson'
+        controlsManager.isPossessed()
       ) {
         rigManager.localRigMatrix.decompose(
           localVector,
