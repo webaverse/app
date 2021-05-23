@@ -433,26 +433,30 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
 }; */
 const lineLength = 0;
 const lineSubLength = 0.1;
+const objectUiMeshGeometry = new THREE.PlaneBufferGeometry(1, 1)
+  .applyMatrix4(
+    localMatrix.compose(
+      localVector.set(1/2, 1/2, 0),
+      localQuaternion.set(0, 0, 0, 1),
+      localVector2.set(1, 1, 1),
+    )
+  );
+flipGeomeryUvs(objectUiMeshGeometry);
 const _makeObjectUiMesh = object => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix4(
-      localMatrix.compose(
-        localVector.set(1/2, 1/2, 0),
-        localQuaternion.set(0, 0, 0, 1),
-        localVector2.set(1, 1, 1),
-      )
-    );
-  flipGeomeryUvs(geometry);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
-    map: new THREE.Texture(),
-    side: THREE.DoubleSide,
-    depthTest: false,
-    transparent: true,
-    alphaTest: 0.5,
-  });
-  const model = new THREE.Mesh(geometry, material);
-  model.frustumCulled = false;
+  const model = (() => {
+    const geometry = objectUiMeshGeometry;
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      map: new THREE.Texture(),
+      side: THREE.DoubleSide,
+      depthTest: false,
+      transparent: true,
+      alphaTest: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
   
   const m = new THREE.Object3D();
   m.add(model);
