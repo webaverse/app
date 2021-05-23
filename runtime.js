@@ -2304,7 +2304,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
 
   return o;
 };
-const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
+/* const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -2358,14 +2358,8 @@ const _loadGlom = async (file, {files = null, components = [], contentId = null}
     componentUnloadFns.length = 0;
   };
   
-  /* const appId = ++appIds;
-  const app = appManager.createApp(appId);
-  app.addEventListener('frame', e => {
-    // nothing
-  }); */
-  
   return o;
-};
+}; */
 /* const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
