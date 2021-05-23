@@ -2888,6 +2888,12 @@ sacks3.vrm`,
           .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
         contentId: 'https://avaer.github.io/sakura/manifest.json',
       },
+      {
+        position: new THREE.Vector3(1, 3, -12),
+        quaternion: new THREE.Quaternion()
+          /* .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2) */,
+        contentId: 'https://webaverse.com/rainbow-dash.gif',
+      },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
