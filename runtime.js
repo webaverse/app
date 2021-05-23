@@ -1064,18 +1064,20 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Object3D();
   mesh.add(model);
   mesh.contentId = contentId;
+  const FPS = 24;
   let running = true;
   let gifId = 0;
+  let lastFrameTime = 0;
   let physicsIds = [];
   let staticPhysicsIds = [];
   mesh.run = async () => {
     gifId = await gifLoader.createGif(u);
     const frame = await gifLoader.renderFrame(gifId);
-    // console.log('got frame', {gifId, frame});
-    
     // update texture
     material.map.image = frame;
     material.map.needsUpdate = true;
+    const now = Date.now();
+    lastFrameTime = now;
     
     // set scale
     const {width, height} = frame;
@@ -1105,22 +1107,29 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   };
   const _attemptFrame = async () => {
     if (!running) {
-      running = true;
-      try {
-        const frame = await gifLoader.renderFrame(gifId);
-        // console.log('got frame', {gifId, frame});
-        
-        // update texture
-        material.map.image = frame;
-        material.map.needsUpdate = true;
-      } catch (err) {
-        console.warn(err);
+      const now = Date.now();
+      const nextFrameTime = lastFrameTime + 1000/FPS;
+      if (now >= nextFrameTime) {
+        running = true;
+        try {
+          const frame = await gifLoader.renderFrame(gifId);
+          // update texture
+          material.map.image = frame;
+          material.map.needsUpdate = true;
+          
+          const now = Date.now();
+          lastFrameTime = now;
+        } catch (err) {
+          console.warn(err);
+        }
+        running = false;
       }
-      running = false;
     }
   };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
+
+    gifLoader.destroyGif(gifId);
 
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
