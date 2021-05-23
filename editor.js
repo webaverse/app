@@ -370,7 +370,7 @@ const _makeMouseUiMesh = () => {
     });
   return m;
 };
-const lineBaseGeometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
+/* const lineBaseGeometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
 const lineMaterial = new THREE.MeshBasicMaterial({
   color: 0xFFFFFF,
 });
@@ -430,7 +430,7 @@ const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
   };
   mesh.frustumCulled = false;
   return mesh;
-};
+}; */
 const lineLength = 0;
 const lineSubLength = 0.1;
 const _makeObjectUiMesh = object => {
