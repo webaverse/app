@@ -2889,7 +2889,7 @@ sacks3.vrm`,
         contentId: 'https://avaer.github.io/sakura/manifest.json',
       },
       {
-        position: new THREE.Vector3(1, 3, -12),
+        position: new THREE.Vector3(0.5, 3, -13),
         quaternion: new THREE.Quaternion()
           /* .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2) */,
         contentId: 'https://webaverse.com/rainbow-dash.gif',
