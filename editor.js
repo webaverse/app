@@ -483,12 +483,13 @@ const _makeObjectUiMesh = object => {
       minterAvatarUrl,
       ownerAvatarUrl,
     });
-    material.map.image = result;
-    material.map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
-    material.map.magFilter = THREE.LinearFilter;
-    material.map.encoding = THREE.sRGBEncoding;
-    material.map.anisotropy = 16;
-    material.map.needsUpdate = true;
+    const {map} = model.material;
+    map.image = result;
+    map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+    map.magFilter = THREE.LinearFilter;
+    map.encoding = THREE.sRGBEncoding;
+    map.anisotropy = 16;
+    map.needsUpdate = true;
     
     model.scale.set(1, result.height/result.width, 1);
   };
