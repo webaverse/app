@@ -75,6 +75,28 @@ class GIFLoader {
     }, []);
     return await p;
   }
+  async renderFrames(gifId) {
+    // await this.loadPromise;
+    const id = ++nextId;
+    // console.log('create gif', id);
+    const p = makePromise();
+    const cb = (err, result) => {
+      if (!err) {
+        p.accept(result);
+      } else {
+        p.reject(err);
+      }
+    };
+    cbs[id] = cb;
+    this.worker.postMessage({
+      method: 'renderFrames',
+      id,
+      args: {
+        gifId,
+      },
+    }, []);
+    return await p;
+  }
   async destroyGif(gifId) {
     // await this.loadPromise;
     const id = ++nextId;
