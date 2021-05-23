@@ -443,14 +443,7 @@ const objectUiMeshGeometry = new THREE.PlaneBufferGeometry(1, 1)
   );
 flipGeomeryUvs(objectUiMeshGeometry);
 const keySize = 0.3;
-const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize)
-  .applyMatrix4(
-    localMatrix.compose(
-      localVector.set(0, 0, 0.1),
-      localQuaternion.set(0, 0, 0, 1),
-      localVector2.set(1, 1, 1),
-    )
-  );
+const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
 const eKeyMaterial = (() => {
   const texture = new THREE.Texture();
   texture.minFilter = THREE.THREE.LinearMipmapLinearFilter;
@@ -479,6 +472,9 @@ const eKeyMaterial = (() => {
   });
   return material;
 })();
+const keyRadius = 0.03;
+const keyInnerFactor = 0.85;
+const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
 const _makeObjectUiMesh = object => {
   const model = (() => {
     const geometry = objectUiMeshGeometry;
@@ -502,11 +498,28 @@ const _makeObjectUiMesh = object => {
     mesh.frustumCulled = false;
     return mesh;
   })();
+  keyMesh.position.z = 0.01;
+  
+  const keyCircleMesh = (() => {
+    const geometry = keyCircleGeometry;
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      depthTest: false,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  keyCircleMesh.position.z = 0.01;
+  
   keyMesh.visible = false; // XXX
+  keyCircleMesh.visible = false; // XXX
   
   const m = new THREE.Object3D();
   m.add(model);
   m.add(keyMesh);
+  m.add(keyCircleMesh);
   m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
@@ -965,31 +978,19 @@ const _loadImage = u => new Promise((accept, reject) => {
   };
   img.onerror = reject;
 });
-function makeShape(shape, x, y, width, height, radius, smoothness) {
-  shape.absarc( x, y, radius, -Math.PI / 2, -Math.PI, true );
-  shape.absarc( x, y + height - radius * 2, radius, Math.PI, Math.PI / 2, true );
-  shape.absarc( x + width - radius * 2, y + height -  radius * 2, radius, Math.PI / 2, 0, true );
-  shape.absarc( x + width - radius * 2, y, radius, 0, -Math.PI / 2, true );
+function makeShape(shape, x, y, width, height, radius) {
+  shape.absarc( x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true );
+  shape.absarc( x + width/2, y + height/2, radius, Math.PI / 2, 0, true );
+  shape.absarc( x + width/2, y - height/2, radius, 0, -Math.PI / 2, true );
+  shape.absarc( x - width/2, y - height/2, radius, -Math.PI / 2, -Math.PI, true );
   return shape;
 }
-function createBoxWithRoundedEdges( width, height, depth, radius0, smoothness ) {
-  const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius0, smoothness);
-  const innerFactor = 0.99;
-  const hole = makeShape(new THREE.Path(), radius0/2, radius0/2, width * innerFactor, height * innerFactor, radius0, smoothness);
+function createBoxWithRoundedEdges( width, height, radius, innerFactor) {
+  const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
+  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
   shape.holes.push(hole);
 
-  let geometry = new THREE.ExtrudeBufferGeometry( shape, {
-    amount: 0,
-    bevelEnabled: true,
-    bevelSegments: smoothness * 2,
-    steps: 1,
-    bevelSize: radius0,
-    bevelThickness: 0,
-    curveSegments: smoothness
-  });
-  
-  geometry.center();
-  
+  const geometry = new THREE.ShapeGeometry(shape);
   return geometry;
 }
 const cardFrontGeometry = new THREE.PlaneBufferGeometry(cardWidth, cardHeight);
@@ -1047,7 +1048,7 @@ const _makeCardMesh = img => {
 const _makeInventoryMesh = () => {
   const w = menuWidth + menuRadius*2;
   const h = menuHeight + menuRadius*2;
-  const geometry = createBoxWithRoundedEdges(w, h, 0, menuRadius, 1);
+  const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.99);
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
   console.log('got bounding box', boundingBox);
   const material = new THREE.ShaderMaterial({
