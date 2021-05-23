@@ -2101,7 +2101,36 @@ const weaponsManager = {
     console.log('menu drop');
   },
   menuPhysics() {
-    console.log('menu physics', weaponsManager.closestObject);
+    const selectedObject = weaponsManager.getMouseSelectedObject();
+    console.log('menu physics', selectedObject);
+    if (selectedObject) {
+      const physicsIds = selectedObject.getPhysicsIds ? selectedObject.getPhysicsIds() : [];
+      if (physicsIds.length > 0) {
+        const physicsId = physicsIds[0];
+        const physics = physicsManager.getGeometry(physicsId);
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          // geometry = geometry.toNonIndexed();
+          // geometry.computeVertexNormals();
+
+          const physicsBuffer = physicsManager.cookConvexGeometry(new THREE.Mesh(geometry));
+
+          const physicsId = physicsManager.addCookedConvexGeometry(physicsBuffer, selectedObject.position, selectedObject.quaternion, selectedObject.scale);
+          
+          console.log('got physics id', physicsId);
+          
+          // physicsIds.push(physicsId);
+          // staticPhysicsIds.push(physicsId);
+
+          /* highlightPhysicsMesh.geometry.dispose();
+          highlightPhysicsMesh.geometry = geometry;
+          // highlightPhysicsMesh.scale.setScalar(1.05);
+          highlightPhysicsMesh.physicsId = physicsId; */
+        }
+      }
+    }
   },
   menuGridSnap() {
     if (this.gridSnap === 0) {
