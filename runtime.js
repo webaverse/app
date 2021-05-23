@@ -280,7 +280,9 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
     autoScale = j.autoScale;
   }
   
-  // console.log('load rtfjs', start_url);
+  /* if (/^\./.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  } */
   
   return await runtime.loadFile({
     url: start_url,
