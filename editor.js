@@ -442,6 +442,43 @@ const objectUiMeshGeometry = new THREE.PlaneBufferGeometry(1, 1)
     )
   );
 flipGeomeryUvs(objectUiMeshGeometry);
+const keySize = 0.3;
+const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize)
+  .applyMatrix4(
+    localMatrix.compose(
+      localVector.set(0, 0, 0.1),
+      localQuaternion.set(0, 0, 0, 1),
+      localVector2.set(1, 1, 1),
+    )
+  );
+const eKeyMaterial = (() => {
+  const texture = new THREE.Texture();
+  texture.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.encoding = THREE.sRGBEncoding;
+  texture.anisotropy = 16;
+  (async () => {
+    const img = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = './assets/e-key.png';
+    });
+    texture.image = img;
+    texture.needsUpdate = true;
+  })();
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: 0xFFFFFF,
+    depthTest: false,
+    transparent: true,
+    alphaTest: 0.5,
+  });
+  return material;
+})();
 const _makeObjectUiMesh = object => {
   const model = (() => {
     const geometry = objectUiMeshGeometry;
@@ -458,8 +495,18 @@ const _makeObjectUiMesh = object => {
     return mesh;
   })();
   
+  const keyMesh = (() => {
+    const geometry = keyGeometry;
+    const material = eKeyMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  keyMesh.visible = false; // XXX
+  
   const m = new THREE.Object3D();
   m.add(model);
+  m.add(keyMesh);
   m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
