@@ -119,6 +119,10 @@ class GIFLoader {
     }, []);
     return await p;
   }
+  destroy() {
+    this.worker.terminate();
+    this.worker = null;
+  }
 }
 export {
   GIFLoader,
