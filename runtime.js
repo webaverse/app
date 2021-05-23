@@ -1070,14 +1070,21 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   let lastFrameTime = 0;
   let physicsIds = [];
   let staticPhysicsIds = [];
+  const _updateFrame = frame => {
+    if (material.map.image) {
+      material.map.image.close();
+      material.map.image = null;
+    }
+    material.map.image = frame;
+    material.map.needsUpdate = true;
+    
+    const now = Date.now();
+    lastFrameTime = now;
+  };
   mesh.run = async () => {
     gifId = await gifLoader.createGif(u);
     const frame = await gifLoader.renderFrame(gifId);
-    // update texture
-    material.map.image = frame;
-    material.map.needsUpdate = true;
-    const now = Date.now();
-    lastFrameTime = now;
+    _updateFrame(frame);
     
     // set scale
     const {width, height} = frame;
@@ -1113,12 +1120,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
         running = true;
         try {
           const frame = await gifLoader.renderFrame(gifId);
-          // update texture
-          material.map.image = frame;
-          material.map.needsUpdate = true;
-          
-          const now = Date.now();
-          lastFrameTime = now;
+          _updateFrame(frame);
         } catch (err) {
           console.warn(err);
         }
