@@ -14,7 +14,7 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import {rigManager} from './rig.js';
 import controlsManager from './controls-manager.js';
-import {downloadFile, getExt} from './util.js';
+import {downloadFile, getExt, flipGeomeryUvs} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
@@ -237,12 +237,6 @@ class CameraGeometry extends THREE.BufferGeometry {
     this.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 }
-const _flipGeomeryUvs = geometry => {
-  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-    const j = i + 1;
-    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
-  }
-};
 const _makeMouseUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
@@ -252,7 +246,7 @@ const _makeMouseUiMesh = () => {
         localVector2.set(1, 1, 1),
       )
     );
-  _flipGeomeryUvs(geometry);
+  flipGeomeryUvs(geometry);
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
@@ -448,7 +442,7 @@ const _makeObjectUiMesh = object => {
         localVector2.set(1, 1, 1),
       )
     );
-  _flipGeomeryUvs(geometry);
+  flipGeomeryUvs(geometry);
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
@@ -649,7 +643,7 @@ const _makeContextMenuGeomery = (y, x) => {
         localVector2.set(1, 1, 1),
       )
     );
-  _flipGeomeryUvs(geometry);
+  flipGeomeryUvs(geometry);
   return geometry;
 };
 const contextMenuGeometries = {

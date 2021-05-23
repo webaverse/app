@@ -565,3 +565,10 @@ export const unFrustumCull = o => {
 export const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 export const epochStartTime = Date.now();
+
+export const flipGeomeryUvs = geometry => {
+  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+    const j = i + 1;
+    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
+  }
+};
