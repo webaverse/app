@@ -234,7 +234,7 @@ const _handleMessage = async message => {
       const gif = gifs[gifId];
       if (gif) {
         const frame = await gif.renderFrame();
-        console.log('got frame', frame);
+        // console.log('got frame', frame);
         return [
           frame,
           [frame],
@@ -247,8 +247,16 @@ const _handleMessage = async message => {
     }
     case 'destroyGif': {
       const {gifId} = args;
-      console.log('worker got destroy gif', {gifId});
-      throw new Error('not implemented yet');
+      const gif = gifs[gifId];
+      if (gif) {
+        delete gifs[gifId];
+        return [
+          null,
+          [],
+        ];
+      } else {
+        throw new Error('destroyGif called for non-existent gif: ' + gifId);
+      }
       break;
     }
   }
