@@ -586,7 +586,9 @@ const _makeObjectUiMesh = object => {
   const m = new THREE.Object3D();
   m.add(model);
   m.add(keyMesh);
+  // m.keyMesh = keyMesh;
   m.add(keyCircleMesh);
+  // m.keyCircleMesh = keyCircleMesh;
   m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
@@ -625,19 +627,6 @@ const _makeObjectUiMesh = object => {
     model.scale.set(1, result.height/result.width, 1);
   };
   let animationSpec = null;
-  let localVisible = false;
-  m.show = () => {
-    localVisible = true;
-    
-    const now = Date.now();
-    animationSpec = {
-      startTime: now,
-      endTime: now + 1000,
-    };
-  };
-  m.hide = () => {
-    localVisible = false;
-  };
   m.update = () => {
     const now = Date.now();
     
@@ -675,7 +664,25 @@ const _makeObjectUiMesh = object => {
     };
     _updateMatrix();
     
-    const _updateAnimation = () => {
+    const _handleFadeInAnimation = () => {
+      const closestObject = weaponsManager.getClosestObject();
+      const visible = closestObject === object;
+      if (visible !== m.visible) {
+        if (visible) {
+          const now = Date.now();
+          animationSpec = {
+            startTime: now,
+            endTime: now + 1000,
+          };
+        } else {
+          animationSpec = null;
+        }
+      }
+      m.visible = visible;
+    };
+    _handleFadeInAnimation();
+    
+    const _updateFadeInAnimation = () => {
       const _setDefaultScale = () => {
         m.scale.set(1, 1, 1);
       };
@@ -695,21 +702,28 @@ const _makeObjectUiMesh = object => {
         animationSpec = null;
       }
     };
-    _updateAnimation();
+    _updateFadeInAnimation();
     
-    const _updateKeyMesh = () => {
-      const f = (now % 1000) / 1000;
-      
-      const s = 1 - f*0.3;
-      keyMesh.scale.setScalar(s);
-      keyCircleMesh.scale.setScalar(s);
-      
-      keyCircleMesh.material.uniforms.uTime.value = f;
-      keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+    const _updateKeyMeshes = () => {
+      const usableObject = weaponsManager.getUsableObject();
+      let visible;
+      if (usableObject === object) {
+        const f = (now % 1000) / 1000;
+        
+        const s = 1 - f*0.3;
+        keyMesh.scale.setScalar(s);
+        keyCircleMesh.scale.setScalar(s);
+        
+        keyCircleMesh.material.uniforms.uTime.value = f;
+        keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+        visible = true;
+      } else {
+        visible = false;
+      }
+      keyMesh.visible = visible;
+      keyCircleMesh.visible = visible;
     };
-    _updateKeyMesh();
-    
-    return localVisible;
+    _updateKeyMeshes();
   };
   
   (async () => {
@@ -2759,10 +2773,10 @@ Promise.all([
         scene.add(lineMesh); */
         
         app.addEventListener('frame', () => {
-          const visible = objectUiMesh.update();
+          /* const visible = */objectUiMesh.update();
           // lineMesh.update();
           
-          objectUiMesh.visible = visible;
+          // objectUiMesh.visible = visible;
           // lineMesh.visible = visible;
         });
         objectUiMeshes.push(objectUiMesh);
@@ -2776,7 +2790,7 @@ Promise.all([
           objectUiMeshes.splice(objectUiMeshIndex, 1);
         }
       });
-      let lastClosestObjectUiMesh = null;
+      /* let lastClosestObjectUiMesh = null;
       app.addEventListener('frame', () => {
         const closestObject = weaponsManager.getClosestObject();
         const closestObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === closestObject) || null;
@@ -2792,6 +2806,20 @@ Promise.all([
           lastClosestObjectUiMesh = closestObjectUiMesh;
         }
       });
+      let lastUsableObjectUiMesh = null;
+      app.addEventListener('frame', () => {
+        const usableObjct = weaponsManager.getUsableObject();
+        const usableObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === usableObjct) || null;
+        
+        if (usableObjectUiMesh !== lastUsableObjectUiMesh) {
+          for (const objectUiMesh of objectUiMeshes) {
+            const visible = objectUiMesh === usableObjectUiMesh;
+            objectUiMesh.keyMesh.visible = visible;
+            objectUiMesh.keyCircleMesh.visible = visible;
+          }
+          lastUsableObjectUiMesh = usableObjectUiMesh;
+        }
+      }); */
       
       // double-click to look at object
       renderer.domElement.addEventListener('dblclick', async e => {
