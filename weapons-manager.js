@@ -1072,6 +1072,46 @@ const _updateWeapons = () => {
     }
   };
   _handleClosestObject();
+  
+  const _handleUsableObject = () => {
+    const objects = world.getObjects();
+    if (objects.length > 0) {
+      let usableObject;
+      
+      if (
+        !weaponsManager.getMouseSelectedObject() &&
+        !weaponsManager.contextMenu &&
+        controlsManager.isPossessed() &&
+        cameraManager.getMode() !== 'firstperson'
+      ) {
+        rigManager.localRigMatrix.decompose(
+          localVector,
+          localQuaternion,
+          localVector2
+        );
+        localVector.y -= physicsManager.getAvatarHeight() / 2;
+        const distanceSpecs = objects.map(object => {
+          let distance = object.position.distanceTo(localVector);
+          if (distance > 3) {
+            distance = Infinity;
+          }
+          return {
+            distance,
+            object,
+          };
+        }).sort((a, b) => a.distance - b.distance);
+        const closestDistanceSpec = distanceSpecs[0];
+        if (isFinite(closestDistanceSpec.distance)) {
+          usableObject = closestDistanceSpec.object;
+        }
+      } else {
+        usableObject = null;
+      }
+      
+      weaponsManager.usableObject = usableObject;
+    }
+  };
+  _handleUsableObject();
 
   if (crosshairEl) {
     crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
@@ -1918,6 +1958,7 @@ const weaponsManager = {
   editorHack: false,
   inventoryHack: false,
   closestObject: null,
+  usableObject: null,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -2308,6 +2349,9 @@ const weaponsManager = {
   },
   getClosestObject() {
     return weaponsManager.closestObject;
+  },
+  getUsableObject() {
+    return weaponsManager.usableObject;
   },
   teleportTo: _teleportTo,
   getLastMouseEvent() {
