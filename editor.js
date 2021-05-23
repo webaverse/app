@@ -2645,79 +2645,18 @@ Promise.all([
       });
       let lastClosestObjectUiMesh = null;
       app.addEventListener('frame', () => {
-        if (objectUiMeshes.length > 0) {
-          let closestObjectUiMesh;
-          if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
-            if (controlsManager.isPossessed() && cameraManager.getMode() !== 'firstperson') {
-              rigManager.localRigMatrix.decompose(
-                localVector,
-                localQuaternion,
-                localVector2
-              );
-              localVector.y -= physicsManager.getAvatarHeight() / 2;
-              const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-                let distance = objectUiMesh.object.position.distanceTo(localVector);
-                if (distance > 30) {
-                  distance = Infinity;
-                }
-                return {
-                  distance,
-                  objectUiMesh,
-                };
-              }).sort((a, b) => a.distance - b.distance);
-              const closestDistanceSpec = distanceSpecs[0];
-              if (isFinite(closestDistanceSpec.distance)) {
-                closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
-              }
-            } else {
-              if ((!!rigManager.localRig && controlsManager.isPossessed() && cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
-                localRay.set(
-                  camera.position,
-                  localVector.set(0, 0, -1)
-                    .applyQuaternion(camera.quaternion)
-                );
-                
-                const distanceSpecs = objectUiMeshes.map(objectUiMesh => {
-                  const distance =
-                    objectUiMesh.object.position.distanceTo(camera.position) < 8 ?
-                      localRay.distanceToPoint(objectUiMesh.object.position)
-                    :
-                      Infinity;
-                  return {
-                    distance,
-                    objectUiMesh,
-                  };
-                }).sort((a, b) => a.distance - b.distance);
-                const closestDistanceSpec = distanceSpecs[0];
-                if (isFinite(closestDistanceSpec.distance)) {
-                  closestObjectUiMesh = closestDistanceSpec.objectUiMesh;
-                }
-              } else {
-                const mouseHoverObject = weaponsManager.getMouseHoverObject();
-                if (mouseHoverObject) {
-                  closestObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === mouseHoverObject) || null;
-                  /* const e = weaponsManager.getLastMouseEvent();
-                  if (e) {
-                    _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
-                    localRay.copy(localRaycaster.ray);
-                  } */
-                }
-              }
-            }
-          } else {
-            closestObjectUiMesh = null;
+        const closestObject = weaponsManager.getClosestObject();
+        const closestObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === closestObject) || null;
+        
+        if (closestObjectUiMesh !== lastClosestObjectUiMesh) {
+          // console.log('change', closestObjectUiMesh);
+          for (const objectUiMesh of objectUiMeshes) {
+            objectUiMesh.hide();
           }
-          // console.log('got', closestObjectUiMesh !== lastClosestObjectUiMesh);
-          if (closestObjectUiMesh !== lastClosestObjectUiMesh) {
-            // console.log('change', closestObjectUiMesh);
-            for (const objectUiMesh of objectUiMeshes) {
-              objectUiMesh.hide();
-            }
-            if (closestObjectUiMesh) {
-              closestObjectUiMesh.show();
-            }
-            lastClosestObjectUiMesh = closestObjectUiMesh;
+          if (closestObjectUiMesh) {
+            closestObjectUiMesh.show();
           }
+          lastClosestObjectUiMesh = closestObjectUiMesh;
         }
       });
       
