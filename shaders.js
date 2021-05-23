@@ -851,7 +851,7 @@ const highlightMaterial = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
   polygonOffset: true,
-  polygonOffsetFactor: -1,
+  polygonOffsetFactor: -2,
   // polygonOffsetUnits: 1,
 });
 
