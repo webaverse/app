@@ -1342,9 +1342,6 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
   }
-  if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
-  }
 
   if (!files && /^https?:/.test(srcUrl)) {
     files = _makeFilesProxy(srcUrl);
@@ -1362,6 +1359,10 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
       physics_url = files[_dotifyUrl(physics_url)];
     }
   } */
+
+  if (/^\./.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
 
   const u = _dotifyUrl(start_url);
   return await runtime.loadFile({
