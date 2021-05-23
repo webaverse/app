@@ -1035,8 +1035,12 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
   };
   return mesh;
 };
-const gifLoader = new GIFLoader();
+let gifLoader = null;
 const _loadGif = async (file, {files = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+  if (!gifLoader) {
+    gifLoader = new GIFLoader();
+  }
+  
   let u = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(u)) {
     u = files[_dotifyUrl(u)];
