@@ -472,7 +472,7 @@ const eKeyMaterial = (() => {
   });
   return material;
 })();
-const keyRadius = 0.03;
+const keyRadius = 0.045;
 const keyInnerFactor = 0.85;
 const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
 const _makeObjectUiMesh = object => {
