@@ -586,9 +586,7 @@ const _makeObjectUiMesh = object => {
   const m = new THREE.Object3D();
   m.add(model);
   m.add(keyMesh);
-  // m.keyMesh = keyMesh;
   m.add(keyCircleMesh);
-  // m.keyCircleMesh = keyCircleMesh;
   m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
@@ -2729,7 +2727,6 @@ Promise.all([
     // hacks
     {
       const scene = app.getScene();
-      // const sceneHighPriority = app.getSceneHighPriority();
       const sceneLowPriority = app.getSceneLowPriority();
         
       const g = new CameraGeometry();
@@ -2769,15 +2766,8 @@ Promise.all([
         const objectUiMesh = _makeObjectUiMesh(object);
         sceneLowPriority.add(objectUiMesh);
         
-        /* const lineMesh = _makeLineMesh(object, objectUiMesh, lineLength, lineSubLength);
-        scene.add(lineMesh); */
-        
         app.addEventListener('frame', () => {
-          /* const visible = */objectUiMesh.update();
-          // lineMesh.update();
-          
-          // objectUiMesh.visible = visible;
-          // lineMesh.visible = visible;
+          objectUiMesh.update();
         });
         objectUiMeshes.push(objectUiMesh);
       });
@@ -2790,36 +2780,6 @@ Promise.all([
           objectUiMeshes.splice(objectUiMeshIndex, 1);
         }
       });
-      /* let lastClosestObjectUiMesh = null;
-      app.addEventListener('frame', () => {
-        const closestObject = weaponsManager.getClosestObject();
-        const closestObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === closestObject) || null;
-        
-        if (closestObjectUiMesh !== lastClosestObjectUiMesh) {
-          // console.log('change', closestObjectUiMesh);
-          for (const objectUiMesh of objectUiMeshes) {
-            objectUiMesh.hide();
-          }
-          if (closestObjectUiMesh) {
-            closestObjectUiMesh.show();
-          }
-          lastClosestObjectUiMesh = closestObjectUiMesh;
-        }
-      });
-      let lastUsableObjectUiMesh = null;
-      app.addEventListener('frame', () => {
-        const usableObjct = weaponsManager.getUsableObject();
-        const usableObjectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === usableObjct) || null;
-        
-        if (usableObjectUiMesh !== lastUsableObjectUiMesh) {
-          for (const objectUiMesh of objectUiMeshes) {
-            const visible = objectUiMesh === usableObjectUiMesh;
-            objectUiMesh.keyMesh.visible = visible;
-            objectUiMesh.keyCircleMesh.visible = visible;
-          }
-          lastUsableObjectUiMesh = usableObjectUiMesh;
-        }
-      }); */
       
       // double-click to look at object
       renderer.domElement.addEventListener('dblclick', async e => {
@@ -2844,7 +2804,6 @@ Promise.all([
         contextMenuMesh.update();
       });
       renderer.domElement.addEventListener('click', async e => {
-        // _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
         if (contextMenuMesh.visible) {
           const highlightedIndex = contextMenuMesh.getHighlightedIndex();
           const option = realContextMenuOptions[highlightedIndex];
@@ -2874,7 +2833,6 @@ Promise.all([
             }
             case 'Remove': {
               const object = weaponsManager.getContextMenuObject();
-              // console.log('remove context menu object', object);
               world.removeObject(object.instanceId);
               break;
             }
