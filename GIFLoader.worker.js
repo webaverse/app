@@ -205,9 +205,17 @@ const _createGif = async ({
       }, Math.max(0, Math.floor(frame.delay - diff)))
     } */
   }
+  async function renderFrames() {
+    const results = Array(loadedFrames.length);
+    for (let i = 0; i < loadedFrames.length; i++) {
+      results[i] = await renderFrame();
+    }
+    return results;
+  }
   renderGIF(frames);
   return {
     renderFrame,
+    renderFrames,
   };
 };
 const gifs = {};
@@ -242,7 +250,23 @@ const _handleMessage = async message => {
       } else {
         throw new Error('renderFrame called for non-existent gif: ' + gifId);
       }
-      console.log('worker got render frame', {gifId});
+      // console.log('worker got render frame', {gifId});
+      break;
+    }
+    case 'renderFrames': {
+      const {gifId} = args;
+      const gif = gifs[gifId];
+      if (gif) {
+        const frames = await gif.renderFrames();
+        // console.log('got frame', frame);
+        return [
+          frames,
+          frames,
+        ];
+      } else {
+        throw new Error('renderFrame called for non-existent gif: ' + gifId);
+      }
+      // console.log('worker got render frame', {gifId});
       break;
     }
     case 'destroyGif': {
@@ -257,6 +281,10 @@ const _handleMessage = async message => {
       } else {
         throw new Error('destroyGif called for non-existent gif: ' + gifId);
       }
+      break;
+    }
+    default: {
+      throw new Error('unknown method: ' + method);
       break;
     }
   }
