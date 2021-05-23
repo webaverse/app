@@ -2251,7 +2251,16 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   window.text = text;
   const shader = JSON.parse(text);
 
-  const shadertoyRenderer = new ShadertoyRenderer(shader);
+  const size = 1024;
+  const worldSize = 2;
+
+  const shadertoyRenderer = new ShadertoyRenderer(
+    shader,
+    {
+      size: 1024,
+      worldSize: 2,
+    }
+  );
   let loaded = false;
   (async () => {
     await shadertoyRenderer.waitForLoad();
@@ -2260,9 +2269,30 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   const o = shadertoyRenderer.mesh;
   o.contentId = contentId;
   // o.frustumCulled = false;
+  
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  o.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      o.position,        
+      o.quaternion,
+      new THREE.Vector3(worldSize/2, worldSize/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
   o.destroy = () => {
     appManager.destroyApp(appId);
+
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
   };
+  o.getPhysicsIds = () => physicsIds;
+  o.getStaticPhysicsIds = () => staticPhysicsIds;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
