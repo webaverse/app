@@ -507,56 +507,62 @@ const _makeObjectUiMesh = object => {
     localVisible = false;
   };
   m.update = () => {
-    const renderer = getRenderer();
-    const e = {
-      clientX: canvas.width / renderer.getPixelRatio(),
-      clientY: canvas.height / renderer.getPixelRatio(),
+    const _updateMatrix = () => {
+      const renderer = getRenderer();
+      const e = {
+        clientX: canvas.width / renderer.getPixelRatio(),
+        clientY: canvas.height / renderer.getPixelRatio(),
+      };
+      _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+      const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
+      // cameraUiPlane.normal.multiplyScalar(-1);
+      
+      const objectPosition = localVector.copy(object.position)
+        .add(localVector2.set(0, lineLength, 0));
+      
+      localRay.set(
+        objectPosition,
+        localVector2.copy(camera.position)
+          .sub(objectPosition)
+          .normalize()
+      );
+      
+      const intersection = localRay.intersectPlane(cameraUiPlane, localVector2);
+      if (intersection && localRay.direction.dot(cameraUiPlane.normal) > 0) {
+        m.position.copy(intersection);
+      } else {
+        m.position.copy(objectPosition);
+      }
+      
+      localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      m.quaternion.setFromEuler(localEuler);
     };
-    _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
-    const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
-    // cameraUiPlane.normal.multiplyScalar(-1);
+    _updateMatrix();
     
-    const objectPosition = localVector.copy(object.position)
-      .add(localVector2.set(0, lineLength, 0));
-    
-    localRay.set(
-      objectPosition,
-      localVector2.copy(camera.position)
-        .sub(objectPosition)
-        .normalize()
-    );
-    
-    const intersection = localRay.intersectPlane(cameraUiPlane, localVector2);
-    if (intersection && localRay.direction.dot(cameraUiPlane.normal) > 0) {
-      m.position.copy(intersection);
-    } else {
-      m.position.copy(objectPosition);
-    }
-    
-    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    m.quaternion.setFromEuler(localEuler);
-    
-    const _setDefaultScale = () => {
-      m.scale.set(1, 1, 1);
-    };
-    if (animationSpec) {
-      const now = Date.now();
-      const {startTime, endTime} = animationSpec;
-      const f = (now - startTime) / (endTime - startTime);
-      if (f >= 0 && f < 1) {
-        const fv = cubicBezier(f);
-        m.scale.set(fv, fv, 1);
-        // model.material.opacity = fv;
+    const _updateAnimation = () => {
+      const _setDefaultScale = () => {
+        m.scale.set(1, 1, 1);
+      };
+      if (animationSpec) {
+        const now = Date.now();
+        const {startTime, endTime} = animationSpec;
+        const f = (now - startTime) / (endTime - startTime);
+        if (f >= 0 && f < 1) {
+          const fv = cubicBezier(f);
+          m.scale.set(fv, fv, 1);
+          // model.material.opacity = fv;
+        } else {
+          _setDefaultScale();
+          animationSpec = null;
+        }
       } else {
         _setDefaultScale();
         animationSpec = null;
       }
-    } else {
-      _setDefaultScale();
-      animationSpec = null;
-    }
+    };
+    _updateAnimation();
     
     return localVisible;
   };
