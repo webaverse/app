@@ -23,6 +23,8 @@ import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
 import {ShadertoyRenderer} from './shadertoy.js';
 import {makeAppContextObject} from './api.js';
+// import GIF from './gif.js';
+import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -1030,6 +1032,269 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
       died: false,
     };
   };
+  return mesh;
+};
+const tempCanvas = document.createElement('canvas');
+const tempCtx = tempCanvas.getContext('2d');
+const _loadGif = async (file, {files = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let u = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(u)) {
+    u = files[_dotifyUrl(u)];
+  }
+  const res = await fetch(u);
+  const ab = await res.arrayBuffer();
+  const gif = await GifuctJs.parseGIF(ab);
+  const frames = await GifuctJs.decompressFrames(gif, true);
+  // console.log('got frames', frames);
+  const {width, height} = frames[0].dims;
+
+  let worldWidth = width;
+  let worldHeight = height;
+  if (worldWidth >= worldHeight) {
+    worldHeight /= worldWidth;
+    worldWidth = 1;
+  }
+  if (worldHeight >= worldWidth) {
+    worldWidth /= worldHeight;
+    worldHeight = 1;
+  }
+  const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight);
+  geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-worldWidth/2, -worldHeight/2, -0.1),
+    new THREE.Vector3(worldWidth/2, worldHeight/2, 0.1),
+  );
+  const colors = new Float32Array(geometry.attributes.position.array.length);
+  colors.fill(1, 0, colors.length);
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  // user canvas
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
+  const texture = new THREE.Texture(c);
+  // texture.needsUpdate = true;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    vertexColors: true,
+    transparent: true,
+    alphaTest: 0.5,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.contentId = contentId;
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  mesh.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      mesh.position,        
+      mesh.quaternion,
+      new THREE.Vector3(worldWidth/2, worldHeight/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
+  mesh.destroy = () => {
+    appManager.destroyApp(appId);
+
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  
+  // gif patch canvas
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  // full gif canvas
+  const gifCanvas = document.createElement('canvas');
+  const gifCtx = gifCanvas.getContext('2d');
+  
+  // let playing = false;
+  let bEdgeDetect = false;
+  let bInvert = false;
+  let bGrayscale = false;
+  let pixelPercent = 100;
+  let loadedFrames;
+  let frameIndex;
+  let frameImageData;
+  function renderGIF(frames) {
+    loadedFrames = frames
+    frameIndex = 0
+
+    c.width = frames[0].dims.width
+    c.height = frames[0].dims.height
+
+    gifCanvas.width = c.width
+    gifCanvas.height = c.height
+
+    /* if (!playing) {
+      playpause()
+    } */
+  }
+  function drawPatch(frame) {
+    var dims = frame.dims
+
+    if (
+      !frameImageData ||
+      dims.width != frameImageData.width ||
+      dims.height != frameImageData.height
+    ) {
+      tempCanvas.width = dims.width
+      tempCanvas.height = dims.height
+      frameImageData = tempCtx.createImageData(dims.width, dims.height)
+    }
+
+    // set the patch data as an override
+    frameImageData.data.set(frame.patch)
+
+    // draw the patch back over the canvas
+    tempCtx.putImageData(frameImageData, 0, 0)
+
+    gifCtx.drawImage(tempCanvas, dims.left, dims.top)
+  }
+  var edge = function(data, output) {
+    var odata = output.data
+    var width = gif.lsd.width
+    var height = gif.lsd.height
+
+    var conv = [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+    var halfside = Math.floor(3 / 2)
+
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var r = 0,
+          g = 0,
+          b = 0
+        for (var cy = 0; cy < 3; cy++) {
+          for (var cx = 0; cx < 3; cx++) {
+            var scy = y - halfside + cy
+            var scx = x - halfside + cx
+
+            if (scy >= 0 && scy < height && scx >= 0 && scx < width) {
+              var src = (scy * width + scx) * 4
+              var f = cy * 3 + cx
+              r += data[src] * conv[f]
+              g += data[src + 1] * conv[f]
+              b += data[src + 2] * conv[f]
+            }
+          }
+        }
+
+        var i = (y * width + x) * 4
+        odata[i] = r
+        odata[i + 1] = g
+        odata[i + 2] = b
+        odata[i + 3] = 255
+      }
+    }
+
+    return output
+  }
+  var invert = function(data) {
+    for (var i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i] // red
+      data[i + 1] = 255 - data[i + 1] // green
+      data[i + 2] = 255 - data[i + 2] // blue
+      data[i + 3] = 255
+    }
+  }
+  var grayscale = function(data) {
+    for (var i = 0; i < data.length; i += 4) {
+      var avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+      data[i] = avg // red
+      data[i + 1] = avg // green
+      data[i + 2] = avg // blue
+      data[i + 3] = 255
+    }
+  }
+  function manipulate() {
+    var imageData = gifCtx.getImageData(0, 0, gifCanvas.width, gifCanvas.height)
+    var other = gifCtx.createImageData(gifCanvas.width, gifCanvas.height)
+
+    if (bEdgeDetect) {
+      imageData = edge(imageData.data, other)
+    }
+
+    if (bInvert) {
+      invert(imageData.data)
+    }
+
+    if (bGrayscale) {
+      grayscale(imageData.data)
+    }
+
+    // do pixelation
+    var pixelsX = 5 + Math.floor((pixelPercent / 100) * (c.width - 5))
+    var pixelsY = (pixelsX * c.height) / c.width
+
+    if (pixelPercent != 100) {
+      ctx.mozImageSmoothingEnabled = false
+      ctx.webkitImageSmoothingEnabled = false
+      ctx.imageSmoothingEnabled = false
+    }
+
+    ctx.putImageData(imageData, 0, 0)
+    ctx.drawImage(c, 0, 0, c.width, c.height, 0, 0, pixelsX, pixelsY)
+    ctx.drawImage(c, 0, 0, pixelsX, pixelsY, 0, 0, c.width, c.height)
+  }
+  function renderFrame() {
+    // get the frame
+    var frame = loadedFrames[frameIndex]
+
+    var start = new Date().getTime()
+    
+    if (frame.disposalType ===  2) {
+      gifCtx.clearRect(0, 0, c.width, c.height)
+    }
+
+    // draw the patch
+    drawPatch(frame)
+
+    // perform manipulation
+    manipulate()
+
+    // update the frame index
+    frameIndex++
+    if (frameIndex >= loadedFrames.length) {
+      frameIndex = 0
+    }
+
+    var end = new Date().getTime()
+    var diff = end - start
+
+    /* if (playing) {
+      // delay the next gif frame
+      setTimeout(function() {
+        requestAnimationFrame(renderFrame)
+        //renderFrame();
+      }, Math.max(0, Math.floor(frame.delay - diff)))
+    } */
+  }
+  renderGIF(frames);
+  
+  mesh.update = () => {
+    renderFrame();
+    texture.needsUpdate = true;
+  };
+  mesh.hit = () => {
+    console.log('hit', mesh); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', () => {
+    mesh.update();
+  });
+  
   return mesh;
 };
 const _makeAppUrl = appId => {
@@ -2142,7 +2407,7 @@ const typeHandlers = {
   'vrm': _loadVrm,
   'vox': _loadVox,
   'png': _loadImg,
-  'gif': _loadImg,
+  'gif': _loadGif,
   'jpeg': _loadImg,
   'jpg': _loadImg,
   'js': _loadScript,
