@@ -1952,7 +1952,7 @@ const _loadGlfs = async (file, {contentId = null}) => {
   
   const res = await fetch(srcUrl);
   const text = await res.text();
-  const shader = json6.parse(text);
+  const shader = JSON.parse(text);
   
   const fullscreenShader = new FullscreenShader(shader);
 
@@ -2017,7 +2017,7 @@ const _loadGlom = async (file, {files = null, components = [], contentId = null}
   
   const res = await fetch(srcUrl);
   const text = await res.text();
-  const shader = json6.parse(text);
+  const shader = JSON.parse(text);
   const {vertexShader, fragmentShader} = shader;
 
   const material = new THREE.ShaderMaterial({
