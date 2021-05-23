@@ -1064,10 +1064,12 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Object3D();
   mesh.add(model);
   mesh.contentId = contentId;
+  let running = true;
+  let gifId = 0;
   let physicsIds = [];
   let staticPhysicsIds = [];
   mesh.run = async () => {
-    const gifId = await gifLoader.createGif(u);
+    gifId = await gifLoader.createGif(u);
     const frame = await gifLoader.renderFrame(gifId);
     // console.log('got frame', {gifId, frame});
     
@@ -1098,6 +1100,24 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     );
     physicsIds.push(physicsId);
     staticPhysicsIds.push(physicsId);
+    
+    running = false;
+  };
+  const _attemptFrame = async () => {
+    if (!running) {
+      running = true;
+      try {
+        const frame = await gifLoader.renderFrame(gifId);
+        // console.log('got frame', {gifId, frame});
+        
+        // update texture
+        material.map.image = frame;
+        material.map.needsUpdate = true;
+      } catch (err) {
+        console.warn(err);
+      }
+      running = false;
+    }
   };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
@@ -1111,8 +1131,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.update = () => {
-    /* renderFrame();
-    texture.needsUpdate = true; */
+    _attemptFrame();
   };
   mesh.hit = () => {
     console.log('hit', mesh); // XXX
