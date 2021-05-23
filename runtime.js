@@ -1066,27 +1066,25 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   mesh.contentId = contentId;
   const FPS = 24;
   let running = true;
-  let gifId = 0;
+  // let frames = [];
+  let textures = [];
+  let frameIndex = 0;
   let lastFrameTime = 0;
   let physicsIds = [];
   let staticPhysicsIds = [];
-  const _updateFrame = frame => {
-    if (material.map.image) {
-      material.map.image.close();
-      material.map.image = null;
-    }
-    material.map.image = frame;
-    material.map.needsUpdate = true;
-    
-    const now = Date.now();
-    lastFrameTime = now;
-  };
   mesh.run = async () => {
-    gifId = await gifLoader.createGif(u);
-    const frame = await gifLoader.renderFrame(gifId);
-    _updateFrame(frame);
+    const gifId = await gifLoader.createGif(u);
+    const frames = await gifLoader.renderFrames(gifId);
+    gifLoader.destroyGif(gifId);
+    textures = frames.map(frame => {
+      const t = new THREE.Texture(frame);
+      t.anisotropy = 16;
+      t.needsUpdate = true;
+      return t;
+    });
     
     // set scale
+    const frame = frames[0];
     const {width, height} = frame;
     let worldWidth = width;
     let worldHeight = height;
@@ -1102,7 +1100,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     
     // add physics mesh
     const physicsId = physicsManager.addBoxGeometry(
-      mesh.position,        
+      mesh.position,
       mesh.quaternion,
       new THREE.Vector3(worldWidth/2, worldHeight/2, 0.01),
       false
@@ -1118,20 +1116,20 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
       const nextFrameTime = lastFrameTime + 1000/FPS;
       if (now >= nextFrameTime) {
         running = true;
-        try {
-          const frame = await gifLoader.renderFrame(gifId);
-          _updateFrame(frame);
-        } catch (err) {
-          console.warn(err);
-        }
+        
+        const texture = textures[frameIndex];
+        frameIndex = (frameIndex + 1) % textures.length;
+        material.map = texture;
+        
+        const now = Date.now();
+        lastFrameTime = now;
+
         running = false;
       }
     }
   };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
-
-    gifLoader.destroyGif(gifId);
 
     for (const physicsId of physicsIds) {
       physicsManager.removeGeometry(physicsId);
