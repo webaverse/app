@@ -275,7 +275,6 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
   
   const res = await fetch(srcUrl);
   const j = await res.json();
-  // console.log('got metaversefile', j);
   let {start_url, physics, physics_url, components} = j;
   if (typeof j.autoScale === 'boolean') {
     autoScale = j.autoScale;
