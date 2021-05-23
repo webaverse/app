@@ -449,11 +449,8 @@ ioManager.bindInput = () => {
         break;
       }
       case 80: { // P
-        if (weaponsManager.destroyWorld()) {
-          /* e.preventDefault();
-          e.stopPropagation();
-          document.getElementById('key-m').click(); */
-        }
+        weaponsManager.destroyWorld()
+        weaponsManager.menuPhysics();
         break;
       }
       case 16: { // shift
