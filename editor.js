@@ -2823,8 +2823,7 @@ sacks3.vrm`,
       },
       {
         position: new THREE.Vector3(0.5, 3, -13),
-        quaternion: new THREE.Quaternion()
-          /* .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2) */,
+        quaternion: new THREE.Quaternion(),
         contentId: 'https://webaverse.com/rainbow-dash.gif',
       },
       /* {
