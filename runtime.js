@@ -1068,12 +1068,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Object3D();
   mesh.add(model);
   mesh.contentId = contentId;
-  const FPS = 24;
-  let running = true;
-  // let frames = [];
-  let textures = [];
-  let frameIndex = 0;
-  let lastFrameTime = 0;
+  let textures;
   let physicsIds = [];
   let staticPhysicsIds = [];
   mesh.run = async () => {
@@ -1111,26 +1106,6 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     );
     physicsIds.push(physicsId);
     staticPhysicsIds.push(physicsId);
-    
-    running = false;
-  };
-  const _attemptFrame = async () => {
-    if (!running) {
-      const now = Date.now();
-      const nextFrameTime = lastFrameTime + 1000/FPS;
-      if (now >= nextFrameTime) {
-        running = true;
-        
-        const texture = textures[frameIndex];
-        frameIndex = (frameIndex + 1) % textures.length;
-        material.map = texture;
-        
-        const now = Date.now();
-        lastFrameTime = now;
-
-        running = false;
-      }
-    }
   };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
@@ -1144,7 +1119,12 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.update = () => {
-    _attemptFrame();
+    if (textures) {
+      const now = Date.now();
+      const f = (now % 2000) / 2000;
+      const frameIndex = Math.floor(f * textures.length);
+      material.map = textures[frameIndex];
+    }
   };
   mesh.hit = () => {
     console.log('hit', mesh); // XXX
