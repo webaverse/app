@@ -21,6 +21,7 @@ import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
+import {ShadertoyRenderer} from './shadertoy.js';
 import {makeAppContextObject} from './api.js';
 import {baseUnit, rarityColors} from './constants.js';
 
@@ -1983,7 +1984,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   const res = await fetch(srcUrl);
   const text = await res.text();
   window.text = text;
-  const shader = json6.parse(text);
+  const shader = JSON.parse(text);
 
   const shadertoyRenderer = new ShadertoyRenderer(shader);
   let loaded = false;
