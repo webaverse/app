@@ -649,20 +649,20 @@ const Settings = React.memo(({open}) => {
 
 return () => {
   const [open, setOpen] = useState(true);
-  const [selectedTab, localSetSelectedTab] = useState('editor');
+  const [selectedTab, setSelectedTab] = globalState.useState('selectedTab', 'editor');
   const [cards, setCards] = useState([]);
   const [searchResults, setSearchResults] = useState(null);
-  const [objects, setObjects] = useState([]);
-  const [selectedFileIndex, localSetSelectedFileIndex] = useState(0);
-  const [selectedObjectIndex, localSetSelectedObjectIndex] = useState(-1);
+  const [objects, setObjects] = globalState.useState('objects', []);
+  const [selectedFileIndex, setSelectedFileIndex] = globalState.useState('selectedFileIndex', 0);
+  const [selectedObjectIndex, setSelectedObjectIndex] = globalState.useState('selectedObjectIndex', -1);
   const [q, setQ] = useState('');
   const [currentQ, setCurrentQ] = useState('');
   const [lastQ, setLastQ] = useState('');
   const [templateOptions, setTemplateOptions] = useState([]);
   const [selectedTemplateOption, setSelectedTemplateOption] = useState();
-  const [files, setFiles] = useState([]);
-  const [editor, setEditor] = useState(null);
-  const [errors, localSetErrors] = useState([]);
+  const [files, setFiles] = globalState.useState('files', []);
+  const [editor, setEditor] = globalState.useState('editor', null);
+  const [errors, localSetErrors] = globalState.useState('errors', []);
   const [firstRun, setFirstRun] = useState(false);
   const [secondRun, setSecondRun] = useState(true);
   const [servers, setServers] = useState([]);
@@ -673,16 +673,16 @@ return () => {
   const [isXrSupported, setIsXrSuported] = useState(false);
   const [session, setSession] = useState(null);
   
-  getEditor = () => editor;
-  getFiles = () => files;
-  setSelectedTab = localSetSelectedTab;
-  getObjects = () => objects;
-  getSelectedFileIndex = () => selectedFileIndex;
-  setSelectedFileIndex = localSetSelectedFileIndex;
-  getSelectedObjectIndex = () => selectedObjectIndex;
-  setSelectedObjectIndex = localSetSelectedObjectIndex;
-  getErrors = () => errors;
-  setErrors = localSetErrors;
+  // getEditor = () => editor;
+  // getFiles = () => files;
+  // setSelectedTab = localSetSelectedTab;
+  // getObjects = () => objects;
+  // getSelectedFileIndex = () => selectedFileIndex;
+  // setSelectedFileIndex = localSetSelectedFileIndex;
+  // getSelectedObjectIndex = () => selectedObjectIndex;
+  // setSelectedObjectIndex = localSetSelectedObjectIndex;
+  // getErrors = () => errors;
+  // setErrors = localSetErrors;
   
   // console.log('set objects', objects);
   

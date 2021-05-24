@@ -113,16 +113,9 @@ const localRaycaster = new THREE.Raycaster();
 const localRay = new THREE.Ray();
 const localArray = [];
 
-let getEditor = () => null;
-let getFiles = () => null;
-let setSelectedTab = () => null;
-let getObjects = () => null;
-let getSelectedFileIndex = () => null;
-let setSelectedFileIndex = () => null;
-let getSelectedObjectIndex = () => null;
-let setSelectedObjectIndex = () => null;
+/* let getSelectedObjectIndex = () => null;
 let getErrors = () => null;
-let setErrors = () => {};
+let setErrors = () => {}; */
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -2524,7 +2517,7 @@ const downloadZip = async () => {
 };
 const collectZip = async () => {
   const zip = new JSZip();
-  const files = getFiles();
+  const files = globalState.get('files');
   const metaversefile = files.find(file => file.name === '.metaversefile');
   const metaversefileJson = JSON.parse(metaversefile.doc.getValue());
   const {start_url} = metaversefileJson;
@@ -2619,8 +2612,8 @@ const bindTextarea = codeEl => {
           await run();
         } catch (err) {
           console.warn(err);
-          const errors = [err].concat(getErrors());
-          setErrors(errors);
+          const errors = [err].concat(globalState.get('errors'));
+          globalState.set('errors', errors);
         }
       },
       'Ctrl-L': async cm => {
@@ -2628,8 +2621,8 @@ const bindTextarea = codeEl => {
           await mintNft();
         } catch (err) {
           console.warn(err);
-          const errors = [err].concat(getErrors());
-          setErrors(errors);
+          const errors = [err].concat(globalState.get('errors'));
+          globalState.set('errors', errors);
         }
       },
     },
@@ -2870,12 +2863,12 @@ Promise.all([
       
       renderer.domElement.addEventListener('select', e => {
         const {object, physicsId} = e.data;
-        const objects = getObjects();
+        const objects = globalState.get('objects');
         const index = objects.indexOf(object);
         if (index !== -1) {
           // console.log('got select', objects, object, index);
-          setSelectedObjectIndex(index);
-          setSelectedTab('scene');
+          globalState.set('selectedObjectIndex', index);
+          globalState.set('selectedTab', 'scene');
         }
       });
       
