@@ -104,15 +104,15 @@ const _updateRaycasterFromMouseEvent = (camera, raycaster, e) => {
 };
 const _getCameraUiPlane = (camera, raycaster, plane, distance) => {
   plane.setFromNormalAndCoplanarPoint(
-    localVector
+    localVector3
       .set(0, 0, 1)
       .applyQuaternion(camera.quaternion),
-    localVector2
+    localVector4
       .copy(camera.position)
       .add(
-        localVector3
-          .copy(raycaster.ray.direction)
-          .multiplyScalar(distance)
+        localVector5
+          .set(0, 0, -distance)
+          .applyQuaternion(camera.quaternion)
       )
   );
   return plane;
@@ -580,8 +580,8 @@ const _makeObjectUiMesh = object => {
   })();
   keyCircleMesh.position.z = 0.01;
   
-  keyMesh.visible = false; // XXX
-  keyCircleMesh.visible = false; // XXX
+  // keyMesh.visible = false; // XXX
+  // keyCircleMesh.visible = false; // XXX
   
   const m = new THREE.Object3D();
   m.add(model);
@@ -2884,17 +2884,17 @@ Promise.all([
       let dragRightSpec = null;
       app.addEventListener('frame', () => {
         const _getCurrentMousePosition = (e, v) => {
-          _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+          /* _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
           return v.copy(localRaycaster.ray.origin)
-            .add(localRaycaster.ray.direction);
+            .add(localRaycaster.ray.direction); */
           
-          /* const intersection = _getUiForwardIntersection(camera, e, localRaycaster, v);
+          const intersection = _getUiForwardIntersection(camera, e, localRaycaster, v);
           if (intersection) {
             return intersection;
           } else {
             console.warn('failed to intersect ui');
             return null;
-          } */
+          }
         };
         const _updateDragRightSpec = () => {
           const {draggingRight} = weaponsManager;
@@ -2933,9 +2933,9 @@ Promise.all([
             // console.log('start end', startMousePosition.toArray(), endMousePosition.toArray());
             
             camera.position.copy(startPosition)
-              .sub(
-                localVector3.copy(endMousePosition)
-                  .sub(startMousePosition)
+              .add(
+                localVector3.copy(startMousePosition)
+                  .sub(endMousePosition)
                );
             camera.updateMatrixWorld();
           }
