@@ -1948,10 +1948,13 @@ scene.add(cubeMesh); */
 
 scene.addEventListener('contextmenu', e => {
   const {event} = e;
-  // console.log('got contextmenu event', e);
   event.preventDefault();
-  
-  if (mouseHoverObject) {
+
+  if (
+    lastMouseEvent.clientX === dragRightSpec.clientX &&
+    lastMouseEvent.clientY === dragRightSpec.clientY &&
+    mouseHoverObject
+  ) {
     weaponsManager.setContextMenu(true);
     weaponsManager.setContextMenuObject(mouseHoverObject);
   
