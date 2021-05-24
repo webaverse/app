@@ -547,8 +547,8 @@ const _makeObjectUiMesh = object => {
   })();
   keyCircleMesh.position.z = 0.01;
   
-  // keyMesh.visible = false; // XXX
-  // keyCircleMesh.visible = false; // XXX
+  keyMesh.visible = false; // XXX
+  keyCircleMesh.visible = false; // XXX
   
   const m = new THREE.Object3D();
   m.add(model);
