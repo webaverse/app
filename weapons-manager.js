@@ -2411,9 +2411,6 @@ const weaponsManager = {
   getDragRightSpec() {
     return dragRightSpec;
   },
-  /* getUseSpec() {
-    return weaponsManager.useSpec;
-  }, */
   getUseSpecFactor(now) {
     const {useSpec} = weaponsManager;
     if (useSpec) {
