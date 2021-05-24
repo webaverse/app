@@ -507,6 +507,10 @@ ioManager.bindInput = () => {
         weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
         break;
       }
+      case 27: { // esc
+        weaponsManager.setContextMenu(false);
+        break;
+      }
     }
   });
   window.addEventListener('keyup', e => {
