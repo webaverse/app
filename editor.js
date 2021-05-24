@@ -572,13 +572,12 @@ const _makeObjectUiMesh = object => {
   })();
   keyCircleMesh.position.z = 0.01;
   
-  keyMesh.visible = false; // XXX
-  keyCircleMesh.visible = false; // XXX
-  
   const m = new THREE.Object3D();
   m.add(model);
   m.add(keyMesh);
+  m.keyMesh = keyMesh;
   m.add(keyCircleMesh);
+  m.keyCircleMesh = keyCircleMesh;
   m.object = object;
   m.target = new THREE.Object3D();
   m.render = async ({
@@ -693,27 +692,6 @@ const _makeObjectUiMesh = object => {
       }
     };
     _updateFadeInAnimation();
-    
-    const _updateKeyMeshes = () => {
-      const usableObject = weaponsManager.getUsableObject();
-      let visible;
-      if (usableObject === object) {
-        const f = (now % 1000) / 1000;
-        
-        const s = 1 - f*0.3;
-        keyMesh.scale.setScalar(s);
-        keyCircleMesh.scale.setScalar(s);
-        
-        keyCircleMesh.material.uniforms.uTime.value = f;
-        keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-        visible = true;
-      } else {
-        visible = false;
-      }
-      keyMesh.visible = visible;
-      keyCircleMesh.visible = visible;
-    };
-    _updateKeyMeshes();
   };
   
   (async () => {
@@ -2891,6 +2869,44 @@ Promise.all([
              );
           camera.updateMatrixWorld();
         }
+      });
+      let lastUseFactor = 0;
+      // let lastUsableObject = null;
+      app.addEventListener('frame', () => {
+        for (const objectUiMesh of objectUiMeshes) {
+          objectUiMesh.keyMesh.visible = false;
+          objectUiMesh.keyCircleMesh.visible = false;
+        }
+        
+        const usableObject = weaponsManager.getUsableObject();
+        if (usableObject) {
+          const objectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === usableObject);
+          
+          const now = Date.now();
+          const f = weaponsManager.getUseSpecFactor(now);
+          if (f > 0) {
+            const s = 1 - f*0.3;
+            objectUiMesh.keyMesh.scale.setScalar(s);
+            objectUiMesh.keyCircleMesh.scale.setScalar(s);
+            
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.value = f;
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+          } else {
+            objectUiMesh.keyMesh.scale.setScalar(1);
+            objectUiMesh.keyCircleMesh.scale.setScalar(1);
+            
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.value = 0;
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+          }
+          
+          objectUiMesh.keyMesh.visible = true;
+          objectUiMesh.keyCircleMesh.visible = true;
+          
+          lastUseFactor = f;
+        } /* else {
+          objectUiMesh.keyMesh.visible = false;
+          objectUiMesh.keyCircleMesh.visible = false;
+        } */
       });
     } // end hacks
     
