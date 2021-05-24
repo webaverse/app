@@ -117,11 +117,11 @@ const _getCameraUiPlane = (camera, raycaster, plane, distance) => {
   );
   return plane;
 };
-const _getUiForwardIntersection = (camera, e, raycaster) => {
+const _getUiForwardIntersection = (camera, e, raycaster, v) => {
   _updateRaycasterFromMouseEvent(camera, raycaster, e);
   // project mesh outwards
   const cameraUiPlane = _getCameraUiPlane(camera, raycaster, localPlane, 2);
-  const intersection = raycaster.ray.intersectPlane(cameraUiPlane, localVector);
+  const intersection = raycaster.ray.intersectPlane(cameraUiPlane, v);
   return intersection;
 };
 
@@ -635,7 +635,7 @@ const _makeObjectUiMesh = object => {
         clientY: canvas.height / renderer.getPixelRatio() / 2,
       };
       _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
-      const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
+      const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);_updateRaycasterFromMouseEvent
       // cameraUiPlane.normal.multiplyScalar(-1);
       
       const objectPosition = localVector.copy(object.position)
@@ -954,7 +954,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
         };
-        const intersection = _getUiForwardIntersection(camera, e, localRaycaster);
+        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -971,7 +971,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
           clientY: boundingBox.min.y,
         });
         
-        const intersection = _getUiForwardIntersection(camera, localRaycaster);
+        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2744,7 +2744,7 @@ Promise.all([
         mouseUiMesh.update();
       });
       renderer.domElement.addEventListener('mousemove', e => {
-        const intersection = _getUiForwardIntersection(camera, e, localRaycaster);
+        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2879,7 +2879,70 @@ Promise.all([
           setSelectedTab('scene');
         }
       });
-    }
+      
+      let lastDraggingRight = false;
+      let dragRightSpec = null;
+      app.addEventListener('frame', () => {
+        const _getCurrentMousePosition = (e, v) => {
+          _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+          return v.copy(localRaycaster.ray.origin)
+            .add(localRaycaster.ray.direction);
+          
+          /* const intersection = _getUiForwardIntersection(camera, e, localRaycaster, v);
+          if (intersection) {
+            return intersection;
+          } else {
+            console.warn('failed to intersect ui');
+            return null;
+          } */
+        };
+        const _updateDragRightSpec = () => {
+          const {draggingRight} = weaponsManager;
+          if (draggingRight !== lastDraggingRight) {
+            if (draggingRight) {
+              const e = weaponsManager.getLastMouseEvent();    
+              
+              const startPosition = camera.position.clone();
+              // const startMousePosition = _getCurrentMousePosition(localVector).clone();
+              
+              dragRightSpec = {
+                startClientX: e.clientX,
+                startClientY: e.clientY,
+                startPosition,
+                // startMousePosition,
+              };
+            } else {
+              dragRightSpec = null;
+            }
+          }
+          lastDraggingRight = draggingRight;
+        };
+        _updateDragRightSpec();
+        
+        const _updateDragRight = () => {
+          if (dragRightSpec) {
+            const {startPosition, startClientX, startClientY} = dragRightSpec;
+            const e = weaponsManager.getLastMouseEvent();
+            
+            const startMousePosition = _getCurrentMousePosition({
+              clientX: startClientX,
+              clientY: startClientY,
+            }, localVector);
+            const endMousePosition = _getCurrentMousePosition(e, localVector2);
+            
+            // console.log('start end', startMousePosition.toArray(), endMousePosition.toArray());
+            
+            camera.position.copy(startPosition)
+              .sub(
+                localVector3.copy(endMousePosition)
+                  .sub(startMousePosition)
+               );
+            camera.updateMatrixWorld();
+          }
+        };
+        _updateDragRight();
+      });
+    } // end hacks
     
     // load scene
     const defaultScene = [
