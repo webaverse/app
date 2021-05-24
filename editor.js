@@ -631,8 +631,8 @@ const _makeObjectUiMesh = object => {
     const _updateMatrix = () => {
       const renderer = getRenderer();
       const e = {
-        clientX: canvas.width / renderer.getPixelRatio(),
-        clientY: canvas.height / renderer.getPixelRatio(),
+        clientX: canvas.width / renderer.getPixelRatio() / 2,
+        clientY: canvas.height / renderer.getPixelRatio() / 2,
       };
       _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
       const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);
