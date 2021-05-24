@@ -1134,6 +1134,16 @@ const _updateWeapons = () => {
     lastDraggingRight = draggingRight;
   };
   _updateDrags();
+  
+  const _updateUses = () => {    
+    if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
+      renderer.domElement.dispatchEvent(new MessageEvent('use', {
+        data: {},
+      }));
+      weaponsManager.useSpec = null;
+    }
+  };
+  _updateUses();
 
   if (crosshairEl) {
     crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
