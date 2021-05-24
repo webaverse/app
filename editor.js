@@ -2884,8 +2884,6 @@ Promise.all([
           }, localVector);
           const endMousePosition = getUiForwardIntersection(renderer, camera, e, localVector2);
           
-          // console.log('start end', startMousePosition.toArray(), endMousePosition.toArray());
-          
           camera.position.copy(cameraStartPosition)
             .add(
               localVector3.copy(startMousePosition)
