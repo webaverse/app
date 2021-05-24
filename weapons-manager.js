@@ -2105,6 +2105,21 @@ const weaponsManager = {
       this.dragging = false;
     }
   },
+  menuDragdownRight(e) {
+    if (this.editorHack) {
+      this.draggingRight = true;
+    }
+  },
+  menuDragRight(e) {
+    if (this.editorHack) {
+      // this.draggingRight = true;
+    }
+  },
+  menuDragupRight() {
+    if (this.editorHack) {
+      this.draggingRight = false;
+    }
+  },
   canTry() {
     return !!appManager.grabbedObjects[0];
   },
