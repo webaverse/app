@@ -69,7 +69,16 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-const frameEvent = new MessageEvent('frame');
+const frameEvent = (() => {
+  const now = Date.now();
+  return new MessageEvent('frame', {
+    data: {
+      now,
+      timeDiff: 0,
+      lastTimestamp: now,
+    },
+  });
+})();
 
 export default class App extends EventTarget {
   constructor() {
@@ -222,7 +231,11 @@ export default class App extends EventTarget {
   }
   
   render() {
+    const now = Date.now();
+    frameEvent.data.now = now;
+    frameEvent.data.timeDiff = now - frameEvent.data.lastTimestamp;
     this.dispatchEvent(frameEvent);
+    frameEvent.data.lastTimestamp = now;
 
     // high priority render
     const renderer = getRenderer();
