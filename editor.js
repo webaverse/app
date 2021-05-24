@@ -2870,8 +2870,6 @@ Promise.all([
           camera.updateMatrixWorld();
         }
       });
-      let lastUseFactor = 0;
-      // let lastUsableObject = null;
       app.addEventListener('frame', () => {
         for (const objectUiMesh of objectUiMeshes) {
           objectUiMesh.keyMesh.visible = false;
@@ -2902,12 +2900,12 @@ Promise.all([
           objectUiMesh.keyMesh.visible = true;
           objectUiMesh.keyCircleMesh.visible = true;
           
-          lastUseFactor = f;
-        } /* else {
-          objectUiMesh.keyMesh.visible = false;
-          objectUiMesh.keyCircleMesh.visible = false;
-        } */
+          // lastUseFactor = f;
+        }
       });
+      renderer.domElement.addEventListener('use', e => {
+        console.log('got use event', e);
+      });        
     } // end hacks
     
     // load scene
