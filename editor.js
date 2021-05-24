@@ -92,17 +92,20 @@ let setSelectedObjectIndex = () => null;
 let getErrors = () => null;
 let setErrors = () => {};
 
-const _updateRaycasterFromMouseEvent = (camera, raycaster, e) => {
-  const renderer = getRenderer();
-  const mouse = localVector2D;
-  mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
-  mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
-  raycaster.setFromCamera(
-    mouse,
-    camera
-  );
-};
-const _getCameraUiPlane = (camera, raycaster, plane, distance) => {
+const _updateRaycasterFromMouseEvent = (() => {
+  const localVector2D = new THREE.Vector2();
+  return (e, raycaster) => {
+    const renderer = getRenderer();
+    const mouse = localVector2D;
+    mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
+    mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
+    raycaster.setFromCamera(
+      mouse,
+      camera
+    );
+  };
+})();
+const _getCameraUiPlane = (camera, distance, plane) => {
   plane.setFromNormalAndCoplanarPoint(
     localVector3
       .set(0, 0, 1)
@@ -117,13 +120,17 @@ const _getCameraUiPlane = (camera, raycaster, plane, distance) => {
   );
   return plane;
 };
-const _getUiForwardIntersection = (camera, e, raycaster, v) => {
-  _updateRaycasterFromMouseEvent(camera, raycaster, e);
-  // project mesh outwards
-  const cameraUiPlane = _getCameraUiPlane(camera, raycaster, localPlane, 2);
-  const intersection = raycaster.ray.intersectPlane(cameraUiPlane, v);
-  return intersection;
-};
+const _getUiForwardIntersection = (() => {
+  const localRaycaster = new THREE.Raycaster();
+  const localPlane = new THREE.Plane();
+  return (e, v) => {
+    _updateRaycasterFromMouseEvent(e, localRaycaster);
+    // project mesh outwards
+    const cameraUiPlane = _getCameraUiPlane(camera, 2, localPlane);
+    const intersection = localRaycaster.ray.intersectPlane(cameraUiPlane, v);
+    return intersection;
+  };
+})();
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -634,8 +641,8 @@ const _makeObjectUiMesh = object => {
         clientX: canvas.width / renderer.getPixelRatio() / 2,
         clientY: canvas.height / renderer.getPixelRatio() / 2,
       };
-      _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
-      const cameraUiPlane = _getCameraUiPlane(camera, localRaycaster, localPlane, 5);_updateRaycasterFromMouseEvent
+      _updateRaycasterFromMouseEvent(e, localRaycaster);
+      const cameraUiPlane = _getCameraUiPlane(camera, 5, localPlane);
       // cameraUiPlane.normal.multiplyScalar(-1);
       
       const objectPosition = localVector.copy(object.position)
@@ -954,7 +961,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
         };
-        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
+        const intersection = _getUiForwardIntersection(e, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -966,12 +973,12 @@ const _makeContextMenuMesh = mouseUiMesh => {
         boundingBox.min.x -= bboxWidth;
         boundingBox.max.x -= bboxWidth;
 
-        /* _updateRaycasterFromMouseEvent(camera, localRaycaster, {
+        /* _updateRaycasterFromMouseEvent({
           clientX: boundingBox.min.x,
           clientY: boundingBox.min.y,
-        });
+        }, localRaycaster);
         
-        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
+        const intersection = _getUiForwardIntersection(e, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2744,7 +2751,7 @@ Promise.all([
         mouseUiMesh.update();
       });
       renderer.domElement.addEventListener('mousemove', e => {
-        const intersection = _getUiForwardIntersection(camera, e, localRaycaster, localVector);
+        const intersection = _getUiForwardIntersection(e, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
@@ -2840,7 +2847,7 @@ Promise.all([
         }
       });
       renderer.domElement.addEventListener('mousemove', e => {   
-        _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+        _updateRaycasterFromMouseEvent(e, localRaycaster);
         
         if (contextMenuMesh.visible) {
           localArray.length = 0;
@@ -2884,11 +2891,11 @@ Promise.all([
       let dragRightSpec = null;
       app.addEventListener('frame', () => {
         const _getCurrentMousePosition = (e, v) => {
-          /* _updateRaycasterFromMouseEvent(camera, localRaycaster, e);
+          /* _updateRaycasterFromMouseEvent(e, localRaycaster);
           return v.copy(localRaycaster.ray.origin)
             .add(localRaycaster.ray.direction); */
           
-          const intersection = _getUiForwardIntersection(camera, e, localRaycaster, v);
+          const intersection = _getUiForwardIntersection(e, v);
           if (intersection) {
             return intersection;
           } else {
