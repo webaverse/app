@@ -1940,7 +1940,7 @@ let droppedThrow = false;
 const lastMouseEvent = {
   clientX: 0,
   clientY: 0,
-  valid: false,
+  inside: false,
 };
 const weaponsManager = {
   // weapons,
@@ -1952,6 +1952,7 @@ const weaponsManager = {
   gridSnap: 0,
   editMode: false,
   dragging: false,
+  draggingRight: false,
   contextMenu: false,
   contextMenuObject: null,
   editorHack: false,
@@ -2354,19 +2355,15 @@ const weaponsManager = {
   },
   teleportTo: _teleportTo,
   getLastMouseEvent() {
-    if (lastMouseEvent.valid) {
-      return lastMouseEvent;
-    } else {
-      return null;
-    }
+    return lastMouseEvent;
   },
   setLastMouseEvent(e) {
     if (e) {
       lastMouseEvent.clientX = e.clientX;
       lastMouseEvent.clientY = e.clientY;
-      lastMouseEvent.valid = true;
+      lastMouseEvent.inside = true;
     } else {
-      lastMouseEvent.valid = false;
+      lastMouseEvent.inside = false;
     }
   },
   update: _updateWeapons,
