@@ -11,12 +11,16 @@ class ShoulderTransforms {
     this.neck = new THREE.Object3D();
     this.head = new THREE.Object3D();
     this.eyes = new THREE.Object3D();
+    this.eyel = new THREE.Object3D();
+    this.eyer = new THREE.Object3D();
 
     this.hips.add(this.spine);
     this.spine.add(this.transform);
     this.transform.add(this.neck);
     this.neck.add(this.head);
     this.head.add(this.eyes);
+    this.eyes.add(this.eyel);
+    this.eyes.add(this.eyer);
 
     // this.leftShoulder = new THREE.Object3D();
     // this.transform.add(this.leftShoulder);
