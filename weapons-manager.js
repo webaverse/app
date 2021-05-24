@@ -608,6 +608,8 @@ const _teleportTo = (position, quaternion) => {
 };
 
 const crosshairEl = document.querySelector('.crosshair');
+let lastDraggingRight = false;
+let dragRightSpec = null;
 const _updateWeapons = () => {
   const now = Date.now();
   const transforms = rigManager.getRigTransforms();
@@ -1111,6 +1113,27 @@ const _updateWeapons = () => {
     }
   };
   _handleUsableObject();
+  
+  const _updateDrags = () => {
+    const {draggingRight} = weaponsManager;
+    if (draggingRight !== lastDraggingRight) {
+      if (draggingRight) {
+        const e = weaponsManager.getLastMouseEvent();    
+        const {clientX, clientY} = e;
+        const cameraStartPosition = camera.position.clone();
+        
+        dragRightSpec = {
+          clientX,
+          clientY,
+          cameraStartPosition,
+        };
+      } else {
+        dragRightSpec = null;
+      }
+    }
+    lastDraggingRight = draggingRight;
+  };
+  _updateDrags();
 
   if (crosshairEl) {
     crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
@@ -2380,6 +2403,9 @@ const weaponsManager = {
     } else {
       lastMouseEvent.inside = false;
     }
+  },
+  getDragRightSpec() {
+    return dragRightSpec;
   },
   update: _updateWeapons,
 };
