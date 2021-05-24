@@ -33,6 +33,38 @@ const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 const htmlRenderer = new HtmlRenderer();
 
+class GlobalState {
+  constructor() {
+    this.specs = {};
+  }
+  useState(key, initialValue) {
+    const result = useState(initialValue);
+    const [value, setter] = result;
+    this.specs[key] = {
+      value,
+      setter,
+    };
+    return result;
+  }
+  get(key) {
+    const spec = this.specs[key];
+    if (spec) {
+      return spec.value;
+    } else {
+      throw new Error('setting nonexistent state: ' + key);
+    }
+  }
+  set(key, value) {
+    const spec = this.specs[key];
+    if (spec) {
+      spec.setter(value);
+    } else {
+      throw new Error('setting nonexistent state: ' + key);
+    }
+  }
+}
+const globalState = new GlobalState();
+
 const testImgUrl = window.location.protocol + '//' + window.location.host + '/assets/popup3.svg';
 const testUserImgUrl = `https://preview.exokit.org/[https://app.webaverse.com/assets/type/robot.glb]/preview.png?width=128&height=128`;
 
