@@ -1985,6 +1985,7 @@ const weaponsManager = {
   inventoryHack: false,
   closestObject: null,
   usableObject: null,
+  useSpec: null,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -2409,6 +2410,31 @@ const weaponsManager = {
   },
   getDragRightSpec() {
     return dragRightSpec;
+  },
+  /* getUseSpec() {
+    return weaponsManager.useSpec;
+  }, */
+  getUseSpecFactor(now) {
+    const {useSpec} = weaponsManager;
+    if (useSpec) {
+      let f = (now - useSpec.startTime) /
+        (useSpec.endTime - useSpec.startTime);
+      f = Math.min(Math.max(f, 0), 1);
+      return f;
+    } else {
+      return 0;
+    }
+  },
+  menuUseDown() {
+    const startTime = Date.now();
+    const endTime = startTime + 1000;
+    weaponsManager.useSpec = {
+      startTime,
+      endTime,
+    };
+  },
+  menuUseUp() {
+    weaponsManager.useSpec = null;
   },
   update: _updateWeapons,
 };
