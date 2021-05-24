@@ -484,9 +484,13 @@ ioManager.bindInput = () => {
       }
       case 69: { // E
         if (document.pointerLockElement) {
-          weaponsManager.menuUseHold();
-          if (weaponsManager.canRotate()) {
-            weaponsManager.menuRotate(-1);
+          if (!weaponsManager.editorHack) {
+            weaponsManager.menuUseHold();
+            if (weaponsManager.canRotate()) {
+              weaponsManager.menuRotate(-1);
+            }
+          } else {
+            weaponsManager.menuUseDown();
           }
         }
         break;
@@ -548,12 +552,16 @@ ioManager.bindInput = () => {
       }
       case 69: { // E
         if (document.pointerLockElement) {
-          weaponsManager.menuUseRelease();
+          if (!weaponsManager.editorHack) {
+            weaponsManager.menuUseRelease();
 
-          if (weaponsManager.canRotate()) {
-            // nothing
+            if (weaponsManager.canRotate()) {
+              // nothing
+            } else {
+              weaponsManager.menuUse();
+            }
           } else {
-            weaponsManager.menuUse();
+            weaponsManager.menuUseUp();
           }
         }
         break;
