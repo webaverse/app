@@ -2872,67 +2872,27 @@ Promise.all([
         }
       });
       
-      let lastDraggingRight = false;
-      let dragRightSpec = null;
       app.addEventListener('frame', () => {
-        const _getCurrentMousePosition = (e, v) => {
-          /* updateRaycasterFromMouseEvent(renderer, camera, e, localRaycaster);
-          return v.copy(localRaycaster.ray.origin)
-            .add(localRaycaster.ray.direction); */
+        const dragRightSpec = weaponsManager.getDragRightSpec();
+        if (dragRightSpec) {
+          const {cameraStartPosition, clientX, clientY} = dragRightSpec;
+          const e = weaponsManager.getLastMouseEvent();
           
-          const intersection = getUiForwardIntersection(renderer, camera, e, v);
-          if (intersection) {
-            return intersection;
-          } else {
-            console.warn('failed to intersect ui');
-            return null;
-          }
-        };
-        const _updateDragRightSpec = () => {
-          const {draggingRight} = weaponsManager;
-          if (draggingRight !== lastDraggingRight) {
-            if (draggingRight) {
-              const e = weaponsManager.getLastMouseEvent();    
-              
-              const startPosition = camera.position.clone();
-              // const startMousePosition = _getCurrentMousePosition(localVector).clone();
-              
-              dragRightSpec = {
-                startClientX: e.clientX,
-                startClientY: e.clientY,
-                startPosition,
-                // startMousePosition,
-              };
-            } else {
-              dragRightSpec = null;
-            }
-          }
-          lastDraggingRight = draggingRight;
-        };
-        _updateDragRightSpec();
-        
-        const _updateDragRight = () => {
-          if (dragRightSpec) {
-            const {startPosition, startClientX, startClientY} = dragRightSpec;
-            const e = weaponsManager.getLastMouseEvent();
-            
-            const startMousePosition = _getCurrentMousePosition({
-              clientX: startClientX,
-              clientY: startClientY,
-            }, localVector);
-            const endMousePosition = _getCurrentMousePosition(e, localVector2);
-            
-            // console.log('start end', startMousePosition.toArray(), endMousePosition.toArray());
-            
-            camera.position.copy(startPosition)
-              .add(
-                localVector3.copy(startMousePosition)
-                  .sub(endMousePosition)
-               );
-            camera.updateMatrixWorld();
-          }
-        };
-        _updateDragRight();
+          const startMousePosition = getUiForwardIntersection(renderer, camera, {
+            clientX,
+            clientY,
+          }, localVector);
+          const endMousePosition = getUiForwardIntersection(renderer, camera, e, localVector2);
+          
+          // console.log('start end', startMousePosition.toArray(), endMousePosition.toArray());
+          
+          camera.position.copy(cameraStartPosition)
+            .add(
+              localVector3.copy(startMousePosition)
+                .sub(endMousePosition)
+             );
+          camera.updateMatrixWorld();
+        }
       });
     } // end hacks
     
