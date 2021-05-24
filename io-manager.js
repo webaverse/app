@@ -688,6 +688,7 @@ ioManager.bindInput = () => {
       } else {
         if (weaponsManager.dragging) {
           weaponsManager.menuDrag(e);
+          weaponsManager.menuDragRight(e);
         } else {
           _updateMouseHover(e);
         }
@@ -751,6 +752,7 @@ ioManager.bindInput = () => {
         transformControls.handleMouseDown(raycaster);
       }
       if (e.buttons & 2) { // right
+        weaponsManager.menuDragdownRight();
         weaponsManager.setContextMenu(false);
       }
     }
@@ -767,6 +769,10 @@ ioManager.bindInput = () => {
         }
         if (!(e.buttons & 2)) { // right
           weaponsManager.menuUnaim();
+        }
+      } else {
+        if (!(e.buttons & 2)) { // right
+          weaponsManager.menuDragupRight();
         }
       }
       if (!(e.buttons & 4)) { // middle
