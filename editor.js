@@ -2913,7 +2913,7 @@ Promise.all([
       {
         position: new THREE.Vector3(),
         quaternion: new THREE.Quaternion(),
-        contentId: `https://avaer.github.io/home/home.glb`,
+        contentId: `https://webaverse.github.io/home/home.glb`,
       },
       {
         position: new THREE.Vector3(-3, 0, -2),
