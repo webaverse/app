@@ -1,6 +1,6 @@
 # Webaverse App
 
-![](https://i.imgur.com/qK83ifh.jpg)
+![](https://i.imgur.com/hiXfF0o.jpg)
 
 <div align="center">
   <a href="https://webaverse.com">Site</a>
@@ -44,7 +44,6 @@
 - Custom avatar IK + WebXR support
 - Character controller w/ animation blend system
 - Multiplayer powered by y.js, mediasoup, and WebRTC
-- Preview server (puppeteer) for capturing asset media
 - IPFS + Geth integration for pulling assets
 
 
