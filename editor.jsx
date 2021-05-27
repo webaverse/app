@@ -381,14 +381,10 @@ const Scene = React.memo(({objects, setObjects, open, selectedObjectIndex, setSe
             :
               <div
                 className={['object', selectedObjectIndex === i ? 'selected' : ''].join(' ')}
-                onClick={e => setSelectedObjectIndex(i)}
-                tabIndex={-1}
-                onKeyDown={e => {
-                  if (e.which === 46) {
-                    if (object) {
-                      world.removeObject(object.instanceId);
-                    }
-                  }
+                onClick={e => {
+                  const object = objects[i];
+                  const physicsId = object.getPhysicsIds ? object.getPhysicsIds() : 0;
+                  weaponsManager.setMouseSelectedObject(object, physicsId);
                 }}
                 key={i}
               >
@@ -653,20 +649,20 @@ const Settings = React.memo(({open}) => {
 
 return () => {
   const [open, setOpen] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('editor');
+  const [selectedTab, setSelectedTab] = globalState.useState('selectedTab', 'editor');
   const [cards, setCards] = useState([]);
   const [searchResults, setSearchResults] = useState(null);
-  const [objects, setObjects] = useState([]);
-  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-  const [selectedObjectIndex, setSelectedObjectIndex] = useState(-1);
+  const [objects, setObjects] = globalState.useState('objects', []);
+  const [selectedFileIndex, setSelectedFileIndex] = globalState.useState('selectedFileIndex', 0);
+  const [selectedObjectIndex, setSelectedObjectIndex] = globalState.useState('selectedObjectIndex', -1);
   const [q, setQ] = useState('');
   const [currentQ, setCurrentQ] = useState('');
   const [lastQ, setLastQ] = useState('');
   const [templateOptions, setTemplateOptions] = useState([]);
   const [selectedTemplateOption, setSelectedTemplateOption] = useState();
-  const [files, setFiles] = useState([]);
-  const [editor, setEditor] = useState(null);
-  const [errors, localSetErrors] = useState([]);
+  const [files, setFiles] = globalState.useState('files', []);
+  const [editor, setEditor] = globalState.useState('editor', null);
+  const [errors, localSetErrors] = globalState.useState('errors', []);
   const [firstRun, setFirstRun] = useState(false);
   const [secondRun, setSecondRun] = useState(true);
   const [servers, setServers] = useState([]);
@@ -677,11 +673,16 @@ return () => {
   const [isXrSupported, setIsXrSuported] = useState(false);
   const [session, setSession] = useState(null);
   
-  getEditor = () => editor;
-  getFiles = () => files;
-  getSelectedFileIndex = () => selectedFileIndex;
-  getErrors = () => errors;
-  setErrors = localSetErrors;
+  // getEditor = () => editor;
+  // getFiles = () => files;
+  // setSelectedTab = localSetSelectedTab;
+  // getObjects = () => objects;
+  // getSelectedFileIndex = () => selectedFileIndex;
+  // setSelectedFileIndex = localSetSelectedFileIndex;
+  // getSelectedObjectIndex = () => selectedObjectIndex;
+  // setSelectedObjectIndex = localSetSelectedObjectIndex;
+  // getErrors = () => errors;
+  // setErrors = localSetErrors;
   
   // console.log('set objects', objects);
   
@@ -796,13 +797,13 @@ return () => {
     }
   }, [secondRun, editor, files]);
   
-  useEffect(() => {
+  /* useEffect(() => {
     const object = objects[selectedObjectIndex] || null;
     transformControls.bind(object);
     if (object && transformControls.getTransformMode() === 'disabled') {
       transformControls.setTransformMode('translate');
     }
-  }, [objects, objects.length, selectedObjectIndex]);
+  }, [objects, objects.length, selectedObjectIndex]); */
   
   useEffect(async () => {
     const ok = await app.isXrSupported();
@@ -826,25 +827,21 @@ return () => {
           </div> */}
         </div>
         <div className="bottom">
-          {/* <div className="control" onClick={() => reset()}>
-            <img src="/assets/new-shoot.svg" className="icon" />
-            <div className="label">Reset</div>
-          </div> */}
-          <div className="control" onClick={() => setCameraMode('firstperson')}>
-            {/* <video
+          {/* <div className="control" onClick={() => setCameraMode('firstperson')}>
+            <video
               src="https://preview.exokit.org/[https://webaverse.github.io/assets/sacks3.vrm]/preview.webm"
               className="video"
               autoPlay
               muted
               loop
-            /> */}
+            />
             <img src="/assets/video-camera.svg" className="icon" />
             <div className="label">Camera</div>
           </div>
           <div className="control" onClick={() => setCameraMode('avatar')}>
             <img src="/assets/teleport.svg" className="icon" />
             <div className="label">Avatar</div>
-          </div>
+          </div> */}
           <div className={['control', 'mic-button', microphoneMediaStream ? 'enabled' : ''].join(' ')} disabled={!isXrSupported} onClick={async () => {
             const microphoneMediaStream = await app.toggleMic();
             setMicrophoneMediaStream(microphoneMediaStream);

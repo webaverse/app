@@ -1,7 +1,7 @@
 /* global GIF */
 import * as THREE from './three.module.js';
 import {GLTFExporter} from './GLTFExporter.js';
-import './gif.js';
+import GIF from './gif.js';
 import screenshot from './screenshot.js';
 import {makePromise} from './util.js';
 

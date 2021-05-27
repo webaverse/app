@@ -230,7 +230,7 @@ physicsManager.addConvexGeometry = mesh => {
   return physicsId;
 };
 physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
-physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
+physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
   const physicsObject = _makePhysicsObject(position, quaternion, scale);
@@ -438,7 +438,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     
     const offset = physicsManager.getAvatarCameraOffset();
     camera.position.copy(localVector)
-      .sub(offset.clone().applyQuaternion(camera.quaternion));
+      .sub(localVector3.copy(offset).applyQuaternion(camera.quaternion));
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 

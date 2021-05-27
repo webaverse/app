@@ -22,9 +22,10 @@ import dropManager from './drop-manager.js';
 import npcManager from './npc-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
-import {parseCoord} from './util.js';
+import {parseCoord, getExt} from './util.js';
+import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ scene2, scene3, appManager, bindCanvas} from './app-object.js';
+import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 import transformControls from './transform-controls.js';
@@ -68,7 +69,16 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-const frameEvent = new MessageEvent('frame');
+const frameEvent = (() => {
+  const now = Date.now();
+  return new MessageEvent('frame', {
+    data: {
+      now,
+      timeDiff: 0,
+      lastTimestamp: now,
+    },
+  });
+})();
 
 export default class App extends EventTarget {
   constructor() {
@@ -94,6 +104,12 @@ export default class App extends EventTarget {
   }
   getScene() {
     return scene;
+  }
+  getSceneHighPriority() {
+    return sceneHighPriority;
+  }
+  getSceneLowPriority() {
+    return sceneLowPriority;
   }
   getCamera() {
     return camera;
@@ -215,12 +231,16 @@ export default class App extends EventTarget {
   }
   
   render() {
+    const now = Date.now();
+    frameEvent.data.now = now;
+    frameEvent.data.timeDiff = now - frameEvent.data.lastTimestamp;
     this.dispatchEvent(frameEvent);
+    frameEvent.data.lastTimestamp = now;
 
     // high priority render
     const renderer = getRenderer();
     renderer.clear();
-    renderer.render(scene3, camera);
+    renderer.render(sceneHighPriority, camera);
     // main render
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
@@ -228,6 +248,8 @@ export default class App extends EventTarget {
     }
     renderer.render(scene, camera);
     renderer.render(orthographicScene, orthographicCamera);
+    // low priority render
+    renderer.render(sceneLowPriority, camera);
     // local avatar render
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
@@ -260,11 +282,59 @@ export default class App extends EventTarget {
   async setAvatarUrl(url, ext) {
     if (url) {
       await rigManager.setLocalAvatarUrl(url, ext);
+      const cameraOffset = cameraManager.getCameraOffset();
+      cameraOffset.z = 0;
     }
     controlsManager.setPossessed(!!url);
+    /* if (!url) {
+      rigManager.setLocalRigMatrix(null);
+    } */
   }
   setPossessed(possessed) {
     controlsManager.setPossessed(possessed);
+  }
+  async possess(object) {
+    await cameraManager.requestPointerLock();
+
+    weaponsManager.setMouseHoverObject(null);
+    weaponsManager.setMouseSelectedObject(null);
+
+    const {contentId} = object;
+    if (typeof contentId === 'number') {
+      const res = await fetch(`${tokensHost}/${contentId}`);
+      const j = await res.json();
+      const {hash, name, ext} = j;
+      const u = `${storageHost}/ipfs/${hash}`;
+      await this.setAvatarUrl(u, ext);
+    } else if (typeof contentId === 'string') {
+      const ext = getExt(contentId);
+      await this.setAvatarUrl(contentId, ext);
+    }
+    const targetVector = localVector.copy(object.position)
+      .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0));
+    camera.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        camera.position,
+        targetVector,
+        localVector2.set(0, 1, 0)
+      )
+    );
+    const distance = camera.position.distanceTo(targetVector);
+    
+    const offset = cameraManager.getCameraOffset();
+    offset.set(0, 0, -distance);
+
+    camera.position.copy(targetVector)
+      .sub(localVector2.copy(offset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+    
+    rigManager.setLocalRigMatrix(
+      localMatrix.compose(
+        targetVector,
+        camera.quaternion,
+        localVector2.set(1, 1, 1)
+      )
+    );
   }
   
   startLoop() {

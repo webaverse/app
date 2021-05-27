@@ -183,42 +183,57 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-  } else if (document.pointerLockElement) {
+  } else if (controlsManager.isPossessed()) {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
-    if (controlsManager.isPossessed()) {
-      const flyState = physicsManager.getFlyState();
-      if (flyState) {
-        direction.applyQuaternion(camera.quaternion);
-        
-        _updateVertical(direction);
-      } else {  
-        const cameraEuler = camera.rotation.clone();
-        cameraEuler.x = 0;
-        cameraEuler.z = 0;
-        direction.applyEuler(cameraEuler);
-        
-        if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
-          physicsManager.setCrouchState(!physicsManager.getCrouchState());
-        }
-        ioManager.lastCtrlKey = ioManager.keys.ctrl;
+    
+    const flyState = physicsManager.getFlyState();
+    if (flyState) {
+      direction.applyQuaternion(camera.quaternion);
+      
+      _updateVertical(direction);
+    } else {  
+      const cameraEuler = camera.rotation.clone();
+      cameraEuler.x = 0;
+      cameraEuler.z = 0;
+      direction.applyEuler(cameraEuler);
+      
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+        physicsManager.setCrouchState(!physicsManager.getCrouchState());
       }
-      if (localVector.length() > 0) {
-        const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
-        const speed = weaponsManager.getSpeed() * sprintMultiplier;
-        localVector.normalize().multiplyScalar(speed * timeDiff);
+      ioManager.lastCtrlKey = ioManager.keys.ctrl;
+    }
+    if (localVector.length() > 0) {
+      const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
+      const speed = weaponsManager.getSpeed() * sprintMultiplier;
+      localVector.normalize().multiplyScalar(speed * timeDiff);
 
-        physicsManager.velocity.add(localVector);
+      physicsManager.velocity.add(localVector);
 
-        if (physicsManager.getJumpState()) {
-          physicsManager.velocity.x *= 0.7;
-          physicsManager.velocity.z *= 0.7;
-          if (flyState) {
-            physicsManager.velocity.y *= 0.7;
-          }
+      if (physicsManager.getJumpState()) {
+        physicsManager.velocity.x *= 0.7;
+        physicsManager.velocity.z *= 0.7;
+        if (flyState) {
+          physicsManager.velocity.y *= 0.7;
         }
       }
+    }
+  } else {
+    if (weaponsManager.editorHack) {
+      const direction = localVector.set(0, 0, 0);
+      _updateHorizontal(direction);
+      direction.applyQuaternion(camera.quaternion);
+      _updateVertical(direction);
+      direction
+        .normalize()
+        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
+      
+      camera.position.add(direction);
+      camera.updateMatrixWorld();
     } else {
+      const direction = localVector.set(0, 0, 0);
+      _updateHorizontal(direction);
+
       direction.applyQuaternion(camera.quaternion);
       _updateVertical(direction);
       direction
@@ -228,17 +243,6 @@ const _updateIo = timeDiff => {
       camera.position.add(direction);
       camera.updateMatrixWorld();
     }
-  } else if (weaponsManager.editorHack) {
-    const direction = localVector.set(0, 0, 0);
-    _updateHorizontal(direction);
-    direction.applyQuaternion(camera.quaternion);
-    _updateVertical(direction);
-    direction
-      .normalize()
-      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-    
-    camera.position.add(direction);
-    camera.updateMatrixWorld();
   }
 };
 ioManager.update = _updateIo;
@@ -312,7 +316,9 @@ ioManager.bindInput = () => {
           if (weaponsManager.menuOpen) {
             weaponsManager.menuVertical(1);
           } else {
-            _setTransformMode('scale');
+            // if (!weaponsManager.dragging) {
+              // _setTransformMode('scale');
+            // }
           }
         }
         break;
@@ -330,7 +336,9 @@ ioManager.bindInput = () => {
             weaponsManager.menuRotate(1);
           }
         } else {
-          _setTransformMode('rotate');
+          // if (!weaponsManager.dragging) {
+            // _setTransformMode('rotate');
+          // }
         }
         break;
       }
@@ -353,7 +361,9 @@ ioManager.bindInput = () => {
             weaponsManager.menuTry();
           }
         } else {
-          _setTransformMode('translate');
+          // if (!weaponsManager.dragging) {
+            // _setTransformMode('translate');
+          // }
         }
         break;
       }
@@ -439,11 +449,8 @@ ioManager.bindInput = () => {
         break;
       }
       case 80: { // P
-        if (weaponsManager.destroyWorld()) {
-          /* e.preventDefault();
-          e.stopPropagation();
-          document.getElementById('key-m').click(); */
-        }
+        weaponsManager.destroyWorld()
+        weaponsManager.menuPhysics();
         break;
       }
       case 16: { // shift
@@ -452,7 +459,7 @@ ioManager.bindInput = () => {
       }
       case 32: { // space
         ioManager.keys.space = true;
-        if (document.pointerLockElement) {
+        if (controlsManager.isPossessed()) {
           if (!physicsManager.getJumpState()) {
             if (weaponsManager.canJumpOff()) {
               weaponsManager.jumpOff();
@@ -477,9 +484,13 @@ ioManager.bindInput = () => {
       }
       case 69: { // E
         if (document.pointerLockElement) {
-          weaponsManager.menuUseHold();
-          if (weaponsManager.canRotate()) {
-            weaponsManager.menuRotate(-1);
+          if (!weaponsManager.editorHack) {
+            weaponsManager.menuUseHold();
+            if (weaponsManager.canRotate()) {
+              weaponsManager.menuRotate(-1);
+            }
+          } else {
+            weaponsManager.menuUseDown();
           }
         }
         break;
@@ -498,6 +509,10 @@ ioManager.bindInput = () => {
       } */
       case 74: { // J
         weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
+        break;
+      }
+      case 27: { // esc
+        weaponsManager.setContextMenu(false);
         break;
       }
     }
@@ -537,12 +552,16 @@ ioManager.bindInput = () => {
       }
       case 69: { // E
         if (document.pointerLockElement) {
-          weaponsManager.menuUseRelease();
+          if (!weaponsManager.editorHack) {
+            weaponsManager.menuUseRelease();
 
-          if (weaponsManager.canRotate()) {
-            // nothing
+            if (weaponsManager.canRotate()) {
+              // nothing
+            } else {
+              weaponsManager.menuUse();
+            }
           } else {
-            weaponsManager.menuUse();
+            weaponsManager.menuUseUp();
           }
         }
         break;
@@ -579,13 +598,28 @@ ioManager.bindInput = () => {
         ioManager.keys.shift = false;
         break;
       }
+      case 46: { // delete
+        const object = weaponsManager.getMouseSelectedObject();
+        if (object) {
+          weaponsManager.setMouseHoverObject(null);
+          weaponsManager.setMouseSelectedObject(null);
+          world.removeObject(object.instanceId);
+        }
+        break;
+      }
+      case 27: {
+        // if (weaponsManager.getMouseSelectedObject()) {
+          weaponsManager.setMouseSelectedObject(null);
+        // }
+      }
     }
   });
   const _updateMouseMovement = e => {
     const {movementX, movementY} = e;
-    camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+      camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+    
       camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
       camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
       camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
@@ -596,41 +630,61 @@ ioManager.bindInput = () => {
       camera.updateMatrixWorld();
     }
   };
-  const _updateMouseHover = e => {
+  const _getMouseRaycaster = (e, raycaster) => {
     const {clientX, clientY} = e;
-    
     const renderer = getRenderer();
     renderer.getSize(localVector2D2);
     localVector2D.set(
       (clientX / localVector2D2.x) * 2 - 1,
       -(clientY / localVector2D2.y) * 2 + 1
     );
-    localRaycaster.setFromCamera(localVector2D, camera);
-    const position = localRaycaster.ray.origin;
-    const quaternion = localQuaternion.setFromUnitVectors(
-      localVector.set(0, 0, -1),
-      localRaycaster.ray.direction
-    );
-    
-    const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-    
+    if (
+      localVector2D.x >= -1 && localVector2D.x <= 1 &&
+      localVector2D.y >= -1 && localVector2D.y <= 1
+    ) {
+      raycaster.setFromCamera(localVector2D, camera);
+      return raycaster;
+    } else {
+      return null;
+    }
+  };
+  const _updateMouseHover = e => {
     let mouseHoverObject = null;
+    let mouseSelectedObject = null;
     let mouseHoverPhysicsId = 0;
     let htmlHover = false;
-    if (result) {
-      const object = world.getObjectFromPhysicsId(result.objectId);
-      if (object) {
-        if (object.isHtml) {
-          htmlHover = true;
-        } else {
-          if (!controlsManager.isPossessed()) {
-            mouseHoverObject = object;
-            mouseHoverPhysicsId = result.objectId;
+    
+    const raycaster = _getMouseRaycaster(e, localRaycaster);
+    if (raycaster) {
+      transformControls.handleMouseMove(raycaster);
+      
+      const position = raycaster.ray.origin;
+      const quaternion = localQuaternion.setFromUnitVectors(
+        localVector.set(0, 0, -1),
+        raycaster.ray.direction
+      );
+      
+      const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      
+      if (result) {
+        const object = world.getObjectFromPhysicsId(result.objectId);
+        if (object) {
+          if (object.isHtml) {
+            htmlHover = true;
+          } else {
+            if (!controlsManager.isPossessed()) {
+              mouseHoverObject = object;
+              mouseHoverPhysicsId = result.objectId;
+            }
           }
         }
       }
+      weaponsManager.setLastMouseEvent(e);
+    } else {
+      weaponsManager.setLastMouseEvent(null);
     }
     weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
+    const renderer = getRenderer();
     if (htmlHover) {
       renderer.domElement.classList.add('hover');
     } else {
@@ -646,6 +700,7 @@ ioManager.bindInput = () => {
       } else {
         if (weaponsManager.dragging) {
           weaponsManager.menuDrag(e);
+          weaponsManager.menuDragRight(e);
         } else {
           _updateMouseHover(e);
         }
@@ -656,6 +711,9 @@ ioManager.bindInput = () => {
     ioManager.currentWeaponDown = false;
     ioManager.currentWeaponValue = 0;
     ioManager.currentTeleport = false;
+    
+    const raycaster = _getMouseRaycaster(e, localRaycaster);
+    transformControls.handleMouseUp(raycaster);
   });
   window.document.addEventListener('mouseleave', e => {
     const renderer = getRenderer();
@@ -667,11 +725,23 @@ ioManager.bindInput = () => {
     if (document.pointerLockElement) {
       weaponsManager.menuClick();
     } else {
-      weaponsManager.setContextMenu(false);
-      
-      const mouseHoverObject = weaponsManager.getMouseHoverObject();
-      if (mouseHoverObject) {
-        console.log('click object', mouseHoverObject);
+      if (weaponsManager.editorHack) {
+        weaponsManager.setContextMenu(false);
+        
+        if (controlsManager.isPossessed()) {
+          cameraManager.requestPointerLock();
+        } else {
+          const mouseHoverObject = weaponsManager.getMouseHoverObject();
+          const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+          if (mouseHoverObject) {
+            const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+            if (mouseHoverObject !== mouseSelectedObject) {
+              weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+            } else {
+              weaponsManager.setMouseSelectedObject(null);
+            }
+          }
+        }
       } else {
         weaponsManager.setMenu(0);
         cameraManager.requestPointerLock();
@@ -689,7 +759,12 @@ ioManager.bindInput = () => {
         weaponsManager.menuAim();
       }
     } else {
+      if (e.buttons & 1) { // left
+        const raycaster = _getMouseRaycaster(e, localRaycaster);
+        transformControls.handleMouseDown(raycaster);
+      }
       if (e.buttons & 2) { // right
+        weaponsManager.menuDragdownRight();
         weaponsManager.setContextMenu(false);
       }
     }
@@ -706,6 +781,10 @@ ioManager.bindInput = () => {
         }
         if (!(e.buttons & 2)) { // right
           weaponsManager.menuUnaim();
+        }
+      } else {
+        if (!(e.buttons & 2)) { // right
+          weaponsManager.menuDragupRight();
         }
       }
       if (!(e.buttons & 4)) { // middle
