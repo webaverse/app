@@ -1,6 +1,6 @@
 # Webaverse App
 
-![](https://i.imgur.com/hiXfF0o.jpg)
+![](https://i.imgur.com/tY2A6uj.jpg)
 
 <div align="center">
   <a href="https://webaverse.com">Site</a>
