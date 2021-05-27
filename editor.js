@@ -11,12 +11,15 @@ import {world} from './world.js';
 import transformControls from './transform-controls.js';
 import physicsManager from './physics-manager.js';
 import weaponsManager from './weapons-manager.js';
-import {downloadFile} from './util.js';
+import cameraManager from './camera-manager.js';
+import {rigManager} from './rig.js';
+import controlsManager from './controls-manager.js';
+import {downloadFile, getExt, flipGeomeryUvs, updateRaycasterFromMouseEvent, getCameraUiPlane, getUiForwardIntersection} from './util.js';
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import HtmlRenderer from 'html-render';
-import {storageHost} from './constants.js';
+import {storageHost, tokensHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
 import easing from './easing.js';
@@ -30,7 +33,39 @@ const ghDownload = ghDownloadDirectory.default;
 // window.ghDownload = ghDownload;
 const htmlRenderer = new HtmlRenderer();
 
-const testImgUrl = 'https://app.webaverse.com/assets/popup3.svg';
+class GlobalState {
+  constructor() {
+    this.specs = {};
+  }
+  useState(key, initialValue) {
+    const result = useState(initialValue);
+    const [value, setter] = result;
+    this.specs[key] = {
+      value,
+      setter,
+    };
+    return result;
+  }
+  get(key) {
+    const spec = this.specs[key];
+    if (spec) {
+      return spec.value;
+    } else {
+      throw new Error('setting nonexistent state: ' + key);
+    }
+  }
+  set(key, value) {
+    const spec = this.specs[key];
+    if (spec) {
+      spec.setter(value);
+    } else {
+      throw new Error('setting nonexistent state: ' + key);
+    }
+  }
+}
+const globalState = new GlobalState();
+
+const testImgUrl = window.location.protocol + '//' + window.location.host + '/assets/popup3.svg';
 const testUserImgUrl = `https://preview.exokit.org/[https://app.webaverse.com/assets/type/robot.glb]/preview.png?width=128&height=128`;
 
 /* import BrowserFS from '/browserfs.js';
@@ -59,6 +94,11 @@ window.fs = fs; */
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
@@ -67,25 +107,15 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
+const localBox2D = new THREE.Box2();
+const localBox2D2 = new THREE.Box2();
 const localRaycaster = new THREE.Raycaster();
+const localRay = new THREE.Ray();
 const localArray = [];
 
-let getEditor = () => null;
-let getFiles = () => null;
-let getSelectedFileIndex = () => null;
+/* let getSelectedObjectIndex = () => null;
 let getErrors = () => null;
-let setErrors = () => {};
-
-const _updateRaycasterFromMouseEvent = (raycaster, e) => {
-  const renderer = getRenderer();
-  const mouse = localVector2D;
-  mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
-  mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
-  raycaster.setFromCamera(
-    mouse,
-    camera
-  );
-};
+let setErrors = () => {}; */
 
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
@@ -199,13 +229,7 @@ class CameraGeometry extends THREE.BufferGeometry {
     this.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 }
-const _flipGeomeryUvs = geometry => {
-  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-    const j = i + 1;
-    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
-  }
-};
-const _makeUiMesh = () => {
+const _makeMouseUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
@@ -214,7 +238,7 @@ const _makeUiMesh = () => {
         localVector2.set(1, 1, 1),
       )
     );
-  _flipGeomeryUvs(geometry);
+  flipGeomeryUvs(geometry);
   const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     map: new THREE.Texture(),
@@ -280,7 +304,7 @@ const _makeUiMesh = () => {
     m.position.copy(m.target.position)
       .add(camera.position);
     m.quaternion.copy(m.target.quaternion);
-    m.visible = !!hoverObject;
+    m.visible = false; // !!hoverObject;
     
     if (hoverObject !== lastHoverObject) {
       const now = Date.now();
@@ -338,64 +362,488 @@ const _makeUiMesh = () => {
     });
   return m;
 };
-const _makeContextMenuMesh = uiMesh => {
+/* const lineBaseGeometry = new THREE.BoxBufferGeometry(0.005, 0.005, 1);
+const lineMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFFFFFF,
+});
+const _makeLineMesh = (object, objectUiMesh, lineLength, lineSubLength) => {
+  const start = new THREE.Vector3(0, 0, 0);
+  const end = new THREE.Vector3(0, lineLength, 0);
+  const geometry = (() => {
+    const distance = start.distanceTo(end);
+    const geometries = [];
+    const v = localVector.copy(start);
+    const direction = localVector2.copy(end)
+      .sub(start)
+      .normalize();
+    for (let d = 0; d < distance; d += lineSubLength*2) {
+      const intervalStart = v;
+      const intervalEnd = localVector3.copy(v)
+        .add(
+          localVector4.copy(direction)
+            .multiplyScalar(lineSubLength*2)
+        );
+      const intervalMiddle = localVector5.copy(intervalStart)
+        .add(intervalEnd)
+        .divideScalar(2);      
+      
+      const g = lineBaseGeometry.clone()
+        .applyMatrix4(
+          localMatrix.compose(
+            intervalMiddle,
+            localQuaternion.setFromUnitVectors(
+              localVector7.set(0, 0, -1),
+              localVector8.copy(intervalEnd)
+                .sub(intervalStart)
+                .normalize()
+            ),
+            localVector6.set(1, 1, lineSubLength)
+          )
+        );
+      geometries.push(g);
+        
+      v.copy(intervalEnd);
+    }
+    const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+    return geometry;
+  })();
+  const material = lineMaterial;
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.update = () => {
+    mesh.position.copy(object.position);
+    mesh.quaternion.setFromUnitVectors(
+      localVector.set(0, 1, 0),
+      localVector2.copy(objectUiMesh.position)
+        .sub(object.position)
+        .normalize()
+    );
+    mesh.scale.y = object.position
+      .distanceTo(objectUiMesh.position) / lineLength;
+  };
+  mesh.frustumCulled = false;
+  return mesh;
+}; */
+const lineLength = 0;
+const lineSubLength = 0.1;
+const objectUiMeshGeometry = new THREE.PlaneBufferGeometry(1, 1)
+  .applyMatrix4(
+    localMatrix.compose(
+      localVector.set(1/2, 1/2, 0),
+      localQuaternion.set(0, 0, 0, 1),
+      localVector2.set(1, 1, 1),
+    )
+  );
+flipGeomeryUvs(objectUiMeshGeometry);
+const keySize = 0.3;
+const keyRadius = 0.045;
+const keyInnerFactor = 0.8;
+const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
+const eKeyMaterial = (() => {
+  const texture = new THREE.Texture();
+  texture.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.encoding = THREE.sRGBEncoding;
+  texture.anisotropy = 16;
+  (async () => {
+    const img = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = './assets/e-key.png';
+    });
+    texture.image = img;
+    texture.needsUpdate = true;
+  })();
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: 0xFFFFFF,
+    depthTest: false,
+    transparent: true,
+    alphaTest: 0.5,
+  });
+  return material;
+})();
+const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
+const keyCircleMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uColor: {
+      type: 'c',
+      value: new THREE.Color(0x42a5f5),
+    },
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+    uTimeCubic: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    // uniform float uTime;
+    // uniform vec4 uBoundingBox;
+    // varying vec3 vPosition;
+    // varying vec3 vNormal;
+    varying vec2 vUv;
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      
+      vUv = uv;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    #define PI 3.1415926535897932384626433832795
+
+    uniform vec3 uColor;
+    uniform float uTime;
+    // uniform float uTimeCubic;
+    // varying vec3 vPosition;
+    // varying vec3 vNormal;
+    varying vec2 vUv;
+
+    const float glowDistance = 0.2;
+    const float glowIntensity = 0.3;
+
+    void main() {
+      vec3 c;
+      float angle = mod((atan(vUv.x, vUv.y))/(PI*2.), 1.);
+      if (angle <= uTime) {
+        c = uColor;
+        float angleDiff1 = (1. - min(max(uTime - angle, 0.), glowDistance)/glowDistance)*glowIntensity;
+        // float angleDiff2 = min(max(angle - uTime, 0.), glowDistance)/glowDistance;
+        // c *= 1. + angleDiff1 + angleDiff2;
+        c *= 1. + angleDiff1;
+      } else {
+        c = vec3(0.2);
+      }
+      gl_FragColor = vec4(c, 1.);
+    }
+  `,
+  transparent: true,
+  depthTest: false,
+  // polygonOffset: true,
+  // polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
+});
+const _makeObjectUiMesh = object => {
+  const model = (() => {
+    const geometry = objectUiMeshGeometry;
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      map: new THREE.Texture(),
+      side: THREE.DoubleSide,
+      depthTest: false,
+      transparent: true,
+      alphaTest: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  
+  const keyMesh = (() => {
+    const geometry = keyGeometry;
+    const material = eKeyMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  keyMesh.position.z = 0.01;
+  
+  const keyCircleMesh = (() => {
+    const geometry = keyCircleGeometry;
+    const material = keyCircleMaterial.clone();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  keyCircleMesh.position.z = 0.01;
+  
+  const m = new THREE.Object3D();
+  m.add(model);
+  m.add(keyMesh);
+  m.keyMesh = keyMesh;
+  m.add(keyCircleMesh);
+  m.keyCircleMesh = keyCircleMesh;
+  m.object = object;
+  m.target = new THREE.Object3D();
+  m.render = async ({
+    name,
+    tokenId,
+    type,
+    hash,
+    description,
+    previewUrl,
+    minterUsername,
+    ownerUsername,
+    minterAvatarUrl,
+    ownerAvatarUrl,
+  }) => {
+    const result = await htmlRenderer.renderPopup({
+      name,
+      tokenId,
+      type,
+      hash,
+      description,
+      previewUrl,
+      minterUsername,
+      ownerUsername,
+      imgUrl: testImgUrl,
+      minterAvatarUrl,
+      ownerAvatarUrl,
+    });
+    const {map} = model.material;
+    map.image = result;
+    map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+    map.magFilter = THREE.LinearFilter;
+    map.encoding = THREE.sRGBEncoding;
+    map.anisotropy = 16;
+    map.needsUpdate = true;
+    
+    model.scale.set(1, result.height/result.width, 1);
+  };
+  let animationSpec = null;
+  m.update = () => {
+    const now = Date.now();
+    
+    const _updateMatrix = () => {
+      const renderer = getRenderer();
+      const e = {
+        clientX: canvas.width / renderer.getPixelRatio() / 2,
+        clientY: canvas.height / renderer.getPixelRatio() / 2,
+      };
+      updateRaycasterFromMouseEvent(renderer, camera, e, localRaycaster);
+      const cameraUiPlane = getCameraUiPlane(camera, 5, localPlane);
+      // cameraUiPlane.normal.multiplyScalar(-1);
+      
+      const objectPosition = localVector.copy(object.position)
+        .add(localVector2.set(0, lineLength, 0));
+      
+      localRay.set(
+        objectPosition,
+        localVector2.copy(camera.position)
+          .sub(objectPosition)
+          .normalize()
+      );
+      
+      const intersection = localRay.intersectPlane(cameraUiPlane, localVector2);
+      if (intersection && localRay.direction.dot(cameraUiPlane.normal) > 0) {
+        m.position.copy(intersection);
+      } else {
+        m.position.copy(objectPosition);
+      }
+      
+      localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      m.quaternion.setFromEuler(localEuler);
+    };
+    _updateMatrix();
+    
+    const _handleFadeInAnimation = () => {
+      const closestObject = weaponsManager.getClosestObject();
+      const visible = closestObject === object;
+      if (visible !== m.visible) {
+        if (visible) {
+          const now = Date.now();
+          animationSpec = {
+            startTime: now,
+            endTime: now + 1000,
+          };
+        } else {
+          animationSpec = null;
+        }
+      }
+      m.visible = visible;
+    };
+    _handleFadeInAnimation();
+    
+    const _updateFadeInAnimation = () => {
+      const _setDefaultScale = () => {
+        m.scale.set(1, 1, 1);
+      };
+      if (animationSpec) {
+        const {startTime, endTime} = animationSpec;
+        const f = (now - startTime) / (endTime - startTime);
+        if (f >= 0 && f < 1) {
+          const fv = cubicBezier(f);
+          m.scale.set(fv, fv, 1);
+          // model.material.opacity = fv;
+        } else {
+          _setDefaultScale();
+          animationSpec = null;
+        }
+      } else {
+        _setDefaultScale();
+        animationSpec = null;
+      }
+    };
+    _updateFadeInAnimation();
+  };
+  
+  (async () => {
+    let name = '';
+    let tokenId = 0;
+    let type = '';
+    let hash = '';
+    let description = '';
+    let previewUrl = '';
+    let ownerUsername = '';
+    let minterUsername = '';
+    let ownerAvatarUrl = '';
+    let minterAvatarUrl = '';
+    const {contentId} = object;
+    if (typeof contentId === 'number') {
+      const res = await fetch(`${tokensHost}/${contentId}`);
+      const j = await res.json();
+      // console.log('got json', j);
+      name = j.name;
+      hash = j.hash;
+      hash = hash.slice(0, 6) + '...' + hash.slice(-2);
+      type = j.ext;
+      description = j.description;
+      previewUrl = j.image;
+      minterUsername = j.minter.username;
+      minterAvatarUrl = j.minter.avatarPreview;
+      ownerUsername = j.owner.username;
+      ownerAvatarUrl = j.owner.avatarPreview;
+    } else if (typeof contentId === 'string') {
+      const match = contentId.match(/([^\/]*)$/);
+      const tail = match ? match[1] : contentId;
+      type = getExt(tail);
+      name = type ? tail.slice(0, tail.length - (type.length + 1)) : tail;
+      hash = '<url>';
+      description = contentId;
+    }
+    /* console.log('render name', {
+      contentId,
+      name,
+      type,
+      hash,
+      description,
+    }); */
+    await m.render({
+      name,
+      tokenId,
+      type,
+      hash,
+      description,
+      previewUrl,
+      minterUsername,
+      ownerUsername,
+      minterAvatarUrl,
+      ownerAvatarUrl,
+    })
+  })()
+    .then(() => {
+      // console.log('rendered');
+    })
+    .catch(err => {
+      console.warn(err);
+    });
+  return m;
+};
+const contextMenuOptions = [
+  'New...',
+  null,
+  'Select',
+  'Possess',
+  'Edit',
+  'Break',
+  null,
+  'Remove',
+];
+const realContextMenuOptions = contextMenuOptions.filter(o => !!o);
+const _makeContextMenuGeomery = (y, x) => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1)
     .applyMatrix4(
       localMatrix.compose(
-        localVector.set(1/2, -1/2, 0),
+        localVector.set(x/2, y/2, 0),
         localQuaternion.set(0, 0, 0, 1),
         localVector2.set(1, 1, 1),
       )
     );
-  _flipGeomeryUvs(geometry);
+  flipGeomeryUvs(geometry);
+  return geometry;
+};
+const contextMenuGeometries = {
+  'top-left': _makeContextMenuGeomery(1, -1),
+  'top-right': _makeContextMenuGeomery(1, 1),
+  'bottom-left': _makeContextMenuGeomery(-1, -1),
+  'bottom-right': _makeContextMenuGeomery(-1, 1),
+};
+const _makeContextMenuMesh = mouseUiMesh => {
   const material = new THREE.MeshBasicMaterial({
     // color: 0x808080,
     map: new THREE.Texture(),
     side: THREE.DoubleSide,
     transparent: true,
+    alphaTest: 0.5,
   });
-  const model = new THREE.Mesh(geometry, material);
+  const model = new THREE.Mesh(contextMenuGeometries['bottom-right'], material);
   model.frustumCulled = false;
   
   let width = 0;
   let height = 0;
   let anchors = null;
   let optionsTextures = [];
+  let blankOptionTexture = null;
   (async () => {
-    const options = [
-      'Select',
-      'Possess',
-      'Edit',
-      null,
-      'Remove',
-    ];
-    const results = await Promise.all(options.map(async (_option, i) => {
-      const result = await htmlRenderer.renderContextMenu({
+    const _getContextMenuData = (options, selectedOptionIndex) =>
+      htmlRenderer.renderContextMenu({
         options,
-        selectedOptionIndex: i,
+        selectedOptionIndex,
         width: 512,
-        height: 512,
+        height: 480,
       });
-      return result;
-    }));
-    optionsTextures = results
-      .filter((result, i) => options[i] !== null)
-      .map(result => {
-        const {
-          width: newWidth,
-          height: newHeight,
-          imageBitmap,
-          anchors: newAnchors,
-        } = result;
-        const map = new THREE.Texture(imageBitmap);
-        map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
-        map.magFilter = THREE.LinearFilter;
-        map.encoding = THREE.sRGBEncoding;
-        map.anisotropy = 16;
-        map.needsUpdate = true;
-        return map;
-      });
-    
+    const _makeContextMenuTexture = spec => {
+      const {
+        width: newWidth,
+        height: newHeight,
+        imageBitmap,
+        anchors: newAnchors,
+      } = spec;
+      const map = new THREE.Texture(imageBitmap);
+      map.minFilter = THREE.THREE.LinearMipmapLinearFilter;
+      map.magFilter = THREE.LinearFilter;
+      map.encoding = THREE.sRGBEncoding;
+      map.anisotropy = 16;
+      map.needsUpdate = true;
+      return map;
+    };
+    let results;
+    await Promise.all([
+      (async () => {
+        results = await Promise.all(contextMenuOptions.map(async (object, i) => {
+          if (object) {
+            return await _getContextMenuData(contextMenuOptions, i);
+          } else {
+            return null;
+          }
+        }));
+        optionsTextures = results
+          .filter((result, i) => contextMenuOptions[i] !== null)
+          .map(_makeContextMenuTexture);
+      })(),
+      (async () => {
+        const blankResult = await _getContextMenuData(contextMenuOptions, -1);
+        blankOptionTexture = _makeContextMenuTexture(blankResult);
+      })(),
+    ]);
+
     material.map = optionsTextures[0];
 
     const result = results[0];    
@@ -407,7 +855,7 @@ const _makeContextMenuMesh = uiMesh => {
     } = result;
     model.scale.set(1, newHeight / newWidth, 1);
     
-    console.log('anchors', anchors);
+    // console.log('anchors', anchors);
     anchors = newAnchors;
     width = newWidth;
     height = newHeight;
@@ -417,9 +865,111 @@ const _makeContextMenuMesh = uiMesh => {
   m.add(model);
   let animationSpec = null;
   let lastContextMenu = false;
+  
+  /* const redElement = document.createElement('div');
+  redElement.style.cssText = `\
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
+    background: #FF0000;
+    opacity: 0.5;
+    pointer-events: none;
+  `;
+  document.body.appendChild(redElement);
+  // window.redElement = redElement; */
+  
   m.update = () => {
     if (weaponsManager.contextMenu && !lastContextMenu) {
-      m.position.copy(uiMesh.position);
+      m.position.copy(mouseUiMesh.position);
+      m.updateMatrixWorld();
+
+      const renderer = getRenderer();
+      const projectVector = v => {
+        const canvas = renderer.domElement; 
+        v.project(camera);
+        v.x = Math.round((0.5 + v.x / 2) * (canvas.width / renderer.getPixelRatio()));
+        v.y = Math.round((0.5 - v.y / 2) * (canvas.height / renderer.getPixelRatio()));
+        return v;
+      };
+      const vector = projectVector(localVector.copy(m.position));
+      
+      const canvasBox = localBox2D.set(
+        localVector.set(0, 0, 0),
+        localVector2.set(canvas.width / renderer.getPixelRatio(), canvas.height / renderer.getPixelRatio(), 0),
+      );
+      // console.log('got ratio', width/height, model.scale.y);
+      const boundingBox = localBox2D2.set(
+        projectVector(localVector.copy(m.position)),
+        projectVector(
+          localVector2.copy(m.position)
+            .add(
+              localVector3.set(1, -height/width, 0)
+                .applyQuaternion(m.quaternion)
+            )
+        ),
+      );
+      
+      // try to fit the context menu on the screen
+      let overflowX = false;
+      let overflowY = false;
+      const bboxWidth = boundingBox.max.x - boundingBox.min.x;
+      const bboxHeight = boundingBox.max.y - boundingBox.min.y;
+      if (boundingBox.max.y > canvasBox.max.y && boundingBox.min.y - bboxHeight >= canvasBox.min.y) {
+        boundingBox.min.y -= bboxHeight;
+        boundingBox.max.y -= bboxHeight;
+        
+        /* const e = {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        };
+        const intersection = getUiForwardIntersection(renderer, camera, e, localVector);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection); */
+        
+        overflowY = true;
+      }
+      if (boundingBox.max.x > canvasBox.max.x && boundingBox.min.x - bboxWidth >= canvasBox.min.x) {
+        boundingBox.min.x -= bboxWidth;
+        boundingBox.max.x -= bboxWidth;
+
+        /* updateRaycasterFromMouseEvent(renderer, camera, {
+          clientX: boundingBox.min.x,
+          clientY: boundingBox.min.y,
+        }, localRaycaster);
+        
+        const intersection = getUiForwardIntersection(renderer, camera, e, localVector);
+        if (!intersection) {
+          throw new Error('could not intersect in front of the camera; the math went wrong');
+        }
+        m.position.copy(intersection); */
+        
+        overflowX = true;
+      }
+      /* // abandon hope if we cannot fit
+      if (overflowX && overflowY) {
+        boundingBox.min.x += bboxWidth;
+        boundingBox.max.x += bboxWidth;
+        boundingBox.min.y += bboxHeight;
+        boundingBox.max.y += bboxHeight;
+        
+        overflowX = false;
+        overflowY = false;
+      } */
+      
+      const geometryKey =
+        (overflowY ? 'top' : 'bottom') +
+        '-' +
+        (overflowX ? 'left' : 'right');
+      model.geometry = contextMenuGeometries[geometryKey];
+      
+      /* redElement.style.top = `${boundingBox.min.y}px`;
+      redElement.style.left = `${boundingBox.min.x}px`;
+      redElement.style.height = `${boundingBox.max.y - boundingBox.min.y}px`;
+      redElement.style.width = `${boundingBox.max.x - boundingBox.min.x}px`; */
       
       const now = Date.now();
       animationSpec = {
@@ -427,7 +977,7 @@ const _makeContextMenuMesh = uiMesh => {
         endTime: now + 1000,
       };
     }
-    m.quaternion.copy(uiMesh.quaternion);
+    m.quaternion.copy(mouseUiMesh.quaternion);
     m.visible = weaponsManager.contextMenu;
     lastContextMenu = weaponsManager.contextMenu;
     
@@ -444,23 +994,31 @@ const _makeContextMenuMesh = uiMesh => {
         // model.material.opacity = fv;
       } else {
         _setDefaultScale();
+        animationSpec = null;
       }
     } else {
       _setDefaultScale();
+      animationSpec = null;
     }
   };
+  let highlightedIndex = -1;
+  m.getHighlightedIndex = () => highlightedIndex;
   m.intersectUv = uv => {
-    if (anchors && width && height && optionsTextures) {
+    highlightedIndex = -1;
+    if (uv && anchors && width && height && optionsTextures) {
       const coords = localVector2D.copy(uv)
         .multiply(localVector2D2.set(width, height));
-      const anchorIndex = anchors.findIndex(anchor => {
+      highlightedIndex = anchors.findIndex(anchor => {
         return (
           (coords.x >= anchor.left && coords.x < anchor.right) &&
           (coords.y >= anchor.top && coords.y < anchor.bottom)
         );
       });
-      material.map = optionsTextures[anchorIndex];
     }
+    material.map = highlightedIndex !== -1 ?
+      optionsTextures[highlightedIndex]
+    :
+      blankOptionTexture;
   };
   return m;
 };
@@ -482,31 +1040,19 @@ const _loadImage = u => new Promise((accept, reject) => {
   };
   img.onerror = reject;
 });
-function makeShape(shape, x, y, width, height, radius, smoothness) {
-  shape.absarc( x, y, radius, -Math.PI / 2, -Math.PI, true );
-  shape.absarc( x, y + height - radius * 2, radius, Math.PI, Math.PI / 2, true );
-  shape.absarc( x + width - radius * 2, y + height -  radius * 2, radius, Math.PI / 2, 0, true );
-  shape.absarc( x + width - radius * 2, y, radius, 0, -Math.PI / 2, true );
+function makeShape(shape, x, y, width, height, radius) {
+  shape.absarc( x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true );
+  shape.absarc( x + width/2, y + height/2, radius, Math.PI / 2, 0, true );
+  shape.absarc( x + width/2, y - height/2, radius, 0, -Math.PI / 2, true );
+  shape.absarc( x - width/2, y - height/2, radius, -Math.PI / 2, -Math.PI, true );
   return shape;
 }
-function createBoxWithRoundedEdges( width, height, depth, radius0, smoothness ) {
-  const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius0, smoothness);
-  const innerFactor = 0.99;
-  const hole = makeShape(new THREE.Path(), radius0/2, radius0/2, width * innerFactor, height * innerFactor, radius0, smoothness);
+function createBoxWithRoundedEdges( width, height, radius, innerFactor) {
+  const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
+  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
   shape.holes.push(hole);
 
-  let geometry = new THREE.ExtrudeBufferGeometry( shape, {
-    amount: 0,
-    bevelEnabled: true,
-    bevelSegments: smoothness * 2,
-    steps: 1,
-    bevelSize: radius0,
-    bevelThickness: 0,
-    curveSegments: smoothness
-  });
-  
-  geometry.center();
-  
+  const geometry = new THREE.ShapeGeometry(shape);
   return geometry;
 }
 const cardFrontGeometry = new THREE.PlaneBufferGeometry(cardWidth, cardHeight);
@@ -564,9 +1110,9 @@ const _makeCardMesh = img => {
 const _makeInventoryMesh = () => {
   const w = menuWidth + menuRadius*2;
   const h = menuHeight + menuRadius*2;
-  const geometry = createBoxWithRoundedEdges(w, h, 0, menuRadius, 1);
+  const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.99);
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
-  console.log('got bounding box', boundingBox);
+  // console.log('got bounding box', boundingBox);
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uBoundingBox: {
@@ -1949,7 +2495,7 @@ const downloadZip = async () => {
 };
 const collectZip = async () => {
   const zip = new JSZip();
-  const files = getFiles();
+  const files = globalState.get('files');
   const metaversefile = files.find(file => file.name === '.metaversefile');
   const metaversefileJson = JSON.parse(metaversefile.doc.getValue());
   const {start_url} = metaversefileJson;
@@ -2044,8 +2590,8 @@ const bindTextarea = codeEl => {
           await run();
         } catch (err) {
           console.warn(err);
-          const errors = [err].concat(getErrors());
-          setErrors(errors);
+          const errors = [err].concat(globalState.get('errors'));
+          globalState.set('errors', errors);
         }
       },
       'Ctrl-L': async cm => {
@@ -2053,8 +2599,8 @@ const bindTextarea = codeEl => {
           await mintNft();
         } catch (err) {
           console.warn(err);
-          const errors = [err].concat(getErrors());
-          setErrors(errors);
+          const errors = [err].concat(globalState.get('errors'));
+          globalState.set('errors', errors);
         }
       },
     },
@@ -2093,13 +2639,7 @@ const bindTextarea = codeEl => {
     const s = await res.text();
     return s;
   })();
-  
-  const reset = () => {
-    console.log('reset');
-  };
-  let cameraMode = 'camera';
-  const setCameraMode = newCameraMode => {
-    cameraMode = newCameraMode;
+  const setCameraMode = cameraMode => {
     console.log('got new camera mode', {cameraMode});
     if (cameraMode === 'avatar') {
       app.setAvatarUrl(`https://webaverse.github.io/assets/sacks3.vrm`, 'vrm');
@@ -2157,46 +2697,30 @@ Promise.all([
     // hacks
     {
       const scene = app.getScene();
+      const sceneLowPriority = app.getSceneLowPriority();
         
       const g = new CameraGeometry();
       const m = new THREE.MeshBasicMaterial({
         color: 0x333333,
       });
       const cameraMesh = new THREE.Mesh(g, m);
-      cameraMesh.position.set(0, 2, -5);
+      cameraMesh.position.set(0, 10, -8);
       cameraMesh.frustumCulled = false;
       scene.add(cameraMesh);
 
-      const uiMesh = _makeUiMesh();
-      // uiMesh.position.set(0, 2, -2);
-      // uiMesh.frustumCulled = false;
-      scene.add(uiMesh);
+      const mouseUiMesh = _makeMouseUiMesh();
+      scene.add(mouseUiMesh);
       app.addEventListener('frame', () => {
-        uiMesh.update();
+        mouseUiMesh.update();
       });
-      renderer.domElement.addEventListener('mousemove', e => {   
-        _updateRaycasterFromMouseEvent(localRaycaster, e);
-        
-        // project mesh outwards
-        localPlane.setFromNormalAndCoplanarPoint(
-          localVector
-            .set(0, 0, 1)
-            .applyQuaternion(camera.quaternion),
-          localVector2
-            .copy(camera.position)
-            .add(
-              localVector3
-                .copy(localRaycaster.ray.direction)
-                .multiplyScalar(2)
-            )
-        );
-        const intersection = localRaycaster.ray.intersectPlane(localPlane, localVector);
+      renderer.domElement.addEventListener('mousemove', e => {
+        const intersection = getUiForwardIntersection(renderer, camera, e, localVector);
         if (!intersection) {
           throw new Error('could not intersect in front of the camera; the math went wrong');
         }
-        uiMesh.target.position.copy(intersection)
+        mouseUiMesh.target.position.copy(intersection)
           .sub(camera.position);
-        uiMesh.target.quaternion.setFromRotationMatrix(
+        mouseUiMesh.target.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             localVector.set(0, 0, 0),
             localVector2.set(0, 0, -1).applyQuaternion(camera.quaternion),
@@ -2205,19 +2729,96 @@ Promise.all([
         );
       });
       
-      const contextMenuMesh = _makeContextMenuMesh(uiMesh);
+      const objectUiMeshes = [];
+      world.addEventListener('objectsadd', e => {
+        const object = e.data;
+
+        const objectUiMesh = _makeObjectUiMesh(object);
+        sceneLowPriority.add(objectUiMesh);
+        
+        app.addEventListener('frame', () => {
+          objectUiMesh.update();
+        });
+        objectUiMeshes.push(objectUiMesh);
+      });
+      world.addEventListener('objectsremove', e => {
+        const object = e.data;
+        const objectUiMeshIndex = objectUiMeshes.findIndex(objectUiMesh => objectUiMesh.object === object);
+        if (objectUiMeshIndex !== -1) {
+          const objectUiMesh = objectUiMeshes[objectUiMeshIndex];
+          objectUiMesh.parent.remove(objectUiMesh);
+          objectUiMeshes.splice(objectUiMeshIndex, 1);
+        }
+      });
+      
+      // double-click to look at object
+      renderer.domElement.addEventListener('dblclick', async e => {
+        const hoverObject = weaponsManager.getMouseHoverObject();
+        const hoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+        if (hoverObject) {
+          camera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              camera.position,
+              hoverObject.position,
+              localVector.set(0, 1, 0),
+            )
+          );
+          
+          weaponsManager.setMouseSelectedObject(hoverObject, hoverPhysicsId);
+        }
+      });
+      
+      const contextMenuMesh = _makeContextMenuMesh(mouseUiMesh);
       scene.add(contextMenuMesh);
       app.addEventListener('frame', () => {
         contextMenuMesh.update();
       });
+      renderer.domElement.addEventListener('click', async e => {
+        if (contextMenuMesh.visible) {
+          const highlightedIndex = contextMenuMesh.getHighlightedIndex();
+          const option = realContextMenuOptions[highlightedIndex];
+          switch (option) {
+            case 'New...': {
+              console.log('click new');
+              break;
+            }
+            case 'Select': {
+              console.log('click select');
+              break;
+            }
+            case 'Possess': {
+              const object = weaponsManager.getContextMenuObject();
+              await app.possess(object);
+              world.removeObject(object.instanceId);
+              break;
+            }
+            case 'Edit': {
+              console.log('click edit');
+              break;
+            }
+            case 'Break': {
+              const object = weaponsManager.getContextMenuObject();
+              object.hit();
+              break;
+            }
+            case 'Remove': {
+              const object = weaponsManager.getContextMenuObject();
+              world.removeObject(object.instanceId);
+              break;
+            }
+          }
+        }
+      });
       renderer.domElement.addEventListener('mousemove', e => {   
-        _updateRaycasterFromMouseEvent(localRaycaster, e);
+        updateRaycasterFromMouseEvent(renderer, camera, e, localRaycaster);
         
         if (contextMenuMesh.visible) {
           localArray.length = 0;
           const intersections = localRaycaster.intersectObject(contextMenuMesh, true, localArray);
           if (intersections.length > 0) {
             contextMenuMesh.intersectUv(intersections[0].uv);
+          } else {
+            contextMenuMesh.intersectUv(null);
           }
         }
       });
@@ -2237,13 +2838,82 @@ Promise.all([
       app.addEventListener('frame', () => {
         loaderMesh.update();
       });
-    }
+      
+      renderer.domElement.addEventListener('select', e => {
+        const {object, physicsId} = e.data;
+        const objects = globalState.get('objects');
+        const index = objects.indexOf(object);
+        if (index !== -1) {
+          // console.log('got select', objects, object, index);
+          globalState.set('selectedObjectIndex', index);
+          globalState.set('selectedTab', 'scene');
+        }
+      });
+      
+      app.addEventListener('frame', () => {
+        const dragRightSpec = weaponsManager.getDragRightSpec();
+        if (dragRightSpec) {
+          const {cameraStartPosition, clientX, clientY} = dragRightSpec;
+          const e = weaponsManager.getLastMouseEvent();
+          
+          const startMousePosition = getUiForwardIntersection(renderer, camera, {
+            clientX,
+            clientY,
+          }, localVector);
+          const endMousePosition = getUiForwardIntersection(renderer, camera, e, localVector2);
+          
+          camera.position.copy(cameraStartPosition)
+            .add(
+              localVector3.copy(startMousePosition)
+                .sub(endMousePosition)
+             );
+          camera.updateMatrixWorld();
+        }
+      });
+      app.addEventListener('frame', () => {
+        for (const objectUiMesh of objectUiMeshes) {
+          objectUiMesh.keyMesh.visible = false;
+          objectUiMesh.keyCircleMesh.visible = false;
+        }
+        
+        const usableObject = weaponsManager.getUsableObject();
+        if (usableObject) {
+          const objectUiMesh = objectUiMeshes.find(objectUiMesh => objectUiMesh.object === usableObject);
+          
+          const now = Date.now();
+          const f = weaponsManager.getUseSpecFactor(now);
+          if (f > 0) {
+            const s = 1 - f*0.3;
+            objectUiMesh.keyMesh.scale.setScalar(s);
+            objectUiMesh.keyCircleMesh.scale.setScalar(s);
+            
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.value = f;
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+          } else {
+            objectUiMesh.keyMesh.scale.setScalar(1);
+            objectUiMesh.keyCircleMesh.scale.setScalar(1);
+            
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.value = 0;
+            objectUiMesh.keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+          }
+          
+          objectUiMesh.keyMesh.visible = true;
+          objectUiMesh.keyCircleMesh.visible = true;
+          
+          // lastUseFactor = f;
+        }
+      });
+      renderer.domElement.addEventListener('use', e => {
+        console.log('got use event', e);
+      });        
+    } // end hacks
     
+    // load scene
     const defaultScene = [
       {
         position: new THREE.Vector3(),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/home/home.glb`,
+        contentId: `https://webaverse.github.io/home/home.glb`,
       },
       {
         position: new THREE.Vector3(-3, 0, -2),
@@ -2251,7 +2921,7 @@ Promise.all([
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
         ),
-        u: `https://webaverse.github.io/assets/table.glb`,
+        contentId: `https://webaverse.github.io/assets/table.glb`,
       },
       {
         position: new THREE.Vector3(2, 0, -3),
@@ -2259,12 +2929,12 @@ Promise.all([
           new THREE.Vector3(0, 0, -1),
           new THREE.Vector3(-1, 0, 0),
         ) */,
-        u: `https://avaer.github.io/mirror/index.js`,
+        contentId: `https://avaer.github.io/mirror/index.js`,
       },
       {
         position: new THREE.Vector3(-1, 1.5, -1.5),
         quaternion: new THREE.Quaternion(),
-        u: `https://silk.webaverse.com/index.t.js`,
+        contentId: `https://silk.webaverse.com/index.t.js`,
       },
       {
         position: new THREE.Vector3(-3, 0, -3.5),
@@ -2273,7 +2943,7 @@ Promise.all([
             new THREE.Vector3(0, 1, 0),
             -Math.PI/2
           ),
-        u: `https://webaverse.github.io/assets/
+        contentId: `https://webaverse.github.io/assets/
 shilo.vrm`,
       },
       {
@@ -2283,29 +2953,57 @@ shilo.vrm`,
             new THREE.Vector3(0, 1, 0),
             -Math.PI/2
           ),
-        u: `https://webaverse.github.io/assets/
+        contentId: `https://webaverse.github.io/assets/
 sacks3.vrm`,
+      },
+      {
+        position: new THREE.Vector3(-2, 0, -6),
+        quaternion: new THREE.Quaternion(),
+        contentId: `https://avaer.github.io/dragon-pet/manifest.json`,
+      },
+      {
+        position: new THREE.Vector3(3, 3, -7),
+        quaternion: new THREE.Quaternion()
+          .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+        contentId: 188,
+      },
+      {
+        position: new THREE.Vector3(3, 3, -9),
+        quaternion: new THREE.Quaternion()
+          .setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+        contentId: 'https://avaer.github.io/sakura/manifest.json',
+      },
+      {
+        position: new THREE.Vector3(0.5, 3, -13),
+        quaternion: new THREE.Quaternion(),
+        contentId: 'https://webaverse.com/rainbow-dash.gif',
       },
       /* {
         position: new THREE.Vector3(-3, 1.5, -1),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/lightsaber/manifest.json`,
+        contentId: `https://avaer.github.io/lightsaber/manifest.json`,
       },
       {
         position: new THREE.Vector3(-3, 1.5, -2),
         quaternion: new THREE.Quaternion(),
-        u: `https://avaer.github.io/hookshot/index.js`,
+        contentId: `https://avaer.github.io/hookshot/index.js`,
       }, */
     ];
-    window.THREE = THREE;
     for (const e of defaultScene) {
-      const {position, quaternion, u} = e;
-      const loadedObject = await world.addObject(u, null, position, quaternion, {
+      const {position, quaternion, contentId} = e;
+      const loadedObject = await world.addObject(contentId, null, position, quaternion, {
         // physics,
         // physics_url,
         // autoScale,
       });
-      loadedObject.name = u.match(/([^\/]*)$/)[1];
+      const _getName = contentId => {
+        if (typeof contentId === 'number') {
+          return contentId + '';
+        } else {
+          return contentId.match(/([^\/]*)$/)[1];
+        }
+      };
+      loadedObject.name = _getName(contentId);
     }
   });
 

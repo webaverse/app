@@ -530,7 +530,9 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene, shadowMap) => {
+export const addDefaultLights = (scene, {
+  shadowMap = false,
+} = {}) => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
@@ -563,3 +565,49 @@ export const unFrustumCull = o => {
 export const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 export const epochStartTime = Date.now();
+
+export const flipGeomeryUvs = geometry => {
+  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+    const j = i + 1;
+    geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
+  }
+};
+
+export const updateRaycasterFromMouseEvent = (() => {
+  const localVector2D = new THREE.Vector2();
+  return (renderer, camera, e, raycaster) => {
+    const mouse = localVector2D;
+    mouse.x = (e.clientX / renderer.domElement.width * renderer.getPixelRatio()) * 2 - 1;
+    mouse.y = -(e.clientY / renderer.domElement.height * renderer.getPixelRatio()) * 2 + 1;
+    raycaster.setFromCamera(
+      mouse,
+      camera
+    );
+  };
+})();
+export const getCameraUiPlane = (camera, distance, plane) => {
+  plane.setFromNormalAndCoplanarPoint(
+    localVector3
+      .set(0, 0, 1)
+      .applyQuaternion(camera.quaternion),
+    localVector4
+      .copy(camera.position)
+      .add(
+        localVector5
+          .set(0, 0, -distance)
+          .applyQuaternion(camera.quaternion)
+      )
+  );
+  return plane;
+};
+export const getUiForwardIntersection = (() => {
+  const localRaycaster = new THREE.Raycaster();
+  const localPlane = new THREE.Plane();
+  return (renderer, camera, e, v) => {
+    updateRaycasterFromMouseEvent(renderer, camera, e, localRaycaster);
+    // project mesh outwards
+    const cameraUiPlane = getCameraUiPlane(camera, 2, localPlane);
+    const intersection = localRaycaster.ray.intersectPlane(cameraUiPlane, v);
+    return intersection;
+  };
+})();

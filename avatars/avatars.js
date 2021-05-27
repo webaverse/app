@@ -614,7 +614,7 @@ const _findHead = tailBones => {
 const _findEye = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const eyeBones = tailBones.map(tailBone => {
-    const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
+    const eyeBone = _findClosestParentBone(tailBone, bone => bone.isBone && /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
     if (eyeBone) {
       return eyeBone;
     } else {
@@ -691,9 +691,9 @@ const _findFinger = (handBone, r) => _findClosestChildBone(handBone, bone => r.t
 const _findFoot = (tailBones, left) => {
   const regexp = left ? /l/i : /r/i;
   const legBones = tailBones.map(tailBone => {
-    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle/gi, '')));
+    const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle|leg(?:l|r)4|UpperLegNeck/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle|leg(l|r)4|UpperLegNeck/gi, '$1')));
     if (footBone) {
-      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh/gi, '')));
+      const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh|legl2|LowerLeg/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh|leg(?:l|r)2|LowerLeg/gi, '')));
       if (legBone) {
         const distance = _distanceToParentBone(footBone, legBone);
         if (distance >= 2) {
@@ -873,7 +873,7 @@ class Avatar {
     const Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
     const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
     const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
-	  const Left_elbow = Left_wrist.parent;
+	  const Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.name) ? Left_wrist.parent.parent : Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
@@ -892,7 +892,7 @@ class Avatar {
     const Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
     const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
     const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
-	  const Right_elbow = Right_wrist.parent;
+	  const Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name) ? Right_wrist.parent.parent : Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
 	  const Left_knee = Left_ankle.parent;
@@ -906,8 +906,8 @@ class Avatar {
 	    Chest,
 	    Neck,
 	    Head,
-	    /* Eye_L,
-	    Eye_R, */
+	    Eye_L,
+	    Eye_R,
 
 	    Left_shoulder,
 	    Left_arm,
@@ -1037,7 +1037,7 @@ class Avatar {
             },
           };
         }
-        if (!object.parser.json.extensions) {
+        /* if (!object.parser.json.extensions) {
           object.parser.json.extensions = {};
         }
         if (!object.parser.json.extensions.VRM) {
@@ -1077,7 +1077,7 @@ class Avatar {
               throw new Error('unsupported type');
             }
           };
-        }
+        } */
 
         springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
@@ -1407,6 +1407,8 @@ class Avatar {
     this.lastModelScaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
+      eyel: this.shoulderTransforms.eyel,
+      eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
       hips: this.legsManager.hips,
       spine: this.shoulderTransforms.spine,
@@ -1463,6 +1465,8 @@ class Avatar {
 	    Chest: this.outputs.chest,
 	    Neck: this.outputs.neck,
 	    Head: this.outputs.head,
+      Eye_L: this.outputs.eyel,
+      Eye_R: this.outputs.eyer,
 
 	    Left_shoulder: this.outputs.rightShoulder,
 	    Left_arm: this.outputs.rightUpperArm,
@@ -1944,7 +1948,10 @@ class Avatar {
       if (/hips|thumb|finger/i.test(k)) {
         modelBone.position.copy(modelBoneOutput.position);
       }
-      modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
+      modelBone.quaternion.multiplyQuaternions(
+        modelBoneOutput.quaternion,
+        modelBone.initialQuaternion
+      );
 
       if (this.getTopEnabled()) {
         if (k === 'Left_wrist') {

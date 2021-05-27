@@ -7,7 +7,7 @@ import ReactThreeFiber from '@react-three/fiber';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 // import {BasisTextureLoader} from './BasisTextureLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh, flipGeomeryUvs} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import buildTool from './build-tool.js';
@@ -15,13 +15,17 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {getRenderer, camera, scene2, scene3, appManager, iframeContainer, iframeContainer2} from './app-object.js';
+import {getRenderer, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
+import {GIFLoader} from './GIFLoader.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
+import {ShadertoyRenderer} from './shadertoy.js';
 import {makeAppContextObject} from './api.js';
+// import GIF from './gif.js';
+// import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -275,13 +279,14 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
   
   const res = await fetch(srcUrl);
   const j = await res.json();
-  // console.log('got metaversefile', j);
   let {start_url, physics, physics_url, components} = j;
   if (typeof j.autoScale === 'boolean') {
     autoScale = j.autoScale;
   }
   
-  // console.log('load rtfjs', start_url);
+  /* if (/^\./.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  } */
   
   return await runtime.loadFile({
     url: start_url,
@@ -853,7 +858,16 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
   let physicsIds = [];
   let staticPhysicsIds = [];
   o.run = async () => {
-    const physicsId = physicsManager.addBoxGeometry(o.position.clone().add(new THREE.Vector3(0, 1.5/2, 0).applyQuaternion(o.quaternion)), o.quaternion, new THREE.Vector3(0.3, 1.5/2, 0.3), false);
+    const physicsId = physicsManager.addBoxGeometry(
+      o.position.clone()
+        .add(
+          new THREE.Vector3(0, 1.5/2, 0)
+            .applyQuaternion(o.quaternion)
+        ),
+        o.quaternion,
+        new THREE.Vector3(0.3, 1.5/2, 0.3),
+        false
+    );
     physicsIds.push(physicsId);
     staticPhysicsIds.push(physicsId);
     
@@ -991,6 +1005,27 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.contentId = contentId;
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  mesh.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      mesh.position,        
+      mesh.quaternion,
+      new THREE.Vector3(width/2, height/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   mesh.hit = () => {
     console.log('hit', mesh); // XXX
     return {
@@ -998,6 +1033,113 @@ const _loadImg = async (file, {files = null, contentId = null, instanceId = null
       died: false,
     };
   };
+  return mesh;
+};
+let gifLoader = null;
+const _loadGif = async (file, {files = null, contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+  if (!gifLoader) {
+    gifLoader = new GIFLoader();
+  }
+  
+  let u = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(u)) {
+    u = files[_dotifyUrl(u)];
+  }
+
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
+  /* geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-worldWidth/2, -worldHeight/2, -0.1),
+    new THREE.Vector3(worldWidth/2, worldHeight/2, 0.1),
+  ); */
+  flipGeomeryUvs(geometry);
+  const colors = new Float32Array(geometry.attributes.position.array.length);
+  colors.fill(1, 0, colors.length);
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.MeshBasicMaterial({
+    map: new THREE.Texture(),
+    side: THREE.DoubleSide,
+    vertexColors: true,
+    transparent: true,
+    alphaTest: 0.5,
+  });
+  const model = new THREE.Mesh(geometry, material);
+  model.frustumCulled = false;
+  
+  const mesh = new THREE.Object3D();
+  mesh.add(model);
+  mesh.contentId = contentId;
+  let textures;
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  mesh.run = async () => {
+    const gifId = await gifLoader.createGif(u);
+    const frames = await gifLoader.renderFrames(gifId);
+    gifLoader.destroyGif(gifId);
+    textures = frames.map(frame => {
+      const t = new THREE.Texture(frame);
+      t.anisotropy = 16;
+      t.needsUpdate = true;
+      return t;
+    });
+    
+    // set scale
+    const frame = frames[0];
+    const {width, height} = frame;
+    let worldWidth = width;
+    let worldHeight = height;
+    if (worldWidth >= worldHeight) {
+      worldHeight /= worldWidth;
+      worldWidth = 1;
+    }
+    if (worldHeight >= worldWidth) {
+      worldWidth /= worldHeight;
+      worldHeight = 1;
+    }
+    model.scale.set(worldWidth, worldHeight, 1);
+    
+    // add physics mesh
+    const physicsId = physicsManager.addBoxGeometry(
+      mesh.position,
+      mesh.quaternion,
+      new THREE.Vector3(worldWidth/2, worldHeight/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
+  mesh.destroy = () => {
+    appManager.destroyApp(appId);
+
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  mesh.update = () => {
+    if (textures) {
+      const now = Date.now();
+      const f = (now % 2000) / 2000;
+      const frameIndex = Math.floor(f * textures.length);
+      material.map = textures[frameIndex];
+    }
+  };
+  mesh.hit = () => {
+    console.log('hit', mesh); // XXX
+    return {
+      hit: false,
+      died: false,
+    };
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', () => {
+    mesh.update();
+  });
+  
   return mesh;
 };
 const _makeAppUrl = appId => {
@@ -1313,9 +1455,6 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
   }
-  if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
-  }
 
   if (!files && /^https?:/.test(srcUrl)) {
     files = _makeFilesProxy(srcUrl);
@@ -1333,6 +1472,10 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
       physics_url = files[_dotifyUrl(physics_url)];
     }
   } */
+
+  if (/^\./.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
 
   const u = _dotifyUrl(start_url);
   return await runtime.loadFile({
@@ -1682,70 +1825,6 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   return o;
 };
-/* const _loadIframe = async (file, {contentId = null}) => {
-  let href;
-  if (file.url) {
-    const res = await fetch(file.url);
-    href = await res.text();
-  } else {
-    href = await file.text();
-  }
-  href = href.replace(/^([\S]*)/, '$1');
-
-  const width = 600;
-  const height = 400;
-
-  const iframe = document.createElement('iframe');
-  iframe.src = href;
-  iframe.allow = 'monetization';
-  iframe.style.width = width + 'px';
-  iframe.style.height = height + 'px';
-  // iframe.style.opacity = 0.75;
-  iframe.style.background = 'white';
-  // iframe.style.backfaceVisibility = 'visible';
-
-  const object = new CSS3DObject(iframe);
-  // object.position.set(0, 1, 0);
-  // object.scale.setScalar(0.01);
-  object.frustumCulled = false;
-
-  const object2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(width, height), new THREE.MeshBasicMaterial({
-    transparent: true,
-    // color: 0xFF0000,
-    opacity: 0,
-    side: THREE.DoubleSide,
-  }));
-  // object2.position.copy(object.position);
-  // object2.quaternion.copy(object.quaternion);
-  // object2.scale.copy(object.scale);
-  object2.scale.setScalar(0.01);
-  object2.frustumCulled = false;
-  object2.renderOrder = -Infinity;
-  // scene3.add(object2);
-  object2.onAfterRender = () => {
-    object.position.copy(object2.position);
-    object.quaternion.copy(object2.quaternion);
-    object.scale.copy(object2.scale);
-    object.matrix.copy(object2.matrix);
-    object.matrixWorld.copy(object2.matrixWorld);
-  };
-  object2.contentId = contentId;
-  object2.run = async () => {
-    scene2.add(object);
-  };
-  object2.destroy = () => {
-    scene2.remove(object);
-  };
-  object2.hit = () => {
-    console.log('hit', object2); // XXX
-    return {
-      hit: false,
-      died: false,
-    };
-  };
-  
-  return object2;
-}; */
 class IFrameMesh extends THREE.Mesh {
   constructor({
     iframe,
@@ -1921,7 +2000,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     staticPhysicsIds.push(physicsId);
     
     iframeContainer2.appendChild(iframe);
-    scene3.add(object2);
+    sceneHighPriority.add(object2);
   };
   object.destroy = () => {
     for (const physicsId of physicsIds) {
@@ -1931,7 +2010,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     staticPhysicsIds.length = 0;
     
     iframeContainer2.removeChild(iframe);
-    scene3.remove(object2);
+    sceneHighPriority.remove(object2);
     
     appManager.destroyApp(appId);
   };
@@ -1978,7 +2057,155 @@ const _loadHtml = async (file, {contentId = null}) => {
   
   return object;
 };
-const _loadMediaStream = async (file, {contentId = null}) => {
+const _loadGlfs = async (file, {contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = JSON.parse(text);
+  
+  const fullscreenShader = new FullscreenShader(shader);
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.useAux = rigAux => {
+    compositor.add(fullscreenShader);
+  };
+  o.destroy = () => {
+    compositor.remove(fullscreenShader);
+    appManager.destroyApp(appId);
+  };
+  
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    fullscreenShader.pass.enabled = !!o.parent;
+  });
+  
+  return o;
+};
+const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (/^\.+\//.test(srcUrl)) {
+    console.log('base url', parentUrl);
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  window.text = text;
+  const shader = JSON.parse(text);
+
+  const size = 1024;
+  const worldSize = 2;
+
+  const shadertoyRenderer = new ShadertoyRenderer(
+    shader,
+    {
+      size: 1024,
+      worldSize: 2,
+    }
+  );
+  let loaded = false;
+  (async () => {
+    await shadertoyRenderer.waitForLoad();
+    loaded = true;
+  })();
+  const o = shadertoyRenderer.mesh;
+  o.contentId = contentId;
+  // o.frustumCulled = false;
+  
+  let physicsIds = [];
+  let staticPhysicsIds = [];
+  o.run = async () => {
+    const physicsId = physicsManager.addBoxGeometry(
+      o.position,        
+      o.quaternion,
+      new THREE.Vector3(worldSize/2, worldSize/2, 0.01),
+      false
+    );
+    physicsIds.push(physicsId);
+    staticPhysicsIds.push(physicsId);
+  };
+  o.destroy = () => {
+    appManager.destroyApp(appId);
+
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  o.getPhysicsIds = () => physicsIds;
+  o.getStaticPhysicsIds = () => staticPhysicsIds;
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  app.addEventListener('frame', e => {
+    if (loaded) {
+      shadertoyRenderer.update(e.data.timeDiff/1000);
+    }
+  });
+
+  return o;
+};
+/* const _loadGlom = async (file, {files = null, components = [], contentId = null}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  
+  const res = await fetch(srcUrl);
+  const text = await res.text();
+  const shader = JSON.parse(text);
+  const {vertexShader, fragmentShader} = shader;
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      opacity: {
+        value: 1,
+        needsUpdate: true,
+      },
+    },
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+  });
+  material.skinning = true;
+  material.morphTargets = true;
+
+  const o = new THREE.Object3D();
+  o.contentId = contentId;
+  o.material = material;
+  const componentUnloadFns = [];
+  o.useAux = rigAux => {
+    let used = false;
+    for (const componentType of loadComponentTypes) {
+      const componentIndex = components.findIndex(component => component.type === componentType);
+      if (componentIndex !== -1) {
+        const component = components[componentIndex];
+        const componentHandler = componentHandlers[component.type];
+        const unloadFn = componentHandler.load(o, componentIndex, rigAux);
+        componentUnloadFns.push(unloadFn);
+        used = true;
+      }
+    }
+    return used;
+  };
+  o.destroy = () => {
+    // appManager.destroyApp(appId);
+    
+    for (const fn of componentUnloadFns) {
+      fn();
+    }
+    componentUnloadFns.length = 0;
+  };
+  
+  return o;
+}; */
+/* const _loadMediaStream = async (file, {contentId = null}) => {
   let spec;
   if (file.url) {
     const res = await fetch(file.url);
@@ -2002,7 +2229,7 @@ const _loadMediaStream = async (file, {contentId = null}) => {
     };
   };
   return object;
-};
+}; */
 
 const _loadAudio = async (file, {contentId = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -2049,7 +2276,7 @@ const typeHandlers = {
   'vrm': _loadVrm,
   'vox': _loadVox,
   'png': _loadImg,
-  'gif': _loadImg,
+  'gif': _loadGif,
   'jpeg': _loadImg,
   'jpg': _loadImg,
   'js': _loadScript,
@@ -2057,9 +2284,11 @@ const typeHandlers = {
   'wbn': _loadWebBundle,
   'scn': _loadScene,
   'url': _loadPortal,
-  // 'iframe': _loadIframe,
   'html': _loadHtml,
-  'mediastream': _loadMediaStream,
+  'glfs': _loadGlfs,
+  'glbb': _loadGlbb,
+  // 'glom': _loadGlom,
+  // 'mediastream': _loadMediaStream,
   'geo': _loadGeo,
   'mp3': _loadAudio,
   'mp4': _loadVideo,

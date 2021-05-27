@@ -10,12 +10,12 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
-import {buildMaterial} from './shaders.js';
+import {buildMaterial, highlightMaterial, selectMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {appManager, getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import controlsManager from './controls-manager.js';
 import buildTool from './build-tool.js';
@@ -39,6 +39,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
+const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 
 const gltfLoader = new GLTFLoader();
@@ -178,9 +179,9 @@ const _makeTargetMesh = (() => {
     return mesh;
   };
 })();
-const _makeHighlightPhysicsMesh = () => {
+const _makeHighlightPhysicsMesh = material => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  const material = buildMaterial.clone();
+  material = material.clone();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.physicsId = 0;
@@ -189,17 +190,26 @@ const _makeHighlightPhysicsMesh = () => {
 
 const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
-scene.add(highlightMesh);
+sceneLowPriority.add(highlightMesh);
 let highlightedObject = null;
 
-const highlightPhysicsMesh = _makeHighlightPhysicsMesh();
+const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
 highlightPhysicsMesh.visible = false;
 scene.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
 
+const mouseHighlightPhysicsMesh = _makeHighlightPhysicsMesh(highlightMaterial);
+mouseHighlightPhysicsMesh.visible = false;
+sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
+
+const mouseSelectPhysicsMesh = _makeHighlightPhysicsMesh(selectMaterial);
+mouseSelectPhysicsMesh.visible = false;
+sceneLowPriority.add(mouseSelectPhysicsMesh);
+let mouseSelectedObject = null;
+let mouseSelectedPhysicsId = 0;
 
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -442,16 +452,16 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  console.log('got click 1');
+  // console.log('got click 1');
   if (weaponsManager.canBuild()) {
-    console.log('got click 2');
+    // console.log('got click 2');
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
-    console.log('got click 3');
+    // console.log('got click 3');
     _deselectLoadout();
     _ungrab();
   } else {
-    console.log('got click 4', !!highlightedPhysicsObject);
+    // console.log('got click 4', !!highlightedPhysicsObject);
     if (highlightedPhysicsObject) {
       if (world.getObjects().includes(highlightedPhysicsObject)) {
         _grab(highlightedPhysicsObject);
@@ -568,7 +578,38 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+const _teleportTo = (position, quaternion) => {
+  const renderer = getRenderer();
+  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  // console.log(position, quaternion, pose, avatar)
+  /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+    .decompose(localVector2, localQuaternion2, localVector3); */
+
+  if (renderer.xr.getSession()) {
+    localMatrix.copy(xrCamera.matrix)
+      .premultiply(dolly.matrix)
+      .decompose(localVector2, localQuaternion2, localVector3);
+    dolly.matrix
+      .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+      // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+      // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+      .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+      .decompose(dolly.position, dolly.quaternion, dolly.scale);
+  } else {
+    camera.matrix
+      .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+      // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+      // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+      .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+      .decompose(camera.position, camera.quaternion, camera.scale);
+  }
+
+  physicsManager.velocity.set(0, 0, 0);
+};
+
 const crosshairEl = document.querySelector('.crosshair');
+let lastDraggingRight = false;
+let dragRightSpec = null;
 const _updateWeapons = () => {
   const now = Date.now();
   const transforms = rigManager.getRigTransforms();
@@ -763,9 +804,9 @@ const _updateWeapons = () => {
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
 
-    const h = mouseHoverObject || highlightedPhysicsObject
+    const h = highlightedPhysicsObject;
     if (h) {
-      const physicsId = mouseHoverObject ? mouseHoverPhysicsId : highlightedPhysicsId;
+      const physicsId = highlightedPhysicsId;
       if (highlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
 
@@ -793,6 +834,89 @@ const _updateWeapons = () => {
     }
   };
   _updatePhysicsHighlight();
+
+  const _updateMouseHighlight = () => {
+    mouseHighlightPhysicsMesh.visible = false;
+
+    const h = mouseHoverObject;
+    if (h && !weaponsManager.dragging && !mouseSelectedObject) {
+      const physicsId = mouseHoverPhysicsId;
+      if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
+        const physics = physicsManager.getGeometry(physicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          mouseHighlightPhysicsMesh.geometry.dispose();
+          mouseHighlightPhysicsMesh.geometry = geometry;
+          // mouseHighlightPhysicsMesh.scale.setScalar(1.05);
+          mouseHighlightPhysicsMesh.physicsId = physicsId;
+        }
+      }
+
+      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+      mouseHighlightPhysicsMesh.position.copy(physicsTransform.position);
+      mouseHighlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+      mouseHighlightPhysicsMesh.scale.copy(physicsTransform.scale);
+      mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
+      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+      mouseHighlightPhysicsMesh.visible = true;
+    }
+  };
+  _updateMouseHighlight();
+  
+  const _updateMouseSelect = () => {
+    mouseSelectPhysicsMesh.visible = false;
+
+    const o = mouseSelectedObject;
+    if (o) {
+      const physicsId = mouseSelectedPhysicsId;
+      if (mouseSelectPhysicsMesh.physicsId !== physicsId) {
+        const physics = physicsManager.getGeometry(physicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          mouseSelectPhysicsMesh.geometry.dispose();
+          mouseSelectPhysicsMesh.geometry = geometry;
+          // mouseSelectPhysicsMesh.scale.setScalar(1.05);
+          mouseSelectPhysicsMesh.physicsId = physicsId;
+        }
+      }
+
+      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
+      if (physicsTransform) {
+        // update matrix
+        {
+          mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
+          mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+          mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
+          mouseSelectPhysicsMesh.visible = true;
+        }
+        // update uniforms
+        {
+          mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+          mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          
+          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
+          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+        }
+      } /* else {
+        console.warn('no physics transform for object', o, physicsId, physicsTransform);
+      } */
+    }
+  };
+  _updateMouseSelect();
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
@@ -822,34 +946,6 @@ const _updateWeapons = () => {
 
   const _handleTeleport = () => {
     if (rigManager.localRig) {
-      const _teleportTo = (position, quaternion) => {
-        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-        // console.log(position, quaternion, pose, avatar)
-        /* localMatrix.fromArray(rigManager.localRig.model.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3); */
-
-        if (renderer.xr.getSession()) {
-          localMatrix.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
-            .decompose(localVector2, localQuaternion2, localVector3);
-          dolly.matrix
-            .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
-            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-            .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-            .decompose(dolly.position, dolly.quaternion, dolly.scale);
-        } else {
-          camera.matrix
-            .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-            .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-            .decompose(camera.position, camera.quaternion, camera.scale);
-        }
-
-        physicsManager.velocity.set(0, 0, 0);
-      };
-
       teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, p, q), (position, quaternion) => {
         _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
       });
@@ -915,6 +1011,139 @@ const _updateWeapons = () => {
     }
   };
   _handleThrowDrop();
+
+  const _handleClosestObject = () => {
+    const objects = world.getObjects();
+    if (objects.length > 0) {
+      let closestObject;
+      
+      if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
+        if (controlsManager.isPossessed() && cameraManager.getMode() !== 'firstperson') {
+          rigManager.localRigMatrix.decompose(
+            localVector,
+            localQuaternion,
+            localVector2
+          );
+          localVector.y -= physicsManager.getAvatarHeight() / 2;
+          const distanceSpecs = objects.map(object => {
+            let distance = object.position.distanceTo(localVector);
+            if (distance > 30) {
+              distance = Infinity;
+            }
+            return {
+              distance,
+              object,
+            };
+          }).sort((a, b) => a.distance - b.distance);
+          const closestDistanceSpec = distanceSpecs[0];
+          if (isFinite(closestDistanceSpec.distance)) {
+            closestObject = closestDistanceSpec.object;
+          }
+        } else {
+          if ((!!rigManager.localRig && controlsManager.isPossessed() && cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
+            localRay.set(
+              camera.position,
+              localVector.set(0, 0, -1)
+                .applyQuaternion(camera.quaternion)
+            );
+            
+            const distanceSpecs = objects.map(object => {
+              const distance =
+                object.position.distanceTo(camera.position) < 8 ?
+                  localRay.distanceToPoint(object.position)
+                :
+                  Infinity;
+              return {
+                distance,
+                object,
+              };
+            }).sort((a, b) => a.distance - b.distance);
+            const closestDistanceSpec = distanceSpecs[0];
+            if (isFinite(closestDistanceSpec.distance)) {
+              closestObject = closestDistanceSpec.object;
+            }
+          } else {
+            closestObject = weaponsManager.getMouseHoverObject();
+          }
+        }
+      } else {
+        closestObject = null;
+      }
+      
+      weaponsManager.closestObject = closestObject;
+    }
+  };
+  _handleClosestObject();
+  
+  const _handleUsableObject = () => {
+    const objects = world.getObjects();
+    if (objects.length > 0) {
+      let usableObject;
+      
+      if (
+        !weaponsManager.getMouseSelectedObject() &&
+        !weaponsManager.contextMenu &&
+        controlsManager.isPossessed()
+      ) {
+        rigManager.localRigMatrix.decompose(
+          localVector,
+          localQuaternion,
+          localVector2
+        );
+        localVector.y -= physicsManager.getAvatarHeight() / 2;
+        const distanceSpecs = objects.map(object => {
+          let distance = object.position.distanceTo(localVector);
+          if (distance > 3) {
+            distance = Infinity;
+          }
+          return {
+            distance,
+            object,
+          };
+        }).sort((a, b) => a.distance - b.distance);
+        const closestDistanceSpec = distanceSpecs[0];
+        if (isFinite(closestDistanceSpec.distance)) {
+          usableObject = closestDistanceSpec.object;
+        }
+      } else {
+        usableObject = null;
+      }
+      
+      weaponsManager.usableObject = usableObject;
+    }
+  };
+  _handleUsableObject();
+  
+  const _updateDrags = () => {
+    const {draggingRight} = weaponsManager;
+    if (draggingRight !== lastDraggingRight) {
+      if (draggingRight) {
+        const e = weaponsManager.getLastMouseEvent();    
+        const {clientX, clientY} = e;
+        const cameraStartPosition = camera.position.clone();
+        
+        dragRightSpec = {
+          clientX,
+          clientY,
+          cameraStartPosition,
+        };
+      } else {
+        dragRightSpec = null;
+      }
+    }
+    lastDraggingRight = draggingRight;
+  };
+  _updateDrags();
+  
+  const _updateUses = () => {    
+    if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
+      renderer.domElement.dispatchEvent(new MessageEvent('use', {
+        data: {},
+      }));
+      weaponsManager.useSpec = null;
+    }
+  };
+  _updateUses();
 
   if (crosshairEl) {
     crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
@@ -1729,13 +1958,26 @@ scene.add(cubeMesh); */
 
 scene.addEventListener('contextmenu', e => {
   const {event} = e;
-  // console.log('got contextmenu event', e);
   event.preventDefault();
+
+  if (
+    lastMouseEvent.clientX === dragRightSpec.clientX &&
+    lastMouseEvent.clientY === dragRightSpec.clientY &&
+    mouseHoverObject
+  ) {
+    weaponsManager.setContextMenu(true);
+    weaponsManager.setContextMenuObject(mouseHoverObject);
   
-  weaponsManager.setContextMenu(true);
+    weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+  }
 });
 
 let droppedThrow = false;
+const lastMouseEvent = {
+  clientX: 0,
+  clientY: 0,
+  inside: false,
+};
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1746,9 +1988,14 @@ const weaponsManager = {
   gridSnap: 0,
   editMode: false,
   dragging: false,
+  draggingRight: false,
   contextMenu: false,
+  contextMenuObject: null,
   editorHack: false,
   inventoryHack: false,
+  closestObject: null,
+  usableObject: null,
+  useSpec: null,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -1829,6 +2076,12 @@ const weaponsManager = {
   setContextMenu(contextMenu) {
     this.contextMenu = contextMenu;
   },
+  getContextMenuObject() {
+    return this.contextMenuObject;
+  },
+  setContextMenuObject(contextMenuObject) {
+    this.contextMenuObject = contextMenuObject;
+  },
   menuUse() {
     _use();
   },
@@ -1870,9 +2123,8 @@ const weaponsManager = {
     }
   },
   menuDrag(e) {
-    if (this.editorHack) {
+    // if (this.editorHack) {
       const {movementX, movementY} = e;
-      // console.log('menu drag', movementX, movementY);
       if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
         camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
         camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
@@ -1883,11 +2135,26 @@ const weaponsManager = {
 
         camera.updateMatrixWorld();
       }
-    }
+    // }
   },
   menuDragup() {
     if (this.editorHack) {
       this.dragging = false;
+    }
+  },
+  menuDragdownRight(e) {
+    if (this.editorHack) {
+      this.draggingRight = true;
+    }
+  },
+  menuDragRight(e) {
+    if (this.editorHack) {
+      // this.draggingRight = true;
+    }
+  },
+  menuDragupRight() {
+    if (this.editorHack) {
+      this.draggingRight = false;
     }
   },
   canTry() {
@@ -1925,6 +2192,38 @@ const weaponsManager = {
   },
   menuDrop() {
     console.log('menu drop');
+  },
+  menuPhysics() {
+    const selectedObject = weaponsManager.getMouseSelectedObject();
+    console.log('menu physics', selectedObject);
+    if (selectedObject) {
+      const physicsIds = selectedObject.getPhysicsIds ? selectedObject.getPhysicsIds() : [];
+      if (physicsIds.length > 0) {
+        const physicsId = physicsIds[0];
+        const physics = physicsManager.getGeometry(physicsId);
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          // geometry = geometry.toNonIndexed();
+          // geometry.computeVertexNormals();
+
+          const physicsBuffer = physicsManager.cookConvexGeometry(new THREE.Mesh(geometry));
+
+          const physicsId = physicsManager.addCookedConvexGeometry(physicsBuffer, selectedObject.position, selectedObject.quaternion, selectedObject.scale);
+          
+          console.log('got physics id', physicsId);
+          
+          // physicsIds.push(physicsId);
+          // staticPhysicsIds.push(physicsId);
+
+          /* highlightPhysicsMesh.geometry.dispose();
+          highlightPhysicsMesh.geometry = geometry;
+          // highlightPhysicsMesh.scale.setScalar(1.05);
+          highlightPhysicsMesh.physicsId = physicsId; */
+        }
+      }
+    }
   },
   menuGridSnap() {
     if (this.gridSnap === 0) {
@@ -2060,9 +2359,30 @@ const weaponsManager = {
   getMouseHoverObject() {
     return mouseHoverObject;
   },
+  getMouseHoverPhysicsId() {
+    return mouseHoverPhysicsId;
+  },
   setMouseHoverObject(o, physicsId) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
+  },
+  getMouseSelectedObject() {
+    return mouseSelectedObject;
+  },
+  getMouseSelectedPhysicsId() {
+    return mouseSelectedPhysicsId;
+  },
+  setMouseSelectedObject(o, physicsId) {
+    mouseSelectedObject = o;
+    mouseSelectedPhysicsId = physicsId;
+    
+    const renderer = getRenderer();
+    renderer.domElement.dispatchEvent(new MessageEvent('select', {
+      data: {
+        object: mouseSelectedObject,
+        physicsId: mouseSelectedPhysicsId,
+      },
+    }));
   },
   getSpeed() {
     const defaultSpeed = 0.1;
@@ -2078,6 +2398,50 @@ const weaponsManager = {
     } else {
       return defaultSpeed;
     }
+  },
+  getClosestObject() {
+    return weaponsManager.closestObject;
+  },
+  getUsableObject() {
+    return weaponsManager.usableObject;
+  },
+  teleportTo: _teleportTo,
+  getLastMouseEvent() {
+    return lastMouseEvent;
+  },
+  setLastMouseEvent(e) {
+    if (e) {
+      lastMouseEvent.clientX = e.clientX;
+      lastMouseEvent.clientY = e.clientY;
+      lastMouseEvent.inside = true;
+    } else {
+      lastMouseEvent.inside = false;
+    }
+  },
+  getDragRightSpec() {
+    return dragRightSpec;
+  },
+  getUseSpecFactor(now) {
+    const {useSpec} = weaponsManager;
+    if (useSpec) {
+      let f = (now - useSpec.startTime) /
+        (useSpec.endTime - useSpec.startTime);
+      f = Math.min(Math.max(f, 0), 1);
+      return f;
+    } else {
+      return 0;
+    }
+  },
+  menuUseDown() {
+    const startTime = Date.now();
+    const endTime = startTime + 1000;
+    weaponsManager.useSpec = {
+      startTime,
+      endTime,
+    };
+  },
+  menuUseUp() {
+    weaponsManager.useSpec = null;
   },
   update: _updateWeapons,
 };

@@ -5,7 +5,7 @@ import {getExt, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
 import wbn from './wbn.js';
 import * as icons from './icons.js';
-import './gif.js';
+import GIF './gif.js';
 
 const defaultWidth = 512;
 const defaultHeight = 512;
