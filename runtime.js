@@ -1789,12 +1789,12 @@ const _loadPortal = async (file, {contentId = null}) => {
     new THREE.Vector3(extents[1][0], extents[1][1], extents[1][2]),
   );
   portalMesh.frustumCulled = false;
-  portalMesh.isPortal = true;
   
   const o = new THREE.Object3D();
   o.add(portalMesh);
   o.contentId = contentId;
   o.json = json;
+  o.isPortal = true;
   o.update = () => {
     const transforms = rigManager.getRigTransforms();
     const {position} = transforms[0];
