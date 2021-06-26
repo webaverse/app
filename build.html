@@ -7,6 +7,23 @@
   flex-direction: column;
 }
 </style>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://lib.webaverse.com/three.js",
+      "BufferGeometryUtils": "https://lib.webaverse.com/BufferGeometryUtils.js",
+      "GLTFLoader": "https://lib.webaverse.com/GLTFLoader.js",
+      "GLTFExporter": "https://lib.webaverse.com/GLTFExporter.js",
+      "OrbitControls": "https://lib.webaverse.com/OrbitControls.js",
+      "VOXLoader": "https://lib.webaverse.com/VOXLoader.js",
+      "react": "https://lib.webaverse.com/react.js",
+      "react-dom": "https://lib.webaverse.com/react-dom.js",
+      "@react-three/fiber": "https://lib.webaverse.com/react-three-fiber.js",
+      "@babel/standalone": "https://lib.webaverse.com/babel-standalone.js",
+      "jszip": "https://lib.webaverse.com/jszip.js"
+    }
+  }
+</script>
 </head>
 <body>
   <form id=split-form>
@@ -37,9 +54,9 @@
   </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
-import * as THREE from './three.module.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {GLTFExporter} from './GLTFExporter.js';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {GLTFLoader} from 'https://lib.webaverse.com/GLTFLoader.js';
+import {GLTFExporter} from 'https://lib.webaverse.com/GLTFExporter.js';
 import runtime from './runtime.js';
 const {typeHandlers} = runtime;
 import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton, getExt} from './util.js';
