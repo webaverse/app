@@ -1961,6 +1961,7 @@ scene.addEventListener('contextmenu', e => {
   event.preventDefault();
 
   if (
+    dragRightSpec &&
     lastMouseEvent.clientX === dragRightSpec.clientX &&
     lastMouseEvent.clientY === dragRightSpec.clientY &&
     mouseHoverObject
