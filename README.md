@@ -7,8 +7,6 @@
   &mdash;
   <a href="https://docs.webaverse.com/">Docs</a>
   &mdash;
-  <a href="https://discord.gg/R5wqYhvv53">Discord</a>
-  &mdash;
   <a href="https://blog.webaverse.com/">Blog</a>
   &mdash;
   <a href="https://twitter.com/webaverse">Twitter</a>
