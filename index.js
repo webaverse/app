@@ -38,9 +38,13 @@ app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   next();
 });
-app.get('config.json', (req, res, next) => {
-  res.status(404);
-  res.end();
+app.use((req, res, next) => {
+  if (req.url === '/config.json') {
+		res.status(404);
+		res.end();
+  } else {
+	  next();
+	}
 });
 const appStatic = express.static(__dirname);
 app.get('*', (req, res, next) => {
