@@ -38,11 +38,11 @@ app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   next();
 });
-const appStatic = express.static(__dirname);
 app.get('config.json', (req, res, next) => {
   res.status(404);
   res.end();
 });
+const appStatic = express.static(__dirname);
 app.get('*', (req, res, next) => {
   const ext = getExt(req.url);
   if (['tjs', 'rtfjs'].includes(ext)) {
