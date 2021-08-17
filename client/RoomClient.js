@@ -1874,6 +1874,7 @@ export default class RoomClient extends EventTarget
 					})); */
 			});
 
+
 			this._chatDataProducer.on('error', (error) =>
 			{
 				logger.error('chat DataProducer "error" event:%o', error);
