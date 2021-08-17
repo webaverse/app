@@ -1,6 +1,8 @@
 {
+
     "extends": "semistandard",
     "rules": {
+ 
         "comma-dangle": ["error", "always-multiline"],
         "object-curly-spacing": ["error", "never"],
         "linebreak-style": ["error", "unix"],
