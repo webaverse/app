@@ -12,7 +12,7 @@ export async function screenshotObject(o) {
   {
     const ambientLight = new THREE.AmbientLight(0x808080);
     newScene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(0.5, 1, 0.5).multiplyScalar(100);
     newScene.add(directionalLight);
   }
@@ -29,9 +29,16 @@ export async function screenshotObject(o) {
     quality: 10,
   });
   for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
-    const position = center.clone()
+    const position = center
+      .clone()
       .add(new THREE.Vector3(0, size.y / 2, 0))
-      .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+      .add(
+        new THREE.Vector3(
+          Math.cos(i + Math.PI / 2),
+          0,
+          Math.sin(i + Math.PI / 2),
+        ).multiplyScalar(Math.max(size.x, size.z) * 1.2),
+      );
     const canvas = screenshot(newScene, position, center, {
       width,
       height,
@@ -51,12 +58,16 @@ export async function exportObject(o) {
   const exporter = new GLTFExporter();
   const exportScene = new THREE.Scene();
   exportScene.add(o);
-  exporter.parse(exportScene, gltf => {
-    dataPromise.accept(gltf);
-  }, {
-    binary: true,
-    includeCustomExtensions: true,
-  });
+  exporter.parse(
+    exportScene,
+    (gltf) => {
+      dataPromise.accept(gltf);
+    },
+    {
+      binary: true,
+      includeCustomExtensions: true,
+    },
+  );
   const data = await dataPromise;
   console.log('got gltf data', data);
   return data;
@@ -72,12 +83,24 @@ export async function screenshotEngine(pe) {
     transparent: 'rgba(0,0,0,0)',
   });
   for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.025) {
-    pe.camera.position.copy(center).add(new THREE.Vector3(Math.cos(i) * size.x, size.y / 2, Math.sin(i) * size.z));
+    pe.camera.position
+      .copy(center)
+      .add(
+        new THREE.Vector3(
+          Math.cos(i) * size.x,
+          size.y / 2,
+          Math.sin(i) * size.z,
+        ),
+      );
     pe.camera.quaternion.setFromRotationMatrix(
       new THREE.Matrix4().lookAt(pe.camera.position, center, up),
     );
     pe.camera.scale.set(1, 1, 1);
-    pe.camera.matrix.compose(pe.camera.position, pe.camera.quaternion, pe.camera.scale);
+    pe.camera.matrix.compose(
+      pe.camera.position,
+      pe.camera.quaternion,
+      pe.camera.scale,
+    );
     pe.setCamera(pe.camera);
     pe.tick();
 
