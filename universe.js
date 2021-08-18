@@ -36,22 +36,59 @@ const warpMesh = (() => {
   const numBoxes = 3000;
   const scale = 50;
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.position.array.length * numBoxes), 3));
-  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.uv.array.length * numBoxes), 2));
-  geometry.setAttribute('offset', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.position.array.length * numBoxes), 3));
-  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(boxGeometry.index.array.length * numBoxes), 1));
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(
+      new Float32Array(boxGeometry.attributes.position.array.length * numBoxes),
+      3,
+    ),
+  );
+  geometry.setAttribute(
+    'uv',
+    new THREE.BufferAttribute(
+      new Float32Array(boxGeometry.attributes.uv.array.length * numBoxes),
+      2,
+    ),
+  );
+  geometry.setAttribute(
+    'offset',
+    new THREE.BufferAttribute(
+      new Float32Array(boxGeometry.attributes.position.array.length * numBoxes),
+      3,
+    ),
+  );
+  geometry.setIndex(
+    new THREE.BufferAttribute(
+      new Uint32Array(boxGeometry.index.array.length * numBoxes),
+      1,
+    ),
+  );
   for (let i = 0; i < numBoxes; i++) {
-    geometry.attributes.position.array.set(boxGeometry.attributes.position.array, i * boxGeometry.attributes.position.array.length);
-    geometry.attributes.uv.array.set(boxGeometry.attributes.uv.array, i * boxGeometry.attributes.uv.array.length);
-    
+    geometry.attributes.position.array.set(
+      boxGeometry.attributes.position.array,
+      i * boxGeometry.attributes.position.array.length,
+    );
+    geometry.attributes.uv.array.set(
+      boxGeometry.attributes.uv.array,
+      i * boxGeometry.attributes.uv.array.length,
+    );
+
     for (let j = 0; j < boxGeometry.index.array.length; j++) {
-      geometry.index.array[i * boxGeometry.index.array.length + j] = boxGeometry.index.array[j] + i * boxGeometry.attributes.position.array.length/3;
+      geometry.index.array[i * boxGeometry.index.array.length + j] =
+        boxGeometry.index.array[j] +
+        (i * boxGeometry.attributes.position.array.length) / 3;
     }
 
-    const offset = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2)
-      .multiplyScalar(scale);
+    const offset = new THREE.Vector3(
+      -1 + Math.random() * 2,
+      -1 + Math.random() * 2,
+      -1 + Math.random() * 2,
+    ).multiplyScalar(scale);
     for (let j = 0; j < boxGeometry.attributes.position.array.length; j += 3) {
-      offset.toArray(geometry.attributes.offset.array, i * boxGeometry.attributes.position.array.length + j);
+      offset.toArray(
+        geometry.attributes.offset.array,
+        i * boxGeometry.attributes.position.array.length + j,
+      );
     }
   }
   geometry.attributes.position.needsUpdate = true;
@@ -74,7 +111,9 @@ const warpMesh = (() => {
       void main() {
         // vUv = uv;
         vec3 p = offset;
-        p.z = mod(p.z + uTime * ${(scale*2).toFixed(8)}, ${(scale*2).toFixed(8)}) - ${scale.toFixed(8)};
+        p.z = mod(p.z + uTime * ${(scale * 2).toFixed(8)}, ${(
+      scale * 2
+    ).toFixed(8)}) - ${scale.toFixed(8)};
         p += position;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }
@@ -88,7 +127,9 @@ const warpMesh = (() => {
 
       void main() {
         // vec3 c = mix(color1, color2, vUv.y/numPoints);
-        gl_FragColor = vec4(${new THREE.Color(0x111111).toArray().join(', ')}, 0.2);
+        gl_FragColor = vec4(${new THREE.Color(0x111111)
+          .toArray()
+          .join(', ')}, 0.2);
       }
     `,
     transparent: true,
@@ -102,11 +143,8 @@ warpMesh.visible = false;
 scene.add(warpMesh);
 
 let currentWorld = null;
-const _getCurrentCoord = (p, v) => v.set(
-  Math.floor(p.x),
-  Math.floor(p.y),
-  Math.floor(p.z),
-);
+const _getCurrentCoord = (p, v) =>
+  v.set(Math.floor(p.x), Math.floor(p.y), Math.floor(p.z));
 const clearWorld = () => {
   const staticObjects = world.getStaticObjects();
   for (const object of staticObjects) {
@@ -119,7 +157,7 @@ const clearWorld = () => {
 };
 const update = () => {
   if (arrowMesh) {
-    arrowMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+    arrowMesh.material.uniforms.uTime.value = (Date.now() % 1500) / 1500;
     arrowMesh.material.uniforms.uTime.needsUpdate = true;
   }
   if (warpMesh.visible) {
@@ -144,7 +182,7 @@ const getParcels = async () => {
     return [];
   }
 };
-const enterWorld = async worldSpec => {
+const enterWorld = async (worldSpec) => {
   let warpPhysicsId;
   const _pre = () => {
     if (currentWorld) {
@@ -156,31 +194,51 @@ const enterWorld = async worldSpec => {
           localVector2.fromArray(worldSpec.extents[1]),
         );
       } else {
-        localBox.set(
-          localVector.set(-2, 0, -2),
-          localVector2.set(2, 4, 2),
-        );
+        localBox.set(localVector.set(-2, 0, -2), localVector2.set(2, 4, 2));
       }
       const parcelAABB = localBox;
       // const center = parcelAABB.getCenter(localVector);
       // const size = parcelAABB.getSize(localVector2);
       // console.log('got center size', center.toArray(), size.toArray());
 
-      warpPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(1000, 1, 1000), false);
+      warpPhysicsId = physicsManager.addBoxGeometry(
+        new THREE.Vector3(0, -1, 0),
+        new THREE.Quaternion(),
+        new THREE.Vector3(1000, 1, 1000),
+        false,
+      );
 
       const _containAvatar = () => {
         physicsManager.getAvatarWorldObject(localObject);
         physicsManager.getAvatarCapsule(localVector);
         localVector.add(localObject.position);
         const avatarAABB = localBox2.set(
-          localVector2.copy(localVector)
-            .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
-          localVector3.copy(localVector)
-            .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
+          localVector2
+            .copy(localVector)
+            .add(
+              localVector4.set(
+                -localVector.radius,
+                -localVector.radius - localVector.halfHeight,
+                -localVector.radius,
+              ),
+            ),
+          localVector3
+            .copy(localVector)
+            .add(
+              localVector4.set(
+                localVector.radius,
+                localVector.radius + localVector.halfHeight,
+                localVector.radius,
+              ),
+            ),
         );
 
         avatarAABB.getCenter(localVector2);
-        const offset = localVector.set(-localVector2.x, -localVector2.y, -localVector2.z);
+        const offset = localVector.set(
+          -localVector2.x,
+          -localVector2.y,
+          -localVector2.z,
+        );
 
         const renderer = getRenderer();
         if (renderer.xr.getSession()) {
@@ -197,7 +255,7 @@ const enterWorld = async worldSpec => {
         }
       };
       _containAvatar();
-    };
+    }
   };
   _pre();
 
@@ -222,19 +280,34 @@ const enterWorld = async worldSpec => {
       }
     }
     {
-      const ps = objects.map(async object => {
-        let {start_url, position, quaternion, physics, physics_url, autoScale, autoRun, dynamic} = object;
+      const ps = objects.map(async (object) => {
+        let {
+          start_url,
+          position,
+          quaternion,
+          physics,
+          physics_url,
+          autoScale,
+          autoRun,
+          dynamic,
+        } = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
         }
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
-          physics,
-          physics_url,
-          autoScale,
-        });
+        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](
+          start_url,
+          null,
+          position,
+          quaternion,
+          {
+            physics,
+            physics_url,
+            autoScale,
+          },
+        );
         if (autoRun && o.useAux) {
           o.useAux(rigManager.localRig.aux);
         }
@@ -243,41 +316,29 @@ const enterWorld = async worldSpec => {
     }
     if (room) {
       const p = (async () => {
-        const u = `https://worlds.exokit.org/${room}`;
-        const res = await fetch(u);
-        let j;
-        if (res.status === 404) {
-          const res2 = await fetch(u, {
-            method: 'POST',
-          });
-          j = await res2.json();
-          j = j.result;
-        } else if (res.ok) {
-          j = await res.json();
-          j = j.result;
-        } else {
-          throw new Error('failed to connect to server: ' + res.status);
-        }
-        const {publicIp, privateIp, port} = j;
-        await world.connectRoom(room, `worlds.exokit.org:${port}`);
+        // TODO: This needs to be configurable which is hard w/o a build step
+
+        const dialog =
+          'agoblinking-webaverse-dialog-jj4r7xp2p9jg-4443.githubpreview.dev';
+        await world.connectRoom(room, dialog);
       })();
       promises.push(p);
     }
-    
+
     await Promise.all(promises);
 
     // world.initializeIfEmpty(universeSpecs.initialScene);
   };
-  await _doLoad().catch(err => {
+  await _doLoad().catch((err) => {
     console.warn(err);
   });
 
   const _post = () => {
     if (currentWorld) {
       // setTimeout(() => {
-        warpMesh.visible = false;
+      warpMesh.visible = false;
 
-        physicsManager.removeGeometry(warpPhysicsId);
+      physicsManager.removeGeometry(warpPhysicsId);
       // }, 3000);
     }
   };
@@ -285,7 +346,7 @@ const enterWorld = async worldSpec => {
 
   currentWorld = worldSpec;
 };
-const pushUrl = async u => {
+const pushUrl = async (u) => {
   history.pushState({}, '', u);
   await handleUrlUpdate();
 };
@@ -294,7 +355,7 @@ const handleUrlUpdate = async () => {
   const worldJson = await world.getWorldJson(q);
   await enterWorld(worldJson);
 };
-window.addEventListener('popstate', e => {
+window.addEventListener('popstate', (e) => {
   handleUrlUpdate().catch(console.warn);
 });
 
