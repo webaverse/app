@@ -93,8 +93,8 @@ export default class RoomClient extends EventTarget {
     useSimulcast,
     useSharingSimulcast,
     forceTcp,
-    produce = true,
-    consume = true,
+    produce = false,
+    consume = false,
     forceH264,
     forceVP9,
     svc,
@@ -260,9 +260,6 @@ export default class RoomClient extends EventTarget {
     if (this._sendTransport) this._sendTransport.close();
 
     if (this._recvTransport) this._recvTransport.close();
-
-    /* store.dispatch(
-			stateActions.setRoomState('closed')); */
   }
 
   join() {
@@ -272,9 +269,6 @@ export default class RoomClient extends EventTarget {
       );
 
       this._protoo = new protooClient.Peer(protooTransport);
-
-      /* store.dispatch(
-				stateActions.setRoomState('connecting')); */
 
       this._protoo.on('open', () => {
         this._joinRoom().then(resolve, reject);
@@ -286,11 +280,6 @@ export default class RoomClient extends EventTarget {
           text: 'WebSocket connection failed',
         });
         reject(new Error('protoo connection failed'));
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : 'WebSocket connection failed'
-					})); */
       });
 
       this._protoo.on('disconnected', () => {
@@ -298,11 +287,6 @@ export default class RoomClient extends EventTarget {
           type: 'error',
           text: 'WebSocket disconnected',
         });
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : 'WebSocket disconnected'
-					})); */
 
         // Close mediasoup Transports.
         if (this._sendTransport) {
@@ -314,9 +298,6 @@ export default class RoomClient extends EventTarget {
           this._recvTransport.close();
           this._recvTransport = null;
         }
-
-        /* store.dispatch(
-					stateActions.setRoomState('closed')); */
       });
 
       this._protoo.on('close', () => {
@@ -373,30 +354,12 @@ export default class RoomClient extends EventTarget {
                 consumer.rtpParameters.encodings[0].scalabilityMode,
               );
 
-              /* store.dispatch(stateActions.addConsumer(
-								{
-									id                     : consumer.id,
-									type                   : type,
-									locallyPaused          : false,
-									remotelyPaused         : producerPaused,
-									rtpParameters          : consumer.rtpParameters,
-									spatialLayers          : spatialLayers,
-									temporalLayers         : temporalLayers,
-									preferredSpatialLayer  : spatialLayers - 1,
-									preferredTemporalLayer : temporalLayers - 1,
-									priority               : 1,
-									codec                  : consumer.rtpParameters.codecs[0].mimeType.split('/')[1],
-									track                  : consumer.track
-								},
-								peerId)); */
-
               // We are ready. Answer the protoo request so the server will
               // resume this Consumer (which was paused for now if video).
               accept();
 
               // If audio-only mode is enabled, pause it.
-              /* if (consumer.kind === 'video' && store.getState().me.audioOnly)
-								this._pauseConsumer(consumer); */
+
               this.dispatchEvent(
                 new MessageEvent('addreceivestream', {
                   data: {
@@ -408,12 +371,6 @@ export default class RoomClient extends EventTarget {
               );
             } catch (error) {
               logger.error('"newConsumer" request failed:%o', error);
-
-              /* store.dispatch(requestActions.notify(
-								{
-									type : 'error',
-									text : `Error creating a Consumer: ${error}`
-								})); */
 
               throw error;
             }
@@ -491,22 +448,10 @@ export default class RoomClient extends EventTarget {
                     },
                   }),
                 );
-
-                /* store.dispatch(requestActions.notify(
-									{
-										type : 'error',
-										text : 'DataConsumer closed'
-									})); */
               });
 
               dataConsumer.on('error', (error) => {
                 logger.error('DataConsumer "error" event:%o', error);
-
-                /* store.dispatch(requestActions.notify(
-									{
-										type : 'error',
-										text : `DataConsumer error: ${error}`
-									})); */
               });
 
               dataConsumer.on('message', (message) => {
@@ -514,105 +459,15 @@ export default class RoomClient extends EventTarget {
                   'DataConsumer "message" event [streamId:%d]',
                   dataConsumer.sctpStreamParameters.streamId,
                 );
-
-                /* // TODO: For debugging.
-								window.DC_MESSAGE = message;
-
-								if (message instanceof ArrayBuffer)
-								{
-									const view = new DataView(message);
-									const number = view.getUint32();
-
-									if (number == Math.pow(2, 32) - 1)
-									{
-										logger.warn('dataChannelTest finished!');
-
-										this._nextDataChannelTestNumber = 0;
-
-										return;
-									}
-
-									if (number > this._nextDataChannelTestNumber)
-									{
-										logger.warn(
-											'dataChannelTest: %s packets missing',
-											number - this._nextDataChannelTestNumber);
-									}
-
-									this._nextDataChannelTestNumber = number + 1;
-
-									return;
-								}
-								else if (typeof message !== 'string')
-								{
-									logger.warn('ignoring DataConsumer "message" (not a string)');
-
-									return;
-								}
-
-								switch (dataConsumer.label)
-								{
-									case 'chat':
-									{
-										const { peers } = store.getState();
-										const peersArray = Object.keys(peers)
-											.map((_peerId) => peers[_peerId]);
-										const sendingPeer = peersArray
-											.find((peer) => peer.dataConsumers.includes(dataConsumer.id));
-
-										if (!sendingPeer)
-										{
-											logger.warn('DataConsumer "message" from unknown peer');
-
-											break;
-										}
-
-										store.dispatch(requestActions.notify(
-											{
-												title   : `${sendingPeer.displayName} says:`,
-												text    : message,
-												timeout : 5000
-											}));
-
-										break;
-									}
-
-									case 'bot':
-									{
-										store.dispatch(requestActions.notify(
-											{
-												title   : 'Message from Bot:',
-												text    : message,
-												timeout : 5000
-											}));
-
-										break;
-									}
-								} */
               });
 
               // TODO: REMOVE
               window.DC = dataConsumer;
 
-              /* store.dispatch(stateActions.addDataConsumer(
-								{
-									id                   : dataConsumer.id,
-									sctpStreamParameters : dataConsumer.sctpStreamParameters,
-									label                : dataConsumer.label,
-									protocol             : dataConsumer.protocol
-								},
-								peerId)); */
-
               // We are ready. Answer the protoo request.
               accept();
             } catch (error) {
               logger.error('"newDataConsumer" request failed:%o', error);
-
-              /* store.dispatch(requestActions.notify(
-								{
-									type : 'error',
-									text : `Error creating a DataConsumer: ${error}`
-								})); */
 
               throw error;
             }
@@ -635,9 +490,6 @@ export default class RoomClient extends EventTarget {
           case 'producerScore': {
             const {producerId, score} = notification.data;
 
-            /* store.dispatch(
-							stateActions.setProducerScore(producerId, score)); */
-
             break;
           }
 
@@ -647,17 +499,6 @@ export default class RoomClient extends EventTarget {
                 data: notification.data,
               }),
             );
-
-            const peer = notification.data;
-
-            /* store.dispatch(
-							stateActions.addPeer(
-								{ ...peer, consumers: [], dataConsumers: [] }));
-
-						store.dispatch(requestActions.notify(
-							{
-								text : `${peer.displayName} has joined the room`
-							})); */
 
             break;
           }
@@ -669,25 +510,10 @@ export default class RoomClient extends EventTarget {
               }),
             );
 
-            const {peerId} = notification.data;
-
-            /* store.dispatch(
-							stateActions.removePeer(peerId)); */
-
             break;
           }
 
           case 'peerDisplayNameChanged': {
-            const {peerId, displayName, oldDisplayName} = notification.data;
-
-            /* store.dispatch(
-							stateActions.setPeerDisplayName(displayName, peerId));
-
-						store.dispatch(requestActions.notify(
-							{
-								text : `${oldDisplayName} is now ${displayName}`
-							})); */
-
             break;
           }
 
@@ -706,11 +532,6 @@ export default class RoomClient extends EventTarget {
             consumer.close();
             this._consumers.delete(consumerId);
 
-            const {peerId} = consumer.appData;
-
-            /* store.dispatch(
-							stateActions.removeConsumer(consumerId, peerId)); */
-
             break;
           }
 
@@ -721,9 +542,6 @@ export default class RoomClient extends EventTarget {
             if (!consumer) break;
 
             consumer.pause();
-
-            /* store.dispatch(
-							stateActions.setConsumerPaused(consumerId, 'remote')); */
 
             break;
           }
@@ -736,9 +554,6 @@ export default class RoomClient extends EventTarget {
 
             consumer.resume();
 
-            /* store.dispatch(
-							stateActions.setConsumerResumed(consumerId, 'remote')); */
-
             break;
           }
 
@@ -748,17 +563,11 @@ export default class RoomClient extends EventTarget {
 
             if (!consumer) break;
 
-            /* store.dispatch(stateActions.setConsumerCurrentLayers(
-							consumerId, spatialLayer, temporalLayer)); */
-
             break;
           }
 
           case 'consumerScore': {
             const {consumerId, score} = notification.data;
-
-            /* store.dispatch(
-							stateActions.setConsumerScore(consumerId, score)); */
 
             break;
           }
@@ -774,17 +583,11 @@ export default class RoomClient extends EventTarget {
 
             const {peerId} = dataConsumer.appData;
 
-            /* store.dispatch(
-							stateActions.removeDataConsumer(dataConsumerId, peerId)); */
-
             break;
           }
 
           case 'activeSpeaker': {
             const {peerId} = notification.data;
-
-            /* store.dispatch(
-							stateActions.setRoomActiveSpeaker(peerId)); */
 
             break;
           }
@@ -819,32 +622,10 @@ export default class RoomClient extends EventTarget {
 
     if (this._micProducer) return;
 
-    /* if (!this._mediasoupDevice.canProduce('audio'))
-		{
-			logger.error('enableMic() | cannot produce audio');
-
-			return;
-		} */
-
     let track;
 
     try {
       track = mediaStream.getAudioTracks()[0];
-
-      /* if (!this._externalVideo)
-			{
-				logger.debug('enableMic() | calling getUserMedia()');
-
-				const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-				track = stream.getAudioTracks()[0];
-			}
-			else
-			{
-				const stream = await this._getExternalVideoStream();
-
-				track = stream.getAudioTracks()[0].clone();
-			} */
 
       this._micProducer = await this._sendTransport.produce({
         track,
@@ -857,36 +638,15 @@ export default class RoomClient extends EventTarget {
         // 	.find((codec) => codec.mimeType.toLowerCase() === 'audio/pcma')
       });
 
-      /* store.dispatch(stateActions.addProducer(
-				{
-					id            : this._micProducer.id,
-					paused        : this._micProducer.paused,
-					track         : this._micProducer.track,
-					rtpParameters : this._micProducer.rtpParameters,
-					codec         : this._micProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
-				})); */
-
       this._micProducer.on('transportclose', () => {
         this._micProducer = null;
       });
 
       this._micProducer.on('trackended', () => {
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : 'Microphone disconnected!'
-					})); */
-
         this.disableMic().catch(() => {});
       });
     } catch (error) {
       logger.error('enableMic() | failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error enabling microphone: ${error}`
-				})); */
 
       if (track) track.stop();
     }
@@ -906,13 +666,7 @@ export default class RoomClient extends EventTarget {
       await this._protoo.request('closeProducer', {
         producerId: this._micProducer.id,
       });
-    } catch (error) {
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error closing server-side mic Producer: ${error}`
-				})); */
-    }
+    } catch (error) {}
 
     this._micProducer = null;
   }
@@ -1618,37 +1372,7 @@ export default class RoomClient extends EventTarget {
 
     if (!this._useDataChannel) return;
 
-    // NOTE: Should enable this code but it's useful for testing.
-    // if (this._chatDataProducer)
-    // 	return;
-
     try {
-      /* // console.log('got handler', this._sendTransport._handler, this._sendTransport._handler._pc);
-            this._sendTransport._handler._pc.createDataChannel = (_createDataChannel => function createDataChannel() {
-            	const o = _createDataChannel.apply(this, arguments);
-                o.addEventListener('open', e => {
-                  // console.log('open data channel', e);
-
-                  const queue = [];
-                  const _message = e => {
-                    // console.log('queue message', e.data);
-                    queue.push(e.data);
-                  };
-                  o.addEventListener('message', _message);
-                  o.flushMessageQueue = () => {
-                    for (let i = 0; i < queue.length; i++) {
-                        const data = queue[i];
-                        o.dispatchEvent(new MessageEvent('message', {
-                            data,
-                        }));
-                    }
-                    o.removeEventListener('message', _message);
-                    o.flushMessageQueue = null;
-                  };
-                });
-                return o;
-            })(this._sendTransport._handler._pc.createDataChannel); */
-
       // Create chat DataProducer.
       this._chatDataProducer = await this._sendTransport.produceData({
         ordered: true, // false,
@@ -1658,14 +1382,6 @@ export default class RoomClient extends EventTarget {
         appData,
         // appData        : { info: 'my-chat-DataProducer' }
       });
-
-      /* store.dispatch(stateActions.addDataProducer(
-				{
-					id                   : this._chatDataProducer.id,
-					sctpStreamParameters : this._chatDataProducer.sctpStreamParameters,
-					label                : this._chatDataProducer.label,
-					protocol             : this._chatDataProducer.protocol
-				})); */
 
       this._chatDataProducer.on('transportclose', () => {
         this._chatDataProducer = null;
@@ -1688,22 +1404,10 @@ export default class RoomClient extends EventTarget {
             },
           }),
         );
-
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : 'Chat DataProducer closed'
-					})); */
       });
 
       this._chatDataProducer.on('error', (error) => {
         logger.error('chat DataProducer "error" event:%o', error);
-
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : `Chat DataProducer error: ${error}`
-					})); */
       });
 
       this._chatDataProducer.on('bufferedamountlow', () => {
@@ -1720,12 +1424,6 @@ export default class RoomClient extends EventTarget {
     } catch (error) {
       logger.error('enableChatDataProducer() | failed:%o', error);
 
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error enabling chat DataProducer: ${error}`
-				})); */
-
       throw error;
     }
   }
@@ -1734,10 +1432,6 @@ export default class RoomClient extends EventTarget {
     logger.debug('enableBotDataProducer()');
 
     if (!this._useDataChannel) return;
-
-    // NOTE: Should enable this code but it's useful for testing.
-    // if (this._botDataProducer)
-    // 	return;
 
     try {
       // Create chat DataProducer.
@@ -1748,14 +1442,6 @@ export default class RoomClient extends EventTarget {
         priority: 'medium',
         appData: {info: 'my-bot-DataProducer'},
       });
-
-      /* store.dispatch(stateActions.addDataProducer(
-				{
-					id                   : this._botDataProducer.id,
-					sctpStreamParameters : this._botDataProducer.sctpStreamParameters,
-					label                : this._botDataProducer.label,
-					protocol             : this._botDataProducer.protocol
-				})); */
 
       this._botDataProducer.on('transportclose', () => {
         this._botDataProducer = null;
@@ -1769,22 +1455,10 @@ export default class RoomClient extends EventTarget {
         logger.error('bot DataProducer "close" event');
 
         this._botDataProducer = null;
-
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : 'Bot DataProducer closed'
-					})); */
       });
 
       this._botDataProducer.on('error', (error) => {
         logger.error('bot DataProducer "error" event:%o', error);
-
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : `Bot DataProducer error: ${error}`
-					})); */
       });
 
       this._botDataProducer.on('bufferedamountlow', () => {
@@ -1792,12 +1466,6 @@ export default class RoomClient extends EventTarget {
       });
     } catch (error) {
       logger.error('enableBotDataProducer() | failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error enabling bot DataProducer: ${error}`
-				})); */
 
       throw error;
     }
@@ -1807,12 +1475,6 @@ export default class RoomClient extends EventTarget {
     logger.debug('sendChatMessage() [text:"%s]', text);
 
     if (!this._chatDataProducer) {
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : 'No chat DataProducer'
-				})); */
-
       return;
     }
 
@@ -1820,12 +1482,6 @@ export default class RoomClient extends EventTarget {
       this._chatDataProducer.send(text);
     } catch (error) {
       logger.error('chat DataProducer.send() failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `chat DataProducer.send() failed: ${error}`
-				})); */
     }
   }
 
@@ -1833,12 +1489,6 @@ export default class RoomClient extends EventTarget {
     logger.debug('sendBotMessage() [text:"%s]', text);
 
     if (!this._botDataProducer) {
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : 'No bot DataProducer'
-				})); */
-
       return;
     }
 
@@ -1846,12 +1496,6 @@ export default class RoomClient extends EventTarget {
       this._botDataProducer.send(text);
     } catch (error) {
       logger.error('bot DataProducer.send() failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `bot DataProducer.send() failed: ${error}`
-				})); */
     }
   }
 
@@ -1865,27 +1509,8 @@ export default class RoomClient extends EventTarget {
       await this._protoo.request('changeDisplayName', {displayName});
 
       this._displayName = displayName;
-
-      /* store.dispatch(
-				stateActions.setDisplayName(displayName));
-
-			store.dispatch(requestActions.notify(
-				{
-					text : 'Display name changed'
-				})); */
     } catch (error) {
       logger.error('changeDisplayName() | failed: %o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Could not change display name: ${error}`
-				}));
-
-			// We need to refresh the component for it to render the previous
-			// displayName again.
-			store.dispatch(
-				stateActions.setDisplayName()); */
     }
   }
 
@@ -2032,12 +1657,6 @@ export default class RoomClient extends EventTarget {
       });
     } catch (error) {
       logger.error('applyNetworkThrottle() | failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error applying network throttle: ${error}`
-				})); */
     }
   }
 
@@ -2049,12 +1668,6 @@ export default class RoomClient extends EventTarget {
     } catch (error) {
       if (!silent) {
         logger.error('resetNetworkThrottle() | failed:%o', error);
-
-        /* store.dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : `Error resetting network throttle: ${error}`
-					})); */
       }
     }
   }
@@ -2063,244 +1676,14 @@ export default class RoomClient extends EventTarget {
     logger.debug('_joinRoom()');
 
     try {
-      this._mediasoupDevice = new mediasoupClient.Device({
-        handlerName: this._handlerName,
-      });
-
-      const routerRtpCapabilities = await this._protoo.request(
-        'getRouterRtpCapabilities',
-      );
-
-      await this._mediasoupDevice.load({routerRtpCapabilities});
-
-      /* // NOTE: Stuff to play remote audios due to browsers' new autoplay policy.
-			//
-			// Just get access to the mic and DO NOT close the mic track for a while.
-			// Super hack!
-			{
-				const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-				const audioTrack = stream.getAudioTracks()[0];
-
-				audioTrack.enabled = false;
-
-				setTimeout(() => audioTrack.stop(), 120000);
-			} */
-
-      // Create mediasoup Transport for sending (unless we don't want to produce).
-      if (this._produce) {
-        const transportInfo = await this._protoo.request(
-          'createWebRtcTransport',
-          {
-            forceTcp: this._forceTcp,
-            producing: true,
-            consuming: false,
-            sctpCapabilities: this._useDataChannel
-              ? this._mediasoupDevice.sctpCapabilities
-              : undefined,
-          },
-        );
-
-        const {
-          id,
-          iceParameters,
-          iceCandidates,
-          dtlsParameters,
-          sctpParameters,
-        } = transportInfo;
-
-        this._sendTransport = this._mediasoupDevice.createSendTransport({
-          id,
-          iceParameters,
-          iceCandidates,
-          dtlsParameters,
-          sctpParameters,
-          iceServers: ICE_SERVERS,
-          proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
-        });
-
-        this._sendTransport.on(
-          'connect',
-          (
-            {dtlsParameters},
-            callback,
-            errback, // eslint-disable-line no-shadow
-          ) => {
-            this._protoo
-              .request('connectWebRtcTransport', {
-                transportId: this._sendTransport.id,
-                dtlsParameters,
-              })
-              .then(callback)
-              .catch(errback);
-          },
-        );
-
-        this._sendTransport.on(
-          'produce',
-          async ({kind, rtpParameters, appData}, callback, errback) => {
-            try {
-              // eslint-disable-next-line no-shadow
-              const {id} = await this._protoo.request('produce', {
-                transportId: this._sendTransport.id,
-                kind,
-                rtpParameters,
-                appData,
-              });
-
-              callback({id});
-            } catch (error) {
-              errback(error);
-            }
-          },
-        );
-
-        this._sendTransport.on(
-          'producedata',
-          async (
-            {sctpStreamParameters, label, protocol, appData},
-            callback,
-            errback,
-          ) => {
-            logger.debug(
-              '"producedata" event: [sctpStreamParameters:%o, appData:%o]',
-              sctpStreamParameters,
-              appData,
-            );
-
-            try {
-              // eslint-disable-next-line no-shadow
-              const {id} = await this._protoo.request('produceData', {
-                transportId: this._sendTransport.id,
-                sctpStreamParameters,
-                label,
-                protocol,
-                appData,
-              });
-
-              callback({id});
-            } catch (error) {
-              errback(error);
-            }
-          },
-        );
-      }
-
-      // Create mediasoup Transport for sending (unless we don't want to consume).
-      if (this._consume) {
-        const transportInfo = await this._protoo.request(
-          'createWebRtcTransport',
-          {
-            forceTcp: this._forceTcp,
-            producing: false,
-            consuming: true,
-            sctpCapabilities: this._useDataChannel
-              ? this._mediasoupDevice.sctpCapabilities
-              : undefined,
-          },
-        );
-
-        const {
-          id,
-          iceParameters,
-          iceCandidates,
-          dtlsParameters,
-          sctpParameters,
-        } = transportInfo;
-
-        this._recvTransport = this._mediasoupDevice.createRecvTransport({
-          id,
-          iceParameters,
-          iceCandidates,
-          dtlsParameters,
-          sctpParameters,
-          iceServers: [],
-        });
-
-        this._recvTransport.on(
-          'connect',
-          (
-            {dtlsParameters},
-            callback,
-            errback, // eslint-disable-line no-shadow
-          ) => {
-            this._protoo
-              .request('connectWebRtcTransport', {
-                transportId: this._recvTransport.id,
-                dtlsParameters,
-              })
-              .then(callback)
-              .catch(errback);
-          },
-        );
-      }
-
       // Join now into the room.
       // NOTE: Don't send our RTP capabilities if we don't want to consume.
-      const {peers} = await this._protoo.request('join', {
+      await this._protoo.request('join', {
         displayName: this._displayName,
         device: this._device,
-        rtpCapabilities: this._consume
-          ? this._mediasoupDevice.rtpCapabilities
-          : undefined,
-        sctpCapabilities:
-          this._useDataChannel && this._consume
-            ? this._mediasoupDevice.sctpCapabilities
-            : undefined,
+        rtpCapabilities: undefined,
+        sctpCapabilities: undefined,
       });
-
-      /* store.dispatch(
-				stateActions.setRoomState('connected'));
-
-			// Clean all the existing notifcations.
-			store.dispatch(
-				stateActions.removeAllNotifications());
-
-			store.dispatch(requestActions.notify(
-				{
-					text    : 'You are in the room!',
-					timeout : 3000
-				}));
-
-			for (const peer of peers)
-			{
-				store.dispatch(
-					stateActions.addPeer(
-						{ ...peer, consumers: [], dataConsumers: [] }));
-			} */
-
-      // Enable mic/webcam.
-      if (this._produce) {
-        // Set our media capabilities.
-        /* store.dispatch(stateActions.setMediaCapabilities(
-					{
-						canSendMic    : this._mediasoupDevice.canProduce('audio'),
-						canSendWebcam : this._mediasoupDevice.canProduce('video')
-					}));
-
-				this.enableMic();
-
-				const devicesCookie = cookiesManager.getDevices();
-
-				if (!devicesCookie || devicesCookie.webcamEnabled || this._externalVideo)
-					this.enableWebcam();
-
-				this._sendTransport.on('connectionstatechange', (connectionState) =>
-				{
-					if (connectionState === 'connected')
-					{
-						this.enableChatDataProducer();
-						this.enableBotDataProducer();
-					}
-				}); */
-      }
-
-      // NOTE: For testing.
-      if (window.SHOW_INFO) {
-        /* const { me } = store.getState();
-
-				store.dispatch(
-					stateActions.setRoomStatsPeerId(me.id)); */
-      }
 
       this.dispatchEvent(
         new MessageEvent('join', {
@@ -2311,12 +1694,6 @@ export default class RoomClient extends EventTarget {
       );
     } catch (error) {
       logger.error('_joinRoom() failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Could not join the room: ${error}`
-				})); */
 
       this.close();
     }
@@ -2350,9 +1727,6 @@ export default class RoomClient extends EventTarget {
     else if (!this._webcams.has(currentWebcamId)) {
       this._webcam.device = array[0];
     }
-
-    /* store.dispatch(
-			stateActions.setCanChangeWebcam(this._webcams.size > 1)); */
   }
 
   _getWebcamType(device) {
@@ -2374,17 +1748,8 @@ export default class RoomClient extends EventTarget {
       await this._protoo.request('pauseConsumer', {consumerId: consumer.id});
 
       consumer.pause();
-
-      /* store.dispatch(
-				stateActions.setConsumerPaused(consumer.id, 'local')); */
     } catch (error) {
       logger.error('_pauseConsumer() | failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error pausing Consumer: ${error}`
-				})); */
     }
   }
 
@@ -2395,17 +1760,8 @@ export default class RoomClient extends EventTarget {
       await this._protoo.request('resumeConsumer', {consumerId: consumer.id});
 
       consumer.resume();
-
-      /* store.dispatch(
-				stateActions.setConsumerResumed(consumer.id, 'local')); */
     } catch (error) {
       logger.error('_resumeConsumer() | failed:%o', error);
-
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error resuming Consumer: ${error}`
-				})); */
     }
   }
 

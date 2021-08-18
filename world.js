@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import {XRChannelConnection} from './xrsocket.js';
+import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
@@ -130,7 +130,10 @@ world.connectRoom = async (roomName, worldURL) => {
           const aux = rigManager.localRig?.aux.getPose();
           channelConnection.send(
             JSON.stringify({
+              request: true,
+              id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
               method: 'status',
+
               data: {
                 peerId: channelConnection.connectionId,
                 status: {
@@ -146,7 +149,10 @@ world.connectRoom = async (roomName, worldURL) => {
           const pose = rigManager.getLocalAvatarPose();
           channelConnection.send(
             JSON.stringify({
+              request: true,
+              id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
               method: 'pose',
+
               data: {
                 pose,
               },
@@ -190,6 +196,7 @@ world.connectRoom = async (roomName, worldURL) => {
         peerId,
         status: {name, avatarUrl, avatarExt, address, aux},
       } = e.data;
+
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
       peerConnection.address = address;
