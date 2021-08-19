@@ -46,7 +46,15 @@ export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
 // Setup dialog URL, use hash if on githubpreview and its an okay hash
 const rGithub = /.githubpreview.dev$/;
 const isGH = rGithub.test(window.location.hostname);
-const isOKHASH = rGithub.test(window.location.hash);
+
+let hashHost = '';
+
+try {
+  hashHost = new URL(window.location.hash).hostname;
+} catch (e) {
+  // invalid URL
+}
+const isOKHASH = rGithub.test(hashHost);
 
 export const dialogUrl =
-  isGH && isOKHASH ? window.location.hash : 'https://dialog.webaverse.com';
+  isGH && isOKHASH ? hashHost : 'https://dialog.webaverse.com';
