@@ -106,36 +106,39 @@ world.connectRoom = async (roomName, worldURL) => {
       channelConnection.setMicrophoneMediaStream(networkMediaStream);
     }
     
-    if (live) {
-      interval = setInterval(() => {
-        const name = loginManager.getUsername();
-        const avatarSpec = loginManager.getAvatar();
-        const avatarUrl = avatarSpec && avatarSpec.url;
-        const avatarExt = avatarSpec && avatarSpec.ext;
-        const address = loginManager.getAddress();
-        const aux = rigManager.localRig?.aux.getPose();
-        channelConnection.send(JSON.stringify({
-          method: 'status',
-          data: {
-            peerId: channelConnection.connectionId,
-            status: {
-              name,
-              avatarUrl,
-              avatarExt,
-              address,
-              aux,
-            },
+
+    interval = setInterval(() => {
+      const name = loginManager.getUsername();
+      const avatarSpec = loginManager.getAvatar();
+      const avatarUrl = avatarSpec && avatarSpec.url;
+      const avatarExt = avatarSpec && avatarSpec.ext;
+      const address = loginManager.getAddress();
+      const aux = rigManager.localRig?.aux.getPose();
+      channelConnection.send(JSON.stringify({
+        request: true,
+        id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+        method: 'status',
+
+        data: {
+          peerId: channelConnection.connectionId,
+          status: {
+            name,
+            avatarUrl,
+            avatarExt,
+            address,
+            aux,
           },
-        }));
-        const pose = rigManager.getLocalAvatarPose();
-        channelConnection.send(JSON.stringify({
-          method: 'pose',
-          data: {
-            pose,
-          },
-        }));
-      }, 10);
-    }
+        },
+      }));
+      const pose = rigManager.getLocalAvatarPose();
+      channelConnection.send(JSON.stringify({
+        method: 'pose',
+        data: {
+          pose,
+        },
+      }));
+    }, 10);
+  
 
     /* world.dispatchEvent(new MessageEvent('peersupdate', {
       data: Array.from(rigManager.peerRigs.values()),
