@@ -2,19 +2,15 @@ import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 
-let canvas = null;
-let context = null;
-let renderer = null;
+let canvas = null, context = null, renderer = null;
 function bindCanvas(c) {
   canvas = c;
-  context =
-    canvas &&
-    canvas.getContext('webgl2', {
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: false,
-      xrCompatible: true,
-    });
+  context = canvas && canvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: false,
+    xrCompatible: true,
+  });
   renderer = new THREE.WebGLRenderer({
     canvas,
     context,
@@ -41,15 +37,15 @@ function bindCanvas(c) {
   }
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
-
-  renderer.domElement.addEventListener('click', (e) => {
+  
+  renderer.domElement.addEventListener('click', e => {
     scene.dispatchEvent({
       type: 'click',
       event: e,
       // message: 'vroom vroom!',
     });
   });
-  renderer.domElement.addEventListener('mousedown', (e) => {
+  renderer.domElement.addEventListener('mousedown', e => {
     scene.dispatchEvent({
       type: 'mousedown',
       event: e,
@@ -61,7 +57,7 @@ function bindCanvas(c) {
       event: e,
     });
   }); */
-  renderer.domElement.addEventListener('contextmenu', (e) => {
+  renderer.domElement.addEventListener('contextmenu', e => {
     scene.dispatchEvent({
       type: 'contextmenu',
       event: e,
@@ -81,12 +77,7 @@ const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
 const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000,
-);
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 
@@ -141,8 +132,7 @@ const localFrameOpts = {
 const iframeContainer = document.getElementById('iframe-container');
 const iframeContainer2 = document.getElementById('iframe-container2');
 if (iframeContainer && iframeContainer2) {
-  iframeContainer.getFov = () =>
-    camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
+  iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
   iframeContainer.updateSize = function updateSize() {
     const fov = iframeContainer.getFov();
     iframeContainer.style.cssText = `
@@ -174,35 +164,33 @@ class AppManager {
     this.grabbedObjects = [null, null];
     this.equippedObjects = [null, null];
     // this.grabbedObjectOffsets = [0, 0];
-    this.grabbedObjectMatrices = [new THREE.Matrix4(), new THREE.Matrix4()];
+    this.grabbedObjectMatrices = [
+      new THREE.Matrix4(),
+      new THREE.Matrix4(),
+    ];
     this.used = false;
     this.aimed = false;
     this.lastTimestamp = Date.now();
   }
-
   createApp(appId) {
     const app = new App(appId);
     this.apps.push(app);
     return app;
   }
-
   destroyApp(appId) {
-    const appIndex = this.apps.findIndex((app) => app.appId === appId);
+    const appIndex = this.apps.findIndex(app => app.appId === appId);
     if (appIndex !== -1) {
       const app = this.apps[appIndex];
       app.dispatchEvent(new MessageEvent('unload'));
       this.apps.splice(appIndex, 1);
     }
   }
-
   getApp(appId) {
-    return this.apps.find((app) => app.appId === appId);
+    return this.apps.find(app => app.appId === appId);
   }
-
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
-
   tick(timestamp, frame) {
     if (this.apps.length > 0) {
       localData.timestamp = timestamp;
@@ -215,7 +203,7 @@ class AppManager {
     }
   }
 }
-const appManager = new AppManager();
+const appManager = new AppManager()
 
 class App extends EventTarget {
   constructor(appId) {
@@ -242,7 +230,7 @@ export {
   orthographicCamera,
   avatarCamera,
   dolly,
-  /* orbitControls, renderer2, */
+  /*orbitControls, renderer2,*/
   sceneHighPriority,
   sceneLowPriority,
   iframeContainer,

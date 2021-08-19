@@ -37,10 +37,8 @@ export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.exokit.org';
 export const tokensHost = `https://${chainName}all-tokens.webaverse.com`;
 export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
-export const web3MainnetSidechainEndpoint =
-  'https://mainnetsidechain.exokit.org';
-export const web3TestnetSidechainEndpoint =
-  'https://testnetsidechain.exokit.org';
+export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
+export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
 
 // Setup dialog URL, use hash if on githubpreview and its an okay hash
