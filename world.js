@@ -132,6 +132,8 @@ world.connectRoom = async (roomName, worldURL) => {
       }));
       const pose = rigManager.getLocalAvatarPose();
       channelConnection.send(JSON.stringify({
+        request: true,
+        id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
         method: 'pose',
         data: {
           pose,
@@ -155,8 +157,7 @@ world.connectRoom = async (roomName, worldURL) => {
     console.log('new peer connection', e);
 
     let microphoneMediaStream = null;
-    let live = true;
-
+  
     rigManager.addPeerRig(peerConnection.connectionId);
     const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
     peerRig.peerConnection = peerConnection;
@@ -165,7 +166,6 @@ world.connectRoom = async (roomName, worldURL) => {
       console.log('peer connection close');
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
       rigManager.removePeerRig(peerConnection.connectionId);
-      live = false;
 
       /* world.dispatchEvent(new MessageEvent('peersupdate', {
         data: Array.from(rigManager.peerRigs.values()),
