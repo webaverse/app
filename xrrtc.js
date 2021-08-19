@@ -10,20 +10,11 @@ const roomIdLength = 4;
 function makeId() {
   let result = '';
   for (let i = 0; i < roomIdLength; i++) {
-    result +=
-      Math.random() < 0.5
-        ? String.fromCharCode(
-          roomNumberStartIndex +
-              Math.floor(
-                Math.random() * (roomNumberEndIndex - roomNumberStartIndex),
-              ),
-        )
-        : String.fromCharCode(
-          roomAlphabetStartIndex +
-              Math.floor(
-                Math.random() * (roomAlphabetEndIndex - roomAlphabetStartIndex),
-              ),
-        );
+    result += Math.random() < 0.5 ?
+      String.fromCharCode(roomNumberStartIndex + Math.floor(Math.random() * (roomNumberEndIndex - roomNumberStartIndex)))
+    :
+      String.fromCharCode(roomAlphabetStartIndex + Math.floor(Math.random() * (roomAlphabetEndIndex - roomAlphabetStartIndex)));
+
   }
   return result;
 }
@@ -35,31 +26,21 @@ class XRChannelConnection extends EventTarget {
     this.connectionId = makeId();
     this.peerConnections = [];
 
-    const _getPeerConnectionIndex = (peerConnectionId) =>
-      this.peerConnections.findIndex(
-        (peerConnection) => peerConnection.connectionId === peerConnectionId,
-      );
-
-    const _getPeerConnection = (peerConnectionId) => {
+    const _getPeerConnectionIndex = peerConnectionId => this.peerConnections.findIndex(peerConnection => peerConnection.connectionId === peerConnectionId);
+    const _getPeerConnection = peerConnectionId => {
       const index = _getPeerConnectionIndex(peerConnectionId);
       const peerConnection = this.peerConnections[index];
       return peerConnection;
     };
-
-    const _addPeerConnection = (peerConnectionId) => {
+    const _addPeerConnection = peerConnectionId => {
       let peerConnection = _getPeerConnection(peerConnectionId);
       if (!peerConnection) {
         peerConnection = new XRPeerConnection(peerConnectionId, this);
         peerConnection.numStreams = 0;
         this.peerConnections.push(peerConnection);
-        this.dispatchEvent(
-          new MessageEvent(
-            peerConnectionId ? 'peerconnection' : 'botconnection',
-            {
-              data: peerConnection,
-            },
-          ),
-        );
+        this.dispatchEvent(new MessageEvent(peerConnectionId ? 'peerconnection' : 'botconnection', {
+          data: peerConnection,
+        }));
       }
       peerConnection.numStreams++;
       return peerConnection;
@@ -70,13 +51,13 @@ class XRChannelConnection extends EventTarget {
       url: `${url}?roomId=${roomName}&peerId=${this.connectionId}`,
     });
 
-    dialogClient.addEventListener('newPeer', (e) => {
+    dialogClient.addEventListener('newPeer', e => {
       const {id: peerId} = e.data;
 
       const peerConnection = _addPeerConnection(peerId);
     });
 
-    dialogClient.addEventListener('peerClosed', (e) => {
+    dialogClient.addEventListener('peerClosed', e => {
       const {peerId} = e.data;
       const peerConnection = this.peerConnections.find(
         (peerConnection) => peerConnection.connectionId === peerId,
@@ -95,7 +76,7 @@ class XRChannelConnection extends EventTarget {
       }
     });
 
-    dialogClient.addEventListener('addreceivestream', (e) => {
+    dialogClient.addEventListener('addreceivestream', e => {
       const {
         data: {
           peerId,
@@ -118,7 +99,7 @@ class XRChannelConnection extends EventTarget {
           }
           return result;
         })(_track.stop);
-      _track.addEventListener('ended', (e) => {
+      _track.addEventListener('ended', e => {
         // console.warn('receive stream ended', e);
 
         if (--peerConnection.numStreams <= 0) {
@@ -156,7 +137,7 @@ class XRChannelConnection extends EventTarget {
       this.state.on('update', _update);
     });
     ['status', 'pose', 'chat'].forEach((eventType) => {
-      dialogClient.addEventListener(eventType, (e) => {
+      dialogClient.addEventListener(eventType, e => {
         const peerConnection =
           _getPeerConnection(e.data.peerId) ||
           _addPeerConnection(e.data.peerId);
