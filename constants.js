@@ -43,7 +43,7 @@ export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org
 export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
 
 // Setup dialog URL, use hash if on githubpreview and its an okay hash
-const rGithub = /.githubpreview.dev$/;
+const rGithub = /\.githubpreview\.dev$/;
 const isGH = rGithub.test(window.location.hostname);
 
 const hashHost =
