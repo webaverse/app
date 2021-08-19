@@ -57,6 +57,6 @@ export const dialogUrl = isGH ?
 isOKHASH ? 
   hashHost[2] 
   : 
-  window.location.hostname.replace('3000', '4443')
+  window.location.hostname.replace(/3000(\.githubpreview\.dev)$/, '4443$1')
 : 
 'dialog.webaverse.com';
