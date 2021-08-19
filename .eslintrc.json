@@ -9,7 +9,8 @@
             "named": "never",
             "asyncArrow": "always"
         }],
-        "arrow-parens": ["error", "as-needed"]
+        "arrow-parens": ["error", "as-needed"],
+        "number-literal-case": "off"
     },
     "env": {
         "browser": true
