@@ -52,7 +52,10 @@ const hashHost =
     window.location.hash.slice(1),
   );
 
-const isOKHASH = hashHost[2] && rGithub.test(hashHost[2]);
+const isOKHASH = hashHost && hashHost[2] && rGithub.test(hashHost[2]);
 
-export const dialogUrl =
-  isGH && isOKHASH ? hashHost[2] : 'dialog.webaverse.com';
+export const dialogUrl = isGH
+  ? isOKHASH
+    ? hashHost[2]
+    : window.location.hostname.replace('3000', '4443')
+  : 'dialog.webaverse.com';
