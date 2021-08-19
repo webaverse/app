@@ -9,7 +9,7 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
-import {landHost, homeScnUrl} from './constants.js';
+import {landHost, homeScnUrl, dialogUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -317,10 +317,7 @@ const enterWorld = async (worldSpec) => {
     if (room) {
       const p = (async () => {
         // TODO: This needs to be configurable which is hard w/o a build step
-
-        const dialog =
-          'agoblinking-webaverse-dialog-jj4r7xp2p9jg-4443.githubpreview.dev';
-        await world.connectRoom(room, dialog);
+        await world.connectRoom(room, dialogUrl);
       })();
       promises.push(p);
     }
