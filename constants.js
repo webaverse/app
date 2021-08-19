@@ -3,30 +3,31 @@ export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
 
 export const rarityColors = {
-  common: [0xdcdcdc, 0x373737],
+  common: [0xDCDCDC, 0x373737],
   uncommon: [0xff8400, 0x875806],
-  rare: [0x00ce21, 0x00560e],
-  epic: [0x00b3db, 0x003743],
-  legendary: [0xad00ea, 0x32002d],
+  rare: [0x00CE21, 0x00560E],
+  epic: [0x00B3DB, 0x003743],
+  legendary: [0xAD00EA, 0x32002D],
 };
 
 const chainName = (() => {
   if (typeof window !== 'undefined' && /^test\./.test(location.hostname)) {
     return 'testnet';
-  } else if (
-    typeof window !== 'undefined' &&
-    /^polygon\./.test(location.hostname)
-  ) {
+  } else if (typeof window !== 'undefined' && /^polygon\./.test(location.hostname)) {
     return 'polygon';
   } else {
     return 'mainnet';
   }
 })();
-const otherChainName = /sidechain/.test(chainName)
-  ? chainName.replace(/sidechain/, '')
-  : chainName + 'sidechain';
-export {chainName, otherChainName};
-export const polygonVigilKey = '0937c004ab133135c86586b55ca212a6c9ecd224';
+const otherChainName = /sidechain/.test(chainName) ?
+  chainName.replace(/sidechain/, '')
+:
+  chainName + 'sidechain';
+export {
+  chainName,
+  otherChainName,
+};
+export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 export const storageHost = 'https://ipfs.exokit.org';
 export const previewHost = 'https://preview.exokit.org';

@@ -1,26 +1,23 @@
 import * as THREE from 'three';
-
+import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
-
+import physicsManager from './physics-manager.js';
+import transformControls from './transform-controls.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {camera, scene, sceneHighPriority} from './app-object.js';
+import {camera, appManager, scene, sceneHighPriority} from './app-object.js';
+import {baseUnit} from './constants.js';
+import {contentIdToFile, unFrustumCull} from './util.js';
 import {
-  baseUnit,
   storageHost,
   // worldsHost,
   tokensHost,
 } from './constants.js';
-import {
-  contentIdToFile,
-  unFrustumCull,
-  makePromise,
-  getRandomString,
-} from './util.js';
+import {makePromise, getRandomString} from './util.js';
 
 // world
 export const world = new EventTarget();
@@ -31,7 +28,7 @@ const states = {
   static: new Y.Doc(),
   dynamic: new Y.Doc(),
 };
-const _getState = (dynamic) => (dynamic ? states.dynamic : states.static);
+const _getState = dynamic => dynamic ? states.dynamic : states.static;
 const objects = {
   objects: {
     static: [],
@@ -42,11 +39,10 @@ const objects = {
     dynamic: [],
   },
 };
-const _getObjects = (arrayName, dynamic) =>
-  objects[arrayName][dynamic ? 'dynamic' : 'static'];
+const _getObjects = (arrayName, dynamic) => objects[arrayName][dynamic ? 'dynamic' : 'static'];
 
 // multiplayer
-const roomName = null;
+let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
@@ -71,32 +67,24 @@ const _bindState = (state, dynamic) => {
 
       for (const name of nextObjects) {
         if (!lastObjects.includes(name)) {
-          const trackedObject = _getOrCreateTrackedObject(
-            name,
-            dynamic,
-            arrayName,
-          );
-          world.dispatchEvent(
-            new MessageEvent('tracked' + arrayName + 'add', {
-              data: {
-                trackedObject,
-                dynamic,
-              },
-            }),
-          );
+          const trackedObject = _getOrCreateTrackedObject(name, dynamic, arrayName);
+          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'add', {
+            data: {
+              trackedObject,
+              dynamic,
+            },
+          }));
         }
       }
       for (const name of lastObjects) {
         if (!nextObjects.includes(name)) {
           const trackedObject = state.getMap(arrayName + '.' + name);
-          world.dispatchEvent(
-            new MessageEvent('tracked' + arrayName + 'remove', {
-              data: {
-                trackedObject,
-                dynamic,
-              },
-            }),
-          );
+          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'remove', {
+            data: {
+              trackedObject,
+              dynamic,
+            },
+          }));
         }
       }
 
@@ -110,93 +98,79 @@ world.connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   let interval;
-  channelConnection.addEventListener(
-    'open',
-    async (e) => {
-      channelConnectionOpen = true;
-      console.log('Channel Open!');
+  channelConnection.addEventListener('open', async e => {
+    channelConnectionOpen = true;
+    console.log('Channel Open!');
 
-      if (networkMediaStream) {
-        channelConnection.setMicrophoneMediaStream(networkMediaStream);
-      }
+    if (networkMediaStream) {
+      channelConnection.setMicrophoneMediaStream(networkMediaStream);
+    }
+    
+    if (live) {
+      interval = setInterval(() => {
+        const name = loginManager.getUsername();
+        const avatarSpec = loginManager.getAvatar();
+        const avatarUrl = avatarSpec && avatarSpec.url;
+        const avatarExt = avatarSpec && avatarSpec.ext;
+        const address = loginManager.getAddress();
+        const aux = rigManager.localRig?.aux.getPose();
+        channelConnection.send(JSON.stringify({
+          method: 'status',
+          data: {
+            peerId: channelConnection.connectionId,
+            status: {
+              name,
+              avatarUrl,
+              avatarExt,
+              address,
+              aux,
+            },
+          },
+        }));
+        const pose = rigManager.getLocalAvatarPose();
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          data: {
+            pose,
+          },
+        }));
+      }, 10);
+    }
 
-      if (channelConnectionOpen) {
-        interval = setInterval(() => {
-          const name = loginManager.getUsername();
-          const avatarSpec = loginManager.getAvatar();
-          const avatarUrl = avatarSpec && avatarSpec.url;
-          const avatarExt = avatarSpec && avatarSpec.ext;
-          const address = loginManager.getAddress();
-          const aux = rigManager.localRig?.aux.getPose();
-          channelConnection.send(
-            JSON.stringify({
-              request: true,
-              id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
-              method: 'status',
-
-              data: {
-                peerId: channelConnection.connectionId,
-                status: {
-                  name,
-                  avatarUrl,
-                  avatarExt,
-                  address,
-                  aux,
-                },
-              },
-            }),
-          );
-          const pose = rigManager.getLocalAvatarPose();
-          channelConnection.send(
-            JSON.stringify({
-              request: true,
-              id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
-              method: 'pose',
-
-              data: {
-                pose,
-              },
-            }),
-          );
-        }, 10);
-      }
-    },
-    {once: true},
-  );
-
-  //
-  channelConnection.addEventListener(
-    'close',
-    (e) => {
-      if (interval) {
-        clearInterval(interval);
-      }
-      channelConnectionOpen = false;
-    },
-    {once: true},
-  );
-
-  channelConnection.addEventListener('peerconnection', async (e) => {
+    /* world.dispatchEvent(new MessageEvent('peersupdate', {
+      data: Array.from(rigManager.peerRigs.values()),
+    })); */
+  }, {once: true});
+  channelConnection.addEventListener('close', e => {
+    if (interval) {
+      clearInterval(interval);
+    }
+    channelConnectionOpen = false;
+  }, {once: true});
+  channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
     console.log('new peer connection', e);
 
     let microphoneMediaStream = null;
+    let live = true;
 
     rigManager.addPeerRig(peerConnection.connectionId);
     const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
     peerRig.peerConnection = peerConnection;
 
     peerConnection.addEventListener('close', async () => {
+      console.log('peer connection close');
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
       rigManager.removePeerRig(peerConnection.connectionId);
+      live = false;
+
+      /* world.dispatchEvent(new MessageEvent('peersupdate', {
+        data: Array.from(rigManager.peerRigs.values()),
+      })); */
     });
 
-    peerConnection.addEventListener('status', (e) => {
-      const {
-        peerId,
-        status: {name, avatarUrl, avatarExt, address, aux},
-      } = e.data;
-
+    peerConnection.addEventListener('status', e => {
+      const {peerId, status: {name, avatarUrl, avatarExt, address, aux}} = e.data;
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
       peerConnection.address = address;
@@ -206,34 +180,41 @@ world.connectRoom = async (roomName, worldURL) => {
       const currentPeerName = peerRig.textMesh.text;
       if (currentPeerName !== name) {
         rigManager.setPeerAvatarName(name, peerId);
+        // updated = true;
       }
 
       const newAvatarUrl = avatarUrl || null;
       const currentAvatarUrl = peerRig.avatarUrl;
       if (currentAvatarUrl !== newAvatarUrl) {
         rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
+        // updated = true;
       }
 
       if (currentAvatarUrl !== newAvatarUrl) {
         rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
+        // updated = true;
       }
-
+      
       rigManager.setPeerAvatarAux(aux, peerId);
+
+      /* if (updated) {
+        world.dispatchEvent(new MessageEvent('peersupdate', {
+          data: Array.from(rigManager.peerRigs.values()),
+        }));
+      } */
     });
-    peerConnection.addEventListener('pose', (e) => {
+    peerConnection.addEventListener('pose', e => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
       const {pose} = e.data;
       rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
     });
-
-    peerConnection.addEventListener('chat', (e) => {
-      const {username, text} = e.data;
+    peerConnection.addEventListener('chat', e => {
+      const {peerId, username, text} = e.data;
       messages.addMessage(username, text, {
         update: false,
       });
     });
-
-    peerConnection.addEventListener('addtrack', (e) => {
+    peerConnection.addEventListener('addtrack', e => {
       const track = e.data;
       microphoneMediaStream = new MediaStream([track]);
       const audio = document.createElement('audio');
@@ -241,18 +222,15 @@ world.connectRoom = async (roomName, worldURL) => {
       const _tryPlay = async () => {
         try {
           await audio.play();
-        } catch (err) {
+        } catch(err) {
           console.warn('play failed', err);
           setTimeout(_tryPlay, 1000);
         }
       };
       _tryPlay();
       if (peerRig) {
-        rigManager.setPeerMicMediaStream(
-          microphoneMediaStream,
-          peerConnection.connectionId,
-        );
-        track.addEventListener('ended', (e) => {
+        rigManager.setPeerMicMediaStream(microphoneMediaStream, peerConnection.connectionId);
+        track.addEventListener('ended', e => {
           rigManager.setPeerMicMediaStream(null, peerConnection.connectionId);
           audio.srcObject = null;
         });
@@ -260,21 +238,20 @@ world.connectRoom = async (roomName, worldURL) => {
     });
     peerConnections.push(peerConnection);
   });
-  channelConnection.close = ((close) =>
-    function() {
-      close.apply(this, arguments);
-
-      channelConnection.dispatchEvent(new MessageEvent('close'));
-
-      const localPeerConnections = peerConnections.slice();
-      for (const peerConnection of localPeerConnections) {
-        peerConnection.close();
-      }
-    })(channelConnection.close);
+  channelConnection.close = (close => function() {
+    close.apply(this, arguments);
+    
+    channelConnection.dispatchEvent(new MessageEvent('close'));
+    
+    const localPeerConnections = peerConnections.slice();
+    for (const peerConnection of localPeerConnections) {
+      peerConnection.close();
+    }
+  })(channelConnection.close);
 
   states.dynamic = channelConnection.state;
   _bindState(states.dynamic, true);
-
+  
   return channelConnection;
 };
 world.disconnectRoom = () => {
@@ -293,7 +270,7 @@ world.disconnectRoom = () => {
   return channelConnection;
 };
 
-world.initializeIfEmpty = (spec) => {
+world.initializeIfEmpty = spec => {
   console.log('initialize if empty', spec); // XXX
 };
 
@@ -301,44 +278,32 @@ world.getObjects = () => objects.objects.dynamic.slice();
 world.getStaticObjects = () => objects.objects.static.slice();
 world.getNpcs = () => objects.npcs.dynamic.slice();
 let pendingAddPromise = null;
-const _addObject =
-  (dynamic, arrayName) =>
-    (
-      contentId,
-      parentId = null,
-      position = new THREE.Vector3(),
-      quaternion = new THREE.Quaternion(),
-      options = {},
-    ) => {
-      const scale = new THREE.Vector3();
-      const state = _getState(dynamic);
-      const instanceId = getRandomString();
-      state.transact(() => {
-        const trackedObject = _getOrCreateTrackedObject(
-          instanceId,
-          dynamic,
-          arrayName,
-        );
-        trackedObject.set('instanceId', instanceId);
-        trackedObject.set('parentId', parentId);
-        trackedObject.set('contentId', contentId);
-        trackedObject.set('position', position.toArray());
-        trackedObject.set('quaternion', quaternion.toArray());
-        trackedObject.set('scale', scale.toArray());
-        trackedObject.set('options', JSON.stringify(options));
-      });
-      if (pendingAddPromise) {
-        const result = pendingAddPromise;
-        pendingAddPromise = null;
-        return result;
-      } else {
-        throw new Error('no pending world add object promise');
-      }
-    };
-const _removeObject = (dynamic, arrayName) => (removeInstanceId) => {
+const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  const scale = new THREE.Vector3();
+  const state = _getState(dynamic);
+  const instanceId = getRandomString();
+  state.transact(() => {
+    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic, arrayName);
+    trackedObject.set('instanceId', instanceId);
+    trackedObject.set('parentId', parentId);
+    trackedObject.set('contentId', contentId);
+    trackedObject.set('position', position.toArray());
+    trackedObject.set('quaternion', quaternion.toArray());
+    trackedObject.set('scale', scale.toArray());
+    trackedObject.set('options', JSON.stringify(options));
+  });
+  if (pendingAddPromise) {
+    const result = pendingAddPromise;
+    pendingAddPromise = null;
+    return result;
+  } else {
+    throw new Error('no pending world add object promise');
+  }
+};
+const _removeObject = (dynamic, arrayName) => removeInstanceId => {
   const state = _getState(dynamic);
   state.transact(() => {
-    const index = pointers.findIndex((x) => x.instanceId === removeInstanceId);
+    const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     if (index === -1) pointers.splice(index, 1);
 
     const objects = state.getArray(arrayName);
@@ -370,41 +335,30 @@ const _removeObject = (dynamic, arrayName) => (removeInstanceId) => {
         }
       }
     } else {
-      console.warn('invalid remove instance id', {
-        dynamic,
-        arrayName,
-        removeInstanceId,
-        objectsJson,
-      });
+      console.warn('invalid remove instance id', {dynamic, arrayName, removeInstanceId, objectsJson});
     }
   });
 };
-world.add = (dynamic, arrayName, ...args) =>
-  _addObject(dynamic, arrayName)(...args);
-world.remove = (dynamic, arrayName, id) =>
-  _removeObject(dynamic, arrayName)(id);
+world.add = (dynamic, arrayName, ...args) => _addObject(dynamic, arrayName)(...args);
+world.remove = (dynamic, arrayName, id) => _removeObject(dynamic, arrayName)(id);
 world.addObject = _addObject(true, 'objects');
 world.removeObject = _removeObject(true, 'objects');
 world.addStaticObject = _addObject(false, 'objects');
 world.removeStaticObject = _removeObject(false, 'objects');
 world.addNpc = _addObject(true, 'npcs');
 world.removeNpc = _removeObject(true, 'npcs');
-for (const arrayName of ['objects', 'npcs']) {
-  world.addEventListener('tracked' + arrayName + 'add', async (e) => {
+for (const arrayName of [
+  'objects',
+  'npcs',
+]) {
+  world.addEventListener('tracked' + arrayName + 'add', async e => {
     const p = makePromise();
     pendingAddPromise = p;
 
     try {
       const {trackedObject, dynamic} = e.data;
       const trackedObjectJson = trackedObject.toJSON();
-      const {
-        instanceId,
-        parentId,
-        contentId,
-        position,
-        quaternion,
-        options: optionsString,
-      } = trackedObjectJson;
+      const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
       const options = JSON.parse(optionsString);
 
       const file = await contentIdToFile(contentId);
@@ -418,17 +372,15 @@ for (const arrayName of ['objects', 'npcs']) {
           autoScale: options.autoScale,
           autoRun: options.autoRun,
           dynamic,
-          monetizationPointer: file.token
-            ? file.token.owner.monetizationPointer
-            : '',
-          ownerAddress: file.token ? file.token.owner.address : '',
+          monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+          ownerAddress: file.token ? file.token.owner.address : ""
         });
         if (mesh) {
           mesh.position.fromArray(position);
           mesh.quaternion.fromArray(quaternion);
 
           unFrustumCull(mesh);
-
+          
           // mesh.name = file.name;
           mesh.contentId = contentId;
           mesh.instanceId = instanceId;
@@ -440,14 +392,14 @@ for (const arrayName of ['objects', 'npcs']) {
             scene.add(mesh);
           }
 
-          mesh.run && (await mesh.run());
+          mesh.run && await mesh.run();
           /* if (mesh.getStaticPhysicsIds) {
             const staticPhysicsIds = mesh.getStaticPhysicsIds();
             for (const physicsId of staticPhysicsIds) {
               physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
             }
           } */
-
+          
           mesh.addEventListener('die', () => {
             world.remove(dynamic, arrayName, mesh.instanceId);
           });
@@ -470,35 +422,20 @@ for (const arrayName of ['objects', 'npcs']) {
           mesh.scale.fromArray(trackedObject.get('scale'));
         };
         trackedObject.observe(_observe);
-        trackedObject.unobserve = trackedObject.unobserve.bind(
-          trackedObject,
-          _observe,
-        );
+        trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
 
-        if (
-          file.token &&
-          file.token.owner.address &&
-          file.token.owner.monetizationPointer &&
-          file.token.owner.monetizationPointer[0] === '$'
-        ) {
+        if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
           const monetizationPointer = file.token.owner.monetizationPointer;
           const ownerAddress = file.token.owner.address.toLowerCase();
-          pointers.push({
-            contentId,
-            instanceId,
-            monetizationPointer,
-            ownerAddress,
-          });
+          pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
         }
 
         const objects = _getObjects(arrayName, dynamic);
         objects.push(mesh);
 
-        world.dispatchEvent(
-          new MessageEvent(arrayName + 'add', {
-            data: mesh,
-          }),
-        );
+        world.dispatchEvent(new MessageEvent(arrayName + 'add', {
+          data: mesh,
+        }));
       } else {
         mesh = null;
       }
@@ -508,13 +445,11 @@ for (const arrayName of ['objects', 'npcs']) {
       p.reject(err);
     }
   });
-  world.addEventListener('tracked' + arrayName + 'remove', async (e) => {
+  world.addEventListener('tracked' + arrayName + 'remove', async e => {
     const {trackedObject, dynamic} = e.data;
     const instanceId = trackedObject.get('instanceId');
     const objects = _getObjects(arrayName, dynamic);
-    const index = objects.findIndex(
-      (object) => object.instanceId === instanceId,
-    );
+    const index = objects.findIndex(object => object.instanceId === instanceId);
     if (index !== -1) {
       const object = objects[index];
       object.destroy && object.destroy();
@@ -527,54 +462,51 @@ for (const arrayName of ['objects', 'npcs']) {
         transformControls.bind(null);
       } */
 
-      world.dispatchEvent(
-        new MessageEvent(arrayName + 'remove', {
-          data: object,
-        }),
-      );
+      world.dispatchEvent(new MessageEvent(arrayName + 'remove', {
+        data: object,
+      }));
     }
   });
 }
-world.isObject = (object) => objects.includes(object);
+world.isObject = object => objects.includes(object);
 
-world.getWorldJson = async (q) => {
+world.getWorldJson = async q => {
   const _getDefaultSpec = () => ({
     default: true,
     objects: [],
   });
-  const _getSpecFromUrl = async (u) => {
+  const _getSpecFromUrl = async u => {
     return {
       objects: [
         {
           start_url: u,
-        },
+        }
       ],
     };
   };
   const _hashExtNameToStartUrl = (hash, ext, name) => {
-    let startUrl;
+    let start_url;
     if (ext === 'html') {
-      startUrl = `${storageHost}/ipfs/${hash}`;
+      start_url = `${storageHost}/ipfs/${hash}`;
     } else {
-      startUrl = `${storageHost}/${hash}/${name}.${ext}`;
+      start_url = `${storageHost}/${hash}/${name}.${ext}`;
     }
-    return startUrl;
+    return start_url;
   };
-  const _fetchSpecFromTokenId = async (idString) => {
+  const _fetchSpecFromTokenId = async idString => {
     const id = parseInt(idString, 10);
-    if (!isNaN(id)) {
-      // token id
+    if (!isNaN(id)) { // token id
       const res = await fetch(`${tokensHost}/${id}`);
       const j = await res.json();
       const {hash} = j.properties;
       if (hash) {
         const {name, ext} = j.properties;
-        const startURL = _hashExtNameToStartUrl(hash, ext, name);
+        const start_url = _hashExtNameToStartUrl(hash, ext, name);
         return {
           objects: [
             {
-              start_url: startURL,
-            },
+              start_url,
+            }
           ],
         };
       } else {
@@ -586,23 +518,23 @@ world.getWorldJson = async (q) => {
   };
   const _getSpecFromHashExt = (hash, ext) => {
     const name = 'token';
-    const startUrl = _hashExtNameToStartUrl(hash, ext, name);
+    const start_url = _hashExtNameToStartUrl(hash, ext, name);
     return {
       objects: [
         {
-          start_url: startUrl,
-        },
+          start_url,
+        }
       ],
     };
   };
-  const _dynamicizeSpec = (spec) => {
+  const _dynamicizeSpec = spec => {
     for (const object of spec.objects) {
       object.dynamic = true;
       object.autoScale = false;
       object.autoRun = true;
     }
     spec.objects.splice(0, 0, {
-      start_url: 'https://webaverse.github.io/pedestal/index.js',
+      start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
   };
 
@@ -629,13 +561,11 @@ world.getWorldJson = async (q) => {
     }
     return spec;
   } else {
-    throw new Error(
-      'could not resolve query string to start spec: ' + JSON.stringify(q),
-    );
+    throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
   }
 };
 
-world.getObjectFromPhysicsId = (physicsId) => {
+world.getObjectFromPhysicsId = physicsId => {
   const objects = world.getObjects().concat(world.getStaticObjects());
   for (const object of objects) {
     if (object.getPhysicsIds) {
@@ -647,7 +577,7 @@ world.getObjectFromPhysicsId = (physicsId) => {
   }
   return null;
 };
-world.getNpcFromPhysicsId = (physicsId) => {
+world.getNpcFromPhysicsId = physicsId => {
   const npcs = world.getNpcs();
   for (const npc of npcs) {
     if (npc.getPhysicsIds) {
@@ -660,7 +590,7 @@ world.getNpcFromPhysicsId = (physicsId) => {
   return null;
 };
 
-let animationMediaStream = null;
+let animationMediaStream = null
 let networkMediaStream = null;
 const _latchMediaStream = async () => {
   networkMediaStream = await navigator.mediaDevices.getUserMedia({
@@ -691,8 +621,7 @@ world.toggleMic = async () => {
       audio: true,
     });
 
-    rigManager.localRig &&
-      rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+    rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
 
     _latchMediaStream();
   } else {
@@ -710,23 +639,21 @@ world.toggleMic = async () => {
 
   return animationMediaStream;
 };
-micButton &&
-  micButton.addEventListener('click', async (e) => {
-    world.toggleMic().catch(console.warn);
-  });
+micButton && micButton.addEventListener('click', async e => {
+  world.toggleMic()
+    .catch(console.warn);
+});
 
-messages.addEventListener('messageadd', (e) => {
+messages.addEventListener('messageadd', e => {
   if (channelConnection) {
     const {username, text} = e.data;
-    channelConnection.send(
-      JSON.stringify({
-        method: 'chat',
-        data: {
-          peerId: channelConnection.connectionId,
-          username,
-          text,
-        },
-      }),
-    );
+    channelConnection.send(JSON.stringify({
+      method: 'chat',
+      data: {
+        peerId: channelConnection.connectionId,
+        username,
+        text,
+      },
+    }));
   }
 });
