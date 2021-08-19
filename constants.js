@@ -30,7 +30,7 @@ export {
 export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 export const storageHost = 'https://ipfs.exokit.org';
-export const previewHost = 'https://preview.exokit.org'
+export const previewHost = 'https://preview.exokit.org';
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = `https://${chainName}sidechain-accounts.webaverse.com`;
 export const contractsHost = 'https://contracts.webaverse.com';
@@ -40,4 +40,23 @@ export const tokensHost = `https://${chainName}all-tokens.webaverse.com`;
 export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
-export const homeScnUrl = `https://webaverse.github.io/street/street.scn`;
+export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
+
+// Setup dialog URL, use hash if on githubpreview and its an okay hash
+const rGithub = /\.githubpreview\.dev$/;
+const isGH = rGithub.test(window.location.hostname);
+
+const hashHost =
+  /^[a-z][a-z0-9+\-.]*:\/\/([a-z0-9\-._~%!$&'()*+,;=]+@)?([a-z0-9\-._~%]+|\[[a-z0-9\-._~%!$&'()*+,;=:]+\])/.exec(
+    window.location.hash.slice(1),
+  );
+
+const isOKHASH = hashHost && hashHost[2] && rGithub.test(hashHost[2]);
+
+export const dialogUrl = isGH ? 
+isOKHASH ? 
+  hashHost[2] 
+  : 
+  window.location.hostname.replace(/3000(\.githubpreview\.dev)$/, '4443$1')
+: 
+'dialog.webaverse.com';

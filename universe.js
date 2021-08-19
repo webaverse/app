@@ -9,7 +9,7 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
-import {landHost, homeScnUrl} from './constants.js';
+import {landHost, homeScnUrl, dialogUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -243,23 +243,7 @@ const enterWorld = async worldSpec => {
     }
     if (room) {
       const p = (async () => {
-        const u = `https://worlds.exokit.org/${room}`;
-        const res = await fetch(u);
-        let j;
-        if (res.status === 404) {
-          const res2 = await fetch(u, {
-            method: 'POST',
-          });
-          j = await res2.json();
-          j = j.result;
-        } else if (res.ok) {
-          j = await res.json();
-          j = j.result;
-        } else {
-          throw new Error('failed to connect to server: ' + res.status);
-        }
-        const {publicIp, privateIp, port} = j;
-        await world.connectRoom(room, `worlds.exokit.org:${port}`);
+        await world.connectRoom(room, dialogUrl);
       })();
       promises.push(p);
     }
