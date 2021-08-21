@@ -444,39 +444,45 @@ window.onload = async () => {
   };
 
   const q = parseQuery(window.location.search);
-  const {id, hash, ext} = q;
-  const tokenId = parseInt(id, 10);
+  let {id, hash, ext} = q;
+	const tokenId = parseInt(id, 10);
+	if (!isNaN(tokenId)) {
+	  const res = await fetch(`https://tokens.webaverse.com/${tokenId}`);
+		if (res.ok) {
+			const j = await res.json();
+			hash = j.hash;
+			ext = j.ext;
+		}
+	}
   
   // container.innerHTML = 'Loading preview:<br>' + JSON.stringify(q, null, 2);
   
-  const handler = handlers[ext];
-  if (handler) {
-    let src;
-    if (hash) {
-      src = _hashToSrc(hash);
-    } else if (!isNaN(tokenId)) {    
-      const hash = await _tokenIdToHash(tokenId);
-      src = _hashToSrc(hash);
-    }
+	if (hash && ext) {
+		const handler = handlers[ext];
+		if (handler) {
+			const src = _hashToSrc(hash);
 
-    await handler({
-      src,
-    });
-    
-    const m = {
-      _preview: true,
-      ok: true,
-    };
-    window.parent.postMessage(m, '*');
-  } else {
-    const err = new Error('unknown extension: ' + ext);
-    const m = {
-      _preview: true,
-      ok: false,
-      error: err.stack,
-    };
-    window.parent.postMessage(m, '*');
+			await handler({
+				src,
+			});
+			
+			const m = {
+				_preview: true,
+				ok: true,
+			};
+			window.parent.postMessage(m, '*');
+		} else {
+			const err = new Error('unknown extension: ' + ext);
+			const m = {
+				_preview: true,
+				ok: false,
+				error: err.stack,
+			};
+			window.parent.postMessage(m, '*');
 
-    throw err;
-  }
+			throw err;
+		}
+	} else {
+		throw new Error('do not know how to fetch token: ' + JSON.stringify(q));
+	}
 };
