@@ -70,12 +70,6 @@ const _loadVox = async src => {
 window.onload = async () => {
   const container = document.getElementById('container');
 
-  const _tokenIdToHash = async tokenId => {  
-    const res = await fetch(`https://tokens.webaverse.com/${tokenId}`);
-    const token = await res.json();
-    const {hash} = token;
-    return hash;
-  };
   const _hashToSrc = hash => `${storageHost}/ipfs/${hash}`;
   const _setContainerContent = el => {
     container.innerHTML = '';
