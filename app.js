@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import * as Sentry from "@sentry/browser";
+import { Integrations } from "@sentry/tracing";
 import {loginManager} from './login.js';
 import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
@@ -79,6 +81,12 @@ const frameEvent = (() => {
     },
   });
 })();
+
+Sentry.init({
+  dsn: "https://9dcaa66046784ce58255ac447202f084@o968051.ingest.sentry.io/5920768",
+  integrations: [new Integrations.BrowserTracing()],
+  tracesSampleRate: 1.0,
+});
 
 export default class App extends EventTarget {
   constructor() {
