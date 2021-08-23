@@ -8,7 +8,7 @@ import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
 import extractPeaks from './webaudio-peaks.js';
 
-import App from '/app.js';
+import App from './app.js';
 
 const _loadVrm = async src => {
   let o;
