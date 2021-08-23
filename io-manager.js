@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import cameraManager from './camera-manager.js';
 import controlsManager from './controls-manager.js';
 import weaponsManager from './weapons-manager.js';
