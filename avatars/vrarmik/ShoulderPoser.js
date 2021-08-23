@@ -1,4 +1,4 @@
-import THREE from 'three';
+import THREE from 'https://lib.webaverse.com/three.js';
 import {
   Helpers
 } from './Unity.js';

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import THREE from 'https://lib.webaverse.com/three.js';
 import ArmTransforms from './ArmTransforms.js';
 import ShoulderPoser from './ShoulderPoser.js';
 import VRArmIK from './VRArmIK.js';
