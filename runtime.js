@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'three';
-import React from 'react';
-import ReactThreeFiber from '@react-three/fiber';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
+import React from 'https://lib.webaverse.com/react.js';
+import ReactThreeFiber from 'https://lib.webaverse.com/react-three-fiber.js';
 // import {KTX2Loader} from './KTX2Loader.js';
 // import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
