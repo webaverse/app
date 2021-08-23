@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
