@@ -64,8 +64,10 @@ app.get('*', (req, res, next) => {
 app.use(appStatic);
 
 
-const wss = new ws.WebSocketServer({ noServer: true });
-wss.on('connection', (ws, req) {
+const wss = new ws.WebSocketServer({
+  noServer: true,
+});
+wss.on('connection', (ws, req) => {
   console.log('got ws', req.url);
 });
 
@@ -83,8 +85,8 @@ if (CERT && PRIVKEY) {
   servers.push(httpsServer);
   console.log('https://localhost:'+httpsPort);
 }
-for (const server in servers) {
-  server.on('upgrade', function upgrade(request, socket, head) {
+for (const server of servers) {
+  server.on('upgrade', (request, socket, head) => {
     wss.handleUpgrade(request, socket, head, ws => {
       wss.emit('connection', ws, request);
     });
