@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {scene, sceneLowPriority} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import TransformGizmo from './TransformGizmo.js';
