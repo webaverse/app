@@ -1,4 +1,4 @@
-import THREE, {BufferGeometryUtils, VRMSpringBoneImporter} from 'three';
+import THREE, {BufferGeometryUtils, VRMSpringBoneImporter} from 'https://lib.webaverse.com/three.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
