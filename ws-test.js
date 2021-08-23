@@ -9,7 +9,9 @@ window.addEventListener('click', async e => {
   console.log('got media', audioTrack, audioTrack.getSettings(), audio);
 
   function muxAndSend(encodedChunk) {
-    console.log('got chunk', encodedChunk);
+    // console.log('got chunk', encodedChunk);
+    const r = audioDecoder.decode(encodedChunk);
+    console.log('got r', r);
   }
   function onEncoderError(err) {
     console.warn(err);
@@ -37,9 +39,30 @@ window.addEventListener('click', async e => {
     codec: 'opus',
     numberOfChannels: audioTrackSettings.channelCount,
     sampleRate: audioTrackSettings.sampleRate,
-    tuning: {
+    /* tuning: {
       bitrate: 60_000,
-    },
+    }, */
   });
+
+  function demuxAndPlay(encodedChunk) {
+    console.log('demux encodedChunk', encodedChunk);
+  }
+  function onDecoderError(err) {
+    console.warn(err);
+  }
+
+  const audioDecoder = new AudioDecoder({
+    output: demuxAndPlay,
+    error: onDecoderError,
+  });
+  await audioDecoder.configure({
+    codec: 'opus',
+    numberOfChannels: audioTrackSettings.channelCount,
+    sampleRate: audioTrackSettings.sampleRate,
+    /* tuning: {
+      bitrate: 60_000,
+    }, */
+  });  
+  
   readAndEncode(audio.getReader(), audioEncoder);
 });
