@@ -9,9 +9,7 @@ window.addEventListener('click', async e => {
   console.log('got media', audioTrack, audioTrack.getSettings(), audio);
 
   function muxAndSend(encodedChunk) {
-    // console.log('got chunk', encodedChunk);
-    const r = audioDecoder.decode(encodedChunk);
-    console.log('got r', r);
+    audioDecoder.decode(encodedChunk);
   }
   function onEncoderError(err) {
     console.warn(err);
