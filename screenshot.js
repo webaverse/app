@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import {OrbitControls, GLTFLoader, VOXLoader} from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {OrbitControls, GLTFLoader, VOXLoader} from 'https://lib.webaverse.com/three.js';
 import {bake, toggleElements} from './bakeUtils.js';
 import {getExt, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
