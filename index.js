@@ -3,6 +3,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
+const ws = require('ws');
 
 function getExt(fileName) {
   const match = fileName
@@ -62,14 +63,30 @@ app.get('*', (req, res, next) => {
 });
 app.use(appStatic);
 
-http.createServer(app)
+
+const wss = new ws.WebSocketServer({ noServer: true });
+wss.on('connection', (ws, req) {
+  console.log('got ws', req.url);
+});
+
+const servers = [];
+const httpServer = http.createServer(app)
   .listen(httpPort);
+servers.push(httpServer);
 console.log('http://localhost:'+httpPort);
 if (CERT && PRIVKEY) {
-  https.createServer({
+  const httpsServer = https.createServer({
     cert: CERT,
     key: PRIVKEY,
   }, app)
     .listen(httpsPort);
+  servers.push(httpsServer);
   console.log('https://localhost:'+httpsPort);
+}
+for (const server in servers) {
+  server.on('upgrade', function upgrade(request, socket, head) {
+    wss.handleUpgrade(request, socket, head, ws => {
+      wss.emit('connection', ws, request);
+    });
+  });
 }
