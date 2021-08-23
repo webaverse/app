@@ -22,7 +22,6 @@ const TransformAxisConstraints = {
   XYZ: new THREE.Vector3(1, 1, 1)
 };
 
-let transformGizmo = null;
 const loadPromise = (async () => {
   await TransformGizmo.load();
 
