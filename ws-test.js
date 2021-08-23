@@ -38,7 +38,7 @@ window.addEventListener('click', async e => {
     audioDecoder.decode(encodedChunk);
   }
   function onEncoderError(err) {
-    console.warn(err);
+    console.warn('encoder error', err);
   }
   async function readAndEncode(reader, encoder) {
     const result = await reader.read();
@@ -51,7 +51,7 @@ window.addEventListener('click', async e => {
     console.log('demux encodedChunk', encodedChunk);
   }
   function onDecoderError(err) {
-    console.warn(err);
+    console.warn('decoder error', err);
   }
   
   readAndEncode(audio.getReader(), audioEncoder);
