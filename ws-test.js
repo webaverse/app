@@ -45,6 +45,7 @@ window.addEventListener('click', async e => {
     codec: 'opus',
     numberOfChannels: audioTrackSettings.channelCount,
     sampleRate: audioTrackSettings.sampleRate,
+    bitrate: 60_000,
     /* tuning: {
       bitrate: 60_000,
     }, */
@@ -83,13 +84,33 @@ window.addEventListener('click', async e => {
       readAndEncode(reader, encoder);
     }
   }
+  // let playing = false;
+  const buffers = [];
+  const _flushBuffers = () => {
+    while (buffers.length > 0) {
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffers.shift();
+      source.connect(audioCtx.destination);
+      source.start();
+      /* source.onended = () => {
+        // source.disconnect();
+        playing = false;
+        _flushBuffers();
+      }; */
+      // playing = true;
+    }
+  };
   function demuxAndPlay(audioData) {
     const audioBuffer = audioData.buffer;
-    console.log('demux', audioBuffer);
+    // console.log('demux', audioBuffer);
+    buffers.push(audioBuffer);
+    _flushBuffers();
   }
   function onDecoderError(err) {
     console.warn('decoder error', err);
   }
   
   readAndEncode(audio.getReader(), audioEncoder);
+
+  const audioCtx = new AudioContext();
 });
