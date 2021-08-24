@@ -1,4 +1,16 @@
 window.addEventListener('click', async e => {
+  const ws = await new Promise((accept, reject) => {
+    const ws = new WebSocket('wss://' + window.location.host);
+    ws.addEventListener('open', () => {
+      accept(ws);
+    });
+    ws.addEventListener('error', reject);
+  });
+  console.log('got ws', ws);
+  ws.addEventListener('message', e => {
+    console.log('got e', e.data);
+  });
+  
   const mediaStream = await navigator.mediaDevices.getUserMedia({
     audio: true,
   });
@@ -6,7 +18,7 @@ window.addEventListener('click', async e => {
   const audioTrack = audioTracks[0];
   const audioTrackSettings = audioTrack.getSettings();
   const audio = (new MediaStreamTrackProcessor(audioTrack)).readable;
-  console.log('got media', audioTrack, audioTrack.getSettings(), audio);
+  // console.log('got media', audioTrack, audioTrack.getSettings(), audio);
 
   const audioEncoder = new AudioEncoder({
     output: muxAndSend,
