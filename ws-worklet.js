@@ -3,10 +3,8 @@ class WsWorklet extends AudioWorkletProcessor {
     super(...args)
     this.buffers = [];
     this.port.onmessage = e => {
-      // console.log('got message', e.data);
       this.buffers.push(e.data);
-      // this.port.postMessage('pong')
-    }
+    };
   }
   process(inputs, outputs, parameters) {
     // if (this.buffers.length >= 3) {
