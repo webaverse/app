@@ -55,11 +55,13 @@ class XRRTC extends EventTarget {
                     users,
                   }, null, 2));
                   for (const userId of users) {
-                    const player = new Player(userId);
-                    this.users[userId] = player;
-                    this.dispatchEvent(new MessageEvent('join', {
-                      data: player,
-                    }));
+                    if (userId !== id) {
+                      const player = new Player(userId);
+                      this.users[userId] = player;
+                      this.dispatchEvent(new MessageEvent('join', {
+                        data: player,
+                      }));
+                    }
                   }
                   ws.id = id;
                   ws.removeEventListener('message', message);
@@ -84,43 +86,26 @@ class XRRTC extends EventTarget {
         },
       });
       
-      let audioEncoder = null;
-      const _configureAudioEncoder = () => {
-        audioEncoder = new AudioEncoder({
-          output: muxAndSend,
-          error: onEncoderError,
-        });
-        return audioEncoder.configure({
-          codec: 'opus',
-          numberOfChannels: channelCount,
-          sampleRate,
-          bitrate,
-        });
-      };
-      const encoderPromise = _configureAudioEncoder();
-      this.addEventListener('join', e => {
-        _configureAudioEncoder();
+      const audioEncoder = new AudioEncoder({
+        output: muxAndSend,
+        error: onEncoderError,
+      });
+      audioEncoder.configure({
+        codec: 'opus',
+        numberOfChannels: channelCount,
+        sampleRate,
+        bitrate,
       });
 
       const audioDecoder = new AudioDecoder({
         output: demuxAndPlay,
         error: onDecoderError,
       });
-      const decoderPromise = audioDecoder.configure({
+      audioDecoder.configure({
         codec: 'opus',
         numberOfChannels: channelCount,
         sampleRate,
       });
-      
-      const [
-        ws,
-        mediaStream,
-      ] = await Promise.all([
-        wsPromise,
-        mediaStreamPromise,
-        encoderPromise,
-        decoderPromise,
-      ]);
       
       const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
       audioWorkletNode.connect(audioCtx.destination);
@@ -128,90 +113,113 @@ class XRRTC extends EventTarget {
         audioWorkletNode.disconnect();
       });
       
-      // console.log('got ws', ws);
-      ws.addEventListener('message', e => {
-        // console.log('got message', e);
-        if (typeof e.data === 'string') {
-          const j = JSON.parse(e.data);
-          const {method} = j;
-          switch (method) {
-            case 'audio': {
-              const {id} = j;
-              const player = this.users[id];
-              if (player) {
-                player.lastMessage = j;
-              } else {
-                console.warn('audio message for unknown player ' + id);
-              }
-              break;
-            }
-            case 'join': {
-              console.log('join message', j);
-              const {id} = j;
-              const player = new Player(id);
-              this.users[id] = player;
-              this.dispatchEvent(new MessageEvent('join', {
-                data: player,
-              }));
-              break;
-            }
-            case 'leave': {
-              const {id} = j;
-              console.log('leave: ' + id);
-              const player = this.users[id];
-              if (player) {
-                this.users[id] = null;
-                this.dispatchEvent(new MessageEvent('join', {
-                  data: player,
-                }));
-              } else {
-                console.warn('leave message for unknown user ' + id);
-              }
-              break;
-            }
-            default: {
-              console.warn('unknown message method: ' + method);
-              break;
-            }
-          }
-        } else {
-          // console.log('got e', e.data);
-          
-          const uint32Array = new Uint32Array(e.data, 0, 1);
-          const id = uint32Array[0];
-          const player = this.users[id];
-          if (player) {
-            const j = player.lastMessage;
-            if (j) {
-              player.lastMessage = null;
-              const data = new Uint8Array(e.data, Uint32Array.BYTES_PER_ELEMENT);
-              
+      const [
+        ws,
+        mediaStream,
+      ] = await Promise.all([
+        wsPromise.then(ws => {
+          ws.addEventListener('message', e => {
+            // console.log('got message', e);
+            if (typeof e.data === 'string') {
+              const j = JSON.parse(e.data);
               const {method} = j;
               switch (method) {
                 case 'audio': {
-                  const {args: {type, timestamp, duration}} = j;
-                  const encodedAudioChunk = new EncodedAudioChunk({
-                    type,
-                    timestamp,
-                    duration,
-                    data,
+                  const {id} = j;
+                  // console.log('got audio prep message', j);
+                  const player = this.users[id];
+                  if (player) {
+                    player.lastMessage = j;
+                  } else {
+                    console.warn('audio message for unknown player ' + id);
+                  }
+                  break;
+                }
+                case 'join': {
+                  console.log('join message', j);
+                  const {id} = j;
+                  const player = new Player(id);
+                  this.users[id] = player;
+                  this.dispatchEvent(new MessageEvent('join', {
+                    data: player,
+                  }));
+                  /* audioEncoder.reset();
+                  audioEncoder.configure({
+                    codec: 'opus',
+                    numberOfChannels: channelCount,
+                    sampleRate,
+                    bitrate,
                   });
-                  audioDecoder.decode(encodedAudioChunk);
+                  audioDecoder.reset();
+                  audioDecoder.configure({
+                    codec: 'opus',
+                    numberOfChannels: channelCount,
+                    sampleRate,
+                  }); */
+                  break;
+                }
+                case 'leave': {
+                  const {id} = j;
+                  console.log('leave: ' + id);
+                  const player = this.users[id];
+                  if (player) {
+                    this.users[id] = null;
+                    this.dispatchEvent(new MessageEvent('join', {
+                      data: player,
+                    }));
+                  } else {
+                    console.warn('leave message for unknown user ' + id);
+                  }
                   break;
                 }
                 default: {
-                  console.warn('unknown last message method: ' + method);
+                  console.warn('unknown message method: ' + method);
                   break;
                 }
               }
             } else {
-              console.warn('throwing away out-of-order binary data for user ' + id);
+              // console.log('got e', e.data);
+              
+              const uint32Array = new Uint32Array(e.data, 0, 1);
+              const id = uint32Array[0];
+              // console.log('got audio data', id);
+              const player = this.users[id];
+              if (player) {
+                const j = player.lastMessage;
+                if (j) {
+                  player.lastMessage = null;
+                  const data = new Uint8Array(e.data, Uint32Array.BYTES_PER_ELEMENT);
+                  
+                  const {method} = j;
+                  switch (method) {
+                    case 'audio': {
+                      const {args: {type, timestamp, duration}} = j;
+                      const encodedAudioChunk = new EncodedAudioChunk({
+                        type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
+                        timestamp,
+                        duration,
+                        data,
+                      });
+                      audioDecoder.decode(encodedAudioChunk);
+                      break;
+                    }
+                    default: {
+                      console.warn('unknown last message method: ' + method);
+                      break;
+                    }
+                  }
+                } else {
+                  console.warn('throwing away out-of-order binary data for user ' + id);
+                }
+              } else {
+                console.warn('received binary data for unknown user ' + id);
+              }
             }
-          } else {
-            console.warn('received binary data for unknown user ' + id);
-          }
-        }
-      });
+          });
+          return ws;
+        }),
+        mediaStreamPromise,
+      ]);
       
       const audioTracks = mediaStream.getAudioTracks();
       const audioTrack = audioTracks[0];
