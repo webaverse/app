@@ -119,10 +119,10 @@ world.connectRoom = async (roomName, worldURL) => {
       const address = loginManager.getAddress();
       const aux = rigManager.localRig?.aux.getPose();
       channelConnection.send(JSON.stringify({
-        id: channelConnection.connectionId,
+        id: channelConnection.localUser.id,
         method: 'status',
         data: {
-          peerId: channelConnection.connectionId,
+          peerId: channelConnection.localUser.id,
           status: {
             name,
             avatarUrl,
@@ -134,7 +134,7 @@ world.connectRoom = async (roomName, worldURL) => {
       }));
       const pose = rigManager.getLocalAvatarPose();
       channelConnection.send(JSON.stringify({
-        id: channelConnection.connectionId,
+        id: channelConnection.localUser.id,
         method: 'pose',
         data: {
           pose,
@@ -153,31 +153,31 @@ world.connectRoom = async (roomName, worldURL) => {
     }
     channelConnectionOpen = false;
   }, {once: true});
-  channelConnection.addEventListener('peerconnection', async e => {
-    const peerConnection = e.data;
+  channelConnection.addEventListener('join', async e => {
+    const player = e.data;
     console.log('new peer connection', e);
 
     let microphoneMediaStream = null;
   
-    rigManager.addPeerRig(peerConnection.connectionId);
-    const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
-    peerRig.peerConnection = peerConnection;
+    rigManager.addPeerRig(player.id);
+    const peerRig = rigManager.peerRigs.get(player.id);
+    peerRig.peerConnection = player;
 
-    peerConnection.addEventListener('close', async () => {
+    player.addEventListener('close', async () => {
       console.log('peer connection close');
-      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-      rigManager.removePeerRig(peerConnection.connectionId);
+      peerConnections.splice(peerConnections.indexOf(player), 1);
+      rigManager.removePeerRig(player.id);
 
       /* world.dispatchEvent(new MessageEvent('peersupdate', {
         data: Array.from(rigManager.peerRigs.values()),
       })); */
     });
 
-    peerConnection.addEventListener('status', e => {
+    player.addEventListener('status', e => {
       const {peerId, status: {name, avatarUrl, avatarExt, address, aux}} = e.data;
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
-      peerConnection.address = address;
+      player.address = address;
 
       // let updated = false;
 
@@ -207,19 +207,19 @@ world.connectRoom = async (roomName, worldURL) => {
         }));
       } */
     });
-    peerConnection.addEventListener('pose', e => {
+    player.addEventListener('pose', e => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
       const {pose} = e.data;
 
-      rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
+      rigManager.setPeerAvatarPose(pose, player.id);
     });
-    peerConnection.addEventListener('chat', e => {
+    player.addEventListener('chat', e => {
       const {peerId, username, text} = e.data;
       messages.addMessage(username, text, {
         update: false,
       });
     });
-    peerConnection.addEventListener('addtrack', e => {
+    player.addEventListener('addtrack', e => {
       const track = e.data;
       microphoneMediaStream = new MediaStream([track]);
       const audio = document.createElement('audio');
@@ -234,14 +234,14 @@ world.connectRoom = async (roomName, worldURL) => {
       };
       _tryPlay();
       if (peerRig) {
-        rigManager.setPeerMicMediaStream(microphoneMediaStream, peerConnection.connectionId);
+        rigManager.setPeerMicMediaStream(microphoneMediaStream, player.id);
         track.addEventListener('ended', e => {
-          rigManager.setPeerMicMediaStream(null, peerConnection.connectionId);
+          rigManager.setPeerMicMediaStream(null, player.id);
           audio.srcObject = null;
         });
       }
     });
-    peerConnections.push(peerConnection);
+    peerConnections.push(player);
   });
   channelConnection.close = (close => function() {
     close.apply(this, arguments);
@@ -655,7 +655,7 @@ messages.addEventListener('messageadd', e => {
     channelConnection.send(JSON.stringify({
       method: 'chat',
       data: {
-        peerId: channelConnection.connectionId,
+        peerId: channelConnection.localUser.id,
         username,
         text,
       },

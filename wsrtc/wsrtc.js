@@ -187,7 +187,7 @@ class WSRTC extends EventTarget {
     this.users = new Map();
     // TODO: remove in favor of users but keeping track of EventTargets
     // for world
-    this.peers = new Map();
+
     this.mediaStream = null;
     
     this.addEventListener('close', () => {
@@ -217,13 +217,7 @@ class WSRTC extends EventTarget {
                 if (userId !== id) {
                   const player = new Player(userId, null);
                   this.users.set(userId, player);
-                  const peerConnection = new XRPeerConnection(userId);
-                  this.peers.set(userId, peerConnection);
-                  
-                  this.dispatchEvent(new MessageEvent('peerconnection', {
-                    data: peerConnection,
-                  }));
-
+    
                   this.dispatchEvent(new MessageEvent('join', {
                     data: player,
                   }));
@@ -260,13 +254,13 @@ class WSRTC extends EventTarget {
           switch (method) {
             case 'pose':
             case 'status': {
-              const peerConnection = this.peers.get(j.id);
+              const user = this.users.get(j.id);
 
-              if(!peerConnection) {
+              if(!user) {
                 return
               }
             
-              peerConnection.dispatchEvent(new MessageEvent(j.method, {
+              user.dispatchEvent(new MessageEvent(j.method, {
                 data: j.data,
               }));
 
@@ -298,12 +292,6 @@ class WSRTC extends EventTarget {
               const {id} = j;
               const player = new Player(id);
               this.users.set(id, player);
-              const peerConnection = new XRPeerConnection(id)
-              this.peers.set(id, peerConnection);
-
-              this.dispatchEvent(new MessageEvent('peerconnection', {
-                data: peerConnection,
-              }));
 
               player.dispatchEvent(new MessageEvent('join'));
               this.dispatchEvent(new MessageEvent('join', {
@@ -515,21 +503,6 @@ class WSRTC extends EventTarget {
   }
 }
 
-class XRPeerConnection extends EventTarget {
-  constructor(peerConnectionId) {
-    super();
-
-    this.connectionId = peerConnectionId;
-  }
-
-  close() {
-    this.dispatchEvent(
-      new MessageEvent('close', {
-        data: {},
-      }),
-    );
-  }
-}
 
 WSRTC.waitForReady = async () => {
   await _ensureAudioContextInit();
