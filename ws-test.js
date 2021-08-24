@@ -13,11 +13,50 @@ const _ensureInit = async () => {
   }
 };
 
-class Player {
+class Player extends EventTarget {
   constructor(id) {
+    super();
+    
     this.id = id;
-
     this.lastMessage = null;
+    
+    function demuxAndPlay(audioData) {
+      // console.log('demux', audioData);
+      let channelData;
+      if (audioData.copyTo) { // new api
+        channelData = new Float32Array(audioData.numberOfFrames);
+        audioData.copyTo(channelData, {
+          planeIndex: 0,
+          frameCount: audioData.numberOfFrames,
+        });
+      } else { // old api
+        channelData = audioData.buffer.getChannelData(0);
+      }
+
+      audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
+    }
+    function onDecoderError(err) {
+      console.warn('decoder error', err);
+    }
+    
+    const audioDecoder = new AudioDecoder({
+      output: demuxAndPlay,
+      error: onDecoderError,
+    });
+    audioDecoder.configure({
+      codec: 'opus',
+      numberOfChannels: channelCount,
+      sampleRate,
+    });
+    
+    const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
+    audioWorkletNode.connect(audioCtx.destination);
+    this.addEventListener('leave', () => {
+      audioWorkletNode.disconnect();
+    });
+    
+    this.audioDecoder = audioDecoder;
+    this.audioNode = audioWorkletNode;
   }
   toJSON() {
     const {id} = this;
@@ -96,22 +135,6 @@ class XRRTC extends EventTarget {
         sampleRate,
         bitrate,
       });
-
-      const audioDecoder = new AudioDecoder({
-        output: demuxAndPlay,
-        error: onDecoderError,
-      });
-      audioDecoder.configure({
-        codec: 'opus',
-        numberOfChannels: channelCount,
-        sampleRate,
-      });
-      
-      const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
-      audioWorkletNode.connect(audioCtx.destination);
-      this.addEventListener('close', () => {
-        audioWorkletNode.disconnect();
-      });
       
       const [
         ws,
@@ -136,10 +159,10 @@ class XRRTC extends EventTarget {
                   break;
                 }
                 case 'join': {
-                  console.log('join message', j);
                   const {id} = j;
                   const player = new Player(id);
                   this.users[id] = player;
+                  player.dispatchEvent(new MessageEvent('join'));
                   this.dispatchEvent(new MessageEvent('join', {
                     data: player,
                   }));
@@ -147,11 +170,11 @@ class XRRTC extends EventTarget {
                 }
                 case 'leave': {
                   const {id} = j;
-                  console.log('leave: ' + id);
                   const player = this.users[id];
                   if (player) {
                     this.users[id] = null;
-                    this.dispatchEvent(new MessageEvent('join', {
+                    player.dispatchEvent(new MessageEvent('leave'));
+                    this.dispatchEvent(new MessageEvent('leave', {
                       data: player,
                     }));
                   } else {
@@ -187,7 +210,7 @@ class XRRTC extends EventTarget {
                         duration,
                         data,
                       });
-                      audioDecoder.decode(encodedAudioChunk);
+                      player.audioDecoder.decode(encodedAudioChunk);
                       break;
                     }
                     default: {
@@ -254,34 +277,24 @@ class XRRTC extends EventTarget {
           readAndEncode();
         }
       }
-      function demuxAndPlay(audioData) {
-        // console.log('demux', audioData);
-        let channelData;
-        if (audioData.copyTo) { // new api
-          channelData = new Float32Array(audioData.numberOfFrames);
-          audioData.copyTo(channelData, {
-            planeIndex: 0,
-            frameCount: audioData.numberOfFrames,
-          });
-        } else { // old api
-          channelData = audioData.buffer.getChannelData(0);
-        }
-
-        audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
-      }
-      function onDecoderError(err) {
-        console.warn('decoder error', err);
-      }
       
       readAndEncode();
     })();
   }
 }
+XRRTC.getAudioContext = () => {
+  _ensureInit();
+  return audioCtx;
+};
 
 window.addEventListener('click', async e => {
   const xrrtc = new XRRTC('wss://' + window.location.host);
   xrrtc.addEventListener('join', e => {
     const player = e.data;
     console.log('join', player);
+    player.audioNode.connect(audioCtx.destination);
+    player.addEventListener('leave', e => {
+      console.log('leave', player);
+    });
   });
 });
