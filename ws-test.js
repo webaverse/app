@@ -46,7 +46,18 @@ class Player extends EventTarget {
     this.audioDecoder = audioDecoder;
     
     const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
-    audioWorkletNode.connect(audioCtx.destination);
+    audioWorkletNode.port.onmessage = e => {
+      const {method} = e.data;
+      switch (method) {
+        case 'volume': {
+          const {args: {value}} = e.data;
+          this.dispatchEvent(new MessageEvent('volume', {
+            data: value,
+          }));
+          break;
+        }
+      }
+    };
     this.addEventListener('leave', () => {
       audioWorkletNode.disconnect();
     });
@@ -316,6 +327,9 @@ window.addEventListener('click', async e => {
     const player = e.data;
     console.log('join', player);
     player.audioNode.connect(audioCtx.destination);
+    player.addEventListener('volume', e => {
+      // console.log('volume', e.data);
+    });
     player.addEventListener('leave', e => {
       console.log('leave', player);
     });
