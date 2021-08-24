@@ -29,9 +29,11 @@ window.addEventListener('click', async e => {
     }
   });
   
+  const sampleRate = 48000;
   const mediaStream = await navigator.mediaDevices.getUserMedia({
     audio: {
       channelCount: 1,
+      sampleRate,
     },
   });
   const audioTracks = mediaStream.getAudioTracks();
@@ -62,7 +64,7 @@ window.addEventListener('click', async e => {
   });  
   
   function muxAndSend(encodedChunk) {
-    console.log('got chunk', encodedChunk);
+    // console.log('got chunk', encodedChunk);
     const {type, timestamp, duration, byteLength} = encodedChunk;
     let data;
     if (encodedChunk.copyTo) { // new api
@@ -77,7 +79,6 @@ window.addEventListener('click', async e => {
       duration,
     }));
     ws.send(data);
-    // audioDecoder.decode(encodedChunk);
   }
   function onEncoderError(err) {
     console.warn('encoder error', err);
@@ -92,13 +93,14 @@ window.addEventListener('click', async e => {
   let playing = false;
   const buffers = [];
   const _flushBuffers = () => {
-    while (buffers.length > 0) {
-      console.log('flush', buffers[0]);
+    if (!playing && buffers.length >= 3) {
+      // console.log('flush', buffers[0]);
       const source = audioCtx.createBufferSource();
       source.buffer = buffers.shift();
-      source.connect(audioCtx.destination);
       source.start();
+      source.connect(audioCtx.destination);
       /* source.onended = () => {
+        console.log('ended');
         // source.disconnect();
         playing = false;
         _flushBuffers();
@@ -110,6 +112,7 @@ window.addEventListener('click', async e => {
     // console.log('demux', audioData);
     let audioBuffer;
     if (audioData.copyTo) { // new api
+      // console.log('got duration', audioData.duration);
       audioBuffer = audioCtx.createBuffer(audioTrackSettings.channelCount, audioData.duration / 1000 * audioTrackSettings.sampleRate, audioTrackSettings.sampleRate);
       
       const opts = {
@@ -123,6 +126,7 @@ window.addEventListener('click', async e => {
       audioBuffer = audioData.buffer;
     }
     buffers.push(audioBuffer);
+    // console.log('got buffer', audioBuffer);
     _flushBuffers();
   }
   function onDecoderError(err) {
@@ -132,7 +136,8 @@ window.addEventListener('click', async e => {
   readAndEncode(audio.getReader(), audioEncoder);
 
   const audioCtx = new AudioContext({
-    // latencyHint: 'interactive',
-    // sampleRate: audioTrackSettings.sampleRate,
+    latencyHint: 'playback',
+    sampleRate: audioTrackSettings.sampleRate,
   });
+  console.log('lol', audioCtx.baseLatency);
 });
