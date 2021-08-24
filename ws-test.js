@@ -10,7 +10,7 @@ window.addEventListener('click', async e => {
   // console.log('got ws', ws);
   let lastMessage = null;
   ws.addEventListener('message', e => {
-    console.log('got message', e);
+    // console.log('got message', e);
     if (typeof e.data === 'string') {
       lastMessage = e.data;
     } else {
@@ -95,8 +95,9 @@ window.addEventListener('click', async e => {
   const _flushBuffers = () => {
     if (!playing && buffers.length >= 3) {
       // console.log('flush', buffers[0]);
-      const source = audioCtx.createBufferSource();
-      source.buffer = buffers.shift();
+      const source = new AudioBufferSourceNode(audioCtx, {
+        buffer: buffers.shift(),
+      });
       source.start();
       source.connect(audioCtx.destination);
       /* source.onended = () => {
@@ -112,16 +113,17 @@ window.addEventListener('click', async e => {
     // console.log('demux', audioData);
     let audioBuffer;
     if (audioData.copyTo) { // new api
-      // console.log('got duration', audioData.duration);
-      audioBuffer = audioCtx.createBuffer(audioTrackSettings.channelCount, audioData.duration / 1000 * audioTrackSettings.sampleRate, audioTrackSettings.sampleRate);
+      // console.log('got duration', audioData);
+      audioBuffer = new AudioBuffer({
+        length: audioData.numberOfFrames,
+        numberOfChannels: audioTrackSettings.channelCount,
+        sampleRate: audioTrackSettings.sampleRate,
+      });
       
-      const opts = {
+      audioData.copyTo(audioBuffer.getChannelData(0), {
         planeIndex: 0,
         frameCount: audioData.numberOfFrames,
-      };
-      // const allocationSize = audioData.allocationSize(opts);
-      // const arrayBuffer = new ArrayBuffer(allocationSize);
-      audioData.copyTo(audioBuffer.getChannelData(0), opts);
+      });
     } else { // old api
       audioBuffer = audioData.buffer;
     }
