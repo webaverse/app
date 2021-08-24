@@ -18,6 +18,33 @@ class Player extends EventTarget {
     this.id = id;
     this.lastMessage = null;
     
+    const demuxAndPlay = audioData => {
+      let channelData;
+      if (audioData.copyTo) { // new api
+        channelData = new Float32Array(audioData.numberOfFrames);
+        audioData.copyTo(channelData, {
+          planeIndex: 0,
+          frameCount: audioData.numberOfFrames,
+        });
+      } else { // old api
+        channelData = audioData.buffer.getChannelData(0);
+      }
+      audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
+    };
+    function onDecoderError(err) {
+      console.warn('decoder error', err);
+    }
+    const audioDecoder = new AudioDecoder({
+      output: demuxAndPlay,
+      error: onDecoderError,
+    });
+    audioDecoder.configure({
+      codec: 'opus',
+      numberOfChannels: channelCount,
+      sampleRate,
+    });
+    this.audioDecoder = audioDecoder;
+    
     const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
     audioWorkletNode.connect(audioCtx.destination);
     this.addEventListener('leave', () => {
@@ -40,33 +67,12 @@ class XRRTC extends EventTarget {
     this.state = 'closed';
     this.ws = null;
     this.users = new Map();
-    this.worker = null;
     this.mediaStream = null;
     
     this.addEventListener('close', () => {
       this.users = new Map();
       this.disableMic();
     });
-    
-    const worker = new Worker('ws-codec.js', {
-      type: 'module',
-    });
-    worker.onmessage = e => {
-      const {method} = e.data;
-      // console.log('worker returned', e.data);
-      switch (method) {
-        case 'decode': {
-          const {id, args: {data}} = e.data;
-          const player = this.users.get(id);
-          if (player) {
-            // console.log('send data', data);
-            player.audioNode.port.postMessage(data, [data.buffer]);
-          }
-          break;
-        }
-      }
-    };
-    this.worker = worker;
 
     const ws = new WebSocket(u);
     this.ws = ws;
@@ -102,8 +108,6 @@ class XRRTC extends EventTarget {
               ws.addEventListener('close', e => {
                 this.state = 'closed';
                 this.ws = null;
-                this.worker.terminate();
-                this.worker = null;
                 this.dispatchEvent(new MessageEvent('close'));
               });
               
@@ -175,19 +179,13 @@ class XRRTC extends EventTarget {
               switch (method) {
                 case 'audio': {
                   const {args: {type, timestamp, duration}} = j;
-                  const audioChunk = {
-                    method: 'decode',
-                    id,
-                    args: {
-                      type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
-                      timestamp,
-                      duration,
-                      data,
-                    },
-                  };
-                  this.worker.postMessage(audioChunk, [
-                    data.buffer,
-                  ]);
+                  const encodedAudioChunk = new EncodedAudioChunk({
+                    type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
+                    timestamp,
+                    duration,
+                    data,
+                  });
+                  player.audioDecoder.decode(encodedAudioChunk);
                   break;
                 }
                 default: {
