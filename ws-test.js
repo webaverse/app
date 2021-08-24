@@ -90,7 +90,7 @@ window.addEventListener('click', async e => {
       readAndEncode(reader, encoder);
     }
   }
-  let playing = false;
+  /* let playing = false;
   const buffers = [];
   const _flushBuffers = () => {
     if (buffers.length > 5) {
@@ -111,12 +111,11 @@ window.addEventListener('click', async e => {
       };
       playing = true;
     }
-  };
+  }; */
   function demuxAndPlay(audioData) {
     // console.log('demux', audioData);
     let audioBuffer;
     if (audioData.copyTo) { // new api
-      // console.log('got duration', audioData);
       audioBuffer = new AudioBuffer({
         length: audioData.numberOfFrames,
         numberOfChannels: audioTrackSettings.channelCount,
@@ -130,9 +129,12 @@ window.addEventListener('click', async e => {
     } else { // old api
       audioBuffer = audioData.buffer;
     }
-    buffers.push(audioBuffer);
+    
+    // buffers.push(audioBuffer);
     // console.log('got buffer', audioBuffer);
-    _flushBuffers();
+    const channelData = audioBuffer.getChannelData(0);
+    audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
+    // _flushBuffers();
   }
   function onDecoderError(err) {
     console.warn('decoder error', err);
@@ -144,5 +146,10 @@ window.addEventListener('click', async e => {
     latencyHint: 'interactive',
     sampleRate: audioTrackSettings.sampleRate,
   });
-  console.log('lol', audioCtx.baseLatency);
+
+  await audioCtx.audioWorklet.addModule('ws-worklet.js')
+  const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet')
+  audioWorkletNode.connect(audioCtx.destination);
+  // console.log('lol', audioCtx.baseLatency);
+  console.log('worklet', audioWorkletNode);
 });
