@@ -63,12 +63,15 @@ app.get('*', (req, res, next) => {
 });
 app.use(appStatic);
 
-
 const wss = new ws.WebSocketServer({
   noServer: true,
 });
 wss.on('connection', (ws, req) => {
-  console.log('got ws', req.url);
+  // console.log('got ws', req.url);
+  ws.addEventListener('message', e => {
+    // console.log('got message', e.data);
+    ws.send(e.data);
+  });
 });
 
 const servers = [];

@@ -1,14 +1,31 @@
 window.addEventListener('click', async e => {
   const ws = await new Promise((accept, reject) => {
     const ws = new WebSocket('wss://' + window.location.host);
+    ws.binaryType = 'arraybuffer';
     ws.addEventListener('open', () => {
       accept(ws);
     });
     ws.addEventListener('error', reject);
   });
-  console.log('got ws', ws);
+  // console.log('got ws', ws);
+  let lastMessage = null;
   ws.addEventListener('message', e => {
-    console.log('got e', e.data);
+    if (typeof e.data === 'string') {
+      lastMessage = e.data;
+    } else {
+      // console.log('got e', e.data, lastMessage);
+      const j = JSON.parse(lastMessage);
+      lastMessage = null;
+      const {type, timestamp, duration} = j;
+      const {data} = e;
+      const encodedAudioChunk = new EncodedAudioChunk({
+        type,
+        timestamp,
+        duration,
+        data: e.data,
+      });
+      audioDecoder.decode(encodedAudioChunk);
+    }
   });
   
   const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -47,7 +64,14 @@ window.addEventListener('click', async e => {
   });  
   
   function muxAndSend(encodedChunk) {
-    audioDecoder.decode(encodedChunk);
+    const {type, timestamp, duration, data} = encodedChunk;
+    ws.send(JSON.stringify({
+      type,
+      timestamp,
+      duration,
+    }));
+    ws.send(data);
+    // audioDecoder.decode(encodedChunk);
   }
   function onEncoderError(err) {
     console.warn('encoder error', err);
