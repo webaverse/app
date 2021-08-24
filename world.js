@@ -94,14 +94,19 @@ const _bindState = (state, dynamic) => {
 };
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
+
+
+let player
 world.connectRoom = async (roomName, worldURL) => {
   await XRChannelConnection.waitForReady();
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   let interval;
   
-  channelConnection.addEventListener('join', e => {
-    const player = e.data;
+  channelConnection.addEventListener('join', async e => {
+    player = e.data;
+ 
+
     player.audioNode.connect(XRChannelConnection.getAudioContext().destination);
   });
 
@@ -595,7 +600,7 @@ world.getNpcFromPhysicsId = physicsId => {
   return null;
 };
 
-let animationMediaStream = null
+let animationMediaStream = null;
 let networkMediaStream = null;
 const _latchMediaStream = async () => {
   networkMediaStream = await navigator.mediaDevices.getUserMedia({
@@ -618,28 +623,32 @@ const _unlatchMediaStream = async () => {
 };
 
 const micButton = document.getElementById('key-t');
+
+
+
 world.toggleMic = async () => {
-  if (!animationMediaStream) {
+  if (!channelConnection.mediaStream) {
     micButton && micButton.classList.add('enabled');
+    channelConnection.enableMic();
 
-    animationMediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
+    // animationMediaStream = await navigator.mediaDevices.getUserMedia({
+    //   audio: true,
+    // });
 
-    rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+    // rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
 
-    _latchMediaStream();
+    // _latchMediaStream();
   } else {
     micButton && micButton.classList.remove('enabled');
+    channelConnection.disableMic();
+    // rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(null);
+    // const tracks = animationMediaStream.getTracks();
+    // for (const track of tracks) {
+    //   track.stop();
+    // }
+    // animationMediaStream = null;
 
-    rigManager.localRig && rigManager.localRig.setMicrophoneMediaStream(null);
-    const tracks = animationMediaStream.getTracks();
-    for (const track of tracks) {
-      track.stop();
-    }
-    animationMediaStream = null;
-
-    _unlatchMediaStream();
+    // _unlatchMediaStream();
   }
 
   return animationMediaStream;

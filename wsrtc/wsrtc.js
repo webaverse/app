@@ -1,8 +1,17 @@
 import {channelCount, sampleRate, bitrate} from './ws-constants.js';
 
 let audioCtx = null;
+const interacted = new Promise((resolve) => {
+  const _interacted = () => {
+    resolve();
+    window.removeEventListener("click", _interacted);
+  }
+  window.addEventListener("click", _interacted);
+});
+
 const _ensureAudioContextInit = async () => {
   if (!audioCtx) {
+    await interacted;
     audioCtx = new AudioContext({
       latencyHint: 'interactive',
       sampleRate,
@@ -84,6 +93,8 @@ class Volume extends EventTarget {
   }
 }
 
+
+
 class Player extends EventTarget {
   constructor(id, parent) {
     super();
@@ -94,7 +105,7 @@ class Player extends EventTarget {
     this.metadata = new Metadata();
     this.volume = new Volume();
     this.lastMessage = null;
-    
+  
     const demuxAndPlay = audioData => {
       let channelData;
       if (audioData.copyTo) { // new api
@@ -493,7 +504,8 @@ class WSRTC extends EventTarget {
   }
   disableMic() {
     if (this.mediaStream) {
-      this.mediaStream.close();
+      // TODO: not a function on mediaStream?
+      // this.mediaStream.close();
       this.mediaStream = null;
     }
   }
