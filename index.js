@@ -3,7 +3,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
-
+const xrrtcServer = require('./wsrtc/wsrtc-server.js');
 function getExt(fileName) {
   const match = fileName
     .replace(/^[a-z]+:\/\/[^\/]+\//, '')
@@ -62,14 +62,24 @@ app.get('*', (req, res, next) => {
 });
 app.use(appStatic);
 
-http.createServer(app)
+const servers = [];
+
+const httpServer = http.createServer(app)
   .listen(httpPort);
+
+servers.push(httpServer);
+
 console.log('http://localhost:'+httpPort);
 if (CERT && PRIVKEY) {
-  https.createServer({
+  const httpsServer = https.createServer({
     cert: CERT,
     key: PRIVKEY,
   }, app)
     .listen(httpsPort);
+  servers.push(httpsServer)
   console.log('https://localhost:'+httpsPort);
+}
+
+for (const server of servers) {
+  xrrtcServer.bindServer(server);
 }

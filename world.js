@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import storage from './storage.js';
-import {XRChannelConnection} from './xrrtc.js';
+import XRChannelConnection from './wsrtc/wsrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
@@ -95,18 +95,22 @@ const _bindState = (state, dynamic) => {
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
 world.connectRoom = async (roomName, worldURL) => {
+  await XRChannelConnection.waitForReady();
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   let interval;
+  
+  channelConnection.addEventListener('join', e => {
+    const player = e.data;
+    player.audioNode.connect(XRChannelConnection.getAudioContext().destination);
+  });
+
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
     console.log('Channel Open!');
 
-    if (networkMediaStream) {
-      channelConnection.setMicrophoneMediaStream(networkMediaStream);
-    }
+    channelConnection.enableMic();
     
-
     interval = setInterval(() => {
       const name = loginManager.getUsername();
       const avatarSpec = loginManager.getAvatar();
@@ -115,10 +119,8 @@ world.connectRoom = async (roomName, worldURL) => {
       const address = loginManager.getAddress();
       const aux = rigManager.localRig?.aux.getPose();
       channelConnection.send(JSON.stringify({
-        request: true,
-        id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+        id: channelConnection.connectionId,
         method: 'status',
-
         data: {
           peerId: channelConnection.connectionId,
           status: {
@@ -132,8 +134,7 @@ world.connectRoom = async (roomName, worldURL) => {
       }));
       const pose = rigManager.getLocalAvatarPose();
       channelConnection.send(JSON.stringify({
-        request: true,
-        id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+        id: channelConnection.connectionId,
         method: 'pose',
         data: {
           pose,
@@ -209,6 +210,7 @@ world.connectRoom = async (roomName, worldURL) => {
     peerConnection.addEventListener('pose', e => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
       const {pose} = e.data;
+
       rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
     });
     peerConnection.addEventListener('chat', e => {

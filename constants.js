@@ -46,17 +46,7 @@ export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
 const rGithub = /\.githubpreview\.dev$/;
 const isGH = rGithub.test(window.location.hostname);
 
-const hashHost =
-  /^[a-z][a-z0-9+\-.]*:\/\/([a-z0-9\-._~%!$&'()*+,;=]+@)?([a-z0-9\-._~%]+|\[[a-z0-9\-._~%!$&'()*+,;=:]+\])/.exec(
-    window.location.hash.slice(1),
-  );
-
-const isOKHASH = hashHost && hashHost[2] && rGithub.test(hashHost[2]);
-
 export const dialogUrl = isGH ? 
-isOKHASH ? 
-  hashHost[2] 
-  : 
-  window.location.hostname.replace(/3000(\.githubpreview\.dev)$/, '4443$1')
+  window.location.hostname
 : 
 'dialog.webaverse.com';
