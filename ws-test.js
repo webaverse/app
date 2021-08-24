@@ -29,16 +29,18 @@ window.addEventListener('click', async e => {
     }
   });
   
+  const channelCount = 1;
   const sampleRate = 48000;
+  const bitrate = 60_000;
   const mediaStream = await navigator.mediaDevices.getUserMedia({
     audio: {
-      channelCount: 1,
+      channelCount,
       sampleRate,
     },
   });
   const audioTracks = mediaStream.getAudioTracks();
   const audioTrack = audioTracks[0];
-  const audioTrackSettings = audioTrack.getSettings();
+  // const audioTrackSettings = audioTrack.getSettings();
   const audio = (new MediaStreamTrackProcessor(audioTrack)).readable;
   // console.log('got media', audioTrack, audioTrack.getSettings(), audio);
 
@@ -48,9 +50,9 @@ window.addEventListener('click', async e => {
   });
   await audioEncoder.configure({
     codec: 'opus',
-    numberOfChannels: audioTrackSettings.channelCount,
-    sampleRate: audioTrackSettings.sampleRate,
-    bitrate: 60_000,
+    numberOfChannels: channelCount,
+    sampleRate,
+    bitrate,
   });
 
   const audioDecoder = new AudioDecoder({
@@ -59,8 +61,8 @@ window.addEventListener('click', async e => {
   });
   await audioDecoder.configure({
     codec: 'opus',
-    numberOfChannels: audioTrackSettings.channelCount,
-    sampleRate: audioTrackSettings.sampleRate,
+    numberOfChannels: channelCount,
+    sampleRate,
   });  
   
   function muxAndSend(encodedChunk) {
@@ -90,51 +92,20 @@ window.addEventListener('click', async e => {
       readAndEncode(reader, encoder);
     }
   }
-  /* let playing = false;
-  const buffers = [];
-  const _flushBuffers = () => {
-    if (buffers.length > 5) {
-      buffers.length = 5;
-    }
-    if (!playing && buffers.length >= 2) {
-      // console.log('flush', buffers[0]);
-      const source = new AudioBufferSourceNode(audioCtx, {
-        buffer: buffers.shift(),
-      });
-      source.start();
-      source.connect(audioCtx.destination);
-      source.onended = () => {
-        console.log('ended');
-        // source.disconnect();
-        playing = false;
-        _flushBuffers();
-      };
-      playing = true;
-    }
-  }; */
   function demuxAndPlay(audioData) {
     // console.log('demux', audioData);
-    let audioBuffer;
+    let channelData;
     if (audioData.copyTo) { // new api
-      audioBuffer = new AudioBuffer({
-        length: audioData.numberOfFrames,
-        numberOfChannels: audioTrackSettings.channelCount,
-        sampleRate: audioTrackSettings.sampleRate,
-      });
-      
-      audioData.copyTo(audioBuffer.getChannelData(0), {
+      channelData = new Float32Array(audioData.numberOfFrames);
+      audioData.copyTo(channelData, {
         planeIndex: 0,
         frameCount: audioData.numberOfFrames,
       });
     } else { // old api
-      audioBuffer = audioData.buffer;
+      channelData = audioData.buffer.getChannelData(0);
     }
-    
-    // buffers.push(audioBuffer);
-    // console.log('got buffer', audioBuffer);
-    const channelData = audioBuffer.getChannelData(0);
+
     audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
-    // _flushBuffers();
   }
   function onDecoderError(err) {
     console.warn('decoder error', err);
@@ -144,12 +115,12 @@ window.addEventListener('click', async e => {
 
   const audioCtx = new AudioContext({
     latencyHint: 'interactive',
-    sampleRate: audioTrackSettings.sampleRate,
+    sampleRate,
   });
 
   await audioCtx.audioWorklet.addModule('ws-worklet.js')
   const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet')
   audioWorkletNode.connect(audioCtx.destination);
   // console.log('lol', audioCtx.baseLatency);
-  console.log('worklet', audioWorkletNode);
+  // console.log('worklet', audioWorkletNode);
 });
