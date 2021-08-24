@@ -84,7 +84,7 @@ window.addEventListener('click', async e => {
       readAndEncode(reader, encoder);
     }
   }
-  // let playing = false;
+  let playing = false;
   const buffers = [];
   const _flushBuffers = () => {
     while (buffers.length > 0) {
@@ -96,8 +96,8 @@ window.addEventListener('click', async e => {
         // source.disconnect();
         playing = false;
         _flushBuffers();
-      }; */
-      // playing = true;
+      };
+      playing = true; */
     }
   };
   function demuxAndPlay(audioData) {
@@ -112,5 +112,8 @@ window.addEventListener('click', async e => {
   
   readAndEncode(audio.getReader(), audioEncoder);
 
-  const audioCtx = new AudioContext();
+  const audioCtx = new AudioContext({
+    // latencyHint: 'interactive',
+    // sampleRate: audioTrackSettings.sampleRate,
+  });
 });
