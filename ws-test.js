@@ -48,172 +48,175 @@ class XRRTC extends EventTarget {
       this.disableMic();
     });
     
-    {
-      const worker = new Worker('ws-codec.js', {
-        type: 'module',
-      });
-      worker.onmessage = e => {
-        const {method} = e.data;
-        // console.log('worker returned', e.data);
-        switch (method) {
-          case 'decode': {
-            const {id, args: {data}} = e.data;
-            const player = this.users.get(id);
-            if (player) {
-              // console.log('send data', data);
-              player.audioNode.port.postMessage(data, [data.buffer]);
+    const worker = new Worker('ws-codec.js', {
+      type: 'module',
+    });
+    worker.onmessage = e => {
+      const {method} = e.data;
+      // console.log('worker returned', e.data);
+      switch (method) {
+        case 'decode': {
+          const {id, args: {data}} = e.data;
+          const player = this.users.get(id);
+          if (player) {
+            // console.log('send data', data);
+            player.audioNode.port.postMessage(data, [data.buffer]);
+          }
+          break;
+        }
+      }
+    };
+    this.worker = worker;
+
+    const ws = new WebSocket(u);
+    this.ws = ws;
+    ws.binaryType = 'arraybuffer';
+    ws.addEventListener('open', () => {
+      const initialMessage = e => {
+        if (typeof e.data === 'string') {
+          const j = JSON.parse(e.data);
+          const {method} = j;
+          switch (method) {
+            case 'init': {
+              const {args: {id, users}} = j;
+              console.log('init: ' + JSON.stringify({
+                id,
+                users,
+              }, null, 2));
+              
+              this.state = 'open';
+              this.dispatchEvent(new MessageEvent('open'));
+              
+              for (const userId of users) {
+                if (userId !== id) {
+                  const player = new Player(userId);
+                  this.users.set(userId, player);
+                  this.dispatchEvent(new MessageEvent('join', {
+                    data: player,
+                  }));
+                }
+              }
+              ws.id = id;
+              ws.removeEventListener('message', initialMessage);
+              ws.addEventListener('message', mainMessage);
+              ws.addEventListener('close', e => {
+                this.state = 'closed';
+                this.ws = null;
+                this.worker.terminate();
+                this.worker = null;
+                this.dispatchEvent(new MessageEvent('close'));
+              });
+              
+              break;
             }
-            break;
           }
         }
       };
-      this.worker = worker;
-    }
-
-    (async () => {
-      await _ensureAudioContextInit();
-      
-      const ws = new WebSocket(u);
-      this.ws = ws;
-      ws.binaryType = 'arraybuffer';
-      ws.addEventListener('open', () => {
-        const initialMessage = e => {
-          if (typeof e.data === 'string') {
-            const j = JSON.parse(e.data);
-            const {method} = j;
-            switch (method) {
-              case 'init': {
-                const {args: {id, users}} = j;
-                console.log('init: ' + JSON.stringify({
-                  id,
-                  users,
-                }, null, 2));
-                
-                this.state = 'open';
-                this.dispatchEvent(new MessageEvent('open'));
-                
-                for (const userId of users) {
-                  if (userId !== id) {
-                    const player = new Player(userId);
-                    this.users.set(userId, player);
-                    this.dispatchEvent(new MessageEvent('join', {
-                      data: player,
-                    }));
-                  }
-                }
-                ws.id = id;
-                ws.removeEventListener('message', initialMessage);
-                ws.addEventListener('message', mainMessage);
-                ws.addEventListener('close', e => {
-                  this.state = 'closed';
-                  this.ws = null;
-                  this.dispatchEvent(new MessageEvent('close'));
-                });
-                
-                break;
+      const mainMessage = e => {
+        // console.log('got message', e);
+        if (typeof e.data === 'string') {
+          const j = JSON.parse(e.data);
+          const {method} = j;
+          switch (method) {
+            case 'audio': {
+              const {id} = j;
+              // console.log('got audio prep message', j);
+              const player = this.users.get(id);
+              if (player) {
+                player.lastMessage = j;
+              } else {
+                console.warn('audio message for unknown player ' + id);
               }
+              break;
             }
-          }
-        };
-        const mainMessage = e => {
-          // console.log('got message', e);
-          if (typeof e.data === 'string') {
-            const j = JSON.parse(e.data);
-            const {method} = j;
-            switch (method) {
-              case 'audio': {
-                const {id} = j;
-                // console.log('got audio prep message', j);
-                const player = this.users.get(id);
-                if (player) {
-                  player.lastMessage = j;
-                } else {
-                  console.warn('audio message for unknown player ' + id);
-                }
-                break;
-              }
-              case 'join': {
-                const {id} = j;
-                const player = new Player(id);
-                this.users.set(id, player);
-                player.dispatchEvent(new MessageEvent('join'));
-                this.dispatchEvent(new MessageEvent('join', {
+            case 'join': {
+              const {id} = j;
+              const player = new Player(id);
+              this.users.set(id, player);
+              player.dispatchEvent(new MessageEvent('join'));
+              this.dispatchEvent(new MessageEvent('join', {
+                data: player,
+              }));
+              break;
+            }
+            case 'leave': {
+              const {id} = j;
+              const player = this.users.get(id);
+              if (player) {
+                this.users.delete(id);
+                player.dispatchEvent(new MessageEvent('leave'));
+                this.dispatchEvent(new MessageEvent('leave', {
                   data: player,
                 }));
-                break;
-              }
-              case 'leave': {
-                const {id} = j;
-                const player = this.users.get(id);
-                if (player) {
-                  this.users.delete(id);
-                  player.dispatchEvent(new MessageEvent('leave'));
-                  this.dispatchEvent(new MessageEvent('leave', {
-                    data: player,
-                  }));
-                } else {
-                  console.warn('leave message for unknown user ' + id);
-                }
-                break;
-              }
-              default: {
-                console.warn('unknown message method: ' + method);
-                break;
-              }
-            }
-          } else {
-            // console.log('got e', e.data);
-            
-            const uint32Array = new Uint32Array(e.data, 0, 1);
-            const id = uint32Array[0];
-            // console.log('got audio data', id);
-            const player = this.users.get(id);
-            if (player) {
-              const j = player.lastMessage;
-              if (j && j.method === 'audio') {
-                player.lastMessage = null;
-                const data = new Uint8Array(e.data, Uint32Array.BYTES_PER_ELEMENT);
-                
-                const {method} = j;
-                switch (method) {
-                  case 'audio': {
-                    const {args: {type, timestamp, duration}} = j;
-                    const audioChunk = {
-                      method: 'decode',
-                      id,
-                      args: {
-                        type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
-                        timestamp,
-                        duration,
-                        data,
-                      },
-                    };
-                    this.worker.postMessage(audioChunk, [
-                      data.buffer,
-                    ]);
-                    break;
-                  }
-                  default: {
-                    console.warn('unknown last message method: ' + method);
-                    break;
-                  }
-                }
               } else {
-                console.warn('throwing away out-of-order binary data for user ' + id);
+                console.warn('leave message for unknown user ' + id);
               }
-            } else {
-              console.warn('received binary data for unknown user ' + id);
+              break;
+            }
+            default: {
+              console.warn('unknown message method: ' + method);
+              break;
             }
           }
-        };
-        ws.addEventListener('message', initialMessage);
-      });
-      ws.addEventListener('error', err => {
-        this.dispatchEvent(new MessageEvent('error', {
-          data: err,
-        }));
-      });
-    })();
+        } else {
+          // console.log('got e', e.data);
+          
+          const uint32Array = new Uint32Array(e.data, 0, 1);
+          const id = uint32Array[0];
+          // console.log('got audio data', id);
+          const player = this.users.get(id);
+          if (player) {
+            const j = player.lastMessage;
+            if (j && j.method === 'audio') {
+              player.lastMessage = null;
+              const data = new Uint8Array(e.data, Uint32Array.BYTES_PER_ELEMENT);
+              
+              const {method} = j;
+              switch (method) {
+                case 'audio': {
+                  const {args: {type, timestamp, duration}} = j;
+                  const audioChunk = {
+                    method: 'decode',
+                    id,
+                    args: {
+                      type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
+                      timestamp,
+                      duration,
+                      data,
+                    },
+                  };
+                  this.worker.postMessage(audioChunk, [
+                    data.buffer,
+                  ]);
+                  break;
+                }
+                default: {
+                  console.warn('unknown last message method: ' + method);
+                  break;
+                }
+              }
+            } else {
+              console.warn('throwing away out-of-order binary data for user ' + id);
+            }
+          } else {
+            console.warn('received binary data for unknown user ' + id);
+          }
+        }
+      };
+      ws.addEventListener('message', initialMessage);
+    });
+    ws.addEventListener('error', err => {
+      this.dispatchEvent(new MessageEvent('error', {
+        data: err,
+      }));
+    });
+  }
+  close() {
+    if (this.state === 'open') {
+      this.ws.disconnect();
+    } else {
+      throw new Error('connection not open');
+    }
   }
   async enableMic() {
     if (this.state !== 'open') {
@@ -297,12 +300,16 @@ class XRRTC extends EventTarget {
     }
   }
 }
+XRRTC.waitForReady = async () => {
+  await _ensureAudioContextInit();
+};
 XRRTC.getAudioContext = () => {
   _ensureAudioContextInit();
   return audioCtx;
 };
 
 window.addEventListener('click', async e => {
+  await XRRTC.waitForReady();
   const xrrtc = new XRRTC('wss://' + window.location.host);
   xrrtc.addEventListener('open', e => {
     xrrtc.enableMic();
