@@ -83,8 +83,9 @@ window.addEventListener('click', async e => {
       readAndEncode(reader, encoder);
     }
   }
-  function demuxAndPlay(encodedChunk) {
-    console.log('demux encodedChunk', encodedChunk);
+  function demuxAndPlay(audioData) {
+    const audioBuffer = audioData.buffer;
+    console.log('demux', audioBuffer);
   }
   function onDecoderError(err) {
     console.warn('decoder error', err);
