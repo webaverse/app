@@ -196,7 +196,7 @@ class XRRTC extends EventTarget {
               const player = this.users[id];
               if (player) {
                 const j = player.lastMessage;
-                if (j) {
+                if (j && j.method === 'audio') {
                   player.lastMessage = null;
                   const data = new Uint8Array(e.data, Uint32Array.BYTES_PER_ELEMENT);
                   
