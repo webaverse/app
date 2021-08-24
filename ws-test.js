@@ -143,19 +143,6 @@ class XRRTC extends EventTarget {
                   this.dispatchEvent(new MessageEvent('join', {
                     data: player,
                   }));
-                  /* audioEncoder.reset();
-                  audioEncoder.configure({
-                    codec: 'opus',
-                    numberOfChannels: channelCount,
-                    sampleRate,
-                    bitrate,
-                  });
-                  audioDecoder.reset();
-                  audioDecoder.configure({
-                    codec: 'opus',
-                    numberOfChannels: channelCount,
-                    sampleRate,
-                  }); */
                   break;
                 }
                 case 'leave': {
