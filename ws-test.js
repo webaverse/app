@@ -1,5 +1,15 @@
 window.addEventListener('click', async e => {
-  const ws = await new Promise((accept, reject) => {
+  const channelCount = 1;
+  const sampleRate = 48000;
+  const bitrate = 60_000;
+
+  const audioCtx = new AudioContext({
+    latencyHint: 'interactive',
+    sampleRate,
+  });
+  const audioWorkletPromise = audioCtx.audioWorklet.addModule('ws-worklet.js');
+
+  const wsPromise = new Promise((accept, reject) => {
     const ws = new WebSocket('wss://' + window.location.host);
     ws.binaryType = 'arraybuffer';
     ws.addEventListener('open', () => {
@@ -7,6 +17,49 @@ window.addEventListener('click', async e => {
     });
     ws.addEventListener('error', reject);
   });
+  
+  const mediaStreamPromise = navigator.mediaDevices.getUserMedia({
+    audio: {
+      channelCount,
+      sampleRate,
+    },
+  });
+  
+  const audioEncoder = new AudioEncoder({
+    output: muxAndSend,
+    error: onEncoderError,
+  });
+  const encoderPromise = audioEncoder.configure({
+    codec: 'opus',
+    numberOfChannels: channelCount,
+    sampleRate,
+    bitrate,
+  });
+
+  const audioDecoder = new AudioDecoder({
+    output: demuxAndPlay,
+    error: onDecoderError,
+  });
+  const decoderPromise = audioDecoder.configure({
+    codec: 'opus',
+    numberOfChannels: channelCount,
+    sampleRate,
+  });  
+  
+  const [
+    ws,
+    mediaStream,
+  ] = await Promise.all([
+    wsPromise,
+    mediaStreamPromise,
+    audioWorkletPromise,
+    encoderPromise,
+    decoderPromise,
+  ]);
+  
+  const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
+  audioWorkletNode.connect(audioCtx.destination);
+  
   // console.log('got ws', ws);
   let lastMessage = null;
   ws.addEventListener('message', e => {
@@ -29,41 +82,11 @@ window.addEventListener('click', async e => {
     }
   });
   
-  const channelCount = 1;
-  const sampleRate = 48000;
-  const bitrate = 60_000;
-  const mediaStream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      channelCount,
-      sampleRate,
-    },
-  });
   const audioTracks = mediaStream.getAudioTracks();
   const audioTrack = audioTracks[0];
   // const audioTrackSettings = audioTrack.getSettings();
   const audio = (new MediaStreamTrackProcessor(audioTrack)).readable;
   // console.log('got media', audioTrack, audioTrack.getSettings(), audio);
-
-  const audioEncoder = new AudioEncoder({
-    output: muxAndSend,
-    error: onEncoderError,
-  });
-  await audioEncoder.configure({
-    codec: 'opus',
-    numberOfChannels: channelCount,
-    sampleRate,
-    bitrate,
-  });
-
-  const audioDecoder = new AudioDecoder({
-    output: demuxAndPlay,
-    error: onDecoderError,
-  });
-  await audioDecoder.configure({
-    codec: 'opus',
-    numberOfChannels: channelCount,
-    sampleRate,
-  });  
   
   function muxAndSend(encodedChunk) {
     // console.log('got chunk', encodedChunk);
@@ -112,15 +135,4 @@ window.addEventListener('click', async e => {
   }
   
   readAndEncode(audio.getReader(), audioEncoder);
-
-  const audioCtx = new AudioContext({
-    latencyHint: 'interactive',
-    sampleRate,
-  });
-
-  await audioCtx.audioWorklet.addModule('ws-worklet.js')
-  const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet')
-  audioWorkletNode.connect(audioCtx.destination);
-  // console.log('lol', audioCtx.baseLatency);
-  // console.log('worklet', audioWorkletNode);
 });
