@@ -1,6 +1,6 @@
 class WsWorklet extends AudioWorkletProcessor {
   constructor (...args) {
-    super(...args)
+    super(...args);
     this.buffers = [];
     this.port.onmessage = e => {
       this.buffers.push(e.data);
