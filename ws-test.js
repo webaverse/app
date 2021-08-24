@@ -10,6 +10,7 @@ window.addEventListener('click', async e => {
   // console.log('got ws', ws);
   let lastMessage = null;
   ws.addEventListener('message', e => {
+    console.log('got message', e);
     if (typeof e.data === 'string') {
       lastMessage = e.data;
     } else {
@@ -29,7 +30,9 @@ window.addEventListener('click', async e => {
   });
   
   const mediaStream = await navigator.mediaDevices.getUserMedia({
-    audio: true,
+    audio: {
+      channelCount: 1,
+    },
   });
   const audioTracks = mediaStream.getAudioTracks();
   const audioTrack = audioTracks[0];
@@ -46,9 +49,6 @@ window.addEventListener('click', async e => {
     numberOfChannels: audioTrackSettings.channelCount,
     sampleRate: audioTrackSettings.sampleRate,
     bitrate: 60_000,
-    /* tuning: {
-      bitrate: 60_000,
-    }, */
   });
 
   const audioDecoder = new AudioDecoder({
@@ -59,13 +59,18 @@ window.addEventListener('click', async e => {
     codec: 'opus',
     numberOfChannels: audioTrackSettings.channelCount,
     sampleRate: audioTrackSettings.sampleRate,
-    /* tuning: {
-      bitrate: 60_000,
-    }, */
   });  
   
   function muxAndSend(encodedChunk) {
-    const {type, timestamp, duration, data} = encodedChunk;
+    console.log('got chunk', encodedChunk);
+    const {type, timestamp, duration, byteLength} = encodedChunk;
+    let data;
+    if (encodedChunk.copyTo) { // new api
+      data = new ArrayBuffer(byteLength);
+      encodedChunk.copyTo(data);
+    } else { // old api
+      data = encodedChunk.data;
+    }
     ws.send(JSON.stringify({
       type,
       timestamp,
@@ -88,6 +93,7 @@ window.addEventListener('click', async e => {
   const buffers = [];
   const _flushBuffers = () => {
     while (buffers.length > 0) {
+      console.log('flush', buffers[0]);
       const source = audioCtx.createBufferSource();
       source.buffer = buffers.shift();
       source.connect(audioCtx.destination);
@@ -101,8 +107,21 @@ window.addEventListener('click', async e => {
     }
   };
   function demuxAndPlay(audioData) {
-    const audioBuffer = audioData.buffer;
-    // console.log('demux', audioBuffer);
+    // console.log('demux', audioData);
+    let audioBuffer;
+    if (audioData.copyTo) {
+      audioBuffer = audioCtx.createBuffer(audioTrackSettings.channelCount, audioData.duration / 1000 * audioTrackSettings.sampleRate, audioTrackSettings.sampleRate);
+      
+      const opts = {
+        planeIndex: 0,
+        frameCount: audioData.numberOfFrames,
+      };
+      // const allocationSize = audioData.allocationSize(opts);
+      // const arrayBuffer = new ArrayBuffer(allocationSize);
+      audioData.copyTo(audioBuffer.getChannelData(0), opts);
+    } else {
+      audioBuffer = audioData.buffer;
+    }
     buffers.push(audioBuffer);
     _flushBuffers();
   }
