@@ -109,7 +109,7 @@ window.addEventListener('click', async e => {
   function demuxAndPlay(audioData) {
     // console.log('demux', audioData);
     let audioBuffer;
-    if (audioData.copyTo) {
+    if (audioData.copyTo) { // new api
       audioBuffer = audioCtx.createBuffer(audioTrackSettings.channelCount, audioData.duration / 1000 * audioTrackSettings.sampleRate, audioTrackSettings.sampleRate);
       
       const opts = {
@@ -119,7 +119,7 @@ window.addEventListener('click', async e => {
       // const allocationSize = audioData.allocationSize(opts);
       // const arrayBuffer = new ArrayBuffer(allocationSize);
       audioData.copyTo(audioBuffer.getChannelData(0), opts);
-    } else {
+    } else { // old api
       audioBuffer = audioData.buffer;
     }
     buffers.push(audioBuffer);
