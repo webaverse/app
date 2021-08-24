@@ -93,20 +93,23 @@ window.addEventListener('click', async e => {
   let playing = false;
   const buffers = [];
   const _flushBuffers = () => {
-    if (!playing && buffers.length >= 3) {
+    if (buffers.length > 5) {
+      buffers.length = 5;
+    }
+    if (!playing && buffers.length >= 2) {
       // console.log('flush', buffers[0]);
       const source = new AudioBufferSourceNode(audioCtx, {
         buffer: buffers.shift(),
       });
       source.start();
       source.connect(audioCtx.destination);
-      /* source.onended = () => {
+      source.onended = () => {
         console.log('ended');
         // source.disconnect();
         playing = false;
         _flushBuffers();
       };
-      playing = true; */
+      playing = true;
     }
   };
   function demuxAndPlay(audioData) {
@@ -138,7 +141,7 @@ window.addEventListener('click', async e => {
   readAndEncode(audio.getReader(), audioEncoder);
 
   const audioCtx = new AudioContext({
-    latencyHint: 'playback',
+    latencyHint: 'interactive',
     sampleRate: audioTrackSettings.sampleRate,
   });
   console.log('lol', audioCtx.baseLatency);
