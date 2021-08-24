@@ -1,6 +1,4 @@
-const channelCount = 1;
-const sampleRate = 48000;
-const bitrate = 60000;
+import {channelCount, sampleRate, bitrate} from './ws-constants.js';
 
 let audioCtx = null;
 const _ensureAudioContextInit = async () => {
@@ -20,42 +18,12 @@ class Player extends EventTarget {
     this.id = id;
     this.lastMessage = null;
     
-    function demuxAndPlay(audioData) {
-      // console.log('demux', audioData);
-      let channelData;
-      if (audioData.copyTo) { // new api
-        channelData = new Float32Array(audioData.numberOfFrames);
-        audioData.copyTo(channelData, {
-          planeIndex: 0,
-          frameCount: audioData.numberOfFrames,
-        });
-      } else { // old api
-        channelData = audioData.buffer.getChannelData(0);
-      }
-
-      audioWorkletNode.port.postMessage(channelData, [channelData.buffer]);
-    }
-    function onDecoderError(err) {
-      console.warn('decoder error', err);
-    }
-    
-    const audioDecoder = new AudioDecoder({
-      output: demuxAndPlay,
-      error: onDecoderError,
-    });
-    audioDecoder.configure({
-      codec: 'opus',
-      numberOfChannels: channelCount,
-      sampleRate,
-    });
-    
     const audioWorkletNode = new AudioWorkletNode(audioCtx, 'ws-worklet');
     audioWorkletNode.connect(audioCtx.destination);
     this.addEventListener('leave', () => {
       audioWorkletNode.disconnect();
     });
     
-    this.audioDecoder = audioDecoder;
     this.audioNode = audioWorkletNode;
   }
   toJSON() {
@@ -72,12 +40,35 @@ class XRRTC extends EventTarget {
     this.state = 'closed';
     this.ws = null;
     this.users = new Map();
+    this.worker = null;
     this.mediaStream = null;
     
     this.addEventListener('close', () => {
       this.users = new Map();
       this.disableMic();
     });
+    
+    {
+      const worker = new Worker('ws-codec.js', {
+        type: 'module',
+      });
+      worker.onmessage = e => {
+        const {method} = e.data;
+        // console.log('worker returned', e.data);
+        switch (method) {
+          case 'decode': {
+            const {id, args: {data}} = e.data;
+            const player = this.users.get(id);
+            if (player) {
+              // console.log('send data', data);
+              player.audioNode.port.postMessage(data, [data.buffer]);
+            }
+            break;
+          }
+        }
+      };
+      this.worker = worker;
+    }
 
     (async () => {
       await _ensureAudioContextInit();
@@ -104,7 +95,7 @@ class XRRTC extends EventTarget {
                 for (const userId of users) {
                   if (userId !== id) {
                     const player = new Player(userId);
-                    this.users[userId] = player;
+                    this.users.set(userId, player);
                     this.dispatchEvent(new MessageEvent('join', {
                       data: player,
                     }));
@@ -133,7 +124,7 @@ class XRRTC extends EventTarget {
               case 'audio': {
                 const {id} = j;
                 // console.log('got audio prep message', j);
-                const player = this.users[id];
+                const player = this.users.get(id);
                 if (player) {
                   player.lastMessage = j;
                 } else {
@@ -144,7 +135,7 @@ class XRRTC extends EventTarget {
               case 'join': {
                 const {id} = j;
                 const player = new Player(id);
-                this.users[id] = player;
+                this.users.set(id, player);
                 player.dispatchEvent(new MessageEvent('join'));
                 this.dispatchEvent(new MessageEvent('join', {
                   data: player,
@@ -153,9 +144,9 @@ class XRRTC extends EventTarget {
               }
               case 'leave': {
                 const {id} = j;
-                const player = this.users[id];
+                const player = this.users.get(id);
                 if (player) {
-                  this.users[id] = null;
+                  this.users.delete(id);
                   player.dispatchEvent(new MessageEvent('leave'));
                   this.dispatchEvent(new MessageEvent('leave', {
                     data: player,
@@ -176,7 +167,7 @@ class XRRTC extends EventTarget {
             const uint32Array = new Uint32Array(e.data, 0, 1);
             const id = uint32Array[0];
             // console.log('got audio data', id);
-            const player = this.users[id];
+            const player = this.users.get(id);
             if (player) {
               const j = player.lastMessage;
               if (j && j.method === 'audio') {
@@ -187,13 +178,19 @@ class XRRTC extends EventTarget {
                 switch (method) {
                   case 'audio': {
                     const {args: {type, timestamp, duration}} = j;
-                    const encodedAudioChunk = new EncodedAudioChunk({
-                      type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
-                      timestamp,
-                      duration,
-                      data,
-                    });
-                    player.audioDecoder.decode(encodedAudioChunk);
+                    const audioChunk = {
+                      method: 'decode',
+                      id,
+                      args: {
+                        type: 'key', // XXX: hack! when this is 'delta', you get Uncaught DOMException: Failed to execute 'decode' on 'AudioDecoder': A key frame is required after configure() or flush().
+                        timestamp,
+                        duration,
+                        data,
+                      },
+                    };
+                    this.worker.postMessage(audioChunk, [
+                      data.buffer,
+                    ]);
                     break;
                   }
                   default: {
