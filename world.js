@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import storage from './storage.js';
-import XRChannelConnection from './wsrtc/wsrtc.js';
+import Worlds from 'https://worlds.webaverse.com/node_modules/wsrtc/wsrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
@@ -98,8 +98,8 @@ _bindState(states.dynamic, true);
 
 let player
 world.connectRoom = async (roomName, worldURL) => {
-  await XRChannelConnection.waitForReady();
-  channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
+  await Worlds.waitForReady();
+  channelConnection = new Worlds(`wss://${worldURL}`, {roomName});
 
   let interval;
   
@@ -107,7 +107,7 @@ world.connectRoom = async (roomName, worldURL) => {
     player = e.data;
  
 
-    player.audioNode.connect(XRChannelConnection.getAudioContext().destination);
+    player.audioNode.connect(Worlds.getAudioContext().destination);
   });
 
   channelConnection.addEventListener('open', async e => {
@@ -623,8 +623,6 @@ const _unlatchMediaStream = async () => {
 };
 
 const micButton = document.getElementById('key-t');
-
-
 
 world.toggleMic = async () => {
   if (!channelConnection.mediaStream) {
