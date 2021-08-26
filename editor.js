@@ -18,7 +18,7 @@ import {downloadFile, getExt, flipGeomeryUvs, updateRaycasterFromMouseEvent, get
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
-import HtmlRenderer from 'html-render';
+import HtmlRenderer from 'https://html-render.webaverse.com/html-render-api.js';
 import {storageHost, tokensHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
