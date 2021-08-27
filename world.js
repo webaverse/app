@@ -139,7 +139,7 @@ const didInteract = new Promise(resolve => window.addEventListener('click', e =>
   resolve(true)
 , {once: true}));
 
-let player;
+
 world.connectRoom = async (roomName, worldURL) => {
   await didInteract;
   await WSRTC.waitForReady();
@@ -223,7 +223,8 @@ world.connectRoom = async (roomName, worldURL) => {
   }, {once: true});
 
   wsrtc.addEventListener('join', async e => {
-    player = e.data;
+    const player = e.data;
+  
     let connected = true;
     player.audioNode.connect(WSRTC.getAudioContext().destination);
 
