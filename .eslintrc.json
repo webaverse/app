@@ -1,6 +1,9 @@
 {
     "extends": "semistandard",
     "rules": {
+        "semi": ["warn", "always"],
+        "eol-last": ["warn", "always"],
+        "no-unused-vars": ["warn"],
         "comma-dangle": ["warn", "always-multiline"],
         "object-curly-spacing": ["warn", "never"],
         "linebreak-style": ["warn", "unix"],
