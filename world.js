@@ -101,6 +101,18 @@ function makeid(length) {
   return result;
 }
 
+function BuffVec(buffer, vec) {
+  buffer[0] = vec.x;
+  buffer[1] = vec.y;
+  buffer[2] = vec.z;
+
+  if (vec.w !== undefined) {
+    buffer[3] = vec.w;
+  }
+
+  return buffer;
+}
+
 const didInteract = new Promise(resolve => window.addEventListener('click', e => {
   resolve(true);
 }, {once: true}));
@@ -115,31 +127,27 @@ world.connectRoom = async (roomName, worldURL) => {
   let interval;
 
   const sendUpdate = () => {
-    const pose = rigManager.getLocalAvatarPose();
-    const [
-      [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-    ] = pose;
+    const {hmd, leftGamepad, rightGamepad} = rigManager.localRig.inputs;
+    const user = wsrtc.localUser;
 
-    wsrtc.localUser.setPose(
-      Float32Array.from(hmdPosition),
-      Float32Array.from(hmdQuaternion),
-      Float32Array.from([1, 1, 1]),
+    user.setPose(
+      BuffVec(user.pose.position, hmd.position),
+      BuffVec(user.pose.quaternion, hmd.quaternion),
+      user.pose.scale,
       Float32Array.from([
-        leftGamepadPosition,
-        leftGamepadQuaternion,
+        leftGamepad.position.toArray(),
+        leftGamepad.quaternion.toArray(),
         [
-          leftGamepadPointer,
-          leftGamepadGrip,
-          leftGamepadEnabled ? 1 : 0,
+          leftGamepad.pointer ? 1 : 0,
+          leftGamepad.grip ? 1 : 0,
+          leftGamepad.enabled ? 1 : 0,
         ],
-        rightGamepadPosition,
-        rightGamepadQuaternion,
+        rightGamepad.position.toArray(),
+        rightGamepad.quaternion.toArray(),
         [
-          rightGamepadPointer,
-          rightGamepadGrip,
-          rightGamepadEnabled ? 1 : 0,
+          rightGamepad.pointer ? 1 : 0,
+          rightGamepad.grip ? 1 : 0,
+          rightGamepad.enabled ? 1 : 0,
         ],
       ]),
     );
