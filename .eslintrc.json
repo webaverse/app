@@ -1,15 +1,15 @@
 {
     "extends": "semistandard",
     "rules": {
-        "comma-dangle": ["error", "always-multiline"],
-        "object-curly-spacing": ["error", "never"],
-        "linebreak-style": ["error", "unix"],
-        "space-before-function-paren": ["error", {
+        "comma-dangle": ["warn", "always-multiline"],
+        "object-curly-spacing": ["warn", "never"],
+        "linebreak-style": ["warn", "unix"],
+        "space-before-function-paren": ["warn", {
             "anonymous": "never",
             "named": "never",
             "asyncArrow": "always"
         }],
-        "arrow-parens": ["error", "as-needed"],
+        "arrow-parens": ["warn", "as-needed"],
         "number-literal-case": "off"
     },
     "env": {
