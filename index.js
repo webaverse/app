@@ -3,7 +3,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
-const xrrtcServer = require('./wsrtc/wsrtc-server.js');
+
 function getExt(fileName) {
   const match = fileName
     .replace(/^[a-z]+:\/\/[^\/]+\//, '')
@@ -78,8 +78,4 @@ if (CERT && PRIVKEY) {
     .listen(httpsPort);
   servers.push(httpsServer)
   console.log('https://localhost:'+httpsPort);
-}
-
-for (const server of servers) {
-  xrrtcServer.bindServer(server);
 }
