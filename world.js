@@ -101,7 +101,7 @@ function makeid(length) {
   return result;
 }
 
-function BuffVec(buffer, vec) {
+function buffVec(buffer, vec) {
   buffer[0] = vec.x;
   buffer[1] = vec.y;
   buffer[2] = vec.z;
@@ -131,8 +131,8 @@ world.connectRoom = async (roomName, worldURL) => {
     const user = wsrtc.localUser;
 
     user.setPose(
-      BuffVec(user.pose.position, hmd.position),
-      BuffVec(user.pose.quaternion, hmd.quaternion),
+      buffVec(user.pose.position, hmd.position),
+      buffVec(user.pose.quaternion, hmd.quaternion),
       user.pose.scale,
       Float32Array.from([
         leftGamepad.position.toArray(),
