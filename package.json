@@ -12,9 +12,7 @@
   "dependencies": {
     "next": "11.1.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "lint": "eslint --ext .js .",
-    "lint-fix": "eslint --fix --ext .js ."
+    "react-dom": "17.0.2"
   },
   "repository": {
     "type": "git",
@@ -26,11 +24,6 @@
     "url": "https://github.com/webaverse/app/issues"
   },
   "homepage": "https://github.com/webaverse/app",
-  "dependencies": {
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "next": "^11.1.0"
-  },
   "browserslist": [
     "last 1 chrome version"
   ],
