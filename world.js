@@ -113,9 +113,31 @@ function buffVec(buffer, vec) {
   return buffer;
 }
 
-const didInteract = new Promise(resolve => window.addEventListener('click', e => {
-  resolve(true);
-}, {once: true}));
+function buffArgs(buffer, ...args) {
+  for (let i = 0; i < args.length; i++) {
+    buffer[i] = args[i];
+  }
+
+  return buffer;
+}
+
+// The extra Pose buffers we send along
+const extra = {
+  leftGamepadPosition: new Float32Array(3),
+  leftGamepadQuaternion: new Float32Array(4),
+  leftGamepad: new Float32Array(3),
+  rightGamepadPosition: new Float32Array(3),
+  rightGamepadQuaternion: new Float32Array(4),
+  rightGamepad: new Float32Array(3),
+  attr: new Float32Array(3),
+  direction: new Float32Array(3),
+  velocity: new Float32Array(3),
+  states: new Float32Array(15),
+};
+
+const didInteract = new Promise(resolve => window.addEventListener('click', e =>
+  resolve(true)
+, {once: true}));
 
 let player;
 world.connectRoom = async (roomName, worldURL) => {
@@ -127,29 +149,58 @@ world.connectRoom = async (roomName, worldURL) => {
   let interval;
 
   const sendUpdate = () => {
-    const {hmd, leftGamepad, rightGamepad} = rigManager.localRig.inputs;
+    const rig = rigManager.localRig;
+    const {hmd, leftGamepad, rightGamepad} = rig.inputs;
     const user = wsrtc.localUser;
 
     user.setPose(
       buffVec(user.pose.position, hmd.position),
       buffVec(user.pose.quaternion, hmd.quaternion),
       user.pose.scale,
-      Float32Array.from([
-        leftGamepad.position.toArray(),
-        leftGamepad.quaternion.toArray(),
-        [
+      [
+        buffVec(extra.leftGamepadPosition, leftGamepad.position),
+        buffVec(extra.leftGamepadQuaternion, leftGamepad.quaternion),
+        buffArgs(
+          extra.leftGamepad,
           leftGamepad.pointer ? 1 : 0,
           leftGamepad.grip ? 1 : 0,
           leftGamepad.enabled ? 1 : 0,
-        ],
-        rightGamepad.position.toArray(),
-        rightGamepad.quaternion.toArray(),
-        [
+        ),
+        buffVec(extra.rightGamepadPosition, rightGamepad.position),
+        buffVec(extra.rightGamepadQuaternion, rightGamepad.quaternion),
+        buffArgs(
+          extra.rightGamepad,
           rightGamepad.pointer ? 1 : 0,
           rightGamepad.grip ? 1 : 0,
           rightGamepad.enabled ? 1 : 0,
-        ],
-      ]),
+        ),
+        buffArgs(
+          extra.attr,
+          rig.getFloorHeight() ? 1 : 0,
+          rig.getTopEnabled() ? 1 : 0,
+          rig.getBottomEnabled() ? 1 : 0,
+        ),
+        buffVec(extra.direction, rig.direction),
+        buffVec(extra.velocity, rig.velocity),
+        buffArgs(
+          extra.states,
+          rig.jumpState,
+          rig.jumpTime,
+          rig.flyState,
+          rig.flyTime,
+          rig.useTime,
+          rig.useAnimation,
+          rig.sitState,
+          rig.sitAnimation,
+          rig.danceState,
+          rig.danceTime,
+          rig.danceAnimation,
+          rig.throwState,
+          rig.throwTime,
+          rig.crouchState,
+          rig.crouchTime,
+        ),
+      ],
     );
   };
 
