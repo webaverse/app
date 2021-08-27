@@ -1,5 +1,8 @@
 {
-    "extends": "semistandard",
+    "extends": [
+      "plugin:@next/next/recommended",
+      "semistandard"
+    ],
     "rules": {
         "semi": ["warn", "always"],
         "eol-last": ["warn", "always"],

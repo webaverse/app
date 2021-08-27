@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node server.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -12,7 +12,8 @@
   "dependencies": {
     "next": "11.1.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "wsrtc": "^0.0.5"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
     "last 1 chrome version"
   ],
   "devDependencies": {
+    "@next/eslint-plugin-next": "^11.1.0",
     "eslint": "^7.8.1",
     "eslint-config-semistandard": "^15.0.1",
     "eslint-config-standard": "^14.1.1",
