@@ -28,7 +28,11 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
-import lol from './lol.t.js';
+setTimeout(async () => {
+  console.log('dynamic import');
+  const m = await import('./lol.t.js');
+  console.log('got module', m.default());
+}, 1000);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -437,12 +441,6 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   
   return o;
 };
-
-setTimeout(async () => {
-  console.log('dynamic import');
-  const m = await import('./lol.t.js');
-  console.log('got module', m.default());
-}, 1000);
 
 const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
