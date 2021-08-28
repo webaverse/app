@@ -28,9 +28,9 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
-window.lol = async () => {
+window.lol = async s => {
   console.log('dynamic import', import.meta);
-  const m = await import('./lol.t.js');
+  const m = await import(s);
   console.log('got module 1', m);
   const r = m.default({});
   console.log('got module 2', r);
