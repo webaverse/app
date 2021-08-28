@@ -2,6 +2,8 @@ import React from 'react';
 import * as THREE from 'three';
 import {Canvas, useFrame, useThree} from '@react-three/fiber';
 
+console.log('got react', React);
+
 function Box(props) {
   // This reference will give us direct access to the THREE.Mesh object
   const mesh = useRef()
