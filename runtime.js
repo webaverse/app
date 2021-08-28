@@ -28,6 +28,12 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
+import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
+console.log('got app', R3FDemo({}));
+
+import R3FDemo2 from './lol.jsx';
+console.log('got app 2', R3FDemo2({}));
+
 window.lol = async s => {
   console.log('dynamic import', import.meta);
   const m = await import(s);
