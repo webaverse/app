@@ -29,7 +29,7 @@ import {makeAppContextObject} from './api.js';
 import {baseUnit, rarityColors} from './constants.js';
 
 window.lol = async () => {
-  console.log('dynamic import');
+  console.log('dynamic import', import);
   const m = await import('./lol.t.js');
   console.log('got module 1', m);
   const r = m.default({});
