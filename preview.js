@@ -1,7 +1,7 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader} from 'https://lib.webaverse.com/GLTFLoader.js';
-import {OrbitControls} from 'https://lib.webaverse.com/OrbitControls.js';
-import {VOXLoader} from 'https://lib.webaverse.com/VOXLoader.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {VOXLoader} from './VOXLoader.js';
 import {world} from './world.js';
 import {parseQuery, addDefaultLights} from './util.js';
 import {storageHost} from './constants.js';

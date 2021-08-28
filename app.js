@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import {loginManager} from './login.js';
 import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';

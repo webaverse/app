@@ -1,5 +1,6 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';

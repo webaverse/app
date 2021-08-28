@@ -1,5 +1,5 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {BufferGeometryUtils} from 'https://lib.webaverse.com/BufferGeometryUtils.js';
+import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer, scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
