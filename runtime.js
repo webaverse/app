@@ -28,11 +28,11 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
-setTimeout(async () => {
+window.lol = () => {
   console.log('dynamic import');
   const m = await import('./lol.t.js');
-  console.log('got module', m.default());
-}, 1000);
+  console.log('got module', m.default({}));
+};
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
