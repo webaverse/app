@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, GLTFExporter, OrbitControls} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import {GLTFLoader, GLTFExporter, OrbitControls} from 'three';
 // import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
 // import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
 // import {readFile} from './util.js';

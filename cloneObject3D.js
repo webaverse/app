@@ -1,4 +1,4 @@
-import { PropertyBinding, AnimationClip } from 'https://lib.webaverse.com/three.js';
+import { PropertyBinding, AnimationClip } from 'three';
 
 // Modified version of Don McCurdy's AnimationUtils.clone
 // https://github.com/mrdoob/three.js/pull/14494

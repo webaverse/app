@@ -1,7 +1,9 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
-import React from 'https://lib.webaverse.com/react.js';
-import ReactThreeFiber from 'https://lib.webaverse.com/react-three-fiber.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import React from 'react';
+import * as ReactThreeFiber from '@react-three/fiber';
 // import {KTX2Loader} from './KTX2Loader.js';
 // import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
@@ -96,9 +98,9 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 
 /* const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
-  three: 'https://lib.webaverse.com/three.js',
-  BufferGeometryUtils: 'https://lib.webaverse.com/BufferGeometryUtils.js',
-  GLTFLoader: 'https://lib.webaverse.com/GLTFLoader.js',
+  three: 'three',
+  BufferGeometryUtils: 'three/examples/jsm/utils/BufferGeometryUtils.js',
+  GLTFLoader: 'three/examples/jsm/loaders/GLTFLoader.js',
   // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   api: _importMapUrl('./api.js'),

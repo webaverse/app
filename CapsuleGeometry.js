@@ -1,5 +1,5 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {Vector3, Color} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import {Vector3, Color} from 'three';
 
 class Face3 {
 

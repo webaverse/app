@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 

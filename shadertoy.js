@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import {scene, camera, getRenderer} from './app-object.js';
 import {copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './shaders.js';
 

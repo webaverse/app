@@ -1,5 +1,5 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import React from 'https://lib.webaverse.com/react.js';
+import * as THREE from 'three';
+import React from 'react';
 const {useEffect} = React;
 import physicsManager from './physics-manager.js';
 

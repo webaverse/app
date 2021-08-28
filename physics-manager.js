@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './app-object.js';
 import geometryManager from './geometry-manager.js';
