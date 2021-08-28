@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 // import {BasisTextureLoader} from './BasisTextureLoader.js';
 import alea from './alea.js';
 import easing from './easing.js';

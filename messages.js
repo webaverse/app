@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {appManager, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const maxMessages = 8;

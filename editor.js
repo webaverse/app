@@ -1,11 +1,11 @@
-import * as THREE from 'three';
-import {BufferGeometryUtils} from 'BufferGeometryUtils';
-import React from 'react';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {BufferGeometryUtils} from 'https://lib.webaverse.com/BufferGeometryUtils.js';
+import React from 'https://lib.webaverse.com/react.js';
 const {Fragment, useState, useEffect, useRef} = React;
-import ReactDOM from 'react-dom';
-import ReactThreeFiber from '@react-three/fiber';
-import Babel from '@babel/standalone';
-import JSZip from 'jszip';
+import ReactDOM from 'https://lib.webaverse.com/react-dom.js';
+import ReactThreeFiber from 'https://lib.webaverse.com/react-three-fiber.js';
+import Babel from 'https://lib.webaverse.com/babel-standalone.js';
+import JSZip from 'https://lib.webaverse.com/jszip.js';
 // import {jsx} from 'jsx-tmpl';
 import {world} from './world.js';
 import transformControls from './transform-controls.js';
@@ -18,7 +18,7 @@ import {downloadFile, getExt, flipGeomeryUvs, updateRaycasterFromMouseEvent, get
 import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
-import HtmlRenderer from 'html-render';
+import HtmlRenderer from 'https://html-render.webaverse.com/html-render-api.js';
 import {storageHost, tokensHost} from './constants.js';
 // import TransformGizmo from './TransformGizmo.js';
 // import transformControls from './transform-controls.js';
