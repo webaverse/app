@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "start": "vite",
+    "dev": "node index.js",
     "build": "vite build",
     "serve": "vite preview"
   },
