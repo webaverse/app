@@ -28,6 +28,8 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 
+import lol from './lol.t.js';
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -80,7 +82,7 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 }
 
 
-const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
+/* const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
   three: 'https://lib.webaverse.com/three.js',
   BufferGeometryUtils: 'https://lib.webaverse.com/BufferGeometryUtils.js',
@@ -101,7 +103,7 @@ const importMap = {
   drop: _importMapUrl('./drop-manager.js'),
   npc: _importMapUrl('./npc-manager.js'),
   constants: _importMapUrl('./constants.js'),
-};
+}; */
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 const _makeFilesProxy = srcUrl => new Proxy({}, {
@@ -435,6 +437,12 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   
   return o;
 };
+
+setTimeout(async () => {
+  console.log('dynamic import');
+  const m = await import('./lol.t.js');
+  console.log('got module', m.default());
+}, 1000);
 
 const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -1142,7 +1150,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   
   return mesh;
 };
-const _makeAppUrl = appId => {
+/* const _makeAppUrl = appId => {
   const s = `\
     import {getRenderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import * as THREE from ${JSON.stringify(importMap.three)};
@@ -1162,9 +1170,6 @@ const _makeAppUrl = appId => {
 
     const _renderer = getRenderer();
     const renderer = Object.create(_renderer);
-    /* renderer.setAnimationLoop = function(fn) {
-      appManager.setAnimationLoop(${appId}, fn);
-    }; */
     renderer.setAnimationLoop = null;
 
     const physics = {};
@@ -1279,7 +1284,7 @@ const _makeAppUrl = appId => {
     type: 'application/javascript',
   });
   return URL.createObjectURL(b);
-};
+}; */
 const _loadScript = async (file, {files = null, parentUrl = null, contentId = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
@@ -1381,68 +1386,13 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   app.jitterObject = jitterObject;
   app.object = appObject;
   app.contentId = contentId;
-  const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId);
+  // const localImportMap = _clone(importMap);
+  // localImportMap.app = _makeAppUrl(appId);
   app.files = files || _makeFilesProxy(srcUrl);
 
-  const cachedUrls = [];
-  const _getUrl = u => {
-    const mappedUrl = URL.createObjectURL(new Blob([u], {
-      type: 'text/javascript',
-    }));
-    cachedUrls.push(mappedUrl);
-    return mappedUrl;
-  };
-  const urlCache = {};
-  const _mapUrl = async u => {
-    const importUrl = localImportMap[u];
-    if (importUrl) {
-      return importUrl;
-    } else {
-      const cachedUrl = urlCache[u];
-      if (cachedUrl) {
-        return cachedUrl;
-      } else {
-        const res = await fetch(u);
-        if (res.ok) {
-          let importScript = await res.text();
-          importScript = await _mapScript(importScript, srcUrl);
-          const cachedUrl = _getUrl(importScript);
-          urlCache[u] = cachedUrl;
-          return cachedUrl;
-        } else {
-          throw new Error('failed to load import url: ' + u);
-        }
-      }
-    }
-  };
-  const _mapScript = async (script, scriptUrl) => {
-    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);$/gm;
-    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
-      let u = match[2];
-      if (/^\.+\//.test(u)) {
-        if (app.files && _isResolvableUrl(u)) {
-          u = app.files[u]; // do not dotify; import statements are used as-is
-        } else {
-          u = new URL(u, scriptUrl).href;
-        }
-      }
-      return await _mapUrl(u);
-    }));
-    let index = 0;
-    script = script.replace(r, function() {
-      return arguments[1] + replacements[index++] + arguments[3];
-    });
-    if (instanceId) {
-      script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
-      script = `
-        document.monetization${instanceId} = new EventTarget();
-      ` + script;
-    }
-    return script;
-  };
-  const u = await _mapUrl(srcUrl);
+  /* (async () => {
+    
+  })(); */
 
   app.addEventListener('frame', e => {
     jitterObject.update(e.data.timeDiff);
