@@ -8,4 +8,9 @@ export default defineConfig({
     webaversePlugin(),
     reactRefresh(),
   ],
+  server: {
+    fs: {
+      strict: true,
+    },
+  },
 })
