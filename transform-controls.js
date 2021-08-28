@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {scene, sceneLowPriority} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import TransformGizmo from './TransformGizmo.js';
@@ -90,37 +90,39 @@ const transformControls = {
     this.dragging = false;
   },
   handleMouseMove(raycaster) {
-    if (this.dragging) {
-      /* this.transformRay.origin.setFromMatrixPosition(this.camera.matrixWorld);
-      this.transformRay.direction
-        .set(cursorPosition.x, cursorPosition.y, 0.5)
-        .unproject(this.camera)
-        .sub(this.transformRay.origin);
-      this.transformRay.intersectPlane(this.transformPlane, this.planeIntersection); */
+    if (this.transformGizmo) {
+      if (this.dragging) {
+        /* this.transformRay.origin.setFromMatrixPosition(this.camera.matrixWorld);
+        this.transformRay.direction
+          .set(cursorPosition.x, cursorPosition.y, 0.5)
+          .unproject(this.camera)
+          .sub(this.transformRay.origin);
+        this.transformRay.intersectPlane(this.transformPlane, this.planeIntersection); */
 
-      raycaster.ray.intersectPlane(this.transformPlane, localVector);
-      const endPosition = localVector;
-      this.startMouseMatrix.decompose(
-        localVector2,
-        localQuaternion,
-        localVector3
-      );
-      const startPosition = localVector2;
-      const diffVector = localVector3.copy(endPosition)
-        .sub(startPosition);
-    
-      this.transformGizmo.matrix.copy(this.startMatrix)
-        .premultiply(
-          localMatrix.compose(
-            diffVector,
-            localQuaternion.set(0, 0, 0, 1),
-            localVector4.set(1, 1, 1)
-          )
+        raycaster.ray.intersectPlane(this.transformPlane, localVector);
+        const endPosition = localVector;
+        this.startMouseMatrix.decompose(
+          localVector2,
+          localQuaternion,
+          localVector3
         );
+        const startPosition = localVector2;
+        const diffVector = localVector3.copy(endPosition)
+          .sub(startPosition);
+      
+        this.transformGizmo.matrix.copy(this.startMatrix)
+          .premultiply(
+            localMatrix.compose(
+              diffVector,
+              localQuaternion.set(0, 0, 0, 1),
+              localVector4.set(1, 1, 1)
+            )
+          );
 
-      const constraint = TransformAxisConstraints[this.transformAxis];
-    } else {
-      this.transformGizmo.highlightHoveredAxis(raycaster);
+        const constraint = TransformAxisConstraints[this.transformAxis];
+      } else {
+        this.transformGizmo.highlightHoveredAxis(raycaster);
+      }
     }
   },
   update() {

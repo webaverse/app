@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {appManager, getRenderer, camera/*, orbitControls*/} from './app-object.js';
 import controlsManager from './controls-manager.js';
 import physicsManager from './physics-manager.js';

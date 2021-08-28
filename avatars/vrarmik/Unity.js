@@ -1,4 +1,4 @@
-import THREE from 'three';
+import THREE from 'https://lib.webaverse.com/three.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

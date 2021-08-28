@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 
 /* const _makeHeightfieldShader = land => ({
   uniforms: {

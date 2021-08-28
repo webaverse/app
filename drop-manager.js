@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import {GLTFLoader} from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {GLTFLoader} from 'https://lib.webaverse.com/three.js';
 import {scene} from './app-object.js';
 import {rigManager} from './rig.js';
 import Simplex from './simplex-noise.js';

@@ -1,5 +1,5 @@
-import { Object3D, Color, Vector3 } from 'three';
-import { GLTFLoader } from 'GLTFLoader';
+import { Object3D, Color, Vector3 } from 'https://lib.webaverse.com/three.js';
+import { GLTFLoader } from 'https://lib.webaverse.com/GLTFLoader.js';
 const transformGizmoUrl = './assets/TransformGizmo.glb';
 import cloneObject3D from "./cloneObject3D.js";
 // import { TransformMode, TransformAxis } from "./SpokeControls.js";

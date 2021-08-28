@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const localVector = new THREE.Vector3();
