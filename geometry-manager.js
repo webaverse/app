@@ -15,7 +15,7 @@ import {
   MAX_NAME_LENGTH, */
 } from './constants.js';
 import {getRenderer, scene} from './app-object.js';
-import Module from './bin/geometry.js';
+import Module from './public/bin/geometry.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
