@@ -31,7 +31,9 @@ import {baseUnit, rarityColors} from './constants.js';
 window.lol = async () => {
   console.log('dynamic import');
   const m = await import('./lol.t.js');
-  console.log('got module', m.default({}));
+  console.log('got module 1', m);
+  const r = m.default({});
+  console.log('got module 2', r);
 };
 
 const localVector = new THREE.Vector3();
