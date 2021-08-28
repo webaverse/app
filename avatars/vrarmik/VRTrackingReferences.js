@@ -1,4 +1,4 @@
-import THREE from 'three';
+import THREE from 'https://lib.webaverse.com/three.js';
 
 const _makeFingers = () => {
   const result = Array(25);

@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import {BufferGeometryUtils} from 'BufferGeometryUtils';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {BufferGeometryUtils} from 'https://lib.webaverse.com/BufferGeometryUtils.js';
 import atlaspack from './atlaspack.js';
 import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
