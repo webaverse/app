@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import {scene, camera} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {epochStartTime} from './util.js';

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
 import dropManager from './drop-manager.js';

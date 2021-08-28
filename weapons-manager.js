@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import {GLTFLoader, BufferGeometryUtils} from 'three';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {GLTFLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';

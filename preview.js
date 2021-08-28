@@ -1,14 +1,14 @@
-import * as THREE from 'three';
-import {GLTFLoader} from 'GLTFLoader';
-import {OrbitControls} from 'OrbitControls';
-import {VOXLoader} from 'VOXLoader';
+import * as THREE from 'https://lib.webaverse.com/three.js';
+import {GLTFLoader} from 'https://lib.webaverse.com/GLTFLoader.js';
+import {OrbitControls} from 'https://lib.webaverse.com/OrbitControls.js';
+import {VOXLoader} from 'https://lib.webaverse.com/VOXLoader.js';
 import {world} from './world.js';
 import {parseQuery, addDefaultLights} from './util.js';
 import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
 import extractPeaks from './webaudio-peaks.js';
 
-import App from '/app.js';
+import App from './app.js';
 
 const _loadVrm = async src => {
   let o;
