@@ -26,21 +26,17 @@ module.exports = {
           return config.entry().then((entry) => ({
             ...entry,
             // adding custom entry points
-            wsrtc: {
-              import: path.resolve(process.cwd(), 'node_modules/wsrtc/wsrtc.js'),
-              // filename: path.resolve(process.cwd(), 'dist/wsrtc.js'),
-              publicPath: '/static/wsrtc.js',
-              filename: '/static/wsrtc.js',
-              // path: '/static/wsrtc.js',
-              // libraryTarget: 'module',
-              library: {
-                name: 'wsrtc',
-                type: 'var',
-              },
-              /* type: 'javascript/auto',
-              output: {
-                scriptType: 'module',
-              }, */
+            module: {
+              rules: [
+                // rules for modules (configure loaders, parser options, etc.)
+                {
+                  test: /.js$/,
+                  exclude: /(node_modules)/,
+                  use: {
+                    loader: 'babel-loader',
+                  },
+                },
+              ],
             },
             // run: path.resolve(process.cwd(), 'src/run.js'),
           }));
@@ -48,12 +44,6 @@ module.exports = {
         /* optimization: {
           runtimeChunk: 'single',
         }, */
-        output: {
-          enabledLibraryTypes: ['var', 'module'],
-        },
-        experiments: {
-          outputModule: true,
-        },
       };
     // }
   },
