@@ -14,5 +14,5 @@ jobs:
         username: ubuntu
         key: ${{ secrets.KEY }}
         port: 22
-        script: PATH="$PATH:/home/ubuntu/.nvm/versions/node/v16.8.0/bin/" && cd app && git stash && git pull --rebase && npm install && sudo killall node && npm start
+        script: PATH="$PATH:/home/ubuntu/.nvm/versions/node/v16.8.0/bin/" && cd app && git stash && git pull --rebase && npm install && forever restartall
         debug: true
