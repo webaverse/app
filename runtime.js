@@ -76,6 +76,7 @@ metaveresefile.setApi({
     }
   },
 });
+window.metaveresefile = metaveresefile;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
