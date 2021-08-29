@@ -29,6 +29,7 @@ import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
+import metaveresefile from 'metaversefile';
 
 import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
 console.log('got app', R3FDemo({}));
@@ -36,13 +37,45 @@ console.log('got app', R3FDemo({}));
 import R3FDemo2 from './lol.jsx';
 console.log('got app 2', R3FDemo2({}));
 
-window.lol = async s => {
-  console.log('dynamic import', import.meta);
-  const m = await import(s);
-  console.log('got module 1', m);
-  const r = m.default({});
-  console.log('got module 2', r);
-};
+metaveresefile.setApi({
+  async import(s) {
+    const module = await import(s);
+    return module;
+  },
+  async add(module) {
+    const renderSpec = await module.default();
+    if (renderSpec instanceof React.Component) {
+      (async () => {
+        const roots = ReactThreeFiber._roots;
+        const root = roots.get(rootDiv);
+        const fiber = root?.fiber
+        if (fiber) {
+          const state = root?.store.getState()
+          if (state) state.internal.active = false
+          await new Promise((accept, reject) => {
+            ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+              if (state) {
+                // setTimeout(() => {
+                  state.events.disconnect?.()
+                  // state.gl?.renderLists?.dispose?.()
+                  // state.gl?.forceContextLoss?.()
+                  ReactThreeFiber.dispose(state)
+                  roots.delete(canvas)
+                  // if (callback) callback(canvas)
+                // }, 500)
+              }
+              accept();
+            });
+          });
+        }
+      })();
+    } else if (renderSpec === null) {
+      // nothing
+    } else {
+      throw new Error('unknown renderSpec:' + renderSpec);
+    }
+  },
+});
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
