@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite'
 import reactRefresh from '@vitejs/plugin-react-refresh'
-import webaversePlugin from './rollup-webaverse-plugin.js'
+import rollupPlugin from 'metaversefile/plugins/rollup.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    webaversePlugin(),
+    rollupPlugin(),
     reactRefresh(),
   ],
   server: {
