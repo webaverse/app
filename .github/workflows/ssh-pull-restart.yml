@@ -14,5 +14,5 @@ jobs:
         username: ubuntu
         key: ${{ secrets.KEY }}
         port: 22
-        script: whoami
+        script: cd app && git stash && git pull --rebase && npm install && sudo killall node && npm start
         debug: true
