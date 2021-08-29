@@ -158,8 +158,10 @@ if (iframeContainer && iframeContainer2) {
   iframeContainer.updateSize();
 }
 
-class AppManager {
+class AppManager extends EventTarget {
   constructor() {
+    super();
+    
     this.apps = [];
     this.grabbedObjects = [null, null];
     this.equippedObjects = [null, null];
@@ -192,15 +194,16 @@ class AppManager {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
   tick(timestamp, frame) {
-    if (this.apps.length > 0) {
+    // if (this.apps.length > 0) {
       localData.timestamp = timestamp;
       localData.frame = frame;
       localData.timeDiff = timestamp - this.lastTimestamp;
       this.lastTimestamp = timestamp;
-      for (const app of this.apps) {
+      this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+      /* for (const app of this.apps) {
         app.dispatchEvent(new MessageEvent('frame', localFrameOpts));
-      }
-    }
+      } */
+    // }
   }
 }
 const appManager = new AppManager()
