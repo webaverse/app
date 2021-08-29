@@ -1,3 +1,5 @@
+environment: Production
+
 name: remote ssh command
 on: [push]
 jobs:
