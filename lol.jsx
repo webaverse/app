@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useState, useRef} from 'react';
 import * as THREE from 'three';
 import {Canvas, useFrame, useThree} from '@react-three/fiber';
 
