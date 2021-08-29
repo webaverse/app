@@ -12,7 +12,7 @@ jobs:
       with:
         host: app2.webaverse.com
         username: ubuntu
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.KEY }}
         port: 22
         script: whoami
         debug: true
