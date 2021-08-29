@@ -46,16 +46,47 @@ const localMatrix2 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
+let currentApp = null;
 metaversefile.setApi({
   async import(s) {
     const m = await import(s);
     return m;
   },
-  async add(m) {
+  useFrame(fn) {
+    if (currentApp) {
+      appManager.addEventListener('frame', e);
+      currentApp.addEventListener('destroy', () => {
+        appManager.removeEventListener('frame', e);
+      });
+    } else {
+      throw new Error('useFrame cannot be called outside of the render function');
+    }
+  },
+  add(m) {
+    const appId = ++appIds;
+    const app = appManager.createApp(appId);
+    currentApp = app;
+
+    let renderSpec = null;
     const fn = m.default;
-    const renderSpec = await fn(metaversefile);
+    (() => {
+      try {
+        renderSpec = fn(metaversefile);
+      } catch(err) {
+        console.warn(err);
+      }
+    })();
+    currentApp = null;
+
     // console.log('gor react', React, ReactAll);
-    if (React.isValidElement(renderSpec)) {
+    if (renderSpec instanceof THREE.Object3D) {
+      const o = renderSpec;
+      scene.add(o);
+      
+      app.addEventListener('destroy', () => {
+        scene.remove(o);
+      });
+    } else if (React.isValidElement(renderSpec)) {
       const appId = ++appIds;
       const app = appManager.createApp(appId);
       
@@ -170,8 +201,9 @@ metaversefile.setApi({
       
       return app;
     } else if (renderSpec === null) {
-      // nothing
+      appManager.destroyApp(appId);
     } else {
+      appManager.destroyApp(appId);
       console.warn('unknown renderSpec:', renderSpec);
       throw new Error('unknown renderSpec');
     }
