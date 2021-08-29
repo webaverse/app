@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>災</title>
+        <title>山</title>
         <meta name="description" content="Webaverse virtual world app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
