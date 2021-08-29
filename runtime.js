@@ -17,7 +17,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {getRenderer, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
+import {getRenderer, scene, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -29,23 +29,121 @@ import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
-import metaveresefile from 'metaversefile';
+import metaversefile from 'metaversefile';
 
-import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
-console.log('got app', R3FDemo({}));
+// import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
+// console.log('got app', R3FDemo({}));
 
-import R3FDemo2 from './lol.jsx';
-console.log('got app 2', R3FDemo2({}));
+// import R3FDemo2 from './lol.jsx';
+// console.log('got app 2', R3FDemo2({}));
 
-metaveresefile.setApi({
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localBox = new THREE.Box3();
+const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+
+metaversefile.setApi({
   async import(s) {
-    const module = await import(s);
-    return module;
+    const m = await import(s);
+    return m;
   },
-  async add(module) {
-    const renderSpec = await module.default();
-    if (renderSpec instanceof React.Component) {
-      (async () => {
+  async add(m) {
+    const fn = m.default;
+    const renderSpec = await fn(metaversefile);
+    // console.log('gor react', React, ReactAll);
+    if (React.isValidElement(renderSpec)) {
+      const appId = ++appIds;
+      const app = appManager.createApp(appId);
+      
+      const o = new THREE.Object3D();
+      // o.contentId = contentId;
+      o.getPhysicsIds = () => app.physicsIds;
+      o.destroy = () => {
+        appManager.destroyApp(appId);
+        
+        (async () => {
+          const roots = ReactThreeFiber._roots;
+          const root = roots.get(rootDiv);
+          const fiber = root?.fiber
+          if (fiber) {
+            const state = root?.store.getState()
+            if (state) state.internal.active = false
+            await new Promise((accept, reject) => {
+              ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
+                if (state) {
+                  // setTimeout(() => {
+                    state.events.disconnect?.()
+                    // state.gl?.renderLists?.dispose?.()
+                    // state.gl?.forceContextLoss?.()
+                    ReactThreeFiber.dispose(state)
+                    roots.delete(canvas)
+                    // if (callback) callback(canvas)
+                  // }, 500)
+                }
+                accept();
+              });
+            });
+          }
+        })();
+      };
+      scene.add(o);
+      
+      const renderer = getRenderer();
+      const sizeVector = renderer.getSize(localVector2D);
+      const rootDiv = document.createElement('div');
+      let rtfScene = null;
+      appManager.addEventListener('frame', e => {
+        const renderer2 = Object.create(renderer);
+        renderer2.render = () => {
+          // nothing
+          // console.log('elide render');
+        };
+        renderer2.setSize = () => {
+          // nothing
+        };
+        renderer2.setPixelRatio = () => {
+          // nothing
+        };
+        
+        ReactThreeFiber.render(
+          React.createElement(ErrorBoundary, {}, [
+            React.createElement(fn, {
+              // app: appContextObject,
+              key: 0,
+            }),
+          ]),
+          rootDiv,
+          {
+            gl: renderer2,
+            camera,
+            size: {
+              width: sizeVector.x,
+              height: sizeVector.y,
+            },
+            events: createPointerEvents,
+            onCreated: state => {
+              // state = newState;
+              // scene.add(state.scene);
+              console.log('got state', state);
+              const {scene: newRtfScene} = state;
+              if (newRtfScene !== rtfScene) {
+                if (rtfScene) {
+                  o.remove(rtfScene);
+                  rtfScene = null;
+                }
+                rtfScene = newRtfScene;
+                o.add(rtfScene);
+              }
+            },
+            frameloop: 'demand',
+          }
+        );
+      });
+      app.addEventListener('destroy', async () => {
         const roots = ReactThreeFiber._roots;
         const root = roots.get(rootDiv);
         const fiber = root?.fiber
@@ -68,23 +166,22 @@ metaveresefile.setApi({
             });
           });
         }
-      })();
+      });
+      
+      return app;
     } else if (renderSpec === null) {
       // nothing
     } else {
-      throw new Error('unknown renderSpec:' + renderSpec);
+      console.warn('unknown renderSpec:', renderSpec);
+      throw new Error('unknown renderSpec');
     }
   },
 });
-window.metaveresefile = metaveresefile;
-
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localBox = new THREE.Box3();
-const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+window.metaversefile = metaversefile;
+(async () => {
+  const module = await metaversefile.import('./lol.jsx');
+  metaversefile.add(module);
+})();
 
 const gcFiles = true;
 const runtime = {};
