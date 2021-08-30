@@ -73,9 +73,14 @@ metaversefile.setApi({
     const fn = m.default;
     (() => {
       try {
-        renderSpec = fn(metaversefile);
+        if (typeof fn === 'function') {
+          renderSpec = fn(metaversefile);
+        } else {
+          return null;
+        }
       } catch(err) {
         console.warn(err);
+        return null;
       }
     })();
     currentApp = null;
