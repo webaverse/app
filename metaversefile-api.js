@@ -122,6 +122,10 @@ metaversefile.setApi({
     return await import(s);
   },
   async load(s) {
+    if (/^https?:\/\//.test(s)) {
+      s = `/@proxy/${s}`;
+    }
+    console.log('do import', s);
     const m = await this.import(s);
     const app = this.add(m);
     return app;
@@ -137,6 +141,16 @@ metaversefile.setApi({
       });
     } else {
       throw new Error('useFrame cannot be called outside of render()');
+    }
+  },
+  useCleanup(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('destroy', () => {
+        fn();
+      });
+    } else {
+      throw new Error('useCleanup cannot be called outside of render()');
     }
   },
   useLocalPlayer() {
@@ -169,7 +183,7 @@ metaversefile.setApi({
   useUi() {
     return ui;
   },
-  add(m) {
+  async add(m) {
     const appId = appManager.getNextAppId();
     const app = appManager.createApp(appId);
     currentAppRender = app;
@@ -188,19 +202,24 @@ metaversefile.setApi({
         return null;
       }
     })();
-    currentAppRender = null;
+    currentAppRender = null
+    
+    const loaded = renderSpec?.loaded;
+    if (loaded instanceof Promise) {
+      await loaded;
+    }
 
     // console.log('gor react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
-      scene.add(o);
+      app.add(o);
       
       app.addEventListener('destroy', () => {
-        scene.remove(o);
+        app.remove(o);
       });
       
       return app;
-    } else if (React.isValidElement(renderSpec)) {      
+    } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
       // o.contentId = contentId;
       o.getPhysicsIds = () => app.physicsIds;
@@ -232,7 +251,7 @@ metaversefile.setApi({
           }
         })();
       };
-      scene.add(o);
+      app.add(o);
       
       const renderer = getRenderer();
       const sizeVector = renderer.getSize(localVector2D);

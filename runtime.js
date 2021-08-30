@@ -1231,7 +1231,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   const appId = appManager.getNextAppId();
   const mesh = new THREE.Object3D();
   mesh.run = () => {
-    return import(u)
+    throw new Error('not implemented');
+    /* return import(u)
       .then(async () => {
         let userPromise = null;
         const e = new MessageEvent('load');
@@ -1252,7 +1253,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
         for (const u of cachedUrls) {
           gcFiles && URL.revokeObjectURL(u);
         }
-      });
+      }); */
   };
   mesh.triggerAux = rigAux => {
     let used = false;
