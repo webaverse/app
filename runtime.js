@@ -268,7 +268,7 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
     monetizationPointer,
   });
 };
-/* const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
 
   const u = new URL(srcUrl, parentUrl).href;
@@ -373,7 +373,7 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
   const appContextObject = makeAppContextObject(app);
   
   return o;
-}; */
+};
 
 const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -2147,9 +2147,9 @@ const _loadGeo = async (file, {contentId = null}) => {
   return object;
 };
 
-const typeHandlers = {
+/* const typeHandlers = {
   'metaversefile': _loadMetaversefile,
-  // 'rtf.js': _loadRtfjs,
+  'rtf.js': _loadRtfjs,
   't.js': _loadTjs,
   'gltf': _loadGltf,
   'glb': _loadGltf,
@@ -2173,9 +2173,9 @@ const typeHandlers = {
   'mp3': _loadAudio,
   'mp4': _loadVideo,
 };
-runtime.typeHandlers = typeHandlers;
+runtime.typeHandlers = typeHandlers; */
 
-runtime.loadFile = async (file, opts) => {
+/* runtime.loadFile = async (contentId, opts) => {
   const object = await (async () => {
     const ext = file.ext || getExt(file.name) || 'html';
     const handler = typeHandlers[ext];
@@ -2190,6 +2190,6 @@ runtime.loadFile = async (file, opts) => {
   object.savedRotation = object.rotation.clone();
   object.startQuaternion = object.quaternion.clone();
   return object;
-};
+}; */
 
 export default runtime;
