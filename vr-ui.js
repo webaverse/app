@@ -37,6 +37,51 @@ const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anch
   return textMesh;
 };
 
+const makePopoverMesh = (textMesh, {width, height, target} = {}) => {
+  const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  }));
+  popoverMesh.add(textMesh);
+  // orthographicScene.add(popoverMesh);
+  popoverMesh.position.z = -1; // needed for othro camera
+  popoverMesh.visible = false;
+  popoverMesh.width = width;
+  popoverMesh.height = height;
+  popoverMesh.update = () => {
+    const n = localVector.set(0, 0, -1)
+      .applyQuaternion(camera.quaternion)
+      .dot(
+        localVector2.copy(target.position)
+          .sub(camera.position)
+      );
+    toScreenPosition(target, camera, localVector);
+    const renderer = getRenderer();
+    const width = renderer.domElement.width;
+    const height = renderer.domElement.height;
+    popoverMesh.position.x = -1 + localVector.x/width*2;
+    popoverMesh.position.y = 1 - localVector.y/height*2;
+    const distance = target.position.distanceTo(camera.position);
+    const maxSoftDistance = 3;
+    const maxHardDistance = 8;
+    if (n > 0 && distance < maxHardDistance) {
+      // const halfWidthFactor = popoverMesh.width/width;
+      // const halfHeightFactor = popoverMesh.height/height;
+      popoverMesh.scale.set(popoverMesh.width/width, popoverMesh.height/height, 1);
+      if (distance > maxSoftDistance) {
+        popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
+      }
+      /* if (distance > maxDistance / 2) {
+        popoverMesh.position.x = Math.min(Math.max(popoverMesh.position.x, -0.99 + halfWidthFactor), 0.99 - halfWidthFactor);
+        popoverMesh.position.y = Math.min(Math.max(popoverMesh.position.y, -0.99 + halfHeightFactor), 0.99 - halfHeightFactor);
+      } */
+      popoverMesh.visible = true;
+    } else {
+      popoverMesh.visible = false;
+    }
+  };
+  return popoverMesh;
+};
+
 const rayColor = 0x64b5f6;
 const makeCubeMesh = () => {
   const geometry = new THREE.CylinderBufferGeometry(0.005, 0.005, 0.001)
@@ -2786,6 +2831,7 @@ export {
   /* makeUiMesh,
   makeUiFullMesh, */
   makeTextMesh,
+  makePopoverMesh,
   // makeToolsMesh,
   // makeDetailsMesh,
   // makeTradeMesh,
