@@ -364,84 +364,80 @@ for (const arrayName of [
       const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
       const options = JSON.parse(optionsString);
 
-      const file = await contentIdToFile(contentId);
-      let mesh;
-      if (file) {
-        mesh = await runtime.loadFile(file, {
-          contentId,
-          instanceId: instanceId,
-          physics: options.physics,
-          physics_url: options.physics_url,
-          autoScale: options.autoScale,
-          autoRun: options.autoRun,
-          dynamic,
-          monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-          ownerAddress: file.token ? file.token.owner.address : ""
-        });
-        if (mesh) {
-          mesh.position.fromArray(position);
-          mesh.quaternion.fromArray(quaternion);
+      // const file = await contentIdToFile(contentId);
+      /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
+        contentId,
+        instanceId: instanceId,
+        physics: options.physics,
+        physics_url: options.physics_url,
+        autoScale: options.autoScale,
+        autoRun: options.autoRun,
+        dynamic,
+        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+        ownerAddress: file.token ? file.token.owner.address : ""
+      }); */
+      let mesh = await metaversefile.load(contentId);
+      if (mesh) {
+        mesh.position.fromArray(position);
+        mesh.quaternion.fromArray(quaternion);
 
-          unFrustumCull(mesh);
-          
-          // mesh.name = file.name;
-          mesh.contentId = contentId;
-          mesh.instanceId = instanceId;
-          mesh.parentId = parentId;
+        unFrustumCull(mesh);
+        
+        // mesh.name = file.name;
+        mesh.contentId = contentId;
+        mesh.instanceId = instanceId;
+        mesh.parentId = parentId;
 
-          if (mesh.renderOrder === -Infinity) {
-            sceneHighPriority.add(mesh);
-          } else {
-            scene.add(mesh);
-          }
-
-          mesh.run && await mesh.run();
-          /* if (mesh.getStaticPhysicsIds) {
-            const staticPhysicsIds = mesh.getStaticPhysicsIds();
-            for (const physicsId of staticPhysicsIds) {
-              physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-            }
-          } */
-          
-          mesh.addEventListener('die', () => {
-            world.remove(dynamic, arrayName, mesh.instanceId);
-          });
+        if (mesh.renderOrder === -Infinity) {
+          sceneHighPriority.add(mesh);
         } else {
-          console.warn('failed to load object', file);
-
-          mesh = new THREE.Object3D();
           scene.add(mesh);
         }
 
-        mesh.setPose = (position, quaternion, scale) => {
-          trackedObject.set('position', position.toArray());
-          trackedObject.set('quaternion', quaternion.toArray());
-          trackedObject.set('scale', scale.toArray());
-        };
-
-        const _observe = () => {
-          mesh.position.fromArray(trackedObject.get('position'));
-          mesh.quaternion.fromArray(trackedObject.get('quaternion'));
-          mesh.scale.fromArray(trackedObject.get('scale'));
-        };
-        trackedObject.observe(_observe);
-        trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-
-        if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-          const monetizationPointer = file.token.owner.monetizationPointer;
-          const ownerAddress = file.token.owner.address.toLowerCase();
-          pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-        }
-
-        const objects = _getObjects(arrayName, dynamic);
-        objects.push(mesh);
-
-        world.dispatchEvent(new MessageEvent(arrayName + 'add', {
-          data: mesh,
-        }));
+        mesh.run && await mesh.run();
+        /* if (mesh.getStaticPhysicsIds) {
+          const staticPhysicsIds = mesh.getStaticPhysicsIds();
+          for (const physicsId of staticPhysicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+          }
+        } */
+        
+        mesh.addEventListener('die', () => {
+          world.remove(dynamic, arrayName, mesh.instanceId);
+        });
       } else {
-        mesh = null;
+        console.warn('failed to load object', {contentId});
+
+        mesh = new THREE.Object3D();
+        scene.add(mesh);
       }
+
+      /* mesh.setPose = (position, quaternion, scale) => {
+        trackedObject.set('position', position.toArray());
+        trackedObject.set('quaternion', quaternion.toArray());
+        trackedObject.set('scale', scale.toArray());
+      }; */
+
+      const _observe = () => {
+        mesh.position.fromArray(trackedObject.get('position'));
+        mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+        mesh.scale.fromArray(trackedObject.get('scale'));
+      };
+      trackedObject.observe(_observe);
+      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+      /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = file.token.owner.monetizationPointer;
+        const ownerAddress = file.token.owner.address.toLowerCase();
+        pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+      } */
+
+      const objects = _getObjects(arrayName, dynamic);
+      objects.push(mesh);
+
+      world.dispatchEvent(new MessageEvent(arrayName + 'add', {
+        data: mesh,
+      }));
 
       p.accept(mesh);
     } catch (err) {
