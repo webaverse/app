@@ -198,6 +198,8 @@ metaversefile.setApi({
       app.addEventListener('destroy', () => {
         scene.remove(o);
       });
+      
+      return app;
     } else if (React.isValidElement(renderSpec)) {      
       const o = new THREE.Object3D();
       // o.contentId = contentId;
@@ -311,6 +313,7 @@ metaversefile.setApi({
       return app;
     } else if (renderSpec === null) {
       appManager.destroyApp(appId);
+      return null;
     } else {
       appManager.destroyApp(appId);
       console.warn('unknown renderSpec:', renderSpec);
