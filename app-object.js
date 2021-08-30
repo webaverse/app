@@ -203,6 +203,7 @@ class AppManager extends EventTarget {
       localData.frame = frame;
       localData.timeDiff = timestamp - this.lastTimestamp;
       this.lastTimestamp = timestamp;
+      this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
       this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
       /* for (const app of this.apps) {
         app.dispatchEvent(new MessageEvent('frame', localFrameOpts));

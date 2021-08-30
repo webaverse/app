@@ -26,6 +26,8 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
+import metaversefileApi from './metaversefile-api.js';
+const {useLocalPlayer} = metaversefileApi;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -291,8 +293,7 @@ const _selectLoadout = index => {
         
         _equip(selectedLoadoutObject);
       } else {
-        const transforms = rigManager.getRigTransforms();
-        const {position, quaternion} = transforms[0];
+        const {leftHand: {position, quaternion}} = useLocalPlayer();
         selectedLoadoutObject.position.copy(position);
         selectedLoadoutObject.quaternion.copy(quaternion);
         const scale = localVector.set(1, 1, 1);
@@ -361,9 +362,8 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else {
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
-    
+    const {leftHand: {position}} = useLocalPlayer();
+
     const portalObjects = world.getStaticObjects()
       .concat(world.getObjects())
       .filter(object => {
@@ -524,8 +524,8 @@ const _handleUpload = async file => {
   const {name, hash} = await loginManager.uploadFile(file);
   console.log('uploaded', {name, hash});
   
-  const transforms = rigManager.getRigTransforms();
-  let {position, quaternion} = transforms[0];
+  const {leftHand: {position, quaternion}} = useLocalPlayer();
+  
   position = position.clone()
     .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
   quaternion = quaternion.clone();
@@ -544,7 +544,7 @@ const _upload = () => {
 
 const _grab = object => {
   const renderer = getRenderer();
-  const {position, quaternion} = renderer.xr.getSession() ? rigManager.getRigTransforms()[0] : camera;
+  const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
 
   appManager.grabbedObjects[0] = object;
   weaponsManager.gridSnap = 0;
@@ -554,7 +554,7 @@ const _grab = object => {
   object.startQuaternion.copy(quaternion);
 
   appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
-    .premultiply(localMatrix.compose(position, quaternion, localVector.set(1, 1, 1)).invert());
+    .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert());
 
   weaponsManager.editMode = false;
 
@@ -613,7 +613,6 @@ let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
   const now = Date.now();
-  const transforms = rigManager.getRigTransforms();
   const renderer = getRenderer();
 
   const _handleHighlight = () => {
@@ -633,7 +632,7 @@ const _updateWeapons = () => {
         const objects = world.getObjects();
         for (const candidate of objects) {
           if (!appManager.equippedObjects.includes(candidate)) {
-            const {position, quaternion} = transforms[0];
+            const {leftHand: {position, quaternion}} = useLocalPlayer();
             localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
               .premultiply(
                 localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
@@ -680,7 +679,7 @@ const _updateWeapons = () => {
       editMesh.visible = true;
 
       if (editedObject.isBuild) {
-        editedObject.update(transforms[0], weaponsManager.getGridSnap());
+        editedObject.update(useLocalPlayer().leftHand, weaponsManager.getGridSnap());
       }
     }
   };
@@ -721,7 +720,7 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        const {position, quaternion} = transforms[i];
+        const {position, quaternion} = useLocalPlayer().hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
         grabbedObject.updateMatrixWorld();
@@ -788,7 +787,7 @@ const _updateWeapons = () => {
         geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
       }
 
-      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
+      const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.getObjectFromPhysicsId(collision.objectId);
@@ -921,7 +920,7 @@ const _updateWeapons = () => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      const {position, quaternion} = transforms[0];
+      const {leftHand: {position, quaternion}} = useLocalPlayer();
       localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
       localMatrix2.compose(localVector.set(0, 0, -maxGrabDistance), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
       updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
@@ -932,7 +931,7 @@ const _updateWeapons = () => {
         gridSnap: weaponsManager.getGridSnap(),
       });
 
-      localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
+      localEuler.setFromQuaternion(quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
@@ -1001,8 +1000,7 @@ const _updateWeapons = () => {
   
   const _handleThrowDrop = () => {
     if (!droppedThrow && physicsManager.getThrowState() && physicsManager.getThrowTime() > 800) {
-      const transforms = rigManager.getRigTransforms();
-      const {quaternion} = transforms[0];
+      const {leftHand: {quaternion}} = useLocalPlayer();
       dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
         type: 'fruit',
         velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
