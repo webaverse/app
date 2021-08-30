@@ -213,7 +213,7 @@ class AppManager extends EventTarget {
 }
 const appManager = new AppManager();
 
-class App extends EventTarget {
+class App extends THREE.Object3D {
   constructor(appId) {
     super();
 
