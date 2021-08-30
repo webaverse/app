@@ -119,8 +119,12 @@ const _getLoaders = () => {
 let currentAppRender = null;
 metaversefile.setApi({
   async import(s) {
-    const m = await import(s);
-    return m;
+    return await import(s);
+  },
+  async load(s) {
+    const m = await this.import(s);
+    const app = this.add(m);
+    return app;
   },
   useFrame(fn) {
     const app = currentAppRender;
