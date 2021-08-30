@@ -29,7 +29,7 @@ import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
-import metaversefile from 'metaversefile';
+import metaversefileApi from './metaversefile-api';
 
 // import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
 // console.log('got app', R3FDemo({}));
@@ -39,188 +39,11 @@ import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
-
-let currentApp = null;
-metaversefile.setApi({
-  async import(s) {
-    const m = await import(s);
-    return m;
-  },
-  useFrame(fn) {
-    if (currentApp) {
-      appManager.addEventListener('frame', e => {
-        fn(e.data);
-      });
-      currentApp.addEventListener('destroy', () => {
-        appManager.removeEventListener('frame', fn);
-      });
-    } else {
-      throw new Error('useFrame cannot be called outside of the render function');
-    }
-  },
-  add(m) {
-    const appId = ++appIds;
-    const app = appManager.createApp(appId);
-    currentApp = app;
-
-    let renderSpec = null;
-    const fn = m.default;
-    (() => {
-      try {
-        if (typeof fn === 'function') {
-          renderSpec = fn(metaversefile);
-        } else {
-          return null;
-        }
-      } catch(err) {
-        console.warn(err);
-        return null;
-      }
-    })();
-    currentApp = null;
-
-    // console.log('gor react', React, ReactAll);
-    if (renderSpec instanceof THREE.Object3D) {
-      const o = renderSpec;
-      scene.add(o);
-      
-      app.addEventListener('destroy', () => {
-        scene.remove(o);
-      });
-    } else if (React.isValidElement(renderSpec)) {
-      const appId = ++appIds;
-      const app = appManager.createApp(appId);
-      
-      const o = new THREE.Object3D();
-      // o.contentId = contentId;
-      o.getPhysicsIds = () => app.physicsIds;
-      o.destroy = () => {
-        appManager.destroyApp(appId);
-        
-        (async () => {
-          const roots = ReactThreeFiber._roots;
-          const root = roots.get(rootDiv);
-          const fiber = root?.fiber
-          if (fiber) {
-            const state = root?.store.getState()
-            if (state) state.internal.active = false
-            await new Promise((accept, reject) => {
-              ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-                if (state) {
-                  // setTimeout(() => {
-                    state.events.disconnect?.()
-                    // state.gl?.renderLists?.dispose?.()
-                    // state.gl?.forceContextLoss?.()
-                    ReactThreeFiber.dispose(state)
-                    roots.delete(canvas)
-                    // if (callback) callback(canvas)
-                  // }, 500)
-                }
-                accept();
-              });
-            });
-          }
-        })();
-      };
-      scene.add(o);
-      
-      const renderer = getRenderer();
-      const sizeVector = renderer.getSize(localVector2D);
-      const rootDiv = document.createElement('div');
-      let rtfScene = null;
-      appManager.addEventListener('frame', e => {
-        const renderer2 = Object.create(renderer);
-        renderer2.render = () => {
-          // nothing
-          // console.log('elide render');
-        };
-        renderer2.setSize = () => {
-          // nothing
-        };
-        renderer2.setPixelRatio = () => {
-          // nothing
-        };
-        
-        ReactThreeFiber.render(
-          React.createElement(ErrorBoundary, {}, [
-            React.createElement(fn, {
-              // app: appContextObject,
-              key: 0,
-            }),
-          ]),
-          rootDiv,
-          {
-            gl: renderer2,
-            camera,
-            size: {
-              width: sizeVector.x,
-              height: sizeVector.y,
-            },
-            events: createPointerEvents,
-            onCreated: state => {
-              // state = newState;
-              // scene.add(state.scene);
-              console.log('got state', state);
-              const {scene: newRtfScene} = state;
-              if (newRtfScene !== rtfScene) {
-                if (rtfScene) {
-                  o.remove(rtfScene);
-                  rtfScene = null;
-                }
-                rtfScene = newRtfScene;
-                o.add(rtfScene);
-              }
-            },
-            frameloop: 'demand',
-          }
-        );
-      });
-      app.addEventListener('destroy', async () => {
-        const roots = ReactThreeFiber._roots;
-        const root = roots.get(rootDiv);
-        const fiber = root?.fiber
-        if (fiber) {
-          const state = root?.store.getState()
-          if (state) state.internal.active = false
-          await new Promise((accept, reject) => {
-            ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-              if (state) {
-                // setTimeout(() => {
-                  state.events.disconnect?.()
-                  // state.gl?.renderLists?.dispose?.()
-                  // state.gl?.forceContextLoss?.()
-                  ReactThreeFiber.dispose(state)
-                  roots.delete(canvas)
-                  // if (callback) callback(canvas)
-                // }, 500)
-              }
-              accept();
-            });
-          });
-        }
-      });
-      
-      return app;
-    } else if (renderSpec === null) {
-      appManager.destroyApp(appId);
-    } else {
-      appManager.destroyApp(appId);
-      console.warn('unknown renderSpec:', renderSpec);
-      throw new Error('unknown renderSpec');
-    }
-  },
-});
-window.metaversefile = metaversefile;
-(async () => {
-  const module = await metaversefile.import('./lol.jsx');
-  metaversefile.add(module);
-})();
 
 const gcFiles = true;
 const runtime = {};
@@ -414,52 +237,6 @@ const runComponentTypes = [
   'effect',
 ];
 
-function createPointerEvents(store) {
-  // const { handlePointer } = createEvents(store)
-  const handlePointer = key => e => {
-    // const handlers = eventObject.__r3f.handlers;
-    // console.log('handle pointer', key, e);
-  };
-  const names = {
-    onClick: 'click',
-    onContextMenu: 'contextmenu',
-    onDoubleClick: 'dblclick',
-    onWheel: 'wheel',
-    onPointerDown: 'pointerdown',
-    onPointerUp: 'pointerup',
-    onPointerLeave: 'pointerleave',
-    onPointerMove: 'pointermove',
-    onPointerCancel: 'pointercancel',
-    onLostPointerCapture: 'lostpointercapture',
-  }
-
-  return {
-    connected: false,
-    handlers: (Object.keys(names).reduce(
-      (acc, key) => ({ ...acc, [key]: handlePointer(key) }),
-      {},
-    )),
-    connect: (target) => {
-      const { set, events } = store.getState()
-      events.disconnect?.()
-      set((state) => ({ events: { ...state.events, connected: target } }))
-      Object.entries(events?.handlers ?? []).forEach(([name, event]) =>
-        target.addEventListener(names[name], event, { passive: true }),
-      )
-    },
-    disconnect: () => {
-      const { set, events } = store.getState()
-      if (events.connected) {
-        Object.entries(events.handlers ?? []).forEach(([name, event]) => {
-          if (events && events.connected instanceof HTMLElement) {
-            events.connected.removeEventListener(names[name], event)
-          }
-        })
-        set((state) => ({ events: { ...state.events, connected: false } }))
-      }
-    },
-  }
-}
 const _loadMetaversefile = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   
@@ -490,32 +267,7 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
     monetizationPointer,
   });
 };
-// Error.stackTraceLimit = 300;
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
-    // logErrorToMyService(error, errorInfo);
-    console.warn(error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return null;
-    }
-    return this.props.children; 
-  }
-}
-const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
+/* const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
 
   const u = new URL(srcUrl, parentUrl).href;
@@ -611,7 +363,7 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
     );
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     _render();
@@ -620,7 +372,7 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
   const appContextObject = makeAppContextObject(app);
   
   return o;
-};
+}; */
 
 const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -645,7 +397,7 @@ const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = 
   };
   
   let userObject = null;
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     if (userObject?.update) {
@@ -976,7 +728,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getComponents = () => components;
   mesh.hit = jitterObject.hit;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     const now = Date.now();
@@ -1097,7 +849,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     boundingBox: new THREE.Box3().setFromObject(o),
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     jitterObject.update(e.data.timeDiff);
@@ -1320,7 +1072,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     };
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', () => {
     mesh.update();
@@ -1475,7 +1227,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
     files = null;
   }
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const mesh = new THREE.Object3D();
   mesh.run = () => {
     return import(u)
@@ -1622,7 +1374,7 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
     monetizationPointer,
   });
 };
-let appIds = 0;
+
 const _loadWebBundle = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
@@ -1806,7 +1558,7 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   let inRangeStart = null;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   appManager.setAnimationLoop(appId, () => {
     portalMesh.update();
@@ -1945,7 +1697,7 @@ const _loadPortal = async (file, {contentId = null}) => {
     };
   };
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', () => {
     o.update();
@@ -2152,7 +1904,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     };
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     object2.position.copy(object.position);
@@ -2204,7 +1956,7 @@ const _loadGlfs = async (file, {contentId = null}) => {
     appManager.destroyApp(appId);
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     fullscreenShader.pass.enabled = !!o.parent;
@@ -2267,7 +2019,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     if (loaded) {
@@ -2397,7 +2149,7 @@ const _loadGeo = async (file, {contentId = null}) => {
 
 const typeHandlers = {
   'metaversefile': _loadMetaversefile,
-  'rtf.js': _loadRtfjs,
+  // 'rtf.js': _loadRtfjs,
   't.js': _loadTjs,
   'gltf': _loadGltf,
   'glb': _loadGltf,
