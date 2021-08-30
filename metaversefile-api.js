@@ -3,8 +3,33 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, camera, appManager} from './app-object.js';
+import {rigManager} from './rig.js';
 
 const localVector2D = new THREE.Vector2();
+
+class PlayerHand {
+  constructor() {
+    this.position = new THREE.Vector3();
+    this.quaternion = new THREE.Quaternion();
+  }
+}
+class LocalPlayer {
+  constructor() {
+    this.position = new THREE.Vector3();
+    this.quaternion = new THREE.Quaternion();
+    this.leftHand = new PlayerHand();
+    this.rightHand = new PlayerHand();
+    this.hands = [
+      this.leftHand,
+      this.rightHand,
+    ];
+  }
+}
+const localPlayer = new LocalPlayer();
+let localPlayerNeedsUpdate = false;
+appManager.addEventListener('startframe', e => {
+  localPlayerNeedsUpdate = true;
+});
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -78,35 +103,44 @@ function createPointerEvents(store) {
 }
 
 let currentAppRender = null;
-let currentAppFrame = null;
 metaversefile.setApi({
   async import(s) {
     const m = await import(s);
     return m;
   },
   useFrame(fn) {
-    if (currentAppRender) {
+    const app = currentAppRender;
+    if (app) {
       appManager.addEventListener('frame', e => {
-        currentAppFrame = currentAppRender;
-        try {
-          fn(e.data);
-        } catch(err) {
-          console.warn(err);
-        }
-        currentAppRender = null;
+        fn(e.data);
       });
-      currentAppRender.addEventListener('destroy', () => {
+      app.addEventListener('destroy', () => {
         appManager.removeEventListener('frame', fn);
       });
     } else {
-      throw new Error('useFrame cannot be called outside of the render function');
+      throw new Error('useFrame cannot be called outside of render()');
     }
   },
-  usePlayer() {
-    if (currentAppFrame) {
-      return player;
-    } else {
+  useLocalPlayer() {
+    if (localPlayerNeedsUpdate) {
+      if (rigManager.localRig) {
+        localPlayer.position.fromArray(rigManager.localRig.inputs.hmd.position);
+        localPlayer.quaternion.fromArray(rigManager.localRig.inputs.hmd.quaternion);
+        localPlayer.leftHand.position.fromArray(rigManager.localRig.inputs.leftGamepad.position);
+        localPlayer.leftHand.quaternion.fromArray(rigManager.localRig.inputs.leftGamepad.quaternion);
+        localPlayer.rightHand.position.fromArray(rigManager.localRig.inputs.rightGamepad.position);
+        localPlayer.rightHand.quaternion.fromArray(rigManager.localRig.inputs.rightGamepad.quaternion);
+      } else {
+        localPlayer.position.set(0, 0, 0);
+        localPlayer.quaternion.set(0, 0, 0, 1);
+        localPlayer.leftHand.position.set(0, 0, 0);
+        localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
+        localPlayer.rightHand.position.set(0, 0, 0);
+        localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
+      }
+      localPlayerNeedsUpdate = false;
     }
+    return localPlayer;
   },
   add(m) {
     const appId = appManager.getNextAppId();
@@ -266,4 +300,4 @@ window.metaversefile = metaversefile;
   metaversefile.add(module);
 });
 
-export default {};
+export default metaversefile;
