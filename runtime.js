@@ -30,6 +30,7 @@ import {makeAppContextObject} from './api.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
 import metaversefileApi from './metaversefile-api';
+const {useLocalPlayer} = metaversefileApi;
 
 // import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
 // console.log('got app', R3FDemo({}));
@@ -1676,8 +1677,7 @@ const _loadPortal = async (file, {contentId = null}) => {
   o.json = json;
   o.isPortal = true;
   o.update = () => {
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
+    const {position} = useLocalPlayer();
 
     const now = Date.now();
     portalMesh.material.uniforms.uTime.value = (now%500)/500;
