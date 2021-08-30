@@ -172,7 +172,11 @@ class AppManager extends EventTarget {
     ];
     this.used = false;
     this.aimed = false;
+    this.lastAppId = 0;
     this.lastTimestamp = performance.now();
+  }
+  getNextAppId() {
+    return ++this.lastAppId;
   }
   createApp(appId) {
     const app = new App(appId);
