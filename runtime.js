@@ -54,9 +54,11 @@ metaversefile.setApi({
   },
   useFrame(fn) {
     if (currentApp) {
-      appManager.addEventListener('frame', e);
+      appManager.addEventListener('frame', e => {
+        fn(e.data);
+      });
       currentApp.addEventListener('destroy', () => {
-        appManager.removeEventListener('frame', e);
+        appManager.removeEventListener('frame', fn);
       });
     } else {
       throw new Error('useFrame cannot be called outside of the render function');
