@@ -1,9 +1,12 @@
 import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, camera, appManager} from './app-object.js';
+import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import * as ui from './vr-ui.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -102,6 +105,17 @@ function createPointerEvents(store) {
   }
 }
 
+let loaders = null;
+const _getLoaders = () => {
+  if (!loaders) {
+    const gltfLoader = new GLTFLoader();
+    loaders = {
+      gltfLoader,
+    };
+  }
+  return loaders;
+};
+
 let currentAppRender = null;
 metaversefile.setApi({
   async import(s) {
@@ -141,6 +155,15 @@ metaversefile.setApi({
       localPlayerNeedsUpdate = false;
     }
     return localPlayer;
+  },
+  useLoaders() {
+    return _getLoaders();
+  },
+  usePhysics() {
+    return physicsManager;
+  },
+  useUi() {
+    return ui;
   },
   add(m) {
     const appId = appManager.getNextAppId();
@@ -294,7 +317,8 @@ metaversefile.setApi({
 window.metaversefile = metaversefile;
 [
   './lol.jsx',
-  './street/.metaversefile'
+  './street/.metaversefile',
+  './assets2/sacks3.glb',
 ].map(async u => {
   const module = await metaversefile.import(u);
   metaversefile.add(module);
