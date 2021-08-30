@@ -12,6 +12,7 @@ import controlsManager from './controls-manager.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -230,12 +231,13 @@ class RigManager {
 
       let o;
       if (url) {
-        o = await runtime.loadFile({
+        o = await metaversefile.load(url);
+        /* o = await runtime.loadFile({
           url,
           ext,
         }, {
           contentId: url,
-        });
+        }); */
         if (!o.isVrm && o.run) {
           o.run();
         }
