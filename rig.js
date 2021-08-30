@@ -238,18 +238,20 @@ class RigManager {
         }, {
           contentId: url,
         }); */
-        if (!o.isVrm && o.run) {
+        /* if (!o.isVrm && o.run) {
           o.run();
-        }
+        } */
       }
-
+      
       if (oldRig.url === url) {
         oldRig.model.parent.remove(oldRig.model);
 
         let localRig;
         if (o) {
-          if (o.raw) {
-            localRig = new Avatar(o.raw, {
+          const raw = o.children[0]?.raw;
+          // console.log('got raw', o, o.children[0], raw);
+          if (raw) {
+            localRig = new Avatar(raw, {
               fingers: true,
               hair: true,
               visemes: true,
