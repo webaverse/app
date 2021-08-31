@@ -156,12 +156,12 @@ metaversefile.setApi({
   useLocalPlayer() {
     if (localPlayerNeedsUpdate) {
       if (rigManager.localRig) {
-        localPlayer.position.fromArray(rigManager.localRig.inputs.hmd.position);
-        localPlayer.quaternion.fromArray(rigManager.localRig.inputs.hmd.quaternion);
-        localPlayer.leftHand.position.fromArray(rigManager.localRig.inputs.leftGamepad.position);
-        localPlayer.leftHand.quaternion.fromArray(rigManager.localRig.inputs.leftGamepad.quaternion);
-        localPlayer.rightHand.position.fromArray(rigManager.localRig.inputs.rightGamepad.position);
-        localPlayer.rightHand.quaternion.fromArray(rigManager.localRig.inputs.rightGamepad.quaternion);
+        localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
+        localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
+        localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+        localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+        localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
+        localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
       } else {
         localPlayer.position.set(0, 0, 0);
         localPlayer.quaternion.set(0, 0, 0, 1);
