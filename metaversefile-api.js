@@ -126,7 +126,7 @@ metaversefile.setApi({
     if (/^https?:\/\//.test(s)) {
       s = `/@proxy/${s}`;
     }
-    console.log('do import', s);
+    // console.log('do import', s);
     const m = await this.import(s);
     const app = this.add(m);
     return app;
