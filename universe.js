@@ -135,7 +135,7 @@ const update = () => {
   }
   return geometry;
 }; */
-const getParcels = async () => {
+/* const getParcels = async () => {
   const res = await fetch(`${landHost}/1-100`);
   if (res.ok) {
     const j = await res.json();
@@ -143,7 +143,7 @@ const getParcels = async () => {
   } else {
     return [];
   }
-};
+}; */
 const enterWorld = async worldSpec => {
   let warpPhysicsId;
   const _pre = () => {
@@ -285,7 +285,7 @@ window.addEventListener('popstate', e => {
 export {
   bindInterface,
   update,
-  getParcels,
+  // getParcels,
   enterWorld,
   pushUrl,
   handleUrlUpdate,
