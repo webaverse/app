@@ -117,6 +117,7 @@ const _getLoaders = () => {
 };
 
 let currentAppRender = null;
+let recursion = 0;
 metaversefile.setApi({
   async import(s) {
     return await import(s);
@@ -141,6 +142,24 @@ metaversefile.setApi({
       });
     } else {
       throw new Error('useFrame cannot be called outside of render()');
+    }
+  },
+  useBeforeRender() {
+    recursion++;
+    if (recursion === 1) {
+      // scene.directionalLight.castShadow = false;
+      if (rigManager.localRig) {
+        rigManager.localRig.model.visible = true;
+      }
+    }
+  },
+  useAfterRender() {
+    recursion--;
+    if (recursion === 0) {
+      // scene.directionalLight.castShadow = true;
+      if (rigManager.localRig) {
+        rigManager.localRig.model.visible = false;
+      }
     }
   },
   useCleanup(fn) {
