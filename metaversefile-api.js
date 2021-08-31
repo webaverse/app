@@ -202,6 +202,9 @@ metaversefile.setApi({
   useUi() {
     return ui;
   },
+  useActivate(fn) {
+    // XXX implement this
+  },
   async add(m) {
     const appId = appManager.getNextAppId();
     const app = appManager.createApp(appId);
