@@ -257,7 +257,7 @@ class RigManager {
               visemes: true,
               debug: false //!o,
             });
-            localRig.model.isVrm = true;
+            // localRig.model.isVrm = true;
             localRig.aux = oldRig.aux;
             localRig.aux.rig = localRig;
           } else {
