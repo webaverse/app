@@ -1974,7 +1974,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
 
   const res = await fetch(srcUrl);
   const text = await res.text();
-  window.text = text;
+  // window.text = text;
   const shader = JSON.parse(text);
 
   const size = 1024;
