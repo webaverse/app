@@ -363,13 +363,13 @@ metaversefile.setApi({
   },
 });
 window.metaversefile = metaversefile;
-[
+/* [
   './lol.jsx',
   './street/.metaversefile',
   './assets2/sacks3.glb',
 ].map(async u => {
   const module = await metaversefile.import(u);
   metaversefile.add(module);
-});
+}); */
 
 export default metaversefile;
