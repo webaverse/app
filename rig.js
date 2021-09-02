@@ -231,7 +231,11 @@ class RigManager {
 
       let o;
       if (url) {
-        o = await metaversefile.load(url);
+        const m = await metaversefile.import(url);
+        const app = metaversefile.createApp();
+        app.setAttribute('avatar', true);
+        await metaversefile.addModule(app, m);
+        o = app;
         /* o = await runtime.loadFile({
           url,
           ext,

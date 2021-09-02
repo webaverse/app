@@ -289,9 +289,7 @@ metaversefile.setApi({
     // XXX implement this
   },
   createApp() {
-    const appId = appManager.getNextAppId();
-    const app = appManager.createApp(appId);
-    return app;
+    return appManager.createApp(appManager.getNextAppId());
   },
   async addModule(app, m) {
     currentAppRender = app;
@@ -336,7 +334,7 @@ metaversefile.setApi({
       // o.contentId = contentId;
       o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
-        appManager.destroyApp(app.id);
+        appManager.destroyApp(app.appId);
         
         (async () => {
           const roots = ReactThreeFiber._roots;
@@ -444,10 +442,10 @@ metaversefile.setApi({
       return app;
     } else if (renderSpec === null) {
       // console.log('destroy app', app);
-      appManager.destroyApp(app.id);
+      appManager.destroyApp(app.appId);
       return null;
     } else {
-      appManager.destroyApp(app.id);
+      appManager.destroyApp(app.appId);
       console.warn('unknown renderSpec:', renderSpec);
       throw new Error('unknown renderSpec');
     }

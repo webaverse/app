@@ -218,12 +218,22 @@ class App extends THREE.Object3D {
     super();
 
     this.appId = appId;
-    this.files = {};
-    this.object = null;
+    // this.files = {};
+    // this.object = null;
+    this.attributes = {};
 
     // cleanup tracking
     this.physicsIds = [];
     this.popovers = [];
+  }
+  getAttribute(k) {
+    return this.attributes[k];
+  }
+  setAttribute(k, v = true) {
+    this.attributes[k] = v;
+  }
+  removeAttribute(k) {
+    delete this.attributes[k];
   }
   addModule(m) {
     throw new Error('method not bound');
