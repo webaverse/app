@@ -226,14 +226,24 @@ class App extends THREE.Object3D {
     this.physicsIds = [];
     this.popovers = [];
   }
-  getAttribute(k) {
-    return this.attributes[k];
+  getAttribute(key) {
+    return this.attributes[key];
   }
-  setAttribute(k, v = true) {
-    this.attributes[k] = v;
+  setAttribute(key, value = true) {
+    this.attributes[key] = value;
+    this.dispatchEvent({
+      type: 'attributeupdate',
+      key,
+      value,
+    });
   }
-  removeAttribute(k) {
-    delete this.attributes[k];
+  removeAttribute(key) {
+    delete this.attributes[key];
+    this.dispatchEvent({
+      type: 'attributeupdate',
+      key,
+      value: null,
+    });
   }
   addModule(m) {
     throw new Error('method not bound');
