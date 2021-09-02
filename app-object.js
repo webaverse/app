@@ -228,6 +228,7 @@ class App extends THREE.Object3D {
 }
 
 export {
+  App,
   bindCanvas,
   getRenderer,
   getContainerElement,
