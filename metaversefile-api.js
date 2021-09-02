@@ -295,12 +295,18 @@ metaversefile.setApi({
     currentAppRender = app;
 
     let renderSpec = null;
+    let waitUntilPromise = null;
     const fn = m.default;
     (() => {
       try {
         if (typeof fn === 'function') {
-          renderSpec = fn(metaversefile);
+          renderSpec = fn({
+            waitUntil(p) {
+              waitUntilPromise = p;
+            },
+          });
         } else {
+          console.warn('module is not a function', m);
           return null;
         }
       } catch(err) {
@@ -310,10 +316,11 @@ metaversefile.setApi({
     })();
     currentAppRender = null
     
-    const loaded = renderSpec?.loaded;
+    /* const loaded = renderSpec?.loaded;
     if (loaded instanceof Promise) {
       await loaded;
-    }
+    } */
+    await waitUntilPromise;
 
     // console.log('gor react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
