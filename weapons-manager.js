@@ -520,18 +520,139 @@ const _try = async () => {
   }
 };
 
-const _handleUpload = async file => {
-  const {name, hash} = await loginManager.uploadFile(file);
-  console.log('uploaded', {name, hash});
+const _uploadFile = async (u, f) => {
+  const res = await fetch(u, {
+    method: 'POST',
+    body: f,
+  });
+  const j = await res.json();
+  const {hash} = j;
+  const {name} = f;
+  return {
+    name,
+    hash,
+  };
+};
+const _handleUpload = async item => {
+  // const {name, hash} = await loginManager.uploadFile(file);
+  // console.log('uploaded', {name, hash});
   
-  const {leftHand: {position, quaternion}} = useLocalPlayer();
+  console.log('uploading...');
   
-  position = position.clone()
-    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-  quaternion = quaternion.clone();
+  const _uploadObject = async item => {
+    let u;
+    
+    const file = item.getAsFile();
+    const entry = item.webkitGetAsEntry();
+    if (entry.isDirectory) {
+     // await new Promise((accept, reject) => {
+        const formData = new FormData();
+        /* formData.append(
+          '',
+          new Blob([], {
+            type: 'application/x-directory',
+          }),
+          ''
+        ); */
+        
+        const rootEntry = entry;
+        // entry.getDirectory(entry.fullPath, {}, async directoryEntry => {
+        const _recurse = async entry => {
+          function getFullPath(entry) {
+            return entry.fullPath.slice(rootEntry.fullPath.length);
+          }
+          const fullPath = getFullPath(entry);
+          console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
+          formData.append(
+            fullPath,
+            new Blob([], {
+              type: 'application/x-directory',
+            }),
+            fullPath
+          );
+          
+          const reader = entry.createReader();
+          async function readEntries() {
+            const entries = await new Promise((accept, reject) => {
+              reader.readEntries(entries => {
+                if (entries.length > 0) {
+                  accept(entries);
+                } else {
+                  accept(null);
+                }
+              }, reject);
+            });
+            return entries;
+          }
+          // const entries = [];
+          let entriesArray;
+          while (entriesArray = await readEntries()) {
+            // entries.push.apply(entries, entriesArray);
+            for (const entry of entriesArray) {
+              if (entry.isFile) {
+                /* const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+                const blob = new Blob([uint8Array], {
+                  type: 'application/octet-stream',
+                }); */
+                const file = await new Promise((accept, reject) => {
+                  entry.file(accept, reject);
+                });
+                const fullPath = getFullPath(entry);
+                console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
+                
+                // file full path /shield/.git/packed-refs /.git
+                formData.append(fullPath, file, fullPath);
+              } else if (entry.isDirectory) {
+                await _recurse(entry);
+              }
+            }
+          }
+          // console.log('got entries', reader);
+          //directoryEntry.isFile === false
+          //directoryEntry.isDirectory === true
+          //directoryEntry.name === 'Documents'
+          //directoryEntry.fullPath === '/Documents'
+        };
+        await _recurse(rootEntry);
 
-  const u = `${storageHost}/ipfs/${hash}/${name}`;
-  world.addObject(u, null, position, quaternion);
+        const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
+          method: 'POST',
+          /* headers: {
+            // 'Content-Type': undefined, // undefined sets the multipart/form-data;boundary
+          }, */
+          body: formData,
+        });
+        const hashes = await uploadFilesRes.json();
+        // console.log('got ok', hashes);
+
+        const rootDirectory = hashes.find(h => h.name === '');
+        const rootDirectoryHash = rootDirectory.hash;
+        u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+        console.log(u);
+
+        // }, reject);
+      // });
+    } else {
+      const {name, hash} = await _uploadFile(`https://ipfs.webaverse.com/`, file);
+
+      u = `${storageHost}/${hash}/${name}`;
+    }
+    return u;
+  };
+  const u = await _uploadObject(item);
+  
+  console.log('upload complete:', u);
+
+  const _loadObject = () => {  
+    const {leftHand: {position, quaternion}} = useLocalPlayer();
+      
+    const position2 = position.clone()
+      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+    const quaternion2 = quaternion.clone();
+    
+    world.addObject(u, null, position2, quaternion2);
+  };
+  _loadObject();
 };
 const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
@@ -1941,10 +2062,11 @@ window.document.addEventListener('drop', async e => {
       });
       loadedObject.name = u.match(/([^\/]+)$/)[1];
     } else {
-      //console.log('got drop', Array.from(e.dataTransfer.items));
-      const files = Array.from(e.dataTransfer.files);
-      for (const file of files) {
-        await _handleUpload(file);
+      // console.log('got drop', Array.from(e.dataTransfer.files), Array.from(e.dataTransfer.items), Array.from(e.dataTransfer.items).map(i => i.webkitGetAsEntry()));
+      // debugger;
+      const items = Array.from(e.dataTransfer.items);
+      for (const item of items) {
+        await _handleUpload(item);
       }
     }
   }
