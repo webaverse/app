@@ -248,6 +248,9 @@ class App extends THREE.Object3D {
   addModule(m) {
     throw new Error('method not bound');
   }
+  getPhysicsIds() {
+    return this.physicsIds;
+  }
 }
 
 export {
