@@ -248,7 +248,7 @@ class RigManager {
 
         let localRig;
         if (o) {
-          const raw = o.children[0]?.raw;
+          const {raw} = o;
           // console.log('got raw', o, o.children[0], raw);
           if (raw) {
             localRig = new Avatar(raw, {

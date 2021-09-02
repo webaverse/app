@@ -225,6 +225,9 @@ class App extends THREE.Object3D {
     this.physicsIds = [];
     this.popovers = [];
   }
+  addModule(m) {
+    throw new Error('method not bound');
+  }
 }
 
 export {
