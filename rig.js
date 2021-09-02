@@ -1,19 +1,17 @@
 import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import {MeshLine, MeshLineMaterial} from './MeshLine.js';
-import cameraManager from './camera-manager.js';
+
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
-import {makePromise, /*WaitQueue, */downloadFile, unFrustumCull} from './util.js';
+import {unFrustumCull} from './util.js';
 import {appManager, getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
-import runtime from './runtime.js';
+
 import controlsManager from './controls-manager.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -246,7 +244,7 @@ class RigManager {
           o.run();
         } */
       }
-      
+
       if (oldRig.url === url) {
         oldRig.model.parent.remove(oldRig.model);
 
@@ -498,87 +496,66 @@ class RigManager {
     }
   }
 
-  setPeerAvatarPose(poseArray, peerId) {
-    const [
-      [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-      floorHeight,
-      handsEnabled,
-      topEnabled,
-      bottomEnabled,
-      direction,
-      velocity,
-      jumpState,
-      jumpTime,
-      flyState,
-      flyTime,
-      useTime,
-      useAnimation,
-      sitState,
-      sitAnimation,
-      danceState,
-      danceTime,
-      danceAnimation,
-      throwState,
-      throwTime,
-      crouchState,
-      crouchTime,
-    ] = poseArray;
+  setPeerAvatarPose(player) {
+    const peerRig = this.peerRigs.get(player.id);
+    if (!peerRig) return;
 
-    const peerRig = this.peerRigs.get(peerId);
+    const pose = player.pose;
+    const {hmd, leftGamepad, rightGamepad} = peerRig.inputs;
 
-    if (peerRig) {
-      peerRig.inputs.hmd.position.fromArray(hmdPosition);
-      peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+    hmd.position.fromArray(pose.position);
+    hmd.quaternion.fromArray(pose.quaternion);
 
-      peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
-      peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
-      peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
-      peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+    if (pose.extra.length === 0) return;
 
-      peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
-      peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
-      peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
-      peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+    leftGamepad.position.fromArray(pose.extra[0]);
+    leftGamepad.quaternion.fromArray(pose.extra[1]);
+    leftGamepad.pointer = pose.extra[2][0];
+    leftGamepad.grip = pose.extra[2][1];
+    peerRig.setHandEnabled(0, pose.extra[2][2]);
 
-      peerRig.setFloorHeight(floorHeight);
-      for (let i = 0; i < 2; i++) {
-        peerRig.setHandEnabled(i, handsEnabled[i]);
-      }
-      peerRig.setTopEnabled(topEnabled);
-      peerRig.setBottomEnabled(bottomEnabled);
-      peerRig.direction.fromArray(direction);
-      peerRig.velocity.fromArray(velocity);
-      peerRig.jumpState = jumpState;
-      peerRig.jumpTime = jumpTime;
-      peerRig.flyState = flyState;
-      peerRig.flyTime = flyTime;
-      peerRig.useTime = useTime;
-      peerRig.useAnimation = useAnimation;
-      peerRig.sitState = sitState;
-      peerRig.sitAnimation = sitAnimation;
-      peerRig.danceState = danceState;
-      peerRig.danceTime = danceTime;
-      peerRig.danceAnimation = danceAnimation;
-      peerRig.throwState = throwState;
-      peerRig.throwTime = throwTime;
-      peerRig.crouchState = crouchState;
-      peerRig.crouchTime = crouchTime;
+    rightGamepad.position.fromArray(pose.extra[3]);
+    rightGamepad.quaternion.fromArray(pose.extra[4]);
+    rightGamepad.pointer = pose.extra[5][0];
+    rightGamepad.grip = pose.extra[5][1];
+    peerRig.setHandEnabled(0, pose.extra[5][2]);
 
-      peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
-      peerRig.textMesh.position.y += 0.5;
-      peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
-      localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.y += Math.PI;
-      localEuler.z = 0;
-      peerRig.textMesh.quaternion.setFromEuler(localEuler);
+    peerRig.setFloorHeight(pose.extra[6][0]);
 
-      peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
-    }
+    peerRig.setTopEnabled(pose.extra[6][1]);
+    peerRig.setBottomEnabled(pose.extra[6][2]);
+
+    peerRig.direction.fromArray(pose.extra[7]);
+    peerRig.velocity.fromArray(pose.extra[8]);
+
+    peerRig.jumpState = pose.extra[9][0];
+    peerRig.jumpTime = pose.extra[9][1];
+    peerRig.flyState = pose.extra[9][2];
+    peerRig.flyTime = pose.extra[9][3];
+    peerRig.useTime = pose.extra[9][4];
+    peerRig.useAnimation = pose.extra[9][5];
+    peerRig.sitState = pose.extra[9][6];
+    peerRig.sitAnimation = pose.extra[9][7];
+    peerRig.danceState = pose.extra[9][8];
+    peerRig.danceTime = pose.extra[9][9];
+    peerRig.danceAnimation = pose.extra[9][10];
+    peerRig.throwState = pose.extra[9][11];
+    peerRig.throwTime = pose.extra[9][12];
+    peerRig.crouchState = pose.extra[9][13];
+    peerRig.crouchTime = pose.extra[9][14];
+
+    peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
+    peerRig.textMesh.position.y += 0.5;
+    peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
+    localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.y += Math.PI;
+    localEuler.z = 0;
+    peerRig.textMesh.quaternion.setFromEuler(localEuler);
+
+    peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
   }
-  
+
   intersectPeerRigs(raycaster) {
     let closestPeerRig = null;
     let closestPeerRigDistance = Infinity;
@@ -621,7 +598,7 @@ class RigManager {
     peerRig.rigCapsule.visible = true;
   }
   
-  /* getRigTransforms() {
+  getRigTransforms() {
     if (this.localRig) {
       return [
         {
@@ -645,7 +622,7 @@ class RigManager {
         },
       ];
     }
-  } */
+  }
 
   update() {
     if (this.localRig && controlsManager.isPossessed()) {
