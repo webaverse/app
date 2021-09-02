@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import storage from './storage.js';
-import WSRTC from 'wsrtc';
+import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
 
 import {rigManager} from './rig.js';
