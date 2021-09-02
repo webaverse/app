@@ -11,13 +11,13 @@ import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import {camera, appManager, scene, sceneHighPriority} from './app-object.js';
 import {baseUnit} from './constants.js';
-import {contentIdToFile, unFrustumCull} from './util.js';
+import {contentIdToFile, unFrustumCull, makePromise, getRandomString} from './util.js';
 import {
   storageHost,
   // worldsHost,
   tokensHost,
 } from './constants.js';
-import {makePromise, getRandomString} from './util.js';
+import metaversefile from 'metaversefile';
 
 // world
 export const world = new EventTarget();
