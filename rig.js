@@ -598,7 +598,7 @@ class RigManager {
     peerRig.rigCapsule.visible = true;
   }
   
-  /* getRigTransforms() {
+  getRigTransforms() {
     if (this.localRig) {
       return [
         {
@@ -622,7 +622,7 @@ class RigManager {
         },
       ];
     }
-  }*/
+  }
 
   update() {
     if (this.localRig && controlsManager.isPossessed()) {
