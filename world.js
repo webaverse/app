@@ -380,25 +380,18 @@ for (const arrayName of [
       const app = metaversefile.createApp();
       app.position.fromArray(position);
       app.quaternion.fromArray(quaternion);
+      app.setAttribute('physics', true);
+      app.contentId = contentId;
+      scene.add(app);
       mesh = await app.addModule(m);
-      if (!mesh) {
-        debugger;
-      }
       if (mesh) {
-        unFrustumCull(mesh);
-        
-        // mesh.name = file.name;
-        mesh.contentId = contentId;
-        mesh.instanceId = instanceId;
-        mesh.parentId = parentId;
+        unFrustumCull(app);
 
-        if (mesh.renderOrder === -Infinity) {
-          sceneHighPriority.add(mesh);
-        } else {
-          scene.add(mesh);
+        if (app.renderOrder === -Infinity) {
+          sceneHighPriority.add(app);
         }
 
-        mesh.run && await mesh.run();
+        // mesh.run && await mesh.run();
         /* if (mesh.getStaticPhysicsIds) {
           const staticPhysicsIds = mesh.getStaticPhysicsIds();
           for (const physicsId of staticPhysicsIds) {
@@ -406,14 +399,11 @@ for (const arrayName of [
           }
         } */
         
-        mesh.addEventListener('die', () => {
+        app.addEventListener('die', () => {
           world.remove(dynamic, arrayName, mesh.instanceId);
         });
       } else {
         console.warn('failed to load object', {contentId});
-
-        mesh = new THREE.Object3D();
-        scene.add(mesh);
       }
 
       /* mesh.setPose = (position, quaternion, scale) => {
@@ -423,9 +413,9 @@ for (const arrayName of [
       }; */
 
       const _observe = () => {
-        mesh.position.fromArray(trackedObject.get('position'));
-        mesh.quaternion.fromArray(trackedObject.get('quaternion'));
-        mesh.scale.fromArray(trackedObject.get('scale'));
+        app.position.fromArray(trackedObject.get('position'));
+        app.quaternion.fromArray(trackedObject.get('quaternion'));
+        app.scale.fromArray(trackedObject.get('scale'));
       };
       trackedObject.observe(_observe);
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
@@ -437,13 +427,13 @@ for (const arrayName of [
       } */
 
       const objects = _getObjects(arrayName, dynamic);
-      objects.push(mesh);
+      objects.push(app);
 
       world.dispatchEvent(new MessageEvent(arrayName + 'add', {
-        data: mesh,
+        data: app,
       }));
 
-      p.accept(mesh);
+      p.accept(app);
     } catch (err) {
       p.reject(err);
     }
