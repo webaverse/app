@@ -272,8 +272,8 @@ world.disconnectRoom = () => {
       world.removeObject(object.instanceId);
     }
 
-    // states.dynamic = new Y.Doc();
-    // _bindState(states.dynamic, true);
+    states.dynamic = new Y.Doc();
+    _bindState(states.dynamic, true);
   }
   return wsrtc;
 };
