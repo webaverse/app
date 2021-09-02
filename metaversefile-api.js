@@ -119,16 +119,16 @@ const _getLoaders = () => {
 let currentAppRender = null;
 let recursion = 0;
 metaversefile.setApi({
-  async import(s) {
-    return await import(s);
-  },
-  async load(s) {
+  import(s) {
     if (/^https?:\/\//.test(s)) {
       s = `/@proxy/${s}`;
     }
     // console.log('do import', s);
+    return import(s);
+  },
+  async load(s) {
     const m = await this.import(s);
-    const app = this.makeApp();
+    const app = this.createApp();
     await this.addModule(app, m);
     return app;
   },
