@@ -376,11 +376,15 @@ for (const arrayName of [
         monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
         ownerAddress: file.token ? file.token.owner.address : ""
       }); */
-      let mesh = await metaversefile.load(contentId);
+      const m = await metaversefile.import(contentId);
+      const app = metaversefile.createApp();
+      app.position.fromArray(position);
+      app.quaternion.fromArray(quaternion);
+      mesh = await app.addModule(m);
+      if (!mesh) {
+        debugger;
+      }
       if (mesh) {
-        mesh.position.fromArray(position);
-        mesh.quaternion.fromArray(quaternion);
-
         unFrustumCull(mesh);
         
         // mesh.name = file.name;

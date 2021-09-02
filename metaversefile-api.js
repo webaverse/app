@@ -206,7 +206,81 @@ metaversefile.setApi({
     return _getLoaders();
   },
   usePhysics() {
-    return physicsManager;
+    const app = currentAppRender;
+    if (app) {
+      const physics = {};
+      for (const k in physicsManager) {
+        physics[k] = physicsManager[k];
+      }
+      const localVector = new THREE.Vector3();
+      const localVector2 = new THREE.Vector3();
+      const localQuaternion = new THREE.Quaternion();
+      const localMatrix = new THREE.Matrix4();
+      const localMatrix2 = new THREE.Matrix4();
+      physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+        app.updateMatrixWorld();
+        localMatrix
+          .compose(position, quaternion, localVector2.set(1, 1, 1))
+          .premultiply(app.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+        position = localVector;
+        quaternion = localQuaternion;
+        const physicsId = addBoxGeometry.call(this, position, quaternion, size, dynamic);
+        app.physicsIds.push(physicsId);
+        return physicsId;
+      })(physics.addBoxGeometry);
+      physics.addGeometry = (addGeometry => function(mesh) {
+        const physicsId = addGeometry.apply(this, arguments);
+        app.physicsIds.push(physicsId);
+        return physicsId;
+      })(physics.addGeometry);
+      physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
+        const physicsId = addCookedGeometry.apply(this, arguments);
+        app.physicsIds.push(physicsId);
+        return physicsId;
+      })(physics.addCookedGeometry);
+      physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+        const physicsId = addConvexGeometry.apply(this, arguments);
+        app.physicsIds.push(physicsId);
+        return physicsId;
+      })(physics.addConvexGeometry);
+      physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
+        const physicsId = addCookedConvexGeometry.apply(this, arguments);
+        app.physicsIds.push(physicsId);
+        return physicsId;
+      })(physics.addCookedConvexGeometry);
+      physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
+        const transform = getPhysicsTransform.apply(this, arguments);
+        const {position, quaternion} = transform;
+        app.updateMatrixWorld();
+        localMatrix
+          .compose(position, quaternion, localVector2.set(1, 1, 1))
+          .premultiply(localMatrix2.copy(app.matrixWorld).invert())
+          .decompose(position, quaternion, localVector2);
+        return transform;
+      })(physics.getPhysicsTransform);
+      physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
+        app.updateMatrixWorld();
+        localMatrix
+          .compose(position, quaternion, scale)
+          .premultiply(app.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+        position = localVector;
+        quaternion = localQuaternion;
+        return setPhysicsTransform.call(this, physicsId, position, quaternion);
+      })(physics.setPhysicsTransform);
+      physics.removeGeometry = (removeGeometry => function(physicsId) {
+        removeGeometry.apply(this, arguments);
+        const index = app.physicsIds.indexOf(physicsId);
+        if (index !== -1) {
+          app.physicsIds.splice(index);
+        }
+      })(physics.removeGeometry);
+      
+      return physics;
+    } else {
+      throw new Error('usePhysics cannot be called outside of render()');
+    }
   },
   useUi() {
     return ui;
@@ -214,7 +288,7 @@ metaversefile.setApi({
   useActivate(fn) {
     // XXX implement this
   },
-  makeApp() {
+  createApp() {
     const appId = appManager.getNextAppId();
     const app = appManager.createApp(appId);
     return app;
@@ -369,10 +443,11 @@ metaversefile.setApi({
       
       return app;
     } else if (renderSpec === null) {
-      appManager.destroyApp(appId);
+      // console.log('destroy app', app);
+      appManager.destroyApp(app.id);
       return null;
     } else {
-      appManager.destroyApp(appId);
+      appManager.destroyApp(app.id);
       console.warn('unknown renderSpec:', renderSpec);
       throw new Error('unknown renderSpec');
     }
