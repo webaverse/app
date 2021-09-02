@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, camera, appManager} from './app-object.js';
+import {App, getRenderer, scene, camera, appManager} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as ui from './vr-ui.js';
@@ -128,8 +128,17 @@ metaversefile.setApi({
     }
     // console.log('do import', s);
     const m = await this.import(s);
-    const app = this.add(m);
+    const app = this.makeApp();
+    await this.addModule(app, m);
     return app;
+  },
+  useApp() {
+    const app = currentAppRender;
+    if (app) {
+      return app;
+    } else {
+      throw new Error('useApp cannot be called outside of render()');
+    }
   },
   useFrame(fn) {
     const app = currentAppRender;
@@ -205,9 +214,12 @@ metaversefile.setApi({
   useActivate(fn) {
     // XXX implement this
   },
-  async add(m) {
+  makeApp() {
     const appId = appManager.getNextAppId();
     const app = appManager.createApp(appId);
+    return app;
+  },
+  async addModule(app, m) {
     currentAppRender = app;
 
     let renderSpec = null;
@@ -234,10 +246,14 @@ metaversefile.setApi({
     // console.log('gor react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
-      app.add(o);
+      if (o !== app) {
+        app.add(o);
+      }
       
       app.addEventListener('destroy', () => {
-        app.remove(o);
+        if (o !== app) {
+          app.remove(o);
+        }
       });
       
       return app;
@@ -246,7 +262,7 @@ metaversefile.setApi({
       // o.contentId = contentId;
       o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
-        appManager.destroyApp(appId);
+        appManager.destroyApp(app.id);
         
         (async () => {
           const roots = ReactThreeFiber._roots;
@@ -362,7 +378,10 @@ metaversefile.setApi({
     }
   },
 });
-window.metaversefile = metaversefile;
+App.prototype.addModule = function(m) {
+  return metaversefile.addModule(this, m);
+};
+// window.metaversefile = metaversefile;
 /* [
   './lol.jsx',
   './street/.metaversefile',
