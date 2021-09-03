@@ -15,7 +15,7 @@ import {
   // worldsHost,
   tokensHost,
 } from './constants.js';
-import {makePromise, getRandomString} from './util.js';
+import {makePromise, getRandomString, makeId} from './util.js';
 import metaversefile from 'metaversefile';
 // world
 export const world = new EventTarget();
@@ -90,15 +90,6 @@ const _bindState = (state, dynamic) => {
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
 
-function makeid(length) {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
 function buffVec(buffer, vec) {
   buffer[0] = vec.x;
   buffer[1] = vec.y;
@@ -111,7 +102,7 @@ function buffVec(buffer, vec) {
   return buffer;
 }
 
-function buffArgs(buffer, ...args) {
+function buffArgs(buffer, args) {
   for (let i = 0; i < args.length; i++) {
     buffer[i] = args[i];
   }
@@ -138,7 +129,7 @@ const didInteract = new Promise(resolve => window.addEventListener('click', e =>
 , {once: true}));
 
 
-world.connectRoom = async (roomName, worldURL) => {
+world.connectRoom = async (worldURL) => {
   await didInteract;
   await WSRTC.waitForReady();
 
@@ -160,43 +151,51 @@ world.connectRoom = async (roomName, worldURL) => {
         buffVec(extra.leftGamepadQuaternion, leftGamepad.quaternion),
         buffArgs(
           extra.leftGamepad,
-          leftGamepad.pointer ? 1 : 0,
-          leftGamepad.grip ? 1 : 0,
-          leftGamepad.enabled ? 1 : 0,
+          [
+            leftGamepad.pointer ? 1 : 0,
+            leftGamepad.grip ? 1 : 0,
+            leftGamepad.enabled ? 1 : 0
+          ],
         ),
         buffVec(extra.rightGamepadPosition, rightGamepad.position),
         buffVec(extra.rightGamepadQuaternion, rightGamepad.quaternion),
         buffArgs(
           extra.rightGamepad,
-          rightGamepad.pointer ? 1 : 0,
-          rightGamepad.grip ? 1 : 0,
-          rightGamepad.enabled ? 1 : 0,
+          [
+            rightGamepad.pointer ? 1 : 0,
+            rightGamepad.grip ? 1 : 0,
+            rightGamepad.enabled ? 1 : 0,
+          ]
         ),
         buffArgs(
           extra.attr,
-          rig.getFloorHeight() ? 1 : 0,
-          rig.getTopEnabled() ? 1 : 0,
-          rig.getBottomEnabled() ? 1 : 0,
+          [
+            rig.getFloorHeight() ? 1 : 0,
+            rig.getTopEnabled() ? 1 : 0,
+            rig.getBottomEnabled() ? 1 : 0,
+          ]
         ),
         buffVec(extra.direction, rig.direction),
         buffVec(extra.velocity, rig.velocity),
         buffArgs(
           extra.states,
-          rig.jumpState,
-          rig.jumpTime,
-          rig.flyState,
-          rig.flyTime,
-          rig.useTime,
-          rig.useAnimation,
-          rig.sitState,
-          rig.sitAnimation,
-          rig.danceState,
-          rig.danceTime,
-          rig.danceAnimation,
-          rig.throwState,
-          rig.throwTime,
-          rig.crouchState,
-          rig.crouchTime,
+          [
+            rig.jumpState,
+            rig.jumpTime,
+            rig.flyState,
+            rig.flyTime,
+            rig.useTime,
+            rig.useAnimation,
+            rig.sitState,
+            rig.sitAnimation,
+            rig.danceState,
+            rig.danceTime,
+            rig.danceAnimation,
+            rig.throwState,
+            rig.throwTime,
+            rig.crouchState,
+            rig.crouchTime,
+          ]
         ),
       ],
     );
@@ -205,7 +204,7 @@ world.connectRoom = async (roomName, worldURL) => {
   wsrtc.addEventListener('open', async e => {
     console.log('Channel Open!');
 
-    const name = makeid(5);
+    const name = makeId(5);
     wsrtc.localUser.setMetadata({
       name,
     });

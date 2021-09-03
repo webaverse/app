@@ -506,8 +506,6 @@ class RigManager {
     hmd.position.fromArray(pose.position);
     hmd.quaternion.fromArray(pose.quaternion);
 
-    if (pose.extra.length === 0) return;
-
     leftGamepad.position.fromArray(pose.extra[0]);
     leftGamepad.quaternion.fromArray(pose.extra[1]);
     leftGamepad.pointer = pose.extra[2][0];
