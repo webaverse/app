@@ -1,5 +1,6 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
@@ -25,6 +26,8 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
+import metaversefileApi from './metaversefile-api.js';
+const {useLocalPlayer} = metaversefileApi;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -290,8 +293,7 @@ const _selectLoadout = index => {
         
         _equip(selectedLoadoutObject);
       } else {
-        const transforms = rigManager.getRigTransforms();
-        const {position, quaternion} = transforms[0];
+        const {leftHand: {position, quaternion}} = useLocalPlayer();
         selectedLoadoutObject.position.copy(position);
         selectedLoadoutObject.quaternion.copy(quaternion);
         const scale = localVector.set(1, 1, 1);
@@ -360,9 +362,8 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else {
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
-    
+    const {leftHand: {position}} = useLocalPlayer();
+
     const portalObjects = world.getStaticObjects()
       .concat(world.getObjects())
       .filter(object => {
@@ -519,18 +520,108 @@ const _try = async () => {
   }
 };
 
-const _handleUpload = async file => {
-  const {name, hash} = await loginManager.uploadFile(file);
-  console.log('uploaded', {name, hash});
+const _uploadFile = async (u, f) => {
+  const res = await fetch(u, {
+    method: 'POST',
+    body: f,
+  });
+  const j = await res.json();
+  const {hash} = j;
+  const {name} = f;
+  return {
+    name,
+    hash,
+  };
+};
+const _handleUpload = async item => {
+  console.log('uploading...');
   
-  const transforms = rigManager.getRigTransforms();
-  let {position, quaternion} = transforms[0];
-  position = position.clone()
-    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-  quaternion = quaternion.clone();
+  const _uploadObject = async item => {
+    let u;
+    
+    const file = item.getAsFile();
+    const entry = item.webkitGetAsEntry();
+    if (entry.isDirectory) {
+      const formData = new FormData();
+      
+      const rootEntry = entry;
+      const _recurse = async entry => {
+        function getFullPath(entry) {
+          return entry.fullPath.slice(rootEntry.fullPath.length);
+        }
+        const fullPath = getFullPath(entry);
+        console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
+        formData.append(
+          fullPath,
+          new Blob([], {
+            type: 'application/x-directory',
+          }),
+          fullPath
+        );
+        
+        const reader = entry.createReader();
+        async function readEntries() {
+          const entries = await new Promise((accept, reject) => {
+            reader.readEntries(entries => {
+              if (entries.length > 0) {
+                accept(entries);
+              } else {
+                accept(null);
+              }
+            }, reject);
+          });
+          return entries;
+        }
+        let entriesArray;
+        while (entriesArray = await readEntries()) {
+          for (const entry of entriesArray) {
+            if (entry.isFile) {
+              const file = await new Promise((accept, reject) => {
+                entry.file(accept, reject);
+              });
+              const fullPath = getFullPath(entry);
+              console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
 
-  const u = `${storageHost}/ipfs/${hash}/${name}`;
-  world.addObject(u, null, position, quaternion);
+              formData.append(fullPath, file, fullPath);
+            } else if (entry.isDirectory) {
+              await _recurse(entry);
+            }
+          }
+        } 
+      };
+      await _recurse(rootEntry);
+
+      const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
+        method: 'POST',
+        body: formData,
+      });
+      const hashes = await uploadFilesRes.json();
+
+      const rootDirectory = hashes.find(h => h.name === '');
+      const rootDirectoryHash = rootDirectory.hash;
+      u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+      console.log(u);
+    } else {
+      const {name, hash} = await _uploadFile(`https://ipfs.webaverse.com/`, file);
+
+      u = `${storageHost}/${hash}/${name}`;
+    }
+    return u;
+  };
+  const u = await _uploadObject(item);
+  
+  console.log('upload complete:', u);
+
+  const _loadObject = () => {  
+    const {leftHand: {position, quaternion}} = useLocalPlayer();
+      
+    const position2 = position.clone()
+      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+    const quaternion2 = quaternion.clone();
+    
+    world.addObject(u, null, position2, quaternion2);
+  };
+  _loadObject();
 };
 const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
@@ -543,7 +634,7 @@ const _upload = () => {
 
 const _grab = object => {
   const renderer = getRenderer();
-  const {position, quaternion} = renderer.xr.getSession() ? rigManager.getRigTransforms()[0] : camera;
+  const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
 
   appManager.grabbedObjects[0] = object;
   weaponsManager.gridSnap = 0;
@@ -553,7 +644,7 @@ const _grab = object => {
   object.startQuaternion.copy(quaternion);
 
   appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
-    .premultiply(localMatrix.compose(position, quaternion, localVector.set(1, 1, 1)).invert());
+    .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert());
 
   weaponsManager.editMode = false;
 
@@ -612,7 +703,6 @@ let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
   const now = Date.now();
-  const transforms = rigManager.getRigTransforms();
   const renderer = getRenderer();
 
   const _handleHighlight = () => {
@@ -632,7 +722,7 @@ const _updateWeapons = () => {
         const objects = world.getObjects();
         for (const candidate of objects) {
           if (!appManager.equippedObjects.includes(candidate)) {
-            const {position, quaternion} = transforms[0];
+            const {leftHand: {position, quaternion}} = useLocalPlayer();
             localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
               .premultiply(
                 localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
@@ -679,7 +769,7 @@ const _updateWeapons = () => {
       editMesh.visible = true;
 
       if (editedObject.isBuild) {
-        editedObject.update(transforms[0], weaponsManager.getGridSnap());
+        editedObject.update(useLocalPlayer().leftHand, weaponsManager.getGridSnap());
       }
     }
   };
@@ -720,7 +810,7 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        const {position, quaternion} = transforms[i];
+        const {position, quaternion} = useLocalPlayer().hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
         grabbedObject.updateMatrixWorld();
@@ -787,7 +877,7 @@ const _updateWeapons = () => {
         geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
       }
 
-      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
+      const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.getObjectFromPhysicsId(collision.objectId);
@@ -920,7 +1010,7 @@ const _updateWeapons = () => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      const {position, quaternion} = transforms[0];
+      const {leftHand: {position, quaternion}} = useLocalPlayer();
       localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
       localMatrix2.compose(localVector.set(0, 0, -maxGrabDistance), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
       updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
@@ -931,7 +1021,7 @@ const _updateWeapons = () => {
         gridSnap: weaponsManager.getGridSnap(),
       });
 
-      localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
+      localEuler.setFromQuaternion(quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
@@ -1000,8 +1090,7 @@ const _updateWeapons = () => {
   
   const _handleThrowDrop = () => {
     if (!droppedThrow && physicsManager.getThrowState() && physicsManager.getThrowTime() > 800) {
-      const transforms = rigManager.getRigTransforms();
-      const {quaternion} = transforms[0];
+      const {leftHand: {quaternion}} = useLocalPlayer();
       dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
         type: 'fruit',
         velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
@@ -1942,10 +2031,11 @@ window.document.addEventListener('drop', async e => {
       });
       loadedObject.name = u.match(/([^\/]+)$/)[1];
     } else {
-      //console.log('got drop', Array.from(e.dataTransfer.items));
-      const files = Array.from(e.dataTransfer.files);
-      for (const file of files) {
-        await _handleUpload(file);
+      // console.log('got drop', Array.from(e.dataTransfer.files), Array.from(e.dataTransfer.items), Array.from(e.dataTransfer.items).map(i => i.webkitGetAsEntry()));
+      // debugger;
+      const items = Array.from(e.dataTransfer.items);
+      for (const item of items) {
+        await _handleUpload(item);
       }
     }
   }

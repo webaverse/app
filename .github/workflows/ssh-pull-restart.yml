@@ -1,0 +1,18 @@
+name: remote ssh command
+on: [push]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: app2-server.webaverse.com
+        username: ubuntu
+        key: ${{ secrets.KEY }}
+        port: 22
+        script: PATH="$PATH:/home/ubuntu/.nvm/versions/node/v16.8.0/bin/" && cd app && git stash && git pull --rebase && npm install && forever restartall
+        debug: true

@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import {rigManager} from './rig.js';
 import {getRenderer, scene, camera, dolly} from './app-object.js';
 import {world} from './world.js';
@@ -135,7 +135,7 @@ const update = () => {
   }
   return geometry;
 }; */
-const getParcels = async () => {
+/* const getParcels = async () => {
   const res = await fetch(`${landHost}/1-100`);
   if (res.ok) {
     const j = await res.json();
@@ -143,7 +143,7 @@ const getParcels = async () => {
   } else {
     return [];
   }
-};
+}; */
 const enterWorld = async worldSpec => {
   let warpPhysicsId;
   const _pre = () => {
@@ -285,7 +285,7 @@ window.addEventListener('popstate', e => {
 export {
   bindInterface,
   update,
-  getParcels,
+  // getParcels,
   enterWorld,
   pushUrl,
   handleUrlUpdate,

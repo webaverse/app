@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import {buildMaterial} from './shaders.js';

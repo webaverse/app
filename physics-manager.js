@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './app-object.js';
 import geometryManager from './geometry-manager.js';
@@ -7,7 +7,7 @@ import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
 import {appManager} from './app-object.js';
-import {getNextPhysicsId} from './util.js';
+import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
@@ -503,6 +503,8 @@ physicsManager.setGravity = g => {
     gravity.copy(g);
   }
 };
+
+physicsManager.convertMeshToPhysicsMesh = convertMeshToPhysicsMesh;
 
 let unlocked = false;
 physicsManager.unlockControls = () => {

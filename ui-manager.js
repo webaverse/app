@@ -1,5 +1,5 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 // import inventory from './inventory.js';

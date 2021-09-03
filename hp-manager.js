@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
@@ -6,9 +6,10 @@ import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene, appManager} from './app-object.js';
 import dropManager from './drop-manager.js';
+import metaversefileApi from './metaversefile-api.js';
+const {useLocalPlayer} = metaversefileApi;
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
 
 const _makeDamagePhysicsMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -93,11 +94,9 @@ const update = () => {
   }
   damagePhysicsMesh.visible = !!damageAnimation;
   
-  const transforms = rigManager.getRigTransforms();
-  const {position, quaternion} = transforms[0];
-  const outPosition = localVector.copy(position)
-    .add(localVector2.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
-  cylinderMesh.position.copy(outPosition);
+  const {position, quaternion} = useLocalPlayer();
+  cylinderMesh.position.copy(position)
+    .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
   cylinderMesh.quaternion.copy(quaternion);
   cylinderMesh.startPosition.copy(position);
 };

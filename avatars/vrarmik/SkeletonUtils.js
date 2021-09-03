@@ -1,4 +1,4 @@
-import THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,

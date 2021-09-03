@@ -1,7 +1,9 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, VOXLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
-import React from 'https://lib.webaverse.com/react.js';
-import ReactThreeFiber from 'https://lib.webaverse.com/react-three-fiber.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import React from 'react';
+import * as ReactThreeFiber from '@react-three/fiber';
 // import {KTX2Loader} from './KTX2Loader.js';
 // import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
@@ -15,7 +17,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {getRenderer, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
+import {getRenderer, scene, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -27,6 +29,14 @@ import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
+import metaversefileApi from './metaversefile-api';
+const {useLocalPlayer} = metaversefileApi;
+
+// import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
+// console.log('got app', R3FDemo({}));
+
+// import R3FDemo2 from './lol.jsx';
+// console.log('got app 2', R3FDemo2({}));
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -80,11 +90,11 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 }
 
 
-const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
+/* const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
-  three: 'https://lib.webaverse.com/three.js',
-  BufferGeometryUtils: 'https://lib.webaverse.com/BufferGeometryUtils.js',
-  GLTFLoader: 'https://lib.webaverse.com/GLTFLoader.js',
+  three: 'three',
+  BufferGeometryUtils: 'three/examples/jsm/utils/BufferGeometryUtils.js',
+  GLTFLoader: 'three/examples/jsm/loaders/GLTFLoader.js',
   // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   api: _importMapUrl('./api.js'),
@@ -101,7 +111,7 @@ const importMap = {
   drop: _importMapUrl('./drop-manager.js'),
   npc: _importMapUrl('./npc-manager.js'),
   constants: _importMapUrl('./constants.js'),
-};
+}; */
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 const _makeFilesProxy = srcUrl => new Proxy({}, {
@@ -228,52 +238,6 @@ const runComponentTypes = [
   'effect',
 ];
 
-function createPointerEvents(store) {
-  // const { handlePointer } = createEvents(store)
-  const handlePointer = key => e => {
-    // const handlers = eventObject.__r3f.handlers;
-    // console.log('handle pointer', key, e);
-  };
-  const names = {
-    onClick: 'click',
-    onContextMenu: 'contextmenu',
-    onDoubleClick: 'dblclick',
-    onWheel: 'wheel',
-    onPointerDown: 'pointerdown',
-    onPointerUp: 'pointerup',
-    onPointerLeave: 'pointerleave',
-    onPointerMove: 'pointermove',
-    onPointerCancel: 'pointercancel',
-    onLostPointerCapture: 'lostpointercapture',
-  }
-
-  return {
-    connected: false,
-    handlers: (Object.keys(names).reduce(
-      (acc, key) => ({ ...acc, [key]: handlePointer(key) }),
-      {},
-    )),
-    connect: (target) => {
-      const { set, events } = store.getState()
-      events.disconnect?.()
-      set((state) => ({ events: { ...state.events, connected: target } }))
-      Object.entries(events?.handlers ?? []).forEach(([name, event]) =>
-        target.addEventListener(names[name], event, { passive: true }),
-      )
-    },
-    disconnect: () => {
-      const { set, events } = store.getState()
-      if (events.connected) {
-        Object.entries(events.handlers ?? []).forEach(([name, event]) => {
-          if (events && events.connected instanceof HTMLElement) {
-            events.connected.removeEventListener(names[name], event)
-          }
-        })
-        set((state) => ({ events: { ...state.events, connected: false } }))
-      }
-    },
-  }
-}
 const _loadMetaversefile = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   
@@ -304,31 +268,6 @@ const _loadMetaversefile = async (file, {contentId = null, instanceId = null, au
     monetizationPointer,
   });
 };
-// Error.stackTraceLimit = 300;
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
-    // logErrorToMyService(error, errorInfo);
-    console.warn(error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return null;
-    }
-    return this.props.children; 
-  }
-}
 const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
 
@@ -425,7 +364,7 @@ const _loadRtfjs = async (file, {contentId = null, instanceId = null, parentUrl 
     );
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     _render();
@@ -459,7 +398,7 @@ const _loadTjs = async (file, {contentId = null, instanceId = null, parentUrl = 
   };
   
   let userObject = null;
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     if (userObject?.update) {
@@ -790,7 +729,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   mesh.getComponents = () => components;
   mesh.hit = jitterObject.hit;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     const now = Date.now();
@@ -911,7 +850,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, components = [], 
     boundingBox: new THREE.Box3().setFromObject(o),
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     jitterObject.update(e.data.timeDiff);
@@ -1134,7 +1073,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     };
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', () => {
     mesh.update();
@@ -1142,7 +1081,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
   
   return mesh;
 };
-const _makeAppUrl = appId => {
+/* const _makeAppUrl = appId => {
   const s = `\
     import {getRenderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import * as THREE from ${JSON.stringify(importMap.three)};
@@ -1162,9 +1101,6 @@ const _makeAppUrl = appId => {
 
     const _renderer = getRenderer();
     const renderer = Object.create(_renderer);
-    /* renderer.setAnimationLoop = function(fn) {
-      appManager.setAnimationLoop(${appId}, fn);
-    }; */
     renderer.setAnimationLoop = null;
 
     const physics = {};
@@ -1279,7 +1215,7 @@ const _makeAppUrl = appId => {
     type: 'application/javascript',
   });
   return URL.createObjectURL(b);
-};
+}; */
 const _loadScript = async (file, {files = null, parentUrl = null, contentId = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
@@ -1292,10 +1228,11 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
     files = null;
   }
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const mesh = new THREE.Object3D();
   mesh.run = () => {
-    return import(u)
+    throw new Error('not implemented');
+    /* return import(u)
       .then(async () => {
         let userPromise = null;
         const e = new MessageEvent('load');
@@ -1316,7 +1253,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
         for (const u of cachedUrls) {
           gcFiles && URL.revokeObjectURL(u);
         }
-      });
+      }); */
   };
   mesh.triggerAux = rigAux => {
     let used = false;
@@ -1381,68 +1318,13 @@ const _loadScript = async (file, {files = null, parentUrl = null, contentId = nu
   app.jitterObject = jitterObject;
   app.object = appObject;
   app.contentId = contentId;
-  const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId);
+  // const localImportMap = _clone(importMap);
+  // localImportMap.app = _makeAppUrl(appId);
   app.files = files || _makeFilesProxy(srcUrl);
 
-  const cachedUrls = [];
-  const _getUrl = u => {
-    const mappedUrl = URL.createObjectURL(new Blob([u], {
-      type: 'text/javascript',
-    }));
-    cachedUrls.push(mappedUrl);
-    return mappedUrl;
-  };
-  const urlCache = {};
-  const _mapUrl = async u => {
-    const importUrl = localImportMap[u];
-    if (importUrl) {
-      return importUrl;
-    } else {
-      const cachedUrl = urlCache[u];
-      if (cachedUrl) {
-        return cachedUrl;
-      } else {
-        const res = await fetch(u);
-        if (res.ok) {
-          let importScript = await res.text();
-          importScript = await _mapScript(importScript, srcUrl);
-          const cachedUrl = _getUrl(importScript);
-          urlCache[u] = cachedUrl;
-          return cachedUrl;
-        } else {
-          throw new Error('failed to load import url: ' + u);
-        }
-      }
-    }
-  };
-  const _mapScript = async (script, scriptUrl) => {
-    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);$/gm;
-    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
-      let u = match[2];
-      if (/^\.+\//.test(u)) {
-        if (app.files && _isResolvableUrl(u)) {
-          u = app.files[u]; // do not dotify; import statements are used as-is
-        } else {
-          u = new URL(u, scriptUrl).href;
-        }
-      }
-      return await _mapUrl(u);
-    }));
-    let index = 0;
-    script = script.replace(r, function() {
-      return arguments[1] + replacements[index++] + arguments[3];
-    });
-    if (instanceId) {
-      script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
-      script = `
-        document.monetization${instanceId} = new EventTarget();
-      ` + script;
-    }
-    return script;
-  };
-  const u = await _mapUrl(srcUrl);
+  /* (async () => {
+    
+  })(); */
 
   app.addEventListener('frame', e => {
     jitterObject.update(e.data.timeDiff);
@@ -1494,7 +1376,7 @@ const _loadManifestJson = async (file, {files = null, contentId = null, instance
     monetizationPointer,
   });
 };
-let appIds = 0;
+
 const _loadWebBundle = async (file, {contentId = null, instanceId = null, autoScale = true, monetizationPointer = null, ownerAddress = null} = {}) => {
   let arrayBuffer;
 
@@ -1678,7 +1560,7 @@ const _loadPortal = async (file, {contentId = null}) => {
 
   let inRangeStart = null;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   appManager.setAnimationLoop(appId, () => {
     portalMesh.update();
@@ -1796,8 +1678,7 @@ const _loadPortal = async (file, {contentId = null}) => {
   o.json = json;
   o.isPortal = true;
   o.update = () => {
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
+    const {position} = useLocalPlayer();
 
     const now = Date.now();
     portalMesh.material.uniforms.uTime.value = (now%500)/500;
@@ -1817,7 +1698,7 @@ const _loadPortal = async (file, {contentId = null}) => {
     };
   };
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', () => {
     o.update();
@@ -2024,7 +1905,7 @@ const _loadHtml = async (file, {contentId = null}) => {
     };
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     object2.position.copy(object.position);
@@ -2076,7 +1957,7 @@ const _loadGlfs = async (file, {contentId = null}) => {
     appManager.destroyApp(appId);
   };
   
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     fullscreenShader.pass.enabled = !!o.parent;
@@ -2093,7 +1974,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
 
   const res = await fetch(srcUrl);
   const text = await res.text();
-  window.text = text;
+  // window.text = text;
   const shader = JSON.parse(text);
 
   const size = 1024;
@@ -2139,7 +2020,7 @@ const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   o.getPhysicsIds = () => physicsIds;
   o.getStaticPhysicsIds = () => staticPhysicsIds;
 
-  const appId = ++appIds;
+  const appId = appManager.getNextAppId();
   const app = appManager.createApp(appId);
   app.addEventListener('frame', e => {
     if (loaded) {
@@ -2267,7 +2148,7 @@ const _loadGeo = async (file, {contentId = null}) => {
   return object;
 };
 
-const typeHandlers = {
+/* const typeHandlers = {
   'metaversefile': _loadMetaversefile,
   'rtf.js': _loadRtfjs,
   't.js': _loadTjs,
@@ -2293,9 +2174,9 @@ const typeHandlers = {
   'mp3': _loadAudio,
   'mp4': _loadVideo,
 };
-runtime.typeHandlers = typeHandlers;
+runtime.typeHandlers = typeHandlers; */
 
-runtime.loadFile = async (file, opts) => {
+/* runtime.loadFile = async (contentId, opts) => {
   const object = await (async () => {
     const ext = file.ext || getExt(file.name) || 'html';
     const handler = typeHandlers[ext];
@@ -2310,6 +2191,6 @@ runtime.loadFile = async (file, opts) => {
   object.savedRotation = object.rotation.clone();
   object.startQuaternion = object.quaternion.clone();
   return object;
-};
+}; */
 
 export default runtime;
