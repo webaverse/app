@@ -1,4 +1,4 @@
-import THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import {Helpers} from './Unity.js';
 
 const zeroVector = new THREE.Vector3();

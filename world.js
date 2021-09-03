@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
@@ -11,13 +11,13 @@ import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import {camera, appManager, scene, sceneHighPriority} from './app-object.js';
 import {baseUnit} from './constants.js';
-import {contentIdToFile, unFrustumCull} from './util.js';
+import {contentIdToFile, unFrustumCull, makePromise, getRandomString} from './util.js';
 import {
   storageHost,
   // worldsHost,
   tokensHost,
 } from './constants.js';
-import {makePromise, getRandomString} from './util.js';
+import metaversefile from 'metaversefile';
 
 // world
 export const world = new EventTarget();
@@ -364,86 +364,76 @@ for (const arrayName of [
       const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
       const options = JSON.parse(optionsString);
 
-      const file = await contentIdToFile(contentId);
-      let mesh;
-      if (file) {
-        mesh = await runtime.loadFile(file, {
-          contentId,
-          instanceId: instanceId,
-          physics: options.physics,
-          physics_url: options.physics_url,
-          autoScale: options.autoScale,
-          autoRun: options.autoRun,
-          dynamic,
-          monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-          ownerAddress: file.token ? file.token.owner.address : ""
-        });
-        if (mesh) {
-          mesh.position.fromArray(position);
-          mesh.quaternion.fromArray(quaternion);
+      // const file = await contentIdToFile(contentId);
+      /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
+        contentId,
+        instanceId: instanceId,
+        physics: options.physics,
+        physics_url: options.physics_url,
+        autoScale: options.autoScale,
+        autoRun: options.autoRun,
+        dynamic,
+        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+        ownerAddress: file.token ? file.token.owner.address : ""
+      }); */
+      const m = await metaversefile.import(contentId);
+      const app = metaversefile.createApp();
+      app.position.fromArray(position);
+      app.quaternion.fromArray(quaternion);
+      app.setAttribute('physics', true);
+      app.contentId = contentId;
+      scene.add(app);
+      mesh = await app.addModule(m);
+      if (mesh) {
+        unFrustumCull(app);
 
-          unFrustumCull(mesh);
-          
-          // mesh.name = file.name;
-          mesh.contentId = contentId;
-          mesh.instanceId = instanceId;
-          mesh.parentId = parentId;
+        if (app.renderOrder === -Infinity) {
+          sceneHighPriority.add(app);
+        }
 
-          if (mesh.renderOrder === -Infinity) {
-            sceneHighPriority.add(mesh);
-          } else {
-            scene.add(mesh);
+        // mesh.run && await mesh.run();
+        /* if (mesh.getStaticPhysicsIds) {
+          const staticPhysicsIds = mesh.getStaticPhysicsIds();
+          for (const physicsId of staticPhysicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
           }
-
-          mesh.run && await mesh.run();
-          /* if (mesh.getStaticPhysicsIds) {
-            const staticPhysicsIds = mesh.getStaticPhysicsIds();
-            for (const physicsId of staticPhysicsIds) {
-              physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-            }
-          } */
-          
-          mesh.addEventListener('die', () => {
-            world.remove(dynamic, arrayName, mesh.instanceId);
-          });
-        } else {
-          console.warn('failed to load object', file);
-
-          mesh = new THREE.Object3D();
-          scene.add(mesh);
-        }
-
-        mesh.setPose = (position, quaternion, scale) => {
-          trackedObject.set('position', position.toArray());
-          trackedObject.set('quaternion', quaternion.toArray());
-          trackedObject.set('scale', scale.toArray());
-        };
-
-        const _observe = () => {
-          mesh.position.fromArray(trackedObject.get('position'));
-          mesh.quaternion.fromArray(trackedObject.get('quaternion'));
-          mesh.scale.fromArray(trackedObject.get('scale'));
-        };
-        trackedObject.observe(_observe);
-        trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-
-        if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-          const monetizationPointer = file.token.owner.monetizationPointer;
-          const ownerAddress = file.token.owner.address.toLowerCase();
-          pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-        }
-
-        const objects = _getObjects(arrayName, dynamic);
-        objects.push(mesh);
-
-        world.dispatchEvent(new MessageEvent(arrayName + 'add', {
-          data: mesh,
-        }));
+        } */
+        
+        app.addEventListener('die', () => {
+          world.remove(dynamic, arrayName, mesh.instanceId);
+        });
       } else {
-        mesh = null;
+        console.warn('failed to load object', {contentId});
       }
 
-      p.accept(mesh);
+      /* mesh.setPose = (position, quaternion, scale) => {
+        trackedObject.set('position', position.toArray());
+        trackedObject.set('quaternion', quaternion.toArray());
+        trackedObject.set('scale', scale.toArray());
+      }; */
+
+      const _observe = () => {
+        app.position.fromArray(trackedObject.get('position'));
+        app.quaternion.fromArray(trackedObject.get('quaternion'));
+        app.scale.fromArray(trackedObject.get('scale'));
+      };
+      trackedObject.observe(_observe);
+      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+      /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = file.token.owner.monetizationPointer;
+        const ownerAddress = file.token.owner.address.toLowerCase();
+        pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+      } */
+
+      const objects = _getObjects(arrayName, dynamic);
+      objects.push(app);
+
+      world.dispatchEvent(new MessageEvent(arrayName + 'add', {
+        data: app,
+      }));
+
+      p.accept(app);
     } catch (err) {
       p.reject(err);
     }

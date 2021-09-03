@@ -1,5 +1,6 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {GLTFLoader, BufferGeometryUtils} from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
@@ -11,6 +12,7 @@ import controlsManager from './controls-manager.js';
 import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -229,30 +231,37 @@ class RigManager {
 
       let o;
       if (url) {
-        o = await runtime.loadFile({
+        const m = await metaversefile.import(url);
+        const app = metaversefile.createApp();
+        // app.setAttribute('avatar', true);
+        await metaversefile.addModule(app, m);
+        o = app;
+        /* o = await runtime.loadFile({
           url,
           ext,
         }, {
           contentId: url,
-        });
-        if (!o.isVrm && o.run) {
+        }); */
+        /* if (!o.isVrm && o.run) {
           o.run();
-        }
+        } */
       }
-
+      
       if (oldRig.url === url) {
         oldRig.model.parent.remove(oldRig.model);
 
         let localRig;
         if (o) {
-          if (o.raw) {
-            localRig = new Avatar(o.raw, {
+          const {raw} = o;
+          // console.log('got raw', o, o.children[0], raw);
+          if (raw) {
+            localRig = new Avatar(raw, {
               fingers: true,
               hair: true,
               visemes: true,
               debug: false //!o,
             });
-            localRig.model.isVrm = true;
+            // localRig.model.isVrm = true;
             localRig.aux = oldRig.aux;
             localRig.aux.rig = localRig;
           } else {
@@ -612,7 +621,7 @@ class RigManager {
     peerRig.rigCapsule.visible = true;
   }
   
-  getRigTransforms() {
+  /* getRigTransforms() {
     if (this.localRig) {
       return [
         {
@@ -636,7 +645,7 @@ class RigManager {
         },
       ];
     }
-  }
+  } */
 
   update() {
     if (this.localRig && controlsManager.isPossessed()) {

@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
 import {addDefaultLights} from './util.js';
 
@@ -158,8 +158,10 @@ if (iframeContainer && iframeContainer2) {
   iframeContainer.updateSize();
 }
 
-class AppManager {
+class AppManager extends EventTarget {
   constructor() {
+    super();
+    
     this.apps = [];
     this.grabbedObjects = [null, null];
     this.equippedObjects = [null, null];
@@ -170,7 +172,11 @@ class AppManager {
     ];
     this.used = false;
     this.aimed = false;
-    this.lastTimestamp = Date.now();
+    this.lastAppId = 0;
+    this.lastTimestamp = performance.now();
+  }
+  getNextAppId() {
+    return ++this.lastAppId;
   }
   createApp(appId) {
     const app = new App(appId);
@@ -192,34 +198,63 @@ class AppManager {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
   tick(timestamp, frame) {
-    if (this.apps.length > 0) {
+    // if (this.apps.length > 0) {
       localData.timestamp = timestamp;
       localData.frame = frame;
       localData.timeDiff = timestamp - this.lastTimestamp;
       this.lastTimestamp = timestamp;
-      for (const app of this.apps) {
+      this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
+      this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+      /* for (const app of this.apps) {
         app.dispatchEvent(new MessageEvent('frame', localFrameOpts));
-      }
-    }
+      } */
+    // }
   }
 }
-const appManager = new AppManager()
+const appManager = new AppManager();
 
-class App extends EventTarget {
+class App extends THREE.Object3D {
   constructor(appId) {
     super();
 
     this.appId = appId;
-    this.files = {};
-    this.object = null;
+    // this.files = {};
+    // this.object = null;
+    this.attributes = {};
 
     // cleanup tracking
     this.physicsIds = [];
     this.popovers = [];
   }
+  getAttribute(key) {
+    return this.attributes[key];
+  }
+  setAttribute(key, value = true) {
+    this.attributes[key] = value;
+    this.dispatchEvent({
+      type: 'attributeupdate',
+      key,
+      value,
+    });
+  }
+  removeAttribute(key) {
+    delete this.attributes[key];
+    this.dispatchEvent({
+      type: 'attributeupdate',
+      key,
+      value: null,
+    });
+  }
+  addModule(m) {
+    throw new Error('method not bound');
+  }
+  getPhysicsIds() {
+    return this.physicsIds;
+  }
 }
 
 export {
+  App,
   bindCanvas,
   getRenderer,
   getContainerElement,

@@ -1,4 +1,4 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
+import * as THREE from 'three';
 import App from './app.js';
 import {getRenderer, scene, camera, orthographicCamera} from './app-object.js';
 import {world} from './world.js';

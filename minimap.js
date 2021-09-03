@@ -1,5 +1,5 @@
-import * as THREE from 'https://lib.webaverse.com/three.js';
-import {BufferGeometryUtils} from 'https://lib.webaverse.com/BufferGeometryUtils.js';
+import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
 import {world} from './world.js';
