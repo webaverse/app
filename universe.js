@@ -243,7 +243,7 @@ const enterWorld = async worldSpec => {
     }
     if (room) {
       const p = (async () => {
-        await world.connectRoom(room, worldUrl);
+        await world.connectRoom(worldUrl);
       })();
       promises.push(p);
     }
