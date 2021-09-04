@@ -15,7 +15,7 @@
     "@react-three/fiber": "^7.0.6",
     "express": "^4.17.1",
     "forever": "^4.0.1",
-    "metaversefile": "^0.0.16",
+    "metaversefile": "^0.0.17",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "three": "^0.132.2",
