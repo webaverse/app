@@ -9,16 +9,22 @@ const wsrtc = require('wsrtc/wsrtc-server.js');
 
 Error.stackTraceLimit = 300;
 
+const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
+
 (async () => {
   const app = express();  
   app.use('*', (req, res, next) => {
     const o = url.parse(req.originalUrl);
-    /^\/@proxy\//.test(o.pathname) && console.log('HANDLE', req.originalUrl);
     if (/^\/@proxy\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
-      res.redirect(u);
+      if (_isMediaType(o.pathname)) {
+        res.redirect(u);
+      } else {
+        req.originalUrl = u;
+        next();
+      }
     } else {
       next();
     }
