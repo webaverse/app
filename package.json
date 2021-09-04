@@ -13,6 +13,7 @@
     "@babel/preset-react": "^7.14.5",
     "@pixiv/three-vrm": "^0.6.4",
     "@react-three/fiber": "^7.0.6",
+    "express": "^4.17.1",
     "forever": "^4.0.1",
     "metaversefile": "^0.0.16",
     "react": "17.0.2",
