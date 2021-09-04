@@ -119,12 +119,18 @@ const _getLoaders = () => {
 let currentAppRender = null;
 let recursion = 0;
 metaversefile.setApi({
-  import(s) {
+  async import(s) {
     if (/^https?:\/\//.test(s)) {
       s = `/@proxy/${s}`;
     }
     // console.log('do import', s);
-    return import(s);
+    try {
+      const m = await import(s);
+      return m;
+    } catch(err) {
+      console.warn('error loading', JSON.stringify(s), err.stack);
+      return null;
+    }
   },
   async load(s) {
     const m = await this.import(s);
@@ -461,7 +467,7 @@ metaversefile.setApi({
 App.prototype.addModule = function(m) {
   return metaversefile.addModule(this, m);
 };
-// window.metaversefile = metaversefile;
+window.metaversefile = metaversefile;
 /* [
   './lol.jsx',
   './street/.metaversefile',
