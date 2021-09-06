@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {GLTFExporter} from 'three/examples/jsm/exporters/GLTFExporter.js';
+import * as THREE from './node_modules/three/build/three.module.js';
+import {GLTFLoader} from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+import {GLTFExporter} from './node_modules/three/examples/jsm/exporters/GLTFExporter.js';
 
 const gltfLoader = new GLTFLoader();
 const gltfExporter = new GLTFExporter();
