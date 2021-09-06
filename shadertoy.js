@@ -332,13 +332,15 @@ class ShadertoyLoader {
     const res = await fetch(u);
     const shader = await res.json();
 
-    return new ShadertoyRenderer(
+    const shadertoyRenderer = new ShadertoyRenderer(
       shader,
       {
         size,
         worldSize,
       }
     );
+    await shadertoyRenderer.waitForLoad();
+    return shadertoyRenderer;
   }
 }
 
