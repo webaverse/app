@@ -498,8 +498,7 @@ class RigManager {
 
   setPeerAvatarPose(player) {
     const peerRig = this.peerRigs.get(player.id);
-    if (!peerRig) return;
-
+ 
     const pose = player.pose;
     const {hmd, leftGamepad, rightGamepad} = peerRig.inputs;
 
