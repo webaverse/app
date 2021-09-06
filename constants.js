@@ -41,22 +41,4 @@ export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const homeScnUrl = 'https://webaverse.github.io/street/street.scn';
-
-// Setup dialog URL, use hash if on githubpreview and its an okay hash
-const rGithub = /\.githubpreview\.dev$/;
-const isGH = rGithub.test(window.location.hostname);
-
-const hashHost =
-  /^[a-z][a-z0-9+\-.]*:\/\/([a-z0-9\-._~%!$&'()*+,;=]+@)?([a-z0-9\-._~%]+|\[[a-z0-9\-._~%!$&'()*+,;=:]+\])/.exec(
-    window.location.hash.slice(1),
-  );
-
-const isOKHASH = hashHost && hashHost[2] && rGithub.test(hashHost[2]);
-
-export const dialogUrl = isGH ? 
-isOKHASH ? 
-  hashHost[2] 
-  : 
-  window.location.hostname.replace(/3000(\.githubpreview\.dev)$/, '4443$1')
-: 
-'dialog.webaverse.com';
+export const worldUrl = 'worlds.webaverse.com';
