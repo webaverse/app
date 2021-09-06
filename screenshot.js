@@ -8,6 +8,7 @@ import Avatar from './avatars/avatars.js';
 import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
+import alea from './alea.js';
 
 const defaultWidth = 512;
 const defaultHeight = 512;
@@ -55,10 +56,10 @@ const _makeRenderer = (width, height) => {
   /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
   scene.add(ambientLight); */
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-  directionalLight.position.set(2, 2, -2);
+  directionalLight.position.set(2, 1, -2);
   scene.add(directionalLight);
-  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-  directionalLight2.position.set(-2, 2, 2);
+  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 0.4);
+  directionalLight2.position.set(-2, 1, 2);
   scene.add(directionalLight2);
 
   return {renderer, scene, camera};
@@ -234,6 +235,134 @@ const _makeIconString = (hash, ext, w, h) => {
   const isVideo = type === 'webm';
 
   try {
+		const _makeTattooMesh = (key = '') => {
+			const rng = new alea(key);
+			const geometry = new THREE.PlaneBufferGeometry(1, 1);
+			const material = new THREE.ShaderMaterial({
+				uniforms: {
+					uTime: {
+						type: 'f',
+						value: Math.floor(rng() * 1024),
+						needsUpdate: true,
+					},
+				},
+				vertexShader: `\
+					precision highp float;
+					precision highp int;
+
+					// uniform float uTime;
+					uniform vec4 uBoundingBox;
+					// varying vec3 vPosition;
+					// varying vec3 vNormal;
+					varying vec2 vUv;
+
+					void main() {
+						vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+						gl_Position = projectionMatrix * mvPosition;
+						
+						vUv = uv;
+						// vPosition = (position, 1.);
+						// vNormal = normal;
+					}
+				`,
+				fragmentShader: `\
+					uniform float uTime;
+					varying vec2 vUv;
+				
+					/*
+
+						draw letter shapes after subdividing uv space randomly
+
+					*/
+
+					#define PI 3.1415926535
+
+					float random2d(vec2 n) { 
+							return fract(sin(dot(n, vec2(129.9898, 4.1414))) * 2398.5453);
+					}
+
+					vec2 getCellIJ(vec2 uv, float gridDims){
+							return floor(uv * gridDims)/ gridDims;
+					}
+
+					vec2 rotate2D(vec2 position, float theta)
+					{
+							mat2 m = mat2( cos(theta), -sin(theta), sin(theta), cos(theta) );
+							return m * position;
+					}
+
+					//from https://github.com/keijiro/ShaderSketches/blob/master/Text.glsl
+					float letter(vec2 coord, float size)
+					{
+							vec2 gp = floor(coord / size * 7.); // global
+							vec2 rp = floor(fract(coord / size) * 7.); // repeated
+							vec2 odd = fract(rp * 0.5) * 2.;
+							float rnd = random2d(gp);
+							float c = max(odd.x, odd.y) * step(0.5, rnd); // random lines
+							c += min(odd.x, odd.y); // fill corner and center points
+							c *= rp.x * (6. - rp.x); // cropping
+							c *= rp.y * (6. - rp.y);
+							return clamp(c, 0., 1.);
+					}
+					
+					vec3 getColor(vec2 uv) {
+						// vec2 uv = vUv; // fragCoord.xy / iResolution.xy;    
+						//correct aspect ratio
+						// uv.x *= iResolution.x/iResolution.y;
+
+						float t = uTime;
+						float scrollSpeed = 0.3;
+						float dims = 0.5;
+						int maxSubdivisions = 0;
+						
+						// uv = rotate2D(uv,PI/12.0);
+						uv.y -= floor(uTime * scrollSpeed * 4.);
+						
+						float cellRand;
+						vec2 ij;
+						
+						for(int i = 0; i <= maxSubdivisions; i++) { 
+								ij = getCellIJ(uv, dims);
+								cellRand = random2d(ij);
+								dims *= 2.0;
+								//decide whether to subdivide cells again
+								float cellRand2 = random2d(ij + 454.4543);
+								if (cellRand2 > 0.3){
+									break; 
+								}
+						}
+					 
+						//draw letters    
+						float b = letter(uv, 1.0 / (dims));
+					
+						//fade in
+						/* float scrollPos = uTime*scrollSpeed + 0.5;
+						float showPos = -ij.y + cellRand;
+						float fade = smoothstep(showPos ,showPos + 0.05, scrollPos );
+						b *= fade; */
+						
+						//hide some
+						//if (cellRand < 0.1) b = 0.0;
+						
+						return vec3(1.-b*0.2);
+					}
+
+					void main() {
+						vec2 uv = vUv; // fragCoord.xy / iResolution.xy;  
+						// vec2 offset = vec2(0.015);
+						vec3 col = getColor(uv);
+						/* vec3 col = vec3(0.);
+						col.r = getColor(uv + offset).r;
+						col.g = getColor(uv).g;
+						col.b = getColor(uv - offset).b; */
+						gl_FragColor = vec4(col, 1.0);
+				 }
+				`,
+			});
+			const mesh = new THREE.Mesh(geometry, material);
+			return mesh;
+		};
+		
     const _loadGltf = async () => {
       let o;
       try {
@@ -411,6 +540,10 @@ const _makeIconString = (hash, ext, w, h) => {
             console.warn(err);
           }
           if (o) {
+						/* o.quaternion.setFromAxisAngle(
+						  new THREE.Vector3(0, 1, 0),
+						  Math.PI * 0.15
+						); */
             scene.add(o);
 
             const boundingBox = new THREE.Box3().setFromObject(o);
@@ -490,10 +623,34 @@ const _makeIconString = (hash, ext, w, h) => {
                   return null;
                 }
               };
+							
+							o.rig.setTopEnabled(false);
+							o.rig.setHandEnabled(0, false);
+							o.rig.setHandEnabled(1, false);
+							o.rig.setBottomEnabled(false);
+							o.rig.inputs.hmd.position.y = o.rig.height;
+							o.rig.inputs.hmd.quaternion.setFromAxisAngle(
+								new THREE.Vector3(0, 1, 0),
+								Math.PI + Math.PI * 0.15
+							);
+							o.rig.activeVisemes = [28].map(index => {
+							  return {
+									index,
+									value: 0.2,
+								};
+							})
+							o.rig.update(0, 0);
 
               const skinnedMeshes = [];
               o.traverse(o => {
                 if (o.isSkinnedMesh) {
+									o.material = new THREE.MeshToonMaterial({
+										color: o.material.color,
+									  map: o.material.map,
+										skinning: true,
+										transparent: o.material.transparent,
+									});
+									
                   skinnedMeshes.push(o);
                 }
               });
@@ -507,11 +664,16 @@ const _makeIconString = (hash, ext, w, h) => {
                   .add(eyes[1].getWorldPosition(new THREE.Vector3()))
                   .divideScalar(2);
                 camera.position.copy(center)
-                  .add(new THREE.Vector3(0, 0, 0.3));
+                  .add(new THREE.Vector3(0, 0, 0.5));
                 camera.quaternion.identity();
                 camera.fov = 60;
                 camera.updateProjectionMatrix();
-              }
+              
+							  const tattooMesh = _makeTattooMesh(alea(url));
+								tattooMesh.position.copy(center)
+									.add(new THREE.Vector3(-0.25, 0.25, -0.6));
+								scene.add(tattooMesh);
+							}
               console.log('got eyes', eyes);
             }
 

@@ -32,7 +32,9 @@ const defaultThrowAnimation = 'throw';
 const defaultCrouchAnimation = 'crouch';
 const useAnimationRate = 750;
 const crouchMaxTime = 200;
+const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
+const emotionIndex = -1; // XXX
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
 const animationsSelectMap = {
@@ -850,7 +852,6 @@ class Avatar {
 
 	  const tailBones = _getTailBones(skeleton);
     // const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
-
 	  const Eye_L = _findEye(tailBones, true);
 	  const Eye_R = _findEye(tailBones, false);
 	  const Head = _findHead(tailBones);
@@ -1518,40 +1519,36 @@ class Avatar {
 	  };
 
     if (this.options.visemes) {
-      const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
-      const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+      const blendShapeGroups = object?.userData?.gltfExtensions?.VRM?.blendShapeMaster.blendShapeGroups || [];
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
-      const _getVrmBlendShapeIndex = r => {
-        if (Array.isArray(blendShapes)) {
-          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
-          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
-            return shape.binds[0].index;
-          } else {
-            return null;
-          }
-        } else {
-          return null;
-        }
-      };
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || null;
-          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || null;
-          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || null;
-          return [
-            morphTargetInfluences,
-            aaIndex,
-            blinkLeftIndex,
-            blinkRightIndex,
-          ];
+          const result = blendShapeGroups.map(blendShapeGroup => {
+            const name = blendShapeGroup.name.toLowerCase();
+            let index = blendShapeGroup.binds?.[0]?.index;
+            if (typeof index !== 'number') {
+              index = -1;
+            }
+            return {
+              name,
+              index,
+            };
+          });
+          result.morphTargetInfluences = morphTargetInfluences;
+          for (const visemeMapping of result) {
+            result[visemeMapping.name] = visemeMapping.index;
+          }
+          return result;
         } else {
           return null;
         }
-      });
+      }).filter(m => !!m);
     } else {
       this.skinnedMeshesVisemeMappings = [];
     }
+    this.activeVisemes = [];
+    this.activePoses = [];
 
     this.microphoneWorker = null;
     this.volume = 0;
@@ -1656,9 +1653,13 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    this.crouchState = false;
+    this.crouchState = true;
     this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
+    this.eyeTarget = new THREE.Vector3();
+    this.eyeTargetEnabled = false;
+    this.headTarget = new THREE.Quaternion();
+    this.headTargetEnabled = false;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1740,6 +1741,10 @@ class Avatar {
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+    
+    if (!this.skinnedMeshesVisemeMappings) {
+      debugger;
+    }
 
     const _applyAnimation = () => {
       const standKey = this.crouchState ? 'stand' : 'crouch';
@@ -1982,7 +1987,14 @@ class Avatar {
     } */
 
     if (this.options.visemes) {
-      const aaValue = Math.min(this.volume * 10, 1);
+      let aValue = Math.min(this.volume * 10, 1);
+			// console.log('got a value', aValue);
+      /* const emotionValues = {
+        angry: 0,
+        fun: 0,
+        joy: 0,
+        sorrow: 0,
+      }; */
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -1994,17 +2006,80 @@ class Avatar {
         }
       })();
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
-        if (visemeMapping) {
-          const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
-          if (aaIndex !== null) {
-            morphTargetInfluences[aaIndex] = aaValue;
+        // initialize
+        const {morphTargetInfluences} = visemeMapping;
+        for (let i = 0; i < morphTargetInfluences.length; i++) {
+          morphTargetInfluences[i] = 0;
+        }
+
+        // ik
+        if (visemeMapping.a >= 0) {
+          morphTargetInfluences[visemeMapping.a] = aValue;
+					if (aValue > 0) {
+					  // debugger;
           }
-          if (blinkLeftIndex !== null) {
-            morphTargetInfluences[blinkLeftIndex] = blinkValue;
+        }
+        if (visemeMapping.blink_l >= 0) {
+          morphTargetInfluences[visemeMapping.blink_l] = blinkValue;
+        }
+        if (visemeMapping.blink_r >= 0) {
+          morphTargetInfluences[visemeMapping.blink_r] = blinkValue;
+        }
+
+        /* // local vismeses
+        for (const influence of visemeMapping) {
+          if (emotionValues[influence.name]) {
+            morphTargetInfluences[influence.index] = emotionValues[influence.name];
           }
-          if (blinkRightIndex !== null) {
-            morphTargetInfluences[blinkRightIndex] = blinkValue;
+        } */
+        
+        if (emotionIndex !== -1 && morphTargetInfluences[emotionIndex] !== undefined) {
+          morphTargetInfluences[emotionIndex] = 1;
+        }
+
+        // ["neutral", "a", "i", "u", "e", "o", "blink", "joy", "angry", "sorrow", "fun", "lookup", "lookdown", "lookleft", "lookright", "blink_l", "blink_r"]
+        // animation visemes
+        for (const activeViseme of this.activeVisemes) {
+          const {index, value} = activeViseme;
+          morphTargetInfluences[index] = value;
+        }
+      }
+			
+			if (aValue > 0) {
+			  // aValue = 1;
+			  // debugger;
+			}
+    }
+    
+    if (this.eyeTargetEnabled) {
+      for (const eye of [this.modelBones.Eye_L, this.modelBones.Eye_R]) {
+        if (eye) {
+          eye.getWorldPosition(localVector);
+          eye.parent.getWorldQuaternion(localQuaternion);
+          localQuaternion.invert()
+            .premultiply(z180Quaternion)
+            .multiply(
+              localQuaternion2.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  localVector,
+                  this.eyeTarget,
+                  localVector2.set(0, 1, 0)
+                )
+              )
+            );
+          if (/^(?:left|right)eye$/i.test(eye.name)) {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = -localEuler.x;
+            eye.quaternion.setFromEuler(localEuler);
+          } else {
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = Math.min(Math.max(-localEuler.x, -Math.PI*0.05), Math.PI*0.1);
+            localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.1), Math.PI*0.1);
+            localEuler.z = 0;
+            eye.quaternion.setFromEuler(localEuler);
           }
+        } else {
+          debugger;
         }
       }
     }

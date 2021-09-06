@@ -249,6 +249,12 @@ body {
   filter: invert(1);
 }
 
+@media only screen and (max-width: 1280px) {
+  .root > .right {
+    width: 600px;
+  }
+}
+
 .root > .right {
   display: flex;
   width: 800px;
