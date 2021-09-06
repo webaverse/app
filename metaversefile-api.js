@@ -8,6 +8,7 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
+import {GIFLoader} from './GIFLoader.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -106,17 +107,30 @@ function createPointerEvents(store) {
   }
 }
 
-let loaders = null;
-const _getLoaders = () => {
-  if (!loaders) {
-    const gltfLoader = new GLTFLoader();
-    const shadertoyLoader = new ShadertoyLoader();
-    loaders = {
-      gltfLoader,
-      shadertoyLoader,
-    };
-  }
-  return loaders;
+const _memoize = fn => {
+  let loaded = false;
+  let cache = null;
+  return () => {
+    if (!loaded) {
+      cache = fn();
+      loaded = true;
+    }
+    return cache;
+  };
+};
+const _gltfLoader = _memoize(() => new GLTFLoader());
+const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
+const _gifLoader = _memoize(() => new GIFLoader());
+const loaders = {
+  get gltfLoader() {
+    return _gltfLoader();
+  },
+  get shadertoyLoader() {
+    return _shadertoyLoader();
+  },
+  get gifLoader() {
+    return _gifLoader();
+  },
 };
 
 let currentAppRender = null;
@@ -212,7 +226,7 @@ metaversefile.setApi({
     return localPlayer;
   },
   useLoaders() {
-    return _getLoaders();
+    return loaders;
   },
   usePhysics() {
     const app = currentAppRender;
