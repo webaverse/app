@@ -90,26 +90,6 @@ const _bindState = (state, dynamic) => {
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
 
-function buffVec(buffer, vec) {
-  buffer[0] = vec.x;
-  buffer[1] = vec.y;
-  buffer[2] = vec.z;
-
-  if (vec.w !== undefined) {
-    buffer[3] = vec.w;
-  }
-
-  return buffer;
-}
-
-function buffArgs(buffer, args) {
-  for (let i = 0; i < args.length; i++) {
-    buffer[i] = args[i];
-  }
-
-  return buffer;
-}
-
 // The extra Pose buffers we send along
 const extra = {
   leftGamepadPosition: new Float32Array(3),
@@ -141,62 +121,55 @@ world.connectRoom = async (worldURL) => {
     const rig = rigManager.localRig;
     const {hmd, leftGamepad, rightGamepad} = rig.inputs;
     const user = wsrtc.localUser;
+    
+    hmd.position.toArray(user.pose.position);
+    hmd.quaternion.toArray(user.pose.quaternion);
+    leftGamepad.position.toArray(extra.leftGamepadPosition);
+    leftGamepad.quaternion.toArray(extra.leftGamepadQuaternion);
+    extra.leftGamepad[0] = leftGamepad.pointer ? 1 : 0;
+    extra.leftGamepad[1] = leftGamepad.grip ? 1 : 0;
+    extra.leftGamepad[2] = leftGamepad.enabled ? 1 : 0;
+    rightGamepad.position.toArray(extra.rightGamepadPosition);
+    rightGamepad.quaternion.toArray(extra.rightGamepadPosition);
+    extra.rightGamepad[0] = rightGamepad.pointer ? 1 : 0;
+    extra.rightGamepad[1] = rightGamepad.grip ? 1 : 0;
+    extra.rightGamepad[2] = rightGamepad.enabled ? 1 : 0;
+    extra.attr[0] = rig.getFloorHeight() ? 1 : 0;
+    extra.attr[1] = rig.getTopEnabled() ? 1 : 0;
+    extra.attr[2] = rig.getBottomEnabled() ? 1 : 0;
+    rig.direction.toArray(extra.direction);
+    rig.velocity.toArray(extra.velocity);
+    extra.states[0] = rig.jumpState,
+    extra.states[1] = rig.jumpTime;
+    extra.states[2] = rig.flyState;
+    extra.states[3] = rig.flyTime;
+    extra.states[4] = rig.useTime;
+    extra.states[5] = rig.useAnimation;
+    extra.states[6] = rig.sitState;
+    extra.states[7] = rig.sitAnimation;
+    extra.states[8] = rig.danceState;
+    extra.states[9] = rig.danceTime;
+    extra.states[10] = rig.danceAnimation;
+    extra.states[11] = rig.throwState;
+    extra.states[12] = rig.throwTime;
+    extra.states[13] = rig.crouchState;
+    extra.states[14] = rig.crouchTime;
 
     user.setPose(
-      buffVec(user.pose.position, hmd.position),
-      buffVec(user.pose.quaternion, hmd.quaternion),
+      user.pose.position,
+      user.pose.quaternion,
       user.pose.scale,
       [
-        buffVec(extra.leftGamepadPosition, leftGamepad.position),
-        buffVec(extra.leftGamepadQuaternion, leftGamepad.quaternion),
-        buffArgs(
-          extra.leftGamepad,
-          [
-            leftGamepad.pointer ? 1 : 0,
-            leftGamepad.grip ? 1 : 0,
-            leftGamepad.enabled ? 1 : 0
-          ],
-        ),
-        buffVec(extra.rightGamepadPosition, rightGamepad.position),
-        buffVec(extra.rightGamepadQuaternion, rightGamepad.quaternion),
-        buffArgs(
-          extra.rightGamepad,
-          [
-            rightGamepad.pointer ? 1 : 0,
-            rightGamepad.grip ? 1 : 0,
-            rightGamepad.enabled ? 1 : 0,
-          ]
-        ),
-        buffArgs(
-          extra.attr,
-          [
-            rig.getFloorHeight() ? 1 : 0,
-            rig.getTopEnabled() ? 1 : 0,
-            rig.getBottomEnabled() ? 1 : 0,
-          ]
-        ),
-        buffVec(extra.direction, rig.direction),
-        buffVec(extra.velocity, rig.velocity),
-        buffArgs(
-          extra.states,
-          [
-            rig.jumpState,
-            rig.jumpTime,
-            rig.flyState,
-            rig.flyTime,
-            rig.useTime,
-            rig.useAnimation,
-            rig.sitState,
-            rig.sitAnimation,
-            rig.danceState,
-            rig.danceTime,
-            rig.danceAnimation,
-            rig.throwState,
-            rig.throwTime,
-            rig.crouchState,
-            rig.crouchTime,
-          ]
-        ),
+        extra.leftGamepadPosition,
+        extra.leftGamepadQuaternion,
+        extra.leftGamepad,
+        extra.rightGamepadPosition,
+        extra.rightGamepadQuaternion,
+        extra.rightGamepad,
+        extra.attr,
+        extra.direction,
+        extra.velocity,
+        extra.states,
       ],
     );
   };
