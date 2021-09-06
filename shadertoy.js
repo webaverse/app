@@ -149,6 +149,7 @@ const _makeRenderTargetMesh = (renderTarget, worldWidth, worldHeight) => {
   const material = new THREE.MeshBasicMaterial({
     // color: 0xFF0000,
     map: renderTarget.texture,
+    side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.onBeforeRender = () => {
