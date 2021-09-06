@@ -326,6 +326,22 @@ class ShadertoyRenderer {
   shadertoyRenderers.push(shadertoyRenderer);
 })(); */
 
+class ShadertoyLoader {
+  async load(u, {size = 1024, worldSize = 2} = {}) {
+    const res = await fetch(u);
+    const shader = await res.json();
+
+    return new ShadertoyRenderer(
+      shader,
+      {
+        size,
+        worldSize,
+      }
+    );
+  }
+}
+
 export {
   ShadertoyRenderer,
+  ShadertoyLoader,
 };

@@ -7,6 +7,7 @@ import {App, getRenderer, scene, camera, appManager} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as ui from './vr-ui.js';
+import {ShadertoyLoader} from './shadertoy.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -109,8 +110,10 @@ let loaders = null;
 const _getLoaders = () => {
   if (!loaders) {
     const gltfLoader = new GLTFLoader();
+    const shadertoyLoader = new ShadertoyLoader();
     loaders = {
       gltfLoader,
+      shadertoyLoader,
     };
   }
   return loaders;

@@ -1968,14 +1968,12 @@ const _loadGlfs = async (file, {contentId = null}) => {
 const _loadGlbb = async (file, {parentUrl = null, contentId = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (/^\.+\//.test(srcUrl)) {
-    console.log('base url', parentUrl);
+    // console.log('base url', parentUrl);
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
   }
 
   const res = await fetch(srcUrl);
-  const text = await res.text();
-  // window.text = text;
-  const shader = JSON.parse(text);
+  const shader = await res.json();
 
   const size = 1024;
   const worldSize = 2;
