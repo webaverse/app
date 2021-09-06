@@ -9,7 +9,7 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
-import {landHost, homeScnUrl, dialogUrl} from './constants.js';
+import {landHost, homeScnUrl, worldUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -243,7 +243,7 @@ const enterWorld = async worldSpec => {
     }
     if (room) {
       const p = (async () => {
-        await world.connectRoom(room, dialogUrl);
+        await world.connectRoom(worldUrl);
       })();
       promises.push(p);
     }
