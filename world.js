@@ -216,6 +216,7 @@ world.connectRoom = async (worldURL) => {
       if (!connected) return;
 
       requestAnimationFrame(update);
+      peerRig.volume = player.volume;
       rigManager.setPeerAvatarPose(player);
     };
 
