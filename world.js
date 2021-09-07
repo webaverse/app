@@ -197,7 +197,7 @@ world.connectRoom = async (worldURL) => {
   
     let connected = true;
     player.audioNode.connect(WSRTC.getAudioContext().destination);
-
+    
     rigManager.addPeerRig(player.id);
     const peerRig = rigManager.peerRigs.get(player.id);
     peerRig.peerConnection = player;
@@ -216,6 +216,7 @@ world.connectRoom = async (worldURL) => {
       if (!connected) return;
 
       requestAnimationFrame(update);
+      peerRig.volume = player.volume;
       rigManager.setPeerAvatarPose(player);
     };
 
