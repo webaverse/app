@@ -1,7 +1,9 @@
 node_modules
 certs
 rtfx
+shirt
+hoodie
+hoodie-white
 .env
 .next
 dist
-
