@@ -12,7 +12,7 @@ Error.stackTraceLimit = 300;
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
 
 (async () => {
-  const app = express();  
+  const app = express();
   app.use('*', (req, res, next) => {
     const o = url.parse(req.originalUrl);
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
