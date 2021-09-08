@@ -15,9 +15,10 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
   const app = express();  
   app.use('*', (req, res, next) => {
     const o = url.parse(req.originalUrl);
-    if (/^\/@proxy\//.test(o.pathname) && o.search !== '?import') {
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
+        .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
         res.redirect(u);
