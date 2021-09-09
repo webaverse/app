@@ -290,7 +290,7 @@ metaversefile.setApi({
           .decompose(localVector, localQuaternion, localVector2);
         position = localVector;
         quaternion = localQuaternion;
-        return setPhysicsTransform.call(this, physicsId, position, quaternion);
+        return setPhysicsTransform.call(this, physicsId, position, quaternion, scale);
       })(physics.setPhysicsTransform);
       physics.removeGeometry = (removeGeometry => function(physicsId) {
         removeGeometry.apply(this, arguments);
