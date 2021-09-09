@@ -278,7 +278,9 @@ physicsManager.setPhysicsTransform = (physicsId, position, quaternion, scale) =>
   });
 };
 physicsManager.simulatePhysics = timeDiff => {
-  const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, physicsUpdates, timeDiff);
+  const t = timeDiff/1000;
+  // console.log('simulate', timeDiff, t);
+  const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, physicsUpdates, t);
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
