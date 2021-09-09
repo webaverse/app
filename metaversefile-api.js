@@ -334,6 +334,8 @@ metaversefile.setApi({
           width: ${window.innerWidth}px;
           height: ${window.innerHeight}px;
           perspective: ${fov}px;
+          /* pointer-events: none;
+          user-select: none; */
         `;
         iframeContainer2.style.cssText = `
           /* display: flex;
@@ -348,6 +350,8 @@ metaversefile.setApi({
         `;
       };
       iframeContainer.updateSize();
+      const container = document.getElementById('container');
+      document.body.insertBefore(iframeContainer, container);
     }
     return {
       iframeContainer,
