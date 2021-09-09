@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {App, getRenderer, scene, camera, appManager} from './app-object.js';
+import {App, getRenderer, scene, sceneHighPriority, camera, appManager} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import * as ui from './vr-ui.js';
@@ -134,10 +134,12 @@ const loaders = {
 };
 
 let currentAppRender = null;
+let iframeContainer = null;
+let iframeContainer2 = null;
 let recursion = 0;
 metaversefile.setApi({
   async import(s) {
-    if (/^https?:\/\//.test(s)) {
+    if (/^(?:ipfs:\/\/|https?:\/\/)/.test(s)) {
       s = `/@proxy/${s}`;
     }
     // console.log('do import', s);
@@ -313,6 +315,46 @@ metaversefile.setApi({
   },
   createApp() {
     return appManager.createApp(appManager.getNextAppId());
+  },
+  useHtmlRenderer() {
+    if (!(iframeContainer && iframeContainer2)) {
+      iframeContainer = document.createElement('div');
+      iframeContainer.setAttribute('id', 'iframe-container');
+      iframeContainer2 = document.createElement('div');
+      iframeContainer2.setAttribute('id', 'iframe-container2');
+      iframeContainer.appendChild(iframeContainer2);
+      
+      iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
+      iframeContainer.updateSize = function updateSize() {
+        const fov = iframeContainer.getFov();
+        iframeContainer.style.cssText = `
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: ${window.innerWidth}px;
+          height: ${window.innerHeight}px;
+          perspective: ${fov}px;
+        `;
+        iframeContainer2.style.cssText = `
+          /* display: flex;
+          justify-content: center;
+          align-items: center; */
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          /* transform-style: preserve-3d; */
+        `;
+      };
+      iframeContainer.updateSize();
+    }
+    return {
+      iframeContainer,
+      iframeContainer2,
+      camera,
+      sceneHighPriority,
+    };
   },
   async addModule(app, m) {
     currentAppRender = app;
