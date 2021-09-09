@@ -358,6 +358,7 @@ for (const arrayName of [
       const app = metaversefile.createApp();
       app.position.fromArray(position);
       app.quaternion.fromArray(quaternion);
+      app.updateMatrixWorld();
       app.setAttribute('physics', true);
       app.contentId = contentId;
       scene.add(app);
