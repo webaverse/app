@@ -2034,9 +2034,9 @@ window.document.addEventListener('drop', async e => {
       // console.log('got drop', Array.from(e.dataTransfer.files), Array.from(e.dataTransfer.items), Array.from(e.dataTransfer.items).map(i => i.webkitGetAsEntry()));
       // debugger;
       const items = Array.from(e.dataTransfer.items);
-      for (const item of items) {
+      await Promise.all(items.map(async item => {
         await _handleUpload(item);
-      }
+      }));
     }
   }
 });
