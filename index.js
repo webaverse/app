@@ -6,15 +6,19 @@ const util = require('util');
 const express = require('express');
 const vite = require('vite');
 const wsrtc = require('wsrtc/wsrtc-server.js');
+const htmlRenderIframeString = fs.readFileSync('./html_render_iframe.html', 'utf8');
 
 Error.stackTraceLimit = 300;
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
+const fillTemplate = function(templateString, templateVars) {
+  return new Function("return `"+templateString +"`;").call(templateVars);
+};
 
 (async () => {
   const app = express();
   app.use('*', (req, res, next) => {
-    const o = url.parse(req.originalUrl);
+    const o = url.parse(req.originalUrl, true);
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
@@ -26,6 +30,13 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
         req.originalUrl = u;
         next();
       }
+    } else if (o.pathname === '/html_render_iframe.html' && o.query.u) {
+      const srcUrl = decodeURIComponent(o.query.u);
+      const s = fillTemplate(htmlRenderIframeString, {
+        srcUrl,
+      });
+      res.set('Content-Type', 'text/html');
+      res.end(s);
     } else {
       next();
     }
