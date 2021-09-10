@@ -313,16 +313,31 @@ metaversefile.setApi({
   useActivate(fn) {
     // XXX implement this
   },
+  useResize(fn) {
+    const app = currentAppRender;
+    if (app) {
+      window.addEventListener('resize', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('resize', fn);
+      });
+    } else {
+      throw new Error('useResize cannot be called outside of render()');
+    }
+  },
   createApp() {
     return appManager.createApp(appManager.getNextAppId());
   },
   useHtmlRenderer() {
     if (!(iframeContainer && iframeContainer2)) {
-      iframeContainer = document.createElement('div');
+      iframeContainer = document.getElementById('iframe-container');
+      iframeContainer2 = document.getElementById('iframe-container2');
+      /* iframeContainer = document.createElement('div');
       iframeContainer.setAttribute('id', 'iframe-container');
       iframeContainer2 = document.createElement('div');
       iframeContainer2.setAttribute('id', 'iframe-container2');
-      iframeContainer.appendChild(iframeContainer2);
+      iframeContainer.appendChild(iframeContainer2); */
       
       iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
       iframeContainer.updateSize = function updateSize() {
@@ -344,14 +359,12 @@ metaversefile.setApi({
           position: absolute;
           left: 0;
           top: 0;
-          width: 100%;
-          height: 100%;
+          bottom: 0;
+          right: 0;
           /* transform-style: preserve-3d; */
         `;
       };
       iframeContainer.updateSize();
-      const container = document.getElementById('container');
-      document.body.insertBefore(iframeContainer, container);
     }
     return {
       iframeContainer,
