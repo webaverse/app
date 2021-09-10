@@ -329,7 +329,7 @@ metaversefile.setApi({
   createApp() {
     return appManager.createApp(appManager.getNextAppId());
   },
-  useHtmlRenderer() {
+  useInternals() {
     if (!(iframeContainer && iframeContainer2)) {
       iframeContainer = document.getElementById('iframe-container');
       iframeContainer2 = document.getElementById('iframe-container2');
@@ -366,11 +366,14 @@ metaversefile.setApi({
       };
       iframeContainer.updateSize();
     }
+
+    const renderer = getRenderer();
     return {
-      iframeContainer,
-      iframeContainer2,
+      renderer,
       camera,
       sceneHighPriority,
+      iframeContainer,
+      iframeContainer2,
     };
   },
   async addModule(app, m) {
