@@ -349,8 +349,8 @@ metaversefile.setApi({
           width: ${window.innerWidth}px;
           height: ${window.innerHeight}px;
           perspective: ${fov}px;
-          /* pointer-events: none;
-          user-select: none; */
+          pointer-events: none;
+          user-select: none;
         `;
         iframeContainer2.style.cssText = `
           /* display: flex;
