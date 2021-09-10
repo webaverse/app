@@ -42,9 +42,9 @@ img:not([src]) {
   visibility: hidden;
 }
 
-/* .hidden {
+.hidden {
   display: none;
-} */
+}
 
 .progress-bar {
   position: absolute;
