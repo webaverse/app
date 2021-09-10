@@ -445,12 +445,16 @@ export function convertMeshToPhysicsMesh(topMesh) {
     
     return newGeometry;
   });
-  const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-  const physicsMesh = new THREE.Mesh(newGeometry);
-  /* topMesh.getWorldPosition(physicsMesh.position);
-  topMesh.getWorldQuaternion(physicsMesh.quaternion);
-  topMesh.getWorldScale(physicsMesh.scale); */
-  return physicsMesh;
+  if (newGeometries.length > 0) {
+    const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
+    const physicsMesh = new THREE.Mesh(newGeometry);
+    /* topMesh.getWorldPosition(physicsMesh.position);
+    topMesh.getWorldQuaternion(physicsMesh.quaternion);
+    topMesh.getWorldScale(physicsMesh.scale); */
+    return physicsMesh;
+  } else {
+    return new THREE.Mesh();
+  }
 }
 
 export function parseCoord(s) {
