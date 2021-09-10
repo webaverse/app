@@ -1247,6 +1247,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   position: absolute;
   width: 100vw;
   height: 100vh;
+  pointer-events: none;
 }
 .canvas {
   position: absolute;
