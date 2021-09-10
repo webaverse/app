@@ -543,7 +543,7 @@ metaversefile.setApi({
 App.prototype.addModule = function(m) {
   return metaversefile.addModule(this, m);
 };
-window.metaversefile = metaversefile;
+window.metaversefile = metaversefile; // XXX
 /* [
   './lol.jsx',
   './street/.metaversefile',
