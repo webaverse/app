@@ -38,14 +38,14 @@ function bindCanvas(c) {
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
   
-  renderer.domElement.addEventListener('click', e => {
+  window.addEventListener('click', e => {
     scene.dispatchEvent({
       type: 'click',
       event: e,
       // message: 'vroom vroom!',
     });
   });
-  renderer.domElement.addEventListener('mousedown', e => {
+  window.addEventListener('mousedown', e => {
     scene.dispatchEvent({
       type: 'mousedown',
       event: e,
@@ -57,7 +57,7 @@ function bindCanvas(c) {
       event: e,
     });
   }); */
-  renderer.domElement.addEventListener('contextmenu', e => {
+  window.addEventListener('contextmenu', e => {
     scene.dispatchEvent({
       type: 'contextmenu',
       event: e,
