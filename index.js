@@ -6,14 +6,14 @@ const util = require('util');
 const express = require('express');
 const vite = require('vite');
 const wsrtc = require('wsrtc/wsrtc-server.js');
-const htmlRenderIframeString = fs.readFileSync('./html_render_iframe.html', 'utf8');
+// const htmlRenderIframeString = fs.readFileSync('./html_render_iframe.html', 'utf8');
 
 Error.stackTraceLimit = 300;
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
-const fillTemplate = function(templateString, templateVars) {
+/* const fillTemplate = function(templateString, templateVars) {
   return new Function("return `"+templateString +"`;").call(templateVars);
-};
+}; */
 
 (async () => {
   const app = express();
@@ -30,13 +30,13 @@ const fillTemplate = function(templateString, templateVars) {
         req.originalUrl = u;
         next();
       }
-    } else if (o.pathname === '/html_render_iframe.html' && o.query.u) {
+    /* } else if (o.pathname === '/html_render_iframe.html' && o.query.u) {
       const srcUrl = decodeURIComponent(o.query.u);
       const s = fillTemplate(htmlRenderIframeString, {
         srcUrl,
       });
       res.set('Content-Type', 'text/html');
-      res.end(s);
+      res.end(s); */
     } else {
       next();
     }
