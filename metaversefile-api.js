@@ -405,7 +405,9 @@ metaversefile.setApi({
     if (loaded instanceof Promise) {
       await loaded;
     } */
-    await waitUntilPromise;
+    if (waitUntilPromise) {
+      await waitUntilPromise;
+    }
 
     // console.log('gor react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
