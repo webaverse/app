@@ -26,6 +26,7 @@ import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
+import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
@@ -533,7 +534,7 @@ const _uploadFile = async (u, f) => {
     hash,
   };
 };
-const _handleUpload = async item => {
+const _handleUpload = async (item, transform = null) => {
   console.log('uploading...');
   
   const _uploadObject = async item => {
@@ -612,16 +613,19 @@ const _handleUpload = async item => {
   
   console.log('upload complete:', u);
 
-  const _loadObject = () => {  
+  if (!transform) {
     const {leftHand: {position, quaternion}} = useLocalPlayer();
-      
     const position2 = position.clone()
       .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
     const quaternion2 = quaternion.clone();
-    
-    world.addObject(u, null, position2, quaternion2);
-  };
-  _loadObject();
+    transform = {
+      position: position2,
+      quaternion: quaternion2,
+    };
+  }
+  const {position, quaternion} = transform;
+  
+  world.addObject(u, null, position, quaternion);
 };
 const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
@@ -1980,64 +1984,67 @@ const bindInterface = () => {
   }
 };
 
-window.document.addEventListener('dragover', e => {
+const metaverseUi = {
+  arrowLoader: null,
+};
+(async () => {
+  const m = await metaversefile.import('./public/arrow-loader/');
+  metaverseUi.arrowLoader = () => {
+    const app = metaversefile.createApp();
+    (async () => {
+      await app.addModule(m);
+    })();
+    return app;
+  };
+})();
+window.addEventListener('dragover', e => {
   e.preventDefault();
   // console.log('got drag over', e.dataTransfer);
 });
-window.document.addEventListener('drop', async e => {
+window.addEventListener('drop', async e => {
   e.preventDefault();
   
   const renderer = getRenderer();
-  if (renderer && e.target === renderer.domElement) {
-    const s = e.dataTransfer.getData('application/json');
-    if (s) {
-      const j = JSON.parse(s);
-      const {hash, ext} = j;
-
-      const rect = renderer.domElement.getBoundingClientRect();
-      localVector2D.set(
-        ( e.clientX / rect.width ) * 2 - 1,
-        - ( e.clientY / rect.height ) * 2 + 1
-      );
-      localRaycaster.setFromCamera(localVector2D, camera);
-      const dropZOffset = 2;
-      const position = localVector.copy(localRaycaster.ray.origin)
-        .add(
-          localVector2.set(0, 0, -dropZOffset)
-            .applyQuaternion(
-              localQuaternion
-                .setFromRotationMatrix(localMatrix.lookAt(
-                  localVector3.set(0, 0, 0),
-                  localRaycaster.ray.direction,
-                  localVector4.set(0, 1, 0)
-                ))
-            )
-        );
-      const {quaternion} = camera;
-        
-      // const u = `${storageHost}/ipfs/${hash}/token.${ext}`;
-      let u;
-      if (ext === 'html') {
-        u = `${storageHost}/ipfs/${hash}/`;
-      } else if (ext === 'metaversefile') {
-        u = `${storageHost}/ipfs/${hash}/.metaversefile`;
-      } else {
-        u = `${storageHost}/${hash}/token.${ext}`;
-      }
-      const loadedObject = await world.addObject(u, null, position, quaternion, {
-        // physics,
-        // physics_url,
-        // autoScale,
-      });
-      loadedObject.name = u.match(/([^\/]+)$/)[1];
-    } else {
-      // console.log('got drop', Array.from(e.dataTransfer.files), Array.from(e.dataTransfer.items), Array.from(e.dataTransfer.items).map(i => i.webkitGetAsEntry()));
-      // debugger;
-      const items = Array.from(e.dataTransfer.items);
-      await Promise.all(items.map(async item => {
-        await _handleUpload(item);
-      }));
-    }
+  const rect = renderer.domElement.getBoundingClientRect();
+  localVector2D.set(
+    ( e.clientX / rect.width ) * 2 - 1,
+    - ( e.clientY / rect.height ) * 2 + 1
+  );
+  localRaycaster.setFromCamera(localVector2D, camera);
+  const dropZOffset = 2;
+  const position = localRaycaster.ray.origin.clone()
+    .add(
+      localVector2.set(0, 0, -dropZOffset)
+        .applyQuaternion(
+          localQuaternion
+            .setFromRotationMatrix(localMatrix.lookAt(
+              localVector3.set(0, 0, 0),
+              localRaycaster.ray.direction,
+              localVector4.set(0, 1, 0)
+            ))
+        )
+    );
+  const quaternion = camera.quaternion.clone();
+  
+  let arrowLoader = null;
+  if (metaverseUi.arrowLoader) {
+    arrowLoader = metaverseUi.arrowLoader();
+    arrowLoader.position.copy(position);
+    arrowLoader.quaternion.copy(quaternion);
+    scene.add(arrowLoader);
+  }
+  
+  const items = Array.from(e.dataTransfer.items);
+  await Promise.all(items.map(async item => {
+    await _handleUpload(item, {
+      position,
+      quaternion,
+    });
+  }));
+  
+  if (arrowLoader) {
+    scene.remove(arrowLoader);
+    arrowLoader.destroy();
   }
 });
 
