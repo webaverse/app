@@ -1988,7 +1988,7 @@ const metaverseUi = {
   arrowLoader: null,
 };
 (async () => {
-  const m = await metaversefile.import('./public/arrow-loader/');
+  const m = await metaversefile.import('https://webaverse.github.io/arrow-loader/');
   metaverseUi.arrowLoader = () => {
     const app = metaversefile.createApp();
     (async () => {
