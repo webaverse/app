@@ -187,7 +187,9 @@ class AppManager extends EventTarget {
     const appIndex = this.apps.findIndex(app => app.appId === appId);
     if (appIndex !== -1) {
       const app = this.apps[appIndex];
-      app.dispatchEvent(new MessageEvent('unload'));
+      app.dispatchEvent({
+        type: 'destroy',
+      });
       this.apps.splice(appIndex, 1);
     }
   }
