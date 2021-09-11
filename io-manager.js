@@ -272,527 +272,524 @@ const _setTransformMode = transformMode => {
     transformControls.setTransformMode('disabled');
   }
 };
-ioManager.bindInput = () => {
-  window.addEventListener('keydown', e => {
-    if (_inputFocused() || e.repeat) {
-      return;
+ioManager.keydown = e => {
+  if (_inputFocused() || e.repeat) {
+    return;
+  }
+  switch (e.which) {
+    /* case 9: { // tab
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-tab').click();
+      break;
+    } */
+    case 49: // 1
+    case 50: // 2
+    case 51: // 3
+    case 52: // 4
+    case 53: // 5
+    case 54: // 6
+    case 55: // 7
+    case 56: // 8
+    {
+      weaponsManager.selectLoadout(e.which - 49);
+      break;
     }
-    switch (e.which) {
-      case 9: { // tab
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('key-tab').click();
-        break;
+    case 87: { // W
+      ioManager.keys.up = true;
+      if (!document.pointerLockElement) {
+        weaponsManager.menuVertical(-1);
       }
-      case 49: // 1
-      case 50: // 2
-      case 51: // 3
-      case 52: // 4
-      case 53: // 5
-      case 54: // 6
-      case 55: // 7
-      case 56: // 8
-      {
-        weaponsManager.selectLoadout(e.which - 49);
-        break;
+      break;
+    }
+    case 65: { // A
+      ioManager.keys.left = true;
+      if (!document.pointerLockElement) {
+        weaponsManager.menuHorizontal(-1);
       }
-      case 87: { // W
-        ioManager.keys.up = true;
-        if (!document.pointerLockElement) {
-          weaponsManager.menuVertical(-1);
-        }
-        break;
-      }
-      case 65: { // A
-        ioManager.keys.left = true;
-        if (!document.pointerLockElement) {
-          weaponsManager.menuHorizontal(-1);
-        }
-        break;
-      }
-      case 83: { // S
-        ioManager.keys.down = true;
-        if (!document.pointerLockElement) {
-          if (weaponsManager.menuOpen) {
-            weaponsManager.menuVertical(1);
-          } else {
-            // if (!weaponsManager.dragging) {
-              // _setTransformMode('scale');
-            // }
-          }
-        }
-        break;
-      }
-      case 68: { // D
-        ioManager.keys.right = true;
-        if (!document.pointerLockElement) {
-          weaponsManager.menuHorizontal(1);
-        }
-        break;
-      }
-      case 82: { // R
-        if (document.pointerLockElement) {
-          if (weaponsManager.canRotate()) {
-            weaponsManager.menuRotate(1);
-          }
+      break;
+    }
+    case 83: { // S
+      ioManager.keys.down = true;
+      if (!document.pointerLockElement) {
+        if (weaponsManager.menuOpen) {
+          weaponsManager.menuVertical(1);
         } else {
           // if (!weaponsManager.dragging) {
-            // _setTransformMode('rotate');
+            // _setTransformMode('scale');
           // }
         }
-        break;
       }
-      case 70: { // F
+      break;
+    }
+    case 68: { // D
+      ioManager.keys.right = true;
+      if (!document.pointerLockElement) {
+        weaponsManager.menuHorizontal(1);
+      }
+      break;
+    }
+    case 82: { // R
+      if (document.pointerLockElement) {
+        if (weaponsManager.canRotate()) {
+          weaponsManager.menuRotate(1);
+        }
+      } else {
+        // if (!weaponsManager.dragging) {
+          // _setTransformMode('rotate');
+        // }
+      }
+      break;
+    }
+    case 70: { // F
+      e.preventDefault();
+      e.stopPropagation();
+      if (weaponsManager.canPush()) {
+        ioManager.keys.forward = true;
+      } else {
+        if (weaponsManager.canJumpOff()) {
+          weaponsManager.jumpOff();
+        }
+        physicsManager.setFlyState(!physicsManager.getFlyState());
+      }
+      break;
+    }
+    case 71: { // G
+      if (document.pointerLockElement) {
+        if (weaponsManager.canTry()) {
+          weaponsManager.menuTry();
+        }
+      } else {
+        // if (!weaponsManager.dragging) {
+          // _setTransformMode('translate');
+        // }
+      }
+      break;
+    }
+    case 90: { // Z
+      if (!e.ctrlKey) {
+        if (weaponsManager.canStartBuild()) {
+          weaponsManager.startBuild('wall');
+        } else if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('wall');
+        }
+      }
+      break;
+    }
+    case 88: { // X
+      if (!e.ctrlKey) {
+        if (weaponsManager.canStartBuild()) {
+          weaponsManager.startBuild('floor');
+        } else if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('floor');
+        } else {
+          weaponsManager.menuDelete();
+        }
+      }
+      break;
+    }
+    case 67: { // C
+      if (!e.ctrlKey) {
+        if (weaponsManager.canStartBuild()) {
+          weaponsManager.startBuild('stair');
+        } else if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('stair');
+        } else if (weaponsManager.canPush()) {
+          ioManager.keys.backward = true;
+        }
+      }
+      break;
+    }
+    case 73: { // I
+      inventoryToggle();
+      break;
+    }
+    /* case 82: { // R
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-r').click(); // equip
+      break;
+    } */
+    case 71: { // G
+      weaponsManager.menuDrop();
+      break;
+    }
+    case 86: { // V
+      // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        if (weaponsManager.canPush()) {
-          ioManager.keys.forward = true;
-        } else {
+        weaponsManager.menuVDown();
+      // }
+      break;
+    }
+    case 66: { // B
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuBDown();
+      // }
+      break;
+    }
+    case 84: { // T
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        world.toggleMic();
+      // }
+      break;
+    }
+    case 85: { // U
+      // if (weaponsManager.canUpload()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuUpload();
+      // }
+      break;
+    }
+    case 80: { // P
+      weaponsManager.destroyWorld()
+      weaponsManager.menuPhysics();
+      break;
+    }
+    case 16: { // shift
+      ioManager.keys.shift = true;
+      break;
+    }
+    case 32: { // space
+      ioManager.keys.space = true;
+      if (controlsManager.isPossessed()) {
+        if (!physicsManager.getJumpState()) {
           if (weaponsManager.canJumpOff()) {
             weaponsManager.jumpOff();
           }
-          physicsManager.setFlyState(!physicsManager.getFlyState());
+          physicsManager.jump();
+        } else {
+          physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
         }
-        break;
       }
-      case 71: { // G
-        if (document.pointerLockElement) {
-          if (weaponsManager.canTry()) {
-            weaponsManager.menuTry();
+      break;
+    }
+    case 17: { // ctrl
+      ioManager.keys.ctrl = true;
+      break;
+    }
+    case 81: { // Q
+      // weaponsManager.setWeaponWheel(true);
+      if (weaponsManager.canToggleAxis()) {
+        weaponsManager.toggleAxis();
+      }
+      break;
+    }
+    case 69: { // E
+      if (document.pointerLockElement) {
+        if (!weaponsManager.editorHack) {
+          weaponsManager.menuUseHold();
+          if (weaponsManager.canRotate()) {
+            weaponsManager.menuRotate(-1);
           }
         } else {
-          // if (!weaponsManager.dragging) {
-            // _setTransformMode('translate');
-          // }
+          weaponsManager.menuUseDown();
         }
-        break;
       }
-      case 90: { // Z
-        if (!e.ctrlKey) {
-          if (weaponsManager.canStartBuild()) {
-            weaponsManager.startBuild('wall');
-          } else if (weaponsManager.canBuild()) {
-            weaponsManager.setBuildMode('wall');
-          }
-        }
-        break;
-      }
-      case 88: { // X
-        if (!e.ctrlKey) {
-          if (weaponsManager.canStartBuild()) {
-            weaponsManager.startBuild('floor');
-          } else if (weaponsManager.canBuild()) {
-            weaponsManager.setBuildMode('floor');
+      break;
+    }
+    case 192: { // tilde
+      weaponsManager.toggleEditMode();
+      break;
+    }
+    case 13: { // enter
+      weaponsManager.enter();
+      break;
+    }
+    /* case 77: { // M
+      menuActions.setIsOpen(!menuState.isOpen);
+      break;
+    } */
+    case 74: { // J
+      weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
+      break;
+    }
+    case 27: { // esc
+      weaponsManager.setContextMenu(false);
+      break;
+    }
+  }
+};
+ioManager.keyup = e => {
+  if (_inputFocused() || e.repeat) {
+    return;
+  }
+  switch (e.which) {
+    /* case 81: { // Q
+      weaponsManager.setWeaponWheel(false);
+      break;
+    } */
+    case 87: { // W
+      ioManager.keys.up = false;
+      break;
+    }
+    case 65: { // A
+      ioManager.keys.left = false;
+      break;
+    }
+    case 83: { // S
+      ioManager.keys.down = false;
+      break;
+    }
+    case 68: { // D
+      ioManager.keys.right = false;
+      break;
+    }
+    case 32: { // space
+      ioManager.keys.space = false;
+      break;
+    }
+    case 17: { // ctrl
+      ioManager.keys.ctrl = false;
+      break;
+    }
+    case 69: { // E
+      if (document.pointerLockElement) {
+        if (!weaponsManager.editorHack) {
+          weaponsManager.menuUseRelease();
+
+          if (weaponsManager.canRotate()) {
+            // nothing
           } else {
-            weaponsManager.menuDelete();
+            weaponsManager.menuUse();
           }
+        } else {
+          weaponsManager.menuUseUp();
         }
-        break;
       }
-      case 67: { // C
-        if (!e.ctrlKey) {
-          if (weaponsManager.canStartBuild()) {
-            weaponsManager.startBuild('stair');
-          } else if (weaponsManager.canBuild()) {
-            weaponsManager.setBuildMode('stair');
-          } else if (weaponsManager.canPush()) {
-            ioManager.keys.backward = true;
-          }
-        }
-        break;
+      break;
+    }
+    case 70: { // F
+      if (document.pointerLockElement) {
+        ioManager.keys.forward = false;
       }
-      case 73: { // I
-        inventoryToggle();
-        break;
+      break;
+    }
+    case 67: { // C
+      if (document.pointerLockElement) {
+        ioManager.keys.backward = false;
       }
-      /* case 82: { // R
+      break;
+    }
+    case 86: { // V
+      // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('key-r').click(); // equip
-        break;
-      } */
-      case 71: { // G
-        weaponsManager.menuDrop();
-        break;
-      }
-      case 86: { // V
-        // if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.menuVDown();
-        // }
-        break;
-      }
-      case 66: { // B
-        // if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.menuBDown();
-        // }
-        break;
-      }
-      case 84: { // T
-        // if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          world.toggleMic();
-        // }
-        break;
-      }
-      case 85: { // U
-        // if (weaponsManager.canUpload()) {
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.menuUpload();
-        // }
-        break;
-      }
-      case 80: { // P
-        weaponsManager.destroyWorld()
-        weaponsManager.menuPhysics();
-        break;
-      }
-      case 16: { // shift
-        ioManager.keys.shift = true;
-        break;
-      }
-      case 32: { // space
-        ioManager.keys.space = true;
-        if (controlsManager.isPossessed()) {
-          if (!physicsManager.getJumpState()) {
-            if (weaponsManager.canJumpOff()) {
-              weaponsManager.jumpOff();
-            }
-            physicsManager.jump();
-          } else {
-            physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
-          }
-        }
-        break;
-      }
-      case 17: { // ctrl
-        ioManager.keys.ctrl = true;
-        break;
-      }
-      case 81: { // Q
-        // weaponsManager.setWeaponWheel(true);
-        if (weaponsManager.canToggleAxis()) {
-          weaponsManager.toggleAxis();
-        }
-        break;
-      }
-      case 69: { // E
-        if (document.pointerLockElement) {
-          if (!weaponsManager.editorHack) {
-            weaponsManager.menuUseHold();
-            if (weaponsManager.canRotate()) {
-              weaponsManager.menuRotate(-1);
-            }
-          } else {
-            weaponsManager.menuUseDown();
-          }
-        }
-        break;
-      }
-      case 192: { // tilde
-        weaponsManager.toggleEditMode();
-        break;
-      }
-      case 13: { // enter
-        weaponsManager.enter();
-        break;
-      }
-      /* case 77: { // M
-        menuActions.setIsOpen(!menuState.isOpen);
-        break;
-      } */
-      case 74: { // J
-        weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
-        break;
-      }
-      case 27: { // esc
-        weaponsManager.setContextMenu(false);
-        break;
-      }
+        weaponsManager.menuVUp();
+      // }
+      break;
     }
-  });
-  window.addEventListener('keyup', e => {
-    if (_inputFocused() || e.repeat) {
-      return;
+    case 66: { // B
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuBUp();
+      // }
+      break;
     }
-    switch (e.which) {
-      /* case 81: { // Q
-        weaponsManager.setWeaponWheel(false);
-        break;
-      } */
-      case 87: { // W
-        ioManager.keys.up = false;
-        break;
+    case 16: { // shift
+      ioManager.keys.shift = false;
+      break;
+    }
+    case 46: { // delete
+      const object = weaponsManager.getMouseSelectedObject();
+      if (object) {
+        weaponsManager.setMouseHoverObject(null);
+        weaponsManager.setMouseSelectedObject(null);
+        world.removeObject(object.instanceId);
       }
-      case 65: { // A
-        ioManager.keys.left = false;
-        break;
-      }
-      case 83: { // S
-        ioManager.keys.down = false;
-        break;
-      }
-      case 68: { // D
-        ioManager.keys.right = false;
-        break;
-      }
-      case 32: { // space
-        ioManager.keys.space = false;
-        break;
-      }
-      case 17: { // ctrl
-        ioManager.keys.ctrl = false;
-        break;
-      }
-      case 69: { // E
-        if (document.pointerLockElement) {
-          if (!weaponsManager.editorHack) {
-            weaponsManager.menuUseRelease();
+      break;
+    }
+    case 27: {
+      // if (weaponsManager.getMouseSelectedObject()) {
+        weaponsManager.setMouseSelectedObject(null);
+      // }
+    }
+  }
+};
+const _updateMouseMovement = e => {
+  const {movementX, movementY} = e;
 
-            if (weaponsManager.canRotate()) {
-              // nothing
-            } else {
-              weaponsManager.menuUse();
-            }
-          } else {
-            weaponsManager.menuUseUp();
-          }
-        }
-        break;
-      }
-      case 70: { // F
-        if (document.pointerLockElement) {
-          ioManager.keys.forward = false;
-        }
-        break;
-      }
-      case 67: { // C
-        if (document.pointerLockElement) {
-          ioManager.keys.backward = false;
-        }
-        break;
-      }
-      case 86: { // V
-        // if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.menuVUp();
-        // }
-        break;
-      }
-      case 66: { // B
-        // if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.menuBUp();
-        // }
-        break;
-      }
-      case 16: { // shift
-        ioManager.keys.shift = false;
-        break;
-      }
-      case 46: { // delete
-        const object = weaponsManager.getMouseSelectedObject();
-        if (object) {
-          weaponsManager.setMouseHoverObject(null);
-          weaponsManager.setMouseSelectedObject(null);
-          world.removeObject(object.instanceId);
-        }
-        break;
-      }
-      case 27: {
-        // if (weaponsManager.getMouseSelectedObject()) {
-          weaponsManager.setMouseSelectedObject(null);
-        // }
-      }
-    }
-  });
-  const _updateMouseMovement = e => {
-    const {movementX, movementY} = e;
-
-    if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
-      camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-    
-      camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-      camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-      camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-      camera.quaternion.setFromEuler(camera.rotation);
-
-      camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-
-      camera.updateMatrixWorld();
-    }
-  };
-  const _getMouseRaycaster = (e, raycaster) => {
-    const {clientX, clientY} = e;
-    const renderer = getRenderer();
-    renderer.getSize(localVector2D2);
-    localVector2D.set(
-      (clientX / localVector2D2.x) * 2 - 1,
-      -(clientY / localVector2D2.y) * 2 + 1
-    );
-    if (
-      localVector2D.x >= -1 && localVector2D.x <= 1 &&
-      localVector2D.y >= -1 && localVector2D.y <= 1
-    ) {
-      raycaster.setFromCamera(localVector2D, camera);
-      return raycaster;
-    } else {
-      return null;
-    }
-  };
-  const _updateMouseHover = e => {
-    let mouseHoverObject = null;
-    let mouseSelectedObject = null;
-    let mouseHoverPhysicsId = 0;
-    let htmlHover = false;
-    
-    const raycaster = _getMouseRaycaster(e, localRaycaster);
-    if (raycaster) {
-      transformControls.handleMouseMove(raycaster);
-      
-      const position = raycaster.ray.origin;
-      const quaternion = localQuaternion.setFromUnitVectors(
-        localVector.set(0, 0, -1),
-        raycaster.ray.direction
-      );
-      
-      const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-      
-      if (result) {
-        const object = world.getObjectFromPhysicsId(result.objectId);
-        if (object) {
-          if (object.isHtml) {
-            htmlHover = true;
-          } else {
-            if (!controlsManager.isPossessed()) {
-              mouseHoverObject = object;
-              mouseHoverPhysicsId = result.objectId;
-            }
-          }
-        }
-      }
-      weaponsManager.setLastMouseEvent(e);
-    } else {
-      weaponsManager.setLastMouseEvent(null);
-    }
-    weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
-    const renderer = getRenderer();
-    if (htmlHover) {
-      renderer.domElement.classList.add('hover');
-    } else {
-      renderer.domElement.classList.remove('hover');
-    }
-  };
-  window.addEventListener('mousemove', e => {
-    if (weaponsManager.weaponWheel) {
-      weaponsManager.updateWeaponWheel(e);
-    } else {
-      if (document.pointerLockElement) {
-        _updateMouseMovement(e);
-      } else {
-        if (weaponsManager.dragging) {
-          weaponsManager.menuDrag(e);
-          weaponsManager.menuDragRight(e);
-        } else {
-          _updateMouseHover(e);
-        }
-      }
-    }
-  });
-  window.addEventListener('mouseup', e => {
-    ioManager.currentWeaponDown = false;
-    ioManager.currentWeaponValue = 0;
-    ioManager.currentTeleport = false;
-    
-    const raycaster = _getMouseRaycaster(e, localRaycaster);
-    transformControls.handleMouseUp(raycaster);
-  });
-  window.document.addEventListener('mouseleave', e => {
-    const renderer = getRenderer();
-    renderer.domElement.classList.remove('hover');
-  });
+  if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+    camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
   
-  scene.addEventListener('click', event => {
-    const e = event.event;
-    if (document.pointerLockElement) {
-      weaponsManager.menuClick();
-    } else {
-      if (weaponsManager.editorHack) {
-        weaponsManager.setContextMenu(false);
-        
-        if (controlsManager.isPossessed()) {
-          cameraManager.requestPointerLock();
+    camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+    camera.quaternion.setFromEuler(camera.rotation);
+
+    camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+
+    camera.updateMatrixWorld();
+  }
+};
+const _getMouseRaycaster = (e, raycaster) => {
+  const {clientX, clientY} = e;
+  const renderer = getRenderer();
+  renderer.getSize(localVector2D2);
+  localVector2D.set(
+    (clientX / localVector2D2.x) * 2 - 1,
+    -(clientY / localVector2D2.y) * 2 + 1
+  );
+  if (
+    localVector2D.x >= -1 && localVector2D.x <= 1 &&
+    localVector2D.y >= -1 && localVector2D.y <= 1
+  ) {
+    raycaster.setFromCamera(localVector2D, camera);
+    return raycaster;
+  } else {
+    return null;
+  }
+};
+const _updateMouseHover = e => {
+  let mouseHoverObject = null;
+  let mouseSelectedObject = null;
+  let mouseHoverPhysicsId = 0;
+  let htmlHover = false;
+  
+  const raycaster = _getMouseRaycaster(e, localRaycaster);
+  if (raycaster) {
+    transformControls.handleMouseMove(raycaster);
+    
+    const position = raycaster.ray.origin;
+    const quaternion = localQuaternion.setFromUnitVectors(
+      localVector.set(0, 0, -1),
+      raycaster.ray.direction
+    );
+    
+    const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+    
+    if (result) {
+      const object = world.getObjectFromPhysicsId(result.objectId);
+      if (object) {
+        if (object.isHtml) {
+          htmlHover = true;
         } else {
-          const mouseHoverObject = weaponsManager.getMouseHoverObject();
-          const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
-          if (mouseHoverObject) {
-            const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
-            if (mouseHoverObject !== mouseSelectedObject) {
-              weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
-            } else {
-              weaponsManager.setMouseSelectedObject(null);
-            }
+          if (!controlsManager.isPossessed()) {
+            mouseHoverObject = object;
+            mouseHoverPhysicsId = result.objectId;
           }
         }
-      } else {
-        weaponsManager.setMenu(0);
-        cameraManager.requestPointerLock();
       }
     }
-  });
-  let mouseDown = false;
-  scene.addEventListener('mousedown', event => {
-    const e = event.event;
+    weaponsManager.setLastMouseEvent(e);
+  } else {
+    weaponsManager.setLastMouseEvent(null);
+  }
+  weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
+  const renderer = getRenderer();
+  if (htmlHover) {
+    renderer.domElement.classList.add('hover');
+  } else {
+    renderer.domElement.classList.remove('hover');
+  }
+};
+ioManager.mousemove = e => {
+  if (weaponsManager.weaponWheel) {
+    weaponsManager.updateWeaponWheel(e);
+  } else {
     if (document.pointerLockElement) {
-      if (e.buttons & 1) { // left
-        weaponsManager.menuMouseDown();
+      _updateMouseMovement(e);
+    } else {
+      if (weaponsManager.dragging) {
+        weaponsManager.menuDrag(e);
+        weaponsManager.menuDragRight(e);
+      } else {
+        _updateMouseHover(e);
       }
-      if (e.buttons & 2) { // right
-        weaponsManager.menuAim();
+    }
+  }
+};
+ioManager.mouseup = e => {
+  ioManager.currentWeaponDown = false;
+  ioManager.currentWeaponValue = 0;
+  ioManager.currentTeleport = false;
+  
+  const raycaster = _getMouseRaycaster(e, localRaycaster);
+  transformControls.handleMouseUp(raycaster);
+};
+ioManager.mouseleave = e => {
+  const renderer = getRenderer();
+  renderer.domElement.classList.remove('hover');
+};
+ioManager.click = e => {
+  if (document.pointerLockElement) {
+    weaponsManager.menuClick();
+  } else {
+    if (weaponsManager.editorHack) {
+      weaponsManager.setContextMenu(false);
+      
+      if (controlsManager.isPossessed()) {
+        cameraManager.requestPointerLock();
+      } else {
+        const mouseHoverObject = weaponsManager.getMouseHoverObject();
+        const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+        if (mouseHoverObject) {
+          const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+          if (mouseHoverObject !== mouseSelectedObject) {
+            weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+          } else {
+            weaponsManager.setMouseSelectedObject(null);
+          }
+        }
       }
     } else {
-      if (e.buttons & 1) { // left
-        const raycaster = _getMouseRaycaster(e, localRaycaster);
-        transformControls.handleMouseDown(raycaster);
+      weaponsManager.setMenu(0);
+      cameraManager.requestPointerLock();
+    }
+  }
+};
+let mouseDown = false;
+ioManager.mousedown = e => {
+  if (document.pointerLockElement) {
+    if (e.buttons & 1) { // left
+      weaponsManager.menuMouseDown();
+    }
+    if (e.buttons & 2) { // right
+      weaponsManager.menuAim();
+    }
+  } else {
+    if (e.buttons & 1) { // left
+      const raycaster = _getMouseRaycaster(e, localRaycaster);
+      transformControls.handleMouseDown(raycaster);
+    }
+    if (e.buttons & 2) { // right
+      weaponsManager.menuDragdownRight();
+      weaponsManager.setContextMenu(false);
+    }
+  }
+  if (e.buttons & 4) { // middle
+    weaponsManager.menuDragdown();
+  }
+  mouseDown = true;
+};
+ioManager.mouseup = e => {
+  if (mouseDown) {
+    if (document.pointerLockElement) {
+      if (!(e.buttons & 1)) { // left
+        weaponsManager.menuMouseUp();
       }
-      if (e.buttons & 2) { // right
-        weaponsManager.menuDragdownRight();
-        weaponsManager.setContextMenu(false);
+      if (!(e.buttons & 2)) { // right
+        weaponsManager.menuUnaim();
+      }
+    } else {
+      if (!(e.buttons & 2)) { // right
+        weaponsManager.menuDragupRight();
       }
     }
-    if (e.buttons & 4) { // middle
-      weaponsManager.menuDragdown();
+    if (!(e.buttons & 4)) { // middle
+      weaponsManager.menuDragup();
     }
-    mouseDown = true;
-  });
-  window.document.addEventListener('mouseup', e => {
-    if (mouseDown) {
-      if (document.pointerLockElement) {
-        if (!(e.buttons & 1)) { // left
-          weaponsManager.menuMouseUp();
-        }
-        if (!(e.buttons & 2)) { // right
-          weaponsManager.menuUnaim();
-        }
-      } else {
-        if (!(e.buttons & 2)) { // right
-          weaponsManager.menuDragupRight();
-        }
-      }
-      if (!(e.buttons & 4)) { // middle
-        weaponsManager.menuDragup();
-      }
-      mouseDown = false;
-    }
-  });
+    mouseDown = false;
+  }
+};
+ioManager.bindInput = () => {
   window.addEventListener('resize', e => {
     const renderer = getRenderer();
     if (renderer.xr.getSession()) {

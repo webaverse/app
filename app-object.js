@@ -37,32 +37,6 @@ function bindCanvas(c) {
   }
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
-  
-  window.addEventListener('click', e => {
-    scene.dispatchEvent({
-      type: 'click',
-      event: e,
-      // message: 'vroom vroom!',
-    });
-  });
-  window.addEventListener('mousedown', e => {
-    scene.dispatchEvent({
-      type: 'mousedown',
-      event: e,
-    });
-  });
-  /* renderer.domElement.addEventListener('mouseup', e => {
-    scene.dispatchEvent({
-      type: 'mouseup',
-      event: e,
-    });
-  }); */
-  window.addEventListener('contextmenu', e => {
-    scene.dispatchEvent({
-      type: 'contextmenu',
-      event: e,
-    });
-  });
 }
 function getRenderer() {
   return renderer;
