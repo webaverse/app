@@ -1,0 +1,62 @@
+.MagicMenu {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  visibility: hidden;
+}
+
+.MagicMenu .container {
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+}
+
+.MagicMenu .container .textarea {
+  margin-bottom: 5px;
+  padding: 10px;
+  background-color: #FFFFFF;
+  border: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  outline: none;
+}
+
+.MagicMenu .container .output {
+  margin-bottom: 5px;
+  padding: 10px;
+  background-color: #333;
+  border: 0;
+  border-radius: 10px;
+  color: #FFF;
+  font-size: 16px;
+  outline: none;
+}
+
+.MagicMenu .container .button {
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background-color: #7E57C2;
+  color: #FFF;
+  font-size: 16px;
+}
+.MagicMenu .container .button.disabled {
+  background-color: #CCC;
+}
+.MagicMenu .container .button + .button {
+  margin-left: 5px;
+}
+
+.MagicMenu.open {
+  visibility: visible;
+}
+
+.button.loading {
+  background-color: #CCC;
+}

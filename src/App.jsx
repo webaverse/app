@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import logo from './logo.svg'
-import './App.css'
+import classes from './App.css'
+import MagicMenu from './MagicMenu.jsx';
 import App from '/app.js';
 
 const _startApp = () => {
@@ -47,7 +48,9 @@ function RootNode() {
   }, []);
 
   return (
-    <div></div>
+    <div className={classes.App}>
+      <MagicMenu />
+    </div>
   );
 }
 export default RootNode;
