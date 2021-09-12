@@ -70,7 +70,7 @@ function MagicMenu() {
     };
   }, [open, page, inputTextarea.current, outputTextarea.current]);
   useEffect(() => {
-    const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave'];
+    const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
     const cleanups = types.map(type => {
       const fn = e => {
         if (window.document.activeElement === inputTextarea.current) {
