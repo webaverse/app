@@ -139,7 +139,7 @@ let iframeContainer2 = null;
 let recursion = 0;
 metaversefile.setApi({
   async import(s) {
-    if (/^(?:ipfs:\/\/|https?:\/\/)/.test(s)) {
+    if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
       s = `/@proxy/${s}`;
     }
     // console.log('do import', s);
