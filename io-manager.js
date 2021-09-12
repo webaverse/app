@@ -789,6 +789,20 @@ ioManager.mouseup = e => {
     mouseDown = false;
   }
 };
+ioManager.paste = e => {
+  if (!window.document.activeElement) {
+    const items = Array.from(e.clipboardData.items);
+    if (items.length > 0) {
+      e.preventDefault();
+      console.log('paste items', items);
+      /* let s = await new Promise((accept, reject) => {
+        items[0].getAsString(accept);
+      });
+      s = s.replace(/[\n\r]+/g, '').slice(0, 256);
+      weaponsManager.menuPaste(s); */
+    }
+  }
+};
 ioManager.bindInput = () => {
   window.addEventListener('resize', e => {
     const renderer = getRenderer();
@@ -820,7 +834,7 @@ ioManager.bindInput = () => {
       renderer.xr.isPresenting = true;
     }
   });
-  window.addEventListener('paste', async e => {
+  /* window.addEventListener('paste', async e => {
     if (!_inputFocused()) {
       e.preventDefault();
       const items = Array.from(e.clipboardData.items);
@@ -832,7 +846,7 @@ ioManager.bindInput = () => {
         weaponsManager.menuPaste(s);
       }
     }
-  });
+  }); */
   window.addEventListener('wheel', e => {
     // console.log('target', e.target);
     const renderer = getRenderer();
