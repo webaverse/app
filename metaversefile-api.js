@@ -534,7 +534,7 @@ metaversefile.setApi({
       });
       
       return app;
-    } else if (renderSpec === null) {
+    } else if (renderSpec === null || renderSpec === undefined) {
       // console.log('destroy app', app);
       appManager.destroyApp(app.appId);
       return null;
