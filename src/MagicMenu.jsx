@@ -4,6 +4,33 @@ import classes from './MagicMenu.module.css'
 // import MagicMenu from './magic-menu.js';
 // import App from '/app.js';
 import ioManager from '../io-manager.js';
+import metaversefile from 'metaversefile';
+
+window.metaversefile = metaversefile; // XXX
+const makeAi = prompt => {
+  const es = new EventSource('/ai?p=' + encodeURIComponent(prompt));
+  let fullS = '';
+  es.addEventListener('message', e => {
+    const s = e.data;
+    if (s !== '[DONE]') {
+      const j = JSON.parse(s);
+      const {choices} = j;
+      const {text} = choices[0];
+      fullS += text;
+      result.dispatchEvent(new MessageEvent('update', {
+        data: fullS,
+      }));
+    } else {
+      es.close();
+      result.dispatchEvent(new MessageEvent('done'));
+    }
+  });
+  const result = new EventTarget();
+  result.destroy = () => {
+    es.close();
+  };
+  return result;
+};
 
 function MagicMenu() {
   const [open, setOpen] = useState(false);
@@ -14,27 +41,58 @@ function MagicMenu() {
   const [loading, setLoading] = useState(false);
   const [pointerLockElement, setPointerLockElement] = useState(null);
   const [needsFocus, setNeedsFocus] = useState(false);
+  const [ai, setAi] = useState(null);
   const inputTextarea = useRef();
   const outputTextarea = useRef();
 
   const _compile = () => {
     if (!compiling) {
       setCompiling(true);
-      setTimeout(() => {
-        setPage('output');
-        setOutput('<mesh></mesh>');
+      
+      const oldAi = ai;
+      if (oldAi) {
+        oldAi.destroy();
+        setAi(null);
+      }
+
+      const input = inputTextarea.current.value;
+      const newAi = makeAi(input);
+      setAi(newAi);
+      setPage('output');
+      setOutput('');
+      setNeedsFocus(true);
+      newAi.addEventListener('update', e => {
+        const s = e.data;
+        setOutput(s);
+      });
+      newAi.addEventListener('done', e => {
         setCompiling(false);
-      }, 1000);
+        setAi(null);
+      });
     }
   };
-  const _load = () => {
+  const dataUrlPrefix = `data:text/javascript;charset=utf-8,`;
+  const jsPrefix = `
+import metaversefile from 'metaversefile';
+const {useFrame, useWorld} = metaversefile;
+
+export default () => {
+`;
+  const jsSuffix = '\n};';
+  const _run = () => {
     ioManager.click(new MouseEvent('click'));
+    
+    const output = outputTextarea.current.value;
+    const encodedJs = encodeURIComponent(output);
+    const dataUri = dataUrlPrefix + jsPrefix + encodedJs + jsSuffix;
+    (async () => {
+      await metaversefile.load(dataUri);
+    })();
   };
 
   useEffect(() => {
-    const cleanups = [];
     const keydown = e => {
-      if (window.document.activeElement !== inputTextarea.current && window.document.activeElement !== outputTextarea.current && e.which === 9) { // tab
+      if (!open && e.which === 9) { // tab
         e.preventDefault();
 
         const newOpen = !open;
@@ -44,7 +102,7 @@ function MagicMenu() {
           setNeedsFocus(true);
           setOpen(true);
         }
-      } else if (window.document.activeElement === inputTextarea.current || window.document.activeElement === outputTextarea.current) {
+      } else if (open) {
         e.stopPropagation();
 
         if (e.which === 9) { // tab
@@ -56,7 +114,7 @@ function MagicMenu() {
           if (page === 'input') {
             _compile();
           } else if (page === 'output') {
-            _load();
+            _run();
           }
         }
       } else {
@@ -68,12 +126,12 @@ function MagicMenu() {
     return () => {
       window.removeEventListener('keydown', keydown);
     };
-  }, [open, page, inputTextarea.current, outputTextarea.current]);
+  }, [open, page]);
   useEffect(() => {
     const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
     const cleanups = types.map(type => {
       const fn = e => {
-        if (window.document.activeElement === inputTextarea.current) {
+        if (window.document.activeElement === inputTextarea.current || e.target === inputTextarea.current) {
           // nothing
         } else {
           ioManager[type](e);
@@ -97,11 +155,12 @@ function MagicMenu() {
       } else if (needsFocus) {
         if (page === 'input') {
           inputTextarea.current.focus();
-          setNeedsFocus(false);
         } else if (page === 'output') {
-          outputTextarea.current.focus();
-          setNeedsFocus(false);
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
         }
+        setNeedsFocus(false);
       } else if (!needsFocus && pointerLockElement) {
         setOpen(false);
       }
@@ -123,12 +182,22 @@ function MagicMenu() {
         e.preventDefault();
         e.stopPropagation();
       }}>
+        <textarea className={classes.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
+          if (page !== 'input') {
+            setPage('input');
+            const oldAi = ai;
+            if (oldAi) {
+              oldAi.destroy();
+              setAi(null);
+            }
+            setCompiling(false);
+          }
+        }} onChange={e => { setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
         {(() => {
           switch (page) {
             case 'input': {
               return (
                 <>
-                  <textarea className={classes.textarea} value={input} onChange={e => { setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
                   <div className={classes.buttons}>
                     <button className={classes.button + ' ' + (compiling ? classes.disabled : '')} onClick={_compile}>Generate</button>
                   </div>
@@ -138,14 +207,9 @@ function MagicMenu() {
             case 'output': {
               return (
                 <>
-                  <textarea className={classes.output} value={output} onChange={e => { setOutput(e.target.value); }} placeholder="" value={output} ref={outputTextarea} />
+                  <textarea className={classes.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" value={output} ref={outputTextarea} />
                   <div className={classes.buttons}>
-                    <button className={classes.button} onClick={e => {
-                      setOpen(false);
-                    }}>Confirm</button>
-                    <button className={classes.button} onClick={e => {
-                      setPage('input');
-                    }}>Back</button>
+                    <button className={classes.button} onClick={_run}>Run</button>
                   </div>
                 </>
               );
