@@ -35,9 +35,9 @@ class LocalPlayer {
     this.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(this.position, p, upVector)
     );
-    teleportTo(this.position, this.quaternion, {
+    /* teleportTo(this.position, this.quaternion, {
       relation: 'head',
-    });
+    }); */
   }
 }
 const teleportTo = (() => {
