@@ -16,9 +16,6 @@ try {
 } catch(err) {
   console.warn(err);
 }
-if (!openAiKey) {
-  throw new Error('fail');
-}
 const aiPrefix = fs.readFileSync('./ai/ai-prefix.js');
 // const htmlRenderIframeString = fs.readFileSync('./html_render_iframe.html', 'utf8');
 
