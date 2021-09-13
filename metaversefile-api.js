@@ -155,9 +155,9 @@ metaversefile.setApi({
     }
   },
   async load(s) {
-    const m = await this.import(s);
-    const app = this.createApp();
-    await this.addModule(app, m);
+    const m = await metaversefile.import(s);
+    const app = metaversefile.createApp();
+    await metaversefile.addModule(app, m);
     return app;
   },
   useApp() {
@@ -358,8 +358,8 @@ metaversefile.setApi({
     app.components = components;
     if (start_url) {
       (async () => {
-        const m = await this.import(s);
-        await this.addModule(app, m);
+        const m = await metaversefile.import(start_url);
+        await metaversefile.addModule(app, m);
       })();
     }
     return app;
