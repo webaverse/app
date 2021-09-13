@@ -350,16 +350,20 @@ physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 const crouchMaxTime = 200;
 const getAvatarCrouchFactor = () => Math.min(Math.max(crouchTime, 0), crouchMaxTime) / crouchMaxTime;
 const getAvatarHeight = () => {
-  const f = getAvatarCrouchFactor();
-  let startValue, endValue;
-  if (crouchState) {
-    startValue = rigManager.localRig.height;
-    endValue = rigManager.localRig.height * 0.6;
+  if (rigManager.localRig) {
+    const f = getAvatarCrouchFactor();
+    let startValue, endValue;
+    if (crouchState) {
+      startValue = rigManager.localRig.height;
+      endValue = rigManager.localRig.height * 0.6;
+    } else {
+      startValue = rigManager.localRig.height * 0.6;
+      endValue = rigManager.localRig.height;
+    }
+    return startValue*(1-f) + endValue*f;
   } else {
-    startValue = rigManager.localRig.height * 0.6;
-    endValue = rigManager.localRig.height;
+    return 0;
   }
-  return startValue*(1-f) + endValue*f;
 };
 physicsManager.getAvatarHeight = getAvatarHeight;
 
