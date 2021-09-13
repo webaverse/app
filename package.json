@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "forever start ./node_modules/vite/bin/vite.js --host 0.0.0.0 --port 80",
+    "start": "forever start index.js",
     "dev": "node index.js",
     "build": "vite build",
     "serve": "vite preview"
