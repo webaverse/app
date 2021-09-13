@@ -60,10 +60,12 @@ const p = useLocalPlayer();
 const sword = getAppsByComponent('wear').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 sword.activate();
 
-/* Command: find the closest IPFS app and move it to me */
+/* Command: Find the closest IPFS app and make a copy of it. Add the copy in front of me. */
 const ipfsApp = apps.find(app => /^ipfs:/.test(app.start_url));
 const p = useLocalPlayer();
-ipfsApp.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
+const ipfsAppClone = ipfsApp.clone();
+ipfsAppClone.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
+addApp(ipfsAppClone);
 
 /* Command: pose the sword 1m left, 0.5m above, 2m behind the dragon */
 const dragonApp = getAppByName('dragon');
@@ -71,12 +73,9 @@ const swordApp = getAppByName('sword');
 swordApp.position.copy(dragonApp.position).add(new Vector3(-1, 0.5, 2));
 swordApp.quaternion.copy(dragonApp.quaternion);
 
-/* Command: clone the character 3m above the original, facing downwards */
+/* Command: make the character face downward */
 const chara = getAppsByType('vrm')[0];
-const charaCopy = chara.clone();
-charaCopy.position.y += 3;
-charaCopy.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2);
-addApp(charaCopy);
+chara.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2);
 
 /* Command: make the dragon smoothly follow 2m behind me */
 metaversefile.load(createModule(`\
@@ -123,7 +122,7 @@ const mirror = getAppByName('mirror');
 const p = useLocalPlayer();
 teleportTo(p.position, new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0))));
 
-/* Command: move/place/put the sun .5m in front of the moon by setting the position and quaternion */
+/* Command: move/place/put the sun .5m in front of the moon. to do that, copy the position and quaternion. */
 const sun = getAppByName('sun');
 const moon = getAppByName('moon');
 sun.position.copy(moon.position).add(new Vector3(0, 0, -.5).applyQuaternion(moon.quaternion));
@@ -132,26 +131,18 @@ sun.quaternion.copy(moon.quaternion);
 /* Command: male character looks at the emerald */
 getAppByName('male').lookAt(getAppByName('emerald').position);
 
-/* Command: Load a rocket from ./rocket.glb which moves around with slightly changing velocity every frame. Spawns explosions (./explosion.glb) every half a second. */
+/* Command: Spawn explosions (./explosion.glb) at a random location within 9.2 meters of me every half a second. */
 metaversefile.load(createModule(`\
-const rocket = createApp({
-  name: 'rocket with explosions'
-  start_url: './rocket.glb',
-});
-const r = () => -0.5+Math.random()*2;
-const velocity = new Vector3(r(), r(), r());
-addApp(rocket);
+const r = () => (-0.5+Math.random())*2;
 let lastTimestamp = performance.now();
 useFrame(({timestamp, timeDiff}) => {
-  rocket.position.add(velocity.clone().multiplyScalar(timeDiff));
-  velocity.add(new Vector3(r(), r(), r()).multiplyScalar(0.05)).normalize();
   if ((timestamp - lastTimestamp) > 1000/2) {
+    const p = useLocalPlayer();
     const explosion = createApp({
       name: 'explosion'
       start_url: './explosion.glb',
     });
-    explosion.position.copy(rocket.position);
-    explosion.quaternion.copy(rocket.quaternion);
+    explosion.position.set(r(), r(), r()).multiplyScalar(9.2);
     addApp(explosion);
     lastTimestamp = timestamp;
   }
