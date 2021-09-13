@@ -132,12 +132,15 @@ const loaders = {
     return _gifLoader();
   },
 };
+const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
 let currentAppRender = null;
 let iframeContainer = null;
 let iframeContainer2 = null;
 let recursion = 0;
+const apps = [];
 metaversefile.setApi({
+  apps,
   async import(s) {
     if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
       s = `/@proxy/${s}`;
@@ -326,8 +329,65 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
-  createApp() {
-    return appManager.createApp(appManager.getNextAppId());
+  getAppByName(name) {
+    const r = _makeRegexp(name);
+    return apps.find(app => r.test(app.name));
+  },
+  getAppsByName(name) {
+    const r = _makeRegexp(name);
+    return apps.filter(app => r.test(app.name));
+  },
+  getAppsByType(type) {
+    const r = _makeRegexp(type);
+    return apps.find(app => r.test(app.type));
+  },
+  getAppsByTypes(types) {
+    return types.flatMap(type => {
+      const r = _makeRegexp(type);
+      return apps.find(app => r.test(app.type));
+    });
+  },
+  getAppsByComponent(componentType) {
+    const r = _makeRegexp(componentType);
+    return apps.find(app => app.components.some(component => r.test(component.type)));
+  },
+  createApp({name = '', start_url = '', type = '', components = []} = {}) {
+    const app = appManager.createApp(appManager.getNextAppId());
+    app.name = name;
+    app.type = type;
+    app.components = components;
+    if (start_url) {
+      (async () => {
+        const m = await this.import(s);
+        await this.addModule(app, m);
+      })();
+    }
+    return app;
+  },
+  createModule: (() => {
+    const dataUrlPrefix = `data:text/javascript;charset=utf-8,`;
+    const jsPrefix = `\
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
+const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
+const {apps, createApp, createModule, addApp, removeApp, useFrame, useLocalPlayer, teleportTo, getAppByName, getAppsByName, getAppsByType, getAppsByTypes, getAppsByComponent} = metaversefile;
+
+export default () => {
+`;
+    const jsSuffix = '\n};';
+    return s => {
+      const result = dataUrlPrefix + encodeURIComponent(jsPrefix + s.replace(/\%/g, '%25') + jsSuffix);
+      console.log('got', {dataUrlPrefix, jsPrefix, s, jsSuffix, result});
+      return result;
+    };
+  })(),
+  addApp(app) {
+    scene.add(app);
+    apps.push(app);
+  },
+  removeApp(app) {
+    scene.remove(app);
+    apps.splice(apps.indexOf(app), 1);
   },
   teleportTo: (() => {
     // const localVector = new THREE.Vector3();
