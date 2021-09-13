@@ -43,7 +43,7 @@ for (const app of apps) {
   addApp(app2);
 }
 
-/* Command: bring the sword to me */
+/* Command: Bring the sword to me: move the sword to 1m in front of me. */
 const sword = getAppByName('sword');
 const p = useLocalPlayer();
 sword.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
