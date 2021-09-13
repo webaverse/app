@@ -70,23 +70,12 @@ function MagicMenu() {
         setAi(null);
       });
     }
-  };
-  const dataUrlPrefix = `data:text/javascript;charset=utf-8,`;
-  const jsPrefix = `
-import * as THREE from 'three';
-import metaversefile from 'metaversefile';
-const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
-const {useFrame, useWorld, useLocalPlayer, teleportTo} = metaversefile;
-
-export default () => {
-`;
-  const jsSuffix = '\n};';
+  };  
   const _run = () => {
     ioManager.click(new MouseEvent('click'));
     
     const output = outputTextarea.current.value;
-    const encodedJs = encodeURIComponent(output);
-    const dataUri = dataUrlPrefix + jsPrefix + encodedJs + jsSuffix;
+    const dataUri = metaversefile.createModule(output);
     (async () => {
       await metaversefile.load(dataUri);
     })();

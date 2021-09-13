@@ -360,8 +360,9 @@ for (const arrayName of [
       app.quaternion.fromArray(quaternion);
       app.updateMatrixWorld();
       app.setAttribute('physics', true);
+      app.name = contentId;
       app.contentId = contentId;
-      scene.add(app);
+      metaversefile.addApp(app);
       mesh = await app.addModule(m);
       if (mesh) {
         unFrustumCull(app);
@@ -426,7 +427,8 @@ for (const arrayName of [
     if (index !== -1) {
       const object = objects[index];
       object.destroy && object.destroy();
-      object.parent.remove(object);
+      metaversefile.removeApp(object);
+      // object.parent.remove(object);
       objects.splice(index, 1);
       trackedObject.unobserve();
 
