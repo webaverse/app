@@ -110,7 +110,9 @@ ridable.activate();
 
 /* Command: Teleport/jump to above/on top of the platform. */
 const platform = getAppByName('platform');
-useLocalPlayer().position.copy(platform.position).add(new Vector3(0, new Box3().setFromObject(platform).getSize(new Vector3()).y + 2, 0));
+const aabb = new Box3().setFromObject(platform);
+const size = aabb.getSize(new Vector3());
+useLocalPlayer().position.copy(platform.position).add(new Vector3(0, size.y + 2, 0));
 
 /* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
 const p = useLocalPlayer();
