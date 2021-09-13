@@ -12,6 +12,19 @@ Error.stackTraceLimit = 300;
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
 
+const _tryReadFile = p => {
+  try {
+    return fs.readFileSync(p);
+  } catch(err) {
+    console.warn(err);
+    return null;
+  }
+};
+const certs = {
+  key: _tryReadFile('./certs/privkey.pem'),
+  cert: _tryReadFile('./certs/fullchain.pem'),
+};
+
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
@@ -32,8 +45,15 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
     }
   });
 
+  const isHttps = !!certs.key && !!certs.cert;
   const port = parseInt(process.env.PORT, 10) || 3000;
-  const httpServer = http.createServer(app);
+  const httpServer = (() => {
+    if (isHttps) {
+      return https.createServer(certs, app);
+    } else {
+      return http.createServer(app);
+    }
+  })();
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
@@ -47,12 +67,18 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
   
   await new Promise((accept, reject) => {
     httpServer.listen(port, '0.0.0.0', () => {
-      console.log(`  > Local: http://localhost:${port}/`);
+      console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
       accept();
     });
   });
   
-  const wsServer = http.createServer();
+  const wsServer = (() => {
+    if (isHttps) {
+      return https.createServer(certs);
+    } else {
+      return http.createServer();
+    }
+  })();
   wsrtc.bindServer(wsServer);
   const port2 = port + 1;
   await new Promise((accept, reject) => {
