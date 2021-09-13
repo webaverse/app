@@ -352,6 +352,8 @@ export default class App extends EventTarget {
 
       const session = renderer.xr.getSession();
       const now = Date.now();
+      
+      appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       universe.update();

@@ -30,10 +30,73 @@ class LocalPlayer {
     ];
   }
 }
+const teleportTo = (() => {
+  // const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  // const localQuaternion = new THREE.Quaternion();
+  const localQuaternion2 = new THREE.Quaternion();
+  const localMatrix = new THREE.Matrix4();
+  return function(position, quaternion) {
+    const renderer = getRenderer();
+    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+    // console.log(position, quaternion, pose, avatar)
+    /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+      .decompose(localVector2, localQuaternion2, localVector3); */
+
+    if (renderer.xr.getSession()) {
+      localMatrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(localVector2, localQuaternion2, localVector3);
+      dolly.matrix
+        .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+        // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+        // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+        .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+        .decompose(dolly.position, dolly.quaternion, dolly.scale);
+      dolly.updateMatrixWorld();
+    } else {
+      camera.matrix
+        .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+        // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+        // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+        .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+        .decompose(camera.position, camera.quaternion, camera.scale);
+      camera.updateMatrixWorld();
+    }
+
+    physicsManager.velocity.set(0, 0, 0);
+  };
+})();
 const localPlayer = new LocalPlayer();
-let localPlayerNeedsUpdate = false;
+const lastLocalPlayerPosition = localPlayer.position.clone();
+const lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
+appManager.addEventListener('preframe', e => {
+  if (
+    !localPlayer.position.equals(lastLocalPlayerPosition) ||
+    !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
+  ) {
+    teleportTo(localPlayer.position, localPlayer.quaternion);
+  }
+});
 appManager.addEventListener('startframe', e => {
-  localPlayerNeedsUpdate = true;
+  if (rigManager.localRig) {
+    localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
+    localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
+    localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+    localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+    localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
+    localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
+  } else {
+    localPlayer.position.set(0, 0, 0);
+    localPlayer.quaternion.set(0, 0, 0, 1);
+    localPlayer.leftHand.position.set(0, 0, 0);
+    localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
+    localPlayer.rightHand.position.set(0, 0, 0);
+    localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
+  }
+  
+  lastLocalPlayerPosition.copy(localPlayer.position);
+  lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
 });
 
 class ErrorBoundary extends React.Component {
@@ -210,24 +273,6 @@ metaversefile.setApi({
     }
   },
   useLocalPlayer() {
-    if (localPlayerNeedsUpdate) {
-      if (rigManager.localRig) {
-        localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
-        localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
-        localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-        localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-        localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
-        localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
-      } else {
-        localPlayer.position.set(0, 0, 0);
-        localPlayer.quaternion.set(0, 0, 0, 1);
-        localPlayer.leftHand.position.set(0, 0, 0);
-        localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
-        localPlayer.rightHand.position.set(0, 0, 0);
-        localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
-      }
-      localPlayerNeedsUpdate = false;
-    }
     return localPlayer;
   },
   useLoaders() {
@@ -370,7 +415,7 @@ metaversefile.setApi({
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
-const {apps, createApp, createModule, addApp, removeApp, useFrame, useLocalPlayer, teleportTo, getAppByName, getAppsByName, getAppsByType, getAppsByTypes, getAppsByComponent} = metaversefile;
+const {apps, createApp, createModule, addApp, removeApp, useFrame, useLocalPlayer, getAppByName, getAppsByName, getAppsByType, getAppsByTypes, getAppsByComponent} = metaversefile;
 
 export default () => {
 `;
@@ -389,43 +434,6 @@ export default () => {
     scene.remove(app);
     apps.splice(apps.indexOf(app), 1);
   },
-  teleportTo: (() => {
-    // const localVector = new THREE.Vector3();
-    const localVector2 = new THREE.Vector3();
-    // const localQuaternion = new THREE.Quaternion();
-    const localQuaternion2 = new THREE.Quaternion();
-    const localMatrix = new THREE.Matrix4();
-    return function(position, quaternion) {
-      const renderer = getRenderer();
-      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-      // console.log(position, quaternion, pose, avatar)
-      /* localMatrix.fromArray(rigManager.localRig.model.matrix)
-        .decompose(localVector2, localQuaternion2, localVector3); */
-
-      if (renderer.xr.getSession()) {
-        localMatrix.copy(xrCamera.matrix)
-          .premultiply(dolly.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
-        dolly.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-          .decompose(dolly.position, dolly.quaternion, dolly.scale);
-        dolly.updateMatrixWorld();
-      } else {
-        camera.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
-          .decompose(camera.position, camera.quaternion, camera.scale);
-        camera.updateMatrixWorld();
-      }
-
-      physicsManager.velocity.set(0, 0, 0);
-    };
-  })(),
   useInternals() {
     if (!(iframeContainer && iframeContainer2)) {
       iframeContainer = document.getElementById('iframe-container');

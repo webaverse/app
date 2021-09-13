@@ -173,18 +173,16 @@ class AppManager extends EventTarget {
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
+  pretick(timestamp, frame) {
+    localData.timestamp = timestamp;
+    localData.frame = frame;
+    localData.timeDiff = timestamp - this.lastTimestamp;
+    this.lastTimestamp = timestamp;
+    this.dispatchEvent(new MessageEvent('preframe', localFrameOpts));
+  }
   tick(timestamp, frame) {
-    // if (this.apps.length > 0) {
-      localData.timestamp = timestamp;
-      localData.frame = frame;
-      localData.timeDiff = timestamp - this.lastTimestamp;
-      this.lastTimestamp = timestamp;
-      this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
-      this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
-      /* for (const app of this.apps) {
-        app.dispatchEvent(new MessageEvent('frame', localFrameOpts));
-      } */
-    // }
+    this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
+    this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
 }
 const appManager = new AppManager();
