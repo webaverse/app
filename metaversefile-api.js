@@ -11,6 +11,8 @@ import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
 
 const localVector2D = new THREE.Vector2();
+const localMatrix = new THREE.Matrix4();
+const upVector = new THREE.Vector3(0, 1, 0);
 
 class PlayerHand {
   constructor() {
@@ -29,6 +31,14 @@ class LocalPlayer {
       this.rightHand,
     ];
   }
+  lookAt(p) {
+    this.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(this.position, p, upVector)
+    );
+    teleportTo(this.position, this.quaternion, {
+      relation: 'head',
+    });
+  }
 }
 const teleportTo = (() => {
   // const localVector = new THREE.Vector3();
@@ -36,7 +46,7 @@ const teleportTo = (() => {
   // const localQuaternion = new THREE.Quaternion();
   const localQuaternion2 = new THREE.Quaternion();
   const localMatrix = new THREE.Matrix4();
-  return function(position, quaternion) {
+  return function(position, quaternion, {relation = 'floor'} = {}) {
     const renderer = getRenderer();
     const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
     // console.log(position, quaternion, pose, avatar)
@@ -51,16 +61,18 @@ const teleportTo = (() => {
         .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
         // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
         // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+        .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
         .decompose(dolly.position, dolly.quaternion, dolly.scale);
+      dolly.quaternion.copy(quaternion);
       dolly.updateMatrixWorld();
     } else {
       camera.matrix
         .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
         // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
         // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, physicsManager.getAvatarHeight(), 0))
+        .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
         .decompose(camera.position, camera.quaternion, camera.scale);
+      camera.quaternion.copy(quaternion);
       camera.updateMatrixWorld();
     }
 
@@ -75,7 +87,9 @@ appManager.addEventListener('preframe', e => {
     !localPlayer.position.equals(lastLocalPlayerPosition) ||
     !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
   ) {
-    teleportTo(localPlayer.position, localPlayer.quaternion);
+    teleportTo(localPlayer.position, localPlayer.quaternion, {
+      relation: 'head',
+    });
   }
 });
 appManager.addEventListener('startframe', e => {
@@ -414,7 +428,7 @@ metaversefile.setApi({
     const jsPrefix = `\
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
+const {Vector3, Quaternion, Euler, Matrix4, Box3, Object3D, Texture} = THREE;
 const {apps, createApp, createModule, addApp, removeApp, useFrame, useLocalPlayer, getAppByName, getAppsByName, getAppsByType, getAppsByTypes, getAppsByComponent} = metaversefile;
 
 export default () => {
