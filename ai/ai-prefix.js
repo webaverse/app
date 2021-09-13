@@ -123,7 +123,7 @@ const mirror = getAppByName('mirror');
 const p = useLocalPlayer();
 teleportTo(p.position, new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0))));
 
-/* Command: put the sun .5m in front of the moon */
+/* Command: move/place/put the sun .5m in front of the moon by setting the position and quaternion */
 const sun = getAppByName('sun');
 const moon = getAppByName('moon');
 sun.position.copy(moon.position).add(new Vector3(0, 0, -.5).applyQuaternion(moon.quaternion));
