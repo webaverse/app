@@ -16,12 +16,19 @@ function parseQueryString(queryString) {
   }
   return query;
 }
-const q = parseQueryString(window.location.search);
+const openAiKey = (() => {
+  const q = parseQueryString(window.location.search);
+  if (q.openAiKey) {
+    localStorage.setItem('openAiKey', q.openAiKey);
+    window.location.search = '';
+  }
+  return localStorage.getItem('openAiKey') || null;
+})();
 
 window.metaversefile = metaversefile; // XXX
 const makeAi = prompt => {
-  if (q.a) {
-    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(q.a)}`);
+  if (openAiKey) {
+    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(openAiKey)}`);
     let fullS = '';
     es.addEventListener('message', e => {
       const s = e.data;
