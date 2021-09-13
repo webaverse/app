@@ -99,7 +99,7 @@ download(htmlApp.start_url);
 const chest = getAppByName('chest');
 chest.addEventListener('activate', e => {
   const loot = createApp({start_url: './loot.js'});
-  loot.position.copy(chest).app(new Vector3(0, 1, 0));
+  loot.position.copy(chest.position).app(new Vector3(0, 1, 0));
   addApp(loot);
 });
 
