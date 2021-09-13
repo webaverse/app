@@ -30,8 +30,9 @@ const app = new App({
   start_url: 'https://example.com/model.glb',
   type: 'glb',
 });
-app.position.copy(camera.position);
-app.quaternion.copy(camera.quaternion);
+const p = useLocalPlayer();
+app.position.copy(p.position);
+app.quaternion.copy(p.quaternion);
 useWorld().add(app);
 
 /* Command: remove the street */
@@ -68,15 +69,18 @@ for (const app of world.apps) {
 
 /* Command: bring the sword to me */
 const sword = useWorld().getAppByName('sword');
-sword.position.copy(camera.position).add(new Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
+const p = useLocalPlayer();
+sword.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
 
 /* Command: equip the closest wearable */
-const sword = useWorld().getAppsByComponent('wear').reduce((a, b) => b.distanceTo(camera.position) < a.distanceTo(camera.position) ? b : a);
+const p = useLocalPlayer();
+const sword = useWorld().getAppsByComponent('wear').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 sword.activate();
 
 /* Command: find the closest IPFS app and move it to me */
 const ipfsApp = useWorld().apps.find(app => /^ipfs:/.test(app.start_url));
-ipfsApp.position.copy(camera.position).add(new Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
+const p = useLocalPlayer();
+ipfsApp.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
 
 /* Command: pose the sword 1m left, 0.5m above, 2m behind the dragon */
 const world = useWorld();
@@ -97,10 +101,11 @@ world.add(charaCopy);
 m.import(m.module(`\
 const follower = useWorld().getAppByName('dragon');
 useFrame(() => {
-  const euler = new Euler().setFromQuaternion(camera.quaternion);
+  const p = useLocalPlayer();
+  const euler = new Euler().setFromQuaternion(p.quaternion);
   euler.x = 0;
   euler.z = 0;
-  const targetPos = camera.position.clone().add(new Vector3(0, 0, 2).applyEuler(euler));
+  const targetPos = p.position.clone().add(new Vector3(0, 0, 2).applyEuler(euler));
   const lastPos = follower.position.clone();
   follower.position.lerp(targetPos, 0.1);
   follower.quaternion.setFromUnitVectors(new Vector3(0, 0, -1), follower.position.clone().sub(lastPos).normalize());
@@ -122,19 +127,22 @@ chest.addEventListener('activate', e => {
 chest.activate();
 
 /* Command: Ride the nearest vehicle */
-const ridable = useWorld().getAppsByComponent('mount').reduce((a, b) => b.distanceTo(camera.position) < a.distanceTo(camera.position) ? b : a);
+const p = useLocalPlayer();
+const ridable = useWorld().getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 ridable.activate();
 
 /* Command: teleport forward 5 meters, wait a quarter second, then teleport up 2 meters */
-teleportTo(camera.position.clone().add(new Vector3(0, 0, -5).applyQuaternion(camera.quaternion), camera.quaternion);
+const p = useLocalPlayer();
+teleportTo(p.position.clone().add(new Vector3(0, 0, -5).applyQuaternion(p.quaternion)), p.quaternion);
 setTimeout(() => {
-  teleportTo(camera.position.clone().add(new Vector3(0, 2, 0), camera.quaternion);
+  teleportTo(p.position.clone().add(new Vector3(0, 2, 0)), p.quaternion);
 }, 1000/4);
 
 /* Command: find a mirror and look at it if found */
 const mirror = useWorld().getAppByName('mirror');
 if (mirror) {
-  teleportTo(camera.position, new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), mirror.position.clone().sub(camera.position).normalize()));
+  const p = useLocalPlayer();
+  teleportTo(p.position, new Quaternion().setFromUnitVectors(new Vector3(0, 0, -1), mirror.position.clone().sub(p.position).normalize()));
 }
 
 /* Command: Load a rocket from ./rocket.glb which moves around with slightly changing velocity every frame. Spawns explosions (./explosion.glb) every half a second. */
@@ -166,7 +174,8 @@ useFrame(({timestamp, timeDiff}) => {
 `));
 
 /* Command: damage nearest model for 30 hp */
-const model = useWorld().getAppsByType(['glb', 'vrm']).reduce((a, b) => b.distanceTo(camera.position) < a.distanceTo(camera.position) ? b : a);
+const p = useLocalPlayer();
+const model = useWorld().getAppsByType(['glb', 'vrm']).reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 model.hit(30);
 
 /* Command: load rainbow dash from ipfs hash QmPZJULb8wAui3TUBPwPHGWG1Xngb1QyDJeJSmkQeexs8J. IPFS hashes start with Q */
@@ -217,7 +226,7 @@ m.import(m.module(`\
 import m from 'metaversefile';
 const b = useWorld().getAppByName('ball');
 useFrame(({timestamp}) => {
-  b.position.add(b.position.clone().sub(camera.position).normalize().multiplyScalar(0.02));
+  b.position.add(b.position.clone().sub(useLocalPlayer().position).normalize().multiplyScalar(0.02));
 });
 `));
 
