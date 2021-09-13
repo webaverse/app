@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
-import {useFrame, useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent, teleportTo} from 'metaversefile';
+import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent, teleportTo} from 'metaversefile';
 
 /* Command: Add a model from https://example.com/model.glb */
 const app = createApp({
