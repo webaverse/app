@@ -4,32 +4,48 @@ import classes from './MagicMenu.module.css'
 // import MagicMenu from './magic-menu.js';
 // import App from '/app.js';
 import ioManager from '../io-manager.js';
+import {aiHost} from '../constants.js';
 import metaversefile from 'metaversefile';
+
+function parseQueryString(queryString) {
+  const query = {};
+  const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+const q = parseQueryString(window.location.search);
 
 window.metaversefile = metaversefile; // XXX
 const makeAi = prompt => {
-  const es = new EventSource('/ai?p=' + encodeURIComponent(prompt));
-  let fullS = '';
-  es.addEventListener('message', e => {
-    const s = e.data;
-    if (s !== '[DONE]') {
-      const j = JSON.parse(s);
-      const {choices} = j;
-      const {text} = choices[0];
-      fullS += text;
-      result.dispatchEvent(new MessageEvent('update', {
-        data: fullS,
-      }));
-    } else {
+  if (q.a) {
+    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(q.a)}`);
+    let fullS = '';
+    es.addEventListener('message', e => {
+      const s = e.data;
+      if (s !== '[DONE]') {
+        const j = JSON.parse(s);
+        const {choices} = j;
+        const {text} = choices[0];
+        fullS += text;
+        result.dispatchEvent(new MessageEvent('update', {
+          data: fullS,
+        }));
+      } else {
+        es.close();
+        result.dispatchEvent(new MessageEvent('done'));
+      }
+    });
+    const result = new EventTarget();
+    result.destroy = () => {
       es.close();
-      result.dispatchEvent(new MessageEvent('done'));
-    }
-  });
-  const result = new EventTarget();
-  result.destroy = () => {
-    es.close();
-  };
-  return result;
+    };
+    return result;
+  } else {
+    throw new Error('no beta password found in query string');
+  }
 };
 
 function MagicMenu() {
@@ -45,7 +61,7 @@ function MagicMenu() {
   const inputTextarea = useRef();
   const outputTextarea = useRef();
 
-  const _compile = () => {
+  const _compile = async () => {
     if (!compiling) {
       setCompiling(true);
       
@@ -55,20 +71,38 @@ function MagicMenu() {
         setAi(null);
       }
 
-      const input = inputTextarea.current.value;
-      const newAi = makeAi(input);
-      setAi(newAi);
-      setPage('output');
-      setOutput('');
-      setNeedsFocus(true);
-      newAi.addEventListener('update', e => {
-        const s = e.data;
-        setOutput(s);
-      });
-      newAi.addEventListener('done', e => {
+      let newAi = null;
+      try {
+        const input = inputTextarea.current.value;
+        newAi = makeAi(input);
+        setAi(newAi);
+        setPage('output');
+        setOutput('');
+        setNeedsFocus(true);
+        newAi.addEventListener('update', e => {
+          const s = e.data;
+          console.log('got data', {s});
+          setOutput(s);
+        });
+        await new Promise((accept, reject) => {
+          newAi.addEventListener('done', e => {
+            console.log('ai done');
+            accept();
+          });
+        });
+      } catch(err) {
+        console.warn('ai error', err);
+        
+        setPage('input');
+      } finally {
+        console.log('ai finally', newAi);
         setCompiling(false);
-        setAi(null);
-      });
+        
+        if (newAi) {
+          newAi.destroy();
+          setAi(null);
+        }
+      }
     }
   };  
   const _run = () => {
