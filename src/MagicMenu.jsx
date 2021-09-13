@@ -73,8 +73,10 @@ function MagicMenu() {
   };
   const dataUrlPrefix = `data:text/javascript;charset=utf-8,`;
   const jsPrefix = `
+import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useFrame, useWorld} = metaversefile;
+const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
+const {useFrame, useWorld, useLocalPlayer, teleportTo} = metaversefile;
 
 export default () => {
 `;
