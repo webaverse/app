@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
+const {Vector3, Quaternion, Euler, Matrix4, Box3, Object3D, Texture} = THREE;
 import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent} from 'metaversefile';
 
 /* Command: Add a model from https://example.com/model.glb */
@@ -73,7 +73,7 @@ const swordApp = getAppByName('sword');
 swordApp.position.copy(dragonApp.position).add(new Vector3(-1, 0.5, 2));
 swordApp.quaternion.copy(dragonApp.quaternion);
 
-/* Command: make the character face downward */
+/* Command: Make a character face downward: set the quaternion to 90 degrees around the x axis. */
 const chara = getAppsByType('vrm')[0];
 chara.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2);
 
@@ -108,9 +108,9 @@ const p = useLocalPlayer();
 const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 ridable.activate();
 
-/* Command: Teleport above the platform. i.e. jump to on top of the platform. */
+/* Command: Teleport/jump to above/on top of the platform. */
 const platform = getAppByName('platform');
-useLocalPlayer().position.copy(platform.position).add(new Vector3(0, 5, 0));
+useLocalPlayer().position.copy(platform.position).add(new Vector3(0, new Box3().setFromObject(platform).getSize(new Vector3()).y + 2, 0));
 
 /* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
 const p = useLocalPlayer();
