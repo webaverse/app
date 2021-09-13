@@ -33,7 +33,6 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
   });
 
   const port = parseInt(process.env.PORT, 10) || 3000;
-  console.log('got port', port);
   const httpServer = http.createServer(app);
   const viteServer = await vite.createServer({
     server: {
