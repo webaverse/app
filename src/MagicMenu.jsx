@@ -99,7 +99,7 @@ function MagicMenu() {
         if (e.which === 9) { // tab
           e.preventDefault();
           ioManager.click(new MouseEvent('click'));
-        } else if (e.which === 13) { // enter
+        } else if (e.which === 13 && window.document.activeElement !== outputTextarea.current) { // enter
           e.preventDefault();
           
           if (page === 'input') {
