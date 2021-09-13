@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 const {Vector3, Quaternion, Euler, Matrix4, Object3D, Texture} = THREE;
-import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent, teleportTo} from 'metaversefile';
+import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent} from 'metaversefile';
 
 /* Command: Add a model from https://example.com/model.glb */
 const app = createApp({
@@ -103,26 +103,29 @@ chest.addEventListener('activate', e => {
   addApp(loot);
 });
 
-/* Command: Ride the nearest vehicle */
+/* Command: Ride the nearest vehicle. */
 const p = useLocalPlayer();
 const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 ridable.activate();
 
-/* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport back 1 meter (1m) */
+/* Command: Teleport (jump to) above the platform. */
+const terrain = getAppByName('platform');
+useLocalPlayer().position.copy(terrain.position).add(new Vector3(0, 5, 0));
+
+/* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
 const p = useLocalPlayer();
-teleportTo(p.position.clone().add(new Vector3(0, 2, -5).applyQuaternion(p.quaternion)), p.quaternion);
-teleportTo(p.position.clone().add(new Vector3(0, 0, 1).applyQuaternion(p.quaternion)), p.quaternion);
+p.position.add(new Vector3(0, 2, -5).applyQuaternion(p.quaternion));
+p.position.add(new Vector3(0, 0, 1.2).applyQuaternion(p.quaternion));
 
 /* Command: teleport 1.2m above and 1.3m in front of the terrain */
 const terrain = getAppByName('terrain');
-teleportTo(terrain.position.clone().add(new Vector3(0, 1.2, 1.3)), useLocalPlayer().quaternion);
+useLocalPlayer().position.copy(terrain.position).add(new Vector3(0, 1.2, 1.3));
 
 /* Command: look at (face towards) the mirror */
 const mirror = getAppByName('mirror');
-const p = useLocalPlayer();
-teleportTo(p.position, new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0))));
+useLocalPlayer().quaternion.setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0)));
 
-/* Command: move/place/put the sun .5m in front of the moon. to do that, copy the position and quaternion. */
+/* Command: Move/place/put the sun .5m in front of the moon. To do that, copy the position and quaternion and add the offset vector. */
 const sun = getAppByName('sun');
 const moon = getAppByName('moon');
 sun.position.copy(moon.position).add(new Vector3(0, 0, -.5).applyQuaternion(moon.quaternion));
@@ -131,7 +134,7 @@ sun.quaternion.copy(moon.quaternion);
 /* Command: male character looks at the emerald */
 getAppByName('male').lookAt(getAppByName('emerald').position);
 
-/* Command: Spawn explosions (./explosion.glb) at a random location within 9.2 meters of me every half a second. */
+/* Command: Spawn explosions (./explosion.glb) at random positions within 9.2 meters of me every half a second (500ms). */
 metaversefile.load(createModule(`\
 const r = () => (-0.5+Math.random())*2;
 let lastTimestamp = performance.now();
@@ -142,7 +145,7 @@ useFrame(({timestamp, timeDiff}) => {
       name: 'explosion'
       start_url: './explosion.glb',
     });
-    explosion.position.set(r(), r(), r()).multiplyScalar(9.2);
+    explosion.position.copy(p.position).add(new Vector3(r(), r(), r()).multiplyScalar(9.2));
     addApp(explosion);
     lastTimestamp = timestamp;
   }
