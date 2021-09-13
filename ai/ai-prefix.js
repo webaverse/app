@@ -108,9 +108,9 @@ const p = useLocalPlayer();
 const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 ridable.activate();
 
-/* Command: Teleport (jump to) above the platform. */
-const terrain = getAppByName('platform');
-useLocalPlayer().position.copy(terrain.position).add(new Vector3(0, 5, 0));
+/* Command: Teleport above the platform. i.e. jump to on top of the platform. */
+const platform = getAppByName('platform');
+useLocalPlayer().position.copy(platform.position).add(new Vector3(0, 5, 0));
 
 /* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
 const p = useLocalPlayer();
