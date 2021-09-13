@@ -108,11 +108,8 @@ const p = useLocalPlayer();
 const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
 ridable.activate();
 
-/* Command: Teleport/jump to above/on top of the platform. */
-const platform = getAppByName('platform');
-const aabb = new Box3().setFromObject(platform);
-const size = aabb.getSize(new Vector3());
-useLocalPlayer().position.copy(platform.position).add(new Vector3(0, size.y + 2, 0));
+/* Command: Rotate the cat -90 degrees (-pi/2 radians) in the y axis. */
+getAppByName('cat').quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0)), -Math.PI/2);
 
 /* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
 const p = useLocalPlayer();
