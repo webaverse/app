@@ -260,8 +260,7 @@ world.getStaticObjects = () => objects.objects.static.slice();
 world.getNpcs = () => objects.npcs.dynamic.slice();
 let pendingAddPromise = null;
 
-const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
-  const scale = new THREE.Vector3();
+const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), options = {}) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
@@ -340,7 +339,7 @@ for (const arrayName of [
     try {
       const {trackedObject, dynamic} = e.data;
       const trackedObjectJson = trackedObject.toJSON();
-      const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
+      const {instanceId, parentId, contentId, position, quaternion, scale, options: optionsString} = trackedObjectJson;
       const options = JSON.parse(optionsString);
   // const file = await contentIdToFile(contentId);
       /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
@@ -358,6 +357,7 @@ for (const arrayName of [
       const app = metaversefile.createApp();
       app.position.fromArray(position);
       app.quaternion.fromArray(quaternion);
+      app.scale.fromArray(scale);
       app.updateMatrixWorld();
       app.setAttribute('physics', true);
       app.name = contentId;

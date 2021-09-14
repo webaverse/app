@@ -98,13 +98,7 @@ window.onload = async () => {
     app.startLoop();
     
     const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
-    const position = new THREE.Vector3();
-    const quaternion  = new THREE.Quaternion();
-    const loadedObject = await world.addObject(u, null, position, quaternion, {
-      // physics,
-      // physics_url,
-      // autoScale,
-    });
+    const loadedObject = await world.addObject(u);
 
     /* let loadedObject = null;
     const loadHash = async hash => {
