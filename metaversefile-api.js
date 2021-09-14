@@ -213,7 +213,6 @@ const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i
 
 let currentAppRender = null;
 let iframeContainer = null;
-let iframeContainer2 = null;
 let recursion = 0;
 const apps = [];
 metaversefile.setApi({
@@ -449,14 +448,8 @@ export default () => {
     apps.splice(apps.indexOf(app), 1);
   },
   useInternals() {
-    if (!(iframeContainer && iframeContainer2)) {
+    if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
-      iframeContainer2 = document.getElementById('iframe-container2');
-      /* iframeContainer = document.createElement('div');
-      iframeContainer.setAttribute('id', 'iframe-container');
-      iframeContainer2 = document.createElement('div');
-      iframeContainer2.setAttribute('id', 'iframe-container2');
-      iframeContainer.appendChild(iframeContainer2); */
       
       iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
       iframeContainer.updateSize = function updateSize() {
@@ -471,17 +464,6 @@ export default () => {
           pointer-events: none;
           user-select: none;
         `;
-        iframeContainer2.style.cssText = `
-          /* display: flex;
-          justify-content: center;
-          align-items: center; */
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          right: 0;
-          /* transform-style: preserve-3d; */
-        `;
       };
       iframeContainer.updateSize();
     }
@@ -492,7 +474,6 @@ export default () => {
       camera,
       sceneHighPriority,
       iframeContainer,
-      iframeContainer2,
     };
   },
   async addModule(app, m) {
