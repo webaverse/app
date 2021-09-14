@@ -409,11 +409,15 @@ metaversefile.setApi({
     const r = _makeRegexp(componentType);
     return apps.find(app => app.components.some(component => r.test(component.type)));
   },
-  createApp({name = '', start_url = '', type = '', components = []} = {}) {
+  createApp({name = '', start_url = '', type = '', components = [], in_front = false} = {}) {
     const app = appManager.createApp(appManager.getNextAppId());
     app.name = name;
     app.type = type;
     app.components = components;
+    if (in_front) {
+      app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+      app.quaternion.copy(localPlayer.quaternion);
+    }
     if (start_url) {
       (async () => {
         const m = await metaversefile.import(start_url);
