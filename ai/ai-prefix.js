@@ -141,7 +141,8 @@ useLocalPlayer().position.copy(terrain.position).add(new Vector3(0, 1.2, 1.3));
 
 /* Command: look at (face towards) the mirror */
 const mirror = getAppByName('mirror');
-useLocalPlayer().quaternion.setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0)));
+const p = useLocalPlayer();
+p.quaternion.setFromRotationMatrix(new Matrix4().lookAt(p.position, mirror.position, new Vector3(0, 1, 0)));
 
 /* Command: Move/place/put the sun .5m in front of the moon. To do that, copy the position and quaternion and add the offset vector. */
 const sun = getAppByName('sun');
