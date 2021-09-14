@@ -56,6 +56,9 @@ const p = useLocalPlayer();
 rock.position.copy(p.position).add(new Vector3(0, 0, -2).applyQuaternion(p.quaternion));
 rock.position.y = 0;
 
+/* Command: set grass z += 2 */
+getAppByName('grass').position.z += 2;
+
 /* Command: equip the closest wearable */
 const p = useLocalPlayer();
 const sword = getAppsByComponent('wear').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
