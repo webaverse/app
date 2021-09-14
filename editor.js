@@ -25,8 +25,6 @@ import {storageHost, tokensHost} from './constants.js';
 import easing from './easing.js';
 import ghDownloadDirectory from './gh-download-directory.js';
 
-weaponsManager.editorHack = true;
-
 const cubicBezier = easing(0, 1, 0, 1);
 // const cubicBezier2 = v => cubicBezier(cubicBezier(v));
 const ghDownload = ghDownloadDirectory.default;

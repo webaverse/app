@@ -219,30 +219,16 @@ const _updateIo = timeDiff => {
       }
     }
   } else {
-    if (weaponsManager.editorHack) {
-      const direction = localVector.set(0, 0, 0);
-      _updateHorizontal(direction);
-      direction.applyQuaternion(camera.quaternion);
-      _updateVertical(direction);
-      direction
-        .normalize()
-        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-      
-      camera.position.add(direction);
-      camera.updateMatrixWorld();
-    } else {
-      const direction = localVector.set(0, 0, 0);
-      _updateHorizontal(direction);
-
-      direction.applyQuaternion(camera.quaternion);
-      _updateVertical(direction);
-      direction
-        .normalize()
-        .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-
-      camera.position.add(direction);
-      camera.updateMatrixWorld();
-    }
+    const direction = localVector.set(0, 0, 0);
+    _updateHorizontal(direction);
+    direction.applyQuaternion(camera.quaternion);
+    _updateVertical(direction);
+    direction
+      .normalize()
+      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
+    
+    camera.position.add(direction);
+    camera.updateMatrixWorld();
   }
 };
 ioManager.update = _updateIo;
@@ -483,14 +469,7 @@ ioManager.keydown = e => {
     }
     case 69: { // E
       if (document.pointerLockElement) {
-        if (!weaponsManager.editorHack) {
-          weaponsManager.menuUseHold();
-          if (weaponsManager.canRotate()) {
-            weaponsManager.menuRotate(-1);
-          }
-        } else {
-          weaponsManager.menuUseDown();
-        }
+        weaponsManager.menuUseDown();
       }
       break;
     }
@@ -551,17 +530,7 @@ ioManager.keyup = e => {
     }
     case 69: { // E
       if (document.pointerLockElement) {
-        if (!weaponsManager.editorHack) {
-          weaponsManager.menuUseRelease();
-
-          if (weaponsManager.canRotate()) {
-            // nothing
-          } else {
-            weaponsManager.menuUse();
-          }
-        } else {
-          weaponsManager.menuUseUp();
-        }
+        weaponsManager.menuUseUp();
       }
       break;
     }
@@ -725,26 +694,21 @@ ioManager.click = e => {
   if (document.pointerLockElement) {
     weaponsManager.menuClick();
   } else {
-    if (weaponsManager.editorHack) {
-      weaponsManager.setContextMenu(false);
-      
-      if (controlsManager.isPossessed()) {
-        cameraManager.requestPointerLock();
-      } else {
-        const mouseHoverObject = weaponsManager.getMouseHoverObject();
-        const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
-        if (mouseHoverObject) {
-          const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
-          if (mouseHoverObject !== mouseSelectedObject) {
-            weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
-          } else {
-            weaponsManager.setMouseSelectedObject(null);
-          }
+    weaponsManager.setContextMenu(false);
+    
+    if (controlsManager.isPossessed()) {
+      cameraManager.requestPointerLock();
+    } else {
+      const mouseHoverObject = weaponsManager.getMouseHoverObject();
+      const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+      if (mouseHoverObject) {
+        const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+        if (mouseHoverObject !== mouseSelectedObject) {
+          weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+        } else {
+          weaponsManager.setMouseSelectedObject(null);
         }
       }
-    } else {
-      weaponsManager.setMenu(0);
-      cameraManager.requestPointerLock();
     }
   }
 };
