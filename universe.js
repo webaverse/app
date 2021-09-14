@@ -223,14 +223,17 @@ const enterWorld = async worldSpec => {
     }
     {
       const ps = objects.map(async object => {
-        let {start_url, position, quaternion, physics, physics_url, autoScale, autoRun, dynamic} = object;
+        let {start_url, position, quaternion, scale, physics, physics_url, autoScale, autoRun, dynamic} = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
         }
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
+        if (scale) {
+          scale = new THREE.Vector3().fromArray(scale);
+        }
+        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, scale, {
           physics,
           physics_url,
           autoScale,

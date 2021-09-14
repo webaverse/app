@@ -2561,13 +2561,7 @@ const loadHash = async hash => {
   }
 
   const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
-  const position = new THREE.Vector3();
-  const quaternion  = new THREE.Quaternion();
-  loadedObject = await world.addObject(u, null, position, quaternion, {
-    // physics,
-    // physics_url,
-    // autoScale,
-  });
+  loadedObject = await world.addObject(u);
   loadedObject.name = loadedObject.contentId.match(/([^\/]*)$/)[1];
 };
 const mintNft = async () => {
@@ -2990,12 +2984,8 @@ sacks3.vrm`,
       }, */
     ];
     for (const e of defaultScene) {
-      const {position, quaternion, contentId} = e;
-      const loadedObject = await world.addObject(contentId, null, position, quaternion, {
-        // physics,
-        // physics_url,
-        // autoScale,
-      });
+      const {position, quaternion, scale, contentId} = e;
+      const loadedObject = await world.addObject(contentId, null, position, quaternion, scale);
       const _getName = contentId => {
         if (typeof contentId === 'number') {
           return contentId + '';
