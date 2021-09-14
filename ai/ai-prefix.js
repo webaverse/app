@@ -16,6 +16,7 @@ addApp(app);
 /* Command: remove the street */
 const streetApp = apps.find(app => /street/i.test(app.name));
 removeApp(streetApp);
+streetApp.destroy();
 
 /* Command: log the position of the street */
 const street = apps.find(app => /street/i.test(app.name));
