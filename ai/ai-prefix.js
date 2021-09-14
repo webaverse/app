@@ -36,11 +36,11 @@ apps.forEach(app => app.traverse(o => {
   }
 }));
 
-/* Command: copy the entire scene to offset (+1 +2 -1) with all objects facing forward */
+/* Command: copy the entire scene to offset (+1 +2 -1) with all objects facing forward (identity quaternion) */
 for (const app of apps) {
   const app2 = app.clone();
   app2.position.add(new Vector3(1, 2, -1));
-  app2.quaternion.set(0, 0, 0, 1);
+  app2.quaternion.identity();
   addApp(app2);
 }
 
