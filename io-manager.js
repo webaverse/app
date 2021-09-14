@@ -621,8 +621,8 @@ const _updateMouseMovement = e => {
   // if ((mouseDistance - lastMouseDistance) < 100) { // hack around a Chrome bug
     camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
   
-    camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+    camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
+    camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
     camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
     camera.quaternion.setFromEuler(camera.rotation);
 
