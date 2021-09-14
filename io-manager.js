@@ -613,12 +613,12 @@ ioManager.keyup = e => {
     }
   }
 };
-let lastMouseDistance = 0;
+// let lastMouseDistance = 0;
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
 
-  const mouseDistance = Math.sqrt(movementX*movementX, movementY*movementY);
-  if ((mouseDistance - lastMouseDistance) < 50) { // hack around a Chrome bug
+  // const mouseDistance = Math.sqrt(movementX*movementX, movementY*movementY);
+  // if ((mouseDistance - lastMouseDistance) < 100) { // hack around a Chrome bug
     camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
   
     camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
@@ -629,8 +629,8 @@ const _updateMouseMovement = e => {
     camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
     camera.updateMatrixWorld();
-  }
-  lastMouseDistance = mouseDistance;
+  // }
+  // lastMouseDistance = mouseDistance;
 };
 const _getMouseRaycaster = (e, raycaster) => {
   const {clientX, clientY} = e;
