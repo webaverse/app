@@ -115,10 +115,17 @@ ridable.activate();
 /* Command: Rotate the cat -90 degrees (-pi/2 radians) in the y axis. */
 getAppByName('cat').quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0)), -Math.PI/2);
 
-/* Command: teleport me forward 5 meters (5m) and up 2 meters (2m), then teleport backward 1.2 meters (1m) */
-const p = useLocalPlayer();
-p.position.add(new Vector3(0, 2, -5).applyQuaternion(p.quaternion));
-p.position.add(new Vector3(0, 0, 1.2).applyQuaternion(p.quaternion));
+/* Command: teleport forward 10 meters (10m) */
+useLocalPlayer().position.add(new Vector3(0, 0, -10).applyQuaternion(p.quaternion));
+
+/* Command: teleport me backward 1.2 meters (1.2m) */
+useLocalPlayer().position.add(new Vector3(0, 0, 1.2).applyQuaternion(p.quaternion));
+
+/* Command: Teleport me left .2 meters (.2m). */
+useLocalPlayer().position.add(new Vector3(-.2, 0, 0).applyQuaternion(p.quaternion));
+
+/* Command: Teleport me up 2 meters (2m). */
+useLocalPlayer().position.add(new Vector3(0, 2, 0));
 
 /* Command: teleport 1.2m above and 1.3m in front of the terrain */
 const terrain = getAppByName('terrain');
