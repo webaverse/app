@@ -3,15 +3,20 @@ const {Vector3, Quaternion, Euler, Matrix4, Box3, Object3D, Texture} = THREE;
 import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent} from 'metaversefile';
 
 /* Command: Add a model from https://example.com/model.glb */
-const app = createApp({
+const m = createApp({
   name: 'Model',
   start_url: 'https://example.com/model.glb',
   type: 'glb',
+  in_front: true,
 });
-const p = useLocalPlayer();
-app.position.copy(p.position);
-app.quaternion.copy(p.quaternion);
-addApp(app);
+addApp(m);
+
+/* Command: Open https://discord.com/ */
+const discord = createApp({
+  start_url: 'https://discord.com/',
+  in_front: true,
+});
+addApp(discord);
 
 /* Command: remove the street */
 const streetApp = apps.find(app => /street/i.test(app.name));
@@ -174,6 +179,7 @@ model.hit(30);
 const ipfsObject = createApp({
   name: 'rainbow dash',
   start_url: 'ipfs://QmPZJULb8wAui3TUBPwPHGWG1Xngb1QyDJeJSmkQeexs8J',
+  in_front: true,
 });
 addApp(ipfsObject);
 
@@ -181,6 +187,7 @@ addApp(ipfsObject);
 const ethObject = createApp({
   name: 'token',
   start_url: 'eth://0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b/7',
+  in_front: true,
 });
 addApp(ethObject);
 
@@ -203,6 +210,7 @@ const ball = createApp({
   name: 'ball',
   start_url: 'https://example.com/ball.glb',
   type: 'glb',
+  in_front: true,
 });
 addApp(ball);
 useFrame(({timestamp}) => {
