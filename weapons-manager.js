@@ -2061,7 +2061,6 @@ const weaponsManager = {
   draggingRight: false,
   contextMenu: false,
   contextMenuObject: null,
-  editorHack: false,
   inventoryHack: false,
   closestObject: null,
   usableObject: null,
@@ -2180,52 +2179,40 @@ const weaponsManager = {
     _unaim();
   },
   menuDragdown(e) {
-    if (this.editorHack) {
-      this.dragging = true;
+    this.dragging = true;
 
-      if (document.pointerLockElement) {
-        document.exitPointerLock();
-      }
-      /* if (url) {
-        await rigManager.setLocalAvatarUrl(url, ext);
-      } */
-      controlsManager.setPossessed(false);
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
     }
+    /* if (url) {
+      await rigManager.setLocalAvatarUrl(url, ext);
+    } */
+    controlsManager.setPossessed(false);
   },
   menuDrag(e) {
-    // if (this.editorHack) {
-      const {movementX, movementY} = e;
-      if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
-        camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-        camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-        camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-        camera.quaternion.setFromEuler(camera.rotation);
+    const {movementX, movementY} = e;
+    if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
+      camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+      camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+      camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+      camera.quaternion.setFromEuler(camera.rotation);
 
-        // camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+      // camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-        camera.updateMatrixWorld();
-      }
-    // }
+      camera.updateMatrixWorld();
+    }
   },
   menuDragup() {
-    if (this.editorHack) {
-      this.dragging = false;
-    }
+    this.dragging = false;
   },
   menuDragdownRight(e) {
-    if (this.editorHack) {
-      this.draggingRight = true;
-    }
+    this.draggingRight = true;
   },
   menuDragRight(e) {
-    if (this.editorHack) {
-      // this.draggingRight = true;
-    }
+    // this.draggingRight = true;
   },
   menuDragupRight() {
-    if (this.editorHack) {
-      this.draggingRight = false;
-    }
+    this.draggingRight = false;
   },
   canTry() {
     return !!appManager.grabbedObjects[0];
