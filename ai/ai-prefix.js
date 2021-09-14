@@ -44,10 +44,10 @@ for (const app of apps) {
   addApp(app2);
 }
 
-/* Command: Bring the sword to me: move the sword to 1m in front of me. */
+/* Command: Bring the sword to me, the local player. Copy the sword position and quaternion, offset by 1.5 meters in front of me. */
 const sword = getAppByName('sword');
 const p = useLocalPlayer();
-sword.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
+sword.position.copy(p.position).add(new Vector3(0, 0, -1.5).applyQuaternion(p.quaternion));
 sword.quaternion.copy(p.quaternion);
 
 /* Command: put the rock on the floor in front of me */
