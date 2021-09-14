@@ -397,17 +397,17 @@ metaversefile.setApi({
   },
   getAppsByType(type) {
     const r = _makeRegexp(type);
-    return apps.find(app => r.test(app.type));
+    return apps.filter(app => r.test(app.type));
   },
   getAppsByTypes(types) {
     return types.flatMap(type => {
       const r = _makeRegexp(type);
-      return apps.find(app => r.test(app.type));
+      return apps.filter(app => r.test(app.type));
     });
   },
   getAppsByComponent(componentType) {
     const r = _makeRegexp(componentType);
-    return apps.find(app => app.components.some(component => r.test(component.type)));
+    return apps.filter(app => app.components.some(component => r.test(component.type)));
   },
   createApp({name = '', start_url = '', type = '', components = [], in_front = false} = {}) {
     const app = appManager.createApp(appManager.getNextAppId());
