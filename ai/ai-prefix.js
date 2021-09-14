@@ -49,7 +49,7 @@ for (const app of apps) {
   addApp(app2);
 }
 
-/* Command: Bring the sword to me, the local player. Copy the sword position and quaternion, offset by 1.5 meters in front of me. */
+/* Command: Bring the sword to me, the local player. Copy the sword position and quaternion. Offset the position 1.5 meters in front of me. */
 const sword = getAppByName('sword');
 const p = useLocalPlayer();
 sword.position.copy(p.position).add(new Vector3(0, 0, -1.5).applyQuaternion(p.quaternion));
@@ -57,23 +57,23 @@ sword.quaternion.copy(p.quaternion);
 
 /* Command: put the rock on the floor in front of me */
 const rock = getAppByName('rock');
-const p = useLocalPlayer();
-rock.position.copy(p.position).add(new Vector3(0, 0, -2).applyQuaternion(p.quaternion));
+const p2 = useLocalPlayer();
+rock.position.copy(p2.position).add(new Vector3(0, 0, -2).applyQuaternion(p2.quaternion));
 rock.position.y = 0;
 
 /* Command: set grass z += 2 */
 getAppByName('grass').position.z += 2;
 
 /* Command: equip the closest wearable */
-const p = useLocalPlayer();
-const sword = getAppsByComponent('wear').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
+const p3 = useLocalPlayer();
+const sword = getAppsByComponent('wear').reduce((a, b) => b.distanceTo(p3.position) < a.distanceTo(p3.position) ? b : a);
 sword.activate();
 
 /* Command: Find the closest IPFS app and make a copy of it. Add the copy in front of me. */
 const ipfsApp = apps.find(app => /^ipfs:/.test(app.start_url));
-const p = useLocalPlayer();
+const p4 = useLocalPlayer();
 const ipfsAppClone = ipfsApp.clone();
-ipfsAppClone.position.copy(p.position).add(new Vector3(0, 0, -1).applyQuaternion(p.quaternion));
+ipfsAppClone.position.copy(p4.position).add(new Vector3(0, 0, -1).applyQuaternion(p4.quaternion));
 addApp(ipfsAppClone);
 
 /* Command: pose the sword 1m left, 0.5m above, 2m behind the dragon */
@@ -113,24 +113,24 @@ chest.addEventListener('activate', e => {
 });
 
 /* Command: Ride the nearest vehicle. */
-const p = useLocalPlayer();
-const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p.position) < a.distanceTo(p.position) ? b : a);
+const p5 = useLocalPlayer();
+const ridable = getAppsByComponent('mount').reduce((a, b) => b.distanceTo(p5.position) < a.distanceTo(p5.position) ? b : a);
 ridable.activate();
 
 /* Command: Rotate the cat -90 degrees (-pi/2 radians) in the y axis. */
 getAppByName('cat').quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0)), -Math.PI/2);
 
 /* Command: teleport forward 10 meters (10m) */
-const p = useLocalPlayer();
-p.position.add(new Vector3(0, 0, -10).applyQuaternion(p.quaternion));
+const p6 = useLocalPlayer();
+p6.position.add(new Vector3(0, 0, -10).applyQuaternion(p6.quaternion));
 
 /* Command: teleport me backward 1.2 meters (1.2m) */
-const p = useLocalPlayer();
-p.position.add(new Vector3(0, 0, 1.2).applyQuaternion(p.quaternion));
+const p7 = useLocalPlayer();
+p7.position.add(new Vector3(0, 0, 1.2).applyQuaternion(p7.quaternion));
 
 /* Command: Teleport me left .2 meters (.2m). */
-const p = useLocalPlayer();
-p.position.add(new Vector3(-.2, 0, 0).applyQuaternion(p.quaternion));
+const p8 = useLocalPlayer();
+p8.position.add(new Vector3(-.2, 0, 0).applyQuaternion(p8.quaternion));
 
 /* Command: Teleport me up 2 meters (2m). */
 useLocalPlayer().position.add(new Vector3(0, 2, 0));
