@@ -43,7 +43,9 @@ const requestPointerLock = () => new Promise((accept, reject) => {
       document.removeEventListener('pointerlockerror', _pointerlockerror);
     };
     const renderer = getRenderer();
-    renderer.domElement.requestPointerLock();
+    renderer.domElement.requestPointerLock({
+      unadjustedMovement: true,
+    });
   } else {
     accept();
   }
