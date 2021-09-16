@@ -103,35 +103,6 @@ const localFrameOpts = {
   data: localData,
 };
 
-const iframeContainer = document.getElementById('iframe-container');
-const iframeContainer2 = document.getElementById('iframe-container2');
-if (iframeContainer && iframeContainer2) {
-  iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
-  iframeContainer.updateSize = function updateSize() {
-    const fov = iframeContainer.getFov();
-    iframeContainer.style.cssText = `
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: ${window.innerWidth}px;
-      height: ${window.innerHeight}px;
-      perspective: ${fov}px;
-    `;
-    iframeContainer2.style.cssText = `
-      /* display: flex;
-      justify-content: center;
-      align-items: center; */
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      /* transform-style: preserve-3d; */
-    `;
-  };
-  iframeContainer.updateSize();
-}
-
 class AppManager extends EventTarget {
   constructor() {
     super();
@@ -245,7 +216,7 @@ export {
   /*orbitControls, renderer2,*/
   sceneHighPriority,
   sceneLowPriority,
-  iframeContainer,
-  iframeContainer2,
+  // iframeContainer,
+  // iframeContainer2,
   appManager,
 };

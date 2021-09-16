@@ -1740,7 +1740,7 @@ const _selectTabDelta = offset => {
 };
 const bindInterface = () => {
   if (items1El && items2El && items3El && chatInputEl) {
-    for (let i = 0; i < itemSpecs3.length; i++) {
+    /* for (let i = 0; i < itemSpecs3.length; i++) {
       const itemSpec = itemSpecs3[i];
       const div = document.createElement('div');
       div.classList.add('item');
@@ -1890,7 +1890,7 @@ const bindInterface = () => {
         const boxEl = itemEl.querySelector('.box');
         boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
       }
-    })();
+    })(); */
     
     world.addEventListener('trackedobjectsadd', async e => {
       const {trackedObject, dynamic} = e.data;

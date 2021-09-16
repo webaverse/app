@@ -17,7 +17,7 @@ import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
-import {getRenderer, scene, camera, sceneHighPriority, appManager, iframeContainer, iframeContainer2} from './app-object.js';
+import {getRenderer, scene, camera, sceneHighPriority, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
 import fx from './fx.js';
@@ -1762,6 +1762,7 @@ const _loadHtml = async (file, {contentId = null}) => {
   iframe.src = href;
   iframe.style.width = `${width}px`;
   iframe.style.height = `${height}px`;
+  
   let fov = 0;
   const _updateSize = () => {
     fov = iframeContainer.getFov();
