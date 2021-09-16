@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import logo from './logo.svg'
-import classes from './App.css'
+import classes from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
 import App from '/app.js';
 
