@@ -5,6 +5,8 @@ import {addDefaultLights} from './util.js';
 let canvas = null, context = null, renderer = null;
 function bindCanvas(c) {
   canvas = c;
+  
+  const rect = canvas.getBoundingClientRect();
   context = canvas && canvas.getContext('webgl2', {
     antialias: true,
     alpha: true,
@@ -18,8 +20,6 @@ function bindCanvas(c) {
     alpha: true,
     // preserveDrawingBuffer: false,
   });
-  const container = getContainerElement();
-  const rect = (container || canvas).getBoundingClientRect();
   renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
