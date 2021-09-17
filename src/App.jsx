@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import logo from './logo.svg'
 import classes from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
+import Footer from './Footer.jsx';
 import App from '/app.js';
 
 const _startApp = async (canvas) => {
@@ -55,6 +56,7 @@ function RootNode() {
     <div className={classes.App}>
       <MagicMenu />
       <canvas id="canvas" className={classes.canvas} ref={canvasRef} />
+      <Footer />
     </div>
   );
 }
