@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import logo from './logo.svg'
 import classes from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
+import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 import App from '/app.js';
 
@@ -54,7 +55,11 @@ function RootNode() {
 
   return (
     <div className={classes.App}>
+      <Header />
       <MagicMenu />
+      <div className="crosshair">
+        <img src="./assets/crosshair.svg" width={30} height={30} />
+      </div>
       <canvas id="canvas" className={classes.canvas} ref={canvasRef} />
       <Footer />
     </div>

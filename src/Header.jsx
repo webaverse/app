@@ -119,10 +119,6 @@ const Arrow = ({
 	// const ref = useRef(null);
 	const [svgDataBaked, setSvgDataBaked] = useState('');
 
-	/* useEffect(() => {
-	  console.log('got ref current', ref.current);
-	}, [ref.current]); */
-
 	useEffect(() => {
 		if (svgData) {
 			const domParser = new DOMParser();
@@ -162,16 +158,6 @@ const Arrow = ({
 					// const linearGradient = doc2.querySelector('linearGradient');
 					// window.linearGradient = linearGradient;
 					const stops = Array.from(doc2.querySelectorAll('stop'));
-					/* window.colors = [
-					  localColor,
-					  localColor2,
-					  localColor3,
-					  localColor4,
-					  localColor5,
-					  localColor6,
-						startColorIndex1,
-						startColorIndex2,
-					]; */
 					
 					// window.offset = [startColorOffset, midColorOffset, endColorOffset];
 					
@@ -267,10 +253,10 @@ const _formatCountdown = countdown => {
 	return minutes + ':' + (seconds + '').padStart(2, '0');
 };
 const startCountdown = 10 * 60 * 1000;
-export default function Home() {
+export default function Header() {
 	// console.log('index 2');
 	
-	const ref = useRef(null);
+	/* const ref = useRef(null);
   const [arrowPosition, _setArrowPosition] = useState(0);
   const [arrowDown, _setArrowDown] = useState(false);
   const [animation, setAnimation] = useState(false);
@@ -303,14 +289,6 @@ export default function Home() {
 			const boop = document.getElementById('boop');
 			boop.currentTime = 0;
 			boop.play();
-			/* if (animation) {
-			  setAnimation(false);
-			  setTimeout(() => {
-				  setAnimation(true);
-				});
-			} else {
-			  setAnimation(true);
-			} */
 			setAnimation(true);
 			setOpen(true);
 		}
@@ -379,9 +357,6 @@ export default function Home() {
 			if (newCountdown <= 0) {
 				newCountdown += startCountdown;
 			}
-			/* if (newCountdown > countdown) {
-			  debugger;
-			} */
 			setCountdown(newCountdown);
 		}, 100);
 	  return () => {
@@ -422,73 +397,20 @@ export default function Home() {
 		return () => {
 		  window.removeEventListener('resize', _updateCharacterPositions);
 		};
-	}, []);
-	/* useEffect(() => {
-	  const script = document.createElement('script');
-		script.type = 'module';
-		script.src = 'dropstorm.js';
-		script.onload = () => {
-		  setAppScriptLoaded(true);
-		};
-		document.body.appendChild(script);
 	}, []); */
-	
-  /* const _handleContainerMouseMove = e => {
-		setMouse([
-		  (e.clientX - window.innerWidth/2) / (window.innerWidth/2),
-		  (e.clientY - window.innerHeight/2) / (window.innerHeight/2),
-	  ]);
-	}; */
 
 	return (
-    <div
-		  className={styles.container}
-		  // onMouseMove={_handleContainerMouseMove}
-		>
+    <div className={styles.container}>
 			<div className={styles.inner}>
 				<header className={styles.header}>
-				  <img src="images/dropstorm-01.svg" className={styles.logo} />
+          <a href="/" className={styles.logo}>
+				    <img src="images/arrow-logo.svg" className={styles.image} />
+          </a>
 					<div className={styles.user}>
 					  <img src="images/soul.png" className={styles.icon} />
 						<div className={styles.name}>Geezer</div>
 					</div>
 				</header>
-				
-        {/* <img src="images/dropstorm-01.svg" className={styles.biglogo} /> */}
-				
-				<div className={styles.countdown}>Starts in {_formatCountdown(countdown)}</div>
-				
-				<div className={styles.heading}>&gt; Avatar select</div>
-				<div className={styles.characterselect}>
-					<Arrow
-					  arrowPosition={arrowPosition}
-						arrowDown={arrowDown}
-						animation={animation}
-						setAnimation={setAnimation}
-						setOpen={setOpen}
-						svgData={svgData}
-						characterPositions={characterPositions}
-				  />
-					
-					<div className={styles.characters} ref={ref}>
-						{characters.map((character, i) => {
-							return (
-  							<Character
-								  character={character}
-									i={i}
-								  animation={animation}
-									open={open}
-									arrowPosition={arrowPosition}
-									setArrowDown={setArrowDown}
-									setArrowPosition2={setArrowPosition2}
-									characterPositions={characterPositions}
-									appScriptLoaded={appScriptLoaded}
-									key={i}
-							  />
-							);
-						})}
-					</div>
-        </div>
       </div>
     </div>
   )
