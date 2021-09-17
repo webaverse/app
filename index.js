@@ -16,7 +16,7 @@ const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
   } catch(err) {
-    console.warn(err);
+    // console.warn(err);
     return null;
   }
 };
