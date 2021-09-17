@@ -57,7 +57,7 @@ function RootNode() {
     <div className={classes.App}>
       <Header />
       <MagicMenu />
-      <div className="crosshair">
+      <div className={classes.crosshair} id="crosshair">
         <img src="./assets/crosshair.svg" width={30} height={30} />
       </div>
       <canvas id="canvas" className={classes.canvas} ref={canvasRef} />
