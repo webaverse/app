@@ -51,7 +51,7 @@ function RootNode() {
     }
   }, [canvasRef.current]);
 
-  console.log('got classes', {classes});
+  // console.log('got classes', {classes});
 
   return (
     <div className={classes.App}>
