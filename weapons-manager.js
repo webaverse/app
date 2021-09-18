@@ -535,6 +535,11 @@ const _uploadFile = async (u, f) => {
     hash,
   };
 };
+const _proxifyUrl = u => {
+  const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
+  // console.log('got match', match[1]);
+  return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
+};
 const _handleUpload = async (item, transform = null) => {
   console.log('uploading...');
   
@@ -543,7 +548,28 @@ const _handleUpload = async (item, transform = null) => {
     
     const file = item.getAsFile();
     const entry = item.webkitGetAsEntry();
-    if (entry.isDirectory) {
+    
+    if (item.kind === 'string') {
+      const s = await new Promise((accept, reject) => {
+        item.getAsString(accept);
+      });
+      const j = JSON.parse(s);
+      // console.log('got j', j);
+      const {traits} = j;
+      const trait = traits.find(t => t.trait_type === 'vox');
+      if (trait) {
+        const {value} = trait;
+        u = _proxifyUrl(value) + '#type=vox';
+      } else {
+        const {token_metadata} = j;
+        const res = await fetch(token_metadata);
+        const j2 = await res.json();
+        const {avatar_url, asset} = j2;
+        // console.log('got metadata', {asset, avatar_url});
+        u = avatar_url || asset;
+        u = '/@proxy/' + u + '?type=vrm';
+      }
+    } else if (entry.isDirectory) {
       const formData = new FormData();
       
       const rootEntry = entry;
@@ -674,6 +700,7 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+const crosshairEl = document.querySelector('.crosshair');
 let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
@@ -1209,10 +1236,8 @@ const _updateWeapons = () => {
   };
   _updateUses();
 
-  const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    const isVisible = !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0];
-    crosshairEl.style.visibility = isVisible ? null : 'hidden';
+    crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
   }
 
   popovers.update();
@@ -1741,7 +1766,7 @@ const _selectTabDelta = offset => {
 };
 const bindInterface = () => {
   if (items1El && items2El && items3El && chatInputEl) {
-    /* for (let i = 0; i < itemSpecs3.length; i++) {
+    for (let i = 0; i < itemSpecs3.length; i++) {
       const itemSpec = itemSpecs3[i];
       const div = document.createElement('div');
       div.classList.add('item');
@@ -1891,7 +1916,7 @@ const bindInterface = () => {
         const boxEl = itemEl.querySelector('.box');
         boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
       }
-    })(); */
+    })();
     
     world.addEventListener('trackedobjectsadd', async e => {
       const {trackedObject, dynamic} = e.data;
