@@ -39,10 +39,10 @@ body {
 
 .header .user:hover .name {
 	transform: translateX(-30px);
-  background-color: #3f51b5;
+  background-color: #ef5350;
 }
 .header .user:hover .name::before {
-	border-right-color: #3f51b5;
+	border-right-color: #ef5350;
 }
 .header .user:hover::before {
 	width: 100%;
