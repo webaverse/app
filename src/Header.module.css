@@ -3,14 +3,14 @@ body {
 }
 
 .header {
-  position: relative;
+  position: fixed;
 	display: flex;
 	width: 100%;
 	height: var(--header-height);
   top: 0;
 	background-color: #FFF;
 	align-items: center;
-  z-index: 1;
+  z-index: 2;
 }
 
 .header .logo {
@@ -103,4 +103,59 @@ body {
 	background-color: #000;
 	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
 	content: '';
+}
+.sidebar {
+  position: absolute;
+  top: 50px;
+  bottom: 0;
+  right: 0;
+  width: 400px;
+  background-color: #FFF;
+  transform: translateX(400px);
+  overflow: auto;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.sidebar.open {
+  transform: none;
+}
+
+.sidebar .nft {
+  display: flex;
+  padding: 20px;
+  flex-direction: column;
+  cursor: pointer;
+}
+.sidebar .nft:hover {
+  background-color: #5c6bc0;
+  color: #FFF;
+}
+.sidebar .nft .preview {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.sidebar .nft .wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar .nft .wrap .name,
+.sidebar .nft .wrap .description,
+.sidebar .nft .wrap .tokenid
+{
+  text-align: left;
+}
+
+.sidebar .nft .name {
+  font-size: 20px;
+}
+
+.sidebar .nft .description {
+  font-size: 16px;
+}
+
+.sidebar .nft .tokenid {
+  font-size: 13px;
 }

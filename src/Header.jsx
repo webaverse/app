@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
+import classnames from 'classnames';
 // import Head from 'next/head'
 import {Color} from './Color.js';
 // import Image from 'next/image'
@@ -16,6 +17,51 @@ const localColor6 = new Color();
 export default function Header() {
 	// console.log('index 2');
 	
+  const [open, setOpen] = useState(false);
+  const [address, setAddress] = useState(false);
+  const [nfts, setNfts] = useState(null);
+  
+  const login = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      const addresses = await window.ethereum.enable();
+      const [address] = addresses;
+      // console.log('address', {address});
+      setAddress(address);
+    } else {
+      console.warn('no ethereum');
+    }
+  };
+  
+  useEffect(() => {
+    const pointerlockchange = e => {
+      // console.log('pointer lock change', e);
+      if (document.pointerLockElement) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('pointerlockchange', pointerlockchange);
+    return () => {
+      window.removeEventListener('pointerlockchange', pointerlockchange);
+    };
+  }, []);
+  useEffect(() => {
+    if (address && !nfts) {
+      setNfts([]);
+      
+      (async () => {
+        const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
+          headers: {
+            'X-API-KEY': `6a7ceb45f3c44c84be65779ad2907046`,
+          },
+        });
+        const j = await res.json();
+        const {assets} = j;
+        setNfts(assets);
+        // console.log('got assets', assets);
+      })();
+    }
+  }, [address, nfts]);
+  
 	/* const ref = useRef(null);
   const [arrowPosition, _setArrowPosition] = useState(0);
   const [arrowDown, _setArrowDown] = useState(false);
@@ -166,11 +212,41 @@ export default function Header() {
           <a href="/" className={styles.logo}>
 				    <img src="images/arrow-logo.svg" className={styles.image} />
           </a>
-					<div className={styles.user}>
+					<div className={styles.user} onClick={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (address) {
+              setOpen(!open);
+            } else {
+              await login();
+            }
+          }}>
 					  <img src="images/soul.png" className={styles.icon} />
-						<div className={styles.name}>Geezer</div>
+						<div className={styles.name}>{address || 'Log in'}</div>
 					</div>
 				</header>
+        
+        <section className={classnames(styles.sidebar, open ? styles.open : null)} onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}>
+          {(nfts || []).map((nft, i) => {
+            const {id, asset_contract, image_preview_url, image_original_url, name, description} = nft;
+            // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
+            // console.log(nft);
+            return <div className={styles.nft} onDragStart={e => {
+              e.dataTransfer.setData('application/json', JSON.stringify(nft));
+            }} draggable key={i}>
+              <img src={image_preview_url} className={styles.preview} />
+              <div className={styles.wrap}>
+                <div className={styles.name}>{name}</div>
+                <div className={styles.description}>{description}</div>
+                <div className={styles.tokenid}>{asset_contract.address} / {id}</div>
+              </div>
+            </div>
+          })}
+        </section>
       </div>
     </div>
   )
