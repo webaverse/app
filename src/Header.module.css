@@ -134,6 +134,8 @@ body {
   width: 100px;
   height: 100px;
   object-fit: contain;
+  user-drag: none;
+  -webkit-user-drag: none;
 }
 
 .sidebar .nft .wrap {

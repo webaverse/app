@@ -559,15 +559,19 @@ const _handleUpload = async (item, transform = null) => {
       const trait = traits.find(t => t.trait_type === 'vox');
       if (trait) {
         const {value} = trait;
-        u = _proxifyUrl(value) + '#type=vox';
+        u = _proxifyUrl(value) + '?type=vox';
       } else {
         const {token_metadata} = j;
         const res = await fetch(token_metadata);
         const j2 = await res.json();
         const {avatar_url, asset} = j2;
-        // console.log('got metadata', {asset, avatar_url});
-        u = avatar_url || asset;
-        u = '/@proxy/' + u + '?type=vrm';
+        const avatarUrl = avatar_url || asset;
+        if (avatarUrl) {
+          u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+        } else {
+          const {image} = j2;
+          u = '/@proxy/' + encodeURI(image);
+        }
       }
     } else if (entry.isDirectory) {
       const formData = new FormData();
