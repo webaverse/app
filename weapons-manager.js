@@ -28,9 +28,10 @@ import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js
 import fx from './fx.js';
 import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
-import {contractAddresses}from 'metaversefile/constants.js'
+import metaversefileConstants from 'metaversefile/constants.module.js'
 import {CVLoader} from './CVLoader.js';
 const {useLocalPlayer, teleportTo} = metaversefileApi;
+const {contractNames} = metaversefileConstants;
 
 (async () => {
   const cvLoader = new CVLoader();
@@ -601,8 +602,8 @@ const _handleUpload = async (item, transform = null) => {
       const {token_id, asset_contract} = j;
       const {address} = asset_contract;
       
-      if (contractAddresses.includes(address)) {
-        u = `/@proxy/eth://${address}/${token_id}`;
+      if (contractNames[address]) {
+        u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
       } else {
         console.log('got j', j);
         const {traits} = j;
