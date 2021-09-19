@@ -704,7 +704,6 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
-const crosshairEl = document.querySelector('.crosshair');
 let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
@@ -1240,8 +1239,10 @@ const _updateWeapons = () => {
   };
   _updateUses();
 
+  const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    crosshairEl.classList.toggle('visible', !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0]);
+    const visible = !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0];
+    crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
   popovers.update();
