@@ -538,7 +538,11 @@ const _uploadFile = async (u, f) => {
 const _proxifyUrl = u => {
   const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
   // console.log('got match', match[1]);
-  return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
+  if (match) {
+    return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
+  } else {
+    return u;
+  }
 };
 const _handleUpload = async (item, transform = null) => {
   console.log('uploading...');
@@ -554,24 +558,50 @@ const _handleUpload = async (item, transform = null) => {
         item.getAsString(accept);
       });
       const j = JSON.parse(s);
-      // console.log('got j', j);
+      console.log('got j', j);
       const {traits} = j;
-      const trait = traits.find(t => t.trait_type === 'vox');
-      if (trait) {
-        const {value} = trait;
+      // cryptovoxels wearables
+      const voxTrait = traits.find(t => t.trait_type === 'vox');
+      if (voxTrait) {
+        const {value} = voxTrait;
         u = _proxifyUrl(value) + '?type=vox';
       } else {
         const {token_metadata} = j;
-        const res = await fetch(token_metadata);
+        // console.log('proxify', token_metadata);
+        const res = await fetch(_proxifyUrl(token_metadata), {
+          mode: 'cors',
+        });
         const j2 = await res.json();
-        const {avatar_url, asset} = j2;
-        const avatarUrl = avatar_url || asset;
-        if (avatarUrl) {
-          u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+        console.log('got metadata', j2);
+        
+        // dcl wearables
+        if (j2.id?.startsWith('urn:decentraland:')) {
+          // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
+          const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, {
+            mode: 'cors',
+          });
+          const j3 = await res.json();
+          const {wearables} = j3;
+          const wearable = wearables[0];
+          const representation = wearable.data.representations[0];
+          const {mainFile, contents} = representation;
+          const file = contents.find(f => f.key === mainFile);
+          const match = mainFile.match(/\.([a-z0-9]+)$/i);
+          const type = match && match[1];
+          console.log('got wearable', {mainFile, contents, file, type});
+          u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
         } else {
-          const {image} = j2;
-          u = '/@proxy/' + encodeURI(image);
+          // avatar
+          const {avatar_url, asset} = j2;
+          const avatarUrl = avatar_url || asset;
+          if (avatarUrl) {
+            u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+          } else {
+            // default
+            const {image} = j2;
+            u = '/@proxy/' + encodeURI(image);
         }
+          }
       }
     } else if (entry.isDirectory) {
       const formData = new FormData();
