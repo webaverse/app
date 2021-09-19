@@ -9,6 +9,7 @@ import {rigManager} from './rig.js';
 import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
 
 const localVector2D = new THREE.Vector2();
 const localMatrix = new THREE.Matrix4();
@@ -198,6 +199,9 @@ const _memoize = fn => {
 const _gltfLoader = _memoize(() => new GLTFLoader());
 const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
 const _gifLoader = _memoize(() => new GIFLoader());
+const _voxLoader = _memoize(() => new VOXLoader({
+  scale: 0.01,
+}));
 const loaders = {
   get gltfLoader() {
     return _gltfLoader();
@@ -207,6 +211,9 @@ const loaders = {
   },
   get gifLoader() {
     return _gifLoader();
+  },
+  get voxLoader() {
+    return _voxLoader();
   },
 };
 const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
