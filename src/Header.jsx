@@ -20,6 +20,8 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
+  const [roomName, setRoomName] = useState('');
+  const [connected, setConnected] = useState(false);
   
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -206,12 +208,26 @@ export default function Header() {
 	}, []); */
 
 	return (
-    <div className={styles.container}>
+    <div className={styles.container} onClick={e => {
+      e.stopPropagation();
+    }}>
 			<div className={styles.inner}>
 				<header className={styles.header}>
           <a href="/" className={styles.logo}>
 				    <img src="images/arrow-logo.svg" className={styles.image} />
           </a>
+					<div className={styles.room}>
+            <input type="text" className={styles.input} value={roomName} onChange={e => {
+              setRoomName(e.target.value);
+            }} placeholder="Place to do..." />
+            <div className={styles['button-wrap']} onClick={e => {
+              setConnected(!connected);
+            }}>
+              <button className={classnames(styles.button, connected ? null : styles.disabled)}>
+                <img src="images/wifi.svg" />
+              </button>
+            </div>
+          </div>
 					<div className={styles.user} onClick={async e => {
             e.preventDefault();
             e.stopPropagation();
