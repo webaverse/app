@@ -23,7 +23,7 @@ import npcManager from './npc-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
-import {storageHost, tokensHost} from './constants.js';
+import {storageHost, tokensHost, homeScnUrl} from './constants.js';
 // import './procgen.js';
 import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, appManager, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
@@ -117,11 +117,13 @@ export default class App extends EventTarget {
   
   async bootstrapFromUrl(urlSpec) {
     const q = parseQuery(urlSpec.search);
+    if (!q.src) {
+      q.src = homeScnUrl;
+    }
 
-    const [
+    /* const [
       waitResult,
       loginResult,
-      worldJson,
     ] = await Promise.all([
       this.waitForLoad(),
       loginManager.waitForLoad()
@@ -129,16 +131,18 @@ export default class App extends EventTarget {
           tryTutorial();
           rigManager.setFromLogin();
         }),
-      world.getWorldJson(q),
-    ]);
+    ]); */
     
-    const coord = parseCoord(q.c);
+    /* const coord = parseCoord(q.c);
     if (coord) {
       camera.position.copy(coord);
-    }
+    } */
 
     try {
-      await universe.enterWorld(worldJson);
+      await Promise.all([
+        universe.enterWorld(q),
+        rigManager.setDefault(),
+      ]);
       /* await Promise.all([
         universe.enterWorld(worldJson),
         (async () => {
@@ -257,15 +261,15 @@ export default class App extends EventTarget {
       const decapitated = controlsManager.isPossessed() && (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
       if (decapitated) {
         rigManager.localRig.decapitate();
-        rigManager.localRig.aux.decapitate();
+        // rigManager.localRig.aux.decapitate();
       } else {
         rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
+        // rigManager.localRig.aux.undecapitate();
       }
       renderer.render(avatarScene, camera);
       if (decapitated) {
         rigManager.localRig.undecapitate();
-        rigManager.localRig.aux.undecapitate();
+        // rigManager.localRig.aux.undecapitate();
       }
     }
     // highlight render

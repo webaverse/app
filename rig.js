@@ -89,8 +89,10 @@ class RigManager {
 
   setDefault() {
     this.clearAvatar();
+    
+    rigManager.setLocalAvatarUrl('./avatars/citrine.vrm', 'vrm');
 
-    this.localRig = new Avatar(null, {
+    /* this.localRig = new Avatar(null, {
       fingers: true,
       hair: true,
       visemes: true,
@@ -139,7 +141,7 @@ class RigManager {
       const nametagMesh2 = new THREE.Mesh(geometry, material2);
       this.localRig.textMesh.add(nametagMesh2);
     }
-    this.scene.add(this.localRig.textMesh);
+    this.scene.add(this.localRig.textMesh); */
   }
   
   setFromLogin() {
@@ -162,6 +164,7 @@ class RigManager {
         rigManager.setLocalAvatarImage(avatar.preview);
       }
     });
+    
   }
 
   setLocalRigMatrix(rm) {
@@ -211,7 +214,7 @@ class RigManager {
     // await this.localRigQueue.lock();
 
     if (url) {
-      this.setDefault();
+      // this.setDefault();
       await this.setAvatar(this.localRig, newLocalRig => {
         this.clearAvatar();
         this.localRig = newLocalRig;
@@ -224,6 +227,12 @@ class RigManager {
   }
 
   async setAvatar(oldRig, setRig, url, ext) {
+    if (!oldRig) {
+      const textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
+      oldRig = {
+        textMesh,
+      };
+    }
     if (oldRig.url !== url) {
       oldRig.url = url;
 
@@ -246,7 +255,11 @@ class RigManager {
       }
 
       if (oldRig.url === url) {
-        oldRig.model.parent.remove(oldRig.model);
+        if (oldRig.model) {
+          oldRig.model.parent.remove(oldRig.model);
+        }
+
+        console.log('model o', o);
 
         let localRig;
         if (o) {
@@ -260,12 +273,12 @@ class RigManager {
               debug: false //!o,
             });
             // localRig.model.isVrm = true;
-            localRig.aux = oldRig.aux;
-            localRig.aux.rig = localRig;
+            // localRig.aux = oldRig.aux;
+            // localRig.aux.rig = localRig;
           } else {
             localRig = new Avatar();
-            localRig.aux = oldRig.aux;
-            localRig.aux.rig = localRig;
+            // localRig.aux = oldRig.aux;
+            // localRig.aux.rig = localRig;
             localRig.model = o;
             // console.log('local rig model', o, localRig.model);
             // debugger;
@@ -281,14 +294,14 @@ class RigManager {
             visemes: true,
             debug: true,
           });
-          localRig.aux = oldRig.aux;
-          localRig.aux.rig = localRig;
+          // localRig.aux = oldRig.aux;
+          // localRig.aux.rig = localRig;
         }
         unFrustumCull(localRig.model);
         scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
-        localRig.avatarUrl = oldRig.url;
-        localRig.rigCapsule = oldRig.rigCapsule;
+        // localRig.avatarUrl = oldRig.url;
+        // localRig.rigCapsule = oldRig.rigCapsule;
 
         setRig(localRig);
       }
@@ -677,9 +690,9 @@ class RigManager {
       this.localRig.useAnimation = useAnimation;
 
       this.localRig.update(now, timeDiff);
-      this.localRig.aux.update(now, timeDiff);
+      // this.localRig.aux.update(now, timeDiff);
 
-      let sitState = this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      let sitState = false; // this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
       let sitAnimation;
       if (sitState) {
         const sittable = this.localRig.aux.sittables[0];
@@ -724,7 +737,7 @@ class RigManager {
 
       this.peerRigs.forEach(rig => {
         rig.update(now, timeDiff);
-        rig.aux.update(now, timeDiff);
+        // rig.aux.update(now, timeDiff);
       });
       
       this.lastTimetamp = now;

@@ -10,6 +10,7 @@ import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
 import {landHost, homeScnUrl, worldUrl} from './constants.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -108,10 +109,10 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.z),
 );
 const clearWorld = () => {
-  const staticObjects = world.getStaticObjects();
+  /* const staticObjects = world.getStaticObjects();
   for (const object of staticObjects) {
     world.removeStaticObject(object.instanceId);
-  }
+  } */
   const objects = world.getObjects();
   for (const object of objects) {
     world.removeObject(object.instanceId);
@@ -145,7 +146,7 @@ const update = () => {
   }
 }; */
 const enterWorld = async worldSpec => {
-  let warpPhysicsId;
+  /* let warpPhysicsId;
   const _pre = () => {
     if (currentWorld) {
       warpMesh.visible = true;
@@ -199,21 +200,23 @@ const enterWorld = async worldSpec => {
       _containAvatar();
     };
   };
-  _pre();
+  _pre(); */
 
   world.disconnectRoom();
 
   const _doLoad = async () => {
     clearWorld();
 
-    let {objects, room} = worldSpec;
-    const promises = [];
-    if (worldSpec.default) {
-      const res = await fetch(homeScnUrl);
+    let {src, room} = worldSpec;
+    /* {
+      const res = await fetch(src);
       const homeScn = await res.json();
       objects = homeScn.objects;
-    }
-    {
+    } */
+    const promises = [
+      metaversefile.load(src),
+    ];
+    /* {
       const dynamic = !room;
       for (const object of objects) {
         if (object.dynamic) {
@@ -221,6 +224,7 @@ const enterWorld = async worldSpec => {
         }
       }
     }
+    const promises = [];
     {
       const ps = objects.map(async object => {
         let {start_url, position, quaternion, scale, physics, physics_url, autoScale, autoRun, dynamic} = object;
@@ -243,7 +247,7 @@ const enterWorld = async worldSpec => {
         }
       });
       promises.push.apply(promises, ps);
-    }
+    } */
     if (room) {
       const p = (async () => {
         await world.connectRoom(worldUrl);
@@ -259,7 +263,7 @@ const enterWorld = async worldSpec => {
     console.warn(err);
   });
 
-  const _post = () => {
+  /* const _post = () => {
     if (currentWorld) {
       // setTimeout(() => {
         warpMesh.visible = false;
@@ -268,7 +272,7 @@ const enterWorld = async worldSpec => {
       // }, 3000);
     }
   };
-  _post();
+  _post(); */
 
   currentWorld = worldSpec;
 };
@@ -278,8 +282,8 @@ const pushUrl = async u => {
 };
 const handleUrlUpdate = async () => {
   const q = parseQuery(location.search);
-  const worldJson = await world.getWorldJson(q);
-  await enterWorld(worldJson);
+  // const worldJson = await world.getWorldJson(q);
+  await enterWorld(q);
 };
 window.addEventListener('popstate', e => {
   handleUrlUpdate().catch(console.warn);

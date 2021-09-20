@@ -695,7 +695,7 @@ const _handleUpload = async (item, transform = null) => {
   }
   const {position, quaternion} = transform;
   
-  world.addObject(u, null, position, quaternion, oneVector);
+  world.addObject(u, position, quaternion, oneVector);
 };
 const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
@@ -2475,7 +2475,7 @@ const weaponsManager = {
   },
   canJumpOff() {
     return rigManager.localRig ? (
-      rigManager.localRig.aux.sittables.length > 0
+      rigManager.localRig.aux?.sittables.length > 0
     ) : false;
   },
   jumpOff() {
@@ -2514,7 +2514,7 @@ const weaponsManager = {
   getSpeed() {
     const defaultSpeed = 0.1;
     const defaultCrouchSpeed = 0.06;
-    const sittable = rigManager.localRig.aux.sittables[0];
+    const sittable = rigManager.localRig.aux?.sittables[0];
     if (sittable && !!sittable.model) {
       const {componentIndex} = sittable;
       const component = sittable.model.getComponents()[componentIndex];

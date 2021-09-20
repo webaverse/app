@@ -6,6 +6,7 @@ import metaversefile from 'metaversefile';
 import {App, getRenderer, scene, sceneHighPriority, camera, appManager} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import {world} from './world.js';
 import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -258,6 +259,16 @@ metaversefile.setApi({
     } else {
       throw new Error('useApp cannot be called outside of render()');
     }
+  },
+  useWorld() {
+    return {
+      addObject() {
+        return world.addObject.apply(world, arguments);
+      },
+      removeObject() {
+        return world.removeObject.apply(world, arguments);
+      },
+    };
   },
   useFrame(fn) {
     const app = currentAppRender;
