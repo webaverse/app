@@ -28,48 +28,9 @@ import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js
 import fx from './fx.js';
 import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
-import metaversefileConstants from 'metaversefile/constants.module.js'
-import {CVLoader} from './CVLoader.js';
+import metaversefileConstants from 'metaversefile/constants.module.js';
 const {useLocalPlayer, teleportTo} = metaversefileApi;
 const {contractNames} = metaversefileConstants;
-
-(async () => {
-  const cvLoader = new CVLoader();
-  const o = await cvLoader.load(20, 20);
-  
-  // console.log('loaded', o);
-  let m;
-  o.traverse(e => {
-    if (e.isMesh) {
-      m = e;
-    }
-  });
-  // console.log('got m', m);
-  scene.add(o);
-  
-  const physicsIds = [];
-  const _addPhysics = async () => {
-    const mesh = o;
-    
-    mesh.updateMatrixWorld();
-    const physicsMesh = physicsManager.convertMeshToPhysicsMesh(mesh);
-    physicsMesh.position.copy(mesh.position);
-    physicsMesh.quaternion.copy(mesh.quaternion);
-    physicsMesh.scale.copy(mesh.scale);
-    
-    scene.add(physicsMesh);
-    const physicsId = physicsManager.addGeometry(physicsMesh);
-    scene.remove(physicsMesh);
-    physicsIds.push(physicsId);
-  };
-  _addPhysics();
-  
-  /* useCleanup(() => {
-    for (const physicsId of physicsIds) {
-      physicsManager.removeGeometry(physicsId);
-    }
-  }); */
-})();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
