@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import {Color} from './Color.js';
 // import Image from 'next/image'
 import styles from './Header.module.css'
+import {homeScnUrl} from '../constants.js'
 
 const localColor = new Color();
 const localColor2 = new Color();
@@ -20,7 +21,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
-  const [roomName, setRoomName] = useState('');
+  const [roomName, setRoomName] = useState(homeScnUrl);
   const [connected, setConnected] = useState(false);
   
   const login = async () => {

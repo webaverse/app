@@ -260,13 +260,12 @@ world.getStaticObjects = () => objects.objects.static.slice();
 world.getNpcs = () => objects.npcs.dynamic.slice();
 let pendingAddPromise = null;
 
-const _addObject = (dynamic, arrayName) => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), options = {}) => {
+const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), options = {}) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
     const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic, arrayName);
     trackedObject.set('instanceId', instanceId);
-    trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
@@ -291,7 +290,7 @@ const _removeObject = (dynamic, arrayName) => removeInstanceId => {
     const objectsJson = objects.toJSON();
     const removeIndex = objectsJson.indexOf(removeInstanceId);
     if (removeIndex !== -1) {
-      const childRemoveIndices = (() => {
+      /* const childRemoveIndices = (() => {
         const result = [];
         for (let i = 0; i < objectsJson.length; i++) {
           const objectInstanceId = objectsJson[i];
@@ -302,8 +301,8 @@ const _removeObject = (dynamic, arrayName) => removeInstanceId => {
           }
         }
         return result;
-      })();
-      const allRemoveIndices = [removeIndex].concat(childRemoveIndices);
+      })(); */
+      const allRemoveIndices = [removeIndex]//.concat(childRemoveIndices);
       for (const removeIndex of allRemoveIndices) {
         const instanceId = objectsJson[removeIndex];
 
@@ -320,12 +319,12 @@ const _removeObject = (dynamic, arrayName) => removeInstanceId => {
     }
   });
 };
-world.add = (dynamic, arrayName, ...args) => _addObject(dynamic, arrayName)(...args);
-world.remove = (dynamic, arrayName, id) => _removeObject(dynamic, arrayName)(id);
+// world.add = (dynamic, arrayName, ...args) => _addObject(dynamic, arrayName)(...args);
+// world.remove = (dynamic, arrayName, id) => _removeObject(dynamic, arrayName)(id);
 world.addObject = _addObject(true, 'objects');
 world.removeObject = _removeObject(true, 'objects');
-world.addStaticObject = _addObject(false, 'objects');
-world.removeStaticObject = _removeObject(false, 'objects');
+// world.addStaticObject = _addObject(false, 'objects');
+// world.removeStaticObject = _removeObject(false, 'objects');
 world.addNpc = _addObject(true, 'npcs');
 world.removeNpc = _removeObject(true, 'npcs');
 for (const arrayName of [
@@ -339,9 +338,9 @@ for (const arrayName of [
     try {
       const {trackedObject, dynamic} = e.data;
       const trackedObjectJson = trackedObject.toJSON();
-      const {instanceId, parentId, contentId, position, quaternion, scale, options: optionsString} = trackedObjectJson;
+      const {instanceId, contentId, position, quaternion, scale, options: optionsString} = trackedObjectJson;
       const options = JSON.parse(optionsString);
-  // const file = await contentIdToFile(contentId);
+      // const file = await contentIdToFile(contentId);
       /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
         contentId,
         instanceId: instanceId,
