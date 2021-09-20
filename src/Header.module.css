@@ -8,7 +8,6 @@ body {
 	width: 100%;
 	height: var(--header-height);
   top: 0;
-	background-color: #FFF;
 	align-items: center;
   z-index: 2;
 }
@@ -17,6 +16,7 @@ body {
   height: 100%;
 	margin-right: auto;
   padding: 0 10px;
+  user-select: none;
 }
 .header .logo:hover {
   transform: scale(1.5);
@@ -32,7 +32,6 @@ body {
 	display: flex;
 	height: 100%;
 	align-items: center;
-	background-color: #FFF;
 	cursor: pointer;
 	user-select: none;
 }
@@ -54,6 +53,9 @@ body {
 	border-right-color: #283593;
 }
 
+.header .user:active .icon {
+  transform: scale(1.2);
+}
 .header .user .icon {
 	position: relative;
   height: 70px;
@@ -104,12 +106,64 @@ body {
 	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
 	content: '';
 }
+
+.room {
+  display: flex;
+  height: 100%;
+}
+.room .input {
+  height: 100%;
+  width: 300px;
+  padding: 10px;
+  border: 0;
+  background-color: #000;
+  color: #FFF;
+  font-family: monospace;
+  outline: none;
+}
+.room .button-wrap {
+  position: relative;
+  display: flex;
+  height: 100%;
+  cursor: pointer;
+}
+.room .button-wrap:active .button {
+  transform: scale(0.7);
+  transition: none;
+}
+.room .button {
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.room .button,
+.room .button.disabled:hover
+{
+  display: flex;
+  height: 100%;
+  border: 0;
+  background-color: #9ccc65;
+  align-items: center;
+}
+.room .button:hover {
+  background-color: #7cb342;
+}
+.room .button.disabled {
+  background-color: #888;
+}
+.room .button img {
+  width: 30px; 
+  height: 30px;
+}
+.room .button:not(.disabled) img {
+  filter: invert(1);
+}
+
 .sidebar {
   position: absolute;
-  top: 50px;
+  top: 0;
   bottom: 0;
   right: 0;
   width: 400px;
+  padding-top: 50px;
   background-color: #FFF;
   transform: translateX(400px);
   overflow: auto;
@@ -134,8 +188,6 @@ body {
   width: 100px;
   height: 100px;
   object-fit: contain;
-  user-drag: none;
-  -webkit-user-drag: none;
 }
 
 .sidebar .nft .wrap {
