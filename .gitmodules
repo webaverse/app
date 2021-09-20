@@ -1,0 +1,6 @@
+[submodule "packages/metaversefile"]
+	path = packages/metaversefile
+	url = https://github.com/webaverse/metaversefile.git
+[submodule "packages/wsrtc"]
+	path = packages/wsrtc
+	url = https://github.com/webaverse/wsrtc.git
