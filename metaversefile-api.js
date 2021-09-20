@@ -10,6 +10,9 @@ import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
+import ERC721 from './erc721-abi.json';
+import ERC1155 from './erc1155-abi.json';
+import {web3} from './blockchain.js';
 
 const localVector2D = new THREE.Vector2();
 const localMatrix = new THREE.Matrix4();
@@ -218,6 +221,11 @@ const loaders = {
 };
 const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
+const abis = {
+  ERC721,
+  ERC1155,
+};
+
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
@@ -374,6 +382,12 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useWeb3() {
+    return web3.mainnet;
+  },
+  useAbis() {
+    return abis;
   },
   useUi() {
     return ui;
