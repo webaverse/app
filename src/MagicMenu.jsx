@@ -37,6 +37,9 @@ const makeAi = prompt => {
         const {choices} = j;
         const {text} = choices[0];
         fullS += text;
+        if (!fullS) {
+          fullS = '// nope';
+        }
         result.dispatchEvent(new MessageEvent('update', {
           data: fullS,
         }));
