@@ -22,7 +22,6 @@
   padding: 20px;
   background-color: #EEE;
   border: 0;
-  border-radius: 10px;
   font-size: 16px;
   outline: none;
   box-shadow: 0 5px 20px #00000080;
@@ -34,7 +33,6 @@
   padding: 20px;
   background-color: #333;
   border: 0;
-  border-radius: 10px;
   color: #FFF;
   font-size: 16px;
   outline: none;
@@ -46,7 +44,6 @@
 .MagicMenu .container .button {
   padding: 15px 20px;
   border: 0;
-  border-radius: 10px;
   background-color: #7E57C2;
   color: #FFF;
   font-size: 16px;
