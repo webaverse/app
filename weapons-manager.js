@@ -2514,7 +2514,7 @@ const weaponsManager = {
   getSpeed() {
     const defaultSpeed = 0.1;
     const defaultCrouchSpeed = 0.06;
-    const sittable = rigManager.localRig.aux?.sittables[0];
+    const sittable = rigManager?.localRig.aux?.sittables[0];
     if (sittable && !!sittable.model) {
       const {componentIndex} = sittable;
       const component = sittable.model.getComponents()[componentIndex];
