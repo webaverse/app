@@ -103,8 +103,7 @@ export default function Header() {
   }, []);
   useEffect(() => {
     const keydown = e => {
-      // console.log('key down', e.which, document.activeElement);
-      const inputFocused = document.activeElement && document.activeElement.nodeName === 'INPUT';
+      const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
       if (!inputFocused) {
         switch (e.which) {
           case 84: { // T
