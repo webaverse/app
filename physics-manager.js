@@ -370,7 +370,7 @@ physicsManager.getAvatarHeight = getAvatarHeight;
 const _getAvatarCapsule = v => {
   v.set(0, -getAvatarHeight() * 0.5, 0); // XXX use the proper crouch height
   v.radius = 0.3;
-  v.halfHeight = Math.max(rigManager.localRig.height/2 - v.radius, 0);
+  v.halfHeight = Math.max(rigManager.localRig ? (rigManager.localRig.height/2 - v.radius) : 0, 0);
   return v;
 };
 physicsManager.getAvatarCapsule = _getAvatarCapsule;
