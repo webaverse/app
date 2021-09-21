@@ -28,8 +28,10 @@ export function parseQuery(queryString) {
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i].split('=');
     const k = decodeURIComponent(pair[0]);
-    const v = decodeURIComponent(pair[1] || '');
-    query[k] = v;
+    if (k) {
+      const v = decodeURIComponent(pair[1] || '');
+      query[k] = v;
+    }
   }
   return query;
 }
