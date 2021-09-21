@@ -213,9 +213,9 @@ const enterWorld = async worldSpec => {
       const homeScn = await res.json();
       objects = homeScn.objects;
     } */
-    const promises = [
+    const promises = src ? [
       metaversefile.load(src),
-    ];
+    ] : [];
     /* {
       const dynamic = !room;
       for (const object of objects) {
