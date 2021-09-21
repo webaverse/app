@@ -29,6 +29,7 @@ import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographic
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 import transformControls from './transform-controls.js';
+import * as metaverseModules from './metaverse-modules.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -88,6 +89,7 @@ export default class App extends EventTarget {
       geometryManager.waitForLoad(),
       Avatar.waitForLoad(),
       transformControls.waitForLoad(),
+      metaverseModules.waitForLoad(),
     ])
       .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
