@@ -108,11 +108,21 @@ const didInteract = new Promise(resolve => window.addEventListener('click', e =>
   resolve(true)
 , {once: true}));
 
-
+let mediaStream = null;
+world.micEnabled = () => !!mediaStream;
 world.enableMic = async () => {
-  const mediaStream = await WSRTC.getUserMedia();
+  mediaStream = await WSRTC.getUserMedia();
   // await wsrtc.enableMic();
   rigManager.setLocalMicMediaStream(mediaStream);
+};
+world.disableMic = async () => {
+  if (mediaStream) {
+    for (const track of mediaStream.getTracks()) {
+      track.stop();
+    }
+    mediaStream = null;
+    rigManager.setLocalMicMediaStream(null);
+  }
 };
 
 world.connectRoom = async (worldURL) => {
