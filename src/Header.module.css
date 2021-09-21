@@ -145,7 +145,7 @@ body {
 }
 .room .button:hover {
   background-color: #7cb342;
-}
+} 
 .room .button.disabled {
   background-color: #888;
 }
@@ -155,6 +155,10 @@ body {
 }
 .room .button:not(.disabled) img {
   filter: invert(1);
+}
+
+.room .button .hidden {
+  display: none;
 }
 
 .sidebar {
