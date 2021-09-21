@@ -24,6 +24,7 @@ export default function Header() {
   const [nfts, setNfts] = useState(null);
   const [roomName, setRoomName] = useState(homeScnUrl);
   const [connected, setConnected] = useState(false);
+  const [micOn, setMicOn] = useState(false);
   
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -236,6 +237,14 @@ export default function Header() {
             }}>
               <button className={classnames(styles.button, connected ? null : styles.disabled)}>
                 <img src="images/wifi.svg" />
+              </button>
+            </div>
+            <div className={styles['button-wrap']} onClick={e => {
+              setMicOn(!micOn);
+            }}>
+              <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
+                <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
+                <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
               </button>
             </div>
           </div>
