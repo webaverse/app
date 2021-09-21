@@ -368,6 +368,10 @@ class RigManager {
     const oldPeerRig = this.peerRigs.get(peerId);
     oldPeerRig.aux.setPose(aux);
   }
+  
+  setLocalMicMediaStream(mediaStream) {
+    this.localRig.setMicrophoneMediaStream(mediaStream);
+  }
 
   setPeerMicMediaStream(mediaStream, peerId) {
     const peerRig = this.peerRigs.get(peerId);
