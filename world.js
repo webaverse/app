@@ -109,6 +109,12 @@ const didInteract = new Promise(resolve => window.addEventListener('click', e =>
 , {once: true}));
 
 
+world.enableMic = async () => {
+  const mediaStream = await WSRTC.getUserMedia();
+  // await wsrtc.enableMic();
+  rigManager.setLocalMicMediaStream(mediaStream);
+};
+
 world.connectRoom = async (worldURL) => {
   await didInteract;
   await WSRTC.waitForReady();
@@ -183,7 +189,7 @@ world.connectRoom = async (worldURL) => {
     });
 
     interval = setInterval(sendUpdate, 10);
-    wsrtc.enableMic();
+    // wsrtc.enableMic();
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
