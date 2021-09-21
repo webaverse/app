@@ -460,7 +460,7 @@ metaversefile.setApi({
     return app;
   },
   createModule: (() => {
-    const dataUrlPrefix = `data:text/javascript;charset=utf-8,`;
+    const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
     const jsPrefix = `\
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
