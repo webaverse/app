@@ -6,6 +6,7 @@ import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import * as universe from '../universe.js'
+import {parseQuery} from '../util.js'
 import {homeScnUrl} from '../constants.js'
 
 const localColor = new Color();
@@ -67,6 +68,16 @@ export default function Header() {
       })();
     }
   }, [address, nfts]);
+  useEffect(() => {
+    window.addEventListener('popstate', e => {
+      const q = parseQuery(window.location.search);
+      let {src} = q;
+      if (src === undefined) {
+        src = homeScnUrl;
+      }
+      setRoomName(src);
+    });
+  }, []);
   
 	/* const ref = useRef(null);
   const [arrowPosition, _setArrowPosition] = useState(0);
