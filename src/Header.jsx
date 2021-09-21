@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import {Color} from './Color.js';
 // import Image from 'next/image'
 import styles from './Header.module.css'
+import * as universe from '../universe.js'
 import {homeScnUrl} from '../constants.js'
 
 const localColor = new Color();
@@ -220,6 +221,15 @@ export default function Header() {
 					<div className={styles.room}>
             <input type="text" className={styles.input} value={roomName} onChange={e => {
               setRoomName(e.target.value);
+            }} onKeyDown={e => {
+              console.log('key down', e);
+              switch (e.which) {
+                case 13: {
+                  e.preventDefault();
+                  universe.pushUrl(`/?src=${encodeURIComponent(roomName)}`);
+                  break;
+                }
+              }
             }} placeholder="Place to do..." />
             <div className={styles['button-wrap']} onClick={e => {
               setConnected(!connected);
