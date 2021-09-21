@@ -116,11 +116,6 @@ export default class App extends EventTarget {
   }
   
   async bootstrapFromUrl(urlSpec) {
-    const q = parseQuery(urlSpec.search);
-    if (!q.src) {
-      q.src = homeScnUrl;
-    }
-
     /* const [
       waitResult,
       loginResult,
@@ -140,7 +135,7 @@ export default class App extends EventTarget {
 
     try {
       await Promise.all([
-        universe.enterWorld(q),
+        universe.bootstrapFromUrl(urlSpec),
         rigManager.setDefault(),
       ]);
       /* await Promise.all([

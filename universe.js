@@ -276,6 +276,13 @@ const enterWorld = async worldSpec => {
 
   currentWorld = worldSpec;
 };
+const bootstrapFromUrl = async urlSpec => {
+  const q = parseQuery(urlSpec.search);
+  if (!q.src) {
+    q.src = homeScnUrl;
+  }
+  await enterWorld(q);
+};
 const pushUrl = async u => {
   history.pushState({}, '', u);
   await handleUrlUpdate();
@@ -294,6 +301,7 @@ export {
   update,
   // getParcels,
   enterWorld,
+  bootstrapFromUrl,
   pushUrl,
   handleUrlUpdate,
 };
