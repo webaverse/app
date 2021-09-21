@@ -416,7 +416,7 @@ ioManager.keydown = e => {
       // }
       break;
     }
-    case 84: { // T
+    /* case 84: { // T
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
@@ -424,7 +424,7 @@ ioManager.keydown = e => {
         world.toggleMic();
       // }
       break;
-    }
+    } */
     case 85: { // U
       // if (weaponsManager.canUpload()) {
         e.preventDefault();

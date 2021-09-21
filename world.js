@@ -591,7 +591,7 @@ world.getNpcFromPhysicsId = physicsId => {
 
 const micButton = document.getElementById('key-t');
 
-world.toggleMic = async () => {
+/* world.toggleMic = async () => {
   if (!wsrtc.mediaStream) {
     micButton && micButton.classList.add('enabled');
     wsrtc.enableMic();
@@ -599,7 +599,7 @@ world.toggleMic = async () => {
     micButton && micButton.classList.remove('enabled');
     wsrtc.disableMic();
   }
-};
+}; */
 
 micButton && micButton.addEventListener('click', async e => {
   world.toggleMic()
