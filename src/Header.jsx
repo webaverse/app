@@ -241,8 +241,13 @@ export default function Header() {
               </button>
             </div>
             <div className={styles['button-wrap']} onClick={async e => {
-              await world.enableMic();
-              setMicOn(!micOn);
+              if (!world.micEnabled()) {
+                await world.enableMic();
+                setMicOn(true);
+              } else {
+                await world.disableMic();
+                setMicOn(false);
+              }
             }}>
               <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
                 <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
