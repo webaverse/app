@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import {Color} from './Color.js';
 // import Image from 'next/image'
 import styles from './Header.module.css'
+import {world} from '../world.js'
 import * as universe from '../universe.js'
 import {homeScnUrl} from '../constants.js'
 
@@ -239,7 +240,8 @@ export default function Header() {
                 <img src="images/wifi.svg" />
               </button>
             </div>
-            <div className={styles['button-wrap']} onClick={e => {
+            <div className={styles['button-wrap']} onClick={async e => {
+              await world.enableMic();
               setMicOn(!micOn);
             }}>
               <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
