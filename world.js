@@ -359,7 +359,7 @@ for (const arrayName of [
       app.scale.fromArray(scale);
       app.updateMatrixWorld();
       app.setAttribute('physics', true);
-      app.name = contentId;
+      // app.name = contentId;
       app.type = (() => {
         const match = contentId.match(/\.([a-z0-9]+)$/i);
         if (match) {
@@ -368,7 +368,8 @@ for (const arrayName of [
           return '';
         }
       })();
-      app.contentId = contentId;
+      app.instanceId = instanceId;
+      // app.contentId = contentId;
       metaversefile.addApp(app);
       mesh = await app.addModule(m);
       if (mesh) {
