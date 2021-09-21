@@ -369,21 +369,22 @@ for (const arrayName of [
         ownerAddress: file.token ? file.token.owner.address : ""
       }); */
       const m = await metaversefile.import(contentId);
-      const app = metaversefile.createApp();
+      const app = metaversefile.createApp({
+        name: contentId,
+        type: (() => {
+          const match = contentId.match(/\.([a-z0-9]+)$/i);
+          if (match) {
+            return match[1];
+          } else {
+            return '';
+          }
+        })(),
+      });
       app.position.fromArray(position);
       app.quaternion.fromArray(quaternion);
       app.scale.fromArray(scale);
       app.updateMatrixWorld();
       app.setAttribute('physics', true);
-      // app.name = contentId;
-      app.type = (() => {
-        const match = contentId.match(/\.([a-z0-9]+)$/i);
-        if (match) {
-          return match[1];
-        } else {
-          return '';
-        }
-      })();
       app.instanceId = instanceId;
       // app.contentId = contentId;
       metaversefile.addApp(app);
