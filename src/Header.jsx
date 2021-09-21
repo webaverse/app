@@ -78,12 +78,16 @@ export default function Header() {
     }
   }, [address, nfts]);
   useEffect(() => {
-    window.addEventListener('popstate', e => {
+    const popstate = e => {
       const src = _getCurrentSceneSrc();
       setRoomName(src);
       
       universe.handleUrlUpdate();
-    });
+    };
+    window.addEventListener('popstate', popstate);
+    return () => {
+      window.removeEventListener('popstate', popstate);
+    };
   }, []);
   
 	/* const ref = useRef(null);
