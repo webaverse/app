@@ -47,6 +47,16 @@ export default function Header() {
       console.warn('no ethereum');
     }
   };
+  const toggleMic = async e => {
+    // console.log('toggle mic');
+    if (!world.micEnabled()) {
+      await world.enableMic();
+      setMicOn(true);
+    } else {
+      await world.disableMic();
+      setMicOn(false);
+    }
+  };
   
   useEffect(() => {
     const pointerlockchange = e => {
@@ -87,6 +97,26 @@ export default function Header() {
     window.addEventListener('popstate', popstate);
     return () => {
       window.removeEventListener('popstate', popstate);
+    };
+  }, []);
+  useEffect(() => {
+    const keydown = e => {
+      // console.log('key down', e.which, document.activeElement);
+      const inputFocused = document.activeElement && document.activeElement.nodeName === 'INPUT';
+      if (!inputFocused) {
+        switch (e.which) {
+          case 84: { // T
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMic();
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', keydown);
+    return () => {
+      window.removeEventListener('keydown', keydown);
     };
   }, []);
   
@@ -246,7 +276,7 @@ export default function Header() {
             <input type="text" className={styles.input} value={roomName} onChange={e => {
               setRoomName(e.target.value);
             }} onKeyDown={e => {
-              console.log('key down', e);
+              // console.log('key down', e);
               switch (e.which) {
                 case 13: {
                   e.preventDefault();
@@ -262,15 +292,7 @@ export default function Header() {
                 <img src="images/wifi.svg" />
               </button>
             </div>
-            <div className={styles['button-wrap']} onClick={async e => {
-              if (!world.micEnabled()) {
-                await world.enableMic();
-                setMicOn(true);
-              } else {
-                await world.disableMic();
-                setMicOn(false);
-              }
-            }}>
+            <div className={styles['button-wrap']} onClick={toggleMic}>
               <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
                 <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
                 <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
