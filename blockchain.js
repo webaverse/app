@@ -104,7 +104,9 @@ const getNetworkName = () => chainName;
 
 const getMainnetAddress = async () => {
   if (typeof window !== "undefined" && window.ethereum) {
-    const [address] = await window.ethereum.enable();
+    const [address] = await window.ethereum.request({
+      method: 'eth_requestAccounts',
+    });
     return address || null;
   } else {
     return null;

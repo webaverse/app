@@ -39,7 +39,9 @@ export default function Header() {
   
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
-      const addresses = await window.ethereum.enable();
+      const addresses = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
       const [address] = addresses;
       // console.log('address', {address});
       setAddress(address);
