@@ -167,7 +167,7 @@ export default class App extends EventTarget {
     ioManager.bindInterface();
     blockchain.bindInterface();
     universe.bindInterface();
-    weaponsManager.bindInterface();
+    // weaponsManager.bindInterface();
     inventoryBindInterface();
     // mithrilInit();
   }
