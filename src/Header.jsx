@@ -76,6 +76,8 @@ export default function Header() {
         src = homeScnUrl;
       }
       setRoomName(src);
+      
+      universe.handleUrlUpdate();
     });
   }, []);
   

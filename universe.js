@@ -297,9 +297,9 @@ const handleUrlUpdate = async () => {
   // const worldJson = await world.getWorldJson(q);
   await enterWorld(q);
 };
-window.addEventListener('popstate', e => {
+/* wsaindow.addEventListener('popstate', e => {
   handleUrlUpdate().catch(console.warn);
-});
+}); */
 
 export {
   bindInterface,
