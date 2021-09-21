@@ -40,6 +40,9 @@
   outline: none;
 }
 
+.MagicMenu .container .buttons {
+  display: flex;
+}
 .MagicMenu .container .button {
   padding: 15px 20px;
   border: 0;
