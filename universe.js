@@ -213,9 +213,14 @@ const enterWorld = async worldSpec => {
       const homeScn = await res.json();
       objects = homeScn.objects;
     } */
-    const promises = src ? [
-      metaversefile.load(src),
-    ] : [];
+    const promises = [];
+    if (src === undefined) {
+      promises.push(metaversefile.load(homeScnUrl));
+    } else if (src === '') {
+      // nothing
+    } else {
+      promises.push(metaversefile.load(src));
+    }
     /* {
       const dynamic = !room;
       for (const object of objects) {
