@@ -208,9 +208,9 @@ export default class App extends EventTarget {
       return false;
     }
   }
-  toggleMic() {
+  /* toggleMic() {
     return world.toggleMic();
-  }
+  } */
   async enterXr() {
     function onSessionStarted(session) {
       function onSessionEnded(e) {
