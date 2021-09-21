@@ -18,13 +18,22 @@ const localColor6 = new Color();
 
 // console.log('index 1');
 
+const _getCurrentSceneSrc = () => {
+  const q = parseQuery(window.location.search);
+  let {src} = q;
+  if (src === undefined) {
+    src = homeScnUrl;
+  }
+  return src;
+};
+
 export default function Header() {
 	// console.log('index 2');
 	
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
-  const [roomName, setRoomName] = useState(homeScnUrl);
+  const [roomName, setRoomName] = useState(_getCurrentSceneSrc());
   const [connected, setConnected] = useState(false);
   const [micOn, setMicOn] = useState(false);
   
@@ -70,11 +79,7 @@ export default function Header() {
   }, [address, nfts]);
   useEffect(() => {
     window.addEventListener('popstate', e => {
-      const q = parseQuery(window.location.search);
-      let {src} = q;
-      if (src === undefined) {
-        src = homeScnUrl;
-      }
+      const src = _getCurrentSceneSrc();
       setRoomName(src);
       
       universe.handleUrlUpdate();
