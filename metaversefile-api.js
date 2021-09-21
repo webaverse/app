@@ -674,6 +674,9 @@ export default () => {
       // console.log('destroy app', app);
       appManager.destroyApp(app.appId);
       return null;
+    } else if (renderSpec === true) {
+      // console.log('background app', app);
+      return null;
     } else {
       appManager.destroyApp(app.appId);
       console.warn('unknown renderSpec:', renderSpec);
