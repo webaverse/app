@@ -147,13 +147,23 @@ export default () => {
   keyCircleMesh.position.z = 0.01;
   app.add(keyCircleMesh);
   
-  useFrame(() => {
+  app.addEventListener('componentupdate', e => {
+    if (e.key === 'value') {
+      const f = e.value || 0;
+      keyMesh.scale.setScalar(1 - f*0.3);
+      keyCircleMesh.scale.setScalar(1 - f*0.2);
+      keyCircleMesh.material.uniforms.uTime.value = f;
+      keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+    }
+  });
+  
+  /* useFrame(() => {
     const f = (Date.now()%1000)/1000;
     keyMesh.scale.setScalar(1 - f*0.3);
     keyCircleMesh.scale.setScalar(1 - f*0.2);
     keyCircleMesh.material.uniforms.uTime.value = f;
     keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-  });
+  }); */
 
   return app;
 };
