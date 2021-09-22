@@ -899,9 +899,15 @@ const _updateWeapons = () => {
           }
         }
         
-        grabUseMesh.position.copy(grabbedObject.position);
-        grabUseMesh.quaternion.copy(grabbedObject.quaternion);
-        grabUseMesh.scale.copy(grabbedObject.scale);
+        grabUseMesh.position.copy(camera.position)
+          .add(
+            localVector.copy(grabbedObject.position)
+              .sub(camera.position)
+              .normalize()
+              .multiplyScalar(3)
+          );
+        grabUseMesh.quaternion.copy(camera.quaternion);
+        // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
 
         /* if (handSnap) {
