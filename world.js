@@ -276,7 +276,7 @@ world.getStaticObjects = () => objects.objects.static.slice();
 world.getNpcs = () => objects.npcs.dynamic.slice();
 let pendingAddPromise = null;
 
-const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), options = {}) => {
+const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
@@ -286,7 +286,7 @@ const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vect
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('scale', scale.toArray());
-    trackedObject.set('options', JSON.stringify(options));
+    trackedObject.set('components', JSON.stringify(components));
   });
   if (pendingAddPromise) {
     const result = pendingAddPromise;
@@ -354,8 +354,9 @@ for (const arrayName of [
     try {
       const {trackedObject, dynamic} = e.data;
       const trackedObjectJson = trackedObject.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, options: optionsString} = trackedObjectJson;
-      const options = JSON.parse(optionsString);
+      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
+      const components = JSON.parse(componentsString);
+      // const options = JSON.parse(optionsString);
       // const file = await contentIdToFile(contentId);
       /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
         contentId,
@@ -379,6 +380,7 @@ for (const arrayName of [
             return '';
           }
         })(),
+        components,
       });
       app.position.fromArray(position);
       app.quaternion.fromArray(quaternion);

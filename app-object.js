@@ -169,6 +169,7 @@ class App extends THREE.Object3D {
 
     // cleanup tracking
     this.physicsIds = [];
+    this.wearSpec = null;
     this.popovers = [];
   }
   getComponent(key) {
@@ -205,6 +206,20 @@ class App extends THREE.Object3D {
   }
   getPhysicsIds() {
     return this.physicsIds;
+  }
+  wear(wearSpec) {
+    this.wearSpec = wearSpec;
+    
+    this.dispatchEvent({
+      type: 'wearupdate',
+      wearSpec,
+    });
+    appManager.dispatchEvent(new MessageEvent('wearupdate', {
+      data: {
+        app: this,
+        wearSpec,
+      },
+    }));
   }
   destroy() {
     appManager.destroyApp(this.appId);
