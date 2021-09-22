@@ -195,10 +195,10 @@ const _makeHighlightPhysicsMesh = material => {
   return mesh;
 };
 
-const highlightMesh = _makeTargetMesh();
+/* const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
 sceneLowPriority.add(highlightMesh);
-let highlightedObject = null;
+let highlightedObject = null; */
 
 const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
 highlightPhysicsMesh.visible = false;
@@ -458,10 +458,10 @@ const _delete = () => {
 };
 const _click = () => {
   // console.log('got click 1');
-  if (weaponsManager.canBuild()) {
+  /* if (weaponsManager.canBuild()) {
     // console.log('got click 2');
-    editedObject.place();
-  } else if (appManager.grabbedObjects[0]) {
+    // editedObject.place();
+  } else */ if (appManager.grabbedObjects[0]) {
     // console.log('got click 3');
     _deselectLoadout();
     _ungrab();
@@ -714,8 +714,8 @@ const _grab = object => {
   weaponsManager.gridSnap = 0;
 
   object.updateMatrixWorld();
-  object.savedRotation.copy(object.rotation);
-  object.startQuaternion.copy(quaternion);
+  object.savedRotation = object.rotation.clone();
+  object.startQuaternion = quaternion.clone();
 
   appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
     .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert());
@@ -732,7 +732,7 @@ const _grab = object => {
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
   appManager.grabbedObjects[0] = null;
-  editedObject = null
+  // editedObject = null
   // _updateMenu();
 };
 
@@ -749,7 +749,7 @@ const _updateWeapons = () => {
   const now = Date.now();
   const renderer = getRenderer();
 
-  const _handleHighlight = () => {
+  /* const _handleHighlight = () => {
     // if (!editedObject) {
       const width = 1;
       const length = 100;    
@@ -800,7 +800,7 @@ const _updateWeapons = () => {
       }
     // }
   };
-  _handleHighlight();
+  _handleHighlight(); */
 
   /* const _handleEdit = () => {
     editMesh.visible = false;
@@ -849,9 +849,7 @@ const _updateWeapons = () => {
   _handleGrab(); */
 
   const _updateGrab = () => {
-    return; // XXX
-    
-    moveMesh.visible = false;
+    // moveMesh.visible = false;
 
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
@@ -887,13 +885,15 @@ const _updateWeapons = () => {
           }
         }
         
-        grabbedObject.setPose(localVector.copy(grabbedObject.position), localQuaternion.copy(grabbedObject.quaternion), localVector2.copy(grabbedObject.scale));
+        grabbedObject.position.copy(grabbedObject.position);
+        grabbedObject.quaternion.copy(grabbedObject.quaternion);
+        grabbedObject.scale.copy(grabbedObject.scale);
 
-        if (handSnap) {
+        /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
           moveMesh.quaternion.copy(grabbedObject.quaternion);
           moveMesh.visible = true;
-        }
+        } */
       }
     }
   };
@@ -2417,7 +2417,7 @@ const weaponsManager = {
     _selectLoadout(index);
   },
   canToggleAxis() {
-    return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
+    return !!appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);
   },
   toggleAxis() {
     console.log('toggle axis');
@@ -2427,14 +2427,14 @@ const weaponsManager = {
     if (this.editMode) {
       let changed = false;
       if (appManager.grabbedObjects[0]) {
-        _deselectLoadout();
+        //  _deselectLoadout();
         _ungrab();
         changed = true;
-      }
-      if (editedObject) {
+      } 
+      /* if (editedObject) {
         editedObject = null;
         changed = true;
-      }
+      } */
       if (changed) {
         // _updateMenu();
       }
@@ -2460,12 +2460,12 @@ const weaponsManager = {
       }
     }
   },
-  canBuild() {
+  /* canBuild() {
     return !!editedObject && editedObject.isBuild;
   },
   canStartBuild() {
     return !appManager.grabbedObjects[0] && !highlightedObject;
-  },
+  }, */
   async startBuild(mode) {
     const object = await _loadItemSpec1('./assets/type/object.geo');
     object.setMode(mode);
