@@ -749,6 +749,7 @@ const grabUseMesh = (() => {
   (async () => {
     const app = await metaversefile.load('./metaverse_modules/button/');
     o.add(app);
+    o.app = app;
   })();
   
   return o;
@@ -909,6 +910,10 @@ const _updateWeapons = () => {
         grabUseMesh.quaternion.copy(camera.quaternion);
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
+        
+        if (grabUseMesh.app) {
+          grabUseMesh.app.setComponent('value', weaponsManager.getUseSpecFactor(now));
+        }
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
