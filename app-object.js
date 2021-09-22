@@ -165,30 +165,40 @@ class App extends THREE.Object3D {
     this.appId = appId;
     // this.files = {};
     // this.object = null;
-    this.attributes = {};
+    // this.attributes = {};
 
     // cleanup tracking
     this.physicsIds = [];
     this.popovers = [];
   }
-  getAttribute(key) {
-    return this.attributes[key];
+  getComponent(key) {
+    const component = this.components.find(component => component.key === key);
+    return component ? component.value : null;
   }
-  setAttribute(key, value = true) {
-    this.attributes[key] = value;
+  setComponent(key, value = true) {
+    let component = this.components.find(component => component.key === key);
+    if (!component) {
+      component = {key, value};
+      this.components.push(component);
+    }
+    component.key = key;
+    component.value = value;
     this.dispatchEvent({
       type: 'attributeupdate',
       key,
       value,
     });
   }
-  removeAttribute(key) {
-    delete this.attributes[key];
-    this.dispatchEvent({
-      type: 'attributeupdate',
-      key,
-      value: null,
-    });
+  removeComponent(key) {
+    const index = this.components.findIndex(component => component.type === key);
+    if (index !== -1) {
+      this.components.splice(index, 1);
+      this.dispatchEvent({
+        type: 'attributeupdate',
+        key,
+        value: null,
+      });
+    }
   }
   addModule(m) {
     throw new Error('method not bound');
