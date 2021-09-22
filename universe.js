@@ -283,7 +283,7 @@ const enterWorld = async worldSpec => {
 };
 const bootstrapFromUrl = async urlSpec => {
   const q = parseQuery(urlSpec.search);
-  if (!q.src) {
+  if (q.src === undefined) {
     q.src = homeScnUrl;
   }
   await enterWorld(q);
