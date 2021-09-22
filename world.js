@@ -290,6 +290,7 @@ const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vect
   });
   if (pendingAddPromise) {
     const result = pendingAddPromise;
+    result.instanceId = instanceId;
     pendingAddPromise = null;
     return result;
   } else {
