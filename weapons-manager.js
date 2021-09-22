@@ -743,6 +743,19 @@ const _unequip = () => {
   appManager.equippedObjects[0] = null;
 };
 
+const grabUseMesh = (() => {
+  const o = new THREE.Object3D();
+  
+  (async () => {
+    const app = await metaversefile.load('./metaverse_modules/button/');
+    o.add(app);
+  })();
+  
+  return o;
+})();
+grabUseMesh.visible = false;
+scene.add(grabUseMesh);
+
 let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
@@ -851,6 +864,7 @@ const _updateWeapons = () => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
+    grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
@@ -885,9 +899,10 @@ const _updateWeapons = () => {
           }
         }
         
-        grabbedObject.position.copy(grabbedObject.position);
-        grabbedObject.quaternion.copy(grabbedObject.quaternion);
-        grabbedObject.scale.copy(grabbedObject.scale);
+        grabUseMesh.position.copy(grabbedObject.position);
+        grabUseMesh.quaternion.copy(grabbedObject.quaternion);
+        grabUseMesh.scale.copy(grabbedObject.scale);
+        grabUseMesh.visible = true;
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
