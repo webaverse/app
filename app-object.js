@@ -184,7 +184,7 @@ class App extends THREE.Object3D {
     component.key = key;
     component.value = value;
     this.dispatchEvent({
-      type: 'attributeupdate',
+      type: 'componentupdate',
       key,
       value,
     });
@@ -194,7 +194,7 @@ class App extends THREE.Object3D {
     if (index !== -1) {
       this.components.splice(index, 1);
       this.dispatchEvent({
-        type: 'attributeupdate',
+        type: 'componentupdate',
         key,
         value: null,
       });
