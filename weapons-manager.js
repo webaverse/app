@@ -2489,7 +2489,7 @@ const weaponsManager = {
     if (this.editMode) {
       let changed = false;
       if (appManager.grabbedObjects[0]) {
-        //  _deselectLoadout();
+        // _deselectLoadout();
         _ungrab();
         changed = true;
       } 
