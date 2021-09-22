@@ -384,7 +384,7 @@ for (const arrayName of [
       app.quaternion.fromArray(quaternion);
       app.scale.fromArray(scale);
       app.updateMatrixWorld();
-      app.setAttribute('physics', true);
+      app.setComponent('physics', true);
       app.instanceId = instanceId;
       // app.contentId = contentId;
       metaversefile.addApp(app);
