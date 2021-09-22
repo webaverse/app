@@ -757,6 +757,10 @@ const grabUseMesh = (() => {
 grabUseMesh.visible = false;
 scene.add(grabUseMesh);
 
+appManager.addEventListener('wearupdate', e => {
+  _ungrab();
+});
+
 let lastDraggingRight = false;
 let dragRightSpec = null;
 const _updateWeapons = () => {
@@ -1298,13 +1302,45 @@ const _updateWeapons = () => {
   
   const _updateUses = () => {    
     if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
-      renderer.domElement.dispatchEvent(new MessageEvent('use', {
+      if (appManager.grabbedObjects[0]) {
+        appManager.grabbedObjects[0].dispatchEvent({
+          type: 'activate',
+        });
+      }
+      /* renderer.domElement.dispatchEvent(new MessageEvent('activate', {
         data: {},
-      }));
+      })); */
       weaponsManager.useSpec = null;
     }
   };
   _updateUses();
+
+  const _updateWears = () => {
+    for (const app of metaversefile.apps) {
+      if (app.wearSpec && rigManager.localRig) {
+        const {boneAttachment = 'hips', position, quaternion, scale} = app.wearSpec;
+        const {outputs} = rigManager.localRig;
+        const bone = outputs[boneAttachment];
+        if (bone) {
+          bone.getWorldPosition(app.position);
+          bone.getWorldQuaternion(app.quaternion);
+          bone.getWorldScale(app.scale);
+          if (Array.isArray(position)) {
+            app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+          }
+          if (Array.isArray(quaternion)) {
+            app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+          }
+          if (Array.isArray(scale)) {
+            app.scale.multiply(localVector.fromArray(scale));
+          }
+        } else {
+          console.warn('invalid bone attachment', {app, boneAttachment, bones});
+        }
+      }
+    }
+  };
+  _updateWears();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
