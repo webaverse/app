@@ -364,23 +364,23 @@ ioManager.keydown = e => {
     }
     case 88: { // X
       if (!e.ctrlKey) {
-        if (weaponsManager.canStartBuild()) {
+        /* if (weaponsManager.canStartBuild()) {
           weaponsManager.startBuild('floor');
         } else if (weaponsManager.canBuild()) {
           weaponsManager.setBuildMode('floor');
-        } else {
+        } else { */
           weaponsManager.menuDelete();
-        }
+        // }
       }
       break;
     }
     case 67: { // C
       if (!e.ctrlKey) {
-        if (weaponsManager.canStartBuild()) {
+        /* if (weaponsManager.canStartBuild()) {
           weaponsManager.startBuild('stair');
         } else if (weaponsManager.canBuild()) {
           weaponsManager.setBuildMode('stair');
-        } else if (weaponsManager.canPush()) {
+        } else */if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
         }
       }
