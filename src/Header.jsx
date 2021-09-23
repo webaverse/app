@@ -6,6 +6,7 @@ import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import * as universe from '../universe.js'
+import * as hacks from './hacks.js'
 import {parseQuery} from '../util.js'
 import {homeScnUrl} from '../constants.js'
 
@@ -320,7 +321,12 @@ export default function Header() {
           e.stopPropagation();
         }}>
           {(nfts || []).map((nft, i) => {
-            const {id, asset_contract, image_preview_url, image_original_url, name, description} = nft;
+            const {id, asset_contract, name, description} = nft;
+            const image_preview_url = hacks.getNftImage(nft);
+            if (!image_preview_url) {
+              console.log('got nft', {nft, hacks, image_preview_url});
+              debugger;
+            }
             // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
             // console.log(nft);
             return <div className={styles.nft} onDragStart={e => {
