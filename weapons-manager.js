@@ -1335,7 +1335,7 @@ const _updateWeapons = () => {
             app.scale.multiply(localVector.fromArray(scale));
           }
         } else {
-          console.warn('invalid bone attachment', {app, boneAttachment, bones});
+          console.warn('invalid bone attachment', {app, boneAttachment});
         }
       }
     }
