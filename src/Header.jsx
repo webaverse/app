@@ -6,7 +6,7 @@ import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import * as universe from '../universe.js'
-import * as hacks from './hacks.js'
+import * as hacks from '../hacks.js'
 import {parseQuery} from '../util.js'
 import {homeScnUrl} from '../constants.js'
 
