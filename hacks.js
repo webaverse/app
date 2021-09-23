@@ -4,10 +4,6 @@ export function getNftImage(nft) {
   if (asset_contract.address === loomlockNftAddress) {
     return `https://arweave.net/ABckdetHKeV8VgUoIZ53TMDKkTi56LhTf-Gb1Mdqx9c/${token_id}.png`;
   } else {
-    if (!image_preview_url) {
-      console.log('got', {asset_contract, loomlockNftAddress, image_preview_url, token_id, nft});
-      debugger;
-    }
     return image_preview_url;
   }
 }
