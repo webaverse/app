@@ -218,7 +218,7 @@ class RigManager {
       await this.setAvatar(this.localRig, newLocalRig => {
         this.clearAvatar();
         this.localRig = newLocalRig;
-      }, url, ext);
+      }, url);
     } else {
       this.clearAvatar();
     }
@@ -226,7 +226,7 @@ class RigManager {
     // await this.localRigQueue.unlock();
   }
 
-  async setAvatar(oldRig, setRig, url, ext) {
+  async setAvatar(oldRig, setRig, url/*, ext*/) {
     if (!oldRig) {
       const textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
       oldRig = {
@@ -261,21 +261,30 @@ class RigManager {
 
         console.log('model o', o);
 
-        let localRig;
         if (o) {
           const {raw} = o;
           // console.log('got raw', o, o.children[0], raw);
           if (raw) {
-            localRig = new Avatar(raw, {
+            const localRig = new Avatar(raw, {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: false //!o,
+              debug: false,
             });
+            localRig.model = o;
+            localRig.url = url;
             // localRig.model.isVrm = true;
             // localRig.aux = oldRig.aux;
             // localRig.aux.rig = localRig;
-          } else {
+            
+            unFrustumCull(localRig.model);
+            scene.add(localRig.model);
+            localRig.textMesh = oldRig.textMesh;
+            // localRig.avatarUrl = oldRig.url;
+            // localRig.rigCapsule = oldRig.rigCapsule;
+
+            setRig(localRig);
+          /* } else {
             localRig = new Avatar();
             // localRig.aux = oldRig.aux;
             // localRig.aux.rig = localRig;
@@ -285,9 +294,9 @@ class RigManager {
             localRig.update = () => {
               localRig.model.position.copy(localRig.inputs.hmd.position);
               localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
-            };
+            }; */
           }
-        } else {
+        /* } else {
           localRig = new Avatar(null, {
             fingers: true,
             hair: true,
@@ -295,15 +304,8 @@ class RigManager {
             debug: true,
           });
           // localRig.aux = oldRig.aux;
-          // localRig.aux.rig = localRig;
+          // localRig.aux.rig = localRig; */
         }
-        unFrustumCull(localRig.model);
-        scene.add(localRig.model);
-        localRig.textMesh = oldRig.textMesh;
-        // localRig.avatarUrl = oldRig.url;
-        // localRig.rigCapsule = oldRig.rigCapsule;
-
-        setRig(localRig);
       }
     }
   }
@@ -317,29 +319,32 @@ class RigManager {
     return false;
   } */
 
-  async addPeerRig(peerId) {
-    const peerRig = new Avatar(null, {
+  async addPeerRig(peerId, meta) {
+    const m = await metaversefile.import(meta.avatarUrl);
+    const app = metaversefile.createApp();
+    // app.setAttribute('avatar', true);
+    await metaversefile.addModule(app, m);
+    
+    const {raw} = app;
+    const peerRig = new Avatar(raw, {
       fingers: true,
       hair: true,
       visemes: true,
-      debug: true
+      debug: false,
     });
-    peerRig.aux = new RigAux({
-      rig: peerRig,
-      scene: avatarScene,
-    });
+    peerRig.model = app;
+    peerRig.url = meta.avatarUrl;
+    
     unFrustumCull(peerRig.model);
-    this.scene.add(peerRig.model);
-
-    peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
-    this.scene.add(peerRig.textMesh);
-
-    peerRig.avatarUrl = null;
-
+    scene.add(peerRig.model);
+    
     peerRig.rigCapsule = makeRigCapsule();
     peerRig.rigCapsule.visible = false;
     this.scene.add(peerRig.rigCapsule);
-
+    
+    peerRig.textMesh = makeTextMesh(meta.name, undefined, 0.2, 'center', 'middle');
+    this.scene.add(peerRig.textMesh);
+    
     this.peerRigs.set(peerId, peerRig);
   }
 
@@ -357,11 +362,11 @@ class RigManager {
     peerRig.textMesh.sync();
   }
 
-  async setPeerAvatarUrl(url, ext, peerId) {
+  async setPeerAvatarUrl(peerId, url) {
     const oldPeerRig = this.peerRigs.get(peerId);
     await this.setAvatar(oldPeerRig, newPeerRig => {
       this.peerRigs.set(peerId, newPeerRig);
-    }, url, ext);
+    }, url);
   }
 
   async setPeerAvatarAux(aux, peerId) {
@@ -515,63 +520,64 @@ class RigManager {
 
   setPeerAvatarPose(player) {
     const peerRig = this.peerRigs.get(player.id);
- 
-    const pose = player.pose;
-    const {hmd, leftGamepad, rightGamepad} = peerRig.inputs;
+    if (peerRig) { 
+      const pose = player.pose;
+      const {hmd, leftGamepad, rightGamepad} = peerRig.inputs;
 
-    hmd.position.fromArray(pose.position);
-    hmd.quaternion.fromArray(pose.quaternion);
+      hmd.position.fromArray(pose.position);
+      hmd.quaternion.fromArray(pose.quaternion);
 
-    if (pose.extra.length > 0) {
-      leftGamepad.position.fromArray(pose.extra[0]);
-      leftGamepad.quaternion.fromArray(pose.extra[1]);
-      leftGamepad.pointer = pose.extra[2][0];
-      leftGamepad.grip = pose.extra[2][1];
-      peerRig.setHandEnabled(0, pose.extra[2][2]);
+      if (pose.extra.length > 0) {
+        leftGamepad.position.fromArray(pose.extra[0]);
+        leftGamepad.quaternion.fromArray(pose.extra[1]);
+        leftGamepad.pointer = pose.extra[2][0];
+        leftGamepad.grip = pose.extra[2][1];
+        peerRig.setHandEnabled(0, pose.extra[2][2]);
 
-      rightGamepad.position.fromArray(pose.extra[3]);
-      rightGamepad.quaternion.fromArray(pose.extra[4]);
-      rightGamepad.pointer = pose.extra[5][0];
-      rightGamepad.grip = pose.extra[5][1];
-      peerRig.setHandEnabled(0, pose.extra[5][2]);
+        rightGamepad.position.fromArray(pose.extra[3]);
+        rightGamepad.quaternion.fromArray(pose.extra[4]);
+        rightGamepad.pointer = pose.extra[5][0];
+        rightGamepad.grip = pose.extra[5][1];
+        peerRig.setHandEnabled(0, pose.extra[5][2]);
 
-      peerRig.setFloorHeight(pose.extra[6][0]);
+        peerRig.setFloorHeight(pose.extra[6][0]);
 
-      peerRig.setTopEnabled(pose.extra[6][1]);
-      peerRig.setBottomEnabled(pose.extra[6][2]);
+        peerRig.setTopEnabled(pose.extra[6][1]);
+        peerRig.setBottomEnabled(pose.extra[6][2]);
 
-      peerRig.direction.fromArray(pose.extra[7]);
-      peerRig.velocity.fromArray(pose.extra[8]);
+        peerRig.direction.fromArray(pose.extra[7]);
+        peerRig.velocity.fromArray(pose.extra[8]);
 
-      peerRig.jumpState = pose.extra[9][0];
-      peerRig.jumpTime = pose.extra[9][1];
-      peerRig.flyState = pose.extra[9][2];
-      peerRig.flyTime = pose.extra[9][3];
-      peerRig.useTime = pose.extra[9][4];
-      peerRig.useAnimation = pose.extra[9][5];
-      peerRig.sitState = pose.extra[9][6];
-      peerRig.sitAnimation = pose.extra[9][7];
-      peerRig.danceState = pose.extra[9][8];
-      peerRig.danceTime = pose.extra[9][9];
-      peerRig.danceAnimation = pose.extra[9][10];
-      peerRig.throwState = pose.extra[9][11];
-      peerRig.throwTime = pose.extra[9][12];
-      peerRig.crouchState = pose.extra[9][13];
-      peerRig.crouchTime = pose.extra[9][14];
+        peerRig.jumpState = pose.extra[9][0];
+        peerRig.jumpTime = pose.extra[9][1];
+        peerRig.flyState = pose.extra[9][2];
+        peerRig.flyTime = pose.extra[9][3];
+        peerRig.useTime = pose.extra[9][4];
+        peerRig.useAnimation = pose.extra[9][5];
+        peerRig.sitState = pose.extra[9][6];
+        peerRig.sitAnimation = pose.extra[9][7];
+        peerRig.danceState = pose.extra[9][8];
+        peerRig.danceTime = pose.extra[9][9];
+        peerRig.danceAnimation = pose.extra[9][10];
+        peerRig.throwState = pose.extra[9][11];
+        peerRig.throwTime = pose.extra[9][12];
+        peerRig.crouchState = pose.extra[9][13];
+        peerRig.crouchTime = pose.extra[9][14];
+      }
+
+      /* peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
+      peerRig.textMesh.position.y += 0.5;
+      peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
+      localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.y += Math.PI;
+      localEuler.z = 0;
+      peerRig.textMesh.quaternion.setFromEuler(localEuler); */
+
+      peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
+      
+      peerRig.volume = player.volume;
     }
-
-    /* peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
-    peerRig.textMesh.position.y += 0.5;
-    peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.y += Math.PI;
-    localEuler.z = 0;
-    peerRig.textMesh.quaternion.setFromEuler(localEuler); */
-
-    peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
-    
-    peerRig.volume = player.volume;
   }
 
   intersectPeerRigs(raycaster) {
