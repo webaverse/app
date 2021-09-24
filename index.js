@@ -82,8 +82,8 @@ const certs = {
   wsrtc.bindServer(wsServer);
   const port2 = port + 1;
   await new Promise((accept, reject) => {
-    wsServer.listen(port2, () => {
-      console.log(`  > World: ws://localhost:${port2}/`)
+    wsServer.listen(port2, '0.0.0.0', () => {
+      console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${port2}/`)
     });
     wsServer.on('error', err => {
       console.warn(err.stack);
