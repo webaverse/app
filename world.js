@@ -216,7 +216,6 @@ world.connectRoom = async (worldURL) => {
   wsrtc.addEventListener('join', async e => {
     const player = e.data;
   
-    let connected = true;
     player.audioNode.connect(WSRTC.getAudioContext().destination);
 
     rigManager.addPeerRig(player.id);
@@ -224,7 +223,6 @@ world.connectRoom = async (worldURL) => {
     peerRig.peerConnection = player;
 
     player.addEventListener('leave', async () => {
-      connected = false;
       rigManager.removePeerRig(player.id);
     });
     player.metadata.addEventListener('update', e => {
@@ -233,7 +231,6 @@ world.connectRoom = async (worldURL) => {
     });
     player.pose.addEventListener('update', e => {
       rigManager.setPeerAvatarPose(player);
-      // peerRig.volume = player.volume;
     });
   });
 
