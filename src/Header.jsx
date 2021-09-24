@@ -5,6 +5,7 @@ import {Color} from './Color.js';
 // import Image from 'next/image'
 import styles from './Header.module.css'
 import {world} from '../world.js'
+import {rigManager} from '../rig.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import {parseQuery} from '../util.js'
@@ -288,7 +289,7 @@ export default function Header() {
               }
             }} placeholder="Place to do..." />
             <div className={styles['button-wrap']} onClick={async e => {
-              if (!world.isConnected()) {
+              if (!world.isConnected() && rigManager.localRig) {
                 await world.connectRoom(
                   window.location.protocol + '//' + window.location.host + ':' +
                     ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1)
