@@ -350,10 +350,12 @@ class RigManager {
 
   async removePeerRig(peerId) {
     const peerRig = this.peerRigs.get(peerId);
-    peerRig.model.parent.remove(peerRig.model);
-    peerRig.textMesh.parent.remove(peerRig.textMesh);
-    // peerRig.aux.destroy();
-    this.peerRigs.delete(peerId);
+    if (peerRig) {
+      peerRig.model.parent.remove(peerRig.model);
+      peerRig.textMesh.parent.remove(peerRig.textMesh);
+      // peerRig.aux.destroy();
+      this.peerRigs.delete(peerId);
+    }
   }
 
   setPeerAvatarName(name, peerId) {

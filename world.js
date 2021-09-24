@@ -117,7 +117,7 @@ world.enableMic = async () => {
   }
   rigManager.setLocalMicMediaStream(mediaStream);
 };
-world.disableMic = async () => {
+world.disableMic = () => {
   if (mediaStream) {
     if (wsrtc) {
       wsrtc.disableMic();
@@ -216,6 +216,10 @@ world.connectRoom = async (worldURL) => {
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
+    const peerRigIds = rigManager.peerRigs.keys();
+    for (const peerRigId of peerRigIds) {
+      rigManager.removePeerRig(peerRigId);
+    }
     if (interval) {
       clearInterval(interval);
     }
@@ -226,25 +230,33 @@ world.connectRoom = async (worldURL) => {
   
     player.audioNode.connect(WSRTC.getAudioContext().destination);
 
+    let joined = true;
     player.addEventListener('leave', async () => {
       rigManager.removePeerRig(player.id);
+      joined = false;
     });
     let running = false;
     const queue = [];
     const _handleUpdate = async meta => {
       if (!running) {
         running = true;
-        const peerRig = rigManager.peerRigs.get(player.id);
-        if (!peerRig) {
-          await rigManager.addPeerRig(player.id, meta);
+        if (joined) {
           const peerRig = rigManager.peerRigs.get(player.id);
-          peerRig.peerConnection = player;
-        } else {
-          if (typeof meta.name === 'string') {
-            // XXX set the name
-          }
-          if (typeof meta.avatarUrl === 'string') {
-            await rigManager.setPeerAvatarUrl(player.id, meta.avatarUrl);
+          if (!peerRig) {
+            await rigManager.addPeerRig(player.id, meta);
+            const peerRig = rigManager.peerRigs.get(player.id);
+            if (joined) {
+              peerRig.peerConnection = player;
+            } else {
+              rigManager.removePeerRig(player.id);
+            }
+          } else {
+            if (typeof meta.name === 'string') {
+              // XXX set the name
+            }
+            if (typeof meta.avatarUrl === 'string') {
+              await rigManager.setPeerAvatarUrl(player.id, meta.avatarUrl);
+            }
           }
         }
         running = false;
@@ -281,13 +293,13 @@ world.disconnectRoom = () => {
     wsrtc.close();
     wsrtc = null;
 
-    const localObjects = objects.objects.dynamic.slice();
+    /* const localObjects = objects.objects.dynamic.slice();
     for (const object of localObjects) {
       world.removeObject(object.instanceId);
     }
 
     states.dynamic = new Y.Doc();
-    _bindState(states.dynamic, true);
+    _bindState(states.dynamic, true); */
   }
   return wsrtc;
 };

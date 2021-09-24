@@ -57,7 +57,7 @@ export default function Header() {
       await world.enableMic();
       setMicOn(true);
     } else {
-      await world.disableMic();
+      world.disableMic();
       setMicOn(false);
     }
   };
@@ -296,7 +296,8 @@ export default function Header() {
                 );
                 setConnected(world.isConnected());
               } else {
-                await world.disconnectRoom();
+                world.disconnectRoom();
+                setConnected(false);
               }
             }}>
               <button className={classnames(styles.button, connected ? null : styles.disabled)}>
