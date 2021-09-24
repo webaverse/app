@@ -201,6 +201,7 @@ world.connectRoom = async (worldURL) => {
     const name = makeId(5);
     wsrtc.localUser.setMetadata({
       name,
+      avatarUrl: rigManager.localRig.url,
     });
 
     interval = setInterval(sendUpdate, 10);
@@ -218,16 +219,39 @@ world.connectRoom = async (worldURL) => {
   
     player.audioNode.connect(WSRTC.getAudioContext().destination);
 
-    rigManager.addPeerRig(player.id);
-    const peerRig = rigManager.peerRigs.get(player.id);
-    peerRig.peerConnection = player;
-
     player.addEventListener('leave', async () => {
       rigManager.removePeerRig(player.id);
     });
+    let running = false;
+    const queue = [];
+    const _handleUpdate = async meta => {
+      if (!running) {
+        running = true;
+        const peerRig = rigManager.peerRigs.get(player.id);
+        if (!peerRig) {
+          await rigManager.addPeerRig(player.id, meta);
+          const peerRig = rigManager.peerRigs.get(player.id);
+          peerRig.peerConnection = player;
+        } else {
+          if (typeof meta.name === 'string') {
+            // XXX set the name
+          }
+          if (typeof meta.avatarUrl === 'string') {
+            await rigManager.setPeerAvatarUrl(player.id, meta.avatarUrl);
+          }
+        }
+        running = false;
+        if (queue.length > 0) {
+          _handleUpdate(queue.pop());
+        }
+      } else {
+        queue.push(meta);
+      }
+    };
     player.metadata.addEventListener('update', e => {
       const meta = player.metadata.toJSON();
-      console.log('meta', meta);
+      // console.log('meta', meta);
+      _handleUpdate(meta);
     });
     player.pose.addEventListener('update', e => {
       rigManager.setPeerAvatarPose(player);
