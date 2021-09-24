@@ -292,7 +292,8 @@ export default function Header() {
               if (!world.isConnected() && rigManager.localRig) {
                 await world.connectRoom(
                   window.location.protocol + '//' + window.location.host + ':' +
-                    ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1)
+                    ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/' +
+                    roomName
                 );
                 setConnected(world.isConnected());
               } else {
