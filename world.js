@@ -125,11 +125,16 @@ world.disableMic = async () => {
   }
 };
 
+world.isConnected = () => !!wsrtc;
 world.connectRoom = async (worldURL) => {
+  console.log('connect room 1');
   await didInteract;
+  console.log('connect room 2');
   await WSRTC.waitForReady();
+  
+  console.log('connect room 3');
 
-  wsrtc = new WSRTC(`wss://${worldURL}`);
+  wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
 
   let interval;
 
@@ -222,21 +227,14 @@ world.connectRoom = async (worldURL) => {
       connected = false;
       rigManager.removePeerRig(player.id);
     });
-
     player.metadata.addEventListener('update', e => {
       const meta = player.metadata.toJSON();
       console.log('meta', meta);
     });
-
-    const update = () => {
-      if (!connected) return;
-
-      requestAnimationFrame(update);
-      peerRig.volume = player.volume;
+    player.pose.addEventListener('update', e => {
       rigManager.setPeerAvatarPose(player);
-    };
-
-    update();
+      // peerRig.volume = player.volume;
+    });
   });
 
   wsrtc.close = (close => function() {
@@ -250,7 +248,6 @@ world.connectRoom = async (worldURL) => {
 
   return wsrtc;
 };
-
 world.disconnectRoom = () => {
   if (wsrtc) {
     wsrtc.close();

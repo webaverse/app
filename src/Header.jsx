@@ -287,8 +287,16 @@ export default function Header() {
                 }
               }
             }} placeholder="Place to do..." />
-            <div className={styles['button-wrap']} onClick={e => {
-              setConnected(!connected);
+            <div className={styles['button-wrap']} onClick={async e => {
+              if (!world.isConnected()) {
+                await world.connectRoom(
+                  window.location.protocol + '//' + window.location.host + ':' +
+                    ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1)
+                );
+                setConnected(world.isConnected());
+              } else {
+                await world.disconnectRoom();
+              }
             }}>
               <button className={classnames(styles.button, connected ? null : styles.disabled)}>
                 <img src="images/wifi.svg" />
