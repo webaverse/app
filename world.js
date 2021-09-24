@@ -112,13 +112,17 @@ let mediaStream = null;
 world.micEnabled = () => !!mediaStream;
 world.enableMic = async () => {
   mediaStream = await WSRTC.getUserMedia();
-  // await wsrtc.enableMic();
+  if (wsrtc) {
+    wsrtc.enableMic(mediaStream);
+  }
   rigManager.setLocalMicMediaStream(mediaStream);
 };
 world.disableMic = async () => {
   if (mediaStream) {
-    for (const track of mediaStream.getTracks()) {
-      track.stop();
+    if (wsrtc) {
+      wsrtc.disableMic();
+    } else {
+      WSRTC.destroyUserMedia(mediaStream);
     }
     mediaStream = null;
     rigManager.setLocalMicMediaStream(null);
@@ -135,6 +139,9 @@ world.connectRoom = async (worldURL) => {
   console.log('connect room 3');
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
+  if (mediaStream) {
+    wsrtc.enableMic(mediaStream);
+  }
 
   let interval;
 
