@@ -28,64 +28,56 @@ const states = {
 };
 const _getState = dynamic => dynamic ? states.dynamic : states.static;
 const objects = {
-  objects: {
-    static: [],
-    dynamic: [],
-  },
-  npcs: {
-    static: [],
-    dynamic: [],
-  },
+  static: [],
+  dynamic: [],
 };
-const _getObjects = (arrayName, dynamic) => objects[arrayName][dynamic ? 'dynamic' : 'static'];
+const _getObjects = (dynamic) => objects[dynamic ? 'dynamic' : 'static'];
 
 // multiplayer
 let wsrtc = null;
 
-const _getOrCreateTrackedObject = (name, dynamic, arrayName) => {
+const _getOrCreateTrackedObject = (name, dynamic) => {
   const state = _getState(dynamic);
-  const objects = state.getArray(arrayName);
+  const objects = state.getArray('objects');
   const objectsJson = objects.toJSON();
   if (!objectsJson.includes(name)) {
     objects.push([name]);
   }
 
-  return state.getMap(arrayName + '.' + name);
+  return state.getMap('objects.' + name);
 };
 
 const _bindState = (state, dynamic) => {
-  for (const arrayName of ['objects', 'npcs']) {
-    const objects = state.getArray(arrayName);
-    let lastObjects = [];
-    objects.observe(() => {
-      const nextObjects = objects.toJSON();
+  const objects = state.getArray('objects');
+  let lastObjects = [];
+  objects.observe(() => {
+    const nextObjects = objects.toJSON();
 
-      for (const name of nextObjects) {
-        if (!lastObjects.includes(name)) {
-          const trackedObject = _getOrCreateTrackedObject(name, dynamic, arrayName);
-          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'add', {
-            data: {
-              trackedObject,
-              dynamic,
-            },
-          }));
-        }
+    for (const name of nextObjects) {
+      if (!lastObjects.includes(name)) {
+        const trackedObject = _getOrCreateTrackedObject(name, dynamic);
+        world.dispatchEvent(new MessageEvent('trackedobjectadd', {
+          data: {
+            trackedObject,
+            dynamic,
+          },
+        }));
       }
-      for (const name of lastObjects) {
-        if (!nextObjects.includes(name)) {
-          const trackedObject = state.getMap(arrayName + '.' + name);
-          world.dispatchEvent(new MessageEvent('tracked' + arrayName + 'remove', {
-            data: {
-              trackedObject,
-              dynamic,
-            },
-          }));
-        }
+    }
+    for (const name of lastObjects) {
+      if (!nextObjects.includes(name)) {
+        const trackedObject = state.getMap('objects.' + name);
+        world.dispatchEvent(new MessageEvent('trackedobjectremove', {
+          data: {
+            trackedObject,
+            dynamic,
+          },
+        }));
       }
+    }
 
-      lastObjects = nextObjects;
-    });
-  }
+    lastObjects = nextObjects;
+  });
 };
 _bindState(states.static, false);
 _bindState(states.dynamic, true);
@@ -308,16 +300,15 @@ world.initializeIfEmpty = spec => {
   console.log('initialize if empty', spec); // XXX
 };
 
-world.getObjects = () => objects.objects.dynamic.slice();
-world.getStaticObjects = () => objects.objects.static.slice();
-world.getNpcs = () => objects.npcs.dynamic.slice();
+world.getObjects = () => objects.dynamic.slice();
+world.getStaticObjects = () => objects.static.slice();
 let pendingAddPromise = null;
 
-const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
+const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
-    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic, arrayName);
+    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
@@ -334,180 +325,157 @@ const _addObject = (dynamic, arrayName) => (contentId, position = new THREE.Vect
     throw new Error('no pending world add object promise');
   }
 };
-const _removeObject = (dynamic, arrayName) => removeInstanceId => {
+const _removeObject = (dynamic) => removeInstanceId => {
   const state = _getState(dynamic);
   state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     if (index === -1) pointers.splice(index, 1);
 
-    const objects = state.getArray(arrayName);
+    const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
     const removeIndex = objectsJson.indexOf(removeInstanceId);
     if (removeIndex !== -1) {
-      /* const childRemoveIndices = (() => {
-        const result = [];
-        for (let i = 0; i < objectsJson.length; i++) {
-          const objectInstanceId = objectsJson[i];
-          const object = state.getMap(arrayName + '.' + objectInstanceId);
-          const objectJson = object.toJSON();
-          if (objectJson.parentId === removeInstanceId) {
-            result.push(i);
-          }
-        }
-        return result;
-      })(); */
-      const allRemoveIndices = [removeIndex]//.concat(childRemoveIndices);
+      const allRemoveIndices = [removeIndex];
       for (const removeIndex of allRemoveIndices) {
         const instanceId = objectsJson[removeIndex];
 
         objects.delete(removeIndex, 1);
 
-        const trackedObject = state.getMap(arrayName + '.' + instanceId);
+        const trackedObject = state.getMap('objects.' + instanceId);
         const keys = Array.from(trackedObject.keys());
         for (const key in keys) {
           trackedObject.delete(key);
         }
       }
     } else {
-      console.warn('invalid remove instance id', {dynamic, arrayName, removeInstanceId, objectsJson});
+      console.warn('invalid remove instance id', {dynamic, removeInstanceId, objectsJson});
     }
   });
 };
-// world.add = (dynamic, arrayName, ...args) => _addObject(dynamic, arrayName)(...args);
-// world.remove = (dynamic, arrayName, id) => _removeObject(dynamic, arrayName)(id);
-world.addObject = _addObject(true, 'objects');
-world.removeObject = _removeObject(true, 'objects');
-// world.addStaticObject = _addObject(false, 'objects');
-// world.removeStaticObject = _removeObject(false, 'objects');
-world.addNpc = _addObject(true, 'npcs');
-world.removeNpc = _removeObject(true, 'npcs');
-for (const arrayName of [
-  'objects',
-  'npcs',
-]) {
-  world.addEventListener('tracked' + arrayName + 'add', async e => {
-    const p = makePromise();
-    pendingAddPromise = p;
+world.addObject = _addObject(true);
+world.removeObject = _removeObject(true);
+world.addEventListener('trackedobjectadd', async e => {
+  const p = makePromise();
+  pendingAddPromise = p;
 
-    try {
-      const {trackedObject, dynamic} = e.data;
-      const trackedObjectJson = trackedObject.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
-      const components = JSON.parse(componentsString);
-      // const options = JSON.parse(optionsString);
-      // const file = await contentIdToFile(contentId);
-      /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
-        contentId,
-        instanceId: instanceId,
-        physics: options.physics,
-        physics_url: options.physics_url,
-        autoScale: options.autoScale,
-        autoRun: options.autoRun,
-        dynamic,
-        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-        ownerAddress: file.token ? file.token.owner.address : ""
-      }); */
-      const m = await metaversefile.import(contentId);
-      const app = metaversefile.createApp({
-        name: contentId,
-        type: (() => {
-          const match = contentId.match(/\.([a-z0-9]+)$/i);
-          if (match) {
-            return match[1];
-          } else {
-            return '';
-          }
-        })(),
-        components,
-      });
-      app.position.fromArray(position);
-      app.quaternion.fromArray(quaternion);
-      app.scale.fromArray(scale);
-      app.updateMatrixWorld();
-      app.setComponent('physics', true);
-      app.instanceId = instanceId;
-      // app.contentId = contentId;
-      metaversefile.addApp(app);
-      mesh = await app.addModule(m);
-      if (mesh) {
-        unFrustumCull(app);
-
-        if (app.renderOrder === -Infinity) {
-          sceneHighPriority.add(app);
+  try {
+    const {trackedObject, dynamic} = e.data;
+    const trackedObjectJson = trackedObject.toJSON();
+    const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
+    const components = JSON.parse(componentsString);
+    // const options = JSON.parse(optionsString);
+    // const file = await contentIdToFile(contentId);
+    /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
+      contentId,
+      instanceId: instanceId,
+      physics: options.physics,
+      physics_url: options.physics_url,
+      autoScale: options.autoScale,
+      autoRun: options.autoRun,
+      dynamic,
+      monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+      ownerAddress: file.token ? file.token.owner.address : ""
+    }); */
+    const m = await metaversefile.import(contentId);
+    const app = metaversefile.createApp({
+      name: contentId,
+      type: (() => {
+        const match = contentId.match(/\.([a-z0-9]+)$/i);
+        if (match) {
+          return match[1];
+        } else {
+          return '';
         }
+      })(),
+      components,
+    });
+    app.position.fromArray(position);
+    app.quaternion.fromArray(quaternion);
+    app.scale.fromArray(scale);
+    app.updateMatrixWorld();
+    app.setComponent('physics', true);
+    app.instanceId = instanceId;
+    // app.contentId = contentId;
+    metaversefile.addApp(app);
+    mesh = await app.addModule(m);
+    if (mesh) {
+      unFrustumCull(app);
 
-        // mesh.run && await mesh.run();
-        /* if (mesh.getStaticPhysicsIds) {
-          const staticPhysicsIds = mesh.getStaticPhysicsIds();
-          for (const physicsId of staticPhysicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-          }
-        } */
-        
-        app.addEventListener('die', () => {
-          world.remove(dynamic, arrayName, mesh.instanceId);
-        });
-      } else {
-        console.warn('failed to load object', {contentId});
+      if (app.renderOrder === -Infinity) {
+        sceneHighPriority.add(app);
       }
 
-      /* mesh.setPose = (position, quaternion, scale) => {
-        trackedObject.set('position', position.toArray());
-        trackedObject.set('quaternion', quaternion.toArray());
-        trackedObject.set('scale', scale.toArray());
-      }; */
-
-      const _observe = () => {
-        app.position.fromArray(trackedObject.get('position'));
-        app.quaternion.fromArray(trackedObject.get('quaternion'));
-        app.scale.fromArray(trackedObject.get('scale'));
-      };
-      trackedObject.observe(_observe);
-      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-
-      /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = file.token.owner.monetizationPointer;
-        const ownerAddress = file.token.owner.address.toLowerCase();
-        pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+      // mesh.run && await mesh.run();
+      /* if (mesh.getStaticPhysicsIds) {
+        const staticPhysicsIds = mesh.getStaticPhysicsIds();
+        for (const physicsId of staticPhysicsIds) {
+          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+        }
       } */
-
-      const objects = _getObjects(arrayName, dynamic);
-      objects.push(app);
-
-      world.dispatchEvent(new MessageEvent(arrayName + 'add', {
-        data: app,
-      }));
-
-      p.accept(app);
-    } catch (err) {
-      p.reject(err);
+      
+      app.addEventListener('die', () => {
+        world.removeObject(dynamic, mesh.instanceId);
+      });
+    } else {
+      console.warn('failed to load object', {contentId});
     }
-  });
 
-  world.addEventListener('tracked' + arrayName + 'remove', async e => {
-    const {trackedObject, dynamic} = e.data;
-    const instanceId = trackedObject.get('instanceId');
-    const objects = _getObjects(arrayName, dynamic);
-    const index = objects.findIndex(object => object.instanceId === instanceId);
-    if (index !== -1) {
-      const object = objects[index];
-      object.destroy && object.destroy();
-      metaversefile.removeApp(object);
-      // object.parent.remove(object);
-      objects.splice(index, 1);
-      trackedObject.unobserve();
+    /* mesh.setPose = (position, quaternion, scale) => {
+      trackedObject.set('position', position.toArray());
+      trackedObject.set('quaternion', quaternion.toArray());
+      trackedObject.set('scale', scale.toArray());
+    }; */
 
-      /* const binding = transformControls.getBinding();
-      if (binding === object) {
-        transformControls.bind(null);
-      } */
+    const _observe = () => {
+      app.position.fromArray(trackedObject.get('position'));
+      app.quaternion.fromArray(trackedObject.get('quaternion'));
+      app.scale.fromArray(trackedObject.get('scale'));
+    };
+    trackedObject.observe(_observe);
+    trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
 
-      world.dispatchEvent(new MessageEvent(arrayName + 'remove', {
-        data: object,
-      }));
-    }
-  });
-}
+    /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+      const monetizationPointer = file.token.owner.monetizationPointer;
+      const ownerAddress = file.token.owner.address.toLowerCase();
+      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+    } */
+
+    const objects = _getObjects(dynamic);
+    objects.push(app);
+
+    world.dispatchEvent(new MessageEvent('objectadd', {
+      data: app,
+    }));
+
+    p.accept(app);
+  } catch (err) {
+    p.reject(err);
+  }
+});
+
+world.addEventListener('trackedobjectremove', async e => {
+  const {trackedObject, dynamic} = e.data;
+  const instanceId = trackedObject.get('instanceId');
+  const objects = _getObjects(dynamic);
+  const index = objects.findIndex(object => object.instanceId === instanceId);
+  if (index !== -1) {
+    const object = objects[index];
+    object.destroy && object.destroy();
+    metaversefile.removeApp(object);
+    // object.parent.remove(object);
+    objects.splice(index, 1);
+    trackedObject.unobserve();
+
+    /* const binding = transformControls.getBinding();
+    if (binding === object) {
+      transformControls.bind(null);
+    } */
+
+    world.dispatchEvent(new MessageEvent('objectremove', {
+      data: object,
+    }));
+  }
+});
 world.isObject = object => objects.includes(object);
 
 world.getWorldJson = async q => {
