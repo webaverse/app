@@ -1971,8 +1971,8 @@ class Avatar {
           modelBone.quaternion.multiply(upRotation);
         }
       }
-      modelBone.updateMatrixWorld();
     }
+    this.modelBones.Hips.updateMatrixWorld();
 
     if (this.springBoneManager) {
       this.springBoneManager.lateUpdate(timeDiff);
