@@ -208,6 +208,7 @@ class App extends THREE.Object3D {
     return this.physicsIds;
   }
   wear(wearSpec) {
+    wearSpec = JSON.parse(JSON.stringify(wearSpec));
     this.wearSpec = wearSpec;
     
     this.dispatchEvent({
