@@ -732,6 +732,7 @@ ioManager.mousedown = e => {
     }
   }
   if (e.buttons & 4) { // middle
+    e.preventDefault();
     weaponsManager.menuDragdown();
   }
   mouseDown = true;
