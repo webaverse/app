@@ -399,6 +399,18 @@ const _findBoneDeep = (bones, boneName) => {
   }
   return null;
 };
+const copySkeleton = (src, dst) => {
+  for (let i = 0; i < src.bones.length; i++) {
+    const srcBone = src.bones[i];
+    const dstBone = _findBoneDeep(dst.bones, srcBone.name);
+    dstBone.matrixWorld.copy(srcBone.matrixWorld);
+  }
+
+  // const armature = dst.bones[0].parent;
+  // _localizeMatrixWorld(armature);
+
+  dst.calculateInverses();
+};
 
 const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
   .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
