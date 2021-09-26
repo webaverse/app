@@ -873,20 +873,10 @@ const wearBoneMapping = {
   J_Sec_R_Bust2_1: null,
 };
 const nop = () => {};
-const wearableScale = 1.2;
+const wearableScale = 1.3;
 appManager.addEventListener('wearupdate', e => {
   const {app, wearSpec} = e.data;
-  // console.log('wear update', app, app.glb);
-  /* weapon: elements[0],
-  chest: 'Plate Mail',
-  head: 'Great Helm',
-  waist: 'Silk Sash',
-  foot: 'Chain Boots',
-  hand: 'Gauntlets',
-  neck: elements[6],
-  ring: elements[7], */
   if (wearSpec.boneAttachment === 'chest' && app.glb) {
-    // debugger;
     let skinnedMesh = null;
     app.glb.scene.traverse(o => {
       if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -908,79 +898,6 @@ appManager.addEventListener('wearupdate', e => {
 
       wearSpec.skeleton = skinnedMesh.skeleton;
       wearSpec.modelBones = modelBones;
-      // copySkeleton(rigManager.localRig.skeleton, skinnedMesh.skeleton);
-
-      // console.log('got skele', skinnedMesh.skeleton);
-      // debugger;
-      
-      
-      
-
-      /* const hipsBone = skinnedMesh.skeleton.bones.find(b => /hips/i.test(b.name));
-
-      const worldPos = {};
-      const _recurseWorldPos = o => {
-        worldPos[o.id] = o.getWorldPosition(new THREE.Vector3());
-        for (const child of o.children) {
-          if (o.isBone) {
-            _recurseWorldPos(child);
-          }
-        }
-      };
-      _recurseWorldPos(hipsBone);
-
-      hipsBone.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-      hipsBone.matrix.compose(hipsBone.position,hipsBone.quaternion, hipsBone.scale);
-      const _recurse = o => {
-        // o.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-        // o.matrix.compose(o.position, o.quaternion, o.scale);
-        o.matrixWorld.multiplyMatrices(
-          o.parent.matrixWorld,
-          o.matrix
-        );
-
-        //set child bone position relative to the new parent matrix.
-        for (const childBone of o.children) {
-          if (childBone.isBone) {
-            const childBonePosWorld = worldPos[childBone.id].clone();
-            o.worldToLocal(childBonePosWorld);
-            childBone.position.copy(childBonePosWorld);
-            
-            _recurse(childBone);
-          }
-        }
-      };
-      _recurse(hipsBone);
-
-      skinnedMesh.bind(skinnedMesh.skeleton); */
-      
-      
-      
-      
-      for (let i = 0; i < skinnedMesh.skeleton.bones.length; i++) {
-        const bone = skinnedMesh.skeleton.bones[i];
-        /* skinnedMesh.skeleton.boneInverses[i].premultiply(
-          new THREE.Matrix4().compose(
-            new THREE.Vector3(),
-            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI),
-            new THREE.Vector3(1, 1, 1)
-          )
-        ); */
-        /* if (/hips/i.test(bone.name)) {
-          bone.quaternion.premultiply(new THREE.Vector3(0, 1, 0), Math.PI);
-        } */
-        /* const srcBoneIndex = rigManager.localRig.skeleton.bones.findIndex(b => b.name === bone.name);
-        if (srcBoneIndex !== -1) {
-          skinnedMesh.skeleton.boneInverses[i].premultiply(rigManager.localRig.skeleton.boneInverses[srcBoneIndex]);
-        } */
-        // bone.updateMatrix = nop;
-        // bone.initialPosition = bone.getWorldPosition(new THREE.Vector3());
-        // bone.initialQuaternion = bone.quaternion.clone();
-        // bone._updateMatrixWorld = bone.updateMatrixWorld;
-        // bone.updateMatrixWorld = nop;
-      }
-      // console.log('wear spec skinned', wearSpec, app.glb, skinnedMesh);
-      // skinnedMesh.skeleton.calculateInverses();
     }
   }
   
