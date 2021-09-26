@@ -108,14 +108,16 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.y),
   Math.floor(p.z),
 );
-const clearWorld = () => {
+const clearWorld = (predicate = () => false) => {
   /* const staticObjects = world.getStaticObjects();
   for (const object of staticObjects) {
     world.removeStaticObject(object.instanceId);
   } */
   const objects = world.getObjects();
   for (const object of objects) {
-    world.removeObject(object.instanceId);
+    if (predicate(object)) {
+      world.removeObject(object.instanceId);
+    }
   }
 };
 const update = () => {
