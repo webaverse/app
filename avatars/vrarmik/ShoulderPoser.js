@@ -163,8 +163,9 @@ class ShoulderPoser {
     const headPosition = localVector.copy(this.vrTransforms.head.position)
       .sub(localVector2.copy(this.shoulder.eyes.position).applyQuaternion(hmdRotation));
     const neckPosition = headPosition.sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
-    const chestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
-    const spinePosition = chestPosition.sub(localVector2.copy(this.shoulder.transform.position).applyQuaternion(hmdXYRotation));
+    const upperChestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
+    const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
+    const spinePosition = chestPosition.sub(localVector2.copy(this.shoulder.chest.position).applyQuaternion(hmdXYRotation));
     const hipsPosition = spinePosition.sub(localVector2.copy(this.shoulder.spine.position).applyQuaternion(hmdXYRotation));
 
     this.shoulder.hips.position.copy(hipsPosition);
@@ -174,7 +175,8 @@ class ShoulderPoser {
     Helpers.updateMatrix(this.shoulder.hips);
     this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
     Helpers.updateMatrixWorld(this.shoulder.spine);
-    Helpers.updateMatrixWorld(this.shoulder.transform);
+    Helpers.updateMatrixWorld(this.shoulder.chest);
+    Helpers.updateMatrixWorld(this.shoulder.upperChest);
   }
 
   /* updateNeck() {
@@ -279,7 +281,7 @@ class ShoulderPoser {
     // angleY = this.clampHeadRotationDeltaUp(angleY);
     // }
 
-    this.shoulder.transform.quaternion.setFromEuler(localEuler.set(0, angleY, 0, 'YXZ'))
+    this.shoulder.upperChest.quaternion.setFromEuler(localEuler.set(0, angleY, 0, 'YXZ'))
       .premultiply(
         localQuaternion.copy(this.shoulder.hips.quaternion)
         .multiply(z180Quaternion)
@@ -292,9 +294,9 @@ class ShoulderPoser {
       	const standFactor = Math.min(this.rig.legsManager.leftLeg.standFactor, this.rig.legsManager.rightLeg.standFactor);
       	this.shoulder.transform.quaternion.multiply(localQuaternion3.setFromAxisAngle(rightVector, (1-standFactor) * Math.PI/4));
       } */
-    this.shoulder.transform.quaternion
-      .premultiply(Helpers.getWorldQuaternion(this.shoulder.transform.parent, localQuaternion).invert());
-    Helpers.updateMatrixMatrixWorld(this.shoulder.transform);
+    this.shoulder.upperChest.quaternion
+      .premultiply(Helpers.getWorldQuaternion(this.shoulder.upperChest.parent, localQuaternion).invert());
+    Helpers.updateMatrixMatrixWorld(this.shoulder.upperChest);
     Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
     Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
   }
