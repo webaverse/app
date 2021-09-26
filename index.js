@@ -60,6 +60,7 @@ const certs = {
       hmr: {
         server: httpServer,
         port,
+        overlay: false,
       },
     }
   });
