@@ -1280,8 +1280,7 @@ const _updateWeapons = () => {
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
 
-    const h = highlightedPhysicsObject;
-    if (h) {
+    if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
       if (highlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
