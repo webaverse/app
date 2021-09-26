@@ -77,7 +77,7 @@ const FINGER_SPECS = [
       const handRotation = this.target.quaternion;
       const handPosition = localVector2.copy(this.target.position);
 
-      const shoulderRotation = Helpers.getWorldQuaternion(this.shoulder.transform, localQuaternion);
+      const shoulderRotation = Helpers.getWorldQuaternion(this.shoulder.chest, localQuaternion);
       const shoulderRotationInverse = localQuaternion2.copy(shoulderRotation).invert();
 
       const hypotenuseDistance = this.upperArmLength;
