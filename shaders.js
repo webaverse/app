@@ -509,6 +509,11 @@ const makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial
 
 const buildMaterial = new THREE.ShaderMaterial({
   uniforms: {
+    uColor: {
+      type: 'c',
+      value: new THREE.Color(0x64b5f6),
+      needsUpdate: true,
+    },
     uTime: {
       type: 'f',
       value: 0,
@@ -603,6 +608,7 @@ const buildMaterial = new THREE.ShaderMaterial({
 
     uniform float sunIntensity;
     uniform sampler2D tex;
+    uniform vec3 uColor;
     uniform float uTime;
     uniform vec3 sunDirection;
     float parallaxScale = 0.3;
@@ -644,7 +650,7 @@ const buildMaterial = new THREE.ShaderMaterial({
 
     void main() {
       // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
+      vec3 diffuseColor2 = uColor;
       float normalRepeat = 1.0;
 
       vec3 blending = getTriPlanarBlend(vNormal);
