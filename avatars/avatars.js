@@ -446,6 +446,7 @@ const _makeDebugMeshes = () => {
     head: _makeCubeMesh(0xFF8080),
 
     chest: _makeCubeMesh(0xFFFF00),
+    upperChest: _makeCubeMesh(0x808000),
     leftShoulder: _makeCubeMesh(0x00FF00),
     rightShoulder: _makeCubeMesh(0x008000),
     leftUpperArm: _makeCubeMesh(0x00FFFF),
