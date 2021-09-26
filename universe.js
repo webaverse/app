@@ -207,7 +207,7 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
 
   const _doLoad = async () => {
-    clearWorld();
+    clearWorld(world => world.getComponent('locked'));
 
     let {src, room} = worldSpec;
     /* {
