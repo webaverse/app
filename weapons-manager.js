@@ -873,7 +873,7 @@ const wearBoneMapping = {
   J_Sec_R_Bust2_1: null,
 };
 const nop = () => {};
-const wearableScale = 1.3;
+const wearableScale = 1;
 appManager.addEventListener('wearupdate', e => {
   const {app, wearSpec} = e.data;
   if (wearSpec.boneAttachment === 'chest' && app.glb) {
