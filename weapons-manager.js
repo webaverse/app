@@ -468,11 +468,9 @@ const _click = () => {
     _ungrab();
   } else {
     // console.log('got click 4', !!highlightedPhysicsObject);
-    if (highlightedPhysicsObject) {
-      if (world.getObjects().includes(highlightedPhysicsObject)) {
-        _grab(highlightedPhysicsObject);
-        // _updateMenu();
-      }
+    if (highlightedPhysicsObject && world.getObjects().includes(highlightedPhysicsObject) && !highlightedPhysicsObject.getComponent('locked')) {
+      _grab(highlightedPhysicsObject);
+      // _updateMenu();
     }
   }
 };
