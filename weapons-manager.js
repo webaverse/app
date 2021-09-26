@@ -1303,7 +1303,8 @@ const _updateWeapons = () => {
       highlightPhysicsMesh.scale.copy(physicsTransform.scale);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(highlightedPhysicsObject.getComponent('locked') ? 0xCCCCCC : buildMaterial.uniforms.uColor.value.getHex());
+      const locked = highlightedPhysicsObject.getComponent('locked');
+      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(locked ? 0xCCCCCC : buildMaterial.uniforms.uColor.value.getHex());
       highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
     }
