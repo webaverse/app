@@ -1241,9 +1241,9 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = 0;
-    this.setMicrophoneMediaStream(options.microphoneMediaStream, {
+    /* this.setMicrophoneMediaStream(options.microphoneMediaStream, {
       muted: options.muted,
-    });
+    }); */
 
     // this.lastTimestamp = Date.now();
 
