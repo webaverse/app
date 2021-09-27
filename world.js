@@ -481,8 +481,9 @@ world.addEventListener('trackedobjectadd', async e => {
     app.quaternion.fromArray(quaternion);
     app.scale.fromArray(scale);
     app.updateMatrixWorld();
-    app.setComponent('physics', true);
+    app.contentId = contentId;
     app.instanceId = instanceId;
+    app.setComponent('physics', true);
     // app.contentId = contentId;
     metaversefile.addApp(app);
     mesh = await app.addModule(m);
