@@ -2862,7 +2862,7 @@ const weaponsManager = {
     }
   },
   menuVDown() {
-    if (appManager.grabbedObjects[0]) {
+    if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
       // physicsManager.setDanceState('dansu');
