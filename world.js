@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import storage from './storage.js';
 import runtime from './runtime.js';
-import WSRTC from './node_modules/wsrtc/wsrtc.js';
+import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
 
 import {rigManager} from './rig.js';
