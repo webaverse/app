@@ -4,10 +4,9 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
-import {scene, appManager} from './app-object.js';
+import {scene} from './app-object.js';
 import dropManager from './drop-manager.js';
 import metaversefileApi from './metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
 
 const localVector = new THREE.Vector3();
 
@@ -39,7 +38,7 @@ cylinderMesh.startPosition = new THREE.Vector3();
 let damageAnimation = null;
 const update = () => {
   const now = Date.now();
-  if (document.pointerLockElement && appManager.using) {
+  if (document.pointerLockElement && metaversefileApi.useLocalPlayer().actions.some(action => action.type === 'use')) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
@@ -94,7 +93,7 @@ const update = () => {
   }
   damagePhysicsMesh.visible = !!damageAnimation;
   
-  const {position, quaternion} = useLocalPlayer();
+  const {position, quaternion} = metaversefileApi.useLocalPlayer();
   cylinderMesh.position.copy(position)
     .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
   cylinderMesh.quaternion.copy(quaternion);

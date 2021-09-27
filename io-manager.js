@@ -404,7 +404,7 @@ ioManager.keydown = e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuVDown();
+        weaponsManager.menuVDown(e);
       // }
       break;
     }
@@ -412,7 +412,7 @@ ioManager.keydown = e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuBDown();
+        weaponsManager.menuBDown(e);
       // }
       break;
     }

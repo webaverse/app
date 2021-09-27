@@ -16,20 +16,22 @@ import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
 import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 import controlsManager from './controls-manager.js';
-import buildTool from './build-tool.js';
+// import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
-import messages from './messages.js';
-import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
+// import messages from './messages.js';
+import {getExt, bindUploadFileButton, snapPosition} from './util.js';
 import Avatar from './avatars/avatars.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import fx from './fx.js';
 import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
+
+const {appManager} = world;
 const {useLocalPlayer, teleportTo} = metaversefileApi;
 const {contractNames} = metaversefileConstants;
 
@@ -37,14 +39,18 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localMatrix4 = new THREE.Matrix4();
+const localMatrix5 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
@@ -57,6 +63,77 @@ const equipArmQuaternions = [
   new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
 ];
+
+const _getGrabbedObject = i => {
+  const localPlayer = useLocalPlayer();
+  const grabbedObjectInstanceId = localPlayer.grabs[i]?.instanceId;
+  // window.grabbedObjectInstanceId = grabbedObjectInstanceId;
+  // window.objects = world.getObjects();instanceId
+  const result = grabbedObjectInstanceId ? world.getObjects().find(object => object.instanceId === grabbedObjectInstanceId) : null;
+  /* if (grabbedObjectInstanceId && !result) {
+    debugger;
+  } */
+  return result;
+};
+// window.getGrabbedObject = _getGrabbedObject;
+
+// returns whether we actually snapped
+/* const updateGrabbedObject = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localVector3 = new THREE.Vector3();
+  const localVector4 = new THREE.Vector3();
+  const localVector5 = new THREE.Vector3();
+  const localVector6 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localQuaternion2 = new THREE.Quaternion();
+  const localQuaternion3 = new THREE.Quaternion();
+  const localMatrix = new THREE.Matrix4();
+  
+  return */function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, appManager, geometryManager, gridSnap}) {
+    grabMatrix.decompose(localVector, localQuaternion, localVector2);
+    offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
+    const offset = localVector3.length();
+    localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
+      .decompose(localVector5, localQuaternion3, localVector6);
+
+    const grabbedObject = _getGrabbedObject(0);
+    const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
+    for (const physicsId of grabbedPhysicsIds) {
+      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+    }
+
+    let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
+    if (collision) {
+      const {point} = collision;
+      o.position.fromArray(point)
+        // .add(localVector2.set(0, 0.01, 0));
+
+      if (o.position.distanceTo(localVector) > offset) {
+        collision = null;
+      }
+    }
+    if (!collision) {
+      o.position.copy(localVector5);
+    }
+
+    for (const physicsId of grabbedPhysicsIds) {
+      geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+    }
+
+    const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+    if (handSnap) {
+      snapPosition(o, gridSnap);
+      o.quaternion.setFromEuler(o.savedRotation);
+    } else {
+      o.quaternion.copy(localQuaternion3);
+    }
+
+    return {
+      handSnap,
+    };
+  };
+// })();
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -250,12 +327,12 @@ const _selectLoadout = index => {
 
   (async () => {
     if (selectedLoadoutObject) {
-      if (appManager.equippedObjects[0] === selectedLoadoutObject) {
+      /* if (appManager.equippedObjects[0] === selectedLoadoutObject) {
         _unequip();
       }
       if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
         _ungrab();
-      }
+      } */
       
       world.removeObject(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
@@ -458,14 +535,15 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  // console.log('got click 1');
   /* if (weaponsManager.canBuild()) {
     // console.log('got click 2');
     // editedObject.place();
-  } else */ if (appManager.grabbedObjects[0]) {
+  } else */ if (_getGrabbedObject(0)) {
     // console.log('got click 3');
     _deselectLoadout();
+
     _ungrab();
+
   } else {
     // console.log('got click 4', !!highlightedPhysicsObject);
     if (highlightedPhysicsObject && world.getObjects().includes(highlightedPhysicsObject)) {
@@ -475,23 +553,23 @@ const _click = () => {
   }
 };
 const _mousedown = () => {
-  if (appManager.equippedObjects[0]) {
+  /* if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.triggerAux && o.triggerAux();
-  }
+  } */
 };
 const _mouseup = () => {
-  if (appManager.equippedObjects[0]) {
+  /* if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.untriggerAux && o.untriggerAux();
-  }
+  } */
 };
-const _aim = () => {
+/* const _aim = () => {
   appManager.aimed = true;
 };
 const _unaim = () => {
   appManager.aimed = false;
-};
+}; */
 
 const _try = async () => {
   const o = appManager.grabbedObjects[0];
@@ -709,16 +787,19 @@ const _grab = object => {
   const renderer = getRenderer();
   const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
 
-  appManager.grabbedObjects[0] = object;
-  weaponsManager.gridSnap = 0;
-
   object.updateMatrixWorld();
   object.savedRotation = object.rotation.clone();
   object.startQuaternion = quaternion.clone();
 
-  appManager.grabbedObjectMatrices[0].copy(object.matrixWorld)
-    .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert());
-
+  const localPlayer = useLocalPlayer();
+  localPlayer.grabs[0] = {
+    instanceId: object.instanceId,
+    matrix: localMatrix5.copy(object.matrixWorld)
+      .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert())
+      .toArray(),
+  };
+  // console.log('start grab');
+  weaponsManager.gridSnap = 0;
   weaponsManager.editMode = false;
 
   /* const distance = object.position.distanceTo(position);
@@ -730,17 +811,18 @@ const _grab = object => {
 };
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
-  appManager.grabbedObjects[0] = null;
+  const localPlayer = useLocalPlayer();
+  localPlayer.grabs[0] = null;
   // editedObject = null
   // _updateMenu();
 };
 
-const _equip = object => {
+/* const _equip = object => {
   appManager.equippedObjects[0] = object;
 };
 const _unequip = () => {
   appManager.equippedObjects[0] = null;
-};
+}; */
 
 const grabUseMesh = (() => {
   const o = new THREE.Object3D();
@@ -1057,7 +1139,7 @@ const copySkeleton = (src, dst) => {
   
   const armature = dst.bones[0].parent;
   armature.updateMatrixWorld(true);
-  window.armature = armature;
+  // window.armature = armature;
   
   for (let i = 0; i < dst.bones.length; i++) {
     const bone = dst.bones[i];
@@ -1146,10 +1228,12 @@ const _updateWeapons = () => {
   _handleEdit(); */
 
   const _handlePush = () => {
-    if (ioManager.keys.forward) {
-      weaponsManager.menuPush(-1);
-    } else if (ioManager.keys.backward) {
-      weaponsManager.menuPush(1);
+    if (weaponsManager.canPush()) {
+      if (ioManager.keys.forward) {
+        weaponsManager.menuPush(-1);
+      } else if (ioManager.keys.backward) {
+        weaponsManager.menuPush(1);
+      }
     }
   };
   _handlePush();
@@ -1179,7 +1263,7 @@ const _updateWeapons = () => {
 
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
-      const grabbedObject = appManager.grabbedObjects[i];
+      const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject) {
         const {position, quaternion} = useLocalPlayer().hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
@@ -1187,7 +1271,7 @@ const _updateWeapons = () => {
         grabbedObject.updateMatrixWorld();
         const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
-        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, appManager.grabbedObjectMatrices[i], {
+        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(useLocalPlayer().grabs[i].matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           appManager,
@@ -1196,14 +1280,14 @@ const _updateWeapons = () => {
         });
 
         grabbedObject.updateMatrixWorld();
-        const newMatrix = localMatrix3.copy(grabbedObject.matrixWorld);
+        const newMatrix = localMatrix4.copy(grabbedObject.matrixWorld);
         
         if (grabbedObject.getPhysicsIds) {
           const physicsIds = grabbedObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
             const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
             
-            const oldTransformMatrix = localMatrix4.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
+            const oldTransformMatrix = localMatrix5.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
             oldTransformMatrix.clone()
               .premultiply(oldMatrix.invert())
               .premultiply(newMatrix)
@@ -1237,7 +1321,7 @@ const _updateWeapons = () => {
   };
   _updateGrab();
   
-  const _updateEquip = () => {
+  /* const _updateEquip = () => {
     for (let i = 0; i < 2; i++) {
       const equippedObject = appManager.equippedObjects[i];
       if (equippedObject) {
@@ -1249,13 +1333,13 @@ const _updateWeapons = () => {
       }
     }
   };
-  _updateEquip();
+  _updateEquip(); */
 
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
     if (weaponsManager.editMode) {
-      const grabbedObject = appManager.grabbedObjects[0];
+      const grabbedObject = _getGrabbedObject(0);
       const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
       for (const physicsId of grabbedPhysicsIds) {
         geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
@@ -1612,8 +1696,9 @@ const _updateWeapons = () => {
   
   const _updateUses = () => {    
     if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
-      if (appManager.grabbedObjects[0]) {
-        appManager.grabbedObjects[0].dispatchEvent({
+      const grabbedObject = _getGrabbedObject(0);
+      if (grabbedObject) {
+        grabbedObject.dispatchEvent({
           type: 'activate',
         });
       }
@@ -1677,7 +1762,7 @@ const _updateWeapons = () => {
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    const visible = !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || appManager.aimed) && !appManager.grabbedObjects[0];
+    const visible = !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || useLocalPlayer().aimed) && !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
@@ -1959,9 +2044,9 @@ const _loadItemSpec1 = async u => {
 
   const object = await p;
   editedObject = object;
-  if (editedObject.isBuild) {
+  /* if (editedObject.isBuild) {
     appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
-  }
+  } */
 
   weaponsManager.setMenu(0);
   // appManager.grabbedObjectOffsets[0] = maxGrabDistance;
@@ -2640,10 +2725,13 @@ const weaponsManager = {
     _mouseup();
   },
   menuAim() {
-    _aim();
+    const localPlayer = useLocalPlayer();
+    localPlayer.aimed = true;
   },
   menuUnaim() {
-    _unaim();
+    const localPlayer = useLocalPlayer();
+    localPlayer.aimed = false;
+    // _unaim();
   },
   menuDragdown(e) {
     this.dragging = true;
@@ -2681,12 +2769,12 @@ const weaponsManager = {
   menuDragupRight() {
     this.draggingRight = false;
   },
-  canTry() {
+  /* canTry() {
     return !!appManager.grabbedObjects[0];
   },
   menuTry() {
     _try();
-  },
+  }, */
   menuKey(c) {
     menuMesh.key(c);
   },
@@ -2700,19 +2788,26 @@ const weaponsManager = {
     return !!highlightedObject /*&& !editedObject*/;
   },
   canRotate() {
-    return !!appManager.grabbedObjects[0];
+    return !!_getGrabbedObject(0);
+    // return !!appManager.grabbedObjects[0];
   },
   menuRotate(direction) {
-    const object = appManager.grabbedObjects[0];
+    const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   },
   canPush() {
-    return !!appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
+    return !!_getGrabbedObject(0);
+    // return !!appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
   },
   menuPush(direction) {
-    appManager.grabbedObjectMatrices[0].decompose(localVector, localQuaternion, localVector2);
+    const localPlayer = useLocalPlayer();
+    const matrix = localMatrix.fromArray(localPlayer.grabs[0].matrix);
+    matrix
+      .decompose(localVector, localQuaternion, localVector2);
     localVector.z += direction * 0.1;
-    appManager.grabbedObjectMatrices[0].compose(localVector, localQuaternion, localVector2);
+    matrix
+      .compose(localVector, localQuaternion, localVector2)
+      .toArray(localPlayer.grabs[0].matrix);
   },
   menuDrop() {
     console.log('menu drop');
@@ -2773,16 +2868,19 @@ const weaponsManager = {
       physicsManager.setDanceState('dansu');
     }
   },
-  menuVUp() {
+  menuVUp(e) {
     physicsManager.setDanceState(null);
   },
-  menuBDown() {
-    if (!appManager.grabbedObjects[0]) {
+  menuBDown(e) {
+    if (e.ctrlKey) {
+      world.reset();
+    }
+    /* if (!appManager.grabbedObjects[0]) {
       if (!physicsManager.getThrowState()) {
         physicsManager.setThrowState({});
         droppedThrow = false;
       }
-    }
+    } */
   },
   menuBUp() {
     physicsManager.setThrowState(null);
@@ -2820,19 +2918,9 @@ const weaponsManager = {
   toggleEditMode() {
     this.editMode = !this.editMode;
     if (this.editMode) {
-      let changed = false;
-      if (appManager.grabbedObjects[0]) {
-        // _deselectLoadout();
+      if (_getGrabbedObject(0)) {
         _ungrab();
-        changed = true;
       } 
-      /* if (editedObject) {
-        editedObject = null;
-        changed = true;
-      } */
-      if (changed) {
-        // _updateMenu();
-      }
     }
   },
   /* canUpload() {

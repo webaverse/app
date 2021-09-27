@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {appManager, getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

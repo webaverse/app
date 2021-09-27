@@ -4,6 +4,7 @@ import runtime from './runtime.js';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
 
+import {AppManager} from './app-object.js';
 import {rigManager} from './rig.js';
 
 import {pointers} from './web-monetization.js';
@@ -19,6 +20,8 @@ import {makePromise, getRandomString, makeId} from './util.js';
 import metaversefile from 'metaversefile';
 // world
 export const world = new EventTarget();
+const appManager = new AppManager(world);
+world.appManager = appManager;
 
 // static states are local and non-user editable
 // dynamic states are multiplayer and user-editable
@@ -114,6 +117,7 @@ const didInteract = new Promise(resolve => window.addEventListener('click', e =>
 let mediaStream = null;
 world.micEnabled = () => !!mediaStream;
 world.enableMic = async () => {
+  await WSRTC.waitForReady();
   mediaStream = await WSRTC.getUserMedia();
   if (wsrtc) {
     wsrtc.enableMic(mediaStream);
@@ -187,7 +191,7 @@ world.reset = () => {
 world.connectRoom = async (worldURL) => {
   // console.log('connect room 1');
   await didInteract;
-  // console.log('connect room 2');
+
   await WSRTC.waitForReady();
 
   // reset the world to initial state
@@ -700,9 +704,46 @@ world.getNpcFromPhysicsId = physicsId => {
   return null;
 };
 
-const micButton = document.getElementById('key-t');
+const _bindLocalPlayerTeleport = () => {
+  const localPlayer = metaversefile.useLocalPlayer();
+  const lastLocalPlayerPosition = localPlayer.position.clone();
+  const lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
+  appManager.addEventListener('preframe', e => {
+    if (
+      !localPlayer.position.equals(lastLocalPlayerPosition) ||
+      !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
+    ) {
+      metaversefile.teleportTo(localPlayer.position, localPlayer.quaternion, {
+        relation: 'head',
+      });
+    }
+  });
+  appManager.addEventListener('startframe', e => {
+    if (rigManager.localRig) {
+      localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
+      localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
+      localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+      localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+      localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
+      localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
+    } else {
+      localPlayer.position.set(0, 0, 0);
+      localPlayer.quaternion.set(0, 0, 0, 1);
+      localPlayer.leftHand.position.set(0, 0, 0);
+      localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
+      localPlayer.rightHand.position.set(0, 0, 0);
+      localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
+    }
+    
+    lastLocalPlayerPosition.copy(localPlayer.position);
+    lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
+  });
+};
+_bindLocalPlayerTeleport();
 
-/* world.toggleMic = async () => {
+/* const micButton = document.getElementById('key-t');
+
+world.toggleMic = async () => {
   if (!wsrtc.mediaStream) {
     micButton && micButton.classList.add('enabled');
     wsrtc.enableMic();
@@ -710,9 +751,9 @@ const micButton = document.getElementById('key-t');
     micButton && micButton.classList.remove('enabled');
     wsrtc.disableMic();
   }
-}; */
+};
 
 micButton && micButton.addEventListener('click', async e => {
   world.toggleMic()
     .catch(console.warn);
-});
+}); */

@@ -104,11 +104,13 @@ const localFrameOpts = {
 };
 
 class AppManager extends EventTarget {
-  constructor() {
+  constructor(world) {
     super();
     
+    this.world = world;
+
     this.apps = [];
-    this.grabbedObjects = [null, null];
+    /* this.grabbedObjects = [null, null];
     this.equippedObjects = [null, null];
     // this.grabbedObjectOffsets = [0, 0];
     this.grabbedObjectMatrices = [
@@ -116,7 +118,7 @@ class AppManager extends EventTarget {
       new THREE.Matrix4(),
     ];
     this.used = false;
-    this.aimed = false;
+    this.aimed = false; */
     this.lastAppId = 0;
     this.lastTimestamp = performance.now();
   }
@@ -124,7 +126,7 @@ class AppManager extends EventTarget {
     return ++this.lastAppId;
   }
   createApp(appId) {
-    const app = new App(appId);
+    const app = new App(appId, this);
     this.apps.push(app);
     return app;
   }
@@ -156,13 +158,13 @@ class AppManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
 }
-const appManager = new AppManager();
 
 class App extends THREE.Object3D {
-  constructor(appId) {
+  constructor(appId, appManager) {
     super();
 
     this.appId = appId;
+    this.appManager = appManager;
     // this.files = {};
     // this.object = null;
     // this.attributes = {};
@@ -227,7 +229,7 @@ class App extends THREE.Object3D {
       type: 'wearupdate',
       wearSpec,
     });
-    appManager.dispatchEvent(new MessageEvent('wearupdate', {
+    this.appManager.dispatchEvent(new MessageEvent('wearupdate', {
       data: {
         app: this,
         wearSpec,
@@ -235,11 +237,12 @@ class App extends THREE.Object3D {
     }));
   }
   destroy() {
-    appManager.destroyApp(this.appId);
+    this.appManager.destroyApp(this.appId);
   }
 }
 
 export {
+  AppManager,
   App,
   bindCanvas,
   getRenderer,
@@ -256,5 +259,5 @@ export {
   sceneLowPriority,
   // iframeContainer,
   // iframeContainer2,
-  appManager,
+  // appManager,
 };
