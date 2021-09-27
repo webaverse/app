@@ -20,18 +20,17 @@ class MicrophoneWorker extends EventTarget {
       })(oldO.pause);
       o = o.cloneNode();
     }
-    this.audioContext = new AudioContext();
     const mediaStreamSource = (() => {
       if (o instanceof MediaStream) {
-        return this.audioContext.createMediaStreamSource(o);
+        return options.audioContext.createMediaStreamSource(o);
       } else {
-        return this.audioContext.createMediaElementSource(o);
+        return options.audioContext.createMediaElementSource(o);
       }
     })();
 
-    this.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
+    options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
       .then(() => {
-        const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'volume-processor');
+        const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
         if (options.muted === false) {
           audioWorkletNode.port.postMessage(JSON.stringify({
             method: 'muted',
@@ -45,12 +44,11 @@ class MicrophoneWorker extends EventTarget {
             }));
           }
         };
-        mediaStreamSource.connect(audioWorkletNode).connect(this.audioContext.destination);
-      });
+        mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
+     });
   }
   close() {
     this.live = false;
-    this.audioContext.close();
   }
 }
 export default MicrophoneWorker;
