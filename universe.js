@@ -108,18 +108,6 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.y),
   Math.floor(p.z),
 );
-const clearWorld = (predicate = () => false) => {
-  /* const staticObjects = world.getStaticObjects();
-  for (const object of staticObjects) {
-    world.removeStaticObject(object.instanceId);
-  } */
-  const objects = world.getObjects();
-  for (const object of objects) {
-    if (predicate(object)) {
-      world.removeObject(object.instanceId);
-    }
-  }
-};
 const update = () => {
   if (arrowMesh) {
     arrowMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
@@ -207,7 +195,8 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
 
   const _doLoad = async () => {
-    clearWorld(world => world.getComponent('locked'));
+    // clearWorld(world => world.getComponent('locked'));
+    world.clear();
 
     let {src, room} = worldSpec;
     /* {
