@@ -83,7 +83,7 @@ const transformControls = {
         localVector2.set(1, 1, 1)
       );
     } else {
-      console.log('no transform axis');
+      // console.log('no transform axis');
     }
   },
   handleMouseUp(raycaster) {
