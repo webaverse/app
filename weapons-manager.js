@@ -956,10 +956,10 @@ const nop = () => {};
 const wearableScale = 1;
 appManager.addEventListener('wearupdate', e => { // XXX move handling to metaversefile vrm loader
   const {app, wearSpec} = e.data;
-  if (wearSpec.boneAttachment === 'chest' && app.glb) {
+  if (wearSpec.skinnedMesh && app.glb) {
     let skinnedMesh = null;
     app.glb.scene.traverse(o => {
-      if (skinnedMesh === null && o.isSkinnedMesh) {
+      if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
         skinnedMesh = o;
       }
     });
