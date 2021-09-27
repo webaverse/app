@@ -6,7 +6,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
-import {appManager} from './app-object.js';
+import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
@@ -563,12 +563,14 @@ const _updatePhysics = timeDiff => {
   } else {
     if (unlocked) {
       const selectedTool = cameraManager.getMode();
+      const localPlayer = metaversefileApi.useLocalPlayer();
       if (selectedTool === 'firstperson') {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (/*selectedTool === 'thirdperson'*/appManager.aimed || !!appManager.grabbedObjects[0]) {
+      } else if (localPlayer.aimed || !!localPlayer.grabs[0]) {
+        // console.log('yes', localPlayer.aimed, localPlayer.grabs[0]);
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);

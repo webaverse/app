@@ -4,7 +4,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
-import {appManager, getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
+import {getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import controlsManager from './controls-manager.js';
@@ -679,7 +679,7 @@ class RigManager {
 
       const useTime = physicsManager.getUseTime();
       for (let i = 0; i < 2; i++) {
-        this.localRig.setHandEnabled(i, !!session || (useTime === -1 && !!appManager.equippedObjects[i]));
+        this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
       }
       this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
       this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
@@ -691,14 +691,10 @@ class RigManager {
       this.localRig.flyTime = physicsManager.getFlyTime();
       this.localRig.useTime = useTime;
       const useAnimation = (() => {
-        if (appManager.equippedObjects[0]) {
-          const components = appManager.equippedObjects[0].getComponents();
-          const useComponent = components.find(c => c.type === 'use');
-          if (useComponent) {
-            return useComponent.useAnimation || null;
-          } else {
-            return null;
-          }
+        const localPlayer = metaversefile.useLocalPlayer();
+        const useAction = localPlayer.actions.find(action => action.type === 'use');
+        if (useAction) {
+          return useAction.animation || null;
         } else {
           return null;
         }

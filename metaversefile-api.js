@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {App, getRenderer, scene, sceneHighPriority, camera, appManager} from './app-object.js';
+import {App, getRenderer, scene, sceneHighPriority, camera} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
@@ -35,6 +35,11 @@ class LocalPlayer {
       this.leftHand,
       this.rightHand,
     ];
+    // this.playerId = 'Anonymous';
+    this.aimed = false;
+    this.grabs = [];
+    this.wearables = [];
+    this.actions = [];
   }
   lookAt(p) {
     this.quaternion.setFromRotationMatrix(
@@ -85,38 +90,6 @@ const teleportTo = (() => {
   };
 })();
 const localPlayer = new LocalPlayer();
-const lastLocalPlayerPosition = localPlayer.position.clone();
-const lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
-appManager.addEventListener('preframe', e => {
-  if (
-    !localPlayer.position.equals(lastLocalPlayerPosition) ||
-    !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
-  ) {
-    teleportTo(localPlayer.position, localPlayer.quaternion, {
-      relation: 'head',
-    });
-  }
-});
-appManager.addEventListener('startframe', e => {
-  if (rigManager.localRig) {
-    localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
-    localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
-    localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-    localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-    localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
-    localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
-  } else {
-    localPlayer.position.set(0, 0, 0);
-    localPlayer.quaternion.set(0, 0, 0, 1);
-    localPlayer.leftHand.position.set(0, 0, 0);
-    localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
-    localPlayer.rightHand.position.set(0, 0, 0);
-    localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
-  }
-  
-  lastLocalPlayerPosition.copy(localPlayer.position);
-  lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
-});
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -276,9 +249,9 @@ metaversefile.setApi({
       const frame = e => {
         fn(e.data);
       };
-      appManager.addEventListener('frame', frame);
+      world.appManager.addEventListener('frame', frame);
       app.addEventListener('destroy', () => {
-        appManager.removeEventListener('frame', frame);
+        world.appManager.removeEventListener('frame', frame);
       });
     } else {
       throw new Error('useFrame cannot be called outside of render()');
@@ -443,7 +416,7 @@ metaversefile.setApi({
     return apps.filter(app => app.components.some(component => r.test(component.type)));
   },
   createApp({name = '', start_url = '', type = '', components = [], in_front = false} = {}) {
-    const app = appManager.createApp(appManager.getNextAppId());
+    const app = world.appManager.createApp(world.appManager.getNextAppId());
     app.name = name;
     app.type = type;
     app.components = components;
@@ -565,7 +538,7 @@ export default () => {
       // o.contentId = contentId;
       o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
-        appManager.destroyApp(app.appId);
+        world.appManager.destroyApp(app.appId);
         
         (async () => {
           const roots = ReactThreeFiber._roots;
@@ -598,7 +571,7 @@ export default () => {
       const sizeVector = renderer.getSize(localVector2D);
       const rootDiv = document.createElement('div');
       let rtfScene = null;
-      appManager.addEventListener('frame', e => {
+      world.appManager.addEventListener('frame', e => {
         const renderer2 = Object.create(renderer);
         renderer2.render = () => {
           // nothing
@@ -673,13 +646,13 @@ export default () => {
       return app;
     } else if (renderSpec === null || renderSpec === undefined) {
       // console.log('destroy app', app);
-      appManager.destroyApp(app.appId);
+      world.appManager.destroyApp(app.appId);
       return null;
     } else if (renderSpec === true) {
       // console.log('background app', app);
       return null;
     } else {
-      appManager.destroyApp(app.appId);
+      world.appManager.destroyApp(app.appId);
       console.warn('unknown renderSpec:', renderSpec);
       throw new Error('unknown renderSpec');
     }

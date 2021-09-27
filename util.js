@@ -97,51 +97,6 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
   inputFileEl.addEventListener('change', change);
 }
 
-// returns whether we actually snapped
-export function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, appManager, geometryManager, gridSnap}) {
-  grabMatrix.decompose(localVector, localQuaternion, localVector2);
-  offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
-  const offset = localVector3.length();
-  localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
-    .decompose(localVector5, localQuaternion3, localVector6);
-
-  const grabbedObject = appManager.grabbedObjects[0];
-  const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
-  for (const physicsId of grabbedPhysicsIds) {
-    geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-  }
-
-  let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
-  if (collision) {
-    const {point} = collision;
-    o.position.fromArray(point)
-      // .add(localVector2.set(0, 0.01, 0));
-
-    if (o.position.distanceTo(localVector) > offset) {
-      collision = null;
-    }
-  }
-  if (!collision) {
-    o.position.copy(localVector5);
-  }
-
-  for (const physicsId of grabbedPhysicsIds) {
-    geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-  }
-
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
-  if (handSnap) {
-    snapPosition(o, gridSnap);
-    o.quaternion.setFromEuler(o.savedRotation);
-  } else {
-    o.quaternion.copy(localQuaternion3);
-  }
-
-  return {
-    handSnap,
-  };
-}
-
 export function snapPosition(o, positionSnap) {
   if (positionSnap > 0) {
     o.position.x = Math.round((o.position.x + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;

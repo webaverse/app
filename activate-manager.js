@@ -3,9 +3,8 @@ import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {activateMaterial} from './shaders.js';
-import {scene, appManager} from './app-object.js';
+import {scene} from './app-object.js';
 import metaversefileApi from './metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
 
 const localVector = new THREE.Vector3();
 
@@ -69,7 +68,7 @@ const update = () => {
     }
   }
   
-  const {position, quaternion} = useLocalPlayer();
+  const {position, quaternion} = metaversefileApi.useLocalPlayer();
   cylinderMesh.position.copy(position)
     .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
   cylinderMesh.quaternion.copy(quaternion);
