@@ -468,7 +468,7 @@ const _click = () => {
     _ungrab();
   } else {
     // console.log('got click 4', !!highlightedPhysicsObject);
-    if (highlightedPhysicsObject && world.getObjects().includes(highlightedPhysicsObject) && !highlightedPhysicsObject.getComponent('locked')) {
+    if (highlightedPhysicsObject && world.getObjects().includes(highlightedPhysicsObject)) {
       _grab(highlightedPhysicsObject);
       // _updateMenu();
     }
@@ -1303,8 +1303,8 @@ const _updateWeapons = () => {
       highlightPhysicsMesh.scale.copy(physicsTransform.scale);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      const locked = highlightedPhysicsObject.getComponent('locked');
-      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(locked ? 0xCCCCCC : buildMaterial.uniforms.uColor.value.getHex());
+      const unlocked = world.getObjects().includes(highlightedPhysicsObject);
+      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(unlocked ? buildMaterial.uniforms.uColor.value.getHex() : 0xCCCCCC);
       highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
     }
