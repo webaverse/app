@@ -124,7 +124,7 @@ const stopUse = () => {
 };
 physicsManager.stopUse = stopUse;
 
-let danceState = null;
+/* let danceState = null;
 let danceTime = 0;
 const getDanceState = () => danceState;
 physicsManager.getDanceState = getDanceState;
@@ -136,7 +136,7 @@ const setDanceState = newDanceState => {
     danceTime = 0;
   }
 };
-physicsManager.setDanceState = setDanceState;
+physicsManager.setDanceState = setDanceState; */
 
 let throwState = null;
 let throwTime = 0;
@@ -523,14 +523,16 @@ const _copyPQS = (dst, src) => {
   dst.scale.copy(src.scale);
 };
 const _updatePhysics = timeDiff => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
   if (jumpState) {
     jumpTime += timeDiff;
   }
   if (flyState) {
     flyTime += timeDiff;
   }
-  if (danceState) {
-    danceTime += timeDiff;
+  const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+  if (danceAction) {
+    danceAction.time += timeDiff;
   }
   if (throwState) {
     throwTime += timeDiff;

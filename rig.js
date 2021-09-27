@@ -729,18 +729,17 @@ class RigManager {
         sitAnimation = null;
         physicsManager.setDamping();
       }
-      const danceState = !!physicsManager.getDanceState();
-      const danceTime = physicsManager.getDanceTime();
-      const danceAnimation = physicsManager.getDanceState();
+      const localPlayer = metaversefile.useLocalPlayer();
+      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
       const throwState = physicsManager.getThrowState();
       const throwTime = physicsManager.getThrowTime();
       const crouchState = physicsManager.getCrouchState();
       const crouchTime = physicsManager.getCrouchTime();
       rigManager.localRig.sitState = sitState;
       rigManager.localRig.sitAnimation = sitAnimation;
-      rigManager.localRig.danceState = danceState;
-      rigManager.localRig.danceTime = danceTime;
-      rigManager.localRig.danceAnimation = danceAnimation;
+      rigManager.localRig.danceState = !!danceAction;
+      rigManager.localRig.danceTime = danceAction ? danceAction.time : 0;
+      rigManager.localRig.danceAnimation = danceAction ? 'dansu' : '';
       rigManager.localRig.throwState = throwState;
       rigManager.localRig.throwTime = throwTime;
       rigManager.localRig.crouchState = crouchState;

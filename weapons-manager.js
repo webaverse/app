@@ -2865,11 +2865,25 @@ const weaponsManager = {
     if (appManager.grabbedObjects[0]) {
       this.menuGridSnap();
     } else {
-      physicsManager.setDanceState('dansu');
+      // physicsManager.setDanceState('dansu');
+      const localPlayer = useLocalPlayer();
+      let action = localPlayer.actions.find(action => action.type === 'dansu');
+      if (!action) {
+        action = {
+          type: 'dansu',
+          time: 0,
+        };
+        localPlayer.actions.push(action);
+      }
     }
   },
   menuVUp(e) {
-    physicsManager.setDanceState(null);
+    // physicsManager.setDanceState(null);
+    const localPlayer = useLocalPlayer();
+    const actionIndex = localPlayer.actions.findIndex(action => action.type === 'dansu');
+    if (actionIndex !== -1) {
+      localPlayer.actions.splice(actionIndex, 1);
+    }
   },
   menuBDown(e) {
     if (e.ctrlKey) {
