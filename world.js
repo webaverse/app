@@ -122,7 +122,9 @@ world.enableMic = async () => {
   if (wsrtc) {
     wsrtc.enableMic(mediaStream);
   }
-  rigManager.setLocalMicMediaStream(mediaStream);
+  rigManager.setLocalMicMediaStream(mediaStream, {
+    audioContext: WSRTC.getAudioContext(),
+  });
 };
 world.disableMic = () => {
   if (mediaStream) {
