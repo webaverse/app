@@ -568,7 +568,7 @@ const _handleUpload = async (item, transform = null) => {
         console.log('got j', j);
         const {traits} = j;
         // cryptovoxels wearables
-        const voxTrait = traits.find(t => t.trait_type === 'vox');
+        const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
         if (voxTrait) {
           const {value} = voxTrait;
           u = _proxifyUrl(value) + '?type=vox';
@@ -584,7 +584,7 @@ const _handleUpload = async (item, transform = null) => {
           // dcl wearables
           if (j2.id?.startsWith('urn:decentraland:')) {
             // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, {
+            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
               mode: 'cors',
             });
             const j3 = await res.json();
@@ -872,7 +872,7 @@ const wearBoneMapping = {
 };
 const nop = () => {};
 const wearableScale = 1;
-appManager.addEventListener('wearupdate', e => {
+appManager.addEventListener('wearupdate', e => { // XXX move handling to metaversefile vrm loader
   const {app, wearSpec} = e.data;
   if (wearSpec.boneAttachment === 'chest' && app.glb) {
     let skinnedMesh = null;
