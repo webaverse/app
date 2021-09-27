@@ -32,6 +32,18 @@ const objects = {
   dynamic: [],
 };
 const _getObjects = (dynamic) => objects[dynamic ? 'dynamic' : 'static'];
+const _swapState = () => {
+  {
+    const {static: _static, dynamic} = states;
+    states.static = dynamic;
+    states.dynamic = _static;
+  }
+  {
+    const {static: _static, dynamic} = objects;
+    objects.static = dynamic;
+    objects.dynamic = _static;
+  }
+};
 
 // multiplayer
 let wsrtc = null;
@@ -46,7 +58,6 @@ const _getOrCreateTrackedObject = (name, dynamic) => {
 
   return state.getMap('objects.' + name);
 };
-
 const _bindState = (state, dynamic) => {
   const objects = state.getArray('objects');
   let lastObjects = [];
@@ -122,13 +133,71 @@ world.disableMic = () => {
 };
 
 world.isConnected = () => !!wsrtc;
+/* const _lockAllObjects = (lock = true) => {
+  const state = _getState(true);
+  // console.log('log transact 1');
+  state.transact(() => {
+    const objects = state.getArray('objects');
+    const objectsJson = objects.toJSON();
+    // console.log('log transact 1.1', objectsJson.length);
+    for (const name of objectsJson) {
+      const map = state.getMap('objects.' + name);
+      if (lock) {
+        map.set('locked', true);
+      } else {
+        map.delete('locked');
+      }
+    }
+  });
+}; */
+world.reset = () => {
+  const state = _getState(true);
+  state.transact(() => {
+    const objects = state.getArray('objects');
+    const objectsJson = objects.toJSON();
+    for (const instanceId of objectsJson) {
+      const trackedObject = state.getMap('objects.' + instanceId);
+      const originalJsonString = trackedObject.get('originalJson');
+      const originalJson = JSON.parse(originalJsonString);
+      
+      const previousKeys = Array.from(trackedObject.keys());
+      for (const key of previousKeys) {
+        const value = originalJson[key];
+        const oldValue = trackedObject.get(key);
+        if (value !== undefined) {
+          if (trackedObject.get(key) !== value) {
+            trackedObject.set(key, value);
+          }
+        } else {
+          trackedObject.delete(key);
+        }
+      }
+      for (const key in originalJson) {
+        if (!previousKeys.includes(key)) {
+          const value = originalJson[key];
+          if (trackedObject.get(key) !== value) {
+            trackedObject.set(key, value);
+          }
+        }
+      }
+      trackedObject.set('originalJson', originalJsonString);
+    }
+  });
+};
 world.connectRoom = async (worldURL) => {
-  console.log('connect room 1');
+  // console.log('connect room 1');
   await didInteract;
-  console.log('connect room 2');
+  // console.log('connect room 2');
   await WSRTC.waitForReady();
+
+  // reset the world to initial state
+  world.reset();
+  // swap out dynamic state to static (locked)
+  _swapState();
   
-  console.log('connect room 3');
+  // console.log('connect room 3');
+
+  // _lockAllObjects();
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
   if (mediaStream) {
@@ -284,6 +353,11 @@ world.disconnectRoom = () => {
   if (wsrtc) {
     wsrtc.close();
     wsrtc = null;
+    
+    // remove dynamic objects
+    world.clear();
+    // swap static objects back in
+    _swapState();
 
     /* const localObjects = objects.objects.dynamic.slice();
     for (const object of localObjects) {
