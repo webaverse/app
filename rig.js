@@ -376,8 +376,8 @@ class RigManager {
     oldPeerRig.aux.setPose(aux);
   }
   
-  setLocalMicMediaStream(mediaStream) {
-    this.localRig.setMicrophoneMediaStream(mediaStream);
+  setLocalMicMediaStream(mediaStream, options) {
+    this.localRig.setMicrophoneMediaStream(mediaStream, options);
   }
 
   setPeerMicMediaStream(mediaStream, peerId) {
