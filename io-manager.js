@@ -164,10 +164,10 @@ const _updateIo = timeDiff => {
           if (
             buttons[3] >= 0.5 && ioManager.lastButtons[index][3] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !physicsManager.getJumpState() &&
-            !physicsManager.getSitState()
+            !weaponsManager.isJumping() &&
+            !weaponsManager.isSitting()
           ) {
-            physicsManager.jump();
+            weaponsManager.jump();
           }
         }
 
@@ -187,8 +187,8 @@ const _updateIo = timeDiff => {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
     
-    const flyState = physicsManager.getFlyState();
-    if (flyState) {
+    const isFlying = weaponsManager.isFlying();
+    if (isFlying) {
       direction.applyQuaternion(camera.quaternion);
       
       _updateVertical(direction);
@@ -199,21 +199,22 @@ const _updateIo = timeDiff => {
       direction.applyEuler(cameraEuler);
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
-        physicsManager.setCrouchState(!physicsManager.getCrouchState());
+        weaponsManager.toggleCrouch();
+        // physicsManager.setCrouchState(!physicsManager.getCrouchState());
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !physicsManager.getCrouchState()) ? 3 : 1;
+      const sprintMultiplier = (ioManager.keys.shift && !weaponsManager.isCrouched()) ? 3 : 1;
       const speed = weaponsManager.getSpeed() * sprintMultiplier;
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
       physicsManager.velocity.add(localVector);
 
-      if (physicsManager.getJumpState()) {
+      if (weaponsManager.isJumping()) {
         physicsManager.velocity.x *= 0.7;
         physicsManager.velocity.z *= 0.7;
-        if (flyState) {
+        if (isFlying) {
           physicsManager.velocity.y *= 0.7;
         }
       }
@@ -336,7 +337,7 @@ ioManager.keydown = e => {
         if (weaponsManager.canJumpOff()) {
           weaponsManager.jumpOff();
         }
-        physicsManager.setFlyState(!physicsManager.getFlyState());
+        weaponsManager.toggleFly();
       }
       break;
     }
@@ -445,14 +446,14 @@ ioManager.keydown = e => {
     case 32: { // space
       ioManager.keys.space = true;
       if (controlsManager.isPossessed()) {
-        if (!physicsManager.getJumpState()) {
+        if (!weaponsManager.isJumping()) {
           if (weaponsManager.canJumpOff()) {
             weaponsManager.jumpOff();
           }
-          physicsManager.jump();
-        } else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
-        }
+          weaponsManager.jump();
+        } /* else {
+          physicsManager.setGlide(!physicsManager.getGlideState() && !weaponsManager.isFlying());
+        } */
       }
       break;
     }

@@ -32,7 +32,7 @@ physicsManager.velocity = velocity;
 const offset = new THREE.Vector3();
 physicsManager.offset = offset;
 
-let jumpState = false;
+/* let jumpState = false;
 let jumpTime = -1;
 const getJumpState = () => jumpState;
 physicsManager.getJumpState = getJumpState;
@@ -82,7 +82,7 @@ physicsManager.getSitState = getSitState;
 const setSitState = newSitState => {
   sitState = newSitState;
 };
-physicsManager.setSitState = setSitState;
+physicsManager.setSitState = setSitState; */
 
 let damping;
 const setDamping = (newDamping = 0.7) => {
@@ -112,7 +112,7 @@ const setSitController = newSitController => {
 };
 physicsManager.setSitController = setSitController;
 
-let useTime = -1;
+/* let useTime = -1;
 const getUseTime = () => useTime;
 physicsManager.getUseTime = getUseTime;
 const startUse = () => {
@@ -124,7 +124,7 @@ const stopUse = () => {
 };
 physicsManager.stopUse = stopUse;
 
-/* let danceState = null;
+let danceState = null;
 let danceTime = 0;
 const getDanceState = () => danceState;
 physicsManager.getDanceState = getDanceState;
@@ -136,7 +136,7 @@ const setDanceState = newDanceState => {
     danceTime = 0;
   }
 };
-physicsManager.setDanceState = setDanceState; */
+physicsManager.setDanceState = setDanceState;
 
 let throwState = null;
 let throwTime = 0;
@@ -161,7 +161,7 @@ physicsManager.getCrouchTime = getCrouchTime;
 physicsManager.setCrouchState = newCrouchState => {
   crouchState = newCrouchState;
   crouchTime = 0;
-};
+}; */
 
 const physicsObjects = {};
 const physicsUpdates = [];
@@ -300,14 +300,16 @@ physicsManager.animals = animals; */
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
   let gliding;
-  if (flyState) {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const isFlying = localPlayer.actions.some(action => action.type === 'fly');
+  if (isFlying) {
     physicsManager.velocity.multiplyScalar(0.9);
     gliding = false;
   } else {
     localVector.copy(gravity)
       .multiplyScalar(timeDiff);
 
-    if (glideState && physicsManager.velocity.y < 0) {
+    /* if (glideState && physicsManager.velocity.y < 0) {
       const transforms = rigManager.getRigTransforms();
 
       localVector
@@ -320,13 +322,13 @@ const _applyGravity = timeDiff => {
         );
       physicsManager.velocity.y *= 0.95;
       gliding = true;
-    } else {
+    } else { */
       gliding = false;
-    }
+    // }
     physicsManager.velocity.add(localVector);
   }
   
-  if (!jumpState || gliding) {
+  if (!localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
     physicsManager.velocity.x *= damping;
     physicsManager.velocity.z *= damping;
   }
@@ -348,12 +350,22 @@ const _getAvatarWorldObject = o => {
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
 const crouchMaxTime = 200;
-const getAvatarCrouchFactor = () => Math.min(Math.max(crouchTime, 0), crouchMaxTime) / crouchMaxTime;
+const getAvatarCrouchFactor = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+  if (crouchAction) {
+    return Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
+  } else {
+    return 1;
+  }
+};
 const getAvatarHeight = () => {
   if (rigManager.localRig) {
     const f = getAvatarCrouchFactor();
     let startValue, endValue;
-    if (crouchState) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const isCrouched = localPlayer.actions.some(action => action.type === 'crouch');
+    if (isCrouched) {
       startValue = rigManager.localRig.height;
       endValue = rigManager.localRig.height * 0.6;
     } else {
@@ -389,7 +401,8 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   physicsManager.offset.setScalar(0);
 
   // capsule physics
-  if (!sitState) {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (!localPlayer.actions.some(action => action.type === 'sit')) {
     applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
     camera.updateMatrixWorld();
@@ -405,22 +418,36 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
     }
 
+    const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
+    const _ensureJumpAction = () => {
+      if (jumpActionIndex === -1) {
+        const jumpAction = {
+          type: 'jump',
+          time: 0,
+        };
+        localPlayer.actions.push(jumpAction);
+      } else {
+        const jumpAction = localPlayer.actions[jumpActionIndex];
+        jumpAction.time = 0;
+      }
+    };
+    const _ensureNoJumpAction = () => {
+      if (jumpActionIndex !== -1) {
+        localPlayer.actions.splice(jumpActionIndex, 1);
+      }
+    };
     if (collision) {
       localVector4.fromArray(collision.direction);
       camera.position.add(localVector4);
       localVector.add(localVector4);
       if (collision.grounded) {
         physicsManager.velocity.y = 0;
-        jumpState = false;
-        jumpTime = -1;
-        glideState = false;
-      } else if (!jumpState) {
-        jumpState = true;
-        jumpTime = 0;
+        _ensureNoJumpAction();
+      } else if (jumpActionIndex === -1) {
+        _ensureJumpAction();
       }
-    } else if (!jumpState && physicsManager.velocity.y < -4) {
-      jumpState = true;
-      jumpTime = 0;
+    } else if (jumpActionIndex == -1 && physicsManager.velocity.y < -4) {
+      _ensureJumpAction();
     }
   } else {
     physicsManager.velocity.y = 0;
@@ -448,15 +475,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
-  // use animation
-  if (useTime !== -1) {
-    useTime += timeDiff * 1000;
-  }
-
   // apply
   rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
   if (rigManager.localRig) {
-    if (jumpState) {
+    if (localPlayer.actions.some(action => action.type === 'jump')) {
       rigManager.localRig.setFloorHeight(-0xFFFFFF);
     } else {
       rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
@@ -524,20 +546,39 @@ const _copyPQS = (dst, src) => {
 };
 const _updatePhysics = timeDiff => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  if (jumpState) {
-    jumpTime += timeDiff;
+  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+  if (jumpAction) {
+    jumpAction.time += timeDiff;
   }
-  if (flyState) {
-    flyTime += timeDiff;
+  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+  if (flyAction) {
+    flyAction.time += timeDiff;
   }
   const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
   if (danceAction) {
     danceAction.time += timeDiff;
   }
-  if (throwState) {
-    throwTime += timeDiff;
+  const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+  if (throwAction) {
+    throwAction.time += timeDiff;
   }
-  crouchTime += timeDiff;
+  const useAction = localPlayer.actions.find(action => action.type === 'use');
+  if (useAction) {
+    useAction.time += timeDiff;
+  }
+  const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+  if (crouchActionIndex !== -1) {
+    const crouchAction = localPlayer.actions[crouchActionIndex];
+    if (crouchAction.direction === 'down') {
+      crouchAction.time += timeDiff;
+      crouchAction.time = Math.min(crouchAction.time, crouchMaxTime);
+    } else if (crouchAction.direction === 'up') {
+      crouchAction.time -= timeDiff;
+      if (crouchAction.time < 0) {
+        localPlayer.actions.splice(crouchActionIndex, 1);
+      }
+    }
+  }
 
   timeDiff /= 1000; // XXX
 

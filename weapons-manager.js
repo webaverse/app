@@ -1559,7 +1559,10 @@ const _updateWeapons = () => {
   _handleUseAnimation(); */
   
   const _handleThrowDrop = () => {
-    if (!droppedThrow && physicsManager.getThrowState() && physicsManager.getThrowTime() > 800) {
+    const localPlayer = useLocalPlayer();
+    const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+    const throwTime = throwAction ? throwAction.time : 0;
+    if (!droppedThrow && throwTime > 800) {
       const {leftHand: {quaternion}} = useLocalPlayer();
       dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
         type: 'fruit',
@@ -2871,6 +2874,7 @@ const weaponsManager = {
       if (!action) {
         action = {
           type: 'dansu',
+          animation: 'dansu',
           time: 0,
         };
         localPlayer.actions.push(action);
@@ -2910,6 +2914,53 @@ const weaponsManager = {
       _updateMenu();
     }
   }, */
+  isFlying() {
+    return useLocalPlayer().actions.some(action => action.type === 'fly');
+  },
+  toggleFly() {
+    const localPlayer = useLocalPlayer();
+    let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
+    if (flyActionIndex !== -1) {
+      localPlayer.actions.splice(flyActionIndex, 1);
+      
+      if (!weaponsManager.isJumping()) {
+        weaponsManager.ensureJump();
+      }
+    } else {
+      const flyAction = {
+        type: 'fly',
+        time: 0,
+      };
+      localPlayer.actions.push(flyAction);
+      
+      if (weaponsManager.isJumping()) {
+        const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
+        localPlayer.actions.splice(jumpActionIndex, 1);
+      }
+      if (weaponsManager.isCrouched()) {
+        const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+        localPlayer.actions.splice(crouchActionIndex, 1);
+      }
+    }
+  },
+  isCrouched() {
+    return useLocalPlayer().actions.some(action => action.type === 'crouch');
+  },
+  toggleCrouch() {
+    const localPlayer = useLocalPlayer();
+    let crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+    if (crouchActionIndex !== -1) {
+      const crouchAction = localPlayer.actions[crouchActionIndex];
+      crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down';
+    } else {
+      const crouchAction = {
+        type: 'crouch',
+        direction: 'down',
+        time: 0,
+      };
+      localPlayer.actions.push(crouchAction);
+    }
+  },
   async destroyWorld() {
     if (highlightedWorld) {
       const {name} = highlightedWorld;
@@ -2972,6 +3023,24 @@ const weaponsManager = {
   setBuildMode(mode) {
     editedObject.setMode(mode);
   },
+  isJumping() {
+    return useLocalPlayer().actions.some(action => action.type === 'jump');
+  },
+  ensureJump() {
+    const localPlayer = useLocalPlayer();
+    let jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+    if (!jumpAction) {
+      jumpAction = {
+        type: 'jump',
+        time: 0,
+      };
+      localPlayer.actions.push(jumpAction);
+    }
+  },
+  jump() {
+    this.ensureJump();
+    physicsManager.velocity.y += 5;
+  },
   canJumpOff() {
     return rigManager.localRig ? (
       rigManager.localRig.aux?.sittables.length > 0
@@ -2981,6 +3050,9 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
+  },
+  isSitting() {
+    return useLocalPlayer().actions.some(action => action.type === 'sit');
   },
   getMouseHoverObject() {
     return mouseHoverObject;
@@ -3014,12 +3086,13 @@ const weaponsManager = {
     const defaultSpeed = 0.1;
     const defaultCrouchSpeed = 0.06;
     const sittable = rigManager?.localRig?.aux?.sittables[0];
+    const localPlayer = useLocalPlayer();
     if (sittable && !!sittable.model) {
       const {componentIndex} = sittable;
       const component = sittable.model.getComponents()[componentIndex];
       const {speed = defaultSpeed} = component;
       return speed;
-    } else if (physicsManager.getCrouchState()) {
+    } else if (localPlayer.actions.some(action => action.type === 'crouch')) {
       return defaultCrouchSpeed;
     } else {
       return defaultSpeed;
