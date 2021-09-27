@@ -295,6 +295,18 @@ world.disconnectRoom = () => {
   }
   return wsrtc;
 };
+world.clear = (predicate = () => false) => {
+  /* const staticObjects = world.getStaticObjects();
+  for (const object of staticObjects) {
+    world.removeStaticObject(object.instanceId);
+  } */
+  const objects = world.getObjects();
+  for (const object of objects) {
+    if (predicate(object)) {
+      world.removeObject(object.instanceId);
+    }
+  }
+};
 
 world.initializeIfEmpty = spec => {
   console.log('initialize if empty', spec); // XXX
