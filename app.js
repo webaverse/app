@@ -440,37 +440,37 @@ export default class App extends EventTarget {
 
         const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
         if (!leftGamepadPosition) {
-          if (!physicsManager.getGlideState()) {
+          // if (!physicsManager.getGlideState()) {
             leftGamepadPosition = localVector2.copy(localVector)
               .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
               .toArray();
             leftGamepadQuaternion = localQuaternion.toArray();
-          } else {
+          /* } else {
             leftGamepadPosition = localVector2.copy(localVector)
               .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
               .toArray();
             leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
               .premultiply(leftHandGlideQuaternion)
               .toArray();
-          }
+          } */
           leftGamepadPointer = 0;
           leftGamepadGrip = 0;
           leftGamepadEnabled = false;
         }
         if (!rightGamepadPosition) {
-          if (!physicsManager.getGlideState()) {
+          // if (!physicsManager.getGlideState()) {
             rightGamepadPosition = localVector2.copy(localVector)
               .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
               .toArray();
             rightGamepadQuaternion = localQuaternion.toArray();
-          } else {
+          /* } else {
             rightGamepadPosition = localVector2.copy(localVector)
               .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
               .toArray();
             rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
               .premultiply(rightHandGlideQuaternion)
               .toArray();
-          }
+          } */
           rightGamepadPointer = 0;
           rightGamepadGrip = 0;
           rightGamepadEnabled = false;

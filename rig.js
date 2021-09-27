@@ -655,6 +655,8 @@ class RigManager {
       const now = Date.now();
       const timeDiff = (now - this.lastTimetamp) / 1000;
       
+      const localPlayer = metaversefile.useLocalPlayer();
+      
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
       let currentPosition, currentQuaternion;
@@ -677,34 +679,32 @@ class RigManager {
       this.smoothVelocity.lerp(positionDiff, 0.5);
       this.lastPosition.copy(currentPosition);
 
-      const useTime = physicsManager.getUseTime();
+      const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+      const jumpTime = jumpAction? jumpAction.time : -1;
+      const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+      const flyTime = flyAction ? flyAction.time : -1;
+      const useAction = localPlayer.actions.find(action => action.type === 'use');
+      const useTime = useAction ? useAction.time : -1;
+      
       for (let i = 0; i < 2; i++) {
         this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
       }
-      this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1) || physicsManager.getGlideState());
+      this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1));
       this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
       this.localRig.direction.copy(positionDiff);
       this.localRig.velocity.copy(this.smoothVelocity);
-      this.localRig.jumpState = physicsManager.getJumpState();
-      this.localRig.jumpTime = physicsManager.getJumpTime();
-      this.localRig.flyState = physicsManager.getFlyState();
-      this.localRig.flyTime = physicsManager.getFlyTime();
+      this.localRig.jumpState = !!jumpAction;
+      this.localRig.jumpTime = jumpTime;
+      this.localRig.flyState = !!flyAction;
+      this.localRig.flyTime = flyTime;
       this.localRig.useTime = useTime;
-      const useAnimation = (() => {
-        const localPlayer = metaversefile.useLocalPlayer();
-        const useAction = localPlayer.actions.find(action => action.type === 'use');
-        if (useAction) {
-          return useAction.animation || null;
-        } else {
-          return null;
-        }
-      })();
+      const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
 
       this.localRig.update(now, timeDiff);
       // this.localRig.aux.update(now, timeDiff);
 
-      let sitState = false; // this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
+      /* let sitState = false; // this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
       let sitAnimation;
       if (sitState) {
         const sittable = this.localRig.aux.sittables[0];
@@ -728,23 +728,26 @@ class RigManager {
       } else {
         sitAnimation = null;
         physicsManager.setDamping();
-      }
-      const localPlayer = metaversefile.useLocalPlayer();
+      } */
+      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
+      const sitAnimation = sitAction ? sitAction.animation : '';
       const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
-      const throwState = physicsManager.getThrowState();
-      const throwTime = physicsManager.getThrowTime();
-      const crouchState = physicsManager.getCrouchState();
-      const crouchTime = physicsManager.getCrouchTime();
-      rigManager.localRig.sitState = sitState;
+      const danceTime = danceAction ? danceAction.time : -1;
+      const danceAnimation = danceAction ? danceAction.animation : '';
+      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+      const throwTime = throwAction ? throwAction.time : -1;
+      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+      const crouchTime = crouchAction ? crouchAction.time : 1000;
+      rigManager.localRig.sitState = !!sitAction;
       rigManager.localRig.sitAnimation = sitAnimation;
       rigManager.localRig.danceState = !!danceAction;
-      rigManager.localRig.danceTime = danceAction ? danceAction.time : 0;
-      rigManager.localRig.danceAnimation = danceAction ? 'dansu' : '';
-      rigManager.localRig.throwState = throwState;
+      rigManager.localRig.danceTime = danceTime;
+      rigManager.localRig.danceAnimation = danceAction;
+      rigManager.localRig.throwState = !!throwAction;
       rigManager.localRig.throwTime = throwTime;
-      rigManager.localRig.crouchState = crouchState;
+      rigManager.localRig.crouchState = !!crouchAction;
       rigManager.localRig.crouchTime = crouchTime;
-      physicsManager.setSitState(sitState);
+      // physicsManager.setSitState(sitState);
 
       this.peerRigs.forEach(rig => {
         rig.update(now, timeDiff);
