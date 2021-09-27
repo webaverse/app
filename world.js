@@ -393,7 +393,7 @@ let pendingAddPromise = null;
 const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
-  state.transact(() => {
+  state.transact(function tx() {
     const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('contentId', contentId);
@@ -401,6 +401,8 @@ const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quat
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('scale', scale.toArray());
     trackedObject.set('components', JSON.stringify(components));
+    const originalJson = trackedObject.toJSON();
+    trackedObject.set('originalJson', JSON.stringify(originalJson));
   });
   if (pendingAddPromise) {
     const result = pendingAddPromise;
