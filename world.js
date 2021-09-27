@@ -515,10 +515,23 @@ world.addEventListener('trackedobjectadd', async e => {
       trackedObject.set('scale', scale.toArray());
     }; */
 
-    const _observe = () => {
-      app.position.fromArray(trackedObject.get('position'));
-      app.quaternion.fromArray(trackedObject.get('quaternion'));
-      app.scale.fromArray(trackedObject.get('scale'));
+    const _observe = e => {
+      if (e.keysChanged.has('position')) {
+        app.position.fromArray(trackedObject.get('position'));
+      }
+      if (e.keysChanged.has('quaternion')) {
+        app.quaternion.fromArray(trackedObject.get('quaternion'));
+      }
+      if (e.keysChanged.has('scale')) {
+        app.scale.fromArray(trackedObject.get('scale'));
+      }
+      /* if (e.keysChanged.has('locked')) {
+        if (e.target.get('locked')) {
+          app.setComponent('locked', true);
+        } else {
+          app.removeComponent('locked');
+        }
+      } */
     };
     trackedObject.observe(_observe);
     trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
