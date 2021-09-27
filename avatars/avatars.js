@@ -534,7 +534,7 @@ const _getTailBones = skeleton => {
   return result;
 };
 const _findClosestParentBone = (bone, pred) => {
-  for (; bone; bone = bone.parent) {
+  for (; bone?.isBone; bone = bone.parent) {
     if (pred(bone)) {
       return bone;
     }
@@ -543,7 +543,7 @@ const _findClosestParentBone = (bone, pred) => {
 };
 const _findFurthestParentBone = (bone, pred) => {
   let result = null;
-  for (; bone; bone = bone.parent) {
+  for (; bone?.isBone; bone = bone.parent) {
     if (pred(bone)) {
       result = bone;
     }
