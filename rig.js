@@ -742,7 +742,7 @@ class RigManager {
       rigManager.localRig.sitAnimation = sitAnimation;
       rigManager.localRig.danceState = !!danceAction;
       rigManager.localRig.danceTime = danceTime;
-      rigManager.localRig.danceAnimation = danceAction;
+      rigManager.localRig.danceAnimation = danceAnimation;
       rigManager.localRig.throwState = !!throwAction;
       rigManager.localRig.throwTime = throwTime;
       rigManager.localRig.crouchState = !!crouchAction;
