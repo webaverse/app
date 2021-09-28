@@ -2975,7 +2975,7 @@ const weaponsManager = {
     _selectLoadout(index);
   },
   canToggleAxis() {
-    return !!appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);
+    return false; // !!appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);
   },
   toggleAxis() {
     console.log('toggle axis');
