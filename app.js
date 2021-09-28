@@ -141,7 +141,7 @@ export default class App extends EventTarget {
 
     try {
       await Promise.all([
-        universe.bootstrapFromUrl(urlSpec),
+        // universe.bootstrapFromUrl(urlSpec),
         rigManager.setDefault(),
       ]);
       /* await Promise.all([
