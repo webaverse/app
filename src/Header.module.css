@@ -145,18 +145,24 @@ body {
   font-size: 16px;
 }
 .location .rooms .button {
-  margin: 10px;
   padding: 10px;
   background: linear-gradient(to right, #673ab7, #512da8);
   border-radius: 5px;
   color: #FFF;
   cursor: pointer;
 }
+.location .rooms .button.warning {
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
+}
 .location .rooms .button:hover {
   filter: brightness(0.7);
 }
 .location .rooms .create {
+  padding: 10px;
   margin-right: auto;
+}
+.location .rooms .delete {
+  display: flex;
 }
 .location .input {
   height: 100%;

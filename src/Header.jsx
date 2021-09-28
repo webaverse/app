@@ -37,7 +37,7 @@ const _getCurrentRoom = () => {
 const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
   
-  useEffect(async () => {
+  const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost() + '@worlds/');
     if (res.ok) {
       const rooms = await res.json();
@@ -46,7 +46,8 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
       const text = await res.text();
       console.warn('failed to fetch', res.status, text);
     }
-  }, []);
+  };
+  useEffect(refreshRooms, []);
 
   return (
     <div className={styles.location}>
@@ -86,16 +87,24 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
       {multiplayerOpen ? <div className={styles.rooms}>
         <div className={styles.create}>
           <button className={styles.button} onClick={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+
             const roomName = _makeName();
+            console.log('got room name 0', {roomName}, universe.getWorldsHost() + '@worlds/' + roomName);
             const data = Y.encodeStateAsUpdate(world.getState(true));
             // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
+            console.log('post', universe.getWorldsHost() + '@worlds/' + roomName);
             const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
               method: 'POST',
               body: data,
             });
+            console.log('got room name 1', {roomName});
             if (res.ok) {
-              const j = await res.json();
+              // const j = await res.json();
               // console.log('world create result', j);
+
+              refreshRooms();
               
               universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
               
@@ -123,7 +132,28 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
           }} key={i}>
             <img className={styles.image} src="images/world.jpg" />
             <div className={styles.name}>{room.name}</div>
-            <button className={classnames(styles.button, styles.warning)}>Delete</button>
+            <div className={styles.delete}>
+              <button className={classnames(styles.button, styles.warning)} onClick={async e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const res = await fetch(universe.getWorldsHost() + '@worlds/' + room.name, {
+                  method: 'DELETE'
+                });
+                // console.log('got click 0');
+                if (res.ok) {
+                  /// console.log('got click 1', rooms.indexOf(room));
+                  refreshRooms();
+                  // const newRooms = rooms.slice().splice(rooms.indexOf(room), 1);
+                  // console.log('set rooms', rooms, newRooms);
+                  // setRooms(newRooms);
+                } else {
+                  // console.log('got click 2');
+                  const text = await res.text();
+                  console.warn('failed to fetch', res.status, text);
+                }
+              }}>Delete</button>
+            </div>
           </div>
         ))}
       </div> : null}
