@@ -195,58 +195,25 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
 
   const _doLoad = async () => {
-    // clearWorld(world => world.getComponent('locked'));
     world.clear();
 
+    const promises = [];
+
     let {src, room} = worldSpec;
-    /* {
-      const res = await fetch(src);
-      const homeScn = await res.json();
-      objects = homeScn.objects;
-    } */
-    const promises = [];
-    if (src === undefined) {
-      promises.push(metaversefile.load(homeScnUrl));
-    } else if (src === '') {
-      // nothing
-    } else {
-      promises.push(metaversefile.load(src));
-    }
-    /* {
-      const dynamic = !room;
-      for (const object of objects) {
-        if (object.dynamic) {
-          object.dynamic = dynamic;
-        }
+    if (!room) {
+      if (src === undefined) {
+        promises.push(metaversefile.load(homeScnUrl));
+      } else if (src === '') {
+        // nothing
+      } else {
+        promises.push(metaversefile.load(src));
       }
-    }
-    const promises = [];
-    {
-      const ps = objects.map(async object => {
-        let {start_url, position, quaternion, scale, physics, physics_url, autoScale, autoRun, dynamic} = object;
-        if (position) {
-          position = new THREE.Vector3().fromArray(position);
-        }
-        if (quaternion) {
-          quaternion = new THREE.Quaternion().fromArray(quaternion);
-        }
-        if (scale) {
-          scale = new THREE.Vector3().fromArray(scale);
-        }
-        const o = await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, scale, {
-          physics,
-          physics_url,
-          autoScale,
-        });
-        if (autoRun && o.useAux) {
-          o.useAux(rigManager.localRig.aux);
-        }
-      });
-      promises.push.apply(promises, ps);
-    } */
-    if (room) {
+    } else {
       const p = (async () => {
-        await world.connectRoom(worldUrl);
+        const roomUrl = window.location.protocol + '//' + window.location.host + ':' +
+          ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/' +
+          room;
+        await world.connectRoom(roomUrl);
       })();
       promises.push(p);
     }
@@ -272,15 +239,16 @@ const enterWorld = async worldSpec => {
 
   currentWorld = worldSpec;
 };
-const bootstrapFromUrl = async urlSpec => {
+/* const bootstrapFromUrl = async urlSpec => {
   const q = parseQuery(urlSpec.search);
   if (q.src === undefined) {
     q.src = homeScnUrl;
   }
   await enterWorld(q);
-};
+}; */
 const pushUrl = async u => {
   history.pushState({}, '', u);
+  window.dispatchEvent(new MessageEvent('pushstate'));
   await handleUrlUpdate();
 };
 const handleUrlUpdate = async () => {
@@ -288,16 +256,13 @@ const handleUrlUpdate = async () => {
   // const worldJson = await world.getWorldJson(q);
   await enterWorld(q);
 };
-/* wsaindow.addEventListener('popstate', e => {
-  handleUrlUpdate().catch(console.warn);
-}); */
 
 export {
   bindInterface,
   update,
   // getParcels,
   enterWorld,
-  bootstrapFromUrl,
+  // bootstrapFromUrl,
   pushUrl,
   handleUrlUpdate,
 };
