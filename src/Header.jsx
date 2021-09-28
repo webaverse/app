@@ -29,16 +29,40 @@ const _getCurrentSceneSrc = () => {
   return src;
 };
 
-export default function Header() {
-	// console.log('index 2');
-	
-  const [open, setOpen] = useState(false);
-  const [address, setAddress] = useState(false);
-  const [nfts, setNfts] = useState(null);
-  const [roomName, setRoomName] = useState(_getCurrentSceneSrc());
-  const [connected, setConnected] = useState(false);
-  const [micOn, setMicOn] = useState(false);
-  
+const Location = ({sceneName, roomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+  return (
+    <div className={styles.location}>
+      <div className={styles.row}>
+        <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
+          setSceneName(e.target.value);
+        }} disabled={multiplayerConnected} onKeyDown={e => {
+          // console.log('key down', e);
+          switch (e.which) {
+            case 13: {
+              e.preventDefault();
+              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
+              break;
+            }
+          }
+        }} placeholder="Goto..." />
+        <div className={styles['button-wrap']} onClick={e => {
+          setMultiplayerOpen(!multiplayerOpen);
+        }}>
+          <button className={classnames(styles.button, multiplayerOpen ? null : styles.disabled)}>
+            <img src="images/wifi.svg" />
+          </button>
+        </div>
+        <div className={styles['button-wrap']} onClick={toggleMic}>
+          <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
+            <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
+            <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+const User = ({address, setAddress, open, setOpen}) => {
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
       const addresses = await window.ethereum.request({
@@ -51,6 +75,36 @@ export default function Header() {
       console.warn('no ethereum');
     }
   };
+  
+  return (
+    <div className={styles.user} onClick={async e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (address) {
+        setOpen(!open);
+      } else {
+        await login();
+      }
+    }}>
+      <img src="images/soul.png" className={styles.icon} />
+      <div className={styles.name}>{address || 'Log in'}</div>
+    </div>
+  );
+};
+
+export default function Header() {
+	// console.log('index 2');
+	
+  const [open, setOpen] = useState(false);
+  const [address, setAddress] = useState(false);
+  const [nfts, setNfts] = useState(null);
+  const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
+  const [roomName, setRoomName] = useState(null);
+  const [multiplayerOpen, setMultiplayerOpen] = useState(false);
+  const [multiplayerConnected, setMultiplayerConnected] = useState(false);
+  const [micOn, setMicOn] = useState(false);
+  
   const toggleMic = async e => {
     // console.log('toggle mic');
     if (!world.micEnabled()) {
@@ -94,7 +148,7 @@ export default function Header() {
   useEffect(() => {
     const popstate = e => {
       const src = _getCurrentSceneSrc();
-      setRoomName(src);
+      setSceneName(src);
       
       universe.handleUrlUpdate();
     };
@@ -275,56 +329,21 @@ export default function Header() {
           <a href="/" className={styles.logo}>
 				    <img src="images/arrow-logo.svg" className={styles.image} />
           </a>
-					<div className={styles.room}>
-            <input type="text" className={styles.input} value={roomName} onChange={e => {
-              setRoomName(e.target.value);
-            }} onKeyDown={e => {
-              // console.log('key down', e);
-              switch (e.which) {
-                case 13: {
-                  e.preventDefault();
-                  universe.pushUrl(`/?src=${encodeURIComponent(roomName)}`);
-                  break;
-                }
-              }
-            }} placeholder="Place to do..." />
-            <div className={styles['button-wrap']} onClick={async e => {
-              if (!world.isConnected() && rigManager.localRig) {
-                await world.connectRoom(
-                  window.location.protocol + '//' + window.location.host + ':' +
-                    ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/' +
-                    roomName
-                );
-                setConnected(world.isConnected());
-              } else {
-                world.disconnectRoom();
-                setConnected(false);
-              }
-            }}>
-              <button className={classnames(styles.button, connected ? null : styles.disabled)}>
-                <img src="images/wifi.svg" />
-              </button>
-            </div>
-            <div className={styles['button-wrap']} onClick={toggleMic}>
-              <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
-                <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
-                <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
-              </button>
-            </div>
-          </div>
-					<div className={styles.user} onClick={async e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (address) {
-              setOpen(!open);
-            } else {
-              await login();
-            }
-          }}>
-					  <img src="images/soul.png" className={styles.icon} />
-						<div className={styles.name}>{address || 'Log in'}</div>
-					</div>
+          <Location
+            sceneName={sceneName}
+            roomName={roomName}
+            multiplayerOpen={multiplayerOpen}
+            setMultiplayerOpen={setMultiplayerOpen}
+            multiplayerConnected={multiplayerConnected}
+            micOn={micOn}
+            toggleMic={toggleMic}
+          />
+          <User
+            address={address}
+            setAddress={setAddress}
+            open={open}
+            setOpen={setOpen}
+          />
 				</header>
         
         <section className={classnames(styles.sidebar, open ? styles.open : null)} onClick={e => {

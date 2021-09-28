@@ -107,11 +107,17 @@ body {
 	content: '';
 }
 
-.room {
+.location {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: visible;
+}
+.location .row {
   display: flex;
   height: 100%;
 }
-.room .input {
+.location .input {
   height: 100%;
   width: 300px;
   padding: 10px;
@@ -121,22 +127,22 @@ body {
   font-family: monospace;
   outline: none;
 }
-.room .button-wrap {
+.location .button-wrap {
   position: relative;
   display: flex;
   height: 100%;
   cursor: pointer;
 }
-.room .button-wrap:active .button {
+.location .button-wrap:active .button {
   transform: scale(0.7);
   transition: none;
 }
-.room .button {
+.location .button {
   outline: none;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.room .button,
-.room .button.disabled:hover
+.location .button,
+.location .button.disabled:hover
 {
   display: flex;
   height: 100%;
@@ -144,21 +150,21 @@ body {
   background-color: #9ccc65;
   align-items: center;
 }
-.room .button:hover {
+.location .button:hover {
   background-color: #7cb342;
 } 
-.room .button.disabled {
+.location .button.disabled {
   background-color: #888;
 }
-.room .button img {
+.location .button img {
   width: 30px; 
   height: 30px;
 }
-.room .button:not(.disabled) img {
+.location .button:not(.disabled) img {
   filter: invert(1);
 }
 
-.room .button .hidden {
+.location .button .hidden {
   display: none;
 }
 
