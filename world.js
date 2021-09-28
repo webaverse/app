@@ -523,13 +523,6 @@ world.addEventListener('trackedobjectadd', async e => {
       if (e.keysChanged.has('scale')) {
         app.scale.fromArray(trackedObject.get('scale'));
       }
-      /* if (e.keysChanged.has('locked')) {
-        if (e.target.get('locked')) {
-          app.setComponent('locked', true);
-        } else {
-          app.removeComponent('locked');
-        }
-      } */
     };
     trackedObject.observe(_observe);
     trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
