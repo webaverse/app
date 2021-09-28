@@ -1,8 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-// import Head from 'next/head'
+import Y from '../yjs.js';
 import {Color} from './Color.js';
-// import Image from 'next/image'
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import {rigManager} from '../rig.js'
@@ -20,6 +19,7 @@ const localColor6 = new Color();
 
 // console.log('index 1');
 
+const _makeName = (N = 8) => (Math.random().toString(36)+'00000000000000000').slice(2, N+2);
 const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
@@ -84,7 +84,29 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
         </div>
       </div>
       {multiplayerOpen ? <div className={styles.rooms}>
-        <button className={styles.button}>Create room</button>
+        <button className={styles.button} onClick={async e => {
+          const roomName = _makeName();
+          const data = Y.encodeStateAsUpdate(world.getState(true));
+          // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
+          const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
+            method: 'POST',
+            body: data,
+          });
+          if (res.ok) {
+            const j = await res.json();
+            // console.log('world create result', j);
+            
+            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
+            
+            /* this.parent.sendMessage([
+              MESSAGE.ROOMSTATE,
+              data,
+            ]); */
+          } else {
+            const text = await res.text();
+            console.warn('error creating room', res.status, text);
+          }
+        }}>Create room</button>
         {rooms.map((room, i) => (
           <div className={styles.room} onClick={async e => {
             if (!world.isConnected() && rigManager.localRig) {

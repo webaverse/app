@@ -135,6 +135,8 @@ const update = () => {
     return [];
   }
 }; */
+const getWorldsHost = () => window.location.protocol + '//' + window.location.host + ':' +
+  ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
 const enterWorld = async worldSpec => {
   /* let warpPhysicsId;
   const _pre = () => {
@@ -210,9 +212,7 @@ const enterWorld = async worldSpec => {
       }
     } else {
       const p = (async () => {
-        const roomUrl = window.location.protocol + '//' + window.location.host + ':' +
-          ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/' +
-          room;
+        const roomUrl = getWorldsHost() +  room;
         await world.connectRoom(roomUrl);
       })();
       promises.push(p);
@@ -262,6 +262,7 @@ export {
   update,
   // getParcels,
   enterWorld,
+  getWorldsHost,
   // bootstrapFromUrl,
   pushUrl,
   handleUrlUpdate,
