@@ -137,7 +137,8 @@ body {
 }
 .location .rooms .room .image {
   margin-right: 10px;
-  
+  user-drag: none;
+  -webkit-user-drag: none;
 }
 .location .rooms .room .name {
   font-size: 16px;
