@@ -128,6 +128,7 @@ export default function Header() {
       // console.log('pointer lock change', e);
       if (document.pointerLockElement) {
         setOpen(false);
+        setMultiplayerOpen(false);
       }
     };
     window.addEventListener('pointerlockchange', pointerlockchange);
