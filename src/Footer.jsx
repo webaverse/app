@@ -14,7 +14,7 @@ export default () => {
               items[i] = (
                 <div className={styles.item} key={i}>
                   <div className={styles.box}></div>
-                  <div className={styles.label}>{i}</div>
+                  <div className={styles.label}>{i+1}</div>
                 </div>
               );
             }
