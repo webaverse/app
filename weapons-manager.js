@@ -2901,7 +2901,7 @@ const weaponsManager = {
     } */
   },
   menuBUp() {
-    physicsManager.setThrowState(null);
+    // physicsManager.setThrowState(null);
   },
   /* setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
