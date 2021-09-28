@@ -139,23 +139,6 @@ world.disableMic = () => {
 };
 
 world.isConnected = () => !!wsrtc;
-/* const _lockAllObjects = (lock = true) => {
-  const state = _getState(true);
-  // console.log('log transact 1');
-  state.transact(() => {
-    const objects = state.getArray('objects');
-    const objectsJson = objects.toJSON();
-    // console.log('log transact 1.1', objectsJson.length);
-    for (const name of objectsJson) {
-      const map = state.getMap('objects.' + name);
-      if (lock) {
-        map.set('locked', true);
-      } else {
-        map.delete('locked');
-      }
-    }
-  });
-}; */
 world.reset = () => {
   const state = _getState(true);
   state.transact(() => {
@@ -192,16 +175,17 @@ world.reset = () => {
 };
 world.connectRoom = async (worldURL) => {
   // console.log('connect room 1');
-  await didInteract;
+  // await didInteract;
 
   await WSRTC.waitForReady();
 
-  // reset the world to initial state
+  /* // reset the world to initial state
   world.reset();
   // swap out dynamic state to static (locked)
-  _swapState();
+  _swapState(); */
   
-  // console.log('connect room 3');
+  // clear the world
+  world.clear();
 
   // _lockAllObjects();
 
@@ -210,75 +194,80 @@ world.connectRoom = async (worldURL) => {
     wsrtc.enableMic(mediaStream);
   }
 
-  let interval;
-
   const sendUpdate = () => {
     const rig = rigManager.localRig;
-    const {hmd, leftGamepad, rightGamepad} = rig.inputs;
-    const user = wsrtc.localUser;
-    
-    hmd.position.toArray(user.pose.position);
-    hmd.quaternion.toArray(user.pose.quaternion);
-    leftGamepad.position.toArray(extra.leftGamepadPosition);
-    leftGamepad.quaternion.toArray(extra.leftGamepadQuaternion);
-    extra.leftGamepad[0] = leftGamepad.pointer ? 1 : 0;
-    extra.leftGamepad[1] = leftGamepad.grip ? 1 : 0;
-    extra.leftGamepad[2] = leftGamepad.enabled ? 1 : 0;
-    rightGamepad.position.toArray(extra.rightGamepadPosition);
-    rightGamepad.quaternion.toArray(extra.rightGamepadPosition);
-    extra.rightGamepad[0] = rightGamepad.pointer ? 1 : 0;
-    extra.rightGamepad[1] = rightGamepad.grip ? 1 : 0;
-    extra.rightGamepad[2] = rightGamepad.enabled ? 1 : 0;
-    extra.attr[0] = rig.getFloorHeight() ? 1 : 0;
-    extra.attr[1] = rig.getTopEnabled() ? 1 : 0;
-    extra.attr[2] = rig.getBottomEnabled() ? 1 : 0;
-    rig.direction.toArray(extra.direction);
-    rig.velocity.toArray(extra.velocity);
-    extra.states[0] = rig.jumpState,
-    extra.states[1] = rig.jumpTime;
-    extra.states[2] = rig.flyState;
-    extra.states[3] = rig.flyTime;
-    extra.states[4] = rig.useTime;
-    extra.states[5] = rig.useAnimation;
-    extra.states[6] = rig.sitState;
-    extra.states[7] = rig.sitAnimation;
-    extra.states[8] = rig.danceState;
-    extra.states[9] = rig.danceTime;
-    extra.states[10] = rig.danceAnimation;
-    extra.states[11] = rig.throwState;
-    extra.states[12] = rig.throwTime;
-    extra.states[13] = rig.crouchState;
-    extra.states[14] = rig.crouchTime;
+    if (rig) {
+      const {hmd, leftGamepad, rightGamepad} = rig.inputs;
+      const user = wsrtc.localUser;
+      
+      hmd.position.toArray(user.pose.position);
+      hmd.quaternion.toArray(user.pose.quaternion);
+      leftGamepad.position.toArray(extra.leftGamepadPosition);
+      leftGamepad.quaternion.toArray(extra.leftGamepadQuaternion);
+      extra.leftGamepad[0] = leftGamepad.pointer ? 1 : 0;
+      extra.leftGamepad[1] = leftGamepad.grip ? 1 : 0;
+      extra.leftGamepad[2] = leftGamepad.enabled ? 1 : 0;
+      rightGamepad.position.toArray(extra.rightGamepadPosition);
+      rightGamepad.quaternion.toArray(extra.rightGamepadPosition);
+      extra.rightGamepad[0] = rightGamepad.pointer ? 1 : 0;
+      extra.rightGamepad[1] = rightGamepad.grip ? 1 : 0;
+      extra.rightGamepad[2] = rightGamepad.enabled ? 1 : 0;
+      extra.attr[0] = rig.getFloorHeight() ? 1 : 0;
+      extra.attr[1] = rig.getTopEnabled() ? 1 : 0;
+      extra.attr[2] = rig.getBottomEnabled() ? 1 : 0;
+      rig.direction.toArray(extra.direction);
+      rig.velocity.toArray(extra.velocity);
+      extra.states[0] = rig.jumpState,
+      extra.states[1] = rig.jumpTime;
+      extra.states[2] = rig.flyState;
+      extra.states[3] = rig.flyTime;
+      extra.states[4] = rig.useTime;
+      extra.states[5] = rig.useAnimation;
+      extra.states[6] = rig.sitState;
+      extra.states[7] = rig.sitAnimation;
+      extra.states[8] = rig.danceState;
+      extra.states[9] = rig.danceTime;
+      extra.states[10] = rig.danceAnimation;
+      extra.states[11] = rig.throwState;
+      extra.states[12] = rig.throwTime;
+      extra.states[13] = rig.crouchState;
+      extra.states[14] = rig.crouchTime;
 
-    user.setPose(
-      user.pose.position,
-      user.pose.quaternion,
-      user.pose.scale,
-      [
-        extra.leftGamepadPosition,
-        extra.leftGamepadQuaternion,
-        extra.leftGamepad,
-        extra.rightGamepadPosition,
-        extra.rightGamepadQuaternion,
-        extra.rightGamepad,
-        extra.attr,
-        extra.direction,
-        extra.velocity,
-        extra.states,
-      ],
-    );
+      user.setPose(
+        user.pose.position,
+        user.pose.quaternion,
+        user.pose.scale,
+        [
+          extra.leftGamepadPosition,
+          extra.leftGamepadQuaternion,
+          extra.leftGamepad,
+          extra.rightGamepadPosition,
+          extra.rightGamepadQuaternion,
+          extra.rightGamepad,
+          extra.attr,
+          extra.direction,
+          extra.velocity,
+          extra.states,
+        ],
+      );
+    }
+  };
+  const sendMetadataUpdate = () => {
+    if (rigManager.localRig) {
+      wsrtc.localUser.setMetadata({
+        name,
+        avatarUrl: rigManager.localRig.url,
+      });
+    }
   };
 
+  const name = makeId(5);
+  let interval, intervalMetadata;
   wsrtc.addEventListener('open', async e => {
     console.log('Channel Open!');
 
-    const name = makeId(5);
-    wsrtc.localUser.setMetadata({
-      name,
-      avatarUrl: rigManager.localRig.url,
-    });
-
     interval = setInterval(sendUpdate, 10);
+    intervalMetadata = setInterval(sendMetadataUpdate, 1000);
     // wsrtc.enableMic();
   }, {once: true});
 
@@ -289,6 +278,9 @@ world.connectRoom = async (worldURL) => {
     }
     if (interval) {
       clearInterval(interval);
+    }
+    if (intervalMetadata) {
+      clearInterval(intervalMetadata);
     }
   }, {once: true});
 
