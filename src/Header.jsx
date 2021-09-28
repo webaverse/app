@@ -442,10 +442,10 @@ export default function Header() {
           {(nfts || []).map((nft, i) => {
             const {id, asset_contract, name, description} = nft;
             const image_preview_url = hacks.getNftImage(nft);
-            if (!image_preview_url) {
+            /* if (!image_preview_url) {
               console.log('got nft', {nft, hacks, image_preview_url});
               debugger;
-            }
+            } */
             // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
             // console.log(nft);
             return <div className={styles.nft} onDragStart={e => {
