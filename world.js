@@ -378,6 +378,7 @@ world.clear = (predicate = () => false) => {
       world.removeObject(object.instanceId);
     }
   }
+  world.dispatchEvent(new MessageEvent('clear'));
 };
 
 world.initializeIfEmpty = spec => {
@@ -444,6 +445,16 @@ world.addEventListener('trackedobjectadd', async e => {
   const p = makePromise();
   pendingAddPromise = p;
 
+
+  let live = true;
+  const clear = () => {
+    live = false;
+    cleanup();
+  };
+  const cleanup = () => {
+    world.removeEventListener('clear', clear);
+  };
+  world.addEventListener('clear', clear);
   try {
     const {trackedObject, dynamic} = e.data;
     const trackedObjectJson = trackedObject.toJSON();
@@ -462,7 +473,9 @@ world.addEventListener('trackedobjectadd', async e => {
       monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
       ownerAddress: file.token ? file.token.owner.address : ""
     }); */
+    
     const m = await metaversefile.import(contentId);
+    if (!live) return;
     const app = metaversefile.createApp({
       name: contentId,
       type: (() => {
@@ -485,6 +498,11 @@ world.addEventListener('trackedobjectadd', async e => {
     // app.contentId = contentId;
     metaversefile.addApp(app);
     mesh = await app.addModule(m);
+    if (!live) {
+      metaversefile.removeApp(app);
+      app.destroy();
+      return;
+    }
     if (mesh) {
       unFrustumCull(app);
 
@@ -543,6 +561,8 @@ world.addEventListener('trackedobjectadd', async e => {
     p.accept(app);
   } catch (err) {
     p.reject(err);
+  } finally {
+    cleanup();
   }
 });
 
