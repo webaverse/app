@@ -84,29 +84,31 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
         </div>
       </div>
       {multiplayerOpen ? <div className={styles.rooms}>
-        <button className={styles.button} onClick={async e => {
-          const roomName = _makeName();
-          const data = Y.encodeStateAsUpdate(world.getState(true));
-          // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
-          const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
-            method: 'POST',
-            body: data,
-          });
-          if (res.ok) {
-            const j = await res.json();
-            // console.log('world create result', j);
-            
-            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
-            
-            /* this.parent.sendMessage([
-              MESSAGE.ROOMSTATE,
-              data,
-            ]); */
-          } else {
-            const text = await res.text();
-            console.warn('error creating room', res.status, text);
-          }
-        }}>Create room</button>
+        <div className={styles.create}>
+          <button className={styles.button} onClick={async e => {
+            const roomName = _makeName();
+            const data = Y.encodeStateAsUpdate(world.getState(true));
+            // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
+            const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
+              method: 'POST',
+              body: data,
+            });
+            if (res.ok) {
+              const j = await res.json();
+              // console.log('world create result', j);
+              
+              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
+              
+              /* this.parent.sendMessage([
+                MESSAGE.ROOMSTATE,
+                data,
+              ]); */
+            } else {
+              const text = await res.text();
+              console.warn('error creating room', res.status, text);
+            }
+          }}>Create room</button>
+        </div>
         {rooms.map((room, i) => (
           <div className={styles.room} onClick={async e => {
             if (!world.isConnected() && rigManager.localRig) {
@@ -121,6 +123,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
           }} key={i}>
             <img className={styles.image} src="images/world.jpg" />
             <div className={styles.name}>{room.name}</div>
+            <button className={classnames(styles.button, styles.warning)}>Delete</button>
           </div>
         ))}
       </div> : null}
