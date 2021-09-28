@@ -355,7 +355,7 @@ world.disconnectRoom = () => {
     // remove dynamic objects
     world.clear();
     // swap static objects back in
-    _swapState();
+    // _swapState();
 
     /* const localObjects = objects.objects.dynamic.slice();
     for (const object of localObjects) {
