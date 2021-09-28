@@ -188,6 +188,7 @@ export default function Header() {
     setSceneName(src);
     const roomName = _getCurrentRoom();
     setRoomName(roomName);
+    setMultiplayerOpen(false);
     // console.log('set url state', {src, roomName, search: window.location.search, q: parseQuery(window.location.search)});
   };
   useEffect(() => {
@@ -393,7 +394,6 @@ export default function Header() {
             multiplayerOpen={multiplayerOpen}
             setMultiplayerOpen={setMultiplayerOpen}
             multiplayerConnected={multiplayerConnected}
-            // setMultiplayerConnected={setMultiplayerConnected}
             micOn={micOn}
             toggleMic={toggleMic}
           />
