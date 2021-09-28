@@ -26,42 +26,22 @@ world.appManager = appManager;
 // static states are local and non-user editable
 // dynamic states are multiplayer and user-editable
 const states = {
-  static: new Y.Doc(),
-  dynamic: new Y.Doc(),
+  static: null,
+  dynamic: null,
+};
+const _newState = dynamic => {
+  const k = dynamic ? 'dynamic' : 'static';
+  const newState = new Y.Doc();
+  states[k] = newState;
+  _bindState(dynamic, newState);
 };
 const _getState = dynamic => dynamic ? states.dynamic : states.static;
-const objects = {
-  static: [],
-  dynamic: [],
+const _setState = (dynamic, newState) => {
+  const k = dynamic ? 'dynamic' : 'static';
+  states[k] = newState;
+  _bindState(dynamic, newState);
 };
-const _getObjects = (dynamic) => objects[dynamic ? 'dynamic' : 'static'];
-const _swapState = () => {
-  {
-    const {static: _static, dynamic} = states;
-    states.static = dynamic;
-    states.dynamic = _static;
-  }
-  {
-    const {static: _static, dynamic} = objects;
-    objects.static = dynamic;
-    objects.dynamic = _static;
-  }
-};
-
-// multiplayer
-let wsrtc = null;
-
-const _getOrCreateTrackedObject = (name, dynamic) => {
-  const state = _getState(dynamic);
-  const objects = state.getArray('objects');
-  const objectsJson = objects.toJSON();
-  if (!objectsJson.includes(name)) {
-    objects.push([name]);
-  }
-
-  return state.getMap('objects.' + name);
-};
-const _bindState = (state, dynamic) => {
+const _bindState = (dynamic, state) => {
   const objects = state.getArray('objects');
   let lastObjects = [];
   objects.observe(() => {
@@ -93,8 +73,43 @@ const _bindState = (state, dynamic) => {
     lastObjects = nextObjects;
   });
 };
-_bindState(states.static, false);
-_bindState(states.dynamic, true);
+_newState(true);
+// _newState(false);
+const objects = {
+  static: [],
+  dynamic: [],
+};
+const _getObjects = (dynamic) => objects[dynamic ? 'dynamic' : 'static'];
+/* const _swapState = () => {
+  {
+    const {static: _static, dynamic} = states;
+    states.static = dynamic;
+    states.dynamic = _static;
+  }
+  {
+    const {static: _static, dynamic} = objects;
+    objects.static = dynamic;
+    objects.dynamic = _static;
+  }
+}; */
+
+world.newState = _newState;
+world.getState = _getState;
+world.setState = _setState;
+
+// multiplayer
+let wsrtc = null;
+
+const _getOrCreateTrackedObject = (name, dynamic) => {
+  const state = _getState(dynamic);
+  const objects = state.getArray('objects');
+  const objectsJson = objects.toJSON();
+  if (!objectsJson.includes(name)) {
+    objects.push([name]);
+  }
+
+  return state.getMap('objects.' + name);
+};
 
 // The extra Pose buffers we send along
 const extra = {
@@ -190,6 +205,7 @@ world.connectRoom = async (worldURL) => {
   // _lockAllObjects();
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
+  world.setState(true, wsrtc.room.state);
   if (mediaStream) {
     wsrtc.enableMic(mediaStream);
   }
@@ -356,6 +372,8 @@ world.disconnectRoom = () => {
     world.clear();
     // swap static objects back in
     // _swapState();
+
+    world.newState(true);
 
     /* const localObjects = objects.objects.dynamic.slice();
     for (const object of localObjects) {
