@@ -35,11 +35,19 @@ const _getCurrentRoom = () => {
 };
 
 const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
-  const rooms = [
-    {
-      name: 'Erithor',
-    },
-  ];
+  const [rooms, setRooms] = useState([]);
+  
+  useEffect(async () => {
+    const res = await fetch(universe.getWorldsHost() + '@worlds/');
+    if (res.ok) {
+      const rooms = await res.json();
+      setRooms(rooms);
+    } else {
+      const text = await res.text();
+      console.warn('failed to fetch', res.status, text);
+    }
+  }, []);
+
   return (
     <div className={styles.location}>
       <div className={styles.row}>
