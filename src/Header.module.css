@@ -108,6 +108,7 @@ body {
 }
 
 .location {
+  position: relative;
   display: flex;
   height: 100%;
   flex-direction: column;
@@ -116,6 +117,33 @@ body {
 .location .row {
   display: flex;
   height: 100%;
+}
+.location .rooms {
+  position: absolute;
+  top: 50px;
+  display: flex;
+  width: 100%;
+  background-color: #000;
+  flex-direction: column;
+}
+.location .rooms .room {
+  display: flex;
+  padding: 10px;
+}
+.location .rooms .room .image {
+  
+}
+.location .rooms .room .name {
+  
+}
+.location .rooms .button {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #111;
+}
+.location .rooms .room .button:hover {
+  background-color: #9ccc65;
 }
 .location .input {
   height: 100%;
