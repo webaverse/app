@@ -374,7 +374,7 @@ world.clear = (predicate = () => false) => {
   } */
   const objects = world.getObjects();
   for (const object of objects) {
-    if (predicate(object)) {
+    if (!predicate(object)) {
       world.removeObject(object.instanceId);
     }
   }
