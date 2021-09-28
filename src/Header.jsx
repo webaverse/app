@@ -59,6 +59,13 @@ const Location = ({sceneName, roomName, multiplayerOpen, setMultiplayerOpen, mul
           </button>
         </div>
       </div>
+      {multiplayerOpen ? <div className={styles.rooms}>
+        <button className={styles.button}>Create room</button>
+        <div className={styles.room}>
+          <img className={styles.image} src="images/world.jpg" />
+          <div className={styles.name}>Erithor</div>
+        </div>
+      </div> : null}
     </div>
   );
 };
