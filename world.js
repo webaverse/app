@@ -125,9 +125,9 @@ const extra = {
   states: new Float32Array(15),
 };
 
-const didInteract = new Promise(resolve => window.addEventListener('click', e =>
+/* const didInteract = new Promise(resolve => window.addEventListener('click', e =>
   resolve(true)
-, {once: true}));
+, {once: true})); */
 
 let mediaStream = null;
 world.micEnabled = () => !!mediaStream;
