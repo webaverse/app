@@ -13,45 +13,57 @@ const cameraOffset = new THREE.Vector3();
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
-const requestPointerLock = () => new Promise((accept, reject) => {
-  if (!document.pointerLockElement) {
-    const _pointerlockchange = e => {
-      accept();
-      _cleanup();
-    };
-    document.addEventListener('pointerlockchange', _pointerlockchange);
-    const _pointerlockerror = err => {
-      reject(err);
-      _cleanup();
-      
-      notifications.addNotification(`\
-        <i class="icon fa fa-mouse-pointer"></i>
-        <div class=wrap>
-          <div class=label>Whoa there!</div>
-          <div class=text>
-            Hold up champ! The browser wants you to slow down.
-          </div>
-          <div class=close-button>✕</div>
-        </div>
-      `, {
-        timeout: 3000,
-      });
-    };
-    document.addEventListener('pointerlockerror', _pointerlockerror);
-    const _cleanup = () => {
-      document.removeEventListener('pointerlockchange', _pointerlockchange);
-      document.removeEventListener('pointerlockerror', _pointerlockerror);
-    };
-    const renderer = getRenderer();
-    renderer.domElement.requestPointerLock({
+const requestPointerLock = async () => {
+  for (const options of [
+    {
       unadjustedMovement: true,
-    });
-  } else {
-    accept();
+    },
+    undefined
+  ]) {
+    try {
+      await new Promise((accept, reject) => {
+        if (!document.pointerLockElement) {
+          const _pointerlockchange = e => {
+            accept();
+            _cleanup();
+          };
+          document.addEventListener('pointerlockchange', _pointerlockchange);
+          const _pointerlockerror = err => {
+            reject(err);
+            _cleanup();
+            
+            notifications.addNotification(`\
+              <i class="icon fa fa-mouse-pointer"></i>
+              <div class=wrap>
+                <div class=label>Whoa there!</div>
+                <div class=text>
+                  Hold up champ! The browser wants you to slow down.
+                </div>
+                <div class=close-button>✕</div>
+              </div>
+            `, {
+              timeout: 3000,
+            });
+          };
+          document.addEventListener('pointerlockerror', _pointerlockerror);
+          const _cleanup = () => {
+            document.removeEventListener('pointerlockchange', _pointerlockchange);
+            document.removeEventListener('pointerlockerror', _pointerlockerror);
+          };
+          const renderer = getRenderer();
+          renderer.domElement.requestPointerLock(options);
+        } else {
+          accept();
+        }
+      });
+      physicsManager.unlockControls();
+      break;
+    } catch (err) {
+      console.warn(err);
+      continue;
+    }
   }
-}).then(() => {
-  physicsManager.unlockControls();
-});
+};
 
 /* const cameraModes = [
   'firstperson',
