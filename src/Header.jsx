@@ -28,8 +28,18 @@ const _getCurrentSceneSrc = () => {
   }
   return src;
 };
+const _getCurrentRoom = () => {
+  const q = parseQuery(window.location.search);
+  const {room} = q;
+  return room || '';
+};
 
-const Location = ({sceneName, setSceneName, roomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+  const rooms = [
+    {
+      name: 'Erithor',
+    },
+  ];
   return (
     <div className={styles.location}>
       <div className={styles.row}>
@@ -46,9 +56,15 @@ const Location = ({sceneName, setSceneName, roomName, multiplayerOpen, setMultip
           }
         }} placeholder="Goto..." />
         <div className={styles['button-wrap']} onClick={e => {
-          setMultiplayerOpen(!multiplayerOpen);
+          if (!multiplayerConnected) {
+            setMultiplayerOpen(!multiplayerOpen);
+          } else {
+            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
+            /* world.disconnectRoom();
+            setMultiplayerConnected(false); */
+          }
         }}>
-          <button className={classnames(styles.button, multiplayerOpen ? null : styles.disabled)}>
+          <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
             <img src="images/wifi.svg" />
           </button>
         </div>
@@ -61,10 +77,22 @@ const Location = ({sceneName, setSceneName, roomName, multiplayerOpen, setMultip
       </div>
       {multiplayerOpen ? <div className={styles.rooms}>
         <button className={styles.button}>Create room</button>
-        <div className={styles.room}>
-          <img className={styles.image} src="images/world.jpg" />
-          <div className={styles.name}>Erithor</div>
-        </div>
+        {rooms.map((room, i) => (
+          <div className={styles.room} onClick={async e => {
+            if (!world.isConnected() && rigManager.localRig) {
+              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${room.name}`);
+              /* const isConnected = world.isConnected();
+              setMultiplayerConnected(isConnected);
+              if (isConnected) {
+                setRoomName(room.name);
+                setMultiplayerOpen(false);
+              } */
+            }
+          }} key={i}>
+            <img className={styles.image} src="images/world.jpg" />
+            <div className={styles.name}>{room.name}</div>
+          </div>
+        ))}
       </div> : null}
     </div>
   );
@@ -107,10 +135,12 @@ export default function Header() {
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
-  const [roomName, setRoomName] = useState(null);
+  const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [multiplayerOpen, setMultiplayerOpen] = useState(false);
-  const [multiplayerConnected, setMultiplayerConnected] = useState(false);
+  // const [multiplayerConnected, setMultiplayerConnected] = useState(false);
   const [micOn, setMicOn] = useState(false);
+  
+  const multiplayerConnected = !!roomName;
   
   const toggleMic = async e => {
     // console.log('toggle mic');
@@ -125,15 +155,15 @@ export default function Header() {
   
   useEffect(() => {
     const pointerlockchange = e => {
-      // console.log('pointer lock change', e);
+      // console.log('pointer lock change', e, document.pointerLockElement);
       if (document.pointerLockElement) {
         setOpen(false);
         setMultiplayerOpen(false);
       }
     };
-    window.addEventListener('pointerlockchange', pointerlockchange);
+    window.document.addEventListener('pointerlockchange', pointerlockchange);
     return () => {
-      window.removeEventListener('pointerlockchange', pointerlockchange);
+      window.document.removeEventListener('pointerlockchange', pointerlockchange);
     };
   }, []);
   useEffect(() => {
@@ -153,17 +183,35 @@ export default function Header() {
       })();
     }
   }, [address, nfts]);
+  const _loadUrlState = () => {
+    const src = _getCurrentSceneSrc();
+    setSceneName(src);
+    const roomName = _getCurrentRoom();
+    setRoomName(roomName);
+    // console.log('set url state', {src, roomName, search: window.location.search, q: parseQuery(window.location.search)});
+  };
   useEffect(() => {
+    // console.log('waiting');
+    const pushstate = e => {
+      _loadUrlState();
+      // console.log('set room name', {roomName});
+    };
     const popstate = e => {
-      const src = _getCurrentSceneSrc();
-      setSceneName(src);
+      _loadUrlState();
+      // console.log('set room name', {roomName});
       
       universe.handleUrlUpdate();
     };
+    window.addEventListener('pushstate', pushstate);
     window.addEventListener('popstate', popstate);
     return () => {
+      window.removeEventListener('pushstate', pushstate);
       window.removeEventListener('popstate', popstate);
     };
+  }, []);
+  useEffect(() => {
+    universe.handleUrlUpdate();
+    _loadUrlState();
   }, []);
   useEffect(() => {
     const keydown = e => {
@@ -341,9 +389,11 @@ export default function Header() {
             sceneName={sceneName}
             setSceneName={setSceneName}
             roomName={roomName}
+            setRoomName={setRoomName}
             multiplayerOpen={multiplayerOpen}
             setMultiplayerOpen={setMultiplayerOpen}
             multiplayerConnected={multiplayerConnected}
+            // setMultiplayerConnected={setMultiplayerConnected}
             micOn={micOn}
             toggleMic={toggleMic}
           />
