@@ -29,7 +29,7 @@ const _getCurrentSceneSrc = () => {
   return src;
 };
 
-const Location = ({sceneName, roomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+const Location = ({sceneName, setSceneName, roomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
   return (
     <div className={styles.location}>
       <div className={styles.row}>
@@ -338,6 +338,7 @@ export default function Header() {
           </a>
           <Location
             sceneName={sceneName}
+            setSceneName={setSceneName}
             roomName={roomName}
             multiplayerOpen={multiplayerOpen}
             setMultiplayerOpen={setMultiplayerOpen}
