@@ -836,7 +836,7 @@ const grabUseMesh = (() => {
   return o;
 })();
 grabUseMesh.visible = false;
-scene.add(grabUseMesh);
+sceneLowPriority.add(grabUseMesh);
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
