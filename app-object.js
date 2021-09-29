@@ -73,6 +73,29 @@ scene.add(orthographicCamera);
 const sceneHighPriority = new THREE.Scene();
 const sceneLowPriority = new THREE.Scene();
 
+window.addEventListener('resize', e => {
+  const renderer = getRenderer();
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = false;
+  }
+
+  const containerElement = getContainerElement();
+  const rect = containerElement.getBoundingClientRect();
+  renderer.setSize(rect.width, rect.height);
+  // renderer2.setSize(window.innerWidth, window.innerHeight);
+
+  const aspect = rect.width / rect.height;
+  camera.aspect = aspect;
+  camera.updateProjectionMatrix();
+
+  avatarCamera.aspect = aspect;
+  avatarCamera.updateProjectionMatrix();
+  
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = true;
+  }
+});
+
 addDefaultLights(scene, {
   shadowMap: true,
 });

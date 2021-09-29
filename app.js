@@ -166,6 +166,7 @@ export default class App extends EventTarget {
   }
   bindInput() {
     ioManager.bindInput();
+    world.bindInput();
   }
   bindInterface() {
     ioManager.bindInterface();
