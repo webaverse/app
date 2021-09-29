@@ -958,11 +958,17 @@ const _updateWeapons = (timestamp) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const _isWear = o => {
+      const {instanceId} = o;
+      return localPlayer.wears.some(wear => wear.instanceId === instanceId);
+    };
+
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
       const grabbedObject = _getGrabbedObject(i);
-      if (grabbedObject) {
-        const {position, quaternion} = useLocalPlayer().hands[i];
+      if (grabbedObject && !_isWear(grabbedObject)) {
+        const {position, quaternion} = localPlayer.hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
         grabbedObject.updateMatrixWorld();
@@ -1016,8 +1022,6 @@ const _updateWeapons = (timestamp) => {
       }
     }
     if (!grabUseMesh.visible && !weaponsManager.editMode) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
-  
       localVector.copy(localPlayer.position)
         .add(localVector2.set(0, 0, -0.3).applyQuaternion(localPlayer.quaternion));
         
@@ -1027,7 +1031,7 @@ const _updateWeapons = (timestamp) => {
       if (collision) {
         const collisionId = collision.objectId;
         const object = world.getObjectFromPhysicsId(collisionId);
-        if (object) {
+        if (object && !_isWear(object)) {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
