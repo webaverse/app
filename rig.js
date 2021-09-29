@@ -210,15 +210,14 @@ class RigManager {
     this.localRig.textMesh.avatarMesh = avatarMesh;
   }
 
-  async setLocalAvatarUrl(url, ext) {
+  async setLocalAvatarUrl(url) {
     // await this.localRigQueue.lock();
 
     if (url) {
       // this.setDefault();
-      await this.setAvatar(this.localRig, newLocalRig => {
-        this.clearAvatar();
-        this.localRig = newLocalRig;
-      }, url);
+      const newLocalRig = await this.setAvatar(this.localRig, url);
+      this.clearAvatar();
+      this.localRig = newLocalRig;
     } else {
       this.clearAvatar();
     }
@@ -226,7 +225,7 @@ class RigManager {
     // await this.localRigQueue.unlock();
   }
 
-  async setAvatar(oldRig, setRig, url/*, ext*/) {
+  async setAvatar(oldRig, url) {
     if (!oldRig) {
       const textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
       oldRig = {
@@ -240,18 +239,8 @@ class RigManager {
       if (url) {
         const m = await metaversefile.import(url);
         const app = metaversefile.createApp();
-        // app.setAttribute('avatar', true);
         await metaversefile.addModule(app, m);
         o = app;
-        /* o = await runtime.loadFile({
-          url,
-          ext,
-        }, {
-          contentId: url,
-        }); */
-        /* if (!o.isVrm && o.run) {
-          o.run();
-        } */
       }
 
       if (oldRig.url === url) {
@@ -259,11 +248,8 @@ class RigManager {
           oldRig.model.parent.remove(oldRig.model);
         }
 
-        console.log('model o', o);
-
         if (o) {
           const {raw} = o;
-          // console.log('got raw', o, o.children[0], raw);
           if (raw) {
             const localRig = new Avatar(raw, {
               fingers: true,
@@ -273,41 +259,17 @@ class RigManager {
             });
             localRig.model = o;
             localRig.url = url;
-            // localRig.model.isVrm = true;
-            // localRig.aux = oldRig.aux;
-            // localRig.aux.rig = localRig;
             
             unFrustumCull(localRig.model);
             scene.add(localRig.model);
             localRig.textMesh = oldRig.textMesh;
-            // localRig.avatarUrl = oldRig.url;
-            // localRig.rigCapsule = oldRig.rigCapsule;
 
-            setRig(localRig);
-          /* } else {
-            localRig = new Avatar();
-            // localRig.aux = oldRig.aux;
-            // localRig.aux.rig = localRig;
-            localRig.model = o;
-            // console.log('local rig model', o, localRig.model);
-            // debugger;
-            localRig.update = () => {
-              localRig.model.position.copy(localRig.inputs.hmd.position);
-              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
-            }; */
+            return localRig;
           }
-        /* } else {
-          localRig = new Avatar(null, {
-            fingers: true,
-            hair: true,
-            visemes: true,
-            debug: true,
-          });
-          // localRig.aux = oldRig.aux;
-          // localRig.aux.rig = localRig; */
         }
       }
     }
+    return null;
   }
   
   /* isPeerRig(rig) {
@@ -366,9 +328,8 @@ class RigManager {
 
   async setPeerAvatarUrl(peerId, url) {
     const oldPeerRig = this.peerRigs.get(peerId);
-    await this.setAvatar(oldPeerRig, newPeerRig => {
-      this.peerRigs.set(peerId, newPeerRig);
-    }, url);
+    const newPeerRig = await this.setAvatar(oldPeerRig, url);
+    this.peerRigs.set(peerId, newPeerRig);
   }
 
   async setPeerAvatarAux(aux, peerId) {
