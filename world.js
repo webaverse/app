@@ -587,6 +587,20 @@ world.addEventListener('trackedobjectadd', async e => {
     const _bindDestroy = () => {
       app.addEventListener('destroy', () => {
         objects.splice(objects.indexOf(app), 1);
+        
+        const localPlayer = metaversefile.useLocalPlayer();
+        const localWearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
+        if (localWearIndex !== -1) {
+          localPlayer.wears.splice(localWearIndex, 1);
+        }
+        
+        const remotePlayers = metaversefile.useRemotePlayers();
+        for (const remotePlayer of remotePlayers) {
+          const remoteWearIndex = remotePlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
+          if (remoteWearIndex !== -1) {
+            remotePlayer.wears.splice(remoteWearIndex, 1);
+          }
+        }
       });
     };
     _bindDestroy();
