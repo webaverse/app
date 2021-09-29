@@ -556,9 +556,17 @@ const _mousedown = () => {
     if (useComponent) {
       let useAction = localPlayer.actions.find(action => action.type === 'use');
       if (!useAction) {
+        const {instanceId} = wearApp;
+        const {boneAttachment, animation, position, quaternion, scale} = useComponent;
         useAction = {
           type: 'use',
           time: 0,
+          instanceId,
+          animation,
+          boneAttachment,
+          position,
+          quaternion,
+          scale,
         };
         localPlayer.actions.push(useAction);
       }
