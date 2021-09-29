@@ -12,6 +12,9 @@ import Avatar from './avatars/avatars.js';
 import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
+
+const defaultAvatarUrl = './avatars/citrine.vrm';
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -62,6 +65,26 @@ const roundedRectGeometry = (() => {
   ]);
   return geometry;
 })();
+const _makeRig = app => {
+  if (app) {
+    const {raw} = app;
+    if (raw) {
+      const localRig = new Avatar(raw, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        debug: false,
+      });
+      // localRig.model = o;
+      localRig.app = app;
+      
+      unFrustumCull(app);
+      
+      return localRig;
+    }
+  }
+  return null;
+};
 
 class RigManager {
   constructor(scene) {
@@ -79,72 +102,19 @@ class RigManager {
     this.lastTimetamp = Date.now();
   }
 
-  clearAvatar() {
-    if (this.localRig) {
-      this.scene.remove(this.localRig);
-      this.scene.remove(this.localRig.textMesh);
-      this.localRig = null;
-    }
+  async loadAvatarFromUrl(url) {
+    const m = await metaversefile.import(defaultAvatarUrl);
+    const app = metaversefile.createApp();
+    await metaversefile.addModule(app, m);
+    return app;
   }
 
-  setDefault() {
-    this.clearAvatar();
-    
-    rigManager.setLocalAvatarUrl('./avatars/citrine.vrm', 'vrm');
-
-    /* this.localRig = new Avatar(null, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: true,
-    });
-    this.localRig.aux = new RigAux({
-      rig: this.localRig,
-      scene: avatarScene,
-    });
-    unFrustumCull(this.localRig.model);
-    this.scene.add(this.localRig.model);
-
-    this.localRig.avatarUrl = null;
-
-    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
-    {
-      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
-      const img = new Image();
-      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        texture.needsUpdate = true;
-      };
-      img.onerror = err => {
-        console.warn(err.stack);
-      };
-      const texture = new THREE.Texture(img);
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-      });
-      const avatarMesh = new THREE.Mesh(geometry, material);
-      avatarMesh.position.x = -0.5;
-      avatarMesh.position.y = -0.02;
-      this.localRig.textMesh.add(avatarMesh);
-      this.localRig.textMesh.avatarMesh = avatarMesh;
-    }
-    {
-      const geometry = roundedRectGeometry;
-      const material2 = new THREE.LineBasicMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-      });
-      const nametagMesh2 = new THREE.Mesh(geometry, material2);
-      this.localRig.textMesh.add(nametagMesh2);
-    }
-    this.scene.add(this.localRig.textMesh); */
+  async setDefault() {
+    const app = await this.loadAvatarFromUrl(defaultAvatarUrl);
+    this.setLocalAvatar(app);
   }
   
-  setFromLogin() {
+  /* setFromLogin() {
     if (!this.localRig) {
       this.setDefault();
     }
@@ -165,7 +135,7 @@ class RigManager {
       }
     });
     
-  }
+  } */
 
   setLocalRigMatrix(rm) {
     if (rm) {
@@ -176,7 +146,7 @@ class RigManager {
     }
   }
 
-  setLocalAvatarName(name) {
+  /* setLocalAvatarName(name) {
     this.localRig.textMesh.text = name;
     this.localRig.textMesh.sync();
   }
@@ -208,68 +178,10 @@ class RigManager {
 
     this.localRig.textMesh.add(avatarMesh);
     this.localRig.textMesh.avatarMesh = avatarMesh;
-  }
+  } */
 
-  async setLocalAvatarUrl(url) {
-    // await this.localRigQueue.lock();
-
-    if (url) {
-      // this.setDefault();
-      const newLocalRig = await this.setAvatar(this.localRig, url);
-      this.clearAvatar();
-      this.localRig = newLocalRig;
-    } else {
-      this.clearAvatar();
-    }
-
-    // await this.localRigQueue.unlock();
-  }
-
-  async setAvatar(oldRig, url) {
-    if (!oldRig) {
-      const textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
-      oldRig = {
-        textMesh,
-      };
-    }
-    if (oldRig.url !== url) {
-      oldRig.url = url;
-
-      let o;
-      if (url) {
-        const m = await metaversefile.import(url);
-        const app = metaversefile.createApp();
-        await metaversefile.addModule(app, m);
-        o = app;
-      }
-
-      if (oldRig.url === url) {
-        if (oldRig.model) {
-          oldRig.model.parent.remove(oldRig.model);
-        }
-
-        if (o) {
-          const {raw} = o;
-          if (raw) {
-            const localRig = new Avatar(raw, {
-              fingers: true,
-              hair: true,
-              visemes: true,
-              debug: false,
-            });
-            localRig.model = o;
-            localRig.url = url;
-            
-            unFrustumCull(localRig.model);
-            scene.add(localRig.model);
-            localRig.textMesh = oldRig.textMesh;
-
-            return localRig;
-          }
-        }
-      }
-    }
-    return null;
+  async setLocalAvatar(app) {
+    this.localRig = _makeRig(app);
   }
   
   /* isPeerRig(rig) {
@@ -282,10 +194,7 @@ class RigManager {
   } */
 
   async addPeerRig(peerId, meta) {
-    const m = await metaversefile.import(meta.avatarUrl);
-    const app = metaversefile.createApp();
-    // app.setAttribute('avatar', true);
-    await metaversefile.addModule(app, m);
+    const app = await this.loadAvatarFromUrl(meta.avatarUrl);
     
     const {raw} = app;
     const peerRig = new Avatar(raw, {
@@ -295,7 +204,7 @@ class RigManager {
       debug: false,
     });
     peerRig.model = app;
-    peerRig.url = meta.avatarUrl;
+    // peerRig.url = meta.avatarUrl;
     
     unFrustumCull(peerRig.model);
     scene.add(peerRig.model);
@@ -304,9 +213,9 @@ class RigManager {
     peerRig.rigCapsule.visible = false;
     this.scene.add(peerRig.rigCapsule);
     
-    peerRig.textMesh = makeTextMesh(meta.name, undefined, 0.2, 'center', 'middle');
-    this.scene.add(peerRig.textMesh);
-    
+    /* peerRig.textMesh = makeTextMesh(meta.name, undefined, 0.2, 'center', 'middle');
+    this.scene.add(peerRig.textMesh); */
+
     this.peerRigs.set(peerId, peerRig);
   }
 
@@ -314,28 +223,26 @@ class RigManager {
     const peerRig = this.peerRigs.get(peerId);
     if (peerRig) {
       peerRig.model.parent.remove(peerRig.model);
-      peerRig.textMesh.parent.remove(peerRig.textMesh);
+      // peerRig.textMesh.parent.remove(peerRig.textMesh);
       // peerRig.aux.destroy();
       this.peerRigs.delete(peerId);
     }
   }
 
-  setPeerAvatarName(name, peerId) {
+  /* setPeerAvatarName(name, peerId) {
     const peerRig = this.peerRigs.get(peerId);
     peerRig.textMesh.text = name;
     peerRig.textMesh.sync();
+  } */
+
+  async setPeerAvatar(peerId, app) {
+    this.peerRigs.set(peerId, _makeRig(app));
   }
 
-  async setPeerAvatarUrl(peerId, url) {
-    const oldPeerRig = this.peerRigs.get(peerId);
-    const newPeerRig = await this.setAvatar(oldPeerRig, url);
-    this.peerRigs.set(peerId, newPeerRig);
-  }
-
-  async setPeerAvatarAux(aux, peerId) {
+  /* async setPeerAvatarAux(aux, peerId) {
     const oldPeerRig = this.peerRigs.get(peerId);
     oldPeerRig.aux.setPose(aux);
-  }
+  } */
   
   setLocalMicMediaStream(mediaStream, options) {
     this.localRig.setMicrophoneMediaStream(mediaStream, options);
@@ -472,12 +379,12 @@ class RigManager {
       this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
       this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
-      this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
+      /* this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
       this.localRig.textMesh.position.y += 0.5;
       this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
       localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
       localEuler.z = 0;
-      this.localRig.textMesh.quaternion.setFromEuler(localEuler);
+      this.localRig.textMesh.quaternion.setFromEuler(localEuler); */
     }
   }
 

@@ -272,7 +272,7 @@ world.connectRoom = async (worldURL) => {
     if (rigManager.localRig) {
       wsrtc.localUser.setMetadata({
         name,
-        avatarUrl: rigManager.localRig.url,
+        avatarUrl: rigManager.localRig.app.contentId,
       });
     }
   };
