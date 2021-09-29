@@ -473,7 +473,7 @@ const _use = () => {
 };
 let useAnimation = null;
 const _useHold = () => {
-  const now = Date.now();
+  const now = performance.now();
   useAnimation = {
     start: now,
     end: now + 1000,
@@ -842,8 +842,8 @@ sceneLowPriority.add(grabUseMesh);
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
-const _updateWeapons = () => {
-  const now = Date.now();
+const _updateWeapons = (timestamp) => {
+  const now = timestamp;
   const renderer = getRenderer();
 
   /* const _handleHighlight = () => {
@@ -1098,7 +1098,7 @@ const _updateWeapons = () => {
       highlightPhysicsMesh.position.copy(physicsTransform.position);
       highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       highlightPhysicsMesh.scale.copy(physicsTransform.scale);
-      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       const unlocked = world.getObjects().includes(highlightedPhysicsObject);
       highlightPhysicsMesh.material.uniforms.uColor.value.setHex(unlocked ? buildMaterial.uniforms.uColor.value.getHex() : 0xCCCCCC);
@@ -1135,7 +1135,7 @@ const _updateWeapons = () => {
       mouseHighlightPhysicsMesh.position.copy(physicsTransform.position);
       mouseHighlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
       mouseHighlightPhysicsMesh.scale.copy(physicsTransform.scale);
-      mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
       mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
@@ -1178,7 +1178,7 @@ const _updateWeapons = () => {
         }
         // update uniforms
         {
-          mouseSelectPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+          mouseSelectPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
           mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
           
           mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
@@ -2792,7 +2792,7 @@ const weaponsManager = {
   },
   menuUseDown() {
     if (grabUseMesh.visible) {
-      const startTime = Date.now();
+      const startTime = performance.now();
       const endTime = startTime + 1000;
       weaponsManager.useSpec = {
         startTime,
