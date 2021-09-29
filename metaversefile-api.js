@@ -16,8 +16,10 @@ import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 
+const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const upVector = new THREE.Vector3(0, 1, 0);
 
 class PlayerHand {
@@ -104,6 +106,7 @@ class RemotePlayer extends Player {
 const teleportTo = (() => {
   // const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
+  const localVector3 = new THREE.Vector3();
   // const localQuaternion = new THREE.Quaternion();
   const localQuaternion2 = new THREE.Quaternion();
   const localMatrix = new THREE.Matrix4();
