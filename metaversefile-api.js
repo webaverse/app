@@ -25,7 +25,7 @@ class PlayerHand {
     this.quaternion = new THREE.Quaternion();
   }
 }
-class LocalPlayer {
+class Player {
   constructor() {
     this.position = new THREE.Vector3();
     this.quaternion = new THREE.Quaternion();
@@ -38,8 +38,53 @@ class LocalPlayer {
     // this.playerId = 'Anonymous';
     this.aimed = false;
     this.grabs = [];
-    this.wearables = [];
+    this.wears = [];
     this.actions = [];
+  }
+}
+class LocalPlayer extends Player {
+  constructor() {
+    super();
+  }
+  wear(app) {
+    const wearComponent = app.components.find(component => component.key === 'wear');
+    
+    if (wearComponent) {
+      let wearSpec = wearComponent.value;
+      
+      wearSpec = JSON.parse(JSON.stringify(wearSpec));
+      
+      app.dispatchEvent({
+        type: 'wearupdate',
+        wearSpec,
+      });
+      
+      const {instanceId} = app;
+      this.wears.push({
+        instanceId,
+      });
+      this.ungrab();
+    } else {
+      console.warn('cannot wear app with no wear component');
+    }
+  }
+  grab(object) {
+    const renderer = getRenderer();
+    const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
+
+    object.updateMatrixWorld();
+    object.savedRotation = object.rotation.clone();
+    object.startQuaternion = quaternion.clone();
+
+    this.grabs[0] = {
+      instanceId: object.instanceId,
+      matrix: localMatrix.copy(object.matrixWorld)
+        .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
+        .toArray(),
+    };
+  }
+  ungrab() {
+    this.grabs[0] = null;
   }
   lookAt(p) {
     this.quaternion.setFromRotationMatrix(
@@ -48,6 +93,11 @@ class LocalPlayer {
     /* teleportTo(this.position, this.quaternion, {
       relation: 'head',
     }); */
+  }
+}
+class RemotePlayer extends Player {
+  constructor() {
+    super();
   }
 }
 const teleportTo = (() => {
@@ -90,6 +140,7 @@ const teleportTo = (() => {
   };
 })();
 const localPlayer = new LocalPlayer();
+const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -287,6 +338,13 @@ metaversefile.setApi({
   },
   useLocalPlayer() {
     return localPlayer;
+  },
+  useRemotePlayer(playerId) {
+    let player = remotePlayers.get(playerId);
+    if (!player) {
+      player = new RemotePlayer();
+    }
+    return player;
   },
   useLoaders() {
     return loaders;
