@@ -516,7 +516,7 @@ export default () => {
     apps.push(app);
   },
   removeApp(app) {
-    scene.remove(app);
+    app.parent.remove(app);
     apps.splice(apps.indexOf(app), 1);
   },
   useInternals() {

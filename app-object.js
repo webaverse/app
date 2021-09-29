@@ -221,6 +221,9 @@ class App extends THREE.Object3D {
   getPhysicsIds() {
     return this.physicsIds;
   }
+  /* hit(hp) {
+    this.hitTracker.hit(hp);
+  } */
   destroy() {
     this.appManager.destroyApp(this.appId);
   }
