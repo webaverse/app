@@ -443,7 +443,17 @@ metaversefile.setApi({
     return ui;
   },
   useActivate(fn) {
-    // XXX implement this
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('activate', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('activate', fn);
+      });
+    } else {
+      throw new Error('useActivate cannot be called outside of render()');
+    }
   },
   useResize(fn) {
     const app = currentAppRender;
