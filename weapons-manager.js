@@ -548,12 +548,34 @@ const _click = () => {
   }
 };
 const _mousedown = () => {
+  const localPlayer = useLocalPlayer();
+  const objects = world.getObjects();
+  const wearApps = localPlayer.wears.map(({instanceId}) => objects.find(o => o.instanceId === instanceId));
+  for (const wearApp of wearApps) {
+    const useComponent = wearApp.getComponent('use');
+    if (useComponent) {
+      let useAction = localPlayer.actions.find(action => action.type === 'use');
+      if (!useAction) {
+        useAction = {
+          type: 'use',
+          time: 0,
+        };
+        localPlayer.actions.push(useAction);
+      }
+      break;
+    }
+  }
   /* if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.triggerAux && o.triggerAux();
   } */
 };
 const _mouseup = () => {
+  const localPlayer = useLocalPlayer();
+  const useActionIndex = localPlayer.actions.findIndex(action => action.type === 'use');
+  if (useActionIndex !== -1) {
+    localPlayer.actions.splice(useActionIndex, 1);
+  }
   /* if (appManager.equippedObjects[0]) {
     const o = appManager.equippedObjects[0];
     o.untriggerAux && o.untriggerAux();
