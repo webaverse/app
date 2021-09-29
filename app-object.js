@@ -171,8 +171,8 @@ class App extends THREE.Object3D {
 
     // cleanup tracking
     this.physicsIds = [];
-    this.wearSpec = null;
-    this.popovers = [];
+    // this.wearSpec = null;
+    // this.popovers = [];
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
@@ -220,21 +220,6 @@ class App extends THREE.Object3D {
   }
   getPhysicsIds() {
     return this.physicsIds;
-  }
-  wear(wearSpec) {
-    wearSpec = JSON.parse(JSON.stringify(wearSpec));
-    this.wearSpec = wearSpec;
-    
-    this.dispatchEvent({
-      type: 'wearupdate',
-      wearSpec,
-    });
-    this.appManager.dispatchEvent(new MessageEvent('wearupdate', {
-      data: {
-        app: this,
-        wearSpec,
-      },
-    }));
   }
   destroy() {
     this.appManager.destroyApp(this.appId);

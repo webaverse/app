@@ -327,13 +327,6 @@ const _selectLoadout = index => {
 
   (async () => {
     if (selectedLoadoutObject) {
-      /* if (appManager.equippedObjects[0] === selectedLoadoutObject) {
-        _unequip();
-      }
-      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
-        _ungrab();
-      } */
-      
       world.removeObject(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
     }
@@ -506,14 +499,15 @@ const _useRelease = () => {
   useAnimation = null;
 };
 const _delete = () => {
-  if (appManager.grabbedObjects[0]) {
+  if (_getGrabbedObject(0)) {
     world.removeObject(appManager.grabbedObjects[0].instanceId);
 
     if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
       _deselectLoadout();
     }
 
-    _ungrab();
+    const localPlayer = useLocalPlayer();
+    localPlayer.ungrab();
   /* } else if (editedObject) {
     world.removeObject(editedObject.instanceId);
     editedObject = null;
@@ -542,7 +536,8 @@ const _click = () => {
     // console.log('got click 3');
     _deselectLoadout();
 
-    _ungrab();
+    const localPlayer = useLocalPlayer();
+    localPlayer.ungrab();
 
   } else {
     // console.log('got click 4', !!highlightedPhysicsObject);
@@ -571,10 +566,11 @@ const _unaim = () => {
   appManager.aimed = false;
 }; */
 
-const _try = async () => {
-  const o = appManager.grabbedObjects[0];
+/* const _try = async () => {
+  const o = getGrabbedObject(0);
   if (o) {
-    _ungrab();
+    const localPlayer = useLocalPlayer();
+    localPlayer.ungrab();
 
     const used = o.useAux ? o.useAux(rigManager.localRig.aux) : false;
     if (!used) {
@@ -599,7 +595,7 @@ const _try = async () => {
       }
     }
   }
-};
+}; */
 
 const _uploadFile = async (u, f) => {
   const res = await fetch(u, {
@@ -784,20 +780,9 @@ const _upload = () => {
 };
 
 const _grab = object => {
-  const renderer = getRenderer();
-  const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
-
-  object.updateMatrixWorld();
-  object.savedRotation = object.rotation.clone();
-  object.startQuaternion = quaternion.clone();
-
   const localPlayer = useLocalPlayer();
-  localPlayer.grabs[0] = {
-    instanceId: object.instanceId,
-    matrix: localMatrix5.copy(object.matrixWorld)
-      .premultiply(localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1)).invert())
-      .toArray(),
-  };
+  localPlayer.grab(object);
+  
   // console.log('start grab');
   weaponsManager.gridSnap = 0;
   weaponsManager.editMode = false;
@@ -808,13 +793,6 @@ const _grab = object => {
   } else {
     appManager.grabbedObjectOffsets[0] = distance;
   } */
-};
-const _ungrab = () => {
-  // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
-  const localPlayer = useLocalPlayer();
-  localPlayer.grabs[0] = null;
-  // editedObject = null
-  // _updateMenu();
 };
 
 /* const _equip = object => {
@@ -837,319 +815,6 @@ const grabUseMesh = (() => {
 })();
 grabUseMesh.visible = false;
 scene.add(grabUseMesh);
-
-const _localizeMatrixWorld = bone => {
-  bone.matrix.copy(bone.matrixWorld);
-  if (bone.parent) {
-    bone.matrix.premultiply(bone.parent.matrixWorld.clone().invert());
-  }
-  bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
-
-  for (let i = 0; i < bone.children.length; i++) {
-    _localizeMatrixWorld(bone.children[i]);
-  }
-};
-const _findBoneDeep = (bones, boneName) => {
-  for (let i = 0; i < bones.length; i++) {
-    const bone = bones[i];
-    if (bone.name === boneName) {
-      return bone;
-    } else {
-      const deepBone = _findBoneDeep(bone.children, boneName);
-      if (deepBone) {
-        return deepBone;
-      }
-    }
-  }
-  return null;
-};
-const wearBoneMapping = {
-  Root: null,
-  J_Bip_C_Hips: 'Hips',
-  J_Bip_C_Spine: 'Spine',
-  J_Bip_C_Chest: 'Chest',
-  J_Bip_C_UpperChest: 'UpperChest',
-  
-  J_Bip_C_Neck: 'Neck',
-  J_Bip_C_Head: 'Head',
-  J_Adj_R_FaceEye: 'Eye_R',
-  J_Adj_L_FaceEye: 'Eye_L',
-  
-  J_Bip_R_Shoulder: 'Left_shoulder',
-  J_Bip_R_UpperArm: 'Left_arm',
-  J_Bip_R_LowerArm: 'Left_elbow',
-  J_Bip_R_Hand: 'Left_wrist',
-  J_Bip_R_Index1: 'Left_indexFinger1',
-  J_Bip_R_Index2: 'Left_indexFinger2',
-  J_Bip_R_Index3: 'Left_indexFinger3',
-  J_Bip_R_Little1: 'Left_littleFinger1',
-  J_Bip_R_Little2: 'Left_littleFinger2',
-  J_Bip_R_Little3: 'Left_littleFinger3',
-  J_Bip_R_Middle1: 'Left_middleFinger1',
-  J_Bip_R_Middle2: 'Left_middleFinger2',
-  J_Bip_R_Middle3: 'Left_middleFinger3',
-  J_Bip_R_Ring1: 'Left_ringFinger1',
-  J_Bip_R_Ring2: 'Left_ringFinger2',
-  J_Bip_R_Ring3: 'Left_ringFinger3',
-  J_Bip_R_Thumb1: 'Left_thumb0',
-  J_Bip_R_Thumb2: 'Left_thumb1',
-  J_Bip_R_Thumb3: 'Left_thumb2',
-  
-  J_Bip_L_Shoulder: 'Right_shoulder',
-  J_Bip_L_UpperArm: 'Right_arm',
-  J_Bip_L_LowerArm: 'Right_elbow',
-  J_Bip_L_Hand: 'Right_wrist',
-  J_Bip_L_Index1: 'Right_indexFinger1',
-  J_Bip_L_Index2: 'Right_indexFinger2',
-  J_Bip_L_Index3: 'Right_indexFinger3',
-  J_Bip_L_Little1: 'Right_littleFinger1',
-  J_Bip_L_Little2: 'Right_littleFinger2',
-  J_Bip_L_Little3: 'Right_littleFinger3',
-  J_Bip_L_Middle1: 'Right_middleFinger1',
-  J_Bip_L_Middle2: 'Right_middleFinger2',
-  J_Bip_L_Middle3: 'Right_middleFinger3',
-  J_Bip_L_Ring1: 'Right_ringFinger1',
-  J_Bip_L_Ring2: 'Right_ringFinger2',
-  J_Bip_L_Ring3: 'Right_ringFinger3',
-  J_Bip_L_Thumb1: 'Right_thumb0',
-  J_Bip_L_Thumb2: 'Right_thumb1',
-  J_Bip_L_Thumb3: 'Right_thumb2',
-  
-  J_Sec_L_Bust1: null,
-  J_Sec_L_Bust2: null,
-  J_Sec_R_Bust1: null,
-  J_Sec_R_Bust2: null,
-  
-  J_Bip_R_UpperLeg: 'Left_leg',
-  J_Bip_R_LowerLeg: 'Left_knee',
-  J_Bip_R_Foot: 'Left_ankle',
-  J_Bip_R_ToeBase: null,
-  
-  J_Sec_R_SkirtBack: null,
-  J_Sec_R_SkirtFront: null,
-  J_Sec_R_SkirtSide: null,
-  
-  J_Bip_L_UpperLeg: 'Right_leg',
-  J_Bip_L_LowerLeg: 'Right_knee',
-  J_Bip_L_Foot: 'Right_ankle',
-  J_Bip_L_ToeBase: null,
-  
-  J_Sec_L_SkirtBack: null,
-  J_Sec_L_SkirtFront: null,
-  J_Sec_L_SkirtSide: null,
-
-  // deprecated
-  J_Adj_R_FaceEye_1: null,
-  J_Adj_L_FaceEye_1: null,
-  J_Sec_L_SkirtBack_1: null,
-  J_Sec_L_SkirtFront_1: null,
-  J_Sec_L_SkirtSide_1: null,
-  J_Sec_R_SkirtBack_1: null,
-  J_Sec_R_SkirtFront_1: null,
-  J_Sec_R_SkirtSide_1: null,
-  J_Sec_L_Bust1_1: null,
-  J_Sec_L_Bust2_1: null,
-  J_Sec_R_Bust1_1: null,
-  J_Sec_R_Bust2_1: null,
-};
-const nop = () => {};
-const wearableScale = 1;
-appManager.addEventListener('wearupdate', e => { // XXX move handling to metaversefile vrm loader
-  const {app, wearSpec} = e.data;
-  if (wearSpec.skinnedMesh && app.glb) {
-    let skinnedMesh = null;
-    app.glb.scene.traverse(o => {
-      if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
-        skinnedMesh = o;
-      }
-    });
-    if (skinnedMesh && rigManager?.localRig) {
-      // console.log('got skinned mesh', skinnedMesh, rigManager?.localRig?.skeleton);
-      // skinnedMesh.bind(rigManager.localRig.skeleton);
-      // skinnedMesh.bindMode = 'detached';
-      app.position.set(0, 0, 0);
-      app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-      app.scale.set(1, 1, 1).multiplyScalar(wearableScale);
-      app.updateMatrix();
-      app.matrixWorld.copy(app.matrix);
-      const {
-        modelBones,
-      } = Avatar.bindAvatar(app.glb.scene);
-
-      wearSpec.skeleton = skinnedMesh.skeleton;
-      wearSpec.modelBones = modelBones;
-    }
-  }
-  
-  _ungrab();
-});
-const copySkeleton = (src, dst) => {
-  // window.foundBones = [];
-  // window.unfoundBones = [];
-
-  const hipsBone = dst.bones.find(b => /hips/i.test(b.name));
-  const worldPos = {};
-  const _recurseWorldPos = o => {
-    worldPos[o.id] = o.getWorldPosition(new THREE.Vector3());
-    for (const child of o.children) {
-      if (o.isBone) {
-        _recurseWorldPos(child);
-      }
-    }
-  };
-  _recurseWorldPos(hipsBone);
-
-  for (let i = 0; i < dst.bones.length; i++) {
-    const bone = dst.bones[i];
-    // bone.updateMatrixWorld = bone._updateMatrixWorld;
-  }
-  for (let i = 0; i < dst.bones.length; i++) {
-    const dstBone = dst.bones[i];
-    const mappedName = /hair/i.test(dstBone.name) ? null : wearBoneMapping[dstBone.name];
-    if (mappedName === undefined) {
-      debugger;
-    } else if (mappedName === null) {
-      // nothing
-    } else {
-      const srcBone = rigManager.localRig.modelBoneOutputs[mappedName];
-
-      if (mappedName === 'Hips') {
-        window.dstBone = dstBone;
-        window.localRig = rigManager.localRig;
-        window.THREE = THREE;
-        
-        dstBone.parent.position.set(0, 0, 0);
-        dstBone.parent.quaternion.identity();
-        
-        dstBone.position
-          .copy(srcBone.position)
-          // .copy(dstBone.initialPosition)
-          // .negate()
-          // .sub(dstBone.initialPosition);
-        dstBone.position.divideScalar(wearableScale);
-        // dstBone.position.y += rigManager.localRig.height + rigManager.localRig.eyeToHipsOffset.y;
-        // dstBone.position.x += 1;
-      } else {
-        dstBone.position.copy(srcBone.position);
-      }
-      /* if (/shoulder/i.test(mappedName)) {
-        dstBone.quaternion.copy(srcBone.quaternion)
-          .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), (/left/i.test(mappedName) ? -1 : 1) * Math.PI*0.4))
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (/left/i.test(mappedName) ? 1 : -1) * Math.PI*0.3))
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.5))
-      } else */
-      if (mappedName === 'Hips') {
-        dstBone.quaternion.copy(srcBone.quaternion)
-          // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI))
-        
-        /* localEuler.setFromQuaternion(srcBone.quaternion, 'YXZ');
-        localEuler.y += Math.PI;
-        localEuler.x *= -1;
-        localEuler.z = 0;
-        dstBone.quaternion.setFromEuler(localEuler); */
-      } else if (/arm/i.test(mappedName)) {
-        dstBone.quaternion.copy(srcBone.quaternion)
-          .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), (/left/i.test(mappedName) ? 1 : -1) * Math.PI*0.4))
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (/left/i.test(mappedName) ? 1 : -1) * Math.PI*0.3))
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.5))
-      } else {
-        dstBone.quaternion.copy(srcBone.quaternion);
-      }
-      
-      dstBone.updateMatrixWorld();
-
-      // debugger;
-
-      /* hipsBone .quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-      hipsBone.matrix.compose(hipsBone.position,hipsBone.quaternion, hipsBone.scale);
-      const _recurse = o => {
-        // o.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-        // o.matrix.compose(o.position, o.quaternion, o.scale);
-        o.matrixWorld.multiplyMatrices(
-          o.parent.matrixWorld,
-          o.matrix
-        );
-
-        //set child bone position relative to the new parent matrix.
-        for (const childBone of o.children) {
-          if (childBone.isBone) {
-            const childBonePosWorld = worldPos[childBone.id].clone();
-            o.worldToLocal(childBonePosWorld);
-            childBone.position.copy(childBonePosWorld);
-            
-            _recurse(childBone);
-          }
-        }
-      };
-      _recurse(hipsBone); */
-      
-      // dstBone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-      /* dstBone.quaternion.multiplyQuaternions(
-        srcBone.quaternion,
-        dstBone.initialQuaternion
-      ); */
-      
-      /* if (dstBone.matrixWorld.toArray().some(n => isNaN(n))) {
-        debugger;
-      } */
-
-      // console.log('stop bone', rigManager.localRig.modelBoneOutputs, dst.bones);
-      // debugger;
-
-      /* const srcBone = _findBoneDeep(src.bones, dstBone.name);
-      if (srcBone) {
-        // dstBone.position.copy(srcBone.position);
-        // dstBone.quaternion.copy(srcBone.quaternion);
-        // dstBone.scale.copy(srcBone.scale);
-        // dstBone.updateMatrix();
-        // dstBone.matrix.copy(srcBone.matrix);
-        dstBone.matrixWorld.copy(srcBone.matrixWorld);
-        window.foundBones.push(dstBone.name);
-      } else {
-        // dstBone.position.y = Math.sin(((performance.now()/1000)%1) * Math.PI * 2) * 0.1;
-        // dstBone.updateMatrixWorld();
-        dstBone.matrixWorld
-          .compose(dstBone.position, dstBone.quaternion.clone().premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)), new THREE.Vector3(1.3, 1.3, 1.3))
-          .premultiply(dstBone.parent.matrixWorld);
-        window.unfoundBones.push(dstBone);
-      } */
-    }
-  }
-  
-  /* const _recurse = dstBone => {
-    const rotatedVector = dstBone.getWorldPosition(new THREE.Vector3())
-      .sub(hipsBone.getWorldPosition(new THREE.Vector3()))
-      .applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-    const newWorldPos = dstBone.getWorldPosition(new THREE.Vector3())
-      .add(rotatedVector.clone().multiplyScalar(2));
-    const newWorldQuat = dstBone.getWorldQuaternion(new THREE.Quaternion())
-      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-    dstBone.matrixWorld.compose(newWorldPos, newWorldQuat, new THREE.Vector3(1, 1, 1));
-    dstBone.matrix.copy(dstBone.matrixWorld)
-      .premultiply(dstBone.parent.matrixWorld.clone().invert())
-      .decompose(dstBone.position, dstBone.quaternion, dstBone.scale);
-    for (const child of dstBone.children) {
-      if (child.isBone) {
-        _recurse(child);
-      }
-    }
-    //dstBone.updateMatrixWorld();
-  };
-  _recurse(hipsBone); */
-  
-  const armature = dst.bones[0].parent;
-  armature.updateMatrixWorld(true);
-  // window.armature = armature;
-  
-  for (let i = 0; i < dst.bones.length; i++) {
-    const bone = dst.bones[i];
-    // bone.updateMatrixWorld = nop;
-  }
-
-  // const armature = dst.bones[0].parent;
-  // armature.updateMatrixWorld(true);
-  // _localizeMatrixWorld(armature);
-};
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
@@ -1712,56 +1377,6 @@ const _updateWeapons = () => {
     }
   };
   _updateUses();
-
-  const _updateWears = () => {
-    for (const app of metaversefile.apps) {
-      const {wearSpec} = app;
-      if (wearSpec && rigManager.localRig) {
-        const {skeleton, modelBones} = wearSpec;
-        // console.log('check skele', wearSpec, skeleton);
-        if (skeleton) {
-          // console.log('copy', rigManager.localRig.skeleton, skeleton);
-          // const rigArmature = rigManager.localRig.skeleton.bones[0].parent;
-          // rigArmature.getWorldPosition(app.position);
-          // rigArmature.getWorldQuaternion(app.quaternion);
-          // rigArmature.getWorldScale(app.scale);
-          // copySkeleton(rigManager.localRig.skeleton, skeleton);
-          /* app.position.set(0, 0, 0);
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1); */
-          // rigManager.localRig.model.add(app);
-          // app.updateMatrixWorld(true);
-          // window.srcSkeleton = rigManager.localRig.skeleton;
-          // window.dstSkeleton = skeleton;
-          // debugger;
-          Avatar.applyModelBoneOutputs(modelBones, rigManager.localRig.modelBoneOutputs, rigManager.localRig.getTopEnabled(), rigManager.localRig.getBottomEnabled(), rigManager.localRig.getHandEnabled(0), rigManager.localRig.getHandEnabled(1));
-          modelBones.Hips.position.divideScalar(wearableScale);
-          modelBones.Hips.updateMatrixWorld();
-       } else {
-          const {boneAttachment = 'hips', position, quaternion, scale} = app.wearSpec;
-          const {outputs} = rigManager.localRig;
-          const bone = outputs[boneAttachment];
-          if (bone) {
-            bone.getWorldPosition(app.position);
-            bone.getWorldQuaternion(app.quaternion);
-            bone.getWorldScale(app.scale);
-            if (Array.isArray(position)) {
-              app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
-            }
-            if (Array.isArray(quaternion)) {
-              app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-            }
-            if (Array.isArray(scale)) {
-              app.scale.multiply(localVector.fromArray(scale));
-            }
-          } else {
-            console.warn('invalid bone attachment', {app, boneAttachment});
-          }
-        }
-      }
-    }
-  };
-  _updateWears();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
@@ -2984,7 +2599,8 @@ const weaponsManager = {
     this.editMode = !this.editMode;
     if (this.editMode) {
       if (_getGrabbedObject(0)) {
-        _ungrab();
+        const localPlayer = useLocalPlayer();
+        localPlayer.ungrab();
       } 
     }
   },
