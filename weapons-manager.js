@@ -826,6 +826,8 @@ const _unequip = () => {
 
 const grabUseMesh = (() => {
   const o = new THREE.Object3D();
+  o.app = null;
+  o.target = null;
   
   (async () => {
     const app = await metaversefile.load('./metaverse_modules/button/');
@@ -993,7 +995,7 @@ const _updateWeapons = () => {
         grabUseMesh.quaternion.copy(camera.quaternion);
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
-        
+        grabUseMesh.target = grabbedObject;
         if (grabUseMesh.app) {
           grabUseMesh.app.setComponent('value', weaponsManager.getUseSpecFactor(now));
         }
@@ -1003,6 +1005,30 @@ const _updateWeapons = () => {
           moveMesh.quaternion.copy(grabbedObject.quaternion);
           moveMesh.visible = true;
         } */
+      }
+    }
+    if (!grabUseMesh.visible && !weaponsManager.editMode) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+  
+      localVector.copy(localPlayer.position)
+        .add(localVector2.set(0, 0, -0.3).applyQuaternion(localPlayer.quaternion));
+        
+      const radius = 1;
+      const halfHeight = 0;
+      const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
+      if (collision) {
+        const collisionId = collision.objectId;
+        const object = world.getObjectFromPhysicsId(collisionId);
+        if (object) {
+          object.getWorldPosition(grabUseMesh.position);
+          grabUseMesh.quaternion.copy(camera.quaternion);
+          // grabUseMesh.scale.copy(grabbedObject.scale);
+          grabUseMesh.visible = true;
+          grabUseMesh.target = object;
+          if (grabUseMesh.app) {
+            grabUseMesh.app.setComponent('value', weaponsManager.getUseSpecFactor(now));
+          }
+        }
       }
     }
   };
@@ -1384,17 +1410,13 @@ const _updateWeapons = () => {
   };
   _updateDrags();
   
-  const _updateUses = () => {    
+  const _updateUses = () => {
     if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
-      const grabbedObject = _getGrabbedObject(0);
-      if (grabbedObject) {
-        grabbedObject.dispatchEvent({
+      if (grabUseMesh.target) {
+        grabUseMesh.target.dispatchEvent({
           type: 'activate',
         });
       }
-      /* renderer.domElement.dispatchEvent(new MessageEvent('activate', {
-        data: {},
-      })); */
       weaponsManager.useSpec = null;
     }
   };
@@ -2769,12 +2791,14 @@ const weaponsManager = {
     }
   },
   menuUseDown() {
-    const startTime = Date.now();
-    const endTime = startTime + 1000;
-    weaponsManager.useSpec = {
-      startTime,
-      endTime,
-    };
+    if (grabUseMesh.visible) {
+      const startTime = Date.now();
+      const endTime = startTime + 1000;
+      weaponsManager.useSpec = {
+        startTime,
+        endTime,
+      };
+    }
   },
   menuUseUp() {
     weaponsManager.useSpec = null;
