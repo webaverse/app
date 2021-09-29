@@ -350,6 +350,9 @@ metaversefile.setApi({
     }
     return player;
   },
+  useRemotePlayers() {
+    return Array.from(remotePlayers.values());
+  },
   useLoaders() {
     return loaders;
   },
