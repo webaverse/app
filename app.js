@@ -488,7 +488,7 @@ export default class App extends EventTarget {
       controlsManager.update();
       transformControls.update();
       weaponsManager.update();
-      hpManager.update();
+      hpManager.update(timestamp, timeDiffCapped);
       activateManager.update();
       dropManager.update();
       npcManager.update(timeDiffCapped);

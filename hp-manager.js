@@ -34,57 +34,73 @@ const cylinderMesh = new THREE.Mesh(
   })
 );
 cylinderMesh.startPosition = new THREE.Vector3();
-// scene.add(cylinderMesh);
+const hitAnimationLength = 300;
 let damageAnimation = null;
-const update = () => {
-  const now = Date.now();
-  if (document.pointerLockElement && metaversefileApi.useLocalPlayer().actions.some(action => action.type === 'use')) {
+const update = (timestamp, timeDiff) => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  
+  cylinderMesh.position.copy(localPlayer.position)
+    .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(localPlayer.quaternion));
+  cylinderMesh.quaternion.copy(localPlayer.quaternion);
+  cylinderMesh.startPosition.copy(localPlayer.position);
+  
+  const useAction = localPlayer.actions.some(action => action.type === 'use');
+  if (useAction) {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
-      const object = world.getObjectFromPhysicsId(collisionId) || world.getNpcFromPhysicsId(collisionId);
+      const object = world.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
       if (object) {
         const worldPosition = object.getWorldPosition(localVector);
-        const {hit, died} = object.hit(40);
-        if (died) {
-          const deadObject = new THREE.Object3D();
-          deadObject.position.copy(worldPosition);
-          deadObject.position.y += 0.5;
-          dropManager.drop(deadObject, {
-            type: 'card',
-          });
-        } else if (hit) {
-          const physics = physicsManager.getGeometry(collisionId);
-          if (physics) {
+        const {hit, died} = object.hitTracker.hit(typeof useAction.damage === 'number' ? useAction.damage : 30);
+        
+        if (hit) {
+          if (damagePhysicsMesh.physicsId !== collisionId) {
+            const physicsGeometry = physicsManager.getGeometry(collisionId);
             let geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-            geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+            geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+            geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
             geometry = geometry.toNonIndexed();
             geometry.computeVertexNormals();
 
             damagePhysicsMesh.geometry.dispose();
             damagePhysicsMesh.geometry = geometry;
             damagePhysicsMesh.physicsId = collisionId;
-            
-            const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-            damagePhysicsMesh.position.copy(physicsTransform.position);
-            damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-            damagePhysicsMesh.scale.copy(physicsTransform.scale);
-            
-            damageAnimation = {
-              startTime: now,
-              endTime: now + 300,
-            };
           }
+              
+          const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
+          damagePhysicsMesh.position.copy(physicsTransform.position);
+          damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
+          damagePhysicsMesh.scale.copy(physicsTransform.scale);
+              
+          damageAnimation = {
+            startTime: timestamp,
+            endTime: timestamp + hitAnimationLength,
+          };
+          
+          object.dispatchEvent({
+            type: 'hit',
+            position: cylinderMesh.position,
+            quaternion: cylinderMesh.quaternion,
+            hp: object.hitTracker.hp,
+            totalHp: object.hitTracker.totalHp,
+          });
+        }
+        if (died) {
+          object.dispatchEvent({
+            type: 'die',
+            position: cylinderMesh.position,
+            quaternion: cylinderMesh.quaternion,
+          });
         }
       }
     }
   }
 
   if (damageAnimation) {
-    if (now < damageAnimation.endTime) {
+    if (timestamp < damageAnimation.endTime) {
       const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
-      const f = (now - damageAnimation.startTime) / animationDuration;
+      const f = (timestamp - damageAnimation.startTime) / animationDuration;
       damagePhysicsMesh.material.uniforms.uTime.value = 1-f;
       damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
     } else {
@@ -92,44 +108,38 @@ const update = () => {
     }
   }
   damagePhysicsMesh.visible = !!damageAnimation;
-  
-  const {position, quaternion} = metaversefileApi.useLocalPlayer();
-  cylinderMesh.position.copy(position)
-    .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
-  cylinderMesh.quaternion.copy(quaternion);
-  cylinderMesh.startPosition.copy(position);
 };
 
-const hitAnimationLength = 300;
 const makeHitTracker = ({
   totalHp = 100,
 } = {}) => {
-  let hp = totalHp;
   const jitterObject = new THREE.Object3D();
   let hitTime = -1;
-  jitterObject.hit = (damage = 30) => {
+  jitterObject.hp = totalHp;
+  jitterObject.totalHp = totalHp;
+  jitterObject.hit = damage => {
     if (hitTime === -1) {
-      hp = Math.max(hp - damage, 0);
-      if (hp > 0) {
+      jitterObject.hp = Math.max(jitterObject.hp - damage, 0);
+      if (jitterObject.hp > 0) {
         hitTime = 0;
         
-        jitterObject.dispatchEvent({
+        /* jitterObject.dispatchEvent({
           type: 'hit',
           hp,
           totalHp,
           position: cylinderMesh.startPosition.clone(),
           quaternion: cylinderMesh.quaternion.clone(),
-        });
+        }); */
         return {
           hit: true,
           died: false,
         };
       } else {
-        jitterObject.dispatchEvent({
+        /* jitterObject.dispatchEvent({
           type: 'die',
           position: cylinderMesh.startPosition.clone(),
           quaternion: cylinderMesh.quaternion.clone(),
-        });
+        }); */
         return {
           hit: true,
           died: true,

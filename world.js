@@ -5,6 +5,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
 
 import {AppManager} from './app-object.js';
+import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
 
 import {pointers} from './web-monetization.js';
@@ -521,27 +522,18 @@ world.addEventListener('trackedobjectadd', async e => {
       app.destroy();
       return;
     }
-    if (mesh) {
+    if (!mesh) {
+      console.warn('failed to load object', {contentId});
+    }
+
+    const _bindRender = () => {
       unFrustumCull(app);
 
       if (app.renderOrder === -Infinity) {
         sceneHighPriority.add(app);
       }
-
-      // mesh.run && await mesh.run();
-      /* if (mesh.getStaticPhysicsIds) {
-        const staticPhysicsIds = mesh.getStaticPhysicsIds();
-        for (const physicsId of staticPhysicsIds) {
-          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-        }
-      } */
-      
-      app.addEventListener('die', () => {
-        world.removeObject(dynamic, mesh.instanceId);
-      });
-    } else {
-      console.warn('failed to load object', {contentId});
-    }
+    };
+    _bindRender();
 
     /* mesh.setPose = (position, quaternion, scale) => {
       trackedObject.set('position', position.toArray());
@@ -549,28 +541,61 @@ world.addEventListener('trackedobjectadd', async e => {
       trackedObject.set('scale', scale.toArray());
     }; */
 
-    const _observe = e => {
-      if (e.keysChanged.has('position')) {
-        app.position.fromArray(trackedObject.get('position'));
-      }
-      if (e.keysChanged.has('quaternion')) {
-        app.quaternion.fromArray(trackedObject.get('quaternion'));
-      }
-      if (e.keysChanged.has('scale')) {
-        app.scale.fromArray(trackedObject.get('scale'));
-      }
+    const _bindTransforms = () => {
+      const _observe = e => {
+        if (e.keysChanged.has('position')) {
+          app.position.fromArray(trackedObject.get('position'));
+        }
+        if (e.keysChanged.has('quaternion')) {
+          app.quaternion.fromArray(trackedObject.get('quaternion'));
+        }
+        if (e.keysChanged.has('scale')) {
+          app.scale.fromArray(trackedObject.get('scale'));
+        }
+      };
+      trackedObject.observe(_observe);
+      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
     };
-    trackedObject.observe(_observe);
-    trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+    _bindTransforms();
+    
+    const _bindHitTracker = () => {
+      const hitTracker = hpManager.makeHitTracker();
+      app.parent.add(hitTracker);
+      hitTracker.add(app);
+      app.hitTracker = hitTracker;
+
+      const frame = e => {
+        const {timeDiff} = e.data;
+        hitTracker.update(timeDiff);
+      };
+      world.appManager.addEventListener('frame', frame);
+      app.addEventListener('destroy', () => {
+        hitTracker.parent.remove(hitTracker);
+        world.appManager.removeEventListener('frame', frame);
+      });
+      
+      app.addEventListener('die', () => {
+        metaversefile.removeApp(app);
+        app.destroy();
+      });
+    };
+    _bindHitTracker();
+
+    const objects = _getObjects(true);
+    objects.push(app);
+
+    const _bindDestroy = () => {
+      app.addEventListener('destroy', () => {
+        objects.splice(objects.indexOf(app), 1);
+      });
+    };
+    _bindDestroy();
 
     /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
       const monetizationPointer = file.token.owner.monetizationPointer;
       const ownerAddress = file.token.owner.address.toLowerCase();
       pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
     } */
-
-    const objects = _getObjects(dynamic);
-    objects.push(app);
 
     world.dispatchEvent(new MessageEvent('objectadd', {
       data: app,
@@ -705,7 +730,7 @@ world.getWorldJson = async q => {
 };
 
 world.getObjectFromPhysicsId = physicsId => {
-  const objects = world.getObjects().concat(world.getStaticObjects());
+  const objects = world.getObjects();//.concat(world.getStaticObjects());
   for (const object of objects) {
     if (object.getPhysicsIds) {
       const physicsIds = object.getPhysicsIds();
