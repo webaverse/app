@@ -713,50 +713,55 @@ ioManager.click = e => {
     }
   }
 };
-let mouseDown = false;
+// let mouseDown = false;
+let lastMouseButtons = 0;
 ioManager.mousedown = e => {
+  const changedButtons = lastMouseButtons ^ e.buttons;
   if (document.pointerLockElement) {
-    if (e.buttons & 1) { // left
+    if ((changedButtons & 1) && (e.buttons & 1)) { // left
       weaponsManager.menuMouseDown();
     }
-    if (e.buttons & 2) { // right
+    if ((changedButtons & 2) && (e.buttons & 2)) { // right
       weaponsManager.menuAim();
     }
   } else {
-    if (e.buttons & 1) { // left
+    if ((changedButtons & 1) && (e.buttons & 1)) { // left
       const raycaster = _getMouseRaycaster(e, localRaycaster);
       transformControls.handleMouseDown(raycaster);
     }
-    if (e.buttons & 2) { // right
+    if ((changedButtons & 1) && (e.buttons & 2)) { // right
       weaponsManager.menuDragdownRight();
       weaponsManager.setContextMenu(false);
     }
   }
-  if (e.buttons & 4) { // middle
+  if ((changedButtons & 4) && (e.buttons & 4)) { // middle
     e.preventDefault();
     weaponsManager.menuDragdown();
   }
-  mouseDown = true;
+  lastMouseButtons = e.buttons;
+  // mouseDown = true;
 };
 ioManager.mouseup = e => {
-  if (mouseDown) {
+  const changedButtons = lastMouseButtons ^ e.buttons;
+  // if (mouseDown) {
     if (document.pointerLockElement) {
-      if (!(e.buttons & 1)) { // left
+      if ((changedButtons & 1) && !(e.buttons & 1)) { // left
         weaponsManager.menuMouseUp();
       }
-      if (!(e.buttons & 2)) { // right
+      if ((changedButtons & 2) && !(e.buttons & 2)) { // right
         weaponsManager.menuUnaim();
       }
     } else {
-      if (!(e.buttons & 2)) { // right
+      if ((changedButtons & 2) && !(e.buttons & 2)) { // right
         weaponsManager.menuDragupRight();
       }
     }
-    if (!(e.buttons & 4)) { // middle
+    if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
       weaponsManager.menuDragup();
     }
-    mouseDown = false;
-  }
+    // mouseDown = false;
+  // }
+  lastMouseButtons = e.buttons;
 };
 ioManager.paste = e => {
   if (!window.document.activeElement) {
