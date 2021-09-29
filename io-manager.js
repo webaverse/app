@@ -778,36 +778,6 @@ ioManager.paste = e => {
   }
 };
 ioManager.bindInput = () => {
-  window.addEventListener('resize', e => {
-    const renderer = getRenderer();
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = false;
-    }
-
-    const containerElement = getContainerElement();
-    const rect = containerElement.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
-    // renderer2.setSize(window.innerWidth, window.innerHeight);
-
-    const aspect = rect.width / rect.height;
-    camera.aspect = aspect;
-    camera.updateProjectionMatrix();
-
-    avatarCamera.aspect = aspect;
-    avatarCamera.updateProjectionMatrix();
-    
-    /* if (iframeContainer) {
-      iframeContainer.updateSize();
-    } */
-    const objects = world.getObjects();
-    for (const o of objects) {
-      o.resize && o.resize();
-    }
-    
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = true;
-    }
-  });
   /* window.addEventListener('paste', async e => {
     if (!_inputFocused()) {
       e.preventDefault();

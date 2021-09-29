@@ -648,6 +648,15 @@ world.addEventListener('trackedobjectremove', async e => {
 });
 world.isObject = object => objects.includes(object);
 
+world.bindInput = () => {
+  window.addEventListener('resize', e => {
+    const objects = world.getObjects();
+    for (const o of objects) {
+      o.resize && o.resize();
+    }
+  });
+};
+
 world.getWorldJson = async q => {
   const _getDefaultSpec = () => ({
     default: true,
