@@ -5,6 +5,7 @@ import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
 import {App, getRenderer, scene, sceneHighPriority, camera} from './app-object.js';
 import physicsManager from './physics-manager.js';
+import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import * as ui from './vr-ui.js';
@@ -543,6 +544,12 @@ export default () => {
       sceneHighPriority,
       iframeContainer,
     };
+  },
+  useRigManagerInternal() {
+    return rigManager;
+  },
+  useAvatarInternal() {
+    return Avatar;
   },
   async addModule(app, m) {
     currentAppRender = app;
