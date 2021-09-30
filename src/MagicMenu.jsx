@@ -242,7 +242,7 @@ function MagicMenu() {
             case 'output': {
               return (
                 <>
-                  <textarea className={classes.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" value={output} ref={outputTextarea} />
+                  <textarea className={classes.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
                   <div className={classes.buttons}>
                     <button className={classes.button} onClick={_run}>Run</button>
                   </div>
