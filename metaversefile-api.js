@@ -49,6 +49,9 @@ class LocalPlayer extends Player {
   constructor() {
     super();
   }
+  setAvatar(app) {
+    rigManager.setLocalAvatar(app);
+  }
   wear(app) {
     const wearComponent = app.getComponent('wear');
     if (wearComponent) {
