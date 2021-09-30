@@ -4,7 +4,9 @@ import classes from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
-import App from '/app.js';
+import App from '../app.js';
+import metaversefileApi from '../metaversefile-api.js';
+const {load, useLocalPlayer} = metaversefileApi;
 
 const _startApp = async (canvas) => {
   const app = new App();
@@ -39,6 +41,13 @@ const _startApp = async (canvas) => {
 
   await app.waitForLoad();
   await app.startLoop();
+  
+  {
+    const defaultAvatarUrl = './avatars/citrine.vrm';
+    const localPlayer = useLocalPlayer();
+    const avatarApp = await load(defaultAvatarUrl);
+    localPlayer.setAvatar(avatarApp);
+  }
 };
 
 function RootNode() {

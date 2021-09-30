@@ -13,8 +13,6 @@ import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 
-const defaultAvatarUrl = './avatars/citrine.vrm';
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -67,9 +65,9 @@ const roundedRectGeometry = (() => {
 })();
 const _makeRig = app => {
   if (app) {
-    const {raw} = app;
-    if (raw) {
-      const localRig = new Avatar(raw, {
+    const {skinnedVrm} = app;
+    if (skinnedVrm) {
+      const localRig = new Avatar(skinnedVrm, {
         fingers: true,
         hair: true,
         visemes: true,
@@ -100,18 +98,6 @@ class RigManager {
     this.peerRigs = new Map();
     
     this.lastTimetamp = Date.now();
-  }
-
-  async loadAvatarFromUrl(url) {
-    const m = await metaversefile.import(defaultAvatarUrl);
-    const app = metaversefile.createApp();
-    await metaversefile.addModule(app, m);
-    return app;
-  }
-
-  async setDefault() {
-    const app = await this.loadAvatarFromUrl(defaultAvatarUrl);
-    this.setLocalAvatar(app);
   }
   
   /* setFromLogin() {
@@ -181,7 +167,41 @@ class RigManager {
   } */
 
   async setLocalAvatar(app) {
-    this.localRig = _makeRig(app);
+    // prepare for wearing
+    {
+      let waitPromise;
+      app.dispatchEvent({
+        type: 'wearupdate',
+        wear: {},
+        waitUntil(p) {
+          waitPromise = p;
+        },
+      });
+      if (waitPromise) {
+        await waitPromise;
+      }
+    }
+    
+    // unwear old rig
+    if (this.localRig) {
+      {
+        let waitPromise;
+        this.localRig.app.dispatchEvent({
+          type: 'wearupdate',
+          wear: null,
+          waitUntil(p) {
+            waitPromise = p;
+          },
+        });
+        if (waitPromise) {
+          await waitPromise;
+        }
+      }
+    }
+    if (!app.rig) {
+      app.rig = _makeRig(app);
+    }
+    this.localRig = app.rig;
   }
   
   /* isPeerRig(rig) {
@@ -194,10 +214,10 @@ class RigManager {
   } */
 
   async addPeerRig(peerId, meta) {
-    const app = await this.loadAvatarFromUrl(meta.avatarUrl);
+    const app = await this.metaversefile.load(meta.avatarUrl);
     
-    const {raw} = app;
-    const peerRig = new Avatar(raw, {
+    const {skinnedVrm} = app;
+    const peerRig = new Avatar(skinnedVrm, {
       fingers: true,
       hair: true,
       visemes: true,
