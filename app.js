@@ -122,43 +122,6 @@ export default class App extends EventTarget {
   }
   
   async bootstrapFromUrl(urlSpec) {
-    /* const [
-      waitResult,
-      loginResult,
-    ] = await Promise.all([
-      this.waitForLoad(),
-      loginManager.waitForLoad()
-        .then(() => {
-          tryTutorial();
-          rigManager.setFromLogin();
-        }),
-    ]); */
-    
-    /* const coord = parseCoord(q.c);
-    if (coord) {
-      camera.position.copy(coord);
-    } */
-
-    try {
-      await Promise.all([
-        // universe.bootstrapFromUrl(urlSpec),
-        rigManager.setDefault(),
-      ]);
-      /* await Promise.all([
-        universe.enterWorld(worldJson),
-        (async () => {
-          if (q.o && !q.u && !q.r) {
-            let contentId = parseInt(q.o);
-            if (isNaN(contentId)) {
-              contentId = q.o;
-            }
-            await world.addObject(contentId);
-          }
-        })(),
-      ]); */
-    } catch (err) {
-      console.error(err);
-    }
     this.contentLoaded = true;
   }
   bindLogin() {
