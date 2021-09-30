@@ -50,16 +50,11 @@ class LocalPlayer extends Player {
     super();
   }
   wear(app) {
-    const wearComponent = app.components.find(component => component.key === 'wear');
-    
+    const wearComponent = app.getComponent('wear');
     if (wearComponent) {
-      let wearSpec = wearComponent.value;
-      
-      wearSpec = JSON.parse(JSON.stringify(wearSpec));
-      
       app.dispatchEvent({
         type: 'wearupdate',
-        wearSpec,
+        wear: wearComponent,
       });
       
       const {instanceId} = app;
