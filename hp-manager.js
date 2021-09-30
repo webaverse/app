@@ -23,8 +23,8 @@ const damagePhysicsMesh = _makeDamagePhysicsMesh();
 damagePhysicsMesh.visible = false;
 scene.add(damagePhysicsMesh);
 
-const radius = 0.8;
-const height = 0;
+const radius = 1;
+const height = 0.2;
 const halfHeight = height/2;
 const offsetDistance = 0.3;
 const cylinderMesh = new THREE.Mesh(
