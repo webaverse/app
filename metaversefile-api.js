@@ -269,8 +269,8 @@ metaversefile.setApi({
       return null;
     }
   },
-  async load(s) {
-    const m = await metaversefile.import(s);
+  async load(u) {
+    const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
     return app;
