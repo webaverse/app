@@ -493,7 +493,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     _getAvatarCapsule(localVector);
     localVector.add(p);
-    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, localVector.radius, localVector.halfHeight, localVector, q, 1);
+    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
   };
 })();
 const applyVelocity = (() => {
