@@ -1026,7 +1026,7 @@ const _updateWeapons = (timestamp) => {
         .add(localVector2.set(0, 0, -0.3).applyQuaternion(localPlayer.quaternion));
         
       const radius = 1;
-      const halfHeight = 0;
+      const halfHeight = 0.1;
       const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
