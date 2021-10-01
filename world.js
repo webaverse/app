@@ -434,8 +434,8 @@ const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quat
 const _removeObject = (dynamic) => removeInstanceId => {
   const state = _getState(dynamic);
   state.transact(() => {
-    const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
-    if (index === -1) pointers.splice(index, 1);
+    // const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
+    // if (index === -1) pointers.splice(index, 1);
 
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
