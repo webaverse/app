@@ -64,6 +64,7 @@ const _bindState = (dynamic, state) => {
         const trackedObject = state.getMap('objects.' + name);
         world.dispatchEvent(new MessageEvent('trackedobjectremove', {
           data: {
+            instanceId: name,
             trackedObject,
             dynamic,
           },
@@ -624,8 +625,7 @@ world.addEventListener('trackedobjectadd', async e => {
 });
 
 world.addEventListener('trackedobjectremove', async e => {
-  const {trackedObject, dynamic} = e.data;
-  const instanceId = trackedObject.get('instanceId');
+  const {instanceId, trackedObject, dynamic} = e.data;
   const objects = _getObjects(dynamic);
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
