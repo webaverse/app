@@ -8,7 +8,8 @@ import {rigManager} from '../rig.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import {parseQuery} from '../util.js'
-import {homeScnUrl} from '../constants.js'
+// import {homeScnUrl} from '../constants.js'
+import sceneNames from '../scenes/scenes.json';
 
 const localColor = new Color();
 const localColor2 = new Color();
@@ -24,7 +25,7 @@ const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
   if (src === undefined) {
-    src = homeScnUrl;
+    src = './scenes/' + sceneNames[0];
   }
   return src;
 };
@@ -34,7 +35,7 @@ const _getCurrentRoom = () => {
   return room || '';
 };
 
-const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, setScenesOpen, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
   
   const refreshRooms = async () => {
@@ -52,6 +53,14 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
   return (
     <div className={styles.location}>
       <div className={styles.row}>
+        <div className={styles['button-wrap']} onClick={e => {
+          setScenesOpen(!scenesOpen);
+          setMultiplayerOpen(false);
+        }}>
+          <button className={classnames(styles.button, styles.primary, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
+            <img src="images/webarrow.svg" />
+          </button>
+        </div>
         <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
           setSceneName(e.target.value);
         }} disabled={multiplayerConnected} onKeyDown={e => {
@@ -65,6 +74,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
           }
         }} placeholder="Goto..." />
         <div className={styles['button-wrap']} onClick={e => {
+          setScenesOpen(false);
           if (!multiplayerConnected) {
             setMultiplayerOpen(!multiplayerOpen);
           } else {
@@ -84,6 +94,17 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, multiplayerOp
           </button>
         </div>
       </div>
+      {scenesOpen ? <div className={styles.rooms}>
+        {sceneNames.map((sceneName, i) => (
+          <div className={styles.room} onClick={async e => {
+            universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
+            setScenesOpen(false);
+          }} key={i}>
+            <img className={styles.image} src="images/world.jpg" />
+            <div className={styles.name}>{sceneName}</div>
+          </div>
+        ))}
+      </div> : null}
       {multiplayerOpen ? <div className={styles.rooms}>
         <div className={styles.create}>
           <button className={styles.button} onClick={async e => {
@@ -199,6 +220,7 @@ export default function Header() {
   const [nfts, setNfts] = useState(null);
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
+  const [scenesOpen, setScenesOpen] = useState(false);
   const [multiplayerOpen, setMultiplayerOpen] = useState(false);
   // const [multiplayerConnected, setMultiplayerConnected] = useState(false);
   const [micOn, setMicOn] = useState(false);
@@ -454,6 +476,8 @@ export default function Header() {
             setSceneName={setSceneName}
             roomName={roomName}
             setRoomName={setRoomName}
+            scenesOpen={scenesOpen}
+            setScenesOpen={setScenesOpen}
             multiplayerOpen={multiplayerOpen}
             setMultiplayerOpen={setMultiplayerOpen}
             multiplayerConnected={multiplayerConnected}
