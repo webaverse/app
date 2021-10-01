@@ -184,7 +184,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
     </div>
   );
 };
-const User = ({address, setAddress, open, setOpen}) => {
+const User = ({address, setAddress, open, setOpen, setScenesOpen, setMultiplayerOpen}) => {
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
       const addresses = await window.ethereum.request({
@@ -205,6 +205,8 @@ const User = ({address, setAddress, open, setOpen}) => {
 
       if (address) {
         setOpen(!open);
+        setScenesOpen(false);
+        setMultiplayerOpen(false);
       } else {
         await login();
       }
@@ -493,14 +495,18 @@ export default function Header() {
               setAddress={setAddress}
               open={open}
               setOpen={setOpen}
+              setScenesOpen={setScenesOpen}
+              setMultiplayerOpen={setMultiplayerOpen}
             />
           </div>
           <div className={styles.row}>
             <div className={classnames(styles.tab, styles.left)}>
+              <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
               <span className={styles.text}>人 Character</span>
               <span className={styles.key}>Tab</span>
             </div>
             <div className={classnames(styles.tab, styles.right)}>
+              <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
               <span className={styles.text}>世 World</span>
               <span className={styles.key}>Z</span>
             </div>

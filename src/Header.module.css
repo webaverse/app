@@ -39,7 +39,43 @@ body {
   top: 50px;
   padding: 10px;
   background-color: #000;
+  font-size: 16px;
   color: #FFF;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  transition: color 1s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab .background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  z-index: -1;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab.left .background {
+  left: 0;
+  transform: rotateZ(180deg) translateX(-100%);
+}
+.header .tab.right .background {
+  right: 0;
+  transform: translateX(-100%);
+}
+.header .tab .background.blue {
+  filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
+}
+.header .tab:hover {
+  color: #000;
+}
+.header .tab.left:hover .background {
+  transform: rotateZ(180deg) translateX(50px);
+}
+.header .tab.right:hover .background {
+  transform: translateX(50px);
+}
+.header .tab:hover .key {
+  border-color: #000;
 }
 .header .tab.left {
   left: 0;
@@ -54,6 +90,7 @@ body {
   border: 2px solid #CCC;
   border-radius: 3px;
   font-size: 13px;
+  transition: border-color 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .header .user {
@@ -210,7 +247,6 @@ body {
   height: 100%;
   transform: translateX(-100%);
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
-  object-fit: cover;
 }
 .location .input-wrap .background.green {
   /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
