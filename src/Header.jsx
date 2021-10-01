@@ -506,6 +506,8 @@ export default function Header() {
               setMultiplayerOpen={setMultiplayerOpen}
             />
           </div>
+				</header>
+        <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
             <div className={classnames(styles.tab, styles.left)}>
               <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
@@ -518,7 +520,7 @@ export default function Header() {
               <span className={styles.key}>Z</span>
             </div>
           </div>
-				</header>
+        </header>
         
         <section className={classnames(styles.sidebar, open ? styles.open : null)} onClick={e => {
           e.preventDefault();
