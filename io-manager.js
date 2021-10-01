@@ -341,9 +341,9 @@ ioManager.keydown = e => {
     }
     case 71: { // G
       if (document.pointerLockElement) {
-        if (weaponsManager.canTry()) {
+        /* if (weaponsManager.canTry()) {
           weaponsManager.menuTry();
-        }
+        } */
       } else {
         // if (!weaponsManager.dragging) {
           // _setTransformMode('translate');
