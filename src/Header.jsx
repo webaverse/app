@@ -66,7 +66,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
         }} disabled={multiplayerConnected} onKeyDown={e => {
           // console.log('key down', e);
           switch (e.which) {
-            case 13: {
+            case 13: { // enter
               e.preventDefault();
               universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
               break;
