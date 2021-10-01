@@ -127,7 +127,7 @@ function MagicMenu() {
 
   useEffect(() => {
     const keydown = e => {
-      if (!open && e.which === 9) { // tab
+      if (!open && e.which === 191) { // /
         e.preventDefault();
 
         const newOpen = !open;
