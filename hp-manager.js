@@ -44,7 +44,7 @@ const update = (timestamp, timeDiff) => {
   cylinderMesh.quaternion.copy(localPlayer.quaternion);
   cylinderMesh.startPosition.copy(localPlayer.position);
   
-  const useAction = localPlayer.actions.some(action => action.type === 'use');
+  const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction && useAction.animation === 'combo') {
     const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
