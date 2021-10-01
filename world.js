@@ -633,7 +633,6 @@ world.addEventListener('trackedobjectremove', async e => {
     object.destroy && object.destroy();
     metaversefile.removeApp(object);
     // object.parent.remove(object);
-    objects.splice(index, 1);
     trackedObject.unobserve();
 
     /* const binding = transformControls.getBinding();
