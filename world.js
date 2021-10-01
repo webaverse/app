@@ -449,7 +449,7 @@ const _removeObject = (dynamic) => removeInstanceId => {
 
         const trackedObject = state.getMap('objects.' + instanceId);
         const keys = Array.from(trackedObject.keys());
-        for (const key in keys) {
+        for (const key of keys) {
           trackedObject.delete(key);
         }
       }
