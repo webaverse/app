@@ -56,7 +56,7 @@ const requestPointerLock = async () => {
           accept();
         }
       });
-      physicsManager.unlockControls();
+      // physicsManager.unlockControls();
       break;
     } catch (err) {
       console.warn(err);
