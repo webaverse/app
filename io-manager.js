@@ -374,15 +374,17 @@ ioManager.keydown = e => {
       break;
     }
     case 67: { // C
-      if (!e.ctrlKey) {
+      // if (!e.ctrlKey) {
         /* if (weaponsManager.canStartBuild()) {
           weaponsManager.startBuild('stair');
         } else if (weaponsManager.canBuild()) {
           weaponsManager.setBuildMode('stair');
         } else */if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
+        } else {
+          ioManager.keys.ctrl = true;
         }
-      }
+      // }
       break;
     }
     case 73: { // I
@@ -455,10 +457,10 @@ ioManager.keydown = e => {
       }
       break;
     }
-    case 17: { // ctrl
+    /* case 17: { // ctrl
       ioManager.keys.ctrl = true;
       break;
-    }
+    } */
     case 81: { // Q
       // weaponsManager.setWeaponWheel(true);
       if (weaponsManager.canToggleAxis()) {
@@ -523,10 +525,10 @@ ioManager.keyup = e => {
       ioManager.keys.space = false;
       break;
     }
-    case 17: { // ctrl
+    /* case 17: { // ctrl
       ioManager.keys.ctrl = false;
       break;
-    }
+    } */
     case 69: { // E
       if (document.pointerLockElement) {
         weaponsManager.menuUseUp();
@@ -534,15 +536,16 @@ ioManager.keyup = e => {
       break;
     }
     case 70: { // F
-      if (document.pointerLockElement) {
+      // if (document.pointerLockElement) {
         ioManager.keys.forward = false;
-      }
+      // }
       break;
     }
     case 67: { // C
-      if (document.pointerLockElement) {
+      // if (document.pointerLockElement) {
         ioManager.keys.backward = false;
-      }
+        ioManager.keys.ctrl = false;
+      // }
       break;
     }
     case 86: { // V
