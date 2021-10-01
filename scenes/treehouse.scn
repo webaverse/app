@@ -45,6 +45,20 @@
         0.7071067811865475
       ],
       "start_url": "https://webaverse.github.io/treehouse/"
+    },
+    {
+      "position": [
+        -6,
+        0.16,
+        16
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
     }
   ]
 }
