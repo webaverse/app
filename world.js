@@ -644,13 +644,16 @@ world.addEventListener('trackedobjectremove', async e => {
     world.dispatchEvent(new MessageEvent('objectremove', {
       data: object,
     }));
+  } else {
+    console.warn('remove for non-tracked object', instanceId);
   }
 });
 world.isObject = object => objects.includes(object);
 
 world.bindInput = () => {
   window.addEventListener('resize', e => {
-    const objects = _getObjects(true);
+    const objects = _getObjects(true)
+      .slice();
     for (const o of objects) {
       o.resize && o.resize();
     }
