@@ -199,6 +199,9 @@ body {
 }
 .location .button:hover {
   background-color: #7cb342;
+}
+.location .button.primary:hover {
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
 } 
 .location .button.disabled {
   background-color: #888;
