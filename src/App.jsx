@@ -64,7 +64,7 @@ function RootNode() {
   // console.log('got classes', {classes});
 
   return (
-    <div className={classes.App}>
+    <div className={classes.App} id="app">
       <Header />
       <div className={classes.crosshair} id="crosshair">
         <img src="./assets/crosshair.svg" width={30} height={30} />

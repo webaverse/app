@@ -534,10 +534,11 @@ physicsManager.setGravity = g => {
 
 physicsManager.convertMeshToPhysicsMesh = convertMeshToPhysicsMesh;
 
-let unlocked = false;
-physicsManager.unlockControls = () => {
+// const unlocked = true;
+/* physicsManager.unlockControls = () => {
+  debugger;
   unlocked = true;
-};
+}; */
 
 const _copyPQS = (dst, src) => {
   dst.position.copy(src.position);
@@ -604,7 +605,7 @@ const _updatePhysics = timeDiff => {
       rigManager.setLocalRigMatrix(null);
     }
   } else {
-    if (unlocked) {
+    // if (unlocked) {
       const selectedTool = cameraManager.getMode();
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (selectedTool === 'firstperson') {
@@ -631,7 +632,7 @@ const _updatePhysics = timeDiff => {
       } else {
         throw new Error('invalid camera mode: ' + selectedTool);
       } 
-    }
+    // }
   }
 };
 physicsManager.update = _updatePhysics;
