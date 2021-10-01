@@ -57,22 +57,25 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
           setScenesOpen(!scenesOpen);
           setMultiplayerOpen(false);
         }}>
-          <button className={classnames(styles.button, styles.primary, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
+          <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
             <img src="images/webarrow.svg" />
           </button>
         </div>
-        <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
-          setSceneName(e.target.value);
-        }} disabled={multiplayerConnected} onKeyDown={e => {
-          // console.log('key down', e);
-          switch (e.which) {
-            case 13: { // enter
-              e.preventDefault();
-              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
-              break;
+        <div className={styles['input-wrap']}>
+          <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
+            setSceneName(e.target.value);
+          }} disabled={multiplayerConnected} onKeyDown={e => {
+            // console.log('key down', e);
+            switch (e.which) {
+              case 13: { // enter
+                e.preventDefault();
+                universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
+                break;
+              }
             }
-          }
-        }} placeholder="Goto..." />
+          }} placeholder="Goto..." />
+          <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
+        </div>
         <div className={styles['button-wrap']} onClick={e => {
           setScenesOpen(false);
           if (!multiplayerConnected) {
@@ -468,28 +471,40 @@ export default function Header() {
     }}>
 			<div className={styles.inner}>
 				<header className={styles.header}>
-          <a href="/" className={styles.logo}>
-				    <img src="images/arrow-logo.svg" className={styles.image} />
-          </a>
-          <Location
-            sceneName={sceneName}
-            setSceneName={setSceneName}
-            roomName={roomName}
-            setRoomName={setRoomName}
-            scenesOpen={scenesOpen}
-            setScenesOpen={setScenesOpen}
-            multiplayerOpen={multiplayerOpen}
-            setMultiplayerOpen={setMultiplayerOpen}
-            multiplayerConnected={multiplayerConnected}
-            micOn={micOn}
-            toggleMic={toggleMic}
-          />
-          <User
-            address={address}
-            setAddress={setAddress}
-            open={open}
-            setOpen={setOpen}
-          />
+          <div className={styles.row}>
+            <a href="/" className={styles.logo}>
+              <img src="images/arrow-logo.svg" className={styles.image} />
+            </a>
+            <Location
+              sceneName={sceneName}
+              setSceneName={setSceneName}
+              roomName={roomName}
+              setRoomName={setRoomName}
+              scenesOpen={scenesOpen}
+              setScenesOpen={setScenesOpen}
+              multiplayerOpen={multiplayerOpen}
+              setMultiplayerOpen={setMultiplayerOpen}
+              multiplayerConnected={multiplayerConnected}
+              micOn={micOn}
+              toggleMic={toggleMic}
+            />
+            <User
+              address={address}
+              setAddress={setAddress}
+              open={open}
+              setOpen={setOpen}
+            />
+          </div>
+          <div className={styles.row}>
+            <div className={classnames(styles.tab, styles.left)}>
+              <span className={styles.text}>人 Character</span>
+              <span className={styles.key}>Tab</span>
+            </div>
+            <div className={classnames(styles.tab, styles.right)}>
+              <span className={styles.text}>世 World</span>
+              <span className={styles.key}>Z</span>
+            </div>
+          </div>
 				</header>
         
         <section className={classnames(styles.sidebar, open ? styles.open : null)} onClick={e => {
