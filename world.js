@@ -392,13 +392,14 @@ world.clear = (predicate = () => false) => {
   for (const object of staticObjects) {
     world.removeStaticObject(object.instanceId);
   } */
-  const objects = world.getObjects();
+  const objects = _getObjects(true)
+    .slice();
   for (const object of objects) {
     if (!predicate(object)) {
       world.removeObject(object.instanceId);
     }
   }
-  world.dispatchEvent(new MessageEvent('clear'));
+  // world.dispatchEvent(new MessageEvent('clear'));
 };
 
 world.initializeIfEmpty = spec => {
@@ -649,7 +650,7 @@ world.isObject = object => objects.includes(object);
 
 world.bindInput = () => {
   window.addEventListener('resize', e => {
-    const objects = world.getObjects();
+    const objects = _getObjects(true);
     for (const o of objects) {
       o.resize && o.resize();
     }
@@ -752,7 +753,7 @@ world.getWorldJson = async q => {
 };
 
 world.getObjectFromPhysicsId = physicsId => {
-  const objects = world.getObjects();//.concat(world.getStaticObjects());
+  const objects = _getObjects(true);//.concat(world.getStaticObjects());
   for (const object of objects) {
     if (object.getPhysicsIds) {
       const physicsIds = object.getPhysicsIds();
