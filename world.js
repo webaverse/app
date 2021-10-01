@@ -399,7 +399,7 @@ world.clear = (predicate = () => false) => {
       world.removeObject(object.instanceId);
     }
   }
-  // world.dispatchEvent(new MessageEvent('clear'));
+  world.dispatchEvent(new MessageEvent('clear'));
 };
 
 world.initializeIfEmpty = spec => {
