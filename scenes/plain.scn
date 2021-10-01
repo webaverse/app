@@ -14,7 +14,7 @@
         0,
         0
       ],
-      "start_url": "../skybox-anime/"
+      "start_url": "https://webaverse.github.io/skybox-anime/"
     },
     {
       "position": [
@@ -29,7 +29,7 @@
         0.7071067811865475
       ],
       "physics": false,
-      "start_url": "/assets2/gear.vrm",
+      "start_url": "/avatars/gear.vrm",
       "dynamic": true
     },
     {
@@ -44,7 +44,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "../treehouse/"
+      "start_url": "https://webaverse.github.io/treehouse/"
     }
   ]
 }
