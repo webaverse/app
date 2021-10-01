@@ -167,7 +167,7 @@
     {
       "position": [-9, 0, -1],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "https://avaer.github.io/chest/.metaversefile"
+      "start_url": "../chest/.metaversefile"
     },
     {
       "position": [-2, 1, -1],
@@ -190,7 +190,17 @@
         0,
         10
       ],
-      "start_url": "https://webaverse.github.io/halo/"
+      "start_url": "../halo/"
+    },
+    {
+      "position": [-4, 1, 3],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "../pistol/"
     },
     {
       "position": [-4, 1, 2],
@@ -200,7 +210,57 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/sword/"
+      "start_url": "../sword/"
+    },
+    {
+      "position": [-4, 0, 0],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "../dragon-pet/"
+    },
+    {
+      "position": [-3.75, 1, 1.5],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "../cards-menu/"
+    },
+    {
+      "position": [-2.75, 1, 1.5],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "../metaverse_modules/card/"
+    },
+    {
+      "position": [-1.75, 1, 1.5],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "../metaverse_modules/silk/"
+    },
+    {
+      "position": [-10, 0, 5],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "/hovercraft/"
     }
   ]
 }
