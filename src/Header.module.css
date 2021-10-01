@@ -9,7 +9,12 @@ body {
 	height: var(--header-height);
   top: 0;
   flex-direction: column;
+  user-select: none;
   z-index: 2;
+}
+
+.header.subheader {
+  z-index: 1;
 }
 
 .header > .row {
