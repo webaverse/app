@@ -299,45 +299,47 @@ physicsManager.animals = animals; */
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
-  let gliding;
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const isFlying = localPlayer.actions.some(action => action.type === 'fly');
-  if (isFlying) {
-    physicsManager.velocity.multiplyScalar(0.9);
-    gliding = false;
-  } else {
-    localVector.copy(gravity)
-      .multiplyScalar(timeDiff);
+  if (rigManager.localRig) {
+    // let gliding;
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const isFlying = localPlayer.actions.some(action => action.type === 'fly');
+    if (isFlying) {
+      physicsManager.velocity.multiplyScalar(0.9);
+      // gliding = false;
+    } else {
+      localVector.copy(gravity)
+        .multiplyScalar(timeDiff);
 
-    /* if (glideState && physicsManager.velocity.y < 0) {
-      const transforms = rigManager.getRigTransforms();
+      /* if (glideState && physicsManager.velocity.y < 0) {
+        const transforms = rigManager.getRigTransforms();
 
-      localVector
-        .add(
-          localVector2.copy(transforms[0].position)
-            .sub(transforms[1].position)
-            .normalize()
-            .applyQuaternion(leftQuaternion)
-            .multiplyScalar(3)
-        );
-      physicsManager.velocity.y *= 0.95;
-      gliding = true;
-    } else { */
-      gliding = false;
-    // }
-    physicsManager.velocity.add(localVector);
+        localVector
+          .add(
+            localVector2.copy(transforms[0].position)
+              .sub(transforms[1].position)
+              .normalize()
+              .applyQuaternion(leftQuaternion)
+              .multiplyScalar(3)
+          );
+        physicsManager.velocity.y *= 0.95;
+        gliding = true;
+      } else { */
+        // gliding = false;
+      // }
+      physicsManager.velocity.add(localVector);
+    }
+    
+    if (!localPlayer.actions.some(action => action.type === 'fly') && !localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
+      physicsManager.velocity.x *= damping;
+      physicsManager.velocity.z *= damping;
+    }
+
+    /* const terminalVelocity = 50;
+    const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+    physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
+    physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
+    physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y); */
   }
-  
-  if (!localPlayer.actions.some(action => action.type === 'fly') && !localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
-    physicsManager.velocity.x *= damping;
-    physicsManager.velocity.z *= damping;
-  }
-
-  /* const terminalVelocity = 50;
-  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-  physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
-  physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
-  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y); */
 };
 const _getAvatarWorldObject = o => {
   const renderer = getRenderer();
