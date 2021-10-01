@@ -23,7 +23,7 @@ import npcManager from './npc-manager.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
-import {storageHost, tokensHost, homeScnUrl} from './constants.js';
+import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
 import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'

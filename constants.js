@@ -42,5 +42,5 @@ export const aiHost = `https://ai.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 
-export const homeScnUrl = './scenes/street.scn';
+// export const homeScnUrl = './scenes/street.scn';
 export const worldUrl = 'worlds.webaverse.com';
