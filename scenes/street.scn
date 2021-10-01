@@ -185,6 +185,14 @@
       "start_url": "https://avaer.github.io/physicscube/"
     },
     {
+      "position": [
+        -60,
+        0,
+        10
+      ],
+      "start_url": "https://webaverse.github.io/halo/"
+    },
+    {
       "position": [-4, 1, 2],
       "quaternion": [
         0,
