@@ -9,8 +9,9 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
-import {landHost, homeScnUrl, worldUrl} from './constants.js';
+import {landHost, worldUrl} from './constants.js';
 import metaversefile from 'metaversefile';
+import sceneNames from './scenes/scenes.json';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -204,7 +205,7 @@ const enterWorld = async worldSpec => {
     let {src, room} = worldSpec;
     if (!room) {
       if (src === undefined) {
-        promises.push(metaversefile.load(homeScnUrl));
+        promises.push(metaversefile.load('./scenes/' + sceneNames[0]));
       } else if (src === '') {
         // nothing
       } else {
