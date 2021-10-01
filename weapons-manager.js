@@ -2597,6 +2597,7 @@ const weaponsManager = {
       if (!weaponsManager.isJumping()) {
         weaponsManager.ensureJump();
       }
+      physicsManager.velocity.setScalar(0);
     } else {
       const flyAction = {
         type: 'fly',
@@ -2756,7 +2757,8 @@ const weaponsManager = {
   },
   getSpeed() {
     const defaultSpeed = 0.1;
-    const defaultCrouchSpeed = 0.06;
+    const flySpeed = defaultSpeed * 2;
+    const defaultCrouchSpeed = defaultSpeed * 0.6;
     const sittable = rigManager?.localRig?.aux?.sittables[0];
     const localPlayer = useLocalPlayer();
     if (sittable && !!sittable.model) {
@@ -2764,8 +2766,10 @@ const weaponsManager = {
       const component = sittable.model.getComponents()[componentIndex];
       const {speed = defaultSpeed} = component;
       return speed;
-    } else if (localPlayer.actions.some(action => action.type === 'crouch')) {
+    } else if (weaponsManager.isCrouched()) {
       return defaultCrouchSpeed;
+    } else if (weaponsManager.isFlying()) {
+      return flySpeed;
     } else {
       return defaultSpeed;
     }
