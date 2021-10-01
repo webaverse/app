@@ -792,7 +792,7 @@ ioManager.bindInput = () => {
   window.addEventListener('wheel', e => {
     // console.log('target', e.target);
     const renderer = getRenderer();
-    if (renderer && e.target === renderer.domElement) {
+    if (renderer) {
       cameraManager.handleWheelEvent(e);
     }
   }, {
