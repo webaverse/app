@@ -190,7 +190,6 @@ const _updateIo = timeDiff => {
     const isFlying = weaponsManager.isFlying();
     if (isFlying) {
       direction.applyQuaternion(camera.quaternion);
-      
       _updateVertical(direction);
     } else {  
       const cameraEuler = camera.rotation.clone();
@@ -211,12 +210,11 @@ const _updateIo = timeDiff => {
 
       physicsManager.velocity.add(localVector);
 
-      if (weaponsManager.isJumping()) {
+      if (isFlying) {
+        physicsManager.velocity.multiplyScalar(0.9);
+      } else if (weaponsManager.isJumping()) {
         physicsManager.velocity.x *= 0.7;
         physicsManager.velocity.z *= 0.7;
-        if (isFlying) {
-          physicsManager.velocity.y *= 0.7;
-        }
       }
     }
   } else {

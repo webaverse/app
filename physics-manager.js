@@ -328,7 +328,7 @@ const _applyGravity = timeDiff => {
     physicsManager.velocity.add(localVector);
   }
   
-  if (!localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
+  if (!localPlayer.actions.some(action => action.type === 'fly') && !localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
     physicsManager.velocity.x *= damping;
     physicsManager.velocity.z *= damping;
   }
