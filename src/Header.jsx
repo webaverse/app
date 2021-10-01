@@ -35,7 +35,7 @@ const _getCurrentRoom = () => {
   return room || '';
 };
 
-const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, setScenesOpen, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+const Location = ({sceneName, setSceneName, roomName, setRoomName, setOpen, scenesOpen, setScenesOpen, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
   
   const refreshRooms = async () => {
@@ -56,6 +56,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
         <div className={styles['button-wrap']} onClick={e => {
           setScenesOpen(!scenesOpen);
           setMultiplayerOpen(false);
+          setOpen(false);
         }}>
           <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
             <img src="images/webarrow.svg" />
@@ -73,6 +74,10 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
                 break;
               }
             }
+          }} onFocus={e => {
+            setOpen(false);
+            setScenesOpen(false);
+            setMultiplayerOpen(false);
           }} placeholder="Goto..." />
           <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
         </div>
@@ -85,6 +90,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, scenesOpen, s
             /* world.disconnectRoom();
             setMultiplayerConnected(false); */
           }
+          setOpen(false);
         }}>
           <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
             <img src="images/wifi.svg" />
@@ -482,6 +488,7 @@ export default function Header() {
               setSceneName={setSceneName}
               roomName={roomName}
               setRoomName={setRoomName}
+              setOpen={setOpen}
               scenesOpen={scenesOpen}
               setScenesOpen={setScenesOpen}
               multiplayerOpen={multiplayerOpen}
