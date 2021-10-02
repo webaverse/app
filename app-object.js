@@ -244,6 +244,11 @@ class App extends THREE.Object3D {
   getPhysicsIds() {
     return this.physicsIds;
   }
+  activate() {
+    this.dispatchEvent({
+      type: 'activate',
+    });
+  }
   /* hit(hp) {
     this.hitTracker.hit(hp);
   } */
