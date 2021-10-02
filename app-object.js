@@ -188,14 +188,9 @@ class App extends THREE.Object3D {
 
     this.appId = appId;
     this.appManager = appManager;
-    // this.files = {};
-    // this.object = null;
-    // this.attributes = {};
-
+    this.components = [];
     // cleanup tracking
     this.physicsIds = [];
-    // this.wearSpec = null;
-    // this.popovers = [];
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
