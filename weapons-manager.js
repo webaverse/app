@@ -1425,9 +1425,7 @@ const _updateWeapons = (timestamp) => {
   const _updateUses = () => {
     if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
       if (grabUseMesh.target) {
-        grabUseMesh.target.dispatchEvent({
-          type: 'activate',
-        });
+        grabUseMesh.target.activate();
       }
       weaponsManager.useSpec = null;
     }
