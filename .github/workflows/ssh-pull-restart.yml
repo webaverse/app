@@ -10,7 +10,7 @@ jobs:
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@master
       with:
-        host: app-server.webaverse.com
+        host: app.webaverse.com
         username: ubuntu
         key: ${{ secrets.KEY }}
         port: 22
