@@ -507,7 +507,7 @@ world.addEventListener('trackedobjectadd', async e => {
           return '';
         }
       })(),
-      components,
+      // components,
     });
     app.position.fromArray(position);
     app.quaternion.fromArray(quaternion);
@@ -516,6 +516,9 @@ world.addEventListener('trackedobjectadd', async e => {
     app.contentId = contentId;
     app.instanceId = instanceId;
     app.setComponent('physics', true);
+    for (const {key, value} of components) {
+      app.setComponent(key, value);
+    }
     // app.contentId = contentId;
     metaversefile.addApp(app);
     mesh = await app.addModule(m);
