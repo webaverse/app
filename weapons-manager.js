@@ -517,15 +517,15 @@ const _delete = () => {
     } else {
       _updateMenu();
     } */
-  } else if (highlightedObject) {
-    world.removeObject(highlightedObject.instanceId);
-    highlightedObject = null;
+  } else if (highlightedPhysicsObject) {
+    world.removeObject(highlightedPhysicsObject.instanceId);
+    highlightedPhysicsObject = null;
 
-    if (weaponsManager.getMenu() === 4) {
+    /* if (weaponsManager.getMenu() === 4) {
       _selectItemDelta(1);
     } else {
       // _updateMenu();
-    }
+    } */
   }
 };
 const _click = () => {
