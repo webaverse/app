@@ -9,9 +9,7 @@ import {world} from '../world.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
-const _startApp = async (canvas) => {
-  const app = new App();
-
+const _startApp = async (app, canvas) => {
   app.bootstrapFromUrl(location);
 
   app.bindLogin();
@@ -27,7 +25,7 @@ const _startApp = async (canvas) => {
 
   app.setPossessed(true);
 
-  const enterXrButton = document.getElementById('enter-xr-button');
+  /* const enterXrButton = document.getElementById('enter-xr-button');
   const noXrButton = document.getElementById('no-xr-button');
   app.bindXrButton({
     enterXrButton,
@@ -38,7 +36,7 @@ const _startApp = async (canvas) => {
         noXrButton.style.display = 'none';
       }
     },
-  });
+  }); */
 
   await app.waitForLoad();
   await app.startLoop();
@@ -54,10 +52,11 @@ const _startApp = async (canvas) => {
 function RootNode() {
   // const [count, setCount] = useState(0)
   const canvasRef = useRef();
+  const [app, setApp] = useState(() => new App());
   
   useEffect(() => {
     if (canvasRef.current) {
-      _startApp(canvasRef.current);
+      _startApp(app, canvasRef.current);
     }
   }, [canvasRef.current]);
 
@@ -65,7 +64,7 @@ function RootNode() {
 
   return (
     <div className={classes.App} id="app">
-      <Header />
+      <Header app={app} />
       <div className={classes.crosshair} id="crosshair">
         <img src="./assets/crosshair.svg" width={30} height={30} />
       </div>

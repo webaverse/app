@@ -222,7 +222,36 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-export default function Header() {
+const Tab = ({type, left, right, top, bottom, label, panel, open, toggleOpen, onclick}) => {
+  if (!onclick) {
+    onclick = e => {
+      toggleOpen(type);
+    };
+  }
+  
+  return (
+    <div className={classnames(
+      styles.tab,
+      left ? styles.left : null,
+      right ? styles.right : null,
+      top ? styles.top : null,
+      bottom ? styles.bottom : null,
+      open === type ? styles.open : null,
+    )} onClick={onclick}>
+      {left ? <>
+        {panel}
+        {label}
+      </> : <>
+        {label}
+        {panel}
+      </>}
+    </div>
+  );
+};
+
+export default function Header({
+  app,
+}) {
 	// console.log('index 2');
 	
   const [open, setOpen] = useState(null);
@@ -231,6 +260,7 @@ export default function Header() {
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
+  const [xrSupported, setXrSupported] = useState(false);
   
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';
@@ -383,6 +413,11 @@ export default function Header() {
       window.removeEventListener('keydown', keydown);
     };
   }, [open]);
+  useEffect(async () => {
+    console.log('is supported', app);
+    const isXrSupported = await app.isXrSupported();
+    setXrSupported(isXrSupported);
+  }, []);
 
 	return (
     <div className={styles.container} onClick={e => {
@@ -417,30 +452,61 @@ export default function Header() {
 				</header>
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
-            <div className={classnames(styles.tab, styles.left, characterOpen ? styles.open : null)} onClick={e => {
-              toggleOpen('character');
-            }}>
-              <div className={styles.panel}>
-                <h1>Sheila</h1>
-              </div>
-              <div className={styles.label}>
-                <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                <span className={styles.text}>人 Character</span>
-                <span className={styles.key}>Tab</span>
-              </div>
-            </div>
-            <div className={classnames(styles.tab, styles.right, worldOpen ? styles.open : null)} onClick={e => {
-              toggleOpen('world');
-            }}>
-              <div className={styles.label}>
-                <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                <span className={styles.text}>世 World</span>
-                <span className={styles.key}>Z</span>
-              </div>
-              <div className={styles.panel}>
-                <h1>Tokens</h1>
-              </div>
-            </div>
+            <Tab
+              type="character"
+              top
+              left
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>人 Character</span>
+                  <span className={styles.key}>Tab</span>
+                </div>
+              }
+              panel={
+                <div className={styles.panel}>
+                  <h1>Sheila</h1>
+                </div>
+              }
+              open={open}
+              toggleOpen={toggleOpen}
+            />
+            <Tab
+              type="world"
+              top
+              right
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>世 World</span>
+                  <span className={styles.key}>Z</span>
+                </div>
+              }
+              panel={
+                <div className={styles.panel}>
+                  <h1>Tokens</h1>
+                </div>
+              }
+              open={open}
+              toggleOpen={toggleOpen}
+            />
+            <Tab
+              type="xr"
+              onclick={e => {
+                app.enterXr();
+              }}
+              bottom
+              right
+              disabled={!xrSupported}
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>仮想現実 VR</span>
+                </div>
+              }
+              open={open}
+              toggleOpen={toggleOpen}
+            />
           </div>
         </header>
         
