@@ -578,7 +578,7 @@ class RigManager {
         this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
       }
       this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || this.localRig.getHandEnabled(0) || this.localRig.getHandEnabled(1));
-      this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
+      this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
       this.localRig.direction.copy(positionDiff);
       this.localRig.velocity.copy(this.smoothVelocity);
       this.localRig.jumpState = !!jumpAction;

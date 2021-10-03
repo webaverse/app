@@ -592,7 +592,7 @@ const _updatePhysics = timeDiff => {
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
 
-    if (ioManager.currentWalked || jumpState) {
+    if (ioManager.currentWalked || localPlayer.actions.some(action => action.type === 'jump')) {
       const originalPosition = avatarWorldObject.position.clone();
 
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
