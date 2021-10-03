@@ -504,7 +504,7 @@ export default function Header({
               label={
                 <div className={styles.label}>
                   <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>仮想現実 VR</span>
+                  <span className={styles.text}>仮想現実 VR{xrSupported ? '' : ' (no)'}</span>
                 </div>
               }
               open={open}

@@ -150,8 +150,8 @@ body {
   transition: border-color 1s cubic-bezier(0, 1, 0, 1);
 }
 .header .tab.disabled .label {
-  background-color: #333;
   color: #666;
+  opacity: 0.5;
 }
 
 .header .user {
