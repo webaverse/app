@@ -180,20 +180,28 @@ export default class App extends EventTarget {
     return world.toggleMic();
   } */
   async enterXr() {
-    function onSessionStarted(session) {
-      function onSessionEnded(e) {
-        session.removeEventListener('end', onSessionEnded);
-        renderer.xr.setSession(null);
-      }
-      session.addEventListener('end', onSessionEnded);
-      renderer.xr.setSession(session);
-      // renderer.xr.setReferenceSpaceType('local-floor');
-    }
-
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     if (session === null) {
-      await navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
+      let session = null;
+      try {
+        session = await navigator.xr.requestSession(sessionMode, sessionOpts);
+      } catch(err) {
+        try {
+          session = await navigator.xr.requestSession(sessionMode);
+        } catch(err) {
+          console.warn(err);
+        }
+      }
+      if (session) {
+        function onSessionEnded(e) {
+          session.removeEventListener('end', onSessionEnded);
+          renderer.xr.setSession(null);
+        }
+        session.addEventListener('end', onSessionEnded);
+        renderer.xr.setSession(session);
+        // renderer.xr.setReferenceSpaceType('local-floor');
+      }
     } else {
       await session.end();
     }
