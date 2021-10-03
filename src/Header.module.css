@@ -42,6 +42,9 @@ body {
 .header .tab {
   position: fixed;
   top: 50px;
+}
+.header .tab .label {
+  position: relative;
   padding: 10px;
   background-color: #000;
   font-size: 16px;
@@ -51,12 +54,35 @@ body {
   overflow: hidden;
   transition: color 1s cubic-bezier(0, 1, 0, 1);
 }
+.header .tab .label .text,
+.header .tab .label .key
+{
+  position: relative;
+}
+.header .tab .panel {
+  position: absolute;
+  width: 300px;
+  height: 100%;
+  background-color: #000;
+}
+.header .tab.left .panel {
+  left: -300px;
+}
+.header .tab.right .panel {
+  top: 0;
+  left: 100%;
+}
+.header .tab.left.open {
+  transform: translateX(300px);
+}
+.header .tab.right.open {
+  transform: translateX(-300px);
+}
 .header .tab .background {
   position: absolute;
   top: 0;
   bottom: 0;
   height: 100%;
-  z-index: -1;
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
 .header .tab.left .background {
@@ -70,16 +96,21 @@ body {
 .header .tab .background.blue {
   filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
 }
-.header .tab:hover {
+.header .tab:hover .label,
+.header .tab.open .label
+{
   color: #000;
 }
-.header .tab.left:hover .background {
+.header .tab.left:hover .background,
+.header .tab.left.open .background {
   transform: rotateZ(180deg) translateX(50px);
 }
-.header .tab.right:hover .background {
+.header .tab.right:hover .background,
+.header .tab.right.open .background {
   transform: translateX(50px);
 }
-.header .tab:hover .key {
+.header .tab:hover .key,
+.header .tab.open .key {
   border-color: #000;
 }
 .header .tab.left {
