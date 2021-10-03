@@ -2061,11 +2061,25 @@ class Avatar {
           
           // user
           if (this.emotes.length > 0) {
-            for (const emote of this.emotes) {
-              if (emote.index < morphTargetInfluences.length) {
-                morphTargetInfluences[emote.index] = emote.value;
+            const timestamp = performance.now();
+            this.emotes = this.emotes.filter(({index, value, startTimestamp, aTimestamp, bTimestamp, endTimestamp}) => {
+              if (index < morphTargetInfluences.length) {
+                if (timestamp < aTimestamp) {
+                  morphTargetInfluences[index] = cubicBezier((timestamp - startTimestamp) / (aTimestamp - startTimestamp));
+                  return true;
+                } else if (timestamp < bTimestamp) {
+                  morphTargetInfluences[index] = 1;
+                  return true;
+                } else if (timestamp < endTimestamp) {
+                  morphTargetInfluences[index] = 1 - cubicBezier((timestamp - bTimestamp) / (endTimestamp - bTimestamp));
+                  return true;
+                } else {
+                  return false;
+                }
+              } else {
+                return false;
               }
-            }
+            });
           } else {
             // blink
             if (blinkLeftIndex !== null) {
