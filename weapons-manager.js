@@ -72,9 +72,6 @@ const _getGrabbedObject = i => {
   // window.grabbedObjectInstanceId = grabbedObjectInstanceId;
   // window.objects = world.getObjects();instanceId
   const result = grabbedObjectInstanceId ? world.getObjects().find(object => object.instanceId === grabbedObjectInstanceId) : null;
-  /* if (grabbedObjectInstanceId && !result) {
-    debugger;
-  } */
   return result;
 };
 // window.getGrabbedObject = _getGrabbedObject;
