@@ -145,7 +145,7 @@ export default class App extends EventTarget {
   bindMinimap(mapCanvas) {
     minimap.init(mapCanvas);
   }
-  bindXrButton({
+  /* bindXrButton({
     enterXrButton,
     // noXrButton,
     onSupported,
@@ -159,7 +159,7 @@ export default class App extends EventTarget {
       const ok = await this.isXrSupported();
       onSupported(ok);
     })();
-  }
+  } */
   bindCanvas(c) {
     bindCanvas(c);
   }
