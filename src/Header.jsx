@@ -8,6 +8,7 @@ import {rigManager} from '../rig.js'
 import weaponsManager from '../weapons-manager.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
+import cameraManager from '../camera-manager.js'
 import {parseQuery} from '../util.js'
 // import {homeScnUrl} from '../constants.js'
 import sceneNames from '../scenes/scenes.json';
@@ -36,8 +37,10 @@ const _getCurrentRoom = () => {
   return room || '';
 };
 
-const Location = ({sceneName, setSceneName, roomName, setRoomName, setOpen, scenesOpen, setScenesOpen, multiplayerOpen, setMultiplayerOpen, multiplayerConnected, micOn, toggleMic}) => {
+const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
+  const scenesOpen = open === 'scenes';
+  const multiplayerOpen = open === 'multiplayer';
   
   const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost() + '@worlds/');
@@ -55,9 +58,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, setOpen, scen
     <div className={styles.location}>
       <div className={styles.row}>
         <div className={styles['button-wrap']} onClick={e => {
-          setScenesOpen(!scenesOpen);
-          setMultiplayerOpen(false);
-          setOpen(false);
+          toggleOpen('scenes');
         }}>
           <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
             <img src="images/webarrow.svg" />
@@ -76,22 +77,19 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, setOpen, scen
               }
             }
           }} onFocus={e => {
-            setOpen(false);
-            setScenesOpen(false);
-            setMultiplayerOpen(false);
+            setOpen(null);
           }} placeholder="Goto..." />
           <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
         </div>
         <div className={styles['button-wrap']} onClick={e => {
-          setScenesOpen(false);
           if (!multiplayerConnected) {
-            setMultiplayerOpen(!multiplayerOpen);
+            toggleOpen('multiplayer');
           } else {
             universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
             /* world.disconnectRoom();
             setMultiplayerConnected(false); */
+            setOpen(null);
           }
-          setOpen(false);
         }}>
           <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
             <img src="images/wifi.svg" />
@@ -191,7 +189,9 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, setOpen, scen
     </div>
   );
 };
-const User = ({address, setAddress, open, setOpen, setScenesOpen, setMultiplayerOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+  const userOpen = open === 'user';
+  
   const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
       const addresses = await window.ethereum.request({
@@ -211,9 +211,7 @@ const User = ({address, setAddress, open, setOpen, setScenesOpen, setMultiplayer
       e.stopPropagation();
 
       if (address) {
-        setOpen(!open);
-        setScenesOpen(false);
-        setMultiplayerOpen(false);
+        toggleOpen('user');
       } else {
         await login();
       }
@@ -227,18 +225,23 @@ const User = ({address, setAddress, open, setOpen, setScenesOpen, setMultiplayer
 export default function Header() {
 	// console.log('index 2');
 	
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
-  const [scenesOpen, setScenesOpen] = useState(false);
-  const [multiplayerOpen, setMultiplayerOpen] = useState(false);
-  // const [multiplayerConnected, setMultiplayerConnected] = useState(false);
   const [micOn, setMicOn] = useState(false);
   
+  const userOpen = open === 'user';
+  const scenesOpen = open === 'scenes';
+  const multiplayerOpen = open === 'multiplayer';
+  const characterOpen = open === 'character';
+  const worldOpen = open === 'world';
   const multiplayerConnected = !!roomName;
   
+  const toggleOpen = newOpen => {
+    setOpen(newOpen === open ? null : newOpen);
+  };
   const toggleMic = async e => {
     // console.log('toggle mic');
     if (!world.micEnabled()) {
@@ -254,8 +257,7 @@ export default function Header() {
     const pointerlockchange = e => {
       // console.log('pointer lock change', e, document.pointerLockElement);
       if (document.pointerLockElement) {
-        setOpen(false);
-        setMultiplayerOpen(false);
+        setOpen(null);
       }
     };
     window.document.addEventListener('pointerlockchange', pointerlockchange);
@@ -263,6 +265,11 @@ export default function Header() {
       window.document.removeEventListener('pointerlockchange', pointerlockchange);
     };
   }, []);
+  useEffect(() => {
+    if (open && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+  }, [open]);
   useEffect(() => {
     if (address && !nfts) {
       setNfts([]);
@@ -285,7 +292,9 @@ export default function Header() {
     setSceneName(src);
     const roomName = _getCurrentRoom();
     setRoomName(roomName);
-    setMultiplayerOpen(false);
+    if (multiplayerOpen) {
+      setOpen(null);
+    }
     // console.log('set url state', {src, roomName, search: window.location.search, q: parseQuery(window.location.search)});
   };
   useEffect(() => {
@@ -341,6 +350,26 @@ export default function Header() {
             toggleMic();
             break;
           }
+          case 9: { // Tab
+            e.preventDefault();
+            e.stopPropagation();
+            if (characterOpen) {
+              cameraManager.requestPointerLock();
+            } else {
+              setOpen('character');
+            }
+            break;
+          }
+          case 90: { // Z
+            e.preventDefault();
+            e.stopPropagation();
+            if (worldOpen) {
+              cameraManager.requestPointerLock();
+            } else {
+              setOpen('world');
+            }
+            break;
+          }
         }
         const match = e.code.match(/^Numpad([0-9])$/);
         if (match) {
@@ -353,7 +382,7 @@ export default function Header() {
     return () => {
       window.removeEventListener('keydown', keydown);
     };
-  }, []);
+  }, [open]);
 
 	return (
     <div className={styles.container} onClick={e => {
@@ -370,11 +399,9 @@ export default function Header() {
               setSceneName={setSceneName}
               roomName={roomName}
               setRoomName={setRoomName}
+              open={open}
               setOpen={setOpen}
-              scenesOpen={scenesOpen}
-              setScenesOpen={setScenesOpen}
-              multiplayerOpen={multiplayerOpen}
-              setMultiplayerOpen={setMultiplayerOpen}
+              toggleOpen={toggleOpen}
               multiplayerConnected={multiplayerConnected}
               micOn={micOn}
               toggleMic={toggleMic}
@@ -384,27 +411,40 @@ export default function Header() {
               setAddress={setAddress}
               open={open}
               setOpen={setOpen}
-              setScenesOpen={setScenesOpen}
-              setMultiplayerOpen={setMultiplayerOpen}
+              toggleOpen={toggleOpen}
             />
           </div>
 				</header>
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
-            <div className={classnames(styles.tab, styles.left)}>
-              <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-              <span className={styles.text}>人 Character</span>
-              <span className={styles.key}>Tab</span>
+            <div className={classnames(styles.tab, styles.left, characterOpen ? styles.open : null)} onClick={e => {
+              toggleOpen('character');
+            }}>
+              <div className={styles.panel}>
+                <h1>Sheila</h1>
+              </div>
+              <div className={styles.label}>
+                <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                <span className={styles.text}>人 Character</span>
+                <span className={styles.key}>Tab</span>
+              </div>
             </div>
-            <div className={classnames(styles.tab, styles.right)}>
-              <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-              <span className={styles.text}>世 World</span>
-              <span className={styles.key}>Z</span>
+            <div className={classnames(styles.tab, styles.right, worldOpen ? styles.open : null)} onClick={e => {
+              toggleOpen('world');
+            }}>
+              <div className={styles.label}>
+                <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                <span className={styles.text}>世 World</span>
+                <span className={styles.key}>Z</span>
+              </div>
+              <div className={styles.panel}>
+                <h1>Tokens</h1>
+              </div>
             </div>
           </div>
         </header>
         
-        <section className={classnames(styles.sidebar, open ? styles.open : null)} onClick={e => {
+        <section className={classnames(styles.sidebar, userOpen ? styles.open : null)} onClick={e => {
           e.preventDefault();
           e.stopPropagation();
         }}>

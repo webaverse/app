@@ -351,16 +351,16 @@ ioManager.keydown = e => {
       }
       break;
     }
-    case 90: { // Z
-      /* if (!e.ctrlKey) {
+    /* case 90: { // Z
+      if (!e.ctrlKey) {
         if (weaponsManager.canStartBuild()) {
           weaponsManager.startBuild('wall');
         } else if (weaponsManager.canBuild()) {
           weaponsManager.setBuildMode('wall');
         }
-      } */
+      }
       break;
-    }
+    } */
     case 88: { // X
       if (!e.ctrlKey) {
         /* if (weaponsManager.canStartBuild()) {
