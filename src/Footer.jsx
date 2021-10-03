@@ -75,8 +75,6 @@ export default () => {
             <div className={styles.key}>Enter</div>
           </div>
         </div>
-        <nav className={styles['enter-xr-button']} id="enter-xr-button" style={{display: 'none'}}>Enter XR</nav>
-        <nav className={styles['no-xr-button']} id="no-xr-button">No XR</nav>
       </div>
     </footer>
   );
