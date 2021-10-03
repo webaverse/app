@@ -493,8 +493,10 @@ export default function Header({
             />
             <Tab
               type="xr"
-              onclick={e => {
-                app.enterXr();
+              onclick={async e => {
+                if (xrSupported) {
+                  await app.enterXr();
+                }
               }}
               bottom
               right
