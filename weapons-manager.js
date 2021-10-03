@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+// import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -26,6 +26,7 @@ import * as popovers from './popovers.js';
 import {getExt, bindUploadFileButton, snapPosition} from './util.js';
 import Avatar from './avatars/avatars.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import easing from './easing.js';
 import fx from './fx.js';
 import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
@@ -56,13 +57,14 @@ const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 const oneVector = new THREE.Vector3(1, 1, 1);
 
-const gltfLoader = new GLTFLoader();
-const equipArmQuaternions = [
+// const gltfLoader = new GLTFLoader();
+/* const equipArmQuaternions = [
   new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
   new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), -Math.PI/2)
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
-];
+]; */
+const cubicBezier = easing(0, 1, 0, 1);
 
 const _getGrabbedObject = i => {
   const localPlayer = useLocalPlayer();
@@ -2679,6 +2681,38 @@ const weaponsManager = {
           chatInputEl.value = '';
         }
       }
+    }
+  },
+  addLocalEmote(index) {
+    if (rigManager.localRig) {
+      const timestamp = performance.now();
+      const startTimestamp = timestamp;
+      const aTimestamp = startTimestamp + 300;
+      const bTimestamp = aTimestamp + 1000;
+      const endTimestamp = bTimestamp + 300;
+      
+      const emote = {
+        index,
+        value: 0,
+      };
+      rigManager.localRig.emotes.push(emote);
+      const _finish = () => {
+        rigManager.localRig.emotes.splice(rigManager.localRig.emotes.indexOf(emote), 1);
+        world.appManager.removeEventListener('frame', frame);
+      };
+      const frame = e => {
+        const {timestamp} = e.data;
+        if (timestamp < aTimestamp) {
+          emote.value = cubicBezier((timestamp - startTimestamp) / (aTimestamp - startTimestamp));
+        } else if (timestamp < bTimestamp) {
+          emote.value = 1;
+        } else if (timestamp < endTimestamp) {
+          emote.value = 1 - cubicBezier((timestamp - bTimestamp) / (endTimestamp - bTimestamp));
+        } else {
+          _finish();
+        }
+      };
+      world.appManager.addEventListener('frame', frame);
     }
   },
   /* canBuild() {
