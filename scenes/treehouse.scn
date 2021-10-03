@@ -48,6 +48,20 @@
     },
     {
       "position": [
+        24,
+        0,
+        16
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/ramp/"
+    },
+    {
+      "position": [
         -6,
         0.16,
         16
