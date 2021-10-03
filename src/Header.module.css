@@ -74,6 +74,11 @@ body {
   top: -100px;
   left: 100%;
 }
+.header .tab.open .panel {
+  background-color: #000;
+  color: #FFF;
+  padding-top: 36px;
+}
 .header .tab.left.open {
   transform: translateX(300px);
 }
