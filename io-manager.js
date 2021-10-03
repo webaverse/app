@@ -665,9 +665,9 @@ const _updateMouseHover = e => {
   }
 };
 ioManager.mousemove = e => {
-  if (weaponsManager.weaponWheel) {
+  /* if (weaponsManager.weaponWheel) {
     weaponsManager.updateWeaponWheel(e);
-  } else {
+  } else { */
     if (document.pointerLockElement) {
       _updateMouseMovement(e);
     } else {
@@ -678,7 +678,7 @@ ioManager.mousemove = e => {
         _updateMouseHover(e);
       }
     }
-  }
+  // }
 };
 ioManager.mouseup = e => {
   ioManager.currentWeaponDown = false;
