@@ -792,7 +792,7 @@ const _bindLocalPlayerTeleport = () => {
       !localPlayer.position.equals(lastLocalPlayerPosition) ||
       !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
     ) {
-      metaversefile.teleportTo(localPlayer.position, localPlayer.quaternion, {
+      localPlayer.teleportTo(localPlayer.position, localPlayer.quaternion, {
         relation: 'head',
       });
     }

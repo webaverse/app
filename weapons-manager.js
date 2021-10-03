@@ -33,7 +33,7 @@ import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 
 const {appManager} = world;
-const {useLocalPlayer, teleportTo} = metaversefileApi;
+const {useLocalPlayer} = metaversefileApi;
 const {contractNames} = metaversefileConstants;
 
 const localVector = new THREE.Vector3();
@@ -1232,7 +1232,8 @@ const _updateWeapons = (timestamp) => {
   const _handleTeleport = () => {
     if (rigManager.localRig) {
       teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, p, q), (position, quaternion) => {
-        teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+        const localPlayer = useLocalPlayer();
+        localPlayer.teleportTo(position, quaternion);
       });
     }
   };
