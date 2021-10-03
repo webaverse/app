@@ -55,6 +55,9 @@ body {
   overflow: hidden;
   transition: color 1s cubic-bezier(0, 1, 0, 1);
 }
+.header .tab.disabled .label {
+  cursor: default;
+}
 .header .tab .label .text,
 .header .tab .label .key
 {
@@ -106,24 +109,24 @@ body {
 .header .tab .background.blue {
   filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
 }
-.header .tab:hover .label,
+.header .tab:not(.disabled):hover .label,
 .header .tab.open .label
 {
   color: #000;
 }
-.header .tab.top.left:hover .background,
+.header .tab.top.left:not(.disabled):hover .background,
 .header .tab.top.left.open .background {
   transform: rotateZ(180deg) translateX(50px);
 }
-.header .tab.top.right:hover .background,
+.header .tab.top.right:not(.disabled):hover .background,
 .header .tab.top.right.open .background {
   transform: translateX(50px);
 }
-.header .tab.bottom.right:hover .background,
+.header .tab.bottom.right:not(.disabled):hover .background,
 .header .tab.bottom.right.open .background {
   transform: translateX(50px);
 }
-.header .tab:hover .key,
+.header .tab:not(.disabled):hover .key,
 .header .tab.open .key {
   border-color: #000;
 }
@@ -145,6 +148,10 @@ body {
   border-radius: 3px;
   font-size: 13px;
   transition: border-color 1s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab.disabled .label {
+  background-color: #333;
+  color: #666;
 }
 
 .header .user {
