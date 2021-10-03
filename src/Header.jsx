@@ -222,7 +222,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({type, left, right, top, bottom, label, panel, open, toggleOpen, onclick}) => {
+const Tab = ({type, left, right, top, bottom, disabled, label, panel, open, toggleOpen, onclick}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -236,6 +236,7 @@ const Tab = ({type, left, right, top, bottom, label, panel, open, toggleOpen, on
       right ? styles.right : null,
       top ? styles.top : null,
       bottom ? styles.bottom : null,
+      disabled ? styles.disabled : null,
       open === type ? styles.open : null,
     )} onClick={onclick}>
       {left ? <>
@@ -414,8 +415,8 @@ export default function Header({
     };
   }, [open]);
   useEffect(async () => {
-    console.log('is supported', app);
     const isXrSupported = await app.isXrSupported();
+    console.log('is supported', isXrSupported);
     setXrSupported(isXrSupported);
   }, []);
 
