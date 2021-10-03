@@ -498,12 +498,13 @@ const _useRelease = () => {
   useAnimation = null;
 };
 const _delete = () => {
-  if (_getGrabbedObject(0)) {
-    world.removeObject(appManager.grabbedObjects[0].instanceId);
+  const grabbedObject = _getGrabbedObject(0);
+  if (grabbedObject) {
+    world.removeObject(grabbedObject.instanceId);
 
-    if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+    /* if (grabbedObject === selectedLoadoutObject) {
       _deselectLoadout();
-    }
+    } */
 
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
