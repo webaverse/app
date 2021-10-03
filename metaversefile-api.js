@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {App, getRenderer, scene, sceneHighPriority, camera} from './app-object.js';
+import {App, getRenderer, scene, sceneHighPriority, camera, dolly} from './app-object.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
@@ -48,6 +48,8 @@ class Player {
 class LocalPlayer extends Player {
   constructor() {
     super();
+    
+    this.teleportTo = this._bindTeleportTo();
   }
   setAvatar(app) {
     rigManager.setLocalAvatar(app);
@@ -95,52 +97,52 @@ class LocalPlayer extends Player {
       relation: 'head',
     }); */
   }
+  _bindTeleportTo() {
+    // const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const localVector3 = new THREE.Vector3();
+    // const localQuaternion = new THREE.Quaternion();
+    const localQuaternion2 = new THREE.Quaternion();
+    // const localQuaternion3 = new THREE.Quaternion();
+    // const localQuaternion4 = new THREE.Quaternion();
+    // const localEuler = new THREE.Euler();
+    const localMatrix = new THREE.Matrix4();
+    return function(position, quaternion, {relation = 'floor'} = {}) {
+      const renderer = getRenderer();
+      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+
+      if (renderer.xr.getSession()) {
+        localMatrix.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        
+        dolly.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
+        dolly.updateMatrixWorld();
+      } else {
+        camera.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
+          .decompose(camera.position, camera.quaternion, camera.scale);
+        camera.quaternion.copy(quaternion);
+        camera.updateMatrixWorld();
+      }
+
+      physicsManager.velocity.set(0, 0, 0);
+    };
+  }
 }
 class RemotePlayer extends Player {
   constructor() {
     super();
   }
 }
-const teleportTo = (() => {
-  // const localVector = new THREE.Vector3();
-  const localVector2 = new THREE.Vector3();
-  const localVector3 = new THREE.Vector3();
-  // const localQuaternion = new THREE.Quaternion();
-  const localQuaternion2 = new THREE.Quaternion();
-  const localMatrix = new THREE.Matrix4();
-  return function(position, quaternion, {relation = 'floor'} = {}) {
-    const renderer = getRenderer();
-    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-    // console.log(position, quaternion, pose, avatar)
-    /* localMatrix.fromArray(rigManager.localRig.model.matrix)
-      .decompose(localVector2, localQuaternion2, localVector3); */
-
-    if (renderer.xr.getSession()) {
-      localMatrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector2, localQuaternion2, localVector3);
-      dolly.matrix
-        .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
-        // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-        // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
-        .decompose(dolly.position, dolly.quaternion, dolly.scale);
-      dolly.quaternion.copy(quaternion);
-      dolly.updateMatrixWorld();
-    } else {
-      camera.matrix
-        .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-        // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-        // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
-        .decompose(camera.position, camera.quaternion, camera.scale);
-      camera.quaternion.copy(quaternion);
-      camera.updateMatrixWorld();
-    }
-
-    physicsManager.velocity.set(0, 0, 0);
-  };
-})();
 const localPlayer = new LocalPlayer();
 const remotePlayers = new Map();
 
