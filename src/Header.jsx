@@ -5,6 +5,7 @@ import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import {rigManager} from '../rig.js'
+import weaponsManager from '../weapons-manager.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import {parseQuery} from '../util.js'
@@ -310,6 +311,25 @@ export default function Header() {
     universe.handleUrlUpdate();
     _loadUrlState();
   }, []);
+  const lastEmoteKey = {
+    key: -1,
+    timestamp: 0,
+  };
+  const _emoteKey = key => {
+    const timestamp = performance.now();
+    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
+      const key1 = lastEmoteKey.key;
+      const key2 = key;
+      const index = (key1 * 10) + key2;
+      weaponsManager.addLocalEmote(index);
+      
+      lastEmoteKey.key = -1;
+      lastEmoteKey.timestamp = 0;
+    } else {
+      lastEmoteKey.key = key;
+      lastEmoteKey.timestamp = timestamp;
+    }
+  };
   useEffect(() => {
     const keydown = e => {
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
@@ -321,6 +341,11 @@ export default function Header() {
             toggleMic();
             break;
           }
+        }
+        const match = e.code.match(/^Numpad([0-9])$/);
+        if (match) {
+          const key = parseInt(match[1], 10);
+          _emoteKey(key);
         }
       }
     };
