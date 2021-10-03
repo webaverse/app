@@ -1206,6 +1206,7 @@ class Avatar {
 	    Right_ankle: this.outputs.leftFoot,
 	  };
 
+    this.emotes = [];
     if (this.options.visemes) {
       const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
       const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
@@ -2047,14 +2048,32 @@ class Avatar {
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         if (visemeMapping) {
           const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
+          
+          // reset
+          for (let i = 0; i < morphTargetInfluences.length; i++) {
+            morphTargetInfluences[i] = 0;
+          }
+          
+          // mouth volume
           if (aaIndex !== null) {
             morphTargetInfluences[aaIndex] = aaValue;
           }
-          if (blinkLeftIndex !== null) {
-            morphTargetInfluences[blinkLeftIndex] = blinkValue;
-          }
-          if (blinkRightIndex !== null) {
-            morphTargetInfluences[blinkRightIndex] = blinkValue;
+          
+          // user
+          if (this.emotes.length > 0) {
+            for (const emote of this.emotes) {
+              if (emote.index < morphTargetInfluences.length) {
+                morphTargetInfluences[emote.index] = emote.value;
+              }
+            }
+          } else {
+            // blink
+            if (blinkLeftIndex !== null) {
+              morphTargetInfluences[blinkLeftIndex] = blinkValue;
+            }
+            if (blinkRightIndex !== null) {
+              morphTargetInfluences[blinkRightIndex] = blinkValue;
+            }
           }
         }
       }
