@@ -7,6 +7,7 @@ const moduleUrls = {
 };
 const modules = {};
 const loadPromise = (async () => {
+  await Promise.resolve(); // wait for init
   const promises = [];
   for (const moduleName in moduleUrls) {
     const moduleUrl = moduleUrls[moduleName];
@@ -20,6 +21,7 @@ const loadPromise = (async () => {
 })();
 const waitForLoad = () => loadPromise;
 export {
+  moduleUrls,
   modules,
   waitForLoad,
 };
