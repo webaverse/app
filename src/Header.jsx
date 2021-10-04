@@ -359,7 +359,7 @@ export default function Header({
     _loadUrlState();
   }, []);
   useEffect(() => {
-    world.appManager.addEventListener('pickup', e => {
+    const pickup = e => {
       const {app} = e.data;
       const {contentId} = app;
       const newClaims = claims.slice();
@@ -367,8 +367,12 @@ export default function Header({
         contentId,
       });
       setClaims(newClaims);
-    });
-  }, []);
+    };
+    world.appManager.addEventListener('pickup', pickup);
+    return () => {
+      world.appManager.removeEventListener('pickup', pickup);
+    };
+  }, [claims]);
   
   const lastEmoteKey = {
     key: -1,
