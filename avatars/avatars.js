@@ -745,14 +745,14 @@ const _findArmature = bone => {
   return null; // can't happen
 };
 
-const _exportBone = bone => {
+/* const _exportBone = bone => {
   return [bone.name, bone.position.toArray().concat(bone.quaternion.toArray()).concat(bone.scale.toArray()), bone.children.map(b => _exportBone(b))];
 };
 const _exportSkeleton = skeleton => {
   const hips = _findHips(skeleton);
   const armature = _findArmature(hips);
   return JSON.stringify(_exportBone(armature));
-}
+};
 const _importObject = (b, Cons, ChildCons) => {
   const [name, array, children] = b;
   const bone = new Cons();
@@ -769,7 +769,7 @@ const _importArmature = b => _importObject(b, THREE.Object3D, THREE.Bone);
 const _importSkeleton = s => {
   const armature = _importArmature(JSON.parse(s));
   return new THREE.Skeleton(armature.children);
-};
+}; */
 
 class AnimationMapping {
   constructor(quaternionKey, quaternion, isTop) {
