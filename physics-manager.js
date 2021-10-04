@@ -524,7 +524,7 @@ const _collideItems = matrix => {
 }; */
 
 physicsManager.getGravity = () => gravity;
-physicsManager.setGravity = g => {
+/* physicsManager.setGravity = g => {
   if (g === true) {
     gravity.set(0, -9.8, 0);
   } else if (g === false) {
@@ -532,7 +532,7 @@ physicsManager.setGravity = g => {
   } else {
     gravity.copy(g);
   }
-};
+}; */
 
 physicsManager.convertMeshToPhysicsMesh = convertMeshToPhysicsMesh;
 
