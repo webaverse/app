@@ -781,6 +781,17 @@ class AnimationMapping {
 
 class Avatar {
 	constructor(object, options = {}) {
+    if (!object) {
+      object = {};
+    }
+    if (!object.parser) {
+      object.parser = {
+        json: {
+          extensions: {},
+        },
+      };
+    }
+    
     this.object = object;
     const model = (() => {
       let o = object;
@@ -821,7 +832,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
-    } = Avatar.bindAvatar(model);
+    } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
@@ -943,16 +954,6 @@ class Avatar {
     let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
-        if (!object) {
-          object = {};
-        }
-        if (!object.parser) {
-          object.parser = {
-            json: {
-              extensions: {},
-            },
-          };
-        }
         /* if (!object.parser.json.extensions) {
           object.parser.json.extensions = {};
         }
@@ -1347,7 +1348,11 @@ class Avatar {
     this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
 	}
-  static bindAvatar(model) {
+  static bindAvatar(object) {
+    const model = object.scene;
+    const vrmExtension = object.parser.json.extensions.VRM;
+    const humanBones = vrmExtension?.humanoid?.humanBones || [];
+
     model.updateMatrixWorld(true);
     const skinnedMeshes = [];
 	  model.traverse(o => {
