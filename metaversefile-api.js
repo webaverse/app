@@ -15,12 +15,49 @@ import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
+import {moduleUrls, modules} from './metaverse-modules.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const upVector = new THREE.Vector3(0, 1, 0);
+
+const defaultModules = {
+  moduleUrls,
+  modules,
+};
+const defaultComponents = {
+  drop(app) {
+    const dropComponent = app.getComponent('drop');
+    if (dropComponent) {
+      const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
+      metaversefile.useFrame(e => {
+        const {timeDiff} = e;
+        const timeDiffS = timeDiff/1000;
+        const dropComponent = app.getComponent('drop');
+        app.position
+          .add(
+            localVector.copy(velocity)
+              .multiplyScalar(timeDiffS)
+          );
+        velocity.add(
+          localVector.copy(physicsManager.getGravity())
+            .multiplyScalar(timeDiffS)
+        );
+        if (app.position.y <= 0) {
+          app.position.y = 0;
+          const newDrop = JSON.parse(JSON.stringify(dropComponent));
+          velocity.set(0, 0, 0);
+          newDrop.velocity = velocity.toArray();
+          app.setComponent('drop', newDrop);
+        }
+        app.updateMatrixWorld();
+      });
+    }
+  },
+};
 
 class PlayerHand {
   constructor() {
@@ -432,6 +469,12 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useDefaultModules() {
+    return defaultModules;
+  },
+  useDefaultComponents() {
+    return defaultComponents;
   },
   useWeb3() {
     return web3.mainnet;
