@@ -222,7 +222,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panel, background, after, open, toggleOpen, onclick}) => {
+const Tab = ({className, type, left, right, top, bottom, disabled, label, panel, before, after, open, toggleOpen, onclick}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -239,14 +239,15 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
       bottom ? styles.bottom : null,
       disabled ? styles.disabled : null,
       open === type ? styles.open : null,
+      
     )} onClick={onclick}>
       {left ? <>
-        {background}
+        {before}
         {panel}
         {label}
         {after}
       </> : <>
-        {background}
+        {before}
         {label}
         {panel}
         {after}
@@ -541,14 +542,14 @@ export default function Header({
                 </div>
               }
               after={
-                <div className={styles['clear-panel']}>
+                <div className={styles['transparent-panel']}>
                   <div className={styles.buttons}>
                     <button className={styles.button}>Claim all</button>
                     <button className={styles.button}>Reject</button>
                   </div>
                 </div>
               }
-              background={
+              before={
                 <div className={styles.slide} />
               }
               open={open}
