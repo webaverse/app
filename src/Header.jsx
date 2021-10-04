@@ -222,7 +222,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({type, left, right, top, bottom, disabled, label, panel, open, toggleOpen, onclick}) => {
+const Tab = ({className, type, left, right, top, bottom, disabled, label, panel, background, after, open, toggleOpen, onclick}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -231,6 +231,7 @@ const Tab = ({type, left, right, top, bottom, disabled, label, panel, open, togg
   
   return (
     <div className={classnames(
+      className,
       styles.tab,
       left ? styles.left : null,
       right ? styles.right : null,
@@ -240,11 +241,15 @@ const Tab = ({type, left, right, top, bottom, disabled, label, panel, open, togg
       open === type ? styles.open : null,
     )} onClick={onclick}>
       {left ? <>
+        {background}
         {panel}
         {label}
+        {after}
       </> : <>
+        {background}
         {label}
         {panel}
+        {after}
       </>}
     </div>
   );
@@ -519,6 +524,32 @@ export default function Header({
                   <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
                   <span className={styles.text}>仮想現実 VR{xrSupported ? '' : ' (no)'}</span>
                 </div>
+              }
+              open={open}
+              toggleOpen={toggleOpen}
+            />
+            <Tab
+              type="claims"
+              bottom
+              left
+              disabled={claims.length === 0}
+              className="skew"
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>品 Claims ({claims.length})</span>
+                </div>
+              }
+              after={
+                <div className={styles['clear-panel']}>
+                  <div className={styles.buttons}>
+                    <button className={styles.button}>Claim all</button>
+                    <button className={styles.button}>Reject</button>
+                  </div>
+                </div>
+              }
+              background={
+                <div className={styles.slide} />
               }
               open={open}
               toggleOpen={toggleOpen}
