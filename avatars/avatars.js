@@ -1059,6 +1059,9 @@ class Avatar {
       rightUpperLeg: _getOffset(modelBones.Left_leg),
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
+      
+      // leftToe: _getOffset(modelBones.Left_toe),
+      // rightToe: _getOffset(modelBones.Right_toe),
     });
 
     this.height = eyePosition.clone()
@@ -1149,6 +1152,8 @@ class Avatar {
       rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
       rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
+      // leftToe: this.legsManager.leftToe,
+      // rightToe: this.legsManager.rightToe,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -1205,6 +1210,8 @@ class Avatar {
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
+      // Left_toe: this.outputs.leftToe,
+      // Right_toe: this.outputs.rightToe,
 	  };
 
     this.emotes = [];
@@ -1373,6 +1380,16 @@ class Avatar {
       copySkeleton(poseSkeleton, skeleton);
       poseSkeletonSkinnedMesh.bind(skeleton);
     }
+    
+    const boneMap = {};
+    for (const {bone, node} of humanBones) {
+      const boneSpec = object.parser.json.nodes[node];
+      const b = skeleton.bones.find(b => b.userData.name === boneSpec.name);
+      boneMap[bone] = b;
+      if (!b) {
+        console.warn('missing bone:', boneSpec.name);
+      }
+    }
 
     const _getOptional = o => o || new THREE.Bone();
     const _ensureParent = (o, parent) => {
@@ -1388,58 +1405,60 @@ class Avatar {
 	  const tailBones = _getTailBones(skeleton);
     // const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
 
-	  const Eye_L = _findEye(tailBones, true);
-	  const Eye_R = _findEye(tailBones, false);
-	  const Head = _findHead(tailBones);
-	  const Neck = Head.parent;
-	  const UpperChest = Neck.parent;
-	  const Chest = UpperChest.parent;
-	  const Hips = _findHips(skeleton);
-	  const Spine = _findSpine(Chest, Hips);
-	  const Left_shoulder = _findShoulder(tailBones, true);
-	  const Left_wrist = _findHand(Left_shoulder);
-    const Left_thumb2 = _getOptional(_findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i));
-    const Left_thumb1 = _ensureParent(Left_thumb2);
-    const Left_thumb0 = _ensureParent(Left_thumb1, Left_wrist);
-    const Left_indexFinger3 = _getOptional(_findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l|indexfinger3_l|index002l/i));
-    const Left_indexFinger2 = _ensureParent(Left_indexFinger3);
-    const Left_indexFinger1 = _ensureParent(Left_indexFinger2, Left_wrist);
-    const Left_middleFinger3 = _getOptional(_findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i));
-    const Left_middleFinger2 = _ensureParent(Left_middleFinger3);
-    const Left_middleFinger1 = _ensureParent(Left_middleFinger2, Left_wrist);
-    const Left_ringFinger3 = _getOptional(_findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l|ringfinger3_l|ring002l/i));
-    const Left_ringFinger2 = _ensureParent(Left_ringFinger3);
-    const Left_ringFinger1 = _ensureParent(Left_ringFinger2, Left_wrist);
-    const Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
-    const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
-    const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
-	  const Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.name) ? Left_wrist.parent.parent : Left_wrist.parent;
-	  const Left_arm = Left_elbow.parent;
-	  const Right_shoulder = _findShoulder(tailBones, false);
-	  const Right_wrist = _findHand(Right_shoulder);
-    const Right_thumb2 = _getOptional(_findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i));
-    const Right_thumb1 = _ensureParent(Right_thumb2);
-    const Right_thumb0 = _ensureParent(Right_thumb1, Right_wrist);
-    const Right_indexFinger3 = _getOptional(_findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r|indexfinger3_r|index002r/i));
-    const Right_indexFinger2 = _ensureParent(Right_indexFinger3);
-    const Right_indexFinger1 = _ensureParent(Right_indexFinger2, Right_wrist);
-    const Right_middleFinger3 = _getOptional(_findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i));
-    const Right_middleFinger2 = _ensureParent(Right_middleFinger3);
-    const Right_middleFinger1 = _ensureParent(Right_middleFinger2, Right_wrist);
-    const Right_ringFinger3 = _getOptional(_findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r|ringfinger3_r|ring002r/i));
-    const Right_ringFinger2 = _ensureParent(Right_ringFinger3);
-    const Right_ringFinger1 = _ensureParent(Right_ringFinger2, Right_wrist);
-    const Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
-    const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
-    const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
-	  const Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name) ? Right_wrist.parent.parent : Right_wrist.parent;
-	  const Right_arm = Right_elbow.parent;
-	  const Left_ankle = _findFoot(tailBones, true);
-	  const Left_knee = Left_ankle.parent;
-	  const Left_leg = Left_knee.parent;
-	  const Right_ankle = _findFoot(tailBones, false);
-	  const Right_knee = Right_ankle.parent;
-	  const Right_leg = Right_knee.parent;
+	  const Eye_L = boneMap.leftEye;
+	  const Eye_R = boneMap.rightEye;
+	  const Head = boneMap.head;
+	  const Neck = boneMap.neck;
+	  const UpperChest = boneMap.upperChest;
+	  const Chest = boneMap.chest;
+	  const Hips = boneMap.hips;
+	  const Spine = boneMap.spine;
+	  const Left_shoulder = boneMap.leftShoulder;
+	  const Left_wrist = boneMap.leftHand;
+    const Left_thumb2 = boneMap.leftThumbDistal;
+    const Left_thumb1 = boneMap.leftThumbIntermediate;
+    const Left_thumb0 = boneMap.leftThumbProximal;
+    const Left_indexFinger3 = boneMap.leftIndexDistal;
+    const Left_indexFinger2 = boneMap.leftIndexIntermediate;
+    const Left_indexFinger1 = boneMap.leftIndexProximal;
+    const Left_middleFinger3 = boneMap.leftMiddleDistal;
+    const Left_middleFinger2 = boneMap.leftMiddleIntermediate;
+    const Left_middleFinger1 = boneMap.leftMiddleProximal;
+    const Left_ringFinger3 = boneMap.leftRingDistal;
+    const Left_ringFinger2 = boneMap.leftRingIntermediate;
+    const Left_ringFinger1 = boneMap.leftRingProximal;
+    const Left_littleFinger3 = boneMap.leftLittleDistal;
+    const Left_littleFinger2 = boneMap.leftLittleIntermediate;
+    const Left_littleFinger1 = boneMap.leftLittleProximal;
+	  const Left_elbow = boneMap.leftLowerArm;
+	  const Left_arm = boneMap.leftUpperArm;
+	  const Right_shoulder = boneMap.rightShoulder;
+	  const Right_wrist = boneMap.rightHand;
+    const Right_thumb2 = boneMap.rightThumbDistal;
+    const Right_thumb1 = boneMap.rightThumbIntermediate;
+    const Right_thumb0 = boneMap.rightThumbProximal;
+    const Right_indexFinger3 = boneMap.rightIndexDistal;
+    const Right_indexFinger2 = boneMap.rightIndexIntermediate;
+    const Right_indexFinger1 = boneMap.rightIndexProximal;
+    const Right_middleFinger3 = boneMap.rightMiddleDistal;
+    const Right_middleFinger2 = boneMap.rightMiddleIntermediate;
+    const Right_middleFinger1 = boneMap.rightMiddleProximal;
+    const Right_ringFinger3 = boneMap.rightRingDistal;
+    const Right_ringFinger2 = boneMap.rightRingIntermediate;
+    const Right_ringFinger1 = boneMap.rightRingProximal;
+    const Right_littleFinger3 = boneMap.rightLittleDistal;
+    const Right_littleFinger2 = boneMap.rightLittleIntermediate;
+    const Right_littleFinger1 = boneMap.rightLittleProximal
+	  const Right_elbow = boneMap.rightLowerArm;
+	  const Right_arm = boneMap.rightUpperArm;
+	  const Left_ankle = boneMap.leftFoot;
+	  const Left_knee = boneMap.leftLowerLeg;
+	  const Left_leg = boneMap.leftUpperLeg;
+	  const Right_ankle = boneMap.rightFoot;
+	  const Right_knee = boneMap.rightLowerLeg;
+	  const Right_leg = boneMap.rightUpperLeg;
+    const Left_toe = boneMap.leftToes;
+    const Right_toe = boneMap.rightToes;
     const modelBones = {
 	    Hips,
 	    Spine,
@@ -1495,6 +1514,9 @@ class Avatar {
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
+      
+      // Left_toe,
+      // Right_toe,
 	  };
 	  // this.modelBones = modelBones;
     /* for (const k in modelBones) {
