@@ -48,7 +48,7 @@
 ## Local Development
 
 ```bash
-$ git clone https://github.com/webaverse/app.git
+$ git clone --recurse-submodules https://github.com/webaverse/app.git
 $ cd app/
 $ npm run install
 $ node index
