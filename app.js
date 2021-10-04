@@ -480,7 +480,7 @@ export default class App extends EventTarget {
       this.renderMinimap();
       // this.renderDom();
 
-      const _mirrorRender = () => {
+      /* const _mirrorRender = () => {
         if (session && document.visibilityState == 'visible') {
           const {baseLayer} = session.renderState;
           const w = baseLayer.framebufferWidth * renderer.getPixelRatio() / 2;
@@ -523,7 +523,7 @@ export default class App extends EventTarget {
           renderer.outputEncoding = oldOutputEncoding;
         }
       };
-      _mirrorRender();
+      _mirrorRender(); */
     }
     renderer.setAnimationLoop(animate);
   }
