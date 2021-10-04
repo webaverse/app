@@ -106,7 +106,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
         {sceneNames.map((sceneName, i) => (
           <div className={styles.room} onClick={async e => {
             universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
-            setScenesOpen(false);
+            setOpen(null);
           }} key={i}>
             <img className={styles.image} src="images/world.jpg" />
             <div className={styles.name}>{sceneName}</div>
