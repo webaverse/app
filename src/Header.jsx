@@ -262,6 +262,7 @@ export default function Header({
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
   const [xrSupported, setXrSupported] = useState(false);
+  const [claims, setClaims] = useState([]);
   
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';
@@ -351,6 +352,18 @@ export default function Header({
     universe.handleUrlUpdate();
     _loadUrlState();
   }, []);
+  useEffect(() => {
+    world.appManager.addEventListener('pickup', e => {
+      const {app} = e.data;
+      const {contentId} = app;
+      const newClaims = claims.slice();
+      newClaims.push({
+        contentId,
+      });
+      setClaims(newClaims);
+    });
+  }, []);
+  
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
