@@ -1783,6 +1783,50 @@ const arrowMaterial = new THREE.ShaderMaterial({
   // transparent: true,
 });
 
+const glowMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+    
+    attribute vec3 color;
+
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+
+      vUv = uv;
+      vColor = color;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform float uTime;
+
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      gl_FragColor = vec4(vColor, 1. - vUv.y);
+    }
+  `,
+  transparent: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
+});
+
 const copyScenePlaneGeometry = new THREE.PlaneGeometry(2, 2);
 const copySceneVertexShader = `#version 300 es
   precision highp float;
@@ -1845,6 +1889,7 @@ export {
   portalMaterial,
   arrowGeometry,
   arrowMaterial,
+  glowMaterial,
   copyScenePlaneGeometry,
   copySceneVertexShader,
   copyScene,
