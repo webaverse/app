@@ -4,6 +4,7 @@ import {scene} from './app-object.js';
 import {rigManager} from './rig.js';
 import Simplex from './simplex-noise.js';
 import physicsManager from './physics-manager.js';
+import {glowMaterial} from './shaders.js';
 import easing from './easing.js';
 import {rarityColors} from './constants.js';
 
@@ -64,49 +65,7 @@ const loadPromise = (async () => {
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
   const colors = new Float32Array(glowGeometry.attributes.position.array.length);
   glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  const glowMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      precision highp float;
-      precision highp int;
-      
-      attribute vec3 color;
-
-      varying vec2 vUv;
-      varying vec3 vColor;
-
-      void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_Position = projectionMatrix * mvPosition;
-
-        vUv = uv;
-        vColor = color;
-      }
-    `,
-    fragmentShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform float uTime;
-
-      varying vec2 vUv;
-      varying vec3 vColor;
-
-      void main() {
-        gl_FragColor = vec4(vColor, 1. - vUv.y);
-      }
-    `,
-    transparent: true,
-    polygonOffset: true,
-    polygonOffsetFactor: -1,
-    // polygonOffsetUnits: 1,
-  });
+  const material = glowMaterial.clone();
 
   const gracePickupTime = 1000;
   const addSilk = (p, v, r) => {
@@ -227,7 +186,7 @@ const loadPromise = (async () => {
     }
     const glowMesh = new THREE.Mesh(
       geometry,
-      glowMaterial
+      material
     );
     o.add(glowMesh);
     
