@@ -75,8 +75,9 @@ const defaultComponents = {
               .multiplyScalar(timeDiffS)
           );
           
-          if (app.position.y <= 0) {
-            app.position.y = 0;
+          const groundHeight = 0.1;
+          if (app.position.y <= groundHeight) {
+            app.position.y = groundHeight;
             const newDrop = JSON.parse(JSON.stringify(dropComponent));
             velocity.set(0, 0, 0);
             newDrop.velocity = velocity.toArray();
