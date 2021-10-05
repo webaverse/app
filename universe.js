@@ -136,7 +136,7 @@ const update = () => {
     return [];
   }
 }; */
-const getWorldsHost = () => window.location.protocol + '//' + window.location.host + ':' +
+const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
   ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
 const enterWorld = async worldSpec => {
   /* let warpPhysicsId;
