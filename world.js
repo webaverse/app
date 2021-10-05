@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import storage from './storage.js';
+// import storage from './storage.js';
 import runtime from './runtime.js';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
