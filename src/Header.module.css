@@ -68,13 +68,13 @@ body {
 }
 .header .tab .panel {
   position: fixed;
-  width: 300px;
+  width: 400px;
   height: 100vh;
   background-color: #000;
 }
 .header .tab.top.left .panel {
   top: -50px;
-  left: -300px;
+  left: -400px;
 }
 .header .tab.top.right .panel {
   top: -100px;
@@ -134,10 +134,10 @@ body {
   padding-top: 36px;
 }
 .header .tab.top.left.open {
-  transform: translateX(300px);
+  transform: translateX(400px);
 }
 .header .tab.bottom.left.open {
-  transform: translateY(-300px);
+  transform: translateY(-400px);
 }
 /* .header .tab.bottom.left .panel {
   height: 300px;
@@ -175,7 +175,7 @@ body {
 .header .tab.bottom.left.open .slide .buttons .button {
 }
 .header .tab.top.right.open {
-  transform: translateX(-300px);
+  transform: translateX(-400px);
 }
 .header .tab .background {
   position: absolute;
