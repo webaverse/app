@@ -79,6 +79,51 @@ body {
 .header .tab.top.right .panel {
   top: -100px;
   left: 100%;
+  height: 100vh;
+  overflow: scroll;
+}
+.header .tab .objects .object {
+  position: relative;
+  display: flex;
+  height: 100px;
+  padding: 10px 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.header .tab .objects .object .img {
+  position: relative;
+  min-width: 80px;
+  height: 80px;
+  margin: 0 10px;
+  object-fit: cover;
+}
+.header .tab .objects .object .wrap {
+  display: flex;
+  flex-direction: column;
+}
+.header .tab .objects .object .wrap .name {
+  position: relative;
+  font-size: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.header .tab .objects .object .background-inner.lime {
+  /* filter: invert(64%) sepia(47%) saturate(397%) hue-rotate(46deg) brightness(108%) contrast(89%); */
+  filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
+}
+.header .tab .objects .object .background-inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  transform: translateX(-100%) scale(1, 2);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab .objects .object:hover .background-inner {
+  height: 100%;
+  transform: translateX(50px) scale(1, 2);
 }
 .header .tab.open {
   z-index: 1;
