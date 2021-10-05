@@ -11,6 +11,7 @@ import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
 import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
+import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
@@ -218,10 +219,22 @@ class LocalPlayer extends Player {
     this.grabs[0] = null;
   }
   lookAt(p) {
-    this.quaternion.setFromRotationMatrix(
+    const cameraOffset = cameraManager.getCameraOffset();
+    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        camera.position,
+        p,
+        localVector2.set(0, 1, 0)
+      )
+    );
+    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+    
+    /* this.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(this.position, p, upVector)
     );
-    /* teleportTo(this.position, this.quaternion, {
+    teleportTo(this.position, this.quaternion, {
       relation: 'head',
     }); */
   }
