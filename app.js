@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import {loginManager} from './login.js';
-import {tryTutorial} from './tutorial.js';
+// import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
@@ -124,9 +123,9 @@ export default class App extends EventTarget {
   async bootstrapFromUrl(urlSpec) {
     this.contentLoaded = true;
   }
-  bindLogin() {
+  /* bindLogin() {
     loginManager.bindLogin();
-  }
+  } */
   bindInput() {
     ioManager.bindInput();
     world.bindInput();
