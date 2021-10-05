@@ -280,19 +280,19 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
 
 const Inspector = ({open, setOpen}) => {
   const [hoverPosition, setHoverPosition] = useState(null);
+  const [dragging, setDragging] = useState(false);
   
   useEffect(() => {
     weaponsManager.setHoverEnabled(open === 'world');
   }, [open]);
   useEffect(() => {
-    /* world.appManager.addEventListener('dragchange', e => {
+    const dragchange = e => {
       const {dragging} = e.data;
-      if (dragging) {
-        setHoverPosition(null);
-      }
-    }); */
+      setDragging(dragging);
+    };
+    world.appManager.addEventListener('dragchange', dragchange);
     const hoverchange = e => {
-      if (open === 'world' && !weaponsManager.dragging) {
+      if (open === 'world' && !dragging) {
         // console.log('hover change', e.data);
         const {position} = e.data;
         if (position) {
@@ -311,9 +311,10 @@ const Inspector = ({open, setOpen}) => {
     };
     world.appManager.addEventListener('hoverchange', hoverchange);
     return () => {
+      world.appManager.removeEventListener('dragchange', dragchange);
       world.appManager.removeEventListener('hoverchange', hoverchange);
     };
-  }, [open]);
+  }, [open, dragging]);
 
   // hoverPosition && console.log('got', `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh) scale(${hoverPosition.z})`);
 
@@ -363,6 +364,10 @@ export default function Header({
       world.disableMic();
       setMicOn(false);
     }
+  };
+  const selectObject = object => {
+    const localPlayer = metaversefile.useLocalPlayer();
+    localPlayer.lookAt(object.position);
   };
   
   useEffect(() => {
@@ -520,8 +525,16 @@ export default function Header({
   }, [open]);
   useEffect(async () => {
     const isXrSupported = await app.isXrSupported();
-    console.log('is supported', isXrSupported);
+    // console.log('is supported', isXrSupported);
     setXrSupported(isXrSupported);
+  }, []);
+  useEffect(async () => {
+    window.addEventListener('click', e => {
+      const hoverObject = weaponsManager.getMouseHoverObject();
+      if (hoverObject) {
+        selectObject(hoverObject);
+      }
+    });
   }, []);
 
 	return (
@@ -595,8 +608,7 @@ export default function Header({
                     {objects.map((object, i) => {
                       return (
                         <div className={styles.object} key={i} onClick={e => {
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          localPlayer.lookAt(object.position);
+                          selectObject(object);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="/images/object.jpg" className={styles.img} />
