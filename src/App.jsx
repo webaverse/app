@@ -12,7 +12,7 @@ const {useLocalPlayer} = metaversefileApi;
 const _startApp = async (app, canvas) => {
   app.bootstrapFromUrl(location);
 
-  app.bindLogin();
+  // app.bindLogin();
   app.bindInput();
   app.bindInterface();
   // const uploadFileInput = document.getElementById('upload-file-input');
