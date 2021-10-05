@@ -1,11 +1,15 @@
+import * as THREE from 'three'
 import React, {useState, useEffect, useRef} from 'react'
+import classnames from 'classnames'
 import logo from './logo.svg'
-import classes from './App.module.css'
+import styles from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 import App from '../app.js';
 import {world} from '../world.js';
+import weaponsManager from '../weapons-manager.js';
+import {camera} from '../app-object.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
@@ -60,15 +64,13 @@ function RootNode() {
     }
   }, [canvasRef.current]);
 
-  // console.log('got classes', {classes});
-
   return (
-    <div className={classes.App} id="app">
+    <div className={styles.App} id="app">
       <Header app={app} />
-      <div className={classes.crosshair} id="crosshair">
+      <div className={styles.crosshair} id="crosshair">
         <img src="./assets/crosshair.svg" width={30} height={30} />
       </div>
-      <canvas id="canvas" className={classes.canvas} ref={canvasRef} />
+      <canvas id="canvas" className={styles.canvas} ref={canvasRef} />
       <MagicMenu />
       <Footer />
     </div>

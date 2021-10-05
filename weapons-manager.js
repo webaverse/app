@@ -2290,6 +2290,7 @@ const weaponsManager = {
   closestObject: null,
   usableObject: null,
   useSpec: null,
+  hoverEnabled: false,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -2408,6 +2409,12 @@ const weaponsManager = {
   },
   menuDragdown(e) {
     this.dragging = true;
+    
+    appManager.dispatchEvent(new MessageEvent('dragchange', {
+      data: {
+        dragging: this.dragging,
+      },
+    }));
 
     /* if (document.pointerLockElement) {
       document.exitPointerLock();
@@ -2434,6 +2441,12 @@ const weaponsManager = {
   },
   menuDragup() {
     this.dragging = false;
+    
+    appManager.dispatchEvent(new MessageEvent('dragchange', {
+      data: {
+        dragging: this.dragging,
+      },
+    }));
   },
   menuDragdownRight(e) {
     this.draggingRight = true;
@@ -2766,9 +2779,19 @@ const weaponsManager = {
   getMouseHoverPhysicsId() {
     return mouseHoverPhysicsId;
   },
-  setMouseHoverObject(o, physicsId) {
+  setHoverEnabled(hoverEnabled) {
+    this.hoverEnabled = hoverEnabled;
+  },
+  setMouseHoverObject(o, physicsId, position) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
+    
+    appManager.dispatchEvent(new MessageEvent('hoverchange', {
+      data: {
+        app: mouseHoverObject,
+        position: position && position.clone(),
+      },
+    }));
   },
   getMouseSelectedObject() {
     return mouseSelectedObject;

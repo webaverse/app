@@ -9,6 +9,7 @@ import weaponsManager from '../weapons-manager.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
+import {camera} from '../app-object.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
@@ -276,6 +277,57 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
   );
 };
 
+const Inspector = ({open, setOpen}) => {
+  const [hoverPosition, setHoverPosition] = useState(null);
+  
+  useEffect(() => {
+    weaponsManager.setHoverEnabled(open === 'world');
+  }, [open]);
+  useEffect(() => {
+    /* world.appManager.addEventListener('dragchange', e => {
+      const {dragging} = e.data;
+      if (dragging) {
+        setHoverPosition(null);
+      }
+    }); */
+    const hoverchange = e => {
+      if (open === 'world' && !weaponsManager.dragging) {
+        // console.log('hover change', e.data);
+        const {position} = e.data;
+        if (position) {
+          const worldPoint = position.clone().project(camera);
+          worldPoint.x = (worldPoint.x+1)/2;
+          worldPoint.y = 1-(worldPoint.y+1)/2;
+          worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
+          // console.log('hover', worldPoint.toArray().join(', '));
+          setHoverPosition(worldPoint);
+        } else {
+          setHoverPosition(null);
+        }
+      } else {
+        setHoverPosition(null);
+      }
+    };
+    world.appManager.addEventListener('hoverchange', hoverchange);
+    return () => {
+      world.appManager.removeEventListener('hoverchange', hoverchange);
+    };
+  }, [open]);
+
+  // hoverPosition && console.log('got', `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh) scale(${hoverPosition.z})`);
+
+  return (
+    <div className={classnames(styles.inspector, hoverPosition ? styles.open : null)} style={hoverPosition ? {
+      transform: `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh)`,
+    } : null}>
+      <img src="/images/popup.svg" style={hoverPosition ? {
+        transform: `scale(${hoverPosition.z})`,
+        transformOrigin: '0 100%',
+      } : null} />
+    </div>
+  );
+};
+
 export default function Header({
   app,
 }) {
@@ -467,6 +519,7 @@ export default function Header({
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
+      <Inspector open={open} setOpen={setOpen} />
 			<div className={styles.inner}>
 				<header className={styles.header}>
           <div className={styles.row}>
