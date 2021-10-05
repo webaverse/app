@@ -10,7 +10,8 @@ import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import {parseQuery} from '../util.js'
-// import {homeScnUrl} from '../constants.js'
+import * as ceramicApi from '../ceramic.js';
+// import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
 const localColor = new Color();
@@ -192,7 +193,15 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
 const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   const userOpen = open === 'user';
   
-  const login = async () => {
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  /* (async () => {
+    const {createSchema} = await ceramicAdmin.waitForLoad();
+    const schema = await createSchema();
+    console.log('create', schema);
+  })(); */
+  
+  /* const login = async () => {
     if (typeof window.ethereum !== 'undefined') {
       const addresses = await window.ethereum.request({
         method: 'eth_requestAccounts',
@@ -203,21 +212,32 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     } else {
       console.warn('no ethereum');
     }
-  };
+  }; */
   
   return (
-    <div className={styles.user} onClick={async e => {
+    <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)} onClick={async e => {
       e.preventDefault();
       e.stopPropagation();
 
       if (address) {
         toggleOpen('user');
       } else {
-        await login();
+        if (!loggingIn) {
+          setLoggingIn(true);
+          try {
+            const {address, profile} = await ceramicApi.login();
+            // console.log('login', {address, profile});
+            setAddress(address);
+          } catch(err) {
+            console.warn(err);
+          } finally {
+            setLoggingIn(false);
+          }
+        }
       }
     }}>
       <img src="images/soul.png" className={styles.icon} />
-      <div className={styles.name}>{address || 'Log in'}</div>
+      <div className={styles.name}>{loggingIn ? 'Logging in... ' : (address || 'Log in')}</div>
     </div>
   );
 };

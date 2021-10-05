@@ -7,7 +7,7 @@ import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
 import {scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
-import {loginManager} from './login.js';
+// import {loginManager} from './login.js';
 import {world} from './world.js';
 import {/*colors, */storageHost} from './constants.js';
 

@@ -15,7 +15,7 @@ import {getExt, mergeMeshes, convertMeshToPhysicsMesh, flipGeomeryUvs} from './u
 // import buildTool from './build-tool.js';
 import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
-import {loginManager} from './login.js';
+// import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
 import {getRenderer, scene, camera, sceneHighPriority} from './app-object.js';
 import wbn from './wbn.js';

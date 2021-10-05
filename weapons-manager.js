@@ -5,7 +5,7 @@ import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
-import {loginManager} from './login.js';
+// import {loginManager} from './login.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';

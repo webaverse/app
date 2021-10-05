@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
-import {loginManager} from './login.js';
+// import {loginManager} from './login.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
