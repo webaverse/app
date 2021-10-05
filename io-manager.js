@@ -60,6 +60,7 @@ const resetKeys = () => {
 
 document.addEventListener('pointerlockchange', () => {
   resetKeys();
+  weaponsManager.setMouseHoverObject(null);
 });
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
@@ -645,10 +646,10 @@ const _updateMouseHover = e => {
         if (object.isHtml) {
           htmlHover = true;
         } else {
-          if (!controlsManager.isPossessed()) {
+          // if (!controlsManager.isPossessed()) {
             mouseHoverObject = object;
             mouseHoverPhysicsId = result.objectId;
-          }
+          // }
         }
       }
     }
