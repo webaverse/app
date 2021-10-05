@@ -1357,7 +1357,7 @@ class Avatar {
 	}
   static bindAvatar(object) {
     const model = object.scene;
-    const vrmExtension = object.parser.json.extensions.VRM;
+    const vrmExtension = object?.parser?.json?.extensions?.VRM;
     const humanBones = vrmExtension?.humanoid?.humanBones || [];
 
     model.updateMatrixWorld(true);
