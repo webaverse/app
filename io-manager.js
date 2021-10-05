@@ -629,6 +629,7 @@ const _updateMouseHover = e => {
   let htmlHover = false;
   
   const raycaster = _getMouseRaycaster(e, localRaycaster);
+  let point = null;
   if (raycaster) {
     transformControls.handleMouseMove(raycaster);
     
@@ -643,13 +644,15 @@ const _updateMouseHover = e => {
     if (result) {
       const object = world.getObjectFromPhysicsId(result.objectId);
       if (object) {
+        point = localVector.fromArray(result.point);
+        
         if (object.isHtml) {
           htmlHover = true;
         } else {
-          // if (!controlsManager.isPossessed()) {
+          if (weaponsManager.hoverEnabled) {
             mouseHoverObject = object;
             mouseHoverPhysicsId = result.objectId;
-          // }
+          }
         }
       }
     }
@@ -657,7 +660,7 @@ const _updateMouseHover = e => {
   } else {
     weaponsManager.setLastMouseEvent(null);
   }
-  weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId);
+  weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId, point);
   const renderer = getRenderer();
   if (htmlHover) {
     renderer.domElement.classList.add('hover');

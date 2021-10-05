@@ -487,3 +487,20 @@ body {
 .sidebar .nft .tokenid {
   font-size: 13px;
 }
+
+.inspector {
+  position: absolute;
+  width: 300px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  visibility: hidden;
+}
+.inspector img {
+  position: absolute;
+  top: -203px;
+  left: 0;
+}
+.inspector.open {
+  visibility: visible;
+}
