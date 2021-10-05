@@ -7,15 +7,12 @@ import {
 } from '@3id/connect';
 import KeyDidResolver from 'key-did-resolver';
 import {
-  getResolver,
-} from 'key-did-resolver';
-import {
   Ed25519Provider,
 } from 'key-did-provider-ed25519';
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
-import {
+/* import {
   TileDocument,
-} from '@ceramicnetwork/stream-tile';
+} from '@ceramicnetwork/stream-tile'; */
 import {
   ModelManager,
 } from '@glazed/devtools';
@@ -24,6 +21,7 @@ import {ceramicNodeUrl} from './constants.js';
 // window.global = window.globalThis;
 
 const keyString = ``;
+
 const metaverseProfileSchema = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BasicProfile",
@@ -137,113 +135,68 @@ const metaverseProfileSchema = {
 };
 const hex2U8 = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 const key = hex2U8(keyString);
-const waitForLoad = async () => {
-  /* const [
-    {
-      DID,
-    },
-    CeramicClient,
-    {
-      IDX,
-    },
-    {
-      ThreeIdConnect,
-      EthereumAuthProvider,
-    },
-    {
-      default: KeyDidResolver,
-      getResolver,
-    },
-    {
-      Ed25519Provider,
-    },
-    ThreeIdResolver,
-    {
-      TileDocument,
-    },
-    {
-      ModelManager,
-    },
-    // multibase,
-    // ed25519,
-  ] = await Promise.all([
-    import('dids'),
-    import('@ceramicnetwork/http-client').then(m => m.default),
-    import('@ceramicstudio/idx'),
-    import('@3id/connect'),
-    import('key-did-resolver'),
-    import('key-did-provider-ed25519'),
-    import('@ceramicnetwork/3id-did-resolver').then(m => m.default),
-    import('@ceramicnetwork/stream-tile'),
-    import('@glazed/devtools'),
-    // import('multibase'),
-    // import('@transmute/did-key-ed25519'),
-  ]); */
 
-  return {
-    async createSchema() {
-      // const addresses = await window.ethereum.enable();
-      const address = await getMainnetAddress();
-      const threeIdConnect = new ThreeIdConnect();
-      const authProvider = new EthereumAuthProvider(window.ethereum, address);
-      await threeIdConnect.connect(authProvider);
-      const provider = await threeIdConnect.getDidProvider();
+const createSchema = async () => {
+  // const addresses = await window.ethereum.enable();
+  const address = await getMainnetAddress();
+  const threeIdConnect = new ThreeIdConnect();
+  const authProvider = new EthereumAuthProvider(window.ethereum, address);
+  await threeIdConnect.connect(authProvider);
+  const provider = await threeIdConnect.getDidProvider();
 
-      const ceramic = new CeramicClient(ceramicNodeUrl);
-      // console.log('set provider 0');
-      const resolver = {
-        ...KeyDidResolver.getResolver(),
-        ...ThreeIdResolver.getResolver(ceramic),
-      };
-      let did2;
-      {
-        did2 = new DID({
-          provider: new Ed25519Provider(key),
-          resolver: getResolver(),
-        })
-        await did2.authenticate();
-      }
-
-      // model
-      ceramic.did = did2;
-      const manager = new ModelManager(ceramic);
-      const schemaID = await manager.createSchema('metaverseProfile', metaverseProfileSchema);
-      const definition = await manager.createDefinition('metaverseProfile', {
-        name: 'Metaverse Profile',
-        description: 'metaverse profile',
-        schema: manager.getSchemaURL(schemaID),
-      });
-      // console.log('got definition', definition);
-      return {
-        definition,
-      };
-      // const model = await manager.toPublished();
-      // console.log('got model', model);
-      
-      /* ceramic.did = did;
-      const aliases = {
-        metaverseProfile: definition,
-      };
-      const idx = new IDX({
-        ceramic,
-        aliases,
-      });
-      // console.log('got idx 1', idx);
-      // const result = await idx.get('metaverseProfile');
-      // console.log('got idx 2', result);
-      const getResult1 = await idx.get('metaverseProfile');
-      // console.time('lol');
-      const setResult = await idx.set('metaverseProfile', {
-        name: 'Lol',
-        // description: 'I make computers beep good.',
-        // emoji: '💻',
-      });
-      // console.timeEnd('lol');
-      const getResult2 = await idx.get('metaverseProfile');
-      // console.log('results', {getResult1, getResult2, setResult}); */
-    },
+  const ceramic = new CeramicClient(ceramicNodeUrl);
+  // console.log('set provider 0');
+  const resolver = {
+    ...KeyDidResolver.getResolver(),
+    ...ThreeIdResolver.getResolver(ceramic),
   };
+  let did2;
+  {
+    did2 = new DID({
+      provider: new Ed25519Provider(key),
+      resolver: KeyDidResolver.getResolver(),
+    })
+    await did2.authenticate();
+  }
+
+  // model
+  ceramic.did = did2;
+  const manager = new ModelManager(ceramic);
+  const schemaID = await manager.createSchema('metaverseProfile', metaverseProfileSchema);
+  const definition = await manager.createDefinition('metaverseProfile', {
+    name: 'Metaverse Profile',
+    description: 'metaverse profile',
+    schema: manager.getSchemaURL(schemaID),
+  });
+  // console.log('got definition', definition);
+  return {
+    definition,
+  };
+  // const model = await manager.toPublished();
+  // console.log('got model', model);
+  
+  /* ceramic.did = did;
+  const aliases = {
+    metaverseProfile: definition,
+  };
+  const idx = new IDX({
+    ceramic,
+    aliases,
+  });
+  // console.log('got idx 1', idx);
+  // const result = await idx.get('metaverseProfile');
+  // console.log('got idx 2', result);
+  const getResult1 = await idx.get('metaverseProfile');
+  // console.time('lol');
+  const setResult = await idx.set('metaverseProfile', {
+    name: 'Lol',
+    // description: 'I make computers beep good.',
+    // emoji: '💻',
+  });
+  // console.timeEnd('lol');
+  const getResult2 = await idx.get('metaverseProfile');
+  // console.log('results', {getResult1, getResult2, setResult}); */
 };
 export {
-  waitForLoad,
+  createSchema,
 };
