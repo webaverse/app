@@ -415,6 +415,12 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       localVector4.applyQuaternion(localQuaternion);
     }
     localVector.add(localVector4);
+    if (localVector.y < 1) {
+      const deltaY = 1 - localVector.y;
+      localVector.y += deltaY;
+      camera.position.y += deltaY;
+      camera.updateMatrixWorld();
+    }
     const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
     if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
       localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
