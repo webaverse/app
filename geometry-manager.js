@@ -2,7 +2,6 @@ import * as THREE from 'three';
 // import {BasisTextureLoader} from './BasisTextureLoader.js';
 import alea from './alea.js';
 import easing from './easing.js';
-import storage from './storage.js';
 import {world} from './world.js';
 import {makePromise} from './util.js';
 import {
