@@ -322,9 +322,9 @@ const _selectLoadout = index => {
   } else {
     selectedLoadoutIndex = -1;
   }
-  _updateLoadoutInterface();
+  // _updateLoadoutInterface();
 
-  (async () => {
+  /* (async () => {
     if (selectedLoadoutObject) {
       world.removeObject(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
@@ -384,7 +384,7 @@ const _selectLoadout = index => {
         weaponsManager.setMenu(0);
       }
     }
-  })().catch(console.warn);
+  })().catch(console.warn); */
 };
 const _deselectLoadout = () => {
   selectedLoadoutIndex = -1;
