@@ -25,7 +25,7 @@ import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
+import {getRenderer, getPreviewRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas, bindPreviewCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 // import WSRTC from 'wsrtc/wsrtc.js';
@@ -108,6 +108,9 @@ export default class App extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+  getPreviewRenderer() {
+    return getPreviewRenderer();
+  }
   getScene() {
     return scene;
   }
@@ -162,6 +165,9 @@ export default class App extends EventTarget {
   } */
   bindCanvas(c) {
     bindCanvas(c);
+  }
+  bindPreviewCanvas (pCanvas) {
+    bindPreviewCanvas(pCanvas);
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -218,14 +224,22 @@ export default class App extends EventTarget {
     const renderer = getRenderer();
     renderer.clear();
     renderer.render(sceneHighPriority, camera);
+
+    const previewRenderer = getPreviewRenderer();
+    previewRenderer.clear();
+    previewRenderer.render(sceneHighPriority, camera);
+
     // main render
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
     }
+    previewRenderer.render(scene, camera);
     renderer.render(scene, camera);
+    previewRenderer.render(orthographicScene, orthographicCamera);
     renderer.render(orthographicScene, orthographicCamera);
     // low priority render
+    previewRenderer.render(sceneLowPriority, camera);
     renderer.render(sceneLowPriority, camera);
     // local avatar render
     if (rigManager.localRig) {
@@ -240,6 +254,7 @@ export default class App extends EventTarget {
         // rigManager.localRig.aux.undecapitate();
       }
       renderer.render(avatarScene, camera);
+      previewRenderer.render(avatarScene, camera);
       if (decapitated) {
         rigManager.localRig.undecapitate();
         // rigManager.localRig.aux.undecapitate();

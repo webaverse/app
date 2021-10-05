@@ -12,6 +12,8 @@ import cameraManager from '../camera-manager.js'
 import {parseQuery} from '../util.js'
 // import {homeScnUrl} from '../constants.js'
 import sceneNames from '../scenes/scenes.json';
+import metaversefileApi from '../metaversefile-api.js';
+const {useLocalPlayer} = metaversefileApi;
 
 const localColor = new Color();
 const localColor2 = new Color();
@@ -254,6 +256,7 @@ export default function Header({
   app,
 }) {
 	// console.log('index 2');
+  const previewCanvasRef = useRef();
 	
   const [open, setOpen] = useState(null);
   const [address, setAddress] = useState(false);
@@ -283,6 +286,22 @@ export default function Header({
       setMicOn(false);
     }
   };
+
+  const _init = async (app, canvas) => {
+    app.bindPreviewCanvas(canvas);
+    {
+      const defaultAvatarUrl = './avatars/citrine.vrm';
+      const avatarApp = await world.addObject(defaultAvatarUrl);
+      const localPlayer = useLocalPlayer();
+      localPlayer.setAvatar(avatarApp);
+    }
+  };
+
+  useEffect(() => {
+    if (previewCanvasRef.current) {
+      _init(app, previewCanvasRef.current);
+    }
+  }, [previewCanvasRef.current]);
   
   useEffect(() => {
     const pointerlockchange = e => {
@@ -467,6 +486,7 @@ export default function Header({
               panel={
                 <div className={styles.panel}>
                   <h1>Sheila</h1>
+                  <canvas id="previewCanvas" style={{height: 100, width: 100}} ref={previewCanvasRef} />
                 </div>
               }
               open={open}

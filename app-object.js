@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {addDefaultLights} from './util.js';
 
 let canvas = null, context = null, renderer = null;
+let previewCanvas = null, previewContext = null, previewRenderer = null;
 function bindCanvas(c) {
   canvas = c;
   
@@ -38,6 +39,7 @@ function bindCanvas(c) {
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 }
+
 function getRenderer() {
   return renderer;
 }
@@ -45,6 +47,46 @@ function getContainerElement() {
   const canvas = renderer.domElement;
   const container = canvas.parentNode;
   return container;
+}
+
+function bindPreviewCanvas(pCanvas) {
+  previewCanvas = pCanvas;
+  
+  const rect = previewCanvas.getBoundingClientRect();
+  previewContext = previewCanvas && previewCanvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: false,
+    xrCompatible: true,
+  });
+  previewRenderer = new THREE.WebGLRenderer({
+    previewCanvas,
+    previewContext,
+    antialias: true,
+    alpha: true,
+    // preserveDrawingBuffer: false,
+  });
+  previewRenderer.setSize(rect.width, rect.height);
+  previewRenderer.setPixelRatio(window.devicePixelRatio);
+  previewRenderer.autoClear = false;
+  previewRenderer.sortObjects = false;
+  previewRenderer.physicallyCorrectLights = true;
+  previewRenderer.outputEncoding = THREE.sRGBEncoding;
+  previewRenderer.gammaFactor = 2.2;
+  // previewRenderer.shadowMap.enabled = true;
+  // previewRenderer.shadowMap.type = THREE.PCFShadowMap;
+  if (!previewCanvas) {
+    previewCanvas = previewRenderer.domElement;
+  }
+  if (!previewContext) {
+    previewContext = previewRenderer.getContext();
+  }
+  previewContext.enable(previewContext.SAMPLE_ALPHA_TO_COVERAGE);
+  previewRenderer.xr.enabled = true;
+}
+
+function getPreviewRenderer() {
+  return previewRenderer;
 }
 
 const scene = new THREE.Scene();
@@ -258,6 +300,8 @@ export {
   bindCanvas,
   getRenderer,
   getContainerElement,
+  bindPreviewCanvas,
+  getPreviewRenderer,
   scene,
   orthographicScene,
   avatarScene,
