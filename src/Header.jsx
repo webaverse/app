@@ -10,6 +10,7 @@ import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import {camera} from '../app-object.js'
+import metaversefile from '../metaversefile-api.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
@@ -336,6 +337,7 @@ export default function Header({
   const [open, setOpen] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
+  const [objects, setObjects] = useState(world.getObjects().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
@@ -363,6 +365,13 @@ export default function Header({
     }
   };
   
+  useEffect(() => {
+    const update = e => {
+      setObjects(world.getObjects().slice());
+    };
+    world.addEventListener('objectadd', update);
+    world.addEventListener('objectremove', update);
+  }, []);
   useEffect(() => {
     const pointerlockchange = e => {
       // console.log('pointer lock change', e, document.pointerLockElement);
@@ -582,6 +591,22 @@ export default function Header({
               panel={
                 <div className={styles.panel}>
                   <h1>Tokens</h1>
+                  <div className={styles.objects}>
+                    {objects.map((object, i) => {
+                      return (
+                        <div className={styles.object} key={i} onClick={e => {
+                          const localPlayer = metaversefile.useLocalPlayer();
+                          localPlayer.lookAt(object.position);
+                        }}>
+                          <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
+                          <img src="/images/object.jpg" className={styles.img} />
+                          <div className={styles.wrap}>
+                            <div className={styles.name}>{object.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               }
               open={open}
