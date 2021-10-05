@@ -415,8 +415,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       localVector4.applyQuaternion(localQuaternion);
     }
     localVector.add(localVector4);
-    if (localVector.y < 1) {
-      const deltaY = 1 - localVector.y;
+    const floorLimit = 1;
+    if (localVector.y < floorLimit) {
+      const deltaY = floorLimit - localVector.y;
       localVector.y += deltaY;
       camera.position.y += deltaY;
       camera.updateMatrixWorld();
