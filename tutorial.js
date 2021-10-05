@@ -1,4 +1,5 @@
-import {loginManager} from './login.js';
+throw new Error('lol');
+// import {loginManager} from './login.js';
 import {rigManager} from './rig.js';
 import * as notifications from './notifications.js';
 import {parseQuery, bindUploadFileButton, getExt} from './util.js';
