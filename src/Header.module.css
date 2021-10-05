@@ -30,8 +30,11 @@ body {
   padding: 0 10px;
   user-select: none;
 }
-.header .logo:hover {
-  transform: scale(1.5);
+.header .logo img {
+  pointer-events: none;
+}
+.header .logo:hover img {
+  transform: scale(1.4);
 }
 
 .header .image {
