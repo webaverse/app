@@ -685,7 +685,7 @@ const highlightMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uColor: {
       type: 'c',
-      value: new THREE.Color(0x64b5f6),
+      value: new THREE.Color(0xcccccc),
       needsUpdate: true,
     },
     uTime: {
@@ -831,27 +831,11 @@ const highlightMaterial = new THREE.ShaderMaterial({
     void main() {
       // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
       // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
-      float normalRepeat = 1.0;
-
-      vec3 blending = getTriPlanarBlend(vNormal);
-      float xaxis = edgeFactor(vPos.yz * normalRepeat);
-      float yaxis = edgeFactor(vPos.xz * normalRepeat);
-      float zaxis = edgeFactor(vPos.xy * normalRepeat);
-      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-      // vec2 worldUv = vWorldUv;
-      // worldUv = mod(worldUv, 1.0);
-      // float f = edgeFactor();
-      // float f = max(normalTex.x, normalTex.y, normalTex.z);
-
-      if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
-        f = 1.0;
-      }
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = uColor; // diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
-      float f2 = max(1. - (d + distanceOffset)/10.0, 0.);
-      gl_FragColor = vec4(c, 0.05 + max(f, 0.3) * f2 * 0.7);
+      vec3 c = uColor;
+      float f2 = max(1. - (d)/10.0, 0.);
+      gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
     }
   `,
   transparent: true,
