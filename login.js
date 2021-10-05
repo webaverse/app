@@ -1,4 +1,5 @@
-import storage from './storage.js';
+throw new Error('lol');
+// import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 // import * as blockchain from './blockchain.js';
 import {storageHost, previewHost, accountsHost, tokensHost, loginEndpoint, previewExt} from './constants.js';

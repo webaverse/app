@@ -1,3 +1,4 @@
+throw new Error('lol');
 import {makePromise} from './util.js';
 import {localstorageHost} from './constants.js';
 
