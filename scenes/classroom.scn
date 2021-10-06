@@ -22,6 +22,12 @@
         0
       ],
       "start_url": "https://webaverse.github.io/classroom/"
+    },
+    {
+      "position": [1, 2, -4.5],
+      "quaternion": [0, 0, 0, 1],
+      "scale": [3, 3, 3],
+      "start_url": "https://https-vrchat-com.proxy.webaverse.com/"
     }
   ]
 }
