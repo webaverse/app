@@ -375,9 +375,6 @@ export default function Header({
 
   const _init = async (app, canvas) => {
     app.bindPreviewCanvas(canvas);
-    
-    const defaultAvatarUrl = './avatars/citrine.vrm';
-    await world.addPreviewObject(defaultAvatarUrl);
   };
 
   useEffect(() => {
