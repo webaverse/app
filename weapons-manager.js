@@ -2697,7 +2697,7 @@ const weaponsManager = {
   },
   async toggleEditMode() {
     this.editMode = !this.editMode;
-    console.log('got edit mode', this.editMode);
+    // console.log('got edit mode', this.editMode);
     if (this.editMode) {
       if (!document.pointerLockElement) {
         await cameraManager.requestPointerLock();
