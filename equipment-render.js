@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
+import { world } from "./world.js";
 
 class EquipmentRender {
   constructor() {
@@ -18,12 +19,7 @@ class EquipmentRender {
       0.1,
       100
     );
-    this.previewCamera.position.set(0, 0, 10);
-
-    // const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
-    // const material = new THREE.MeshBasicMaterial();
-    // const cube = new THREE.Mesh(geometry, material);
-    // previewScene.add(cube);
+    this.previewCamera.position.set(0, 1.35, 4.5);
   }
 
   async bindPreviewCanvas(pCanvas) {
@@ -58,38 +54,21 @@ class EquipmentRender {
     this.previewContext.enable(this.previewContext.SAMPLE_ALPHA_TO_COVERAGE);
     this.previewRenderer.xr.enabled = true;
 
-    const defaultAvatarUrl = './avatars/citrine.vrm';
-    await this.addPreviewObject(defaultAvatarUrl)
-  }
+    world.appManager.addEventListener("avatarupdate", (e) => {
+      const newAvatar = e.data.app.clone();
 
-  async addPreviewObject (contentId) {
-    const module = await metaversefile.import(contentId);
+      newAvatar.position.set(0, 0, 0);
+      newAvatar.rotation.set(0, 0, 0);
+      newAvatar.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-    const app = metaversefile.createApp({
-      name: contentId,
-      type: (() => {
-        const match = contentId.match(/\.([a-z0-9]+)$/i);
-        if (match) {
-          return match[1];
-        } else {
-          return "";
-        }
-      })(),
+      this.previewScene.clear();
+      this.previewScene.add(newAvatar);
+
+      metaversefile.addAppToList(newAvatar);
     });
-
-    app.position.set(0, -4.75, -1.5);
-    app.rotation.set(0, 3, 0);
-    app.scale.set(3.5, 3.5, 2.5);
-    app.updateMatrixWorld();
-    app.contentId = contentId;
-    app.setComponent("physics", true);
-
-    this.previewScene.add(app);
-    await app.addModule(module);
-    console.log(this.previewScene);
   }
 
-  render () {
+  render() {
     this.previewRenderer.clear();
     this.previewRenderer.render(this.previewScene, this.previewCamera);
   }

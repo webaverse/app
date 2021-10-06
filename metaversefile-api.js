@@ -182,6 +182,11 @@ class LocalPlayer extends Player {
   }
   setAvatar(app) {
     rigManager.setLocalAvatar(app);
+    world.appManager.dispatchEvent(new MessageEvent('avatarupdate', {
+      data: {
+        app,
+      },
+    }));
   }
   wear(app) {
     const wearComponent = app.getComponent('wear');
@@ -671,6 +676,9 @@ export default () => {
       return result;
     };
   })(),
+  addAppToList(app) {
+    apps.push(app);
+  },
   addApp(app) {
     scene.add(app);
     apps.push(app);
