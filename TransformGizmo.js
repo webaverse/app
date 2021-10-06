@@ -183,7 +183,7 @@ export default class TransformGizmo extends Object3D {
       selectionColorTarget: this.scaleUniformHandle.material
     };
 
-    rotateXAxisStart.visible = false;
+    /* rotateXAxisStart.visible = false;
     rotateXAxisEnd.visible = false;
     rotateYAxisStart.visible = false;
     rotateYAxisEnd.visible = false;
@@ -191,7 +191,7 @@ export default class TransformGizmo extends Object3D {
     rotateZAxisEnd.visible = false;
     this.translateControls.visible = false;
     this.rotateControls.visible = false;
-    this.scaleControls.visible = false;
+    this.scaleControls.visible = false; */
 
     this.transformMode = TransformMode.Disabled;
 
@@ -208,21 +208,21 @@ export default class TransformGizmo extends Object3D {
   setTransformMode(transformMode) {
     this.transformMode = transformMode;
 
-    this.translateControls.visible = false;
-    this.rotateControls.visible = false;
-    this.scaleControls.visible = false;
+    // this.translateControls.visible = false;
+    // this.rotateControls.visible = false;
+    // this.scaleControls.visible = false;
 
     switch (transformMode) {
       case TransformMode.Translate:
-        this.translateControls.visible = true;
+        // this.translateControls.visible = true;
         this.activeControls = this.translateControls;
         break;
       case TransformMode.Rotate:
-        this.rotateControls.visible = true;
+        // this.rotateControls.visible = true;
         this.activeControls = this.rotateControls;
         break;
       case TransformMode.Scale:
-        this.scaleControls.visible = true;
+        // this.scaleControls.visible = true;
         this.activeControls = this.scaleControls;
         break;
       default:
@@ -233,12 +233,12 @@ export default class TransformGizmo extends Object3D {
   }
 
   setLocalScaleHandlesVisible(visible) {
-    this.scaleXAxis.visible = visible;
+    /* this.scaleXAxis.visible = visible;
     this.scaleYAxis.visible = visible;
     this.scaleZAxis.visible = visible;
     this.scaleXYPlane.visible = visible;
     this.scaleYZPlane.visible = visible;
-    this.scaleXZPlane.visible = visible;
+    this.scaleXZPlane.visible = visible; */
   }
 
   selectAxisWithRaycaster(raycaster) {
@@ -264,13 +264,13 @@ export default class TransformGizmo extends Object3D {
     this.previousColor.copy(newAxisInfo.selectionColorTarget.color);
     newAxisInfo.selectionColorTarget.color.copy(this.selectionColor);
 
-    if (newAxisInfo.rotationStartObject) {
+    /* if (newAxisInfo.rotationStartObject) {
       newAxisInfo.rotationStartObject.visible = true;
     }
 
     if (newAxisInfo.rotationEndObject) {
       newAxisInfo.rotationEndObject.visible = true;
-    }
+    } */
 
     return newAxisInfo.axis;
   }
@@ -303,13 +303,13 @@ export default class TransformGizmo extends Object3D {
 
       oldAxisInfo.selectionColorTarget.color.copy(this.previousColor);
 
-      if (oldAxisInfo.rotationStartObject) {
+      /* if (oldAxisInfo.rotationStartObject) {
         oldAxisInfo.rotationStartObject.visible = false;
       }
 
       if (oldAxisInfo.rotationEndObject) {
         oldAxisInfo.rotationEndObject.visible = false;
-      }
+      } */
 
       this.selectedAxis = undefined;
     }
