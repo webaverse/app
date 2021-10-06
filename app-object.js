@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {addDefaultLights} from './util.js';
 
 let canvas = null, context = null, renderer = null;
+let previewCanvas = null, previewContext = null, previewRenderer = null;
 function bindCanvas(c) {
   canvas = c;
   
@@ -38,6 +39,7 @@ function bindCanvas(c) {
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 }
+
 function getRenderer() {
   return renderer;
 }
@@ -46,6 +48,48 @@ function getContainerElement() {
   const container = canvas.parentNode;
   return container;
 }
+
+function bindPreviewCanvas(pCanvas) {
+  previewCanvas = pCanvas;
+  
+  const rect = previewCanvas.getBoundingClientRect();
+  previewContext = previewCanvas && previewCanvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: false,
+    xrCompatible: true,
+  });
+  previewRenderer = new THREE.WebGLRenderer({
+    canvas: previewCanvas,
+    context: previewContext,
+    antialias: true,
+    alpha: true,
+  });
+  previewRenderer.setSize(rect.width, rect.height);
+  previewRenderer.setPixelRatio(window.devicePixelRatio);
+  previewRenderer.autoClear = false;
+  previewRenderer.sortObjects = false;
+  previewRenderer.physicallyCorrectLights = true;
+  previewRenderer.outputEncoding = THREE.sRGBEncoding;
+  previewRenderer.gammaFactor = 2.2;
+  if (!previewCanvas) {
+    previewCanvas = previewRenderer.domElement;
+  }
+  if (!previewContext) {
+    previewContext = previewRenderer.getContext();
+  }
+  previewContext.enable(previewContext.SAMPLE_ALPHA_TO_COVERAGE);
+  previewRenderer.xr.enabled = true;
+}
+
+function getPreviewRenderer() {
+  return previewRenderer;
+}
+
+// Below scene and camera is for preview avatar displayed in header
+const previewScene = new THREE.Scene();
+const previewCamera = new THREE.PerspectiveCamera(10, window.innerWidth / window.innerHeight, 0.1, 100);
+previewCamera.position.set(0, 0, 10);
 
 const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
@@ -66,6 +110,11 @@ dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
 dolly.add(avatarCamera);
 scene.add(dolly);
+
+// const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
+// const material = new THREE.MeshBasicMaterial();
+// const cube = new THREE.Mesh(geometry, material);
+// previewScene.add(cube);
 
 const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 scene.add(orthographicCamera);
@@ -258,6 +307,8 @@ export {
   bindCanvas,
   getRenderer,
   getContainerElement,
+  bindPreviewCanvas,
+  getPreviewRenderer,
   scene,
   orthographicScene,
   avatarScene,
@@ -271,4 +322,6 @@ export {
   // iframeContainer,
   // iframeContainer2,
   // appManager,
+  previewScene,
+  previewCamera,
 };

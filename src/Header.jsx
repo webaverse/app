@@ -334,6 +334,7 @@ export default function Header({
   app,
 }) {
 	// console.log('index 2');
+  const previewCanvasRef = useRef();
 	
   const [open, setOpen] = useState(null);
   const [address, setAddress] = useState(false);
@@ -371,6 +372,19 @@ export default function Header({
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.lookAt(object.position);
   };
+
+  const _init = async (app, canvas) => {
+    app.bindPreviewCanvas(canvas);
+    
+    const defaultAvatarUrl = './avatars/citrine.vrm';
+    await world.addPreviewObject(defaultAvatarUrl);
+  };
+
+  useEffect(() => {
+    if (previewCanvasRef.current) {
+      _init(app, previewCanvasRef.current);
+    }
+  }, [previewCanvasRef.current]);
   
   useEffect(() => {
     const update = e => {
@@ -588,6 +602,7 @@ export default function Header({
               panel={
                 <div className={styles.panel}>
                   <h1>Sheila</h1>
+                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
                 </div>
               }
               open={open}
