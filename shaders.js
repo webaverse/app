@@ -849,7 +849,7 @@ const selectMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uColor: {
       type: 'c',
-      value: new THREE.Color(0x66bb6a),
+      value: new THREE.Color(0xcccccc),
       needsUpdate: true,
     },
     uTime: {
