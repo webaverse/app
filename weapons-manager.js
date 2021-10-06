@@ -805,10 +805,20 @@ const _handleUpload = async (item, transform = null) => {
 }; */
 
 const bindPhysics = () => {
-  physicsManager.addEventListener('voidout', () => {
-    if (cameraManager.wasActivated() && !weaponsManager.isFlying()) {
-      weaponsManager.toggleFly();
-    }
+  physicsManager.addEventListener('voidout', e => {
+    // console.log('got voidout', weaponsManager.sceneLoaded);
+    if (weaponsManager.sceneLoaded) {
+      // console.log('prevent default');
+      e.data.cancel();
+    } else {
+      console.log('voidout passthrough');
+    } /* else {
+      if (cameraManager.wasActivated() && !weaponsManager.isFlying()) {
+        weaponsManager.toggleFly();
+      } else {
+        
+      }
+    } */
   });
 };
 
@@ -2306,6 +2316,7 @@ const weaponsManager = {
   usableObject: null,
   useSpec: null,
   hoverEnabled: false,
+  sceneLoaded: false,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -2795,6 +2806,9 @@ const weaponsManager = {
   },
   isSitting() {
     return useLocalPlayer().actions.some(action => action.type === 'sit');
+  },
+  setSceneLoaded(sceneLoaded) {
+    this.sceneLoaded = sceneLoaded;
   },
   getMouseHoverObject() {
     return mouseHoverObject;
