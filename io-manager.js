@@ -700,9 +700,13 @@ ioManager.click = e => {
   if (document.pointerLockElement) {
     weaponsManager.menuClick();
   } else {
-    weaponsManager.setContextMenu(false);
+    // weaponsManager.setContextMenu(false);
     
-    if (controlsManager.isPossessed()) {
+    if (!weaponsManager.hoverEnabled) {
+      cameraManager.requestPointerLock();
+    }
+    
+    /* if (controlsManager.isPossessed()) {
       cameraManager.requestPointerLock();
     } else {
       const mouseHoverObject = weaponsManager.getMouseHoverObject();
@@ -715,7 +719,7 @@ ioManager.click = e => {
           weaponsManager.setMouseSelectedObject(null);
         }
       }
-    }
+    } */
   }
 };
 // let mouseDown = false;
