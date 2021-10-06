@@ -1,0 +1,67 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 0, 255], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 180, 10], 2],
+        "position": [10, 20, 300]
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        -1
+      ],
+      "start_url": "https://webaverse.github.io/skybox/index.js"
+    },
+    {
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://avatar-models.exokit.org/model49.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -26,
+        0,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/canyon/canyon.glb",
+      "dynamic": false
+    }
+  ]
+}
