@@ -19,6 +19,7 @@ const _startApp = async (app, canvas) => {
   // app.bindLogin();
   app.bindInput();
   app.bindInterface();
+  app.bindPhysics();
   // const uploadFileInput = document.getElementById('upload-file-input');
   // app.bindUploadFileInput(uploadFileInput);
   // const canvas = document.getElementById('canvas');

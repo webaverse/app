@@ -800,8 +800,16 @@ const _handleUpload = async (item, transform = null) => {
   
   world.addObject(u, position, quaternion, oneVector);
 };
-const bindUploadFileInput = uploadFileInput => {
+/* const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
+}; */
+
+const bindPhysics = () => {
+  physicsManager.addEventListener('voidout', () => {
+    if (cameraManager.wasActivated() && !weaponsManager.isFlying()) {
+      weaponsManager.toggleFly();
+    }
+  });
 };
 
 const _upload = () => {
@@ -2353,7 +2361,8 @@ const weaponsManager = {
     }
   }, */
   // bindInterface,
-  bindUploadFileInput,
+  // bindUploadFileInput,
+  bindPhysics,
   getMenu() {
     return this.menuOpen;
   },

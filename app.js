@@ -138,12 +138,15 @@ export default class App extends EventTarget {
     inventoryBindInterface();
     // mithrilInit();
   }
-  bindUploadFileInput(uploadFileInput) {
+  bindPhysics() {
+    weaponsManager.bindPhysics();
+  }
+  /* bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
-  }
-  bindMinimap(mapCanvas) {
+  } */
+  /* bindMinimap(mapCanvas) {
     minimap.init(mapCanvas);
-  }
+  } */
   /* bindXrButton({
     enterXrButton,
     // noXrButton,
