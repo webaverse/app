@@ -2250,7 +2250,7 @@ window.addEventListener('drop', async e => {
 }));
 scene.add(cubeMesh); */
 
-scene.addEventListener('contextmenu', e => {
+/* scene.addEventListener('contextmenu', e => {
   const {event} = e;
   event.preventDefault();
 
@@ -2265,7 +2265,7 @@ scene.addEventListener('contextmenu', e => {
   
     weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
   }
-});
+}); */
 
 let droppedThrow = false;
 const lastMouseEvent = {
@@ -2803,13 +2803,13 @@ const weaponsManager = {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
     
-    const renderer = getRenderer();
+    /* const renderer = getRenderer();
     renderer.domElement.dispatchEvent(new MessageEvent('select', {
       data: {
         object: mouseSelectedObject,
         physicsId: mouseSelectedPhysicsId,
       },
-    }));
+    })); */
   },
   getSpeed() {
     const defaultSpeed = 0.1;
