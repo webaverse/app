@@ -196,6 +196,8 @@ const enterWorld = async worldSpec => {
   _pre(); */
 
   world.disconnectRoom();
+  
+  weaponsManager.setSceneLoaded(false);
 
   const _doLoad = async () => {
     world.clear();
@@ -226,19 +228,9 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
-
-  /* const _post = () => {
-    if (currentWorld) {
-      // setTimeout(() => {
-        warpMesh.visible = false;
-
-        physicsManager.removeGeometry(warpPhysicsId);
-      // }, 3000);
-    }
-  };
-  _post(); */
-
   currentWorld = worldSpec;
+
+  weaponsManager.setSceneLoaded(true);
 };
 /* const bootstrapFromUrl = async urlSpec => {
   const q = parseQuery(urlSpec.search);

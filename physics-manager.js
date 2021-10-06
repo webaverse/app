@@ -416,14 +416,25 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     }
     localVector.add(localVector4);
     if (localVector.y < 0) {
-      const deltaY = -localVector.y + 1;
-      localVector.y += deltaY;
-      camera.position.y += deltaY;
-      camera.updateMatrixWorld();
-      
-      physicsManager.velocity.setScalar(0);
-      
-      physicsManager.dispatchEvent(new MessageEvent('voidout'));
+      let cancelled = false;
+      const e = new MessageEvent('voidout', {
+        data: {
+          cancel() {
+            cancelled = true;
+          },
+        },
+      });
+      physicsManager.dispatchEvent(e);
+      // console.log('default prevented', ignored);
+      if (!cancelled) {
+        // console.log('voided out');
+        const deltaY = -localVector.y + 1;
+        localVector.y += deltaY;
+        camera.position.y += deltaY;
+        camera.updateMatrixWorld();
+        
+        physicsManager.velocity.setScalar(0);
+      }
     }
     const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
     if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
