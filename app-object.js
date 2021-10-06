@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // import {CSS3DRenderer} from './CSS3DRenderer.js';
-import {addDefaultLights} from './util.js';
+// import {addDefaultLights} from './util.js';
 
 let canvas = null, context = null, renderer = null;
 function bindCanvas(c) {
@@ -96,7 +96,7 @@ window.addEventListener('resize', e => {
   }
 });
 
-addDefaultLights(scene, {
+/* addDefaultLights(scene, {
   shadowMap: true,
 });
 addDefaultLights(sceneHighPriority, {
@@ -107,7 +107,7 @@ addDefaultLights(sceneLowPriority, {
 });
 addDefaultLights(avatarScene, {
   shadowMap: false,
-});
+}); */
 
 /* const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
