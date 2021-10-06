@@ -1124,7 +1124,7 @@ const _updateWeapons = (timestamp) => {
     mouseHighlightPhysicsMesh.visible = false;
 
     const h = mouseHoverObject;
-    if (h && !weaponsManager.dragging && !mouseSelectedObject) {
+    if (h && !weaponsManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
       if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
@@ -2786,6 +2786,7 @@ const weaponsManager = {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
     
+    // console.log('set mouse hover', !!mouseHoverObject);
     appManager.dispatchEvent(new MessageEvent('hoverchange', {
       data: {
         app: mouseHoverObject,
@@ -2802,6 +2803,12 @@ const weaponsManager = {
   setMouseSelectedObject(o, physicsId) {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
+    
+    appManager.dispatchEvent(new MessageEvent('selectchange', {
+      data: {
+        app: mouseSelectedObject,
+      },
+    }));
     
     /* const renderer = getRenderer();
     renderer.domElement.dispatchEvent(new MessageEvent('select', {

@@ -278,21 +278,22 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
   );
 };
 
-const Inspector = ({open, setOpen}) => {
+const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
   const [hoverPosition, setHoverPosition] = useState(null);
   const [dragging, setDragging] = useState(false);
   
   useEffect(() => {
-    weaponsManager.setHoverEnabled(open === 'world');
-  }, [open]);
-  useEffect(() => {
     const dragchange = e => {
       const {dragging} = e.data;
+      // console.log('drag change', dragging);
       setDragging(dragging);
+      setHoverPosition(null);
     };
     world.appManager.addEventListener('dragchange', dragchange);
     const hoverchange = e => {
-      if (open === 'world' && !dragging) {
+      const worldOpen = open === 'world';
+      // console.log('check hover', [worldOpen, !selectedApp, !dragging]);
+      if (worldOpen && !selectedApp && !dragging) {
         // console.log('hover change', e.data);
         const {position} = e.data;
         if (position) {
@@ -310,11 +311,28 @@ const Inspector = ({open, setOpen}) => {
       }
     };
     world.appManager.addEventListener('hoverchange', hoverchange);
+    const selectchange = e => {
+      const {app} = e.data;
+      setSelectedApp(app);
+      if (app) {
+        setHoverPosition(null);
+      }
+    };
+    world.appManager.addEventListener('selectchange', selectchange);
     return () => {
       world.appManager.removeEventListener('dragchange', dragchange);
       world.appManager.removeEventListener('hoverchange', hoverchange);
+      world.appManager.removeEventListener('selectchange', selectchange);
     };
-  }, [open, dragging]);
+  }, [open, selectedApp, dragging]);
+  useEffect(() => {
+    const worldOpen = open === 'world';
+    weaponsManager.setHoverEnabled(worldOpen);
+    
+    if (!worldOpen) {
+      weaponsManager.setMouseSelectedObject(null);
+    }
+  }, [open]);
 
   // hoverPosition && console.log('got', `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh) scale(${hoverPosition.z})`);
 
@@ -336,6 +354,7 @@ export default function Header({
 	// console.log('index 2');
 	
   const [open, setOpen] = useState(null);
+  const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [objects, setObjects] = useState(world.getObjects().slice());
@@ -351,6 +370,11 @@ export default function Header({
   const characterOpen = open === 'character';
   const worldOpen = open === 'world';
   const multiplayerConnected = !!roomName;
+  
+  /* setOpen = (setOpen => function() {
+    console.log('set open', new Error().stack);
+    return setOpen.apply(this, arguments);
+  })(setOpen); */
   
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
@@ -534,6 +558,9 @@ export default function Header({
     window.addEventListener('click', e => {
       const hoverObject = weaponsManager.getMouseHoverObject();
       if (hoverObject) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const physicsId = weaponsManager.getMouseHoverPhysicsId();
         selectObject(hoverObject, physicsId);
       }
@@ -544,7 +571,7 @@ export default function Header({
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
-      <Inspector open={open} setOpen={setOpen} />
+      <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} setSelectedApp={setSelectedApp} />
 			<div className={styles.inner}>
 				<header className={styles.header}>
           <div className={styles.row}>
@@ -610,7 +637,10 @@ export default function Header({
                   <div className={styles.objects}>
                     {objects.map((object, i) => {
                       return (
-                        <div className={styles.object} key={i} onClick={e => {
+                        <div className={classnames(styles.object, object === selectedApp ? styles.selected : null)} key={i} onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
                           selectObject(object, object.physicsIds[0] || null);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
