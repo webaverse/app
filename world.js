@@ -4,7 +4,7 @@ import runtime from './runtime.js';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Y from './yjs.js';
 
-import {AppManager, previewScene} from './app-object.js';
+import {AppManager} from './app-object.js';
 import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
 
@@ -410,32 +410,6 @@ world.getObjects = () => objects.dynamic.slice();
 world.getStaticObjects = () => objects.static.slice();
 let pendingAddPromise = null;
 
-const _addPreviewObject = (dynamic) => async (contentId) => {
-  const module = await metaversefile.import(contentId);
-
-  const app = metaversefile.createApp({
-    name: contentId,
-    type: (() => {
-      const match = contentId.match(/\.([a-z0-9]+)$/i);
-      if (match) {
-        return match[1];
-      } else {
-        return '';
-      }
-    })(),
-  });
-
-  app.position.set(0, -4.75, -1.5);
-  app.rotation.set(0, 3, 0);
-  app.scale.set(3.5, 3.5, 2.5);
-  app.updateMatrixWorld();
-  app.contentId = contentId;
-  app.setComponent('physics', true);
-
-  previewScene.add(app);
-  await app.addModule(module);
-}
-
 const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
@@ -487,7 +461,6 @@ const _removeObject = (dynamic) => removeInstanceId => {
   });
 };
 world.addObject = _addObject(true);
-world.addPreviewObject = _addPreviewObject(true);
 world.removeObject = _removeObject(true);
 world.addEventListener('trackedobjectadd', async e => {
   const p = makePromise();
