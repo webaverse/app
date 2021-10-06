@@ -24,7 +24,7 @@ import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
+import {getRenderer, getPreviewRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas, bindPreviewCanvas, previewScene, previewCamera} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 // import WSRTC from 'wsrtc/wsrtc.js';
@@ -107,6 +107,9 @@ export default class App extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+  getPreviewRenderer() {
+    return getPreviewRenderer();
+  }
   getScene() {
     return scene;
   }
@@ -161,6 +164,9 @@ export default class App extends EventTarget {
   } */
   bindCanvas(c) {
     bindCanvas(c);
+  }
+  bindPreviewCanvas (pCanvas) {
+    bindPreviewCanvas(pCanvas);
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -217,12 +223,19 @@ export default class App extends EventTarget {
     const renderer = getRenderer();
     renderer.clear();
     renderer.render(sceneHighPriority, camera);
+
+    // avatar in header render
+    const previewRenderer = getPreviewRenderer();
+    previewRenderer.clear();
+
     // main render
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
     }
+    previewRenderer.render(previewScene, previewCamera);
     renderer.render(scene, camera);
+
     renderer.render(orthographicScene, orthographicCamera);
     // low priority render
     renderer.render(sceneLowPriority, camera);
