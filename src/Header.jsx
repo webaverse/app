@@ -365,7 +365,9 @@ export default function Header({
       setMicOn(false);
     }
   };
-  const selectObject = object => {
+  const selectObject = (object, physicsId) => {
+    weaponsManager.setMouseSelectedObject(object, physicsId);
+    
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.lookAt(object.position);
   };
@@ -532,7 +534,8 @@ export default function Header({
     window.addEventListener('click', e => {
       const hoverObject = weaponsManager.getMouseHoverObject();
       if (hoverObject) {
-        selectObject(hoverObject);
+        const physicsId = weaponsManager.getMouseHoverPhysicsId();
+        selectObject(hoverObject, physicsId);
       }
     });
   }, []);
@@ -608,7 +611,7 @@ export default function Header({
                     {objects.map((object, i) => {
                       return (
                         <div className={styles.object} key={i} onClick={e => {
-                          selectObject(object);
+                          selectObject(object, object.physicsIds[0] || null);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="/images/object.jpg" className={styles.img} />
