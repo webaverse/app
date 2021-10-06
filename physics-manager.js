@@ -420,6 +420,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       localVector.y += deltaY;
       camera.position.y += deltaY;
       camera.updateMatrixWorld();
+      
+      physicsManager.velocity.setScalar(0);
+      
+      physicsManager.dispatchEvent(new MessageEvent('voidout'));
     }
     const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
     if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
