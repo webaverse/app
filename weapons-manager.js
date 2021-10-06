@@ -288,12 +288,14 @@ mouseHighlightPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
+let mouseHoverPosition = null;
 
 const mouseSelectPhysicsMesh = _makeHighlightPhysicsMesh(selectMaterial);
 mouseSelectPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseSelectPhysicsMesh);
 let mouseSelectedObject = null;
 let mouseSelectedPhysicsId = 0;
+let mouseSelectedPosition = null;
 
 /* const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -2816,18 +2818,27 @@ const weaponsManager = {
   getMouseHoverPhysicsId() {
     return mouseHoverPhysicsId;
   },
+  getMouseHoverPosition() {
+    return mouseHoverPosition;
+  },
   setHoverEnabled(hoverEnabled) {
     this.hoverEnabled = hoverEnabled;
   },
   setMouseHoverObject(o, physicsId, position) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
+    if (mouseHoverObject && position) {
+      mouseHoverPosition = position.clone();
+    } else {
+      mouseHoverPosition = null;
+    }
     
     // console.log('set mouse hover', !!mouseHoverObject);
     appManager.dispatchEvent(new MessageEvent('hoverchange', {
       data: {
         app: mouseHoverObject,
-        position: position && position.clone(),
+        physicsId: mouseHoverPhysicsId,
+        position: mouseHoverPosition,
       },
     }));
   },
@@ -2837,13 +2848,23 @@ const weaponsManager = {
   getMouseSelectedPhysicsId() {
     return mouseSelectedPhysicsId;
   },
-  setMouseSelectedObject(o, physicsId) {
+  getMouseSelectedPosition() {
+    return mouseSelectedPosition;
+  },
+  setMouseSelectedObject(o, physicsId, position) {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
+    if (mouseSelectedObject && position) {
+      mouseSelectedPosition = position.clone();
+    } else {
+      mouseSelectedPosition = null;
+    }
     
     appManager.dispatchEvent(new MessageEvent('selectchange', {
       data: {
         app: mouseSelectedObject,
+        physicsId: mouseSelectedPhysicsId,
+        position: mouseSelectedPosition,
       },
     }));
     
