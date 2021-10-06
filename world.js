@@ -156,7 +156,7 @@ world.disableMic = () => {
 };
 
 world.isConnected = () => !!wsrtc;
-world.reset = () => {
+/* world.reset = () => {
   const state = _getState(true);
   state.transact(() => {
     const objects = state.getArray('objects');
@@ -189,7 +189,7 @@ world.reset = () => {
       trackedObject.set('originalJson', originalJsonString);
     }
   });
-};
+}; */
 world.connectRoom = async (worldURL) => {
   // console.log('connect room 1');
   // await didInteract;

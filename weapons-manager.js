@@ -2605,7 +2605,7 @@ const weaponsManager = {
   },
   menuBDown(e) {
     if (e.ctrlKey) {
-      world.reset();
+      universe.reload();
     }
     /* if (!appManager.grabbedObjects[0]) {
       if (!physicsManager.getThrowState()) {
