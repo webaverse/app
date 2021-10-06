@@ -425,8 +425,8 @@ export default function Header({
   const selectObject = (object, physicsId, position) => {
     weaponsManager.setMouseSelectedObject(object, physicsId, position);
     
-    const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.lookAt(object.position);
+    // const localPlayer = metaversefile.useLocalPlayer();
+    // localPlayer.lookAt(object.position);
   };
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   
