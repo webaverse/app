@@ -66,17 +66,38 @@ body {
 {
   position: relative;
 }
-.header .tab .panel {
+.header .tab .panels {
   position: fixed;
+  display: flex;
   width: 400px;
   height: 100vh;
+  overflow: hidden;
+}
+.header .tab .panels .panel {
+  width: 100%;
+  height: 100%;
   background-color: #000;
 }
-.header .tab.top.left .panel {
+.panels-wrap {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.selected-panel-1 .panels-wrap {
+  transform: none;
+}
+.selected-panel-2 .panels-wrap {
+  transform: translateX(-100%);
+}
+.selected-panel-2 .panels .panel {
+  max-height: 100vh;
+}
+.header .tab.top.left .panels {
   top: -50px;
   left: -400px;
 }
-.header .tab.top.right .panel {
+.header .tab.top.right .panels {
   top: -100px;
   left: 100%;
   height: 100vh;
@@ -130,7 +151,7 @@ body {
 .header .tab.open {
   z-index: 1;
 }
-.header .tab.open .panel {
+.header .tab.open .panels {
   background-color: #000;
   color: #FFF;
   padding-top: 36px;
@@ -141,11 +162,6 @@ body {
 .header .tab.bottom.left.open {
   transform: translateY(-400px);
 }
-/* .header .tab.bottom.left .panel {
-  height: 300px;
-  width: 300px;
-  background-color: transparent;
-} */
 .header .tab.bottom.left {
   position: absolute;
 }

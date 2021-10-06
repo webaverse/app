@@ -244,7 +244,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panel, panels, before, after, open, toggleOpen, onclick}) => {
+const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -265,15 +265,21 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
     )} onClick={onclick}>
       {left ? <>
         {before}
-        {panel}
-        {panels ? <div className={styles.panels}>{panels}</div> : null}
+        {panels ? <div className={styles.panels}>
+          <div className={styles['panels-wrap']}>
+            {panels}
+          </div>
+        </div> : null}
         {label}
         {after}
       </> : <>
         {before}
         {label}
-        {panel}
-        {panels ? <div className={styles.panels}>{panels}</div> : null}
+        {panels ? <div className={styles.panels}>
+          <div className={styles['panels-wrap']}>
+            {panels}
+          </div>
+        </div> : null}
         {after}
       </>}
     </div>
@@ -558,7 +564,11 @@ export default function Header({
             e.preventDefault();
             e.stopPropagation();
             if (worldOpen) {
-              cameraManager.requestPointerLock();
+              if (selectedApp) {
+                setSelectedApp(null);
+              } else {
+                cameraManager.requestPointerLock();
+              }
             } else {
               setOpen('world');
             }
@@ -576,7 +586,7 @@ export default function Header({
     return () => {
       window.removeEventListener('keydown', keydown);
     };
-  }, [open]);
+  }, [open, selectedApp]);
   useEffect(async () => {
     const isXrSupported = await app.isXrSupported();
     // console.log('is supported', isXrSupported);
@@ -641,11 +651,11 @@ export default function Header({
                   <span className={styles.key}>Tab</span>
                 </div>
               }
-              panel={
-                <div className={styles.panel}>
+              panels={[
+                (<div className={styles.panel} key="left">
                   <h1>Sheila</h1>
-                </div>
-              }
+                </div>)
+              ]}
               open={open}
               toggleOpen={toggleOpen}
             />
@@ -653,7 +663,7 @@ export default function Header({
               type="world"
               top
               right
-              className={styles['panel-' + (selectedApp ? 1 : 2)]}
+              className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}
               label={
                 <div className={styles.label}>
                   <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
@@ -685,24 +695,6 @@ export default function Header({
                 </div>),
                 (selectedApp ? <div className={styles.panel} key="right">
                   <h1>{_formatContentId(selectedApp.contentId)}</h1>
-                  <div className={styles.objects}>
-                    {objects.map((object, i) => {
-                      return (
-                        <div className={classnames(styles.object, object === selectedApp ? styles.selected : null)} key={i} onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          
-                          selectObject(object, object.physicsIds[0] || null);
-                        }}>
-                          <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                          <img src="/images/object.jpg" className={styles.img} />
-                          <div className={styles.wrap}>
-                            <div className={styles.name}>{_formatContentId(object.contentId)}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div> : null),
               ]}
               open={open}
