@@ -2267,6 +2267,13 @@ scene.add(cubeMesh); */
   }
 }); */
 
+document.addEventListener('pointerlockchange', () => {
+  weaponsManager.setMouseHoverObject(null);
+  if (!document.pointerLockElement) {
+    weaponsManager.editMode = false;
+  }
+});
+
 let droppedThrow = false;
 const lastMouseEvent = {
   clientX: 0,
@@ -2666,9 +2673,16 @@ const weaponsManager = {
   toggleAxis() {
     console.log('toggle axis');
   },
-  toggleEditMode() {
+  async toggleEditMode() {
     this.editMode = !this.editMode;
+    console.log('got edit mode', this.editMode);
     if (this.editMode) {
+      if (!document.pointerLockElement) {
+        await cameraManager.requestPointerLock();
+      }
+      if (this.mouseSelectedObject) {
+        this.setMouseSelectedObject(null);
+      }
       if (_getGrabbedObject(0)) {
         const localPlayer = useLocalPlayer();
         localPlayer.ungrab();

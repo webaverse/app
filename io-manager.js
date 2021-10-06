@@ -60,7 +60,6 @@ const resetKeys = () => {
 
 document.addEventListener('pointerlockchange', () => {
   resetKeys();
-  weaponsManager.setMouseHoverObject(null);
 });
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
