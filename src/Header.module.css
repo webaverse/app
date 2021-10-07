@@ -78,6 +78,33 @@ body {
   height: 100%;
   background-color: #000;
 }
+.header .panel-header {
+  display: flex;
+  margin-top: 40px;
+  padding: 0 10px;
+}
+.header .panel-header .button {
+  cursor: pointer;
+}
+.header .panel-header .button .img {
+  width: 50px;
+  height: 50px;
+  /* margin-right: 10px; */
+  filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
+  transition: filter 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.header .panel-header .button:hover .img {
+  filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
+}
+.header .panel-header  h1 {
+  display: flex;
+  margin: 0;
+  padding-bottom: 5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  align-items: center;
+}
 .panels-wrap {
   display: flex;
   width: 100%;
