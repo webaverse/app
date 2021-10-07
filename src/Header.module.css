@@ -110,6 +110,22 @@ body {
   overflow: hidden;
   align-items: center;
 }
+.header .panel-subheader {
+  display: flex;
+  padding-left: 20px;
+  font-size: 16px;
+  line-height: 2;
+}
+.header .inputs {
+  display: flex;
+  padding-left: 20px;
+}
+.header .inputs .input {
+  width: 50px;
+}
+.header .inputs .input + .input {
+  margin-left: 10px;
+}
 .panels-wrap {
   display: flex;
   width: 100%;

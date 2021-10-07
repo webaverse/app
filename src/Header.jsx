@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import Y from '../yjs.js';
@@ -16,6 +17,7 @@ import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
+const localEuler = new THREE.Euler();
 const localColor = new Color();
 const localColor2 = new Color();
 const localColor3 = new Color();
@@ -244,12 +246,16 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick}) => {
+const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
     };
   }
+  
+  const stopPropagation = e => {
+    e.stopPropagation();
+  };
   
   return (
     <div className={classnames(
@@ -265,7 +271,7 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panels
     )} onClick={onclick}>
       {left ? <>
         {before}
-        {panels ? <div className={styles.panels}>
+        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
           <div className={styles['panels-wrap']}>
             {panels}
           </div>
@@ -275,7 +281,7 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panels
       </> : <>
         {before}
         {label}
-        {panels ? <div className={styles.panels}>
+        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
           <div className={styles['panels-wrap']}>
             {panels}
           </div>
@@ -381,6 +387,10 @@ const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
   );
 };
 
+const NumberInput = ({input}) => {
+  return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} />
+};
+
 export default function Header({
   app,
 }) {
@@ -397,6 +407,26 @@ export default function Header({
   const [micOn, setMicOn] = useState(false);
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
+  const panelsRef = useRef();
+  
+  let [px, setPx] = useState(0);
+  let [py, setPy] = useState(0);
+  let [pz, setPz] = useState(0);
+  let [rx, setRx] = useState(0);
+  let [ry, setRy] = useState(0);
+  let [rz, setRz] = useState(0);
+  let [sx, setSx] = useState(1);
+  let [sy, setSy] = useState(1);
+  let [sz, setSz] = useState(1);
+  px = {value: px, onChange: e => {const v = e.target.value; selectedApp.position.x = v; setPx(v);}};
+  py = {value: py, onChange: e => {const v = e.target.value; selectedApp.position.y = v; setPy(v);}};
+  pz = {value: pz, onChange: e => {const v = e.target.value; selectedApp.position.z = v; setPz(v);}};
+  rx = {value: rx, onChange: e => {const v = e.target.value; selectedApp.rotation.x = v; setRx(v);}};
+  ry = {value: ry, onChange: e => {const v = e.target.value; selectedApp.rotation.y = v; setRy(v);}};
+  rz = {value: rz, onChange: e => {const v = e.target.value; selectedApp.rotation.z = v; setRz(v);}};
+  sx = {value: sx, onChange: e => {const v = e.target.value; selectedApp.scale.x = v; setSx(v);}};
+  sy = {value: sy, onChange: e => {const v = e.target.value; selectedApp.scale.y = v; setSy(v);}};
+  sz = {value: sz, onChange: e => {const v = e.target.value; selectedApp.scale.z = v; setSz(v);}};
   
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';
@@ -429,19 +459,8 @@ export default function Header({
     // const localPlayer = metaversefile.useLocalPlayer();
     // localPlayer.lookAt(object.position);
   };
-
-  const _init = async (app, canvas) => {
-    app.bindPreviewCanvas(canvas);
-  };
-
-  useEffect(() => {
-    if (previewCanvasRef.current) {
-      _init(app, previewCanvasRef.current);
-    }
-  }, [previewCanvasRef.current]);
   
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
-  
   useEffect(() => {
     const update = e => {
       setObjects(world.getObjects().slice());
@@ -531,6 +550,16 @@ export default function Header({
       world.appManager.removeEventListener('pickup', pickup);
     };
   }, [claims]);
+  useEffect(() => {
+    if (previewCanvasRef.current) {
+      app.bindPreviewCanvas(canvas, previewCanvasRef.current);
+    }
+  }, [previewCanvasRef.current]);
+  useEffect(() => {
+    if (selectedApp && panelsRef.current) {
+      panelsRef.current.scrollTo(0, 0);
+    }
+  }, [selectedApp, panelsRef.current]);
   
   const lastEmoteKey = {
     key: -1,
@@ -617,6 +646,21 @@ export default function Header({
       }
     });
   }, []);
+  useEffect(() => {
+    if (selectedApp) {
+      const {position, quaternion, scale} = selectedApp;
+      const rotation = localEuler.setFromQuaternion(quaternion, 'YXZ');
+      setPx(position.x);
+      setPy(position.y);
+      setPz(position.z);
+      setRx(rotation.x);
+      setRy(rotation.y);
+      setRz(rotation.z);
+      setSx(scale.x);
+      setSy(scale.y);
+      setSz(scale.z);
+    }
+  }, [selectedApp]);
 
 	return (
     <div className={styles.container} onClick={e => {
@@ -676,6 +720,7 @@ export default function Header({
               ]}
               open={open}
               toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
             />
             <Tab
               type="world"
@@ -728,10 +773,29 @@ export default function Header({
                     </div>
                     <h1>{_formatContentId(selectedApp.contentId)}</h1>
                   </div>
+                  <div className={styles['panel-subheader']}>Position</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={px} />
+                    <NumberInput input={py} />
+                    <NumberInput input={pz} />
+                  </div>
+                  <div className={styles['panel-subheader']}>Rotation</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={rx} />
+                    <NumberInput input={ry} />
+                    <NumberInput input={rz} />
+                  </div>
+                  <div className={styles['panel-subheader']}>Scale</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={sx} />
+                    <NumberInput input={sy} />
+                    <NumberInput input={sz} />
+                  </div>
                 </div> : null),
               ]}
               open={open}
               toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
             />
             <Tab
               type="xr"
@@ -751,6 +815,7 @@ export default function Header({
               }
               open={open}
               toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
             />
             <Tab
               type="claims"
@@ -777,6 +842,7 @@ export default function Header({
               }
               open={open}
               toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
             />
           </div>
         </header>
