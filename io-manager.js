@@ -469,9 +469,9 @@ ioManager.keydown = e => {
       break;
     }
     case 69: { // E
-      if (document.pointerLockElement) {
+      // if (document.pointerLockElement) {
         weaponsManager.menuUseDown();
-      }
+      // }
       break;
     }
     case 192: { // tilde
