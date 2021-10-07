@@ -90,8 +90,9 @@ body {
 .selected-panel-2 .panels-wrap {
   transform: translateX(-100%);
 }
-.selected-panel-2 .panels .panel {
+.selected-panel-2 .panels {
   max-height: 100vh;
+  overflow: hidden !important;
 }
 .header .tab.top.left .panels {
   top: -50px;
@@ -101,7 +102,8 @@ body {
   top: -100px;
   left: 100%;
   height: 100vh;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 .header .tab .objects .object {
   position: relative;

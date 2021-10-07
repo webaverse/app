@@ -812,15 +812,7 @@ const bindPhysics = () => {
     if (weaponsManager.sceneLoaded) {
       // console.log('prevent default');
       e.data.cancel();
-    } else {
-      console.log('voidout passthrough');
-    } /* else {
-      if (cameraManager.wasActivated() && !weaponsManager.isFlying()) {
-        weaponsManager.toggleFly();
-      } else {
-        
-      }
-    } */
+    }
   });
 };
 
