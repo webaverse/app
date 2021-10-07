@@ -121,7 +121,7 @@ export default class App extends EventTarget {
     return camera;
   }
   
-  async bootstrapFromUrl(urlSpec) {
+  setContentLoaded() {
     this.contentLoaded = true;
   }
   /* bindLogin() {
