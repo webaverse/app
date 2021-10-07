@@ -494,7 +494,7 @@ world.addEventListener('trackedobjectadd', async e => {
       metaversefile.removeApp(app);
       app.destroy();
     }
-    p.reject(new Error('app cleared during load'));
+    p.reject(new Error('app cleared during load: ' + contentId));
   };
   try {
     // const options = JSON.parse(optionsString);
