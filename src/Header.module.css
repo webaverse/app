@@ -80,8 +80,13 @@ body {
 }
 .header .panel-header {
   display: flex;
-  margin-top: 40px;
   padding: 0 10px;
+}
+.header .tab.top.left .panel-header {
+  margin-top: 20px;
+}
+.header .tab.top.right .panel-header {
+  margin-top: 40px;
 }
 .header .panel-header .button {
   cursor: pointer;
