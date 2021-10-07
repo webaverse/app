@@ -3,6 +3,7 @@ import * as THREE from 'three';
 // import {addDefaultLights} from './util.js';
 
 let canvas = null, context = null, renderer = null;
+
 function bindCanvas(c) {
   canvas = c;
   
@@ -38,6 +39,7 @@ function bindCanvas(c) {
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 }
+
 function getRenderer() {
   return renderer;
 }

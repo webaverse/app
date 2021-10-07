@@ -382,6 +382,11 @@ body {
 	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
 	content: '';
 }
+.header .avatar {
+  width: 100%;
+  padding: 10px;
+  height: 200px;
+}
 
 .location {
   position: relative;
