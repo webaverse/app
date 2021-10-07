@@ -463,24 +463,36 @@ const _removeObject = (dynamic) => removeInstanceId => {
 world.addObject = _addObject(true);
 world.removeObject = _removeObject(true);
 world.addEventListener('trackedobjectadd', async e => {
+  const {trackedObject, dynamic} = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
+  const components = JSON.parse(componentsString);
+  
   const p = makePromise();
   pendingAddPromise = p;
 
-
   let live = true;
   const clear = () => {
-    live = false;
-    cleanup();
+    const unclearable = components.some(({key, value}) => key === 'unclearable' && !!value);
+    if (!unclearable) {
+      live = false;
+      cleanup();
+    } else {
+      console.warn('not clearing unclearable app', trackedObjectJson);
+    }
   };
   const cleanup = () => {
     world.removeEventListener('clear', clear);
   };
   world.addEventListener('clear', clear);
+  const _bailout = app => {
+    if (app) {
+      metaversefile.removeApp(app);
+      app.destroy();
+    }
+    p.reject(new Error('app cleared during load'));
+  };
   try {
-    const {trackedObject, dynamic} = e.data;
-    const trackedObjectJson = trackedObject.toJSON();
-    const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
-    const components = JSON.parse(componentsString);
     // const options = JSON.parse(optionsString);
     // const file = await contentIdToFile(contentId);
     /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
@@ -496,7 +508,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }); */
     
     const m = await metaversefile.import(contentId);
-    if (!live) return;
+    if (!live) return _bailout(null);
     const app = metaversefile.createApp({
       name: contentId,
       type: (() => {
@@ -522,11 +534,7 @@ world.addEventListener('trackedobjectadd', async e => {
     // app.contentId = contentId;
     metaversefile.addApp(app);
     mesh = await app.addModule(m);
-    if (!live) {
-      metaversefile.removeApp(app);
-      app.destroy();
-      return;
-    }
+    if (!live) return _bailout(app);
     if (!mesh) {
       console.warn('failed to load object', {contentId});
     }
