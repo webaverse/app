@@ -669,6 +669,9 @@ export default function Header({
                     <h1>Sheila</h1>
                   </div>
                   <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
+                  <div className={styles['panel-header']}>
+                    <h1>Equipment</h1>
+                  </div>
                 </div>)
               ]}
               open={open}
