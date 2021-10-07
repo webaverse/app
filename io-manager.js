@@ -60,7 +60,6 @@ const resetKeys = () => {
 
 document.addEventListener('pointerlockchange', () => {
   resetKeys();
-  weaponsManager.setMouseHoverObject(null);
 });
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
@@ -700,9 +699,13 @@ ioManager.click = e => {
   if (document.pointerLockElement) {
     weaponsManager.menuClick();
   } else {
-    weaponsManager.setContextMenu(false);
+    // weaponsManager.setContextMenu(false);
     
-    if (controlsManager.isPossessed()) {
+    if (!weaponsManager.hoverEnabled) {
+      cameraManager.requestPointerLock();
+    }
+    
+    /* if (controlsManager.isPossessed()) {
       cameraManager.requestPointerLock();
     } else {
       const mouseHoverObject = weaponsManager.getMouseHoverObject();
@@ -715,7 +718,7 @@ ioManager.click = e => {
           weaponsManager.setMouseSelectedObject(null);
         }
       }
-    }
+    } */
   }
 };
 // let mouseDown = false;

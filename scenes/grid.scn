@@ -1,44 +1,27 @@
 {
   "objects": [
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 0, 255], 0.1]
+      }
     },
     {
-      "position": [
-        -20,
-        30,
-        -30
-      ],
-      "start_url": "https://webaverse.github.io/floating-island/index.js"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/skybox/index.js"
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 180, 10], 2],
+        "position": [10, 20, 300]
+      }
     },
     {
       "position": [
         0,
         0,
-        -2
+        -1
       ],
-      "start_url": "https://avaer.github.io/mirror/index.js"
-    },
-    {
-      "position": [
-        -10,
-        0,
-        -30
-      ],
-      "start_url": "https://avaer.github.io/shield/index.js"
+      "start_url": "https://plankatron.github.io/skybox/index.js"
     },
     {
       "position": [
@@ -72,117 +55,13 @@
     },
     {
       "position": [
-        2,
-        1,
-        0
-      ],
-      "quaternion": [
-        0,
-        -0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "scale": [
-        2,
-        2,
-        2
-      ],
-      "physics": false,
-      "start_url": "https://avaer.github.io/sakura/index.glbb",
-      "dynamic": true
-    },
-    {
-      "position": [
-        2,
-        1,
-        -6
-      ],
-      "quaternion": [
-        0,
-        -0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "https://avaer.github.io/rainbow-dash/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        -13,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/homespace/.metaversefile"
-    },
-    {
-      "position": [
-        8,
-        -2,
-        -5
-      ],
-      "quaternion": [
-        0,
-        -0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/street-assets/station.glb",
-      "physics_url": "https://webaverse.github.io/street-assets/station.bin"
-    },
-    {
-      "position": [
         0,
         0,
         0
       ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/stacks/index.js"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/parcels/index.js"
-    },
-    {
-      "position": [-9, 0, -1],
-      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "https://webaverse.github.io/chest/"
-    },
-    {
-      "position": [-2, 1, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "https://avaer.github.io/poster/.metaversefile"
-    },
-    {
-      "position": [-1, 1, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "https://webaverse.github.io/arrow-loader/"
-    },
-    {
-      "position": [-1, 4, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "https://avaer.github.io/physicscube/"
+      "physics": true,
+      "start_url": "https://plankatron.github.io/scenes/grid.glb",
+      "dynamic": false
     }
   ]
 }

@@ -10,7 +10,7 @@ import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
 import {landHost, worldUrl} from './constants.js';
-import metaversefile from 'metaversefile';
+import metaversefile from './metaversefile-api.js';
 import sceneNames from './scenes/scenes.json';
 
 const localVector = new THREE.Vector3();
@@ -196,6 +196,8 @@ const enterWorld = async worldSpec => {
   _pre(); */
 
   world.disconnectRoom();
+  
+  weaponsManager.setSceneLoaded(false);
 
   const _doLoad = async () => {
     world.clear();
@@ -226,19 +228,15 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
-
-  /* const _post = () => {
-    if (currentWorld) {
-      // setTimeout(() => {
-        warpMesh.visible = false;
-
-        physicsManager.removeGeometry(warpPhysicsId);
-      // }, 3000);
-    }
-  };
-  _post(); */
-
+  weaponsManager.setSceneLoaded(true);
+  
   currentWorld = worldSpec;
+};
+const reload = async () => {
+  const localPlayer = metaversefile.useLocalPlayer();
+  localPlayer.teleportTo(new THREE.Vector3(0, 1, 0), camera.quaternion);
+
+  await enterWorld(currentWorld);
 };
 /* const bootstrapFromUrl = async urlSpec => {
   const q = parseQuery(urlSpec.search);
@@ -263,6 +261,7 @@ export {
   update,
   // getParcels,
   enterWorld,
+  reload,
   getWorldsHost,
   // bootstrapFromUrl,
   pushUrl,

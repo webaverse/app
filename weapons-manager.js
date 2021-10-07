@@ -288,12 +288,14 @@ mouseHighlightPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
+let mouseHoverPosition = null;
 
 const mouseSelectPhysicsMesh = _makeHighlightPhysicsMesh(selectMaterial);
 mouseSelectPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseSelectPhysicsMesh);
 let mouseSelectedObject = null;
 let mouseSelectedPhysicsId = 0;
+let mouseSelectedPosition = null;
 
 /* const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -800,8 +802,26 @@ const _handleUpload = async (item, transform = null) => {
   
   world.addObject(u, position, quaternion, oneVector);
 };
-const bindUploadFileInput = uploadFileInput => {
+/* const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
+}; */
+
+const bindPhysics = () => {
+  physicsManager.addEventListener('voidout', e => {
+    // console.log('got voidout', weaponsManager.sceneLoaded);
+    if (weaponsManager.sceneLoaded) {
+      // console.log('prevent default');
+      e.data.cancel();
+    } else {
+      console.log('voidout passthrough');
+    } /* else {
+      if (cameraManager.wasActivated() && !weaponsManager.isFlying()) {
+        weaponsManager.toggleFly();
+      } else {
+        
+      }
+    } */
+  });
 };
 
 const _upload = () => {
@@ -1124,7 +1144,7 @@ const _updateWeapons = (timestamp) => {
     mouseHighlightPhysicsMesh.visible = false;
 
     const h = mouseHoverObject;
-    if (h && !weaponsManager.dragging && !mouseSelectedObject) {
+    if (h && !weaponsManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
       if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
         const physics = physicsManager.getGeometry(physicsId);
@@ -2267,6 +2287,13 @@ scene.add(cubeMesh); */
   }
 }); */
 
+document.addEventListener('pointerlockchange', () => {
+  weaponsManager.setMouseHoverObject(null);
+  if (!document.pointerLockElement) {
+    weaponsManager.editMode = false;
+  }
+});
+
 let droppedThrow = false;
 const lastMouseEvent = {
   clientX: 0,
@@ -2291,6 +2318,7 @@ const weaponsManager = {
   usableObject: null,
   useSpec: null,
   hoverEnabled: false,
+  sceneLoaded: false,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -2346,7 +2374,8 @@ const weaponsManager = {
     }
   }, */
   // bindInterface,
-  bindUploadFileInput,
+  // bindUploadFileInput,
+  bindPhysics,
   getMenu() {
     return this.menuOpen;
   },
@@ -2576,7 +2605,7 @@ const weaponsManager = {
   },
   menuBDown(e) {
     if (e.ctrlKey) {
-      world.reset();
+      universe.reload();
     }
     /* if (!appManager.grabbedObjects[0]) {
       if (!physicsManager.getThrowState()) {
@@ -2666,9 +2695,16 @@ const weaponsManager = {
   toggleAxis() {
     console.log('toggle axis');
   },
-  toggleEditMode() {
+  async toggleEditMode() {
     this.editMode = !this.editMode;
+    // console.log('got edit mode', this.editMode);
     if (this.editMode) {
+      if (!document.pointerLockElement) {
+        await cameraManager.requestPointerLock();
+      }
+      if (this.mouseSelectedObject) {
+        this.setMouseSelectedObject(null);
+      }
       if (_getGrabbedObject(0)) {
         const localPlayer = useLocalPlayer();
         localPlayer.ungrab();
@@ -2773,11 +2809,17 @@ const weaponsManager = {
   isSitting() {
     return useLocalPlayer().actions.some(action => action.type === 'sit');
   },
+  setSceneLoaded(sceneLoaded) {
+    this.sceneLoaded = sceneLoaded;
+  },
   getMouseHoverObject() {
     return mouseHoverObject;
   },
   getMouseHoverPhysicsId() {
     return mouseHoverPhysicsId;
+  },
+  getMouseHoverPosition() {
+    return mouseHoverPosition;
   },
   setHoverEnabled(hoverEnabled) {
     this.hoverEnabled = hoverEnabled;
@@ -2785,11 +2827,18 @@ const weaponsManager = {
   setMouseHoverObject(o, physicsId, position) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
+    if (mouseHoverObject && position) {
+      mouseHoverPosition = position.clone();
+    } else {
+      mouseHoverPosition = null;
+    }
     
+    // console.log('set mouse hover', !!mouseHoverObject);
     appManager.dispatchEvent(new MessageEvent('hoverchange', {
       data: {
         app: mouseHoverObject,
-        position: position && position.clone(),
+        physicsId: mouseHoverPhysicsId,
+        position: mouseHoverPosition,
       },
     }));
   },
@@ -2799,9 +2848,25 @@ const weaponsManager = {
   getMouseSelectedPhysicsId() {
     return mouseSelectedPhysicsId;
   },
-  setMouseSelectedObject(o, physicsId) {
+  getMouseSelectedPosition() {
+    return mouseSelectedPosition;
+  },
+  setMouseSelectedObject(o, physicsId, position) {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
+    if (mouseSelectedObject && position) {
+      mouseSelectedPosition = position.clone();
+    } else {
+      mouseSelectedPosition = null;
+    }
+    
+    appManager.dispatchEvent(new MessageEvent('selectchange', {
+      data: {
+        app: mouseSelectedObject,
+        physicsId: mouseSelectedPhysicsId,
+        position: mouseSelectedPosition,
+      },
+    }));
     
     /* const renderer = getRenderer();
     renderer.domElement.dispatchEvent(new MessageEvent('select', {
