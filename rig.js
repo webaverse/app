@@ -166,11 +166,11 @@ class RigManager {
     this.localRig.textMesh.avatarMesh = avatarMesh;
   } */
 
-  async setLocalAvatar(app) {
+  async _switchAvatar(oldRig, newApp) {
     // prepare for wearing
     {
       let waitPromise;
-      app.dispatchEvent({
+      newApp.dispatchEvent({
         type: 'wearupdate',
         wear: {},
         waitUntil(p) {
@@ -183,10 +183,10 @@ class RigManager {
     }
     
     // unwear old rig
-    if (this.localRig) {
+    if (oldRig) {
       {
         let waitPromise;
-        this.localRig.app.dispatchEvent({
+        oldRig.app.dispatchEvent({
           type: 'wearupdate',
           wear: null,
           waitUntil(p) {
@@ -198,10 +198,14 @@ class RigManager {
         }
       }
     }
-    if (!app.rig) {
-      app.rig = _makeRig(app);
+    if (!newApp.rig) {
+      newApp.rig = _makeRig(newApp);
     }
-    this.localRig = app.rig;
+    return newApp.rig;
+  }
+
+  async setLocalAvatar(app) {
+    this.localRig = await this._switchAvatar(this.localRig, app);
   }
   
   /* isPeerRig(rig) {
