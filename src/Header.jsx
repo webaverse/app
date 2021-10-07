@@ -388,7 +388,11 @@ const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
 };
 
 const NumberInput = ({input}) => {
-  return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} />
+  return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} onKeyDown={e => {
+    if (e.which === 13) {
+      e.target.blur();
+    }
+  }} />
 };
 
 export default function Header({
