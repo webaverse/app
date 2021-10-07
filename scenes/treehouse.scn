@@ -77,6 +77,20 @@
     },
     {
       "position": [
+        27,
+        0,
+        16
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
         -6,
         0.16,
         16
