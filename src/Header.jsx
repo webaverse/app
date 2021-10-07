@@ -682,6 +682,9 @@ export default function Header({
                           e.stopPropagation();
                           
                           selectObject(object, object.physicsIds[0] || null);
+                          
+                          const localPlayer = metaversefile.useLocalPlayer();
+                          localPlayer.lookAt(object.position);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="/images/object.jpg" className={styles.img} />
