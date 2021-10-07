@@ -1219,9 +1219,9 @@ class Avatar {
       const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
       const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
-      const _getVrmBlendShapeIndex = r => {
+      const _getVrmBlendShapeIndex = presetName => {
         if (Array.isArray(blendShapes)) {
-          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
+          const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
             return shape.binds[0].index;
           } else {
@@ -1231,12 +1231,13 @@ class Avatar {
           return null;
         }
       };
+      
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || null;
-          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || null;
-          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || null;
+          const aaIndex = _getVrmBlendShapeIndex('a') || null;
+          const blinkLeftIndex = _getVrmBlendShapeIndex('blink_l') || null;
+          const blinkRightIndex = _getVrmBlendShapeIndex('blink_r') || null;
           return [
             morphTargetInfluences,
             aaIndex,
