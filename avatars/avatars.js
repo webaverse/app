@@ -820,6 +820,8 @@ class Avatar {
     })();
     this.model = model;
     this.options = options;
+    
+    const vrmExtension = object?.parser?.json?.extensions?.VRM;
 
     const {
       skinnedMeshes,
@@ -928,7 +930,7 @@ class Avatar {
     };
     this.fingerBoneMap = fingerBoneMap;
     
-    const allHairBones = [];
+    /* const allHairBones = [];
     const _recurseAllHairBones = bones => {
       for (let i = 0; i < bones.length; i++) {
         const bone = bones[i];
@@ -938,7 +940,7 @@ class Avatar {
         _recurseAllHairBones(bone.children);
       }
     };
-    _recurseAllHairBones(skeleton.bones);
+    _recurseAllHairBones(skeleton.bones); */
     const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === modelBones.Head) {
@@ -947,7 +949,7 @@ class Avatar {
       }
       return null;
     }).filter(bone => bone);
-    this.allHairBones = allHairBones;
+    // this.allHairBones = allHairBones;
     this.hairBones = hairBones;
 
     this.springBoneManager = null;
@@ -1216,10 +1218,9 @@ class Avatar {
 
     this.emotes = [];
     if (this.options.visemes) {
-      const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
-      const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getVrmBlendShapeIndex = presetName => {
+        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
