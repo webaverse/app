@@ -410,7 +410,7 @@ world.getObjects = () => objects.dynamic.slice();
 world.getStaticObjects = () => objects.static.slice();
 let pendingAddPromise = null;
 
-const _addObject = (dynamic) => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
+const _addObject = dynamic => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(function tx() {
