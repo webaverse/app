@@ -13,6 +13,7 @@ const cameraOffset = new THREE.Vector3();
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
+let wasActivated = false;
 const requestPointerLock = async () => {
   for (const options of [
     {
@@ -26,6 +27,8 @@ const requestPointerLock = async () => {
           const _pointerlockchange = e => {
             accept();
             _cleanup();
+            
+            wasActivated = true;
           };
           document.addEventListener('pointerlockchange', _pointerlockchange);
           const _pointerlockerror = err => {
@@ -156,6 +159,9 @@ const cameraManager = {
   /* birdsEyeHeight,
   thirdPersonCameraOffset,
   isometricCameraOffset, */
+  wasActivated() {
+    return wasActivated;
+  },
   focusCamera,
   requestPointerLock,
   /* getTool() {

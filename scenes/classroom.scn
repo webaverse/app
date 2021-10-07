@@ -1,0 +1,33 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/classroom/"
+    },
+    {
+      "position": [1, 2, -4.5],
+      "quaternion": [0, 0, 0, 1],
+      "scale": [3, 3, 3],
+      "start_url": "https://https-vrchat-com.proxy.webaverse.com/"
+    }
+  ]
+}

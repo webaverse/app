@@ -244,7 +244,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panel, before, after, open, toggleOpen, onclick}) => {
+const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -265,41 +265,57 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panel,
     )} onClick={onclick}>
       {left ? <>
         {before}
-        {panel}
+        {panels ? <div className={styles.panels}>
+          <div className={styles['panels-wrap']}>
+            {panels}
+          </div>
+        </div> : null}
         {label}
         {after}
       </> : <>
         {before}
         {label}
-        {panel}
+        {panels ? <div className={styles.panels}>
+          <div className={styles['panels-wrap']}>
+            {panels}
+          </div>
+        </div> : null}
         {after}
       </>}
     </div>
   );
 };
 
-const Inspector = ({open, setOpen}) => {
+const _world2canvas = v => {
+  const worldPoint = v.clone()
+    .project(camera);
+  worldPoint.x = (worldPoint.x+1)/2;
+  worldPoint.y = 1-(worldPoint.y+1)/2;
+  worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
+  return worldPoint;
+};
+
+const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
   const [hoverPosition, setHoverPosition] = useState(null);
+  const [selectPosition, setSelectPosition] = useState(null);
   const [dragging, setDragging] = useState(false);
   
   useEffect(() => {
-    weaponsManager.setHoverEnabled(open === 'world');
-  }, [open]);
-  useEffect(() => {
     const dragchange = e => {
       const {dragging} = e.data;
+      // console.log('drag change', dragging);
       setDragging(dragging);
+      setHoverPosition(null);
     };
     world.appManager.addEventListener('dragchange', dragchange);
     const hoverchange = e => {
-      if (open === 'world' && !dragging) {
+      const worldOpen = open === 'world';
+      // console.log('check hover', [worldOpen, !selectedApp, !dragging]);
+      if (worldOpen && !selectedApp && !dragging) {
         // console.log('hover change', e.data);
         const {position} = e.data;
         if (position) {
-          const worldPoint = position.clone().project(camera);
-          worldPoint.x = (worldPoint.x+1)/2;
-          worldPoint.y = 1-(worldPoint.y+1)/2;
-          worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
+          const worldPoint = _world2canvas(position);
           // console.log('hover', worldPoint.toArray().join(', '));
           setHoverPosition(worldPoint);
         } else {
@@ -310,20 +326,55 @@ const Inspector = ({open, setOpen}) => {
       }
     };
     world.appManager.addEventListener('hoverchange', hoverchange);
+    const selectchange = e => {
+      setSelectedApp(e.data.app);
+    };
+    world.appManager.addEventListener('selectchange', selectchange);
     return () => {
       world.appManager.removeEventListener('dragchange', dragchange);
       world.appManager.removeEventListener('hoverchange', hoverchange);
+      world.appManager.removeEventListener('selectchange', selectchange);
     };
-  }, [open, dragging]);
+  }, [open, selectedApp, dragging]);
+  useEffect(() => {
+    const worldOpen = open === 'world';
+    weaponsManager.setHoverEnabled(worldOpen);
+    
+    if (!worldOpen) {
+      weaponsManager.setMouseSelectedObject(null);
+    }
+  }, [open]);
+  useEffect(() => {
+    const frame = e => {
+      if (selectedApp) {
+        const position = weaponsManager.getMouseSelectedPosition();
+        if (position) {
+          const worldPoint = _world2canvas(position);
+          setSelectPosition(worldPoint);
+        } else {
+          setSelectPosition(null);
+        }
+      } else {
+        setSelectPosition(null);
+      }
+    };
+    world.appManager.addEventListener('frame', frame);
+    return () => {
+      world.appManager.removeEventListener('frame', frame);
+    };
+  }, [selectedApp]);
 
   // hoverPosition && console.log('got', `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh) scale(${hoverPosition.z})`);
 
+  const bindPosition = selectPosition || hoverPosition || null;
+  // console.log('bind position', bindPosition && bindPosition.toArray().join(','));
+
   return (
-    <div className={classnames(styles.inspector, hoverPosition ? styles.open : null)} style={hoverPosition ? {
-      transform: `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh)`,
+    <div className={classnames(styles.inspector, bindPosition ? styles.open : null)} style={bindPosition ? {
+      transform: `translateX(${bindPosition.x*100}vw) translateY(${bindPosition.y*100}vh)`,
     } : null}>
-      <img src="/images/popup.svg" style={hoverPosition ? {
-        transform: `scale(${hoverPosition.z})`,
+      <img src="/images/popup.svg" style={bindPosition ? {
+        transform: `scale(${bindPosition.z})`,
         transformOrigin: '0 100%',
       } : null} />
     </div>
@@ -337,6 +388,7 @@ export default function Header({
   const previewCanvasRef = useRef();
 	
   const [open, setOpen] = useState(null);
+  const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [objects, setObjects] = useState(world.getObjects().slice());
@@ -353,6 +405,11 @@ export default function Header({
   const worldOpen = open === 'world';
   const multiplayerConnected = !!roomName;
   
+  /* setOpen = (setOpen => function() {
+    console.log('set open', new Error().stack);
+    return setOpen.apply(this, arguments);
+  })(setOpen); */
+  
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
   };
@@ -366,11 +423,11 @@ export default function Header({
       setMicOn(false);
     }
   };
-  const selectObject = (object, physicsId) => {
-    weaponsManager.setMouseSelectedObject(object, physicsId);
+  const selectObject = (object, physicsId, position) => {
+    weaponsManager.setMouseSelectedObject(object, physicsId, position);
     
-    const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.lookAt(object.position);
+    // const localPlayer = metaversefile.useLocalPlayer();
+    // localPlayer.lookAt(object.position);
   };
 
   const _init = async (app, canvas) => {
@@ -382,6 +439,8 @@ export default function Header({
       _init(app, previewCanvasRef.current);
     }
   }, [previewCanvasRef.current]);
+  
+  const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   
   useEffect(() => {
     const update = e => {
@@ -517,7 +576,11 @@ export default function Header({
             e.preventDefault();
             e.stopPropagation();
             if (worldOpen) {
-              cameraManager.requestPointerLock();
+              if (selectedApp) {
+                setSelectedApp(null);
+              } else {
+                cameraManager.requestPointerLock();
+              }
             } else {
               setOpen('world');
             }
@@ -535,7 +598,7 @@ export default function Header({
     return () => {
       window.removeEventListener('keydown', keydown);
     };
-  }, [open]);
+  }, [open, selectedApp]);
   useEffect(async () => {
     const isXrSupported = await app.isXrSupported();
     // console.log('is supported', isXrSupported);
@@ -545,8 +608,12 @@ export default function Header({
     window.addEventListener('click', e => {
       const hoverObject = weaponsManager.getMouseHoverObject();
       if (hoverObject) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const physicsId = weaponsManager.getMouseHoverPhysicsId();
-        selectObject(hoverObject, physicsId);
+        const position = weaponsManager.getMouseHoverPosition();
+        selectObject(hoverObject, physicsId, position);
       }
     });
   }, []);
@@ -555,7 +622,7 @@ export default function Header({
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
-      <Inspector open={open} setOpen={setOpen} />
+      <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} setSelectedApp={setSelectedApp} />
 			<div className={styles.inner}>
 				<header className={styles.header}>
           <div className={styles.row}>
@@ -596,12 +663,12 @@ export default function Header({
                   <span className={styles.key}>Tab</span>
                 </div>
               }
-              panel={
-                <div className={styles.panel}>
+              panels={[
+                (<div className={styles.panel} key="left">
                   <h1>Sheila</h1>
                   <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
-                </div>
-              }
+                </div>)
+              ]}
               open={open}
               toggleOpen={toggleOpen}
             />
@@ -609,6 +676,7 @@ export default function Header({
               type="world"
               top
               right
+              className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}
               label={
                 <div className={styles.label}>
                   <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
@@ -616,14 +684,20 @@ export default function Header({
                   <span className={styles.key}>Z</span>
                 </div>
               }
-              panel={
-                <div className={styles.panel}>
+              panels={[
+                (<div className={styles.panel} key="left">
                   <h1>Tokens</h1>
                   <div className={styles.objects}>
                     {objects.map((object, i) => {
                       return (
-                        <div className={styles.object} key={i} onClick={e => {
+                        <div className={classnames(styles.object, object === selectedApp ? styles.selected : null)} key={i} onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
                           selectObject(object, object.physicsIds[0] || null);
+                          
+                          const localPlayer = metaversefile.useLocalPlayer();
+                          localPlayer.lookAt(object.position);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="/images/object.jpg" className={styles.img} />
@@ -634,8 +708,11 @@ export default function Header({
                       );
                     })}
                   </div>
-                </div>
-              }
+                </div>),
+                (selectedApp ? <div className={styles.panel} key="right">
+                  <h1>{_formatContentId(selectedApp.contentId)}</h1>
+                </div> : null),
+              ]}
               open={open}
               toggleOpen={toggleOpen}
             />
