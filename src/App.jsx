@@ -14,7 +14,7 @@ import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
 const _startApp = async (app, canvas) => {
-  app.bootstrapFromUrl(location);
+  app.setContentLoaded();
 
   // app.bindLogin();
   app.bindInput();
