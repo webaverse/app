@@ -236,6 +236,7 @@ class RigManager {
     const peerRig = this.peerRigs.get(peerId);
     if (peerRig) {
       peerRig.model.parent.remove(peerRig.model);
+      peerRig.rigCapsule.parent.remove(peerRig.rigCapsule);
       // peerRig.textMesh.parent.remove(peerRig.textMesh);
       // peerRig.aux.destroy();
       this.peerRigs.delete(peerId);
