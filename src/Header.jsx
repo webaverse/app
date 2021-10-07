@@ -691,7 +691,7 @@ export default function Header({
                           localPlayer.lookAt(object.position);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                          <img src="/images/object.jpg" className={styles.img} />
+                          <img src="images/object.jpg" className={styles.img} />
                           <div className={styles.wrap}>
                             <div className={styles.name}>{object.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
                           </div>
@@ -708,7 +708,7 @@ export default function Header({
                       
                       setSelectedApp(null);
                     }}>
-                      <img src="images/webchevron.svg" />
+                      <img src="images/webchevron.svg" className={styles.img} />
                     </div>
                     <h1>{_formatContentId(selectedApp.contentId)}</h1>
                   </div>
