@@ -653,7 +653,9 @@ export default function Header({
               }
               panels={[
                 (<div className={styles.panel} key="left">
-                  <h1>Sheila</h1>
+                  <div className={styles['panel-header']}>
+                    <h1>Sheila</h1>
+                  </div>
                 </div>)
               ]}
               open={open}
@@ -673,7 +675,9 @@ export default function Header({
               }
               panels={[
                 (<div className={styles.panel} key="left">
-                  <h1>Tokens</h1>
+                  <div className={styles['panel-header']}>
+                    <h1>Tokens</h1>
+                  </div>
                   <div className={styles.objects}>
                     {objects.map((object, i) => {
                       return (
@@ -697,7 +701,17 @@ export default function Header({
                   </div>
                 </div>),
                 (selectedApp ? <div className={styles.panel} key="right">
-                  <h1>{_formatContentId(selectedApp.contentId)}</h1>
+                  <div className={styles['panel-header']}>
+                    <div className={classnames(styles.button, styles.back)} onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      setSelectedApp(null);
+                    }}>
+                      <img src="images/webchevron.svg" />
+                    </div>
+                    <h1>{_formatContentId(selectedApp.contentId)}</h1>
+                  </div>
                 </div> : null),
               ]}
               open={open}
