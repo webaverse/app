@@ -241,6 +241,18 @@ class RigManager {
       this.peerRigs.delete(peerId);
     }
   }
+  
+  setPeerAvatarUrl(peerId, avatarUrl) {
+    const peerRig = this.peerRigs.get(peerId);
+    if (peerRig) {
+      if (peerRig.app.contentId !== avatarUrl) {
+        throw new Error('do not know how to set change avatar url yet');
+        // debugger;
+      }
+    } else {
+      console.warn('set peer avatar url for unknown peer:', peerRig);
+    }
+  }
 
   /* setPeerAvatarName(name, peerId) {
     const peerRig = this.peerRigs.get(peerId);
