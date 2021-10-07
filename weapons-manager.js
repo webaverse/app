@@ -528,6 +528,13 @@ const _delete = () => {
     } else {
       // _updateMenu();
     } */
+  } else if (mouseSelectedObject) {
+    world.removeObject(mouseSelectedObject.instanceId);
+    
+    if (mouseHoverObject === mouseSelectedObject) {
+      weaponsManager.setMouseHoverObject(null);
+    }
+    weaponsManager.setMouseSelectedObject(null);
   }
 };
 const _click = () => {
