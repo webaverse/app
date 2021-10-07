@@ -228,6 +228,8 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
+  physicsManager.velocity.set(0, 0, 0);
+  physicsManager.update(0);
   weaponsManager.setSceneLoaded(true);
   
   currentWorld = worldSpec;
