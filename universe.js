@@ -200,7 +200,14 @@ const enterWorld = async worldSpec => {
 
   world.disconnectRoom();
   
-  weaponsManager.setSceneLoaded(false);
+  const localPlayer = metaversefile.useLocalPlayer();
+  localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
+    relation: 'float',
+  });
+  // physicsManager.velocity.set(0, 0, 0);
+  physicsManager.setPhysicsEnabled(true);
+  physicsManager.update(0);
+  physicsManager.setPhysicsEnabled(false);
 
   const _doLoad = async () => {
     world.clear();
@@ -231,16 +238,11 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
-  physicsManager.velocity.set(0, 0, 0);
-  physicsManager.update(0);
-  weaponsManager.setSceneLoaded(true);
+  physicsManager.setPhysicsEnabled(true);
   
   currentWorld = worldSpec;
 };
 const reload = async () => {
-  const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.teleportTo(new THREE.Vector3(0, 1, 0), camera.quaternion);
-
   await enterWorld(currentWorld);
 };
 /* const bootstrapFromUrl = async urlSpec => {

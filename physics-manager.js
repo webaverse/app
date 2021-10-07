@@ -397,119 +397,125 @@ const _getAvatarCameraOffset = () => {
   }
 };
 physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
+physicsManager.physicsEnabled = false;
+physicsManager.setPhysicsEnabled = physicsEnabled => {
+  physicsManager.physicsEnabled = physicsEnabled;
+};
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
-  // apply offset
-  camera.position.add(physicsManager.offset);
-  physicsManager.offset.setScalar(0);
+  if (physicsManager.physicsEnabled) {
+    // apply offset
+    camera.position.add(physicsManager.offset);
+    physicsManager.offset.setScalar(0);
 
-  // capsule physics
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  if (!localPlayer.actions.some(action => action.type === 'sit')) {
-    applyVelocity(camera.position, physicsManager.velocity, timeDiff);
+    // capsule physics
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    if (!localPlayer.actions.some(action => action.type === 'sit')) {
+      applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
-    camera.updateMatrixWorld();
-    camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      camera.updateMatrixWorld();
+      camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-    localVector4.copy(avatarOffset);
-    if (cameraBasedOffset) {
-      localVector4.applyQuaternion(localQuaternion);
-    }
-    localVector.add(localVector4);
-    if (localVector.y < 0) {
-      let cancelled = false;
-      const e = new MessageEvent('voidout', {
-        data: {
-          cancel() {
-            cancelled = true;
-          },
-        },
-      });
-      physicsManager.dispatchEvent(e);
-      // console.log('default prevented', ignored);
-      if (!cancelled) {
-        // console.log('voided out');
-        const deltaY = -localVector.y + 1;
-        localVector.y += deltaY;
-        camera.position.y += deltaY;
-        camera.updateMatrixWorld();
-        
-        physicsManager.velocity.setScalar(0);
+      localVector4.copy(avatarOffset);
+      if (cameraBasedOffset) {
+        localVector4.applyQuaternion(localQuaternion);
       }
-    }
-    const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
-    if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
-      localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
-    }
-
-    const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
-    const _ensureJumpAction = () => {
-      if (jumpActionIndex === -1) {
-        const jumpAction = {
-          type: 'jump',
-          time: 0,
-        };
-        localPlayer.actions.push(jumpAction);
-      } else {
-        const jumpAction = localPlayer.actions[jumpActionIndex];
-        jumpAction.time = 0;
-      }
-    };
-    const _ensureNoJumpAction = () => {
-      if (jumpActionIndex !== -1) {
-        localPlayer.actions.splice(jumpActionIndex, 1);
-      }
-    };
-    if (collision) {
-      localVector4.fromArray(collision.direction);
-      camera.position.add(localVector4);
       localVector.add(localVector4);
-      if (collision.grounded) {
-        physicsManager.velocity.y = 0;
-        _ensureNoJumpAction();
-      } else if (jumpActionIndex === -1) {
+      /* if (localVector.y < 0) {
+        let cancelled = false;
+        const e = new MessageEvent('voidout', {
+          data: {
+            cancel() {
+              cancelled = true;
+            },
+          },
+        });
+        physicsManager.dispatchEvent(e);
+        // console.log('default prevented', ignored);
+        if (!cancelled) {
+          // console.log('voided out');
+          const deltaY = -localVector.y + 1;
+          localVector.y += deltaY;
+          camera.position.y += deltaY;
+          camera.updateMatrixWorld();
+          
+          physicsManager.velocity.setScalar(0);
+        }
+      } */
+      const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
+      if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
+      }
+
+      const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
+      const _ensureJumpAction = () => {
+        if (jumpActionIndex === -1) {
+          const jumpAction = {
+            type: 'jump',
+            time: 0,
+          };
+          localPlayer.actions.push(jumpAction);
+        } else {
+          const jumpAction = localPlayer.actions[jumpActionIndex];
+          jumpAction.time = 0;
+        }
+      };
+      const _ensureNoJumpAction = () => {
+        if (jumpActionIndex !== -1) {
+          localPlayer.actions.splice(jumpActionIndex, 1);
+        }
+      };
+      if (collision) {
+        localVector4.fromArray(collision.direction);
+        camera.position.add(localVector4);
+        localVector.add(localVector4);
+        if (collision.grounded) {
+          physicsManager.velocity.y = 0;
+          _ensureNoJumpAction();
+        } else if (jumpActionIndex === -1) {
+          _ensureJumpAction();
+        }
+      } else if (jumpActionIndex == -1 && physicsManager.velocity.y < -4) {
         _ensureJumpAction();
       }
-    } else if (jumpActionIndex == -1 && physicsManager.velocity.y < -4) {
-      _ensureJumpAction();
-    }
-  } else {
-    physicsManager.velocity.y = 0;
-
-    applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
-    if (physicsManager.velocity.lengthSq() > 0) {
-      sitController.quaternion
-        .setFromUnitVectors(
-          localVector4.set(0, 0, -1),
-          localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
-        )
-        .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
-    }
-    sitController.updateMatrixWorld();
-
-    localMatrix.copy(sitTarget.matrixWorld)
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.add(sitOffset);
-    localVector.y += 1;
-    localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
-    
-    const offset = physicsManager.getAvatarCameraOffset();
-    camera.position.copy(localVector)
-      .sub(localVector3.copy(offset).applyQuaternion(camera.quaternion));
-  }
-  localMatrix.compose(localVector, localQuaternion, localVector2);
-
-  // apply
-  rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
-  if (rigManager.localRig) {
-    if (localPlayer.actions.some(action => action.type === 'jump')) {
-      rigManager.localRig.setFloorHeight(-0xFFFFFF);
     } else {
-      rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
-    }
-  }
+      physicsManager.velocity.y = 0;
 
-  // collide items
-  _collideItems(localMatrix);
+      applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+      if (physicsManager.velocity.lengthSq() > 0) {
+        sitController.quaternion
+          .setFromUnitVectors(
+            localVector4.set(0, 0, -1),
+            localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
+          )
+          .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+      }
+      sitController.updateMatrixWorld();
+
+      localMatrix.copy(sitTarget.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector.add(sitOffset);
+      localVector.y += 1;
+      localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+      
+      const offset = physicsManager.getAvatarCameraOffset();
+      camera.position.copy(localVector)
+        .sub(localVector3.copy(offset).applyQuaternion(camera.quaternion));
+    }
+    localMatrix.compose(localVector, localQuaternion, localVector2);
+
+    // apply
+    rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
+    if (rigManager.localRig) {
+      if (localPlayer.actions.some(action => action.type === 'jump')) {
+        rigManager.localRig.setFloorHeight(-0xFFFFFF);
+      } else {
+        rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
+      }
+    }
+
+    // collide items
+    _collideItems(localMatrix);
+  }
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();

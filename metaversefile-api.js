@@ -270,12 +270,9 @@ class LocalPlayer extends Player {
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
         dolly.updateMatrixWorld();
       } else {
-        camera.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
-          .decompose(camera.position, camera.quaternion, camera.scale);
+        camera.position.copy(position)
+          .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+        camera.position.y += relation === 'floor' ? physicsManager.getAvatarHeight() : 0;
         camera.quaternion.copy(quaternion);
         camera.updateMatrixWorld();
       }
