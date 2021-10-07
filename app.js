@@ -19,12 +19,13 @@ import hpManager from './hp-manager.js';
 import activateManager from './activate-manager.js';
 import dropManager from './drop-manager.js';
 import npcManager from './npc-manager.js';
+import equipmentRender from './equipment-render.js';
 import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
+import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas, } from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 // import WSRTC from 'wsrtc/wsrtc.js';
@@ -165,6 +166,9 @@ export default class App extends EventTarget {
   bindCanvas(c) {
     bindCanvas(c);
   }
+  bindPreviewCanvas(previewCanvas) {
+    equipmentRender.bindPreviewCanvas(previewCanvas);
+  }
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -216,16 +220,21 @@ export default class App extends EventTarget {
     this.dispatchEvent(frameEvent);
     frameEvent.data.lastTimestamp = now;
 
+    // avatar in header render
+    equipmentRender.render();
+
     // high priority render
     const renderer = getRenderer();
     renderer.clear();
     renderer.render(sceneHighPriority, camera);
+
     // main render
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
     }
     renderer.render(scene, camera);
+
     renderer.render(orthographicScene, orthographicCamera);
     // low priority render
     renderer.render(sceneLowPriority, camera);

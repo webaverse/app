@@ -385,6 +385,7 @@ export default function Header({
   app,
 }) {
 	// console.log('index 2');
+  const previewCanvasRef = useRef();
 	
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
@@ -428,6 +429,17 @@ export default function Header({
     // const localPlayer = metaversefile.useLocalPlayer();
     // localPlayer.lookAt(object.position);
   };
+
+  const _init = async (app, canvas) => {
+    app.bindPreviewCanvas(canvas);
+  };
+
+  useEffect(() => {
+    if (previewCanvasRef.current) {
+      _init(app, previewCanvasRef.current);
+    }
+  }, [previewCanvasRef.current]);
+  
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   
   useEffect(() => {
@@ -656,6 +668,7 @@ export default function Header({
                   <div className={styles['panel-header']}>
                     <h1>Sheila</h1>
                   </div>
+                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
                 </div>)
               ]}
               open={open}
