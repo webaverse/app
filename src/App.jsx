@@ -48,7 +48,10 @@ const _startApp = async (app, canvas) => {
   
   {
     const defaultAvatarUrl = './avatars/citrine.vrm';
-    const avatarApp = await world.addStaticObject(defaultAvatarUrl);
+    const contentId = defaultAvatarUrl;
+    const avatarApp = await metaversefileApi.load(contentId);
+    avatarApp.contentId = contentId;
+    metaversefileApi.addAppToList(avatarApp);
     const localPlayer = useLocalPlayer();
     localPlayer.setAvatar(avatarApp);
   }
