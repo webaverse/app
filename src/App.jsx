@@ -48,13 +48,7 @@ const _startApp = async (app, canvas) => {
   
   {
     const defaultAvatarUrl = './avatars/citrine.vrm';
-    const components = [
-      {
-        key: 'unclearable',
-        value: true,
-      },
-    ];
-    const avatarApp = await world.addObject(defaultAvatarUrl, undefined, undefined, undefined, components);
+    const avatarApp = await world.addStaticObject(defaultAvatarUrl);
     const localPlayer = useLocalPlayer();
     localPlayer.setAvatar(avatarApp);
   }

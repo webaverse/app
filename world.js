@@ -76,12 +76,12 @@ const _bindState = (dynamic, state) => {
   });
 };
 _newState(true);
-// _newState(false);
+_newState(false);
 const objects = {
   static: [],
   dynamic: [],
 };
-const _getObjects = (dynamic) => objects[dynamic ? 'dynamic' : 'static'];
+const _getObjects = dynamic => objects[dynamic ? 'dynamic' : 'static'];
 /* const _swapState = () => {
   {
     const {static: _static, dynamic} = states;
@@ -387,7 +387,7 @@ world.disconnectRoom = () => {
   }
   return wsrtc;
 };
-world.clear = (predicate = () => false) => {
+world.clear = ({dynamic = true} = {}) => {
   /* const staticObjects = world.getStaticObjects();
   for (const object of staticObjects) {
     world.removeStaticObject(object.instanceId);
@@ -395,11 +395,15 @@ world.clear = (predicate = () => false) => {
   const objects = _getObjects(true)
     .slice();
   for (const object of objects) {
-    if (!predicate(object)) {
+    // if (!predicate(object)) {
       world.removeObject(object.instanceId);
-    }
+    // }
   }
-  world.dispatchEvent(new MessageEvent('clear'));
+  world.dispatchEvent(new MessageEvent('clear', {
+    data: {
+      dynamic,
+    },
+  }));
 };
 
 world.initializeIfEmpty = spec => {
@@ -462,6 +466,8 @@ const _removeObject = (dynamic) => removeInstanceId => {
 };
 world.addObject = _addObject(true);
 world.removeObject = _removeObject(true);
+world.addStaticObject = _addObject(false);
+world.removeStaticObject = _removeObject(false);
 world.addEventListener('trackedobjectadd', async e => {
   const {trackedObject, dynamic} = e.data;
   const trackedObjectJson = trackedObject.toJSON();
@@ -472,13 +478,11 @@ world.addEventListener('trackedobjectadd', async e => {
   pendingAddPromise = p;
 
   let live = true;
-  const clear = () => {
-    const unclearable = components.some(({key, value}) => key === 'unclearable' && !!value);
-    if (!unclearable) {
+  
+  const clear = e => {
+    if (e.data.dynamic === dynamic) {
       live = false;
       cleanup();
-    } else {
-      console.warn('not clearing unclearable app', trackedObjectJson);
     }
   };
   const cleanup = () => {
