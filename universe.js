@@ -6,6 +6,7 @@ import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
+import geometryManager from './geometry-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
@@ -139,6 +140,8 @@ const update = () => {
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
   ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
 const enterWorld = async worldSpec => {
+  await geometryManager.waitForLoad();
+  
   /* let warpPhysicsId;
   const _pre = () => {
     if (currentWorld) {
