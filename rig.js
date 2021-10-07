@@ -218,27 +218,16 @@ class RigManager {
   } */
 
   async addPeerRig(peerId, meta) {
-    const app = await this.metaversefile.load(meta.avatarUrl);
+    const contentId = meta.avatarUrl;
+    const app = await metaversefile.load(contentId);
+    app.contentId = contentId;
     
-    const {skinnedVrm} = app;
-    const peerRig = new Avatar(skinnedVrm, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: false,
-    });
-    peerRig.model = app;
-    // peerRig.url = meta.avatarUrl;
-    
-    unFrustumCull(peerRig.model);
+    const peerRig = await this._switchAvatar(null, app);
     scene.add(peerRig.model);
     
     peerRig.rigCapsule = makeRigCapsule();
     peerRig.rigCapsule.visible = false;
     this.scene.add(peerRig.rigCapsule);
-    
-    /* peerRig.textMesh = makeTextMesh(meta.name, undefined, 0.2, 'center', 'middle');
-    this.scene.add(peerRig.textMesh); */
 
     this.peerRigs.set(peerId, peerRig);
   }
