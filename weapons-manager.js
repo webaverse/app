@@ -1109,12 +1109,12 @@ const _updateWeapons = (timestamp) => {
     if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
       if (highlightPhysicsMesh.physicsId !== physicsId) {
-        const physics = physicsManager.getGeometry(physicsId);
+        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
-        if (physics) {
+        if (physicsGeometry) {
           let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
           geometry = geometry.toNonIndexed();
           geometry.computeVertexNormals();
 
@@ -1125,10 +1125,10 @@ const _updateWeapons = (timestamp) => {
         }
       }
 
-      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-      highlightPhysicsMesh.position.copy(physicsTransform.position);
-      highlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      highlightPhysicsMesh.scale.copy(physicsTransform.scale);
+      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      localMatrix2.copy(physicsObject.matrixWorld)
+        .premultiply(localMatrix3.copy(highlightedPhysicsObject.matrixWorld).invert())
+        .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       const unlocked = world.getObjects().includes(highlightedPhysicsObject);
@@ -1146,12 +1146,12 @@ const _updateWeapons = (timestamp) => {
     if (h && !weaponsManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
       if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
-        const physics = physicsManager.getGeometry(physicsId);
+        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
-        if (physics) {
+        if (physicsGeometry) {
           let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
           geometry = geometry.toNonIndexed();
           geometry.computeVertexNormals();
 
@@ -1162,13 +1162,13 @@ const _updateWeapons = (timestamp) => {
         }
       }
 
-      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-      mouseHighlightPhysicsMesh.position.copy(physicsTransform.position);
-      mouseHighlightPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-      mouseHighlightPhysicsMesh.scale.copy(physicsTransform.scale);
+      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      localMatrix2.copy(physicsObject.matrixWorld)
+        .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
+        .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
       mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position)
+      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -mouseHighlightPhysicsMesh.position.distanceTo(camera.position)
       mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
       mouseHighlightPhysicsMesh.visible = true;
     }
@@ -1182,12 +1182,12 @@ const _updateWeapons = (timestamp) => {
     if (o) {
       const physicsId = mouseSelectedPhysicsId;
       if (mouseSelectPhysicsMesh.physicsId !== physicsId) {
-        const physics = physicsManager.getGeometry(physicsId);
+        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
-        if (physics) {
+        if (physicsGeometry) {
           let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
           geometry = geometry.toNonIndexed();
           geometry.computeVertexNormals();
 
@@ -1198,13 +1198,14 @@ const _updateWeapons = (timestamp) => {
         }
       }
 
-      const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-      if (physicsTransform) {
+      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      if (physicsObject) {
         // update matrix
         {
-          mouseSelectPhysicsMesh.position.copy(physicsTransform.position);
-          mouseSelectPhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-          mouseSelectPhysicsMesh.scale.copy(physicsTransform.scale);
+          localMatrix2.copy(physicsObject.matrixWorld)
+            .premultiply(localMatrix3.copy(mouseSelectedObject.matrixWorld).invert())
+            .decompose(mouseSelectPhysicsMesh.position, mouseSelectPhysicsMesh.quaternion, mouseSelectPhysicsMesh.scale);
+          mouseSelectPhysicsMesh.updateMatrixWorld();
           mouseSelectPhysicsMesh.visible = true;
         }
         // update uniforms
@@ -1212,7 +1213,7 @@ const _updateWeapons = (timestamp) => {
           mouseSelectPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
           mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
           
-          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -physicsTransform.position.distanceTo(camera.position);
+          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -mouseSelectPhysicsMesh.position.distanceTo(camera.position);
           mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
         }
       } /* else {
@@ -2525,21 +2526,21 @@ const weaponsManager = {
       .compose(localVector, localQuaternion, localVector2)
       .toArray(localPlayer.grabs[0].matrix);
   },
-  menuDrop() {
+  /* menuDrop() {
     console.log('menu drop');
-  },
-  menuPhysics() {
+  }, */
+  /* menuPhysics() {
     const selectedObject = weaponsManager.getMouseSelectedObject();
-    console.log('menu physics', selectedObject);
+    // console.log('menu physics', selectedObject);
     if (selectedObject) {
       const physicsIds = selectedObject.getPhysicsIds ? selectedObject.getPhysicsIds() : [];
       if (physicsIds.length > 0) {
         const physicsId = physicsIds[0];
-        const physics = physicsManager.getGeometry(physicsId);
-        if (physics) {
+        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
+        if (physicsGeometry) {
           let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
           // geometry = geometry.toNonIndexed();
           // geometry.computeVertexNormals();
 
@@ -2547,19 +2548,14 @@ const weaponsManager = {
 
           const physicsId = physicsManager.addCookedConvexGeometry(physicsBuffer, selectedObject.position, selectedObject.quaternion, selectedObject.scale);
           
-          console.log('got physics id', physicsId);
+          // console.log('got physics id', physicsId);
           
           // physicsIds.push(physicsId);
           // staticPhysicsIds.push(physicsId);
-
-          /* highlightPhysicsMesh.geometry.dispose();
-          highlightPhysicsMesh.geometry = geometry;
-          // highlightPhysicsMesh.scale.setScalar(1.05);
-          highlightPhysicsMesh.physicsId = physicsId; */
         }
       }
     }
-  },
+  }, */
   menuGridSnap() {
     if (this.gridSnap === 0) {
       this.gridSnap = 32;

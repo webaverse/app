@@ -56,7 +56,7 @@ const update = (timestamp, timeDiff) => {
         
         if (hit) {
           if (damagePhysicsMesh.physicsId !== collisionId) {
-            const physicsGeometry = physicsManager.getGeometry(collisionId);
+            const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
             let geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
             geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
@@ -68,10 +68,8 @@ const update = (timestamp, timeDiff) => {
             damagePhysicsMesh.physicsId = collisionId;
           }
               
-          const physicsTransform = physicsManager.getPhysicsTransform(collisionId);
-          damagePhysicsMesh.position.copy(physicsTransform.position);
-          damagePhysicsMesh.quaternion.copy(physicsTransform.quaternion);
-          damagePhysicsMesh.scale.copy(physicsTransform.scale);
+          const physicsObject = physicsManager.getPhysicsObject(collisionId);
+          physicsObject.matrixWorld.decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
               
           damageAnimation = {
             startTime: timestamp,

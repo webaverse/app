@@ -376,7 +376,11 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
-    localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
+    if (mesh.isSkinnedMesh) {
+      localMatrix2.identity();
+    } else {
+      localMatrix2.multiplyMatrices(localMatrix, mesh.matrixWorld);
+    }
 
     if (geometry.attributes.position.isInterleavedBufferAttribute) {
       const positions = new Float32Array(geometry.attributes.position.count * 3);
