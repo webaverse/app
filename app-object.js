@@ -192,7 +192,7 @@ class App extends THREE.Object3D {
     this.appManager = appManager;
     this.components = [];
     // cleanup tracking
-    this.physicsIds = [];
+    this.physicsObjects = [];
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
@@ -238,8 +238,8 @@ class App extends THREE.Object3D {
   addModule(m) {
     throw new Error('method not bound');
   }
-  getPhysicsIds() {
-    return this.physicsIds;
+  getPhysicsObjects() {
+    return this.physicsObjects;
   }
   activate() {
     this.dispatchEvent({

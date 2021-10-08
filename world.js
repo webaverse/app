@@ -552,12 +552,6 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     _bindRender();
 
-    /* mesh.setPose = (position, quaternion, scale) => {
-      trackedObject.set('position', position.toArray());
-      trackedObject.set('quaternion', quaternion.toArray());
-      trackedObject.set('scale', scale.toArray());
-    }; */
-
     const _bindTransforms = () => {
       const _observe = e => {
         if (e.keysChanged.has('position')) {
@@ -771,18 +765,15 @@ world.getWorldJson = async q => {
 };
 
 world.getObjectFromPhysicsId = physicsId => {
-  const objects = _getObjects(true);//.concat(world.getStaticObjects());
+  const objects = _getObjects(true);
   for (const object of objects) {
-    if (object.getPhysicsIds) {
-      const physicsIds = object.getPhysicsIds();
-      if (physicsIds.includes(physicsId)) {
-        return object;
-      }
+    if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
+      return object;
     }
   }
   return null;
 };
-world.getNpcFromPhysicsId = physicsId => {
+/* world.getNpcFromPhysicsId = physicsId => {
   const npcs = world.getNpcs();
   for (const npc of npcs) {
     if (npc.getPhysicsIds) {
@@ -793,7 +784,7 @@ world.getNpcFromPhysicsId = physicsId => {
     }
   }
   return null;
-};
+}; */
 
 const _bindLocalPlayerTeleport = () => {
   const localPlayer = metaversefile.useLocalPlayer();

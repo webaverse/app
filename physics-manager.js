@@ -165,16 +165,21 @@ physicsManager.setCrouchState = newCrouchState => {
 
 const physicsObjects = {};
 const physicsUpdates = [];
-const _makePhysicsObject = (position, quaternion, scale) => ({
-  position: position.clone(),
-  quaternion: quaternion.clone(),
-  scale: scale.clone(),
-});
+const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
+  const physicsObject = new THREE.Object3D();
+  physicsObject.position.copy(position);
+  physicsObject.quaternion.copy(quaternion);
+  physicsObject.scale.copy(scale);
+  // physicsObject.updateMatrixWorld();
+  physicsObject.physicsId = physicsId;
+  physicsObject.needsUpdate = false;
+  return physicsObject;
+};
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
-  const physicsObject = _makePhysicsObject(position, quaternion, size);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
   physicsObjects[physicsId] = physicsObject;
   /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
     data: {
@@ -182,7 +187,7 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
       // physicsObject
     },
   })); */
-  return physicsId;
+  return physicsObject;
 };
 
 physicsManager.addGeometry = mesh => {
@@ -191,7 +196,7 @@ physicsManager.addGeometry = mesh => {
   
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
-  const physicsObject = _makePhysicsObject(localVector, localQuaternion, localVector2);
+  const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);
   physicsObjects[physicsId] = physicsObject;
   /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
     data: {
@@ -199,27 +204,27 @@ physicsManager.addGeometry = mesh => {
       // physicsObject,
     },
   })); */
-  return physicsId;
+  return physicsObject;
 };
 physicsManager.cookGeometry = mesh => geometryManager.geometryWorker.cookGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
-  const physicsObject = _makePhysicsObject(position, quaternion, scale);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   physicsObjects[physicsId] = physicsObject;
-  physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
+  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
     data: {
-      physicsId,
-      // physicsObject,
+      // physicsId,
+      physicsObject,
     },
-  }));
-  return physicsId;
+  })); */
+  return physicsObject;
 };
 
 physicsManager.addConvexGeometry = mesh => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, mesh, physicsId);
-  const physicsObject = _makePhysicsObject(mesh.position, mesh.quaternion, mesh.scale);
+  const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
   physicsObjects[physicsId] = physicsObject;
   /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
     data: {
@@ -227,13 +232,13 @@ physicsManager.addConvexGeometry = mesh => {
       // physicsObject,
     },
   })); */
-  return physicsId;
+  return physicsObject;
 };
 physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
-  const physicsObject = _makePhysicsObject(position, quaternion, scale);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   physicsObjects[physicsId] = physicsObject;
   /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
     data: {
@@ -241,40 +246,37 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
       // physicsObject,
     },
   })); */
-  return physicsId;
+  return physicsObject;
 };
 
-physicsManager.getGeometry = physicsId => geometryManager.geometryWorker.getGeometryPhysics(geometryManager.physics, physicsId);
-
-physicsManager.disableGeometry = physicsId => {
-  geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsId);
+physicsManager.getGeometryForPhysicsId = physicsId => geometryManager.geometryWorker.getGeometryPhysics(geometryManager.physics, physicsId);
+physicsManager.disableGeometry = physicsObject => {
+  geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
 };
-physicsManager.enableGeometry = physicsId => {
-  geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsId);
+physicsManager.enableGeometry = physicsObject => {
+  geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
 };
-physicsManager.disableGeometryQueries = physicsId => {
-  geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+physicsManager.disableGeometryQueries = physicsObject => {
+  geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
 };
-physicsManager.enableGeometryQueries = physicsId => {
-  geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+physicsManager.enableGeometryQueries = physicsObject => {
+  geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
 };
-physicsManager.removeGeometry = physicsId => {
-  geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+physicsManager.removeGeometry = physicsObject => {
+  geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
 };
 
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-physicsManager.getPhysicsTransform = physicsId => physicsObjects[physicsId];
-physicsManager.setPhysicsTransform = (physicsId, position, quaternion, scale) => {
+physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
+physicsManager.pushPhysicsUpdate = physicsId => {
   const physicsObject = physicsObjects[physicsId];
-  physicsObject.position.copy(position);
-  physicsObject.quaternion.copy(quaternion);
-  physicsObject.scale.copy(scale);
-  
+  // physicsObject.updateMatrixWorld();
+  physicsObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   physicsUpdates.push({
     id: physicsId,
-    position: physicsObject.position,
-    quaternion: physicsObject.quaternion,
-    scale: physicsObject.scale,
+    position: localVector.clone(),
+    quaternion: localQuaternion.clone(),
+    scale: localVector2.clone(),
   });
 };
 physicsManager.simulatePhysics = timeDiff => {
@@ -568,6 +570,19 @@ physicsManager.convertMeshToPhysicsMesh = convertMeshToPhysicsMesh;
   debugger;
   unlocked = true;
 }; */
+
+/* const _shiftPhysicsObjects = (physicsIds, oldMatrixWorld, newMatrixWorld) => {
+  const oldMatrixWorldInverse = localMatrix.copy(oldMatrixWorld)
+    .invert();
+  for (const physicsId of physicsIds) {
+    const physicsObject = physicsObject[physicsId];
+    physicsObject.matrix
+      .premultiply(newMatrixWorld)
+      .premultiply(oldMatrixWorldInverse)
+      .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+  }
+};
+physicsManager.shiftPhysicsObjects = _shiftPhysicsObjects; */
 
 const _copyPQS = (dst, src) => {
   dst.position.copy(src.position);

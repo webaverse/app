@@ -510,7 +510,7 @@ metaversefile.setApi({
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4();
-      const localMatrix2 = new THREE.Matrix4();
+      // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         app.updateMatrixWorld();
         localMatrix
@@ -519,31 +519,36 @@ metaversefile.setApi({
           .decompose(localVector, localQuaternion, localVector2);
         position = localVector;
         quaternion = localQuaternion;
-        const physicsId = addBoxGeometry.call(this, position, quaternion, size, dynamic);
-        app.physicsIds.push(physicsId);
-        return physicsId;
+        const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
+        app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
       })(physics.addBoxGeometry);
       physics.addGeometry = (addGeometry => function(mesh) {
-        const physicsId = addGeometry.apply(this, arguments);
-        app.physicsIds.push(physicsId);
-        return physicsId;
+        const physicsObject = addGeometry.apply(this, arguments);
+        app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
       })(physics.addGeometry);
       physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
-        const physicsId = addCookedGeometry.apply(this, arguments);
-        app.physicsIds.push(physicsId);
-        return physicsId;
+        const physicsObject = addCookedGeometry.apply(this, arguments);
+        app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
       })(physics.addCookedGeometry);
       physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
-        const physicsId = addConvexGeometry.apply(this, arguments);
-        app.physicsIds.push(physicsId);
-        return physicsId;
+        const physicsObject = addConvexGeometry.apply(this, arguments);
+        app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
       })(physics.addConvexGeometry);
       physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
-        const physicsId = addCookedConvexGeometry.apply(this, arguments);
-        app.physicsIds.push(physicsId);
-        return physicsId;
+        const physicsObject = addCookedConvexGeometry.apply(this, arguments);
+        app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
       })(physics.addCookedConvexGeometry);
-      physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
+      /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
         app.updateMatrixWorld();
@@ -562,12 +567,13 @@ metaversefile.setApi({
         position = localVector;
         quaternion = localQuaternion;
         return setPhysicsTransform.call(this, physicsId, position, quaternion, scale);
-      })(physics.setPhysicsTransform);
-      physics.removeGeometry = (removeGeometry => function(physicsId) {
+      })(physics.setPhysicsTransform); */
+      physics.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
-        const index = app.physicsIds.indexOf(physicsId);
+        const index = app.physicsObjects.indexOf(physicsObject);
         if (index !== -1) {
-          app.physicsIds.splice(index);
+          app.remove(physicsObject);
+          app.physicsObjects.splice(index);
         }
       })(physics.removeGeometry);
       
@@ -769,7 +775,7 @@ export default () => {
     } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
       // o.contentId = contentId;
-      o.getPhysicsIds = () => app.physicsIds;
+      // o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
         world.appManager.destroyApp(app.appId);
         

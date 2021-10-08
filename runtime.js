@@ -25,7 +25,6 @@ import {GIFLoader} from './GIFLoader.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
 import {ShadertoyRenderer} from './shadertoy.js';
-// import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
@@ -88,30 +87,6 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
     monetization.state = "started";
   }
 }
-
-
-/* const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
-const importMap = {
-  three: 'three',
-  BufferGeometryUtils: 'three/examples/jsm/utils/BufferGeometryUtils.js',
-  GLTFLoader: 'three/examples/jsm/loaders/GLTFLoader.js',
-  // GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
-  app: _importMapUrl('./app-object.js'),
-  api: _importMapUrl('./api.js'),
-  world: _importMapUrl('./world.js'),
-  universe: _importMapUrl('./universe.js'),
-  runtime: _importMapUrl('./runtime.js'),
-  physicsManager: _importMapUrl('./physics-manager.js'),
-  rig: _importMapUrl('./rig.js'),
-  vrUi: _importMapUrl('./vr-ui.js'),
-  notifications: _importMapUrl('./notifications.js'),
-  popovers: _importMapUrl('./popovers.js'),
-  crypto: _importMapUrl('./crypto.js'),
-  procgen: _importMapUrl('./procgen.js'),
-  drop: _importMapUrl('./drop-manager.js'),
-  npc: _importMapUrl('./npc-manager.js'),
-  constants: _importMapUrl('./constants.js'),
-}; */
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 const _makeFilesProxy = srcUrl => new Proxy({}, {
