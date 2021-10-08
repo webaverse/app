@@ -25,7 +25,7 @@ import {GIFLoader} from './GIFLoader.js';
 import hpManager from './hp-manager.js';
 import npcManager from './npc-manager.js';
 import {ShadertoyRenderer} from './shadertoy.js';
-import {makeAppContextObject} from './api.js';
+// import {makeAppContextObject} from './api.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
