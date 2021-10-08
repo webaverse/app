@@ -4,15 +4,15 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 0, 255], 0.1]
+        "args": [[255, 155, 155], 0.1]
       }
     },
     {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 180, 10], 2],
-        "position": [10, 20, 300]
+        "args": [[155, 200, 255], 2],
+        "position": [0, 0, 3000]
       }
     },
     {
