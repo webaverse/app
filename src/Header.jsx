@@ -17,6 +17,8 @@ import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 const localColor = new Color();
 const localColor2 = new Color();
@@ -293,12 +295,19 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panels
 };
 
 const _world2canvas = v => {
-  const worldPoint = v.clone()
-    .project(camera);
-  worldPoint.x = (worldPoint.x+1)/2;
-  worldPoint.y = 1-(worldPoint.y+1)/2;
-  worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
-  return worldPoint;
+  const dotView = localVector.set(0, 0, -1)
+    .applyQuaternion(camera.quaternion)
+    .dot(localVector2.copy(v).sub(camera.position));
+  if (dotView > 0) {
+    const worldPoint = v.clone()
+      .project(camera);
+    worldPoint.x = (worldPoint.x+1)/2;
+    worldPoint.y = 1-(worldPoint.y+1)/2;
+    worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
+    return worldPoint;
+  } else {
+    return new THREE.Vector3(0, 0, -1);
+  }
 };
 
 const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
@@ -356,7 +365,12 @@ const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
         const position = weaponsManager.getMouseSelectedPosition();
         if (position) {
           const worldPoint = _world2canvas(position);
-          setSelectPosition(worldPoint);
+          // console.log('world point', worldPoint.z);
+          if (worldPoint.z > 0) {
+            setSelectPosition(worldPoint);
+          } else {
+            setSelectPosition(null);
+          }
         } else {
           setSelectPosition(null);
         }
