@@ -556,7 +556,7 @@ export default function Header({
   }, [claims]);
   useEffect(() => {
     if (previewCanvasRef.current) {
-      app.bindPreviewCanvas(canvas, previewCanvasRef.current);
+      app.bindPreviewCanvas(previewCanvasRef.current);
     }
   }, [previewCanvasRef.current]);
   useEffect(() => {
