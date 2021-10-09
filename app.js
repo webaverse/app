@@ -220,25 +220,33 @@ export default class WebaverseApp extends EventTarget {
     this.dispatchEvent(frameEvent);
     frameEvent.data.lastTimestamp = now;
 
-    // avatar in header render
-    equipmentRender.render();
-
     // high priority render
+    sceneHighPriority.add(world.lights);
     const renderer = getRenderer();
     renderer.clear();
     renderer.render(sceneHighPriority, camera);
 
     // main render
+    scene.add(world.lights);
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
       rigManager.localRig.model.visible = false;
     }
     renderer.render(scene, camera);
 
+    // orthographic render
+    orthographicScene.add(world.lights);
     renderer.render(orthographicScene, orthographicCamera);
+    
     // low priority render
+    sceneLowPriority.add(world.lights);
     renderer.render(sceneLowPriority, camera);
-    // local avatar render
+    
+    // equipment panel render
+    equipmentRender.previewScene.add(world.lights);
+    equipmentRender.render();
+    
+    // decapitate avatar if needed
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
@@ -330,6 +338,7 @@ export default class WebaverseApp extends EventTarget {
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
+    
     let lastTimestamp = performance.now();
     const startTime = Date.now();
     const animate = (timestamp, frame) => {      
