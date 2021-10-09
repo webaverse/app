@@ -481,9 +481,9 @@ export default class WebaverseApp extends EventTarget {
       transformControls.update();
       weaponsManager.update(timestamp);
       hpManager.update(timestamp, timeDiffCapped);
-      activateManager.update();
-      dropManager.update();
-      npcManager.update(timeDiffCapped);
+      // activateManager.update();
+      // dropManager.update();
+      // npcManager.update(timeDiffCapped);
       fx.update();
 
       appManager.tick(timestamp, frame);
