@@ -259,9 +259,9 @@ export default class WebaverseApp extends EventTarget {
     // highlight render
     // renderer.render(highlightScene, camera);
   }
-  renderMinimap() {
+  /* renderMinimap() {
     minimap.update();
-  }
+  } */
   /* renderDom() {
     // dom render
     renderer2.render(scene2, camera);
@@ -488,7 +488,7 @@ export default class WebaverseApp extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
 
       this.render();
-      this.renderMinimap();
+      // this.renderMinimap();
       // this.renderDom();
 
       /* const _mirrorRender = () => {
