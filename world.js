@@ -24,6 +24,8 @@ export const world = new EventTarget();
 const appManager = new AppManager(world);
 world.appManager = appManager;
 
+world.lights = new THREE.Object3D();
+
 // static states are local and non-user editable
 // dynamic states are multiplayer and user-editable
 const states = {
