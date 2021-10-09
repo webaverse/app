@@ -439,6 +439,9 @@ metaversefile.setApi({
       removeObject() {
         return world.removeObject.apply(world, arguments);
       },
+      getLights() {
+        return world.lights;
+      },
     };
   },
   useFrame(fn) {
