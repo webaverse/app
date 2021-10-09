@@ -84,7 +84,7 @@ const frameEvent = (() => {
   });
 })();
 
-export default class App extends EventTarget {
+export default class WebaverseApp extends EventTarget {
   constructor() {
     super();
 
