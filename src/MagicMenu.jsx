@@ -127,7 +127,7 @@ function MagicMenu() {
 
   useEffect(() => {
     const keydown = e => {
-      if (!open && e.which === 191) { // /
+      if (!open && e.which === 191 && !ioManager.inputFocused()) { // /
         e.preventDefault();
 
         const newOpen = !open;
