@@ -18,6 +18,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -863,20 +864,7 @@ class Avatar {
       result.divideScalar(points.length);
       return result;
 	  };
-    const _getEyePosition = () => {
-      if (modelBones.Eye_L && modelBones.Eye_R) {
-        return modelBones.Eye_L.getWorldPosition(new THREE.Vector3())
-          .add(modelBones.Eye_R.getWorldPosition(new THREE.Vector3()))
-          .divideScalar(2);
-      } else {
-        const neckToHeadDiff = modelBones.Head.getWorldPosition(new THREE.Vector3()).sub(modelBones.Neck.getWorldPosition(new THREE.Vector3()));
-        if (neckToHeadDiff.z < 0) {
-          neckToHeadDiff.z *= -1;
-        }
-        return modelBones.Head.getWorldPosition(new THREE.Vector3()).add(neckToHeadDiff);
-      }
-    };
-    const eyePosition = _getEyePosition();
+    const eyePosition = this.getEyePosition();
 
 		this.poseManager = new PoseManager();
 		this.shoulderTransforms = new ShoulderTransforms(this);
@@ -951,6 +939,9 @@ class Avatar {
     }).filter(bone => bone);
     // this.allHairBones = allHairBones;
     this.hairBones = hairBones;
+    
+    this.eyeTarget = new THREE.Vector3();
+    this.eyeTargetEnabled = false;
 
     this.springBoneManager = null;
     let springBoneManagerPromise = null;
@@ -1817,6 +1808,20 @@ class Avatar {
       }
     }
   }
+  getEyePosition() {
+    const {modelBones} = this;
+    if (modelBones.Eye_L && modelBones.Eye_R) {
+      return modelBones.Eye_L.getWorldPosition(new THREE.Vector3())
+        .add(modelBones.Eye_R.getWorldPosition(new THREE.Vector3()))
+        .divideScalar(2);
+    } else {
+      const neckToHeadDiff = modelBones.Head.getWorldPosition(new THREE.Vector3()).sub(modelBones.Neck.getWorldPosition(new THREE.Vector3()));
+      if (neckToHeadDiff.z < 0) {
+        neckToHeadDiff.z *= -1;
+      }
+      return modelBones.Head.getWorldPosition(new THREE.Vector3()).add(neckToHeadDiff);
+    }
+  }
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.chest.position.copy(setups.chest);
@@ -2100,6 +2105,40 @@ class Avatar {
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
+
+    if (this.eyeTargetEnabled) {
+      const eyePosition = this.getEyePosition();
+      const upVector = new THREE.Vector3(0, 1, 0);
+      this.modelBoneOutputs.Neck.updateMatrixWorld();
+      this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+
+      const globalQuaternion = localQuaternion2.setFromRotationMatrix(
+        new THREE.Matrix4().lookAt(
+          eyePosition,
+          this.eyeTarget,
+          upVector
+        )
+      );
+      localQuaternion3.copy(globalQuaternion)// .setFromEuler(localEuler)
+        .premultiply(
+          this.modelBoneOutputs.Hips.getWorldQuaternion(localQuaternion4)
+            .invert()
+        )
+      if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
+        // localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        // localEuler.y *= -1;
+        // localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI/2), Math.PI/2);
+        
+          /* .premultiply(
+            localQuaternion2.copy(camera.quaternion)
+              .invert()
+          ); */
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion3, localVector2);
+        this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
+          .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
+      }
+    }
 
     Avatar.applyModelBoneOutputs(
       this.modelBones,
