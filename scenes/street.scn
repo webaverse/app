@@ -195,8 +195,13 @@
       "start_url": "https://webaverse.github.io/arrow-loader/"
     },
     {
-      "position": [-1, 4, -1],
-      "quaternion": [0, 0, 0, 1],
+      "position": [-5, 4, -6],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
       "start_url": "https://avaer.github.io/physicscube/"
     },
     {
