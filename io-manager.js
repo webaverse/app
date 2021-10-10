@@ -63,6 +63,7 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
+ioManager.inputFocused = _inputFocused;
 
 const _updateHorizontal = direction => {
   if (ioManager.keys.left) {
