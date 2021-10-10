@@ -5,7 +5,7 @@ import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
-import {toggle as inventoryToggle} from './inventory.js';
+// import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getContainerElement} from './app-object.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
@@ -388,10 +388,10 @@ ioManager.keydown = e => {
       // }
       break;
     }
-    case 73: { // I
+    /* case 73: { // I
       inventoryToggle();
       break;
-    }
+    } */
     /* case 82: { // R
       e.preventDefault();
       e.stopPropagation();
