@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
@@ -393,7 +394,13 @@ const _memoize = fn => {
     return cache;
   };
 };
-const _gltfLoader = _memoize(() => new GLTFLoader());
+const _gltfLoader = _memoize(() => {
+  const gltfLoader = new GLTFLoader();
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('/three/draco/');
+  gltfLoader.setDRACOLoader(dracoLoader);
+  return gltfLoader;
+});
 const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
 const _gifLoader = _memoize(() => new GIFLoader());
 const _voxLoader = _memoize(() => new VOXLoader({
