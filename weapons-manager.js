@@ -1137,7 +1137,7 @@ const _updateWeapons = (timestamp) => {
       highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
         .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
       // highlightPhysicsMesh.updateMatrixWorld();
-      window.highlightPhysicsMesh = highlightPhysicsMesh;
+      // window.highlightPhysicsMesh = highlightPhysicsMesh;
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       const unlocked = world.getObjects().includes(highlightedPhysicsObject);
