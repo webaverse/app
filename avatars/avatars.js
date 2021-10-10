@@ -1981,7 +1981,7 @@ class Avatar {
 
             dst.fromArray(v2);
           } else if (this.useTime >= 0 && isTop) {
-            const useAnimation = useAnimations[this.useAnimation || defaultUseAnimation];
+            const useAnimation = useAnimations[this.useAnimation] || useAnimations[defaultUseAnimation];
             const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
