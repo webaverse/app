@@ -57,7 +57,7 @@ const update = (timestamp, timeDiff) => {
         const {hit, died} = object.hitTracker.hit(typeof useAction.damage === 'number' ? useAction.damage : 30);
         
         if (hit) {
-          if (damagePhysicsMesh.physicsId !== collisionId) {
+          /* if (damagePhysicsMesh.physicsId !== collisionId) {
             const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
             let geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
@@ -68,12 +68,13 @@ const update = (timestamp, timeDiff) => {
             damagePhysicsMesh.geometry.dispose();
             damagePhysicsMesh.geometry = geometry;
             damagePhysicsMesh.physicsId = collisionId;
-          }
+          } */
               
           const physicsObject = physicsManager.getPhysicsObject(collisionId);
           const {physicsMesh} = physicsObject;
-          localMatrix.copy(physicsMesh.matrixWorld)
-            // .premultiply(localMatrix2.copy(object.matrixWorld).invert())
+          damagePhysicsMesh.geometry = physicsMesh.geometry;
+          damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
+          damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
             .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
               
           damageAnimation = {

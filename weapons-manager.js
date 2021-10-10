@@ -1133,10 +1133,11 @@ const _updateWeapons = (timestamp) => {
       const physicsObject = /*window.lolPhysicsObject ||*/ physicsManager.getPhysicsObject(physicsId);
       const {physicsMesh} = physicsObject;
       highlightPhysicsMesh.geometry = physicsMesh.geometry;
-      highlightPhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
+      // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
       highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
         .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
       // highlightPhysicsMesh.updateMatrixWorld();
+      window.highlightPhysicsMesh = highlightPhysicsMesh;
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       const unlocked = world.getObjects().includes(highlightedPhysicsObject);
@@ -1495,9 +1496,18 @@ const _pushAppUpdates = () => {
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         physicsManager.pushUpdate(object, physicsObject);
+        physicsObject.needsUpdate = false;
       }
       
       object.lastMatrix.copy(object.matrix);
+    } else {
+      const physicsObjects = object.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        if (physicsObject.needsUpdate) {
+          physicsManager.pushUpdate(null, physicsObject);
+          physicsObject.needsUpdate = false;
+        }
+      }
     }
   }
   
