@@ -978,7 +978,7 @@ const _updateWeapons = (timestamp) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = useLocalPlayer();
     const _isWear = o => {
       const {instanceId} = o;
       return localPlayer.wears.some(wear => wear.instanceId === instanceId);
@@ -994,7 +994,7 @@ const _updateWeapons = (timestamp) => {
         grabbedObject.updateMatrixWorld();
         // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
-        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(useLocalPlayer().grabs[i].matrix), {
+        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           appManager,
