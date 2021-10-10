@@ -19,6 +19,7 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
+import geometryManager from './geometry-manager.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -196,6 +197,11 @@ class LocalPlayer extends Player {
         wear: wearComponent,
       });
       
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+      }
+      
       const {instanceId} = app;
       this.wears.push({
         instanceId,
@@ -219,8 +225,24 @@ class LocalPlayer extends Player {
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray(),
     };
+    
+    const physicsObjects = object.getPhysicsObjects();
+    for (const physicsObject of physicsObjects) {
+      // geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
+      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+    }
   }
   ungrab() {
+    const grabSpec = this.grabs[0];
+    if (grabSpec) {
+      const object = world.getObjects().find(object => object.instanceId === grabSpec.instanceId);
+      const physicsObjects = object.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        // geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
+        geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+      }
+    }
+    
     this.grabs[0] = null;
   }
   lookAt(p) {
@@ -515,6 +537,8 @@ metaversefile.setApi({
       const localMatrix = new THREE.Matrix4();
       // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+        const basePosition = position;
+        const baseQuaternion = quaternion;
         app.updateMatrixWorld();
         localMatrix
           .compose(position, quaternion, localVector2.set(1, 1, 1))
@@ -522,32 +546,63 @@ metaversefile.setApi({
           .decompose(localVector, localQuaternion, localVector2);
         position = localVector;
         quaternion = localQuaternion;
+        
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
-        app.add(physicsObject);
+        physicsObject.position.copy(app.position);
+        physicsObject.quaternion.copy(app.quaternion);
+        physicsObject.scale.copy(app.scale);
+        
+        const {physicsMesh} = physicsObject;
+        physicsMesh.position.copy(basePosition);
+        physicsMesh.quaternion.copy(baseQuaternion);
+        // app.add(physicsObject);
+        physicsObject.updateMatrixWorld();
+        
         app.physicsObjects.push(physicsObject);
+        // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
       physics.addGeometry = (addGeometry => function(mesh) {
-        const physicsObject = addGeometry.apply(this, arguments);
-        app.add(physicsObject);
+        const oldParent = mesh.parent;
+        
+        const parentMesh = new THREE.Object3D();
+        parentMesh.position.copy(app.position);
+        parentMesh.quaternion.copy(app.quaternion);
+        parentMesh.scale.copy(app.scale);
+        parentMesh.add(mesh);
+        parentMesh.updateMatrixWorld();
+        
+        const physicsObject = addGeometry.call(this, mesh);
+        physicsObject.position.copy(app.position);
+        physicsObject.quaternion.copy(app.quaternion);
+        physicsObject.scale.copy(app.scale);
+        physicsObject.updateMatrixWorld();
+        // window.physicsObject = physicsObject;
+        
+        if (oldParent) {
+          oldParent.add(mesh);
+          mesh.updateMatrixWorld();
+        }
+        
+        // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addGeometry);
       physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedGeometry.apply(this, arguments);
-        app.add(physicsObject);
+        // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedGeometry);
       physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
         const physicsObject = addConvexGeometry.apply(this, arguments);
-        app.add(physicsObject);
+        // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addConvexGeometry);
       physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
-        app.add(physicsObject);
+        // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);

@@ -54,17 +54,25 @@ class EquipmentRender {
     this.previewContext.enable(this.previewContext.SAMPLE_ALPHA_TO_COVERAGE);
     this.previewRenderer.xr.enabled = true;
 
+    let avatar = null;
     world.appManager.addEventListener("avatarupdate", (e) => {
+      if (avatar) {
+        avatar.parent.remove(avatar);
+        avatar = null;
+      }
+      
       const newAvatar = e.data.app.clone();
 
       newAvatar.position.set(0, 0, 0);
       newAvatar.rotation.set(0, 0, 0);
       newAvatar.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-      this.previewScene.clear();
+      // this.previewScene.clear();
       this.previewScene.add(newAvatar);
 
       metaversefile.addAppToList(newAvatar);
+      
+      avatar = newAvatar;
     });
   }
 

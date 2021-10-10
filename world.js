@@ -104,11 +104,23 @@ world.setState = _setState;
 // multiplayer
 let wsrtc = null;
 
+const _getTrackedObject = (name, dynamic) => {
+  const state = _getState(dynamic);
+  const objects = state.getArray('objects');
+  return state.getMap('objects.' + name);
+};
 const _getOrCreateTrackedObject = (name, dynamic) => {
   const state = _getState(dynamic);
   const objects = state.getArray('objects');
-  const objectsJson = objects.toJSON();
-  if (!objectsJson.includes(name)) {
+
+  let hadObject = false;
+  for (const object of objects) {
+    if (object === name) {
+      hadObject = true;
+      break;
+    }
+  }
+  if (!hadObject) {
     objects.push([name]);
   }
 
@@ -413,7 +425,19 @@ world.initializeIfEmpty = spec => {
 };
 
 world.getObjects = () => objects.dynamic.slice();
-world.getStaticObjects = () => objects.static.slice();
+// world.getStaticObjects = () => objects.static.slice();
+// world.getTrackedObject = name => _getTrackedObject(name, true);
+world.setTrackedObjectTransform = (name, p, q, s) => {
+  const dynamic = true;
+  const state = _getState(dynamic);
+  state.transact(function tx() {
+    const objects = state.getArray('objects');
+    const trackedObject = state.getMap('objects.' + name);
+    trackedObject.set('position', p.toArray());
+    trackedObject.set('quaternion', q.toArray());
+    trackedObject.set('scale', s.toArray());
+  });
+};
 let pendingAddPromise = null;
 
 const _addObject = dynamic => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
@@ -556,14 +580,16 @@ world.addEventListener('trackedobjectadd', async e => {
 
     const _bindTransforms = () => {
       const _observe = e => {
-        if (e.keysChanged.has('position')) {
-          app.position.fromArray(trackedObject.get('position'));
-        }
-        if (e.keysChanged.has('quaternion')) {
-          app.quaternion.fromArray(trackedObject.get('quaternion'));
-        }
-        if (e.keysChanged.has('scale')) {
-          app.scale.fromArray(trackedObject.get('scale'));
+        if (!world.pushingLocalUpdates) {
+          if (e.keysChanged.has('position')) {
+            app.position.fromArray(trackedObject.get('position'));
+          }
+          if (e.keysChanged.has('quaternion')) {
+            app.quaternion.fromArray(trackedObject.get('quaternion'));
+          }
+          if (e.keysChanged.has('scale')) {
+            app.scale.fromArray(trackedObject.get('scale'));
+          }
         }
       };
       trackedObject.observe(_observe);
@@ -775,6 +801,7 @@ world.getObjectFromPhysicsId = physicsId => {
   }
   return null;
 };
+world.pushingLocalUpdates = false;
 /* world.getNpcFromPhysicsId = physicsId => {
   const npcs = world.getNpcs();
   for (const npc of npcs) {
