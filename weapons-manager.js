@@ -96,14 +96,15 @@ const _getGrabbedObject = i => {
     localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
       .decompose(localVector5, localQuaternion3, localVector6);
 
-    const grabbedObject = _getGrabbedObject(0);
-    const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
-    for (const physicsId of grabbedPhysicsIds) {
-      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-    }
+    /* const grabbedObject = _getGrabbedObject(0);
+    const grabbedPhysicsObjects = grabbedObject ? grabbedObject.getPhysicsObjects() : [];
+    for (const physicsObject of grabbedPhysicsObjects) {
+      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+    } */
 
     let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
     if (collision) {
+      // console.log('got collision', collision);
       const {point} = collision;
       o.position.fromArray(point)
         // .add(localVector2.set(0, 0.01, 0));
@@ -116,9 +117,9 @@ const _getGrabbedObject = i => {
       o.position.copy(localVector5);
     }
 
-    for (const physicsId of grabbedPhysicsIds) {
-      geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-    }
+    /* for (const physicsObject of grabbedPhysicsObjects) {
+      geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+    } */
 
     const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
     if (handSnap) {
@@ -279,7 +280,7 @@ let highlightedObject = null; */
 
 const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
 highlightPhysicsMesh.visible = false;
-scene.add(highlightPhysicsMesh);
+sceneLowPriority.add(highlightPhysicsMesh);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
 
@@ -991,7 +992,7 @@ const _updateWeapons = (timestamp) => {
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
         grabbedObject.updateMatrixWorld();
-        const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
+        // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
         const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(useLocalPlayer().grabs[i].matrix), {
           collisionEnabled: true,
@@ -1002,9 +1003,9 @@ const _updateWeapons = (timestamp) => {
         });
 
         grabbedObject.updateMatrixWorld();
-        const newMatrix = localMatrix4.copy(grabbedObject.matrixWorld);
         
-        if (grabbedObject.getPhysicsIds) {
+        // const newMatrix = localMatrix4.copy(grabbedObject.matrixWorld);
+        /* if (grabbedObject.getPhysicsIds) {
           const physicsIds = grabbedObject.getPhysicsIds();
           for (const physicsId of physicsIds) {
             const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
@@ -1016,7 +1017,7 @@ const _updateWeapons = (timestamp) => {
               .decompose(localVector, localQuaternion, localVector2);
             physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion, localVector2);
           }
-        }
+        } */
         
         grabUseMesh.position.copy(camera.position)
           .add(
@@ -1083,11 +1084,12 @@ const _updateWeapons = (timestamp) => {
     highlightedPhysicsObject = null;
 
     if (weaponsManager.editMode) {
-      const grabbedObject = _getGrabbedObject(0);
+      /* const grabbedObject = _getGrabbedObject(0);
       const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
       for (const physicsId of grabbedPhysicsIds) {
+        // geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsId);
         geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-      }
+      } */
 
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
@@ -1096,9 +1098,10 @@ const _updateWeapons = (timestamp) => {
         highlightedPhysicsId = collision.objectId;
       }
 
-      for (const physicsId of grabbedPhysicsIds) {
+      /* for (const physicsId of grabbedPhysicsIds) {
+        // geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsId);
         geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
-      }
+      } */
     }
   };
   _handlePhysicsHighlight();
@@ -1108,7 +1111,7 @@ const _updateWeapons = (timestamp) => {
 
     if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
-      if (highlightPhysicsMesh.physicsId !== physicsId) {
+      /* if (highlightPhysicsMesh.physicsId !== physicsId) {
         const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
         if (physicsGeometry) {
@@ -1123,12 +1126,17 @@ const _updateWeapons = (timestamp) => {
           // highlightPhysicsMesh.scale.setScalar(1.05);
           highlightPhysicsMesh.physicsId = physicsId;
         }
-      }
+      } */
 
-      const physicsObject = physicsManager.getPhysicsObject(physicsId);
-      localMatrix2.copy(physicsObject.matrixWorld)
-        .premultiply(localMatrix3.copy(highlightedPhysicsObject.matrixWorld).invert())
+      highlightedPhysicsObject.updateMatrixWorld();
+
+      const physicsObject = /*window.lolPhysicsObject ||*/ physicsManager.getPhysicsObject(physicsId);
+      const {physicsMesh} = physicsObject;
+      highlightPhysicsMesh.geometry = physicsMesh.geometry;
+      highlightPhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
+      highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
         .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
+      // highlightPhysicsMesh.updateMatrixWorld();
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       const unlocked = world.getObjects().includes(highlightedPhysicsObject);
@@ -1145,7 +1153,7 @@ const _updateWeapons = (timestamp) => {
     const h = mouseHoverObject;
     if (h && !weaponsManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
-      if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
+      /* if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
         const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
         if (physicsGeometry) {
@@ -1160,11 +1168,13 @@ const _updateWeapons = (timestamp) => {
           // mouseHighlightPhysicsMesh.scale.setScalar(1.05);
           mouseHighlightPhysicsMesh.physicsId = physicsId;
         }
-      }
+      } */
 
       const physicsObject = physicsManager.getPhysicsObject(physicsId);
-      localMatrix2.copy(physicsObject.matrixWorld)
-        .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
+      const {physicsMesh} = physicsObject;
+      mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
+      localMatrix2.copy(physicsMesh.matrixWorld)
+        // .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
         .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
       mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
@@ -1182,7 +1192,7 @@ const _updateWeapons = (timestamp) => {
     if (o) {
       const physicsId = mouseSelectedPhysicsId;
       if (mouseSelectPhysicsMesh.physicsId !== physicsId) {
-        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
+        /* const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
 
         if (physicsGeometry) {
           let geometry = new THREE.BufferGeometry();
@@ -1195,16 +1205,25 @@ const _updateWeapons = (timestamp) => {
           mouseSelectPhysicsMesh.geometry = geometry;
           // mouseSelectPhysicsMesh.scale.setScalar(1.05);
           mouseSelectPhysicsMesh.physicsId = physicsId;
-        }
+        } */
       }
 
       const physicsObject = physicsManager.getPhysicsObject(physicsId);
       if (physicsObject) {
+        const {physicsMesh} = physicsObject;
+        mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
+        // window.geometry = mouseSelectPhysicsMesh.geometry;
+        
         // update matrix
         {
-          localMatrix2.copy(physicsObject.matrixWorld)
-            .premultiply(localMatrix3.copy(mouseSelectedObject.matrixWorld).invert())
+          localMatrix2.copy(physicsMesh.matrixWorld)
+            // .premultiply(localMatrix3.copy(mouseSelectedObject.matrixWorld).invert())
             .decompose(mouseSelectPhysicsMesh.position, mouseSelectPhysicsMesh.quaternion, mouseSelectPhysicsMesh.scale);
+          // console.log('decompose', mouseSelectPhysicsMesh.position.toArray().join(','), mouseSelectPhysicsMesh.quaternion.toArray().join(','), mouseSelectPhysicsMesh.scale.toArray().join(','));
+          // debugger;
+          // mouseSelectPhysicsMesh.position.set(0, 0, 0);
+          // mouseSelectPhysicsMesh.quaternion.identity();
+          // mouseSelectPhysicsMesh.scale.set(1, 1, 1);
           mouseSelectPhysicsMesh.updateMatrixWorld();
           mouseSelectPhysicsMesh.visible = true;
         }
@@ -1462,6 +1481,27 @@ const _updateWeapons = (timestamp) => {
   popovers.update();
 
   inventoryUpdate();
+};
+const _pushAppUpdates = () => {
+  world.pushingLocalUpdates = true;
+  
+  const objects = world.getObjects();
+  for (const object of objects) {
+    object.updateMatrixWorld();
+    if (!object.matrix.equals(object.lastMatrix)) {
+      object.matrix.decompose(localVector, localQuaternion, localVector2);
+      world.setTrackedObjectTransform(object.instanceId, localVector, localQuaternion, localVector2);
+      
+      const physicsObjects = object.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physicsManager.pushUpdate(object, physicsObject);
+      }
+      
+      object.lastMatrix.copy(object.matrix);
+    }
+  }
+  
+  world.pushingLocalUpdates = false;
 };
 
 /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
@@ -2936,5 +2976,6 @@ const weaponsManager = {
     weaponsManager.useSpec = null;
   },
   update: _updateWeapons,
+  pushAppUpdates: _pushAppUpdates,
 };
 export default weaponsManager;

@@ -193,6 +193,7 @@ class App extends THREE.Object3D {
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
+    this.lastMatrix = new THREE.Matrix4();
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);

@@ -9,6 +9,8 @@ import dropManager from './drop-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 const _makeDamagePhysicsMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -69,7 +71,9 @@ const update = (timestamp, timeDiff) => {
           }
               
           const physicsObject = physicsManager.getPhysicsObject(collisionId);
-          physicsObject.matrixWorld.decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
+          localMatrix.copy(physicsObject.matrixWorld)
+            // .premultiply(localMatrix2.copy(object.matrixWorld).invert())
+            .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
               
           damageAnimation = {
             startTime: timestamp,

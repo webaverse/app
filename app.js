@@ -489,6 +489,8 @@ export default class WebaverseApp extends EventTarget {
       appManager.tick(timestamp, frame);
 
       ioManager.updatePost();
+      
+      weaponsManager.pushAppUpdates();
 
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
       localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));

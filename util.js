@@ -364,8 +364,11 @@ export function getNextPhysicsId() {
 }
 
 export function convertMeshToPhysicsMesh(topMesh) {
+  const oldParent = topMesh.parent;
+  oldParent && oldParent.remove(topMesh);
+
   topMesh.updateMatrixWorld();
-  localMatrix.copy(topMesh.matrixWorld).invert();
+  // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
   topMesh.traverse(o => {
@@ -376,10 +379,14 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
+    /* if (mesh.isSkinnedMesh) {
+      console.log('compile skinned mesh', mesh);
+    } */
+    // localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
     } else {
-      localMatrix2.multiplyMatrices(localMatrix, mesh.matrixWorld);
+      localMatrix2.copy(mesh.matrixWorld);
     }
 
     if (geometry.attributes.position.isInterleavedBufferAttribute) {
@@ -408,16 +415,26 @@ export function convertMeshToPhysicsMesh(topMesh) {
     
     return newGeometry;
   });
+  if (oldParent) {
+    oldParent.add(topMesh);
+    topMesh.updateMatrixWorld();
+  }
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
     const physicsMesh = new THREE.Mesh(newGeometry);
-    /* topMesh.getWorldPosition(physicsMesh.position);
-    topMesh.getWorldQuaternion(physicsMesh.quaternion);
-    topMesh.getWorldScale(physicsMesh.scale); */
+    /* physicsMesh.position.copy(topMesh.position);
+    physicsMesh.quaternion.copy(topMesh.quaternion);
+    physicsMesh.scale.copy(topMesh.scale);
+    physicsMesh.matrix.copy(topMesh.matrix);
+    physicsMesh.matrixWorld.copy(topMesh.matrixWorld); */
+    physicsMesh.visible = false;
     return physicsMesh;
   } else {
-    return new THREE.Mesh();
+    const physicsMesh = new THREE.Mesh();
+    physicsMesh.visible = false;
+    return physicsMesh;
   }
+  
 }
 
 export function parseCoord(s) {

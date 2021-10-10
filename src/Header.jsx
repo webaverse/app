@@ -764,7 +764,8 @@ export default function Header({
                           e.preventDefault();
                           e.stopPropagation();
                           
-                          selectObject(object, object.physicsIds[0] || null);
+                          const physicsObjects = object.getPhysicsObjects();
+                          selectObject(object, physicsObjects[0] || null);
                           
                           const localPlayer = metaversefile.useLocalPlayer();
                           localPlayer.lookAt(object.position);
