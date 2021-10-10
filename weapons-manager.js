@@ -503,14 +503,14 @@ const _useRelease = () => {
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
-    world.removeObject(grabbedObject.instanceId);
-
     /* if (grabbedObject === selectedLoadoutObject) {
       _deselectLoadout();
     } */
 
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
+    
+    world.removeObject(grabbedObject.instanceId);
   /* } else if (editedObject) {
     world.removeObject(editedObject.instanceId);
     editedObject = null;
