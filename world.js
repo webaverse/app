@@ -11,14 +11,15 @@ import {rigManager} from './rig.js';
 import {pointers} from './web-monetization.js';
 import {camera, scene, sceneHighPriority} from './app-object.js';
 import {baseUnit} from './constants.js';
-import { unFrustumCull} from './util.js';
+import {unFrustumCull} from './util.js';
 import {
   storageHost,
   // worldsHost,
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString, makeId} from './util.js';
-import metaversefile from 'metaversefile';
+import metaversefile from './metaversefile-api.js';
+
 // world
 export const world = new EventTarget();
 const appManager = new AppManager(world);
