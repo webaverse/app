@@ -394,10 +394,14 @@ const _memoize = fn => {
     return cache;
   };
 };
-const _gltfLoader = _memoize(() => {
-  const gltfLoader = new GLTFLoader();
+const _dracoLoader = _memoize(() => {
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('/three/draco/');
+  return dracoLoader;
+});
+const _gltfLoader = _memoize(() => {
+  const gltfLoader = new GLTFLoader();
+  const dracoLoader = _dracoLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
   return gltfLoader;
 });
@@ -407,6 +411,9 @@ const _voxLoader = _memoize(() => new VOXLoader({
   scale: 0.01,
 }));
 const loaders = {
+  get dracoLoader() {
+    return _dracoLoader();
+  },
   get gltfLoader() {
     return _gltfLoader();
   },
