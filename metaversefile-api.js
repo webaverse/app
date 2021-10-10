@@ -539,13 +539,15 @@ metaversefile.setApi({
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         const basePosition = position;
         const baseQuaternion = quaternion;
+        const baseScale = size;
         app.updateMatrixWorld();
         localMatrix
-          .compose(position, quaternion, localVector2.set(1, 1, 1))
+          .compose(position, quaternion, size)
           .premultiply(app.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
         position = localVector;
         quaternion = localQuaternion;
+        size = localVector2;
         
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
         physicsObject.position.copy(app.position);
@@ -555,6 +557,7 @@ metaversefile.setApi({
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
+        physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
         physicsObject.updateMatrixWorld();
         

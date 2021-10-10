@@ -197,7 +197,7 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   physicsMesh.visible = false;
   // physicsMesh.position.copy(position);
   // physicsMesh.quaternion.copy(quaternion);
-  physicsMesh.scale.copy(size);
+  // physicsMesh.scale.copy(size);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
@@ -359,15 +359,18 @@ physicsManager.simulatePhysics = timeDiff => {
     const physicsObject = physicsObjects[id];
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
-    physicsObject.scale.copy(scale);
+    // physicsObject.scale.copy(scale);
+    physicsObject.updateMatrixWorld();
   }
 };
 
 physicsManager.pushUpdate = (object, physicsObject) => {
-  physicsObject.position.copy(object.position);
-  physicsObject.quaternion.copy(object.quaternion);
-  physicsObject.scale.copy(object.scale);
-  physicsObject.updateMatrixWorld();
+  if (object) {
+    physicsObject.position.copy(object.position);
+    physicsObject.quaternion.copy(object.quaternion);
+    physicsObject.scale.copy(object.scale);
+    physicsObject.updateMatrixWorld();
+  }
 
   const {physicsId, physicsMesh} = physicsObject;
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
