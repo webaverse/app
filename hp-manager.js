@@ -71,7 +71,8 @@ const update = (timestamp, timeDiff) => {
           }
               
           const physicsObject = physicsManager.getPhysicsObject(collisionId);
-          localMatrix.copy(physicsObject.matrixWorld)
+          const {physicsMesh} = physicsObject;
+          localMatrix.copy(physicsMesh.matrixWorld)
             // .premultiply(localMatrix2.copy(object.matrixWorld).invert())
             .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
               
