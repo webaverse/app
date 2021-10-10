@@ -22,6 +22,7 @@ const localQuaternion4 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
@@ -2108,7 +2109,6 @@ class Avatar {
 
     if (this.eyeTargetEnabled) {
       const eyePosition = this.getEyePosition();
-      const upVector = new THREE.Vector3(0, 1, 0);
       this.modelBoneOutputs.Neck.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
