@@ -1,5 +1,6 @@
+throw new Error('lol');
 import * as THREE from 'three';
-import runtime from './runtime.js';
+// import runtime from './runtime.js';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';

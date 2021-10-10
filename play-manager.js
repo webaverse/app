@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {rigManager} from './rig.js';
 import {scene, camera, renderer, avatarScene} from './app-object.js';
-import runtime from './runtime.js';
+// import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {makeTextMesh} from './vr-ui.js';
 import {unFrustumCull} from './util.js';

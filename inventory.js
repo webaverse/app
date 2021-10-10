@@ -1,8 +1,9 @@
+throw new Error('lol');
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
-import {RigAux} from './rig-aux.js';
-import runtime from './runtime.js';
+// import {RigAux} from './rig-aux.js';
+// import runtime from './runtime.js';
 import {addDefaultLights} from './util.js';
 
 const localVector = new THREE.Vector3();

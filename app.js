@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // import {loginManager} from './login.js';
-import runtime from './runtime.js';
+// import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
@@ -11,16 +11,16 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
-import minimap from './minimap.js';
+// import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
 import controlsManager from './controls-manager.js';
 import weaponsManager from './weapons-manager.js';
 import hpManager from './hp-manager.js';
-import activateManager from './activate-manager.js';
-import dropManager from './drop-manager.js';
-import npcManager from './npc-manager.js';
+// import activateManager from './activate-manager.js';
+// import dropManager from './drop-manager.js';
+// import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
-import {bindInterface as inventoryBindInterface} from './inventory.js';
+// import {bindInterface as inventoryBindInterface} from './inventory.js';
 import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
@@ -95,9 +95,9 @@ export default class WebaverseApp extends EventTarget {
       // WSRTC.waitForReady(),
       metaverseModules.waitForLoad(),
     ])
-      .then(() => {
+      /* .then(() => {
         runtime.injectDependencies(geometryManager, physicsManager, world);
-      });
+      }); */
     this.contentLoaded = false;
   }
   
@@ -136,7 +136,7 @@ export default class WebaverseApp extends EventTarget {
     blockchain.bindInterface();
     universe.bindInterface();
     // weaponsManager.bindInterface();
-    inventoryBindInterface();
+    // inventoryBindInterface();
     // mithrilInit();
   }
   bindPhysics() {

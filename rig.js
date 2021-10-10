@@ -6,10 +6,10 @@ import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
 import {getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
 // import {loginManager} from './login.js';
-import runtime from './runtime.js';
+// import runtime from './runtime.js';
 import controlsManager from './controls-manager.js';
 import Avatar from './avatars/avatars.js';
-import {RigAux} from './rig-aux.js';
+// import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 

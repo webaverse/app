@@ -5,7 +5,7 @@ import {VOXLoader} from './VOXLoader.js';
 import {bake, toggleElements} from './bakeUtils.js';
 import {getExt, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
-import wbn from './wbn.js';
+// import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
 

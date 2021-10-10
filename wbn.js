@@ -1,3 +1,5 @@
+throw new Error('lol');
+
 // modules are defined as an array
 // [ module function, map of requires ]
 //

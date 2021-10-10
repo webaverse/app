@@ -3,7 +3,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 // import inventory from './inventory.js';
-import runtime from './runtime.js';
+// import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
 import {scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
