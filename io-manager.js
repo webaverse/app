@@ -656,9 +656,6 @@ const _updateMouseHover = e => {
         }
       }
     }
-    weaponsManager.setLastMouseEvent(e);
-  } else {
-    weaponsManager.setLastMouseEvent(null);
   }
   weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId, point);
   const renderer = getRenderer();
@@ -682,6 +679,7 @@ ioManager.mousemove = e => {
         _updateMouseHover(e);
       }
     }
+    weaponsManager.setLastMouseEvent(e);
   // }
 };
 ioManager.mouseleave = e => {
@@ -713,6 +711,7 @@ ioManager.click = e => {
       }
     } */
   }
+  weaponsManager.setLastMouseEvent(e);
 };
 // let mouseDown = false;
 let lastMouseButtons = 0;
@@ -741,6 +740,7 @@ ioManager.mousedown = e => {
   }
   lastMouseButtons = e.buttons;
   // mouseDown = true;
+  weaponsManager.setLastMouseEvent(e);
 };
 ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
@@ -763,6 +763,7 @@ ioManager.mouseup = e => {
     // mouseDown = false;
   // }
   lastMouseButtons = e.buttons;
+  weaponsManager.setLastMouseEvent(e);
 };
 ioManager.paste = e => {
   if (!window.document.activeElement) {
