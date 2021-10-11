@@ -2366,11 +2366,7 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 let droppedThrow = false;
-const lastMouseEvent = {
-  clientX: 0,
-  clientY: 0,
-  inside: false,
-};
+let lastMouseEvent = null;
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -2971,6 +2967,13 @@ const weaponsManager = {
     return lastMouseEvent;
   },
   setLastMouseEvent(e) {
+    if (!lastMouseEvent) {
+      lastMouseEvent = {
+        clientX: 0,
+        clientY: 0,
+        inside: false,
+      };
+    }
     if (e) {
       lastMouseEvent.clientX = e.clientX;
       lastMouseEvent.clientY = e.clientY;
