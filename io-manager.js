@@ -684,14 +684,6 @@ ioManager.mousemove = e => {
     }
   // }
 };
-ioManager.mouseup = e => {
-  ioManager.currentWeaponDown = false;
-  ioManager.currentWeaponValue = 0;
-  ioManager.currentTeleport = false;
-  
-  const raycaster = _getMouseRaycaster(e, localRaycaster);
-  transformControls.handleMouseUp(raycaster);
-};
 ioManager.mouseleave = e => {
   const renderer = getRenderer();
   renderer.domElement.classList.remove('hover');
