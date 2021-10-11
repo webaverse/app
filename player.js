@@ -37,8 +37,6 @@ class Player {
 class LocalPlayer extends Player {
   constructor() {
     super();
-    
-    this.teleportTo = this._bindTeleportTo();
   }
   setAvatar(app) {
     rigManager.setLocalAvatar(app);
@@ -124,7 +122,7 @@ class LocalPlayer extends Player {
       relation: 'head',
     }); */
   }
-  _bindTeleportTo() {
+  teleportTo = (() => {
     // const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     const localVector3 = new THREE.Vector3();
@@ -160,7 +158,7 @@ class LocalPlayer extends Player {
 
       physicsManager.velocity.set(0, 0, 0);
     };
-  }
+  })()
 }
 class RemotePlayer extends Player {
   constructor() {
