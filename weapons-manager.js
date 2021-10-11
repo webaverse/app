@@ -1447,15 +1447,19 @@ const _updateWeapons = (timestamp) => {
     const {draggingRight} = weaponsManager;
     if (draggingRight !== lastDraggingRight) {
       if (draggingRight) {
-        const e = weaponsManager.getLastMouseEvent();    
-        const {clientX, clientY} = e;
-        const cameraStartPosition = camera.position.clone();
-        
-        dragRightSpec = {
-          clientX,
-          clientY,
-          cameraStartPosition,
-        };
+        const e = weaponsManager.getLastMouseEvent();
+        if (e) {
+          const {clientX, clientY} = e;
+          const cameraStartPosition = camera.position.clone();
+          
+          dragRightSpec = {
+            clientX,
+            clientY,
+            cameraStartPosition,
+          };
+        } else {
+          dragRightSpec = null;
+        }
       } else {
         dragRightSpec = null;
       }
