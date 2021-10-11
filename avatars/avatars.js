@@ -1809,20 +1809,26 @@ class Avatar {
       }
     }
   }
-  getEyePosition() {
-    const {modelBones} = this;
-    if (modelBones.Eye_L && modelBones.Eye_R) {
-      return modelBones.Eye_L.getWorldPosition(new THREE.Vector3())
-        .add(modelBones.Eye_R.getWorldPosition(new THREE.Vector3()))
-        .divideScalar(2);
-    } else {
-      const neckToHeadDiff = modelBones.Head.getWorldPosition(new THREE.Vector3()).sub(modelBones.Neck.getWorldPosition(new THREE.Vector3()));
-      if (neckToHeadDiff.z < 0) {
-        neckToHeadDiff.z *= -1;
+  getEyePosition = (() => {
+    const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    return function() {
+      const {modelBones} = this;
+      if (modelBones.Eye_L && modelBones.Eye_R) {
+        return modelBones.Eye_L.getWorldPosition(localVector)
+          .add(modelBones.Eye_R.getWorldPosition(localVector2))
+          .divideScalar(2);
+      } else {
+        const neckToHeadDiff = modelBones.Head.getWorldPosition(localVector)
+          .sub(modelBones.Neck.getWorldPosition(localVector2));
+        if (neckToHeadDiff.z < 0) {
+          neckToHeadDiff.z *= -1;
+        }
+        return modelBones.Head.getWorldPosition(localVector)
+          .add(neckToHeadDiff);
       }
-      return modelBones.Head.getWorldPosition(new THREE.Vector3()).add(neckToHeadDiff);
     }
-  }
+  })()
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.chest.position.copy(setups.chest);
