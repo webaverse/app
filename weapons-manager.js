@@ -1477,6 +1477,22 @@ const _updateWeapons = (timestamp) => {
     }
   };
   _updateUses();
+  
+  const _updateEyes = () => {
+    if (rigManager.localRig) {
+      if (!document.pointerLockElement && lastMouseEvent) {
+        const renderer = getRenderer();
+        const size = renderer.getSize(localVector);
+        
+        rigManager.localRig.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+          .unproject(camera);
+        rigManager.localRig.eyeTargetEnabled = true;
+      } else {
+        rigManager.localRig.eyeTargetEnabled = false;
+      }
+    }
+  };
+  _updateEyes();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
