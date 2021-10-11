@@ -606,7 +606,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     }
 
     // collide items
-    _collideItems(localMatrix);
+    // _collideItems(localMatrix);
   }
 };
 const _collideCapsule = (() => {
@@ -624,11 +624,8 @@ const applyVelocity = (() => {
   };
 })();
 physicsManager.applyVelocity = applyVelocity;
-const _collideItems = matrix => {
+/* const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
-
-  /* uiManager.hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
-  uiManager.hpMesh.quaternion.slerp(localQuaternion2, 0.1); */
 
   if (uiManager.popupMesh.visible) {
     uiManager.popupMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
@@ -636,7 +633,7 @@ const _collideItems = matrix => {
   }
 
   geometryManager.updatePhysics(localVector3);
-};
+}; */
 /* const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
   geometryManager.currentChunkMesh.update(localVector3);
@@ -735,7 +732,7 @@ const _updatePhysics = timeDiff => {
       );
     } else {
       physicsManager.velocity.y = 0;
-      _collideItems(avatarWorldObject.matrix);
+      // _collideItems(avatarWorldObject.matrix);
       // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
