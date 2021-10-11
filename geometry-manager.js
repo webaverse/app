@@ -2483,7 +2483,7 @@ const _updateGeometry = () => {
 };
 geometryManager.update = _updateGeometry;
 
-const _updatePhysics = p => {
+/* const _updatePhysics = p => {
   localVector.copy(p).add(localVector2.set(0, -1, 0));
   
   for (let i = 0; i < itemMeshes.length; i++) {
@@ -2493,14 +2493,8 @@ const _updatePhysics = p => {
     }
     itemMesh.update(p);
   }
-
-  /* for (const animal of animals) {
-    if (!animal.isHeadAnimating()) {
-      animal.lookAt(p);
-    }
-  } */
 };
-geometryManager.updatePhysics = _updatePhysics;
+geometryManager.updatePhysics = _updatePhysics; */
 
 const _initModule = () => {
   if (Module.calledRun) {
