@@ -32,6 +32,8 @@ class Player {
     this.grabs = [];
     this.wears = [];
     this.actions = [];
+
+    this.controlling = []; // List of apps the player is currently controlling
   }
 }
 class LocalPlayer extends Player {
