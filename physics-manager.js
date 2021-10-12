@@ -572,20 +572,23 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       physicsManager.velocity.y = 0;
 
-      applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+      let controlledObj = localPlayer.controlling[0];
+      console.log(localPlayer.controlling[0]);
+
+      applyVelocity(controlledObj.position, physicsManager.velocity, timeDiff);
       if (physicsManager.velocity.lengthSq() > 0) {
-        sitController.quaternion
+        controlledObj.quaternion
           .setFromUnitVectors(
             localVector4.set(0, 0, -1),
             localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
           )
           .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
-      sitController.updateMatrixWorld();
+      controlledObj.updateMatrixWorld();
 
-      localMatrix.copy(sitTarget.matrixWorld)
+      localMatrix.copy(controlledObj.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
-      localVector.add(sitOffset);
+      localVector.add(new THREE.Vector3(0, 0.6, 0));
       localVector.y += 1;
       localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       
@@ -599,7 +602,20 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
     if (rigManager.localRig) {
       if (localPlayer.actions.some(action => action.type === 'jump')) {
-        rigManager.localRig.setFloorHeight(-0xFFFFFF);
+
+       ////////////////////////////////////////////////////////////////////////////////////// 
+       const sitActionIndex = localPlayer.actions.findIndex(action => action.type === 'sit');
+       if(sitActionIndex !== -1)
+       {
+        localPlayer.actions.splice(sitActionIndex, 1);
+        localPlayer.controlling.length = 0;
+       }
+       /////////////////////////////////////////////////////////////////////////////////////
+       // This is a messy solution for exiting the vehicle, it's just for visual demonstration and can be deleted
+       // But without it, the jump/idle animation will freeze and you stay on the vehicle.
+       
+       rigManager.localRig.setFloorHeight(-0xFFFFFF);
+
       } else {
         rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
       }
