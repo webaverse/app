@@ -598,6 +598,7 @@ export default function Header({
       lastEmoteKey.timestamp = timestamp;
     }
   };
+  
   useEffect(() => {
     const keydown = e => {
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
@@ -624,7 +625,7 @@ export default function Header({
             e.stopPropagation();
             if (worldOpen) {
               if (selectedApp) {
-                setSelectedApp(null);
+                selectObject(null);
               } else {
                 cameraManager.requestPointerLock();
               }
@@ -765,10 +766,24 @@ export default function Header({
                           e.stopPropagation();
                           
                           const physicsObjects = object.getPhysicsObjects();
-                          selectObject(object, physicsObjects[0] || null);
+                          const physicsObject = physicsObjects[0] || null;
+                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
+                          selectObject(object, physicsId);
                           
                           const localPlayer = metaversefile.useLocalPlayer();
                           localPlayer.lookAt(object.position);
+                        }} onMouseEnter={e => {
+                          const physicsObjects = object.getPhysicsObjects();
+                          const physicsObject = physicsObjects[0] || null;
+                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
+                          
+                          weaponsManager.setMouseHoverObject(null);
+                          weaponsManager.setMouseDomHoverObject(object, physicsId);
+                        }} onMouseLeave={e => {
+                          weaponsManager.setMouseDomHoverObject(null);
+                        }} onMouseMove={e => {
+                          e.stopPropagation();
+                          // weaponsManager.setMouseSelectedObject(null);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="images/object.jpg" className={styles.img} />
