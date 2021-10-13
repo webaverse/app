@@ -33,7 +33,7 @@ class Player {
     this.wears = [];
     this.actions = [];
 
-    this.controlling = []; // List of apps the player is currently controlling
+    this.controlling = []; // Array of instanceIds the player is currently controlling
   }
 }
 class LocalPlayer extends Player {
