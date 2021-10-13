@@ -8,6 +8,7 @@ import ioManager from './io-manager.js';
 import {rigManager} from './rig.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
+import {world} from './world.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
@@ -98,9 +99,9 @@ const setSitTarget = newSitTarget => {
   sitTarget = newSitTarget;
 };
 physicsManager.setSitTarget = setSitTarget;
-let sitOffset = new THREE.Vector3();
+let _sitOffset = new THREE.Vector3();
 const setSitOffset = newSitOffset => {
-  sitOffset.fromArray(newSitOffset);
+  _sitOffset.fromArray(newSitOffset);
 };
 physicsManager.setSitOffset = setSitOffset;
 
@@ -572,8 +573,15 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       physicsManager.velocity.y = 0;
 
-      let controlledObj = localPlayer.controlling[0];
-      console.log(localPlayer.controlling[0]);
+      let objInstanceId = localPlayer.controlling[0];
+      let controlledObj = world.getObjects().find(o => o.instanceId === objInstanceId);
+
+      const sitComponent = controlledObj.getComponent('sit2');
+      const {sitOffset = [0, 0, 0], damping} = sitComponent;
+
+      physicsManager.setSitOffset(sitOffset);
+
+
 
       applyVelocity(controlledObj.position, physicsManager.velocity, timeDiff);
       if (physicsManager.velocity.lengthSq() > 0) {
@@ -588,7 +596,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
       localMatrix.copy(controlledObj.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
-      localVector.add(new THREE.Vector3(0, 0.6, 0));
+      localVector.add(_sitOffset);
       localVector.y += 1;
       localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       
