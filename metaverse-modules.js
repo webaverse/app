@@ -4,6 +4,7 @@ const moduleUrls = {
   button: `./metaverse_modules/button/`,
   silk: `./metaverse_modules/silk/`,
   card: `./metaverse_modules/card/`,
+  arrowLoader: `./metaverse_modules/arrow-loader/`,
 };
 const modules = {};
 const loadPromise = (async () => {
