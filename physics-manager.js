@@ -576,12 +576,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       let objInstanceId = localPlayer.controlling[0];
       let controlledObj = world.getObjects().find(o => o.instanceId === objInstanceId);
 
-      const sitComponent = controlledObj.getComponent('sit2');
+      const sitComponent = controlledObj.getComponent('sit');
       const {sitOffset = [0, 0, 0], damping} = sitComponent;
 
       physicsManager.setSitOffset(sitOffset);
-
-
 
       applyVelocity(controlledObj.position, physicsManager.velocity, timeDiff);
       if (physicsManager.velocity.lengthSq() > 0) {
@@ -610,18 +608,6 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
     if (rigManager.localRig) {
       if (localPlayer.actions.some(action => action.type === 'jump')) {
-
-       ////////////////////////////////////////////////////////////////////////////////////// 
-       const sitActionIndex = localPlayer.actions.findIndex(action => action.type === 'sit');
-       if(sitActionIndex !== -1)
-       {
-        localPlayer.actions.splice(sitActionIndex, 1);
-        localPlayer.controlling.length = 0;
-       }
-       /////////////////////////////////////////////////////////////////////////////////////
-       // This is a messy solution for exiting the vehicle, it's just for visual demonstration and can be deleted
-       // But without it, the jump/idle animation will freeze and you stay on the vehicle.
-       
        rigManager.localRig.setFloorHeight(-0xFFFFFF);
 
       } else {
