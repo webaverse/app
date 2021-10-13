@@ -1,13 +1,17 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
-import {bake, toggleElements} from './bakeUtils.js';
-import {getExt, parseQuery} from './util.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { VOXLoader } from './VOXLoader.js';
+// import {bake, toggleElements} from './bakeUtils.js';
+import { getExt, parseQuery } from './util.js';
 import Avatar from './avatars/avatars.js';
-// import wbn from './wbn.js';
+import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
+//import * as metaverseModules from './metaverse-modules.js';
+import runtime from './runtime.js';
+import metaversefileApi from './metaversefile-api.js';
+
 
 const defaultWidth = 512;
 const defaultHeight = 512;
@@ -61,7 +65,7 @@ const _makeRenderer = (width, height) => {
   directionalLight2.position.set(-2, 2, 2);
   scene.add(directionalLight2);
 
-  return {renderer, scene, camera};
+  return { renderer, scene, camera };
 };
 
 const _makeUiRenderer = () => {
@@ -70,7 +74,7 @@ const _makeUiRenderer = () => {
   const loadPromise = Promise.all([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
+      iframe.src = 'https://render.exokit.org/';
       iframe.onload = () => {
         accept(iframe);
       };
@@ -114,8 +118,8 @@ const _makeUiRenderer = () => {
       }, '*', [mc.port2]);
       const result = await new Promise((accept, reject) => {
         mc.port1.onmessage = e => {
-          const {data} = e;
-          const {error, result} = data;
+          const { data } = e;
+          const { error, result } = data;
 
           if (result) {
             console.log('time taken', Date.now() - start);
@@ -146,7 +150,7 @@ const _makeIconString = (hash, ext, w, h) => {
       if (i !== 0) {
         result += '<br>'
       }
-      result += s.slice(i, i+splitCount);
+      result += s.slice(i, i + splitCount);
     }
     return result;
   };
@@ -160,8 +164,8 @@ const _makeIconString = (hash, ext, w, h) => {
     width: ${w}px;
     height: ${h}px;
     background-color: #FFF;
-    border: ${w/20}px solid #ff7043;
-    border-top-width: ${w/5}px;
+    border: ${w / 20}px solid #ff7043;
+    border-top-width: ${w / 5}px;
     font-family: 'Bangers';
   }
   .wrap {
@@ -191,24 +195,24 @@ const _makeIconString = (hash, ext, w, h) => {
   }
   .hash {
     position: absolute;
-    top: ${w/20}px;
-    left: ${w/20}px;
+    top: ${w / 20}px;
+    left: ${w / 20}px;
     color: #FFF;
-    font-size: ${w/16}px;
+    font-size: ${w / 16}px;
   }
   .label {
     position: absolute;
     bottom: 0;
     right: 0;
-    /* padding: ${w/30}px; */
+    /* padding: ${w / 30}px; */
     background-color: #000;
     color: #FFF;
-    font-size: ${w/5}px;
+    font-size: ${w / 5}px;
   }
   </style>
   <div class=body>
     <div class=icon>
-      <img ${icon ? `src="${icon}"` : ''} height=${h/2}>
+      <img ${icon ? `src="${icon}"` : ''} height=${h / 2}>
     </div>
     <div class=hash>${_split(hash)}</div>
     <div class=label>${ext.toUpperCase()}</div>
@@ -217,10 +221,10 @@ const _makeIconString = (hash, ext, w, h) => {
 };
 
 (async () => {
-  toggleElements(false);
+  // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let {url, hash, ext, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
+  let { url, hash, ext, type, width, height, dst } = parseQuery(decodeURIComponent(window.location.search));
   width = parseInt(width, 10);
   if (isNaN(width)) {
     width = defaultWidth;
@@ -237,10 +241,9 @@ const _makeIconString = (hash, ext, w, h) => {
     const _loadGltf = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new GLTFLoader().load(url, accept, function onprogress() {}, reject);
-        });
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+        o.scene = o.children[0];
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
@@ -252,40 +255,46 @@ const _makeIconString = (hash, ext, w, h) => {
     const _loadVrm = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new GLTFLoader().load(url, accept, function onprogress() {}, reject);
+        o = await metaversefileApi.load(url);
+        await new Promise((accept, reject) => {
+
+          o.dispatchEvent({
+            type: 'wearupdate',
+            wear: true,
+            waitUntil: accept
+          })
         });
-      } catch(err) {
+        o.scene = o.children[0];
+
+
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
       } */
       console.log('loaded VRM', o);
-      
+
       const rig = new Avatar(o, {
         fingers: true,
         hair: true,
         visemes: true,
-        debug: false,
+        debug: true,
       });
       rig.model.isVrm = true;
       /* rig.aux = oldRig.aux;
       rig.aux.rig = rig; */
-      
+
       o = o.scene;
       o.rig = rig;
-      
+
       return o;
     };
     const _loadVox = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new VOXLoader({
-            scale: 0.01,
-          }).load(url, accept, function onprogress() {}, reject);
-        });
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+        o.scene = o.children[0];
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
@@ -295,34 +304,13 @@ const _makeIconString = (hash, ext, w, h) => {
     const _loadImage = async () => {
       let o;
       try {
-        o = await (async () => {
-          const img = await new Promise((accept, reject) => {
-            const img = new Image();
-            img.onload = () => {
-              accept(img);
-            };
-            img.onerror = reject;
-            img.crossOrigin = 'Anonymous';
-            img.src = url;
-          });
-          const aspect = img.width / img.height;
-          const size = 1;
-          const geometry = new THREE.PlaneBufferGeometry(size, size / aspect);
-          const map = new THREE.Texture(img);
-          map.minFilter = THREE.LinearMipmapLinearFilter;
-          map.magFilter = THREE.LinearFilter;
-          map.anisotropy = 16;
-          map.needsUpdate = true;
-          const material = new THREE.MeshBasicMaterial({
-            map,
-            side: THREE.DoubleSide,
-          });
-          const mesh = new THREE.Mesh(geometry, material);
-          return mesh;
-        })();
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+        o.scene = o.children[0];
+      } catch (err) {
         console.warn(err);
-      }
+      } /* finally {
+        URL.revokeObjectURL(u);
+      } */
       return o;
     };
     const _loadWbn = async () => {
@@ -334,7 +322,7 @@ const _makeIconString = (hash, ext, w, h) => {
       } else {
         arrayBuffer = await new Promise((accept, reject) => {
           const fr = new FileReader();
-          fr.onload = function() {
+          fr.onload = function () {
             accept(this.result);
           };
           fr.onerror = reject;
@@ -344,17 +332,17 @@ const _makeIconString = (hash, ext, w, h) => {
 
       const files = {};
       const bundle = new wbn.Bundle(arrayBuffer);
-      const {urls} = bundle;
+      const { urls } = bundle;
 
       for (const u of urls) {
         const response = bundle.getResponse(u);
-        const {headers} = response;
+        const { headers } = response;
         const contentType = headers['content-type'] || 'application/octet-stream';
         const b = new Blob([response.body], {
           type: contentType,
         });
         const blobUrl = URL.createObjectURL(b);
-        const {pathname} = new URL(u);
+        const { pathname } = new URL(u);
         files['.' + pathname] = blobUrl;
       }
       const u = './manifest.json';
@@ -375,7 +363,7 @@ const _makeIconString = (hash, ext, w, h) => {
 
           const htmlString = _makeIconString(hash, ext, width, height);
           const result = await uiRenderer.render(htmlString, width, height);
-          const {data, anchors} = result;
+          const { data, anchors } = result;
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
@@ -385,7 +373,7 @@ const _makeIconString = (hash, ext, w, h) => {
         };
 
         if (['glb', 'vrm', 'vox', 'wbn'].includes(ext)) {
-          const {renderer, scene, camera} = _makeRenderer(width, height);
+          const { renderer, scene, camera } = _makeRenderer(width, height);
 
           let o;
           try {
@@ -411,6 +399,8 @@ const _makeIconString = (hash, ext, w, h) => {
             console.warn(err);
           }
           if (o) {
+            debugger;
+
             scene.add(o);
 
             const boundingBox = new THREE.Box3().setFromObject(o);
@@ -421,8 +411,8 @@ const _makeIconString = (hash, ext, w, h) => {
             camera.position.y = center.y;
             camera.position.z = center.z - Math.max(
               size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
-              Math.abs(size.x)/2,
-              Math.abs(size.z)/2
+              Math.abs(size.x) / 2,
+              Math.abs(size.z) / 2
             ) * 1.2;
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -492,6 +482,7 @@ const _makeIconString = (hash, ext, w, h) => {
               };
 
               const skinnedMeshes = [];
+              debugger;
               o.traverse(o => {
                 if (o.isSkinnedMesh) {
                   skinnedMeshes.push(o);
@@ -541,16 +532,16 @@ const _makeIconString = (hash, ext, w, h) => {
             const scaleFactor = img.width / width;
             const dstWidth = img.width / scaleFactor;
             const dstHeight = img.height / scaleFactor;
-            
+
             const pixelsToAdd = dstWidth - dstHeight;
             const pixelsToAddD2 = pixelsToAdd / 2;
-            
+
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
           } else { // horizontal padding needed
             const scaleFactor = img.height / height;
             const dstWidth = img.width / scaleFactor;
             const dstHeight = img.height / scaleFactor;
-            
+
             const pixelsToAdd = dstHeight - dstWidth;
             const pixelsToAddD2 = pixelsToAdd / 2;
 
@@ -572,13 +563,14 @@ const _makeIconString = (hash, ext, w, h) => {
         img.onerror = reject;
         img.src = URL.createObjectURL(blob);
       });
-      img.style.width = `${img.width/window.devicePixelRatio}px`;
-      img.style.height = `${img.height/window.devicePixelRatio}px`;
+      img.style.width = `${img.width / window.devicePixelRatio}px`;
+      img.style.height = `${img.height / window.devicePixelRatio}px`;
       screenshotResult.appendChild(img);
 
       const arrayBuffer = await blob.arrayBuffer();
 
       // console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
+
 
       if (dst) {
         fetch(dst, {
@@ -595,7 +587,7 @@ const _makeIconString = (hash, ext, w, h) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'gif' && ext !== 'gif') {
-      const {renderer, scene, camera} = _makeRenderer(width, height);
+      const { renderer, scene, camera } = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
@@ -645,7 +637,7 @@ const _makeIconString = (hash, ext, w, h) => {
         writeCtx.translate(0, -writeCanvas.height);
         writeCtx.drawImage(writeCanvas, 0, 0); */
 
-        gif.addFrame(writeCanvas, {delay: 50});
+        gif.addFrame(writeCanvas, { delay: 50 });
       }
       gif.render();
 
@@ -680,7 +672,7 @@ const _makeIconString = (hash, ext, w, h) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'webm') {
-      const {renderer, scene, camera} = _makeRenderer(width, height);
+      const { renderer, scene, camera } = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
@@ -698,7 +690,7 @@ const _makeIconString = (hash, ext, w, h) => {
         }
       })();
       scene.add(o);
-      
+
       if (o) {
         const boundingBox = new THREE.Box3().setFromObject(o);
         const center = boundingBox.getCenter(new THREE.Vector3());
@@ -723,13 +715,13 @@ const _makeIconString = (hash, ext, w, h) => {
           o.rig.setHandEnabled(1, false);
           o.rig.setBottomEnabled(false);
           o.rig.inputs.hmd.position.y = o.rig.height;
-          
+
           let now = 0;
-          const timeDiff = 1/FPS;
+          const timeDiff = 1 / FPS;
           for (let i = 0; i < 100; i++) {
             o.rig.update(now, timeDiff);
             now += timeDiff * 1000;
-          
+
             camera.position.set(0, o.rig.height / 2, -1.5);
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -742,7 +734,7 @@ const _makeIconString = (hash, ext, w, h) => {
             o.position.y = Math.sin(i + Math.PI / 2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*1) * 0.005)
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2) * 1) * 0.005)
               )
             camera.position.copy(center)
               .add(
@@ -806,7 +798,7 @@ const _makeIconString = (hash, ext, w, h) => {
           ctx.drawImage(frame, 0, 0);
           track.requestFrame();
           await new Promise((accept, reject) => {
-            setTimeout(accept, 1000/FPS);
+            setTimeout(accept, 1000 / FPS);
           });
         }
         mediaRecorder.stop();
@@ -883,11 +875,11 @@ const _makeIconString = (hash, ext, w, h) => {
       throw new Error('unknown output format: ' + type + ' ' + ext);
     }
 
-    toggleElements(true);
+    // toggleElements(true);
   } catch (err) {
     console.warn(err.stack);
 
-    toggleElements(null, err);
+    // toggleElements(null, err);
 
     if (dst) {
       fetch(dst, {
