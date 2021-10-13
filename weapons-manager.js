@@ -860,17 +860,15 @@ const _unequip = () => {
 }; */
 
 const grabUseMesh = (() => {
-  const o = new THREE.Object3D();
-  o.app = null;
-  o.target = null;
-  
+  const app = metaversefileApi.createApp();
   (async () => {
-    const app = await metaversefile.load('./metaverse_modules/button/');
-    o.add(app);
-    o.app = app;
+    await metaverseModules.waitForLoad();
+    const {modules} = metaversefileApi.useDefaultModules();
+    const m = modules['button'];
+    await app.addModule(m);
   })();
-  
-  return o;
+  app.target = null;
+  return app;
 })();
 grabUseMesh.visible = false;
 sceneLowPriority.add(grabUseMesh);
@@ -1037,9 +1035,7 @@ const _updateWeapons = (timestamp) => {
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
-        if (grabUseMesh.app) {
-          grabUseMesh.app.setComponent('value', weaponsManager.getUseSpecFactor(now));
-        }
+        grabUseMesh.setComponent('value', weaponsManager.getUseSpecFactor(now));
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
@@ -1064,9 +1060,7 @@ const _updateWeapons = (timestamp) => {
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
-          if (grabUseMesh.app) {
-            grabUseMesh.app.setComponent('value', weaponsManager.getUseSpecFactor(now));
-          }
+          grabUseMesh.setComponent('value', weaponsManager.getUseSpecFactor(now));
         }
       }
     }
