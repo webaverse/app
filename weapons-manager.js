@@ -2895,8 +2895,9 @@ const weaponsManager = {
     // Temporary vehicle exit for debugging, OK to remove
     let sitActionIndex = localPlayer.actions.findIndex(action => action.type === 'sit');
 
-    if(sitActionIndex !== -1)
-        localPlayer.actions.splice(sitActionIndex, 1);
+    if(sitActionIndex !== -1) {
+      localPlayer.actions.splice(sitActionIndex, 1);
+    }
     /////////////////////////////////////////////////
 
     if (!jumpAction) {
