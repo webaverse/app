@@ -32,8 +32,6 @@ class Player {
     this.grabs = [];
     this.wears = [];
     this.actions = [];
-
-    this.controlling = []; // Array of instanceIds the player is currently controlling
   }
 }
 class LocalPlayer extends Player {

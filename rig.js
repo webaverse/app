@@ -647,21 +647,7 @@ class RigManager {
         rig.update(now, timeDiff);
         // rig.aux.update(now, timeDiff);
       });
-
-      if(localPlayer.controlling.length > 0)
-      {
-        if (localPlayer.actions.some(action => action.type === 'jump')) 
-        {
-          const sitActionIndex = localPlayer.actions.findIndex(action => action.type === 'sit');
-
-          if(sitActionIndex !== -1)
-          {
-            localPlayer.actions.splice(sitActionIndex, 1);
-            localPlayer.controlling.length = 0;
-          }
-        }
-      }
-
+      
 
       this.lastTimetamp = now;
 
