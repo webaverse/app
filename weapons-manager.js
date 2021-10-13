@@ -28,9 +28,10 @@ import Avatar from './avatars/avatars.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import easing from './easing.js';
 import fx from './fx.js';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
+import * as metaverseModules from './metaverse-modules.js';
 
 const {appManager} = world;
 const {useLocalPlayer} = metaversefileApi;
@@ -2312,18 +2313,17 @@ const _selectTabDelta = offset => {
 }; */
 
 const metaverseUi = {
-  arrowLoader: null,
-};
-(async () => {
-  const m = await metaversefile.import('https://webaverse.github.io/arrow-loader/');
-  metaverseUi.arrowLoader = () => {
-    const app = metaversefile.createApp();
+  makeArrowLoader() {
+    const app = metaversefileApi.createApp();
     (async () => {
+      await metaverseModules.waitForLoad();
+      const {modules} = metaversefileApi.useDefaultModules();
+      const m = modules['arrowLoader'];
       await app.addModule(m);
     })();
     return app;
-  };
-})();
+  },
+};
 window.addEventListener('dragover', e => {
   e.preventDefault();
   // console.log('got drag over', e.dataTransfer);
@@ -2353,13 +2353,10 @@ window.addEventListener('drop', async e => {
     );
   const quaternion = camera.quaternion.clone();
   
-  let arrowLoader = null;
-  if (metaverseUi.arrowLoader) {
-    arrowLoader = metaverseUi.arrowLoader();
-    arrowLoader.position.copy(position);
-    arrowLoader.quaternion.copy(quaternion);
-    scene.add(arrowLoader);
-  }
+  let arrowLoader = metaverseUi.makeArrowLoader();
+  metaverseUi.arrowLoader.position.copy(position);
+  metaverseUi.arrowLoader.quaternion.copy(quaternion);
+  scene.add(arrowLoader);
   
   const items = Array.from(e.dataTransfer.items);
   await Promise.all(items.map(async item => {
