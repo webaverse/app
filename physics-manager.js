@@ -8,6 +8,7 @@ import ioManager from './io-manager.js';
 import {rigManager} from './rig.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
+import {world} from './world.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
@@ -98,9 +99,9 @@ const setSitTarget = newSitTarget => {
   sitTarget = newSitTarget;
 };
 physicsManager.setSitTarget = setSitTarget;
-let sitOffset = new THREE.Vector3();
+let _sitOffset = new THREE.Vector3();
 const setSitOffset = newSitOffset => {
-  sitOffset.fromArray(newSitOffset);
+  _sitOffset.fromArray(newSitOffset);
 };
 physicsManager.setSitOffset = setSitOffset;
 
@@ -572,20 +573,30 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       physicsManager.velocity.y = 0;
 
-      applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
+
+      let objInstanceId = sitAction.controllingId;
+      let controlledObj = world.getObjects().find(o => o.instanceId === objInstanceId);
+
+      const sitComponent = controlledObj.getComponent('sit');
+      const {sitOffset = [0, 0, 0], damping} = sitComponent;
+
+      physicsManager.setSitOffset(sitOffset);
+
+      applyVelocity(controlledObj.position, physicsManager.velocity, timeDiff);
       if (physicsManager.velocity.lengthSq() > 0) {
-        sitController.quaternion
+        controlledObj.quaternion
           .setFromUnitVectors(
             localVector4.set(0, 0, -1),
             localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
           )
           .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
-      sitController.updateMatrixWorld();
+      controlledObj.updateMatrixWorld();
 
-      localMatrix.copy(sitTarget.matrixWorld)
+      localMatrix.copy(controlledObj.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
-      localVector.add(sitOffset);
+      localVector.add(_sitOffset);
       localVector.y += 1;
       localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       
@@ -599,7 +610,8 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
     if (rigManager.localRig) {
       if (localPlayer.actions.some(action => action.type === 'jump')) {
-        rigManager.localRig.setFloorHeight(-0xFFFFFF);
+       rigManager.localRig.setFloorHeight(-0xFFFFFF);
+
       } else {
         rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
       }

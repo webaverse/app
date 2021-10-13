@@ -648,6 +648,7 @@ class RigManager {
         // rig.aux.update(now, timeDiff);
       });
       
+
       this.lastTimetamp = now;
 
       /* for (let i = 0; i < appManager.grabs.length; i++) {
