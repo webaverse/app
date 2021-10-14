@@ -236,6 +236,7 @@ const loadPromise = (async () => {
       animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
     } */
   });
+  
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -1346,7 +1347,7 @@ class Avatar {
     this.throwState = null;
     this.throwTime = 0;
     this.crouchState = false;
-    this.crouchTime = 0;
+    this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
 	}
   static bindAvatar(object) {
