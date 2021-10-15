@@ -414,6 +414,7 @@ export default function Header({
 }) {
 	// console.log('index 2');
   const previewCanvasRef = useRef();
+  const panelsRef = useRef();
 	
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
@@ -425,7 +426,9 @@ export default function Header({
   const [micOn, setMicOn] = useState(false);
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
-  const panelsRef = useRef();
+  
+  const localPlayer = metaversefile.useLocalPlayer();
+  const [wears, setWears] = useState(localPlayer.wears.slice());
   
   let [px, setPx] = useState(0);
   let [py, setPy] = useState(0);
@@ -485,6 +488,11 @@ export default function Header({
     };
     world.addEventListener('objectadd', update);
     world.addEventListener('objectremove', update);
+  }, []);
+  useEffect(() => {
+    localPlayer.addEventListener('wearupdate', e => {
+      setWears(localPlayer.wears.slice());
+    });
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
