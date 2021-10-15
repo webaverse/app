@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 // import {loginManager} from './login.js';
 import {rigManager} from './rig.js';
 import * as notifications from './notifications.js';

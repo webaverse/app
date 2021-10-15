@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 import * as THREE from 'three';
 // import runtime from './runtime.js';
 import {world} from './world.js';

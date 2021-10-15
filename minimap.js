@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
