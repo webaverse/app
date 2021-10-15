@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 // import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 // import * as blockchain from './blockchain.js';

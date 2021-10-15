@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';

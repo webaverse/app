@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 import {makePromise} from './util.js';
 import {localstorageHost} from './constants.js';
 

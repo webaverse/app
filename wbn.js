@@ -1,4 +1,4 @@
-throw new Error('lol');
+throw new Error('dead code');
 
 // modules are defined as an array
 // [ module function, map of requires ]
