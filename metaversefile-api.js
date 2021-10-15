@@ -323,6 +323,12 @@ metaversefile.setApi({
       },
     };
   },
+  createAvatar(o, options) {
+    return new Avatar(o, options);
+  },
+  useAvatarAnimations() {
+    return Avatar.getAnimations();
+  },
   useFrame(fn) {
     const app = currentAppRender;
     if (app) {
