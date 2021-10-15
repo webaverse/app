@@ -91,6 +91,20 @@
     },
     {
       "position": [
+        35,
+        0,
+        16
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/dragon-mount/"
+    },
+    {
+      "position": [
         -6,
         0.16,
         16

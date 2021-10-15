@@ -577,6 +577,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
       let objInstanceId = sitAction.controllingId;
       let controlledObj = world.getObjects().find(o => o.instanceId === objInstanceId);
+      let sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
 
       const sitComponent = controlledObj.getComponent('sit');
       const {sitOffset = [0, 0, 0], damping} = sitComponent;
@@ -594,8 +595,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       }
       controlledObj.updateMatrixWorld();
 
-      localMatrix.copy(controlledObj.matrixWorld)
+      localMatrix.copy(sitPos.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
+      
       localVector.add(_sitOffset);
       localVector.y += 1;
       localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
