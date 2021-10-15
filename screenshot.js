@@ -3,13 +3,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VOXLoader } from './VOXLoader.js';
 // import {bake, toggleElements} from './bakeUtils.js';
-import { getExt, parseQuery } from './util.js';
+import { getExt, makePromise, parseQuery } from './util.js';
 import Avatar from './avatars/avatars.js';
 import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
 //import * as metaverseModules from './metaverse-modules.js';
-import runtime from './runtime.js';
+import App from './app.js';
 import metaversefileApi from './metaversefile-api.js';
 
 
@@ -242,29 +242,32 @@ const _makeIconString = (hash, ext, w, h) => {
       let o;
       try {
         o = await metaversefileApi.load(url);
-        o.scene = o.children[0];
       } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
       } */
       console.log('loaded GLTF', o);
-      o = o.scene;
       return o;
     };
     const _loadVrm = async () => {
       let o;
       try {
         o = await metaversefileApi.load(url);
-        await new Promise((accept, reject) => {
+        let waitPromise;
 
-          o.dispatchEvent({
-            type: 'wearupdate',
-            wear: true,
-            waitUntil: accept
-          })
-        });
-        o.scene = o.children[0];
+        o.dispatchEvent({
+          type: 'wearupdate',
+          wear: true,
+          waitUntil(p) {
+            waitPromise = p;
+          },
+        })
+
+        if (waitPromise) {
+          await waitPromise;
+        }
+        o.scene = o.skinnedVrm.scene;
 
 
       } catch (err) {
@@ -272,7 +275,6 @@ const _makeIconString = (hash, ext, w, h) => {
       } /* finally {
         URL.revokeObjectURL(u);
       } */
-      console.log('loaded VRM', o);
 
       const rig = new Avatar(o, {
         fingers: true,
@@ -293,7 +295,6 @@ const _makeIconString = (hash, ext, w, h) => {
       let o;
       try {
         o = await metaversefileApi.load(url);
-        o.scene = o.children[0];
       } catch (err) {
         console.warn(err);
       } /* finally {
@@ -305,7 +306,7 @@ const _makeIconString = (hash, ext, w, h) => {
       let o;
       try {
         o = await metaversefileApi.load(url);
-        o.scene = o.children[0];
+        //o.scene = o.children[0];
       } catch (err) {
         console.warn(err);
       } /* finally {
@@ -399,8 +400,6 @@ const _makeIconString = (hash, ext, w, h) => {
             console.warn(err);
           }
           if (o) {
-            debugger;
-
             scene.add(o);
 
             const boundingBox = new THREE.Box3().setFromObject(o);
@@ -482,7 +481,6 @@ const _makeIconString = (hash, ext, w, h) => {
               };
 
               const skinnedMeshes = [];
-              debugger;
               o.traverse(o => {
                 if (o.isSkinnedMesh) {
                   skinnedMeshes.push(o);
