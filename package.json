@@ -30,7 +30,8 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "three": "^0.133.1",
-    "wsrtc": "./packages/wsrtc"
+    "wsrtc": "./packages/wsrtc",
+    "xhr2": "^0.2.1"
   },
   "repository": {
     "type": "git",

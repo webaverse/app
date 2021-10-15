@@ -1,13 +1,18 @@
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { downloadFile, parseQuery } from './util.js';
 import CBOR from './cbor.js';
+import XMLHttpRequest from 'xhr2';
+global.XMLHttpRequest = XMLHttpRequest;
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import * as THREE from 'three';
+import fs from 'fs';
 
-const baker = async (animationFileNames, reversibleAnimationNames = [], uriPath = "") => {
+
+
+const baker = async (uriPath = "", animationFileNames, reversibleAnimationNames = []) => {
     let animations = [];
     const fbxLoader = new FBXLoader();
     for (const name of animationFileNames) {
-        const u = uriPath + './animations/' + encodeURIComponent(name);
+        const u = uriPath + './animations/' + name;
         let o;
         o = await new Promise((accept, reject) => {
             fbxLoader.load(u, accept, function progress() { }, reject);
@@ -54,17 +59,11 @@ const baker = async (animationFileNames, reversibleAnimationNames = [], uriPath 
     //console.log('decoding 2', CBOR.decode(animationsCborBuffer));
     animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
     //console.log('exporting', animations);
-    downloadFile(new Blob([animationsCborBuffer], {
-        type: 'application/cbor',
-    }), 'animations.cbor');
+    fs.writeFileSync('animations.cbor', '');
+    fs.appendFileSync('animations.cbor', Buffer.from(animationsCborBuffer))
 }
 
-
-(async () => {
-    let { files, reverse } = parseQuery(decodeURIComponent(window.location.search));
-    files = files.split(',');
-    await baker(files, reverse);
-})();
+// baker('http://localhost:3000/', ['falling.fbx']);
 
 
 export default baker;
