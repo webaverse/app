@@ -50,7 +50,7 @@
 ```bash
 $ git clone --recurse-submodules https://github.com/webaverse/app.git
 $ cd app/
-$ npm run install
+$ npm install
 $ node index
 ```
 
