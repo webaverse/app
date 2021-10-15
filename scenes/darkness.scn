@@ -1,0 +1,81 @@
+{
+  "objects": [
+    {
+      "type": "application/background",
+      "content": {
+        "color": [0, 0, 0]
+      }
+    },
+    {
+      "position": [
+        0,
+        -2,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/treehouse/"
+    },
+    {
+      "type": "application/group",
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "content": {
+        "objects": [
+          {
+            "start_url": "https://webaverse.github.io/lantern/"
+          },
+          {
+            "type": "application/light",
+            "content": {
+              "lightType": "point",
+              "args": [[255, 255, 255], 1, 2]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "application/group",
+      "position": [
+        -3,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "content": {
+        "objects": [
+          {
+            "start_url": "../fairy/"
+          },
+          {
+            "type": "application/light",
+            "content": {
+              "lightType": "point",
+              "args": [[255, 255, 255], 1, 2]
+            },
+            "position": [0, 0, 0.2]
+          }
+        ]
+      }
+    }
+  ]
+}
