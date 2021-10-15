@@ -25,7 +25,7 @@ import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
-import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas, } from './app-object.js';
+import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 import TransformGizmo from './TransformGizmo.js';
 // import WSRTC from 'wsrtc/wsrtc.js';
