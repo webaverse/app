@@ -638,6 +638,7 @@ export default () => {
     const renderer = getRenderer();
     return {
       renderer,
+      scene,
       camera,
       sceneHighPriority,
       iframeContainer,
