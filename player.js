@@ -17,10 +17,10 @@ class PlayerHand {
     this.quaternion = new THREE.Quaternion();
   }
 }
-class Player {
+class Player extends THREE.Object3D {
   constructor() {
-    this.position = new THREE.Vector3();
-    this.quaternion = new THREE.Quaternion();
+    super();
+
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
     this.hands = [
