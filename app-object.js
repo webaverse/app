@@ -11,7 +11,7 @@ function bindCanvas(c) {
   context = canvas && canvas.getContext('webgl2', {
     antialias: true,
     alpha: true,
-    preserveDrawingBuffer: false,
+    // preserveDrawingBuffer: false,
     xrCompatible: true,
   });
   renderer = new THREE.WebGLRenderer({
