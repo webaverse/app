@@ -64,6 +64,11 @@ class LocalPlayer extends Player {
         instanceId,
       });
       this.ungrab();
+      
+      this.dispatchEvent({
+        type: 'wearupdate',
+        app,
+      });
     } else {
       console.warn('cannot wear app with no wear component');
     }
