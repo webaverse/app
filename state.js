@@ -1,3 +1,4 @@
+new Error('dead code')
 export const defaultState = {
     isXR: false,
     pointerLock: false,
