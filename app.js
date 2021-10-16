@@ -350,9 +350,9 @@ export default class WebaverseApp extends EventTarget {
       ioManager.update(timeDiffCapped);
       // universe.update();
       if (this.contentLoaded) {
-        if (controlsManager.isPossessed()) {
+        // if (controlsManager.isPossessed()) {
           physicsManager.update(timeDiffCapped);
-        }
+        // }
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
@@ -472,7 +472,7 @@ export default class WebaverseApp extends EventTarget {
       };
       _updateRig();
 
-      controlsManager.update();
+      // controlsManager.update();
       transformControls.update();
       weaponsManager.update(timestamp);
       hpManager.update(timestamp, timeDiffCapped);
