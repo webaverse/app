@@ -68,11 +68,6 @@ const sessionOpts = {
   ],
 };
 
-let xrscenetexture = null;
-let xrsceneplane = null;
-let xrscenecam = null;
-let xrscene = null;
-
 const frameEvent = (() => {
   const now = Date.now();
   return new MessageEvent('frame', {
@@ -501,51 +496,6 @@ export default class WebaverseApp extends EventTarget {
       this.render();
       // this.renderMinimap();
       // this.renderDom();
-
-      /* const _mirrorRender = () => {
-        if (session && document.visibilityState == 'visible') {
-          const {baseLayer} = session.renderState;
-          const w = baseLayer.framebufferWidth * renderer.getPixelRatio() / 2;
-          const h = baseLayer.framebufferHeight * renderer.getPixelRatio();
-          if (
-           !xrscenetexture ||
-           (xrscenetexture.image.width !== w) ||
-           (xrscenetexture.image.height !== h)
-          ) {
-            xrscenetexture = new THREE.DataTexture(null, w, h, THREE.RGBAFormat);
-            xrscenetexture.minFilter = THREE.NearestFilter;
-            xrscenetexture.magFilter = THREE.NearestFilter;
-          }
-          if (!xrscene) {
-            xrscene = new THREE.Scene();
-            
-            const geometry = new THREE.PlaneBufferGeometry(1, 1);
-            const material = new THREE.MeshBasicMaterial({
-              map: xrscenetexture,
-              // side: THREE.DoubleSide,
-              color: 0xffffff,
-            });
-            xrsceneplane = new THREE.Mesh(geometry, material);
-            xrscene.add(xrsceneplane);
-
-            xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
-            xrscene.add(xrscenecam);
-          }
-
-          renderer.xr.enabled = false;
-          renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
-          renderer.state.bindXRFramebuffer(null);
-
-          const oldOutputEncoding = renderer.outputEncoding;
-          renderer.outputEncoding = THREE.LinearEncoding;
-          renderer.clear();
-          renderer.setViewport(0, 0, canvas.width, canvas.height);
-          renderer.render(xrscene, xrscenecam);
-          renderer.xr.enabled = true;
-          renderer.outputEncoding = oldOutputEncoding;
-        }
-      };
-      _mirrorRender(); */
     }
     renderer.setAnimationLoop(animate);
   }
