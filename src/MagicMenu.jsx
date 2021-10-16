@@ -22,7 +22,7 @@ const openAiKey = (() => {
   return localStorage.getItem('openAiKey') || null;
 })();
 
-window.metaversefile = metaversefile; // XXX
+// window.metaversefile = metaversefile; // XXX
 const makeAi = prompt => {
   if (openAiKey) {
     const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(openAiKey)}`);
