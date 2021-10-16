@@ -1,3 +1,4 @@
+throw new Error('dead code')
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {scene} from './app-object.js';

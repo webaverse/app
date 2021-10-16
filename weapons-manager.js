@@ -14,7 +14,7 @@ import {rigManager} from './rig.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import activateManager from './activate-manager.js';
-import dropManager from './drop-manager.js';
+// import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
@@ -1365,7 +1365,7 @@ const _updateWeapons = (timestamp) => {
   };
   _handleUseAnimation(); */
   
-  const _handleThrowDrop = () => {
+  /* const _handleThrowDrop = () => {
     const localPlayer = useLocalPlayer();
     const throwAction = localPlayer.actions.find(action => action.type === 'throw');
     const throwTime = throwAction ? throwAction.time : 0;
@@ -1379,7 +1379,7 @@ const _updateWeapons = (timestamp) => {
       droppedThrow = true;
     }
   };
-  _handleThrowDrop();
+  _handleThrowDrop(); */
 
   const _handleClosestObject = () => {
     const objects = world.getObjects();
