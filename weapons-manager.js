@@ -1,3 +1,8 @@
+/*
+this file contains the main game logic tying together the managers.
+general game logic goes here.
+*/
+
 import * as THREE from 'three';
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
