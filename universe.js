@@ -1,3 +1,7 @@
+/*
+this file contains the multiplayer code.
+*/
+
 import * as THREE from 'three';
 import {rigManager} from './rig.js';
 import {getRenderer, scene, camera, dolly} from './app-object.js';
