@@ -415,10 +415,6 @@ world.clear = ({dynamic = true} = {}) => {
   }));
 };
 
-world.initializeIfEmpty = spec => {
-  console.log('initialize if empty', spec); // XXX
-};
-
 world.getObjects = () => objects.dynamic.slice();
 world.setTrackedObjectTransform = (name, p, q, s) => {
   const dynamic = true;
