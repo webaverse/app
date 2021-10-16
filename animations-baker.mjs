@@ -1,4 +1,4 @@
-import CBOR from 'cbor';
+import CBOR from './cbor.mjs';
 import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -64,9 +64,9 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
         animations: animationsJson,
     });
     //console.log('decoding 1', animationsCborBuffer);
-    //console.log('decoding 2', CBOR.decode(animationsCborBuffer));
-    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+    CBOR.decode(animationsCborBuffer);
     console.log('exporting animations');
+    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
     fs.writeFileSync(outFile, Buffer.from(animationsCborBuffer));
     console.log('exported animations at', outFile);
 }
