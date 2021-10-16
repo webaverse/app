@@ -583,9 +583,6 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     _bindTransforms();
 
-    const objects = _getObjects(true);
-    objects.push(app);
-
     const _bindDestroy = () => {
       app.addEventListener('destroy', () => {
         objects.splice(objects.indexOf(app), 1);
@@ -606,6 +603,9 @@ world.addEventListener('trackedobjectadd', async e => {
       });
     };
     _bindDestroy();
+    
+    const objects = _getObjects(true);
+    objects.push(app);
 
     world.dispatchEvent(new MessageEvent('objectadd', {
       data: app,
