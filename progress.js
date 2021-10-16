@@ -1,3 +1,4 @@
+throw new Error('dead code')
 import './nanobar.js';
 
 const nanobar = new Nanobar({
