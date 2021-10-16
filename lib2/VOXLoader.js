@@ -1,1 +1,0 @@
-export {VOXLoader} from 'runtime';
