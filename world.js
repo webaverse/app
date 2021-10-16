@@ -1,3 +1,7 @@
+/*
+this file contains the singleplayer code.
+*/
+
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 import * as Y from 'yjs';
