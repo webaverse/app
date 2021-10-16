@@ -582,29 +582,6 @@ world.addEventListener('trackedobjectadd', async e => {
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
     };
     _bindTransforms();
-    
-    const _bindHitTracker = () => {
-      const hitTracker = hpManager.makeHitTracker();
-      app.parent.add(hitTracker);
-      hitTracker.add(app);
-      app.hitTracker = hitTracker;
-
-      const frame = e => {
-        const {timeDiff} = e.data;
-        hitTracker.update(timeDiff);
-      };
-      world.appManager.addEventListener('frame', frame);
-      app.addEventListener('destroy', () => {
-        hitTracker.parent.remove(hitTracker);
-        world.appManager.removeEventListener('frame', frame);
-      });
-      
-      app.addEventListener('die', () => {
-        metaversefile.removeApp(app);
-        app.destroy();
-      });
-    };
-    _bindHitTracker();
 
     const objects = _getObjects(true);
     objects.push(app);
@@ -641,7 +618,6 @@ world.addEventListener('trackedobjectadd', async e => {
     cleanup();
   }
 });
-
 world.addEventListener('trackedobjectremove', async e => {
   const {instanceId, trackedObject, dynamic} = e.data;
   const objects = _getObjects(dynamic);
@@ -659,6 +635,33 @@ world.addEventListener('trackedobjectremove', async e => {
     console.warn('remove for non-tracked object', instanceId);
   }
 });
+world.addEventListener('objectadd', e => {
+  const app = e.data;
+  
+  const _bindHitTracker = () => {
+    const hitTracker = hpManager.makeHitTracker();
+    app.parent.add(hitTracker);
+    hitTracker.add(app);
+    app.hitTracker = hitTracker;
+
+    const frame = e => {
+      const {timeDiff} = e.data;
+      hitTracker.update(timeDiff);
+    };
+    world.appManager.addEventListener('frame', frame);
+    app.addEventListener('destroy', () => {
+      hitTracker.parent.remove(hitTracker);
+      world.appManager.removeEventListener('frame', frame);
+    });
+    
+    app.addEventListener('die', () => {
+      metaversefile.removeApp(app);
+      app.destroy();
+    });
+  };
+  _bindHitTracker();
+});
+
 world.isObject = object => objects.includes(object);
 
 world.bindInput = () => {
