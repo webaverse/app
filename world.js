@@ -612,8 +612,7 @@ world.addEventListener('objectadd', e => {
   };
   _bindHitTracker();
 });
-
-world.isObject = object => objects.includes(object);
+// world.isObject = object => objects.includes(object);
 
 world.bindInput = () => {
   window.addEventListener('resize', e => {
