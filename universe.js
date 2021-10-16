@@ -232,8 +232,6 @@ const enterWorld = async worldSpec => {
     }
     
     await Promise.all(promises);
-
-    // world.initializeIfEmpty(universeSpecs.initialScene);
   };
   await _doLoad().catch(err => {
     console.warn(err);
