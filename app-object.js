@@ -1,9 +1,9 @@
-import * as THREE from 'three';
-
 /*
 this file contains tha main objects we use for rendering.
 the purpose of this file is to hold these objects and to make sure they are correctly configured (e.g. handle canvas resize)
 */
+
+import * as THREE from 'three';
 
 let canvas = null, context = null, renderer = null;
 
