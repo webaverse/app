@@ -651,9 +651,9 @@ world.addEventListener('trackedobjectadd', async e => {
       pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
     } */
 
-    world.dispatchEvent(new MessageEvent('objectadd', {
+    /* world.dispatchEvent(new MessageEvent('objectadd', {
       data: app,
-    }));
+    })); */
 
     p.accept(app);
   } catch (err) {
@@ -679,9 +679,9 @@ world.addEventListener('trackedobjectremove', async e => {
       transformControls.bind(null);
     } */
 
-    world.dispatchEvent(new MessageEvent('objectremove', {
+    /* world.dispatchEvent(new MessageEvent('objectremove', {
       data: object,
-    }));
+    })); */
   } else {
     console.warn('remove for non-tracked object', instanceId);
   }
