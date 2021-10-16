@@ -403,16 +403,10 @@ world.disconnectRoom = () => {
   return wsrtc;
 };
 world.clear = ({dynamic = true} = {}) => {
-  /* const staticObjects = world.getStaticObjects();
-  for (const object of staticObjects) {
-    world.removeStaticObject(object.instanceId);
-  } */
   const objects = _getObjects(true)
     .slice();
   for (const object of objects) {
-    // if (!predicate(object)) {
-      world.removeObject(object.instanceId);
-    // }
+    world.removeObject(object.instanceId);
   }
   world.dispatchEvent(new MessageEvent('clear', {
     data: {
@@ -426,8 +420,6 @@ world.initializeIfEmpty = spec => {
 };
 
 world.getObjects = () => objects.dynamic.slice();
-// world.getStaticObjects = () => objects.static.slice();
-// world.getTrackedObject = name => _getTrackedObject(name, true);
 world.setTrackedObjectTransform = (name, p, q, s) => {
   const dynamic = true;
   const state = _getState(dynamic);
