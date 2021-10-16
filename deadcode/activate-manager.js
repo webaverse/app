@@ -1,3 +1,4 @@
+throw new Error('dead code')
 import * as THREE from 'three';
 import geometryManager from './geometry-manager.js';
 import physicsManager from './physics-manager.js';
