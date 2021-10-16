@@ -548,7 +548,6 @@ world.addEventListener('trackedobjectadd', async e => {
     for (const {key, value} of components) {
       app.setComponent(key, value);
     }
-    // app.contentId = contentId;
     metaversefile.addApp(app);
     mesh = await app.addModule(m);
     if (!live) return _bailout(app);
@@ -631,6 +630,10 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     _bindDestroy();
 
+    world.dispatchEvent(new MessageEvent('objectadd', {
+      data: app,
+    }));
+
     p.accept(app);
   } catch (err) {
     p.reject(err);
@@ -647,13 +650,11 @@ world.addEventListener('trackedobjectremove', async e => {
     const object = objects[index];
     object.destroy && object.destroy();
     metaversefile.removeApp(object);
-    // object.parent.remove(object);
     trackedObject.unobserve();
 
-    /* const binding = transformControls.getBinding();
-    if (binding === object) {
-      transformControls.bind(null);
-    } */
+    world.dispatchEvent(new MessageEvent('objectremove', {
+      data: object,
+    }));
   } else {
     console.warn('remove for non-tracked object', instanceId);
   }
