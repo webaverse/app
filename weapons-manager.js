@@ -18,7 +18,7 @@ import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
-import controlsManager from './controls-manager.js';
+// import controlsManager from './controls-manager.js';
 // import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
@@ -1387,7 +1387,7 @@ const _updateWeapons = (timestamp) => {
       let closestObject;
       
       if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
-        if (controlsManager.isPossessed() && cameraManager.getMode() !== 'firstperson') {
+        if (/*controlsManager.isPossessed() &&*/ cameraManager.getMode() !== 'firstperson') {
           rigManager.localRigMatrix.decompose(
             localVector,
             localQuaternion,
@@ -1409,7 +1409,7 @@ const _updateWeapons = (timestamp) => {
             closestObject = closestDistanceSpec.object;
           }
         } else {
-          if ((!!rigManager.localRig && controlsManager.isPossessed() && cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
+          if ((!!rigManager.localRig && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
@@ -1451,8 +1451,8 @@ const _updateWeapons = (timestamp) => {
       
       if (
         !weaponsManager.getMouseSelectedObject() &&
-        !weaponsManager.contextMenu &&
-        controlsManager.isPossessed()
+        !weaponsManager.contextMenu /* &&
+        controlsManager.isPossessed() */
       ) {
         rigManager.localRigMatrix.decompose(
           localVector,
