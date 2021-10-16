@@ -13,7 +13,7 @@ import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
 // import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
-import controlsManager from './controls-manager.js';
+// import controlsManager from './controls-manager.js';
 import weaponsManager from './weapons-manager.js';
 import hpManager from './hp-manager.js';
 // import activateManager from './activate-manager.js';
@@ -245,7 +245,7 @@ export default class WebaverseApp extends EventTarget {
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
-      const decapitated = controlsManager.isPossessed() && (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
+      const decapitated = /*controlsManager.isPossessed() &&*/ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
       if (decapitated) {
         rigManager.localRig.decapitate();
         // rigManager.localRig.aux.decapitate();
@@ -276,13 +276,13 @@ export default class WebaverseApp extends EventTarget {
       const cameraOffset = cameraManager.getCameraOffset();
       cameraOffset.z = 0;
     }
-    controlsManager.setPossessed(!!url);
+    // controlsManager.setPossessed(!!url);
     /* if (!url) {
       rigManager.setLocalRigMatrix(null);
     } */
   }
   setPossessed(possessed) {
-    controlsManager.setPossessed(possessed);
+    // controlsManager.setPossessed(possessed);
   }
   async possess(object) {
     await cameraManager.requestPointerLock();
@@ -350,9 +350,9 @@ export default class WebaverseApp extends EventTarget {
       ioManager.update(timeDiffCapped);
       // universe.update();
       if (this.contentLoaded) {
-        if (controlsManager.isPossessed()) {
+        // if (controlsManager.isPossessed()) {
           physicsManager.update(timeDiffCapped);
-        }
+        // }
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
@@ -472,7 +472,7 @@ export default class WebaverseApp extends EventTarget {
       };
       _updateRig();
 
-      controlsManager.update();
+      // controlsManager.update();
       transformControls.update();
       weaponsManager.update(timestamp);
       hpManager.update(timestamp, timeDiffCapped);
