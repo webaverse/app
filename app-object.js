@@ -1,6 +1,9 @@
 import * as THREE from 'three';
-// import {CSS3DRenderer} from './CSS3DRenderer.js';
-// import {addDefaultLights} from './util.js';
+
+/*
+this file contains tha main objects we use for rendering.
+the purpose of this file is to hold these objects and to make sure they are correctly configured (e.g. handle canvas resize)
+*/
 
 let canvas = null, context = null, renderer = null;
 
