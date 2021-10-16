@@ -1,18 +1,25 @@
-import { downloadFile, parseQuery } from './util.js';
-import CBOR from './cbor.js';
+import CBOR from 'cbor';
 import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import * as THREE from 'three';
 import fs from 'fs';
+import express from 'express';
+import path from 'path';
 
 
+if (process.argv.length < 4) {
+    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode baker.js dir/files*.fbx ani.cbor\n\n`);
+    process.exit();
+}
 
-const baker = async (uriPath = "", animationFileNames, reversibleAnimationNames = []) => {
+
+const baker = async (uriPath = "", animationFileNames, outFile) => {
     let animations = [];
+    let reversibleAnimationNames = [];
     const fbxLoader = new FBXLoader();
     for (const name of animationFileNames) {
-        const u = uriPath + './animations/' + name;
+        const u = uriPath + name;
         let o;
         o = await new Promise((accept, reject) => {
             fbxLoader.load(u, accept, function progress() { }, reject);
@@ -50,6 +57,7 @@ const baker = async (uriPath = "", animationFileNames, reversibleAnimationNames 
         reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
         animations.push(reverseAnimation);
     }
+
     const animationsJson = animations.map(a => a.toJSON());
     const animationsString = JSON.stringify(animationsJson);
     const animationsCborBuffer = CBOR.encode({
@@ -58,12 +66,29 @@ const baker = async (uriPath = "", animationFileNames, reversibleAnimationNames 
     //console.log('decoding 1', animationsCborBuffer);
     //console.log('decoding 2', CBOR.decode(animationsCborBuffer));
     animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-    //console.log('exporting', animations);
-    fs.writeFileSync('animations.cbor', '');
-    fs.appendFileSync('animations.cbor', Buffer.from(animationsCborBuffer))
+    console.log('exporting animations');
+    fs.writeFileSync(outFile, Buffer.from(animationsCborBuffer));
+    console.log('exported animations at', outFile);
 }
 
+
+
+(async () => {
+    const app = express();
+    app.use(express.static(path.dirname(process.argv[2])))
+    app.listen(9999);
+    const filesToBake = [];
+    for (let index = 2; index < process.argv.length - 1; index++) {
+        const element = process.argv[index];
+        filesToBake.push(path.basename(element));
+    }
+    await baker('http://localhost:9999/', filesToBake, process.argv[process.argv.length - 1]).catch((e) => {
+        console.warn(e);
+    })
+    process.exit();
+})();
+
+
+
+
 // baker('http://localhost:3000/', ['falling.fbx']);
-
-
-export default baker;
