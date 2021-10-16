@@ -537,7 +537,7 @@ world.addEventListener('trackedobjectadd', async e => {
       app.setComponent(key, value);
     }
     metaversefile.addApp(app);
-    mesh = await app.addModule(m);
+    const mesh = await app.addModule(m);
     if (!live) return _bailout(app);
     if (!mesh) {
       console.warn('failed to load object', {contentId});
