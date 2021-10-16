@@ -9,7 +9,7 @@ import path from 'path';
 
 
 if (process.argv.length < 4) {
-    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode baker.js dir/files*.fbx ani.cbor\n\n`);
+    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animation-baker.mjs dir/files*.fbx ani.cbor\n\n`);
     process.exit();
 }
 
