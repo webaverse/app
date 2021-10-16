@@ -1,3 +1,4 @@
+new Error('dead code')
 import * as THREE from 'three';
 import {scene, camera} from './app-object.js';
 import physicsManager from './physics-manager.js';

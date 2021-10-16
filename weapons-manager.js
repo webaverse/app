@@ -27,7 +27,7 @@ import {getExt, bindUploadFileButton, snapPosition} from './util.js';
 import Avatar from './avatars/avatars.js';
 import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
 import easing from './easing.js';
-import fx from './fx.js';
+// import fx from './fx.js';
 // import metaversefile from 'metaversefile';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
