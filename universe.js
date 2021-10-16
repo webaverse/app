@@ -22,7 +22,7 @@ const localBox = new THREE.Box3();
 const localBox2 = new THREE.Box3();
 const localObject = new THREE.Object3D();
 
-let arrowMesh = null;
+/* let arrowMesh = null;
 const bindInterface = () => {
   const q = parseQuery(location.search);
   const coord = parseCoord(q.c);
@@ -97,14 +97,12 @@ const warpMesh = (() => {
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  window.mesh = mesh;
   mesh.frustumCulled = false;
   return mesh;
 })();
 warpMesh.visible = false;
 scene.add(warpMesh);
 
-let currentWorld = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
@@ -119,7 +117,7 @@ const update = () => {
     warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
     warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
-};
+}; */
 /* const _invertGeometry = geometry => {
   for (let i = 0; i < geometry.index.array.length; i += 3) {
     const tmp = geometry.index.array[i];
@@ -137,6 +135,7 @@ const update = () => {
     return [];
   }
 }; */
+let currentWorld = null;
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
   ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
 const enterWorld = async worldSpec => {
@@ -264,8 +263,8 @@ const handleUrlUpdate = async () => {
 };
 
 export {
-  bindInterface,
-  update,
+  // bindInterface,
+  // update,
   // getParcels,
   enterWorld,
   reload,

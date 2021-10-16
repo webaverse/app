@@ -134,7 +134,7 @@ export default class WebaverseApp extends EventTarget {
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
-    universe.bindInterface();
+    // universe.bindInterface();
     // weaponsManager.bindInterface();
     // inventoryBindInterface();
     // mithrilInit();
@@ -353,7 +353,7 @@ export default class WebaverseApp extends EventTarget {
       appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
-      universe.update();
+      // universe.update();
       if (this.contentLoaded) {
         if (controlsManager.isPossessed()) {
           physicsManager.update(timeDiffCapped);
