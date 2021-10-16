@@ -1,1 +1,0 @@
-export {GLTFExporter} from 'runtime';
