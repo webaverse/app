@@ -168,12 +168,6 @@ class AppManager extends EventTarget {
       this.apps.splice(appIndex, 1);
     }
   }
-  getApp(appId) {
-    return this.apps.find(app => app.appId === appId);
-  }
-  getGrab(side) {
-    return this.grabbedObjects[side === 'left' ? 1 : 0];
-  }
   pretick(timestamp, frame) {
     localData.timestamp = timestamp;
     localData.frame = frame;
