@@ -10,11 +10,11 @@ import {pointers} from './web-monetization.js';
 import {camera, scene, sceneHighPriority} from './app-object.js';
 import {baseUnit} from './constants.js';
 import {unFrustumCull} from './util.js';
-import {
+/* import {
   storageHost,
-  // worldsHost,
+  worldsHost,
   tokensHost,
-} from './constants.js';
+} from './constants.js'; */
 import {makePromise, getRandomString, makeId} from './util.js';
 import metaversefile from './metaversefile-api.js';
 
@@ -25,25 +25,20 @@ world.appManager = appManager;
 
 world.lights = new THREE.Object3D();
 
-// static states are local and non-user editable
-// dynamic states are multiplayer and user-editable
-const states = {
-  static: null,
-  dynamic: null,
-};
-const _newState = dynamic => {
-  const k = dynamic ? 'dynamic' : 'static';
+let state = null;
+const objects = [];
+
+const _newState = () => {
   const newState = new Y.Doc();
-  states[k] = newState;
-  _bindState(dynamic, newState);
+  state = newState;
+  _bindState(newState);
 };
-const _getState = dynamic => dynamic ? states.dynamic : states.static;
-const _setState = (dynamic, newState) => {
-  const k = dynamic ? 'dynamic' : 'static';
-  states[k] = newState;
-  _bindState(dynamic, newState);
+const _getState = () => state;
+const _setState = newState => {
+  state = newState;
+  _bindState(newState);
 };
-const _bindState = (dynamic, state) => {
+const _bindState = state => {
   const objects = state.getArray('objects');
   let lastObjects = [];
   objects.observe(() => {
@@ -51,11 +46,10 @@ const _bindState = (dynamic, state) => {
 
     for (const name of nextObjects) {
       if (!lastObjects.includes(name)) {
-        const trackedObject = _getOrCreateTrackedObject(name, dynamic);
+        const trackedObject = _getOrCreateTrackedObject(name);
         world.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: {
             trackedObject,
-            dynamic,
           },
         }));
       }
@@ -67,7 +61,6 @@ const _bindState = (dynamic, state) => {
           data: {
             instanceId: name,
             trackedObject,
-            dynamic,
           },
         }));
       }
@@ -76,13 +69,11 @@ const _bindState = (dynamic, state) => {
     lastObjects = nextObjects;
   });
 };
-_newState(true);
-_newState(false);
-const objects = {
-  static: [],
-  dynamic: [],
-};
-const _getObjects = dynamic => objects[dynamic ? 'dynamic' : 'static'];
+_newState();
+
+const _getObjects = () => objects.slice();
+world.getObjects = _getObjects;
+// const _getObjects = dynamic => objects[dynamic ? 'dynamic' : 'static'];
 /* const _swapState = () => {
   {
     const {static: _static, dynamic} = states;
@@ -95,7 +86,6 @@ const _getObjects = dynamic => objects[dynamic ? 'dynamic' : 'static'];
     objects.dynamic = _static;
   }
 }; */
-
 world.newState = _newState;
 world.getState = _getState;
 world.setState = _setState;
@@ -103,13 +93,13 @@ world.setState = _setState;
 // multiplayer
 let wsrtc = null;
 
-const _getTrackedObject = (name, dynamic) => {
-  const state = _getState(dynamic);
+const _getTrackedObject = name => {
+  const state = _getState();
   const objects = state.getArray('objects');
   return state.getMap('objects.' + name);
 };
-const _getOrCreateTrackedObject = (name, dynamic) => {
-  const state = _getState(dynamic);
+const _getOrCreateTrackedObject = name => {
+  const state = _getState();
   const objects = state.getArray('objects');
 
   let hadObject = false;
@@ -220,7 +210,7 @@ world.connectRoom = async (worldURL) => {
   // _lockAllObjects();
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
-  world.setState(true, wsrtc.room.state);
+  world.setState(wsrtc.room.state);
   if (mediaStream) {
     wsrtc.enableMic(mediaStream);
   }
@@ -373,50 +363,28 @@ world.connectRoom = async (worldURL) => {
     wsrtc.dispatchEvent(new MessageEvent('close'));
   })(wsrtc.close);
 
-  // states.dynamic = wsrtc.state;
-  // _bindState(states.dynamic, true);
-
   return wsrtc;
 };
 world.disconnectRoom = () => {
   if (wsrtc) {
     wsrtc.close();
     wsrtc = null;
-    
-    // remove dynamic objects
+
     world.clear();
-    // swap static objects back in
-    // _swapState();
-
-    world.newState(true);
-
-    /* const localObjects = objects.objects.dynamic.slice();
-    for (const object of localObjects) {
-      world.removeObject(object.instanceId);
-    }
-
-    states.dynamic = new Y.Doc();
-    _bindState(states.dynamic, true); */
+    world.newState();
   }
   return wsrtc;
 };
-world.clear = ({dynamic = true} = {}) => {
-  const objects = _getObjects(true)
-    .slice();
+world.clear = () => {
+  const objects = _getObjects();
   for (const object of objects) {
     world.removeObject(object.instanceId);
   }
-  world.dispatchEvent(new MessageEvent('clear', {
-    data: {
-      dynamic,
-    },
-  }));
+  world.dispatchEvent(new MessageEvent('clear'));
 };
 
-world.getObjects = () => objects.dynamic.slice();
 world.setTrackedObjectTransform = (name, p, q, s) => {
-  const dynamic = true;
-  const state = _getState(dynamic);
+  const state = _getState();
   state.transact(function tx() {
     const objects = state.getArray('objects');
     const trackedObject = state.getMap('objects.' + name);
@@ -427,11 +395,11 @@ world.setTrackedObjectTransform = (name, p, q, s) => {
 };
 let pendingAddPromise = null;
 
-const _addObject = dynamic => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
-  const state = _getState(dynamic);
+const _addObject = (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
+  const state = _getState();
   const instanceId = getRandomString();
   state.transact(function tx() {
-    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
+    const trackedObject = _getOrCreateTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
@@ -450,8 +418,8 @@ const _addObject = dynamic => (contentId, position = new THREE.Vector3(), quater
     throw new Error('no pending world add object promise');
   }
 };
-const _removeObject = (dynamic) => removeInstanceId => {
-  const state = _getState(dynamic);
+const _removeObject = removeInstanceId => {
+  const state = _getState();
   state.transact(() => {
     // const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     // if (index === -1) pointers.splice(index, 1);
@@ -473,16 +441,16 @@ const _removeObject = (dynamic) => removeInstanceId => {
         }
       }
     } else {
-      console.warn('invalid remove instance id', {dynamic, removeInstanceId, objectsJson});
+      console.warn('invalid remove instance id', {removeInstanceId, objectsJson});
     }
   });
 };
-world.addObject = _addObject(true);
-world.removeObject = _removeObject(true);
-world.addStaticObject = _addObject(false);
-world.removeStaticObject = _removeObject(false);
+world.addObject = _addObject;
+world.removeObject = _removeObject;
+/* world.addStaticObject = _addObject(false);
+world.removeStaticObject = _removeObject(false); */
 world.addEventListener('trackedobjectadd', async e => {
-  const {trackedObject, dynamic} = e.data;
+  const {trackedObject} = e.data;
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
   const components = JSON.parse(componentsString);
@@ -493,10 +461,8 @@ world.addEventListener('trackedobjectadd', async e => {
   let live = true;
   
   const clear = e => {
-    if (e.data.dynamic === dynamic) {
-      live = false;
-      cleanup();
-    }
+    live = false;
+    cleanup();
   };
   const cleanup = () => {
     world.removeEventListener('clear', clear);
@@ -590,7 +556,6 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     _bindDestroy();
     
-    const objects = _getObjects(true);
     objects.push(app);
 
     world.dispatchEvent(new MessageEvent('objectadd', {
@@ -605,8 +570,8 @@ world.addEventListener('trackedobjectadd', async e => {
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
-  const {instanceId, trackedObject, dynamic} = e.data;
-  const objects = _getObjects(dynamic);
+  const {instanceId, trackedObject} = e.data;
+  const objects = _getObjects();
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
     const object = objects[index];
@@ -652,15 +617,14 @@ world.isObject = object => objects.includes(object);
 
 world.bindInput = () => {
   window.addEventListener('resize', e => {
-    const objects = _getObjects(true)
-      .slice();
+    const objects = _getObjects();
     for (const o of objects) {
       o.resize && o.resize();
     }
   });
 };
 
-world.getWorldJson = async q => {
+/* world.getWorldJson = async q => {
   const _getDefaultSpec = () => ({
     default: true,
     objects: [],
@@ -753,10 +717,9 @@ world.getWorldJson = async q => {
   } else {
     throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
   }
-};
+}; */
 
 world.getObjectFromPhysicsId = physicsId => {
-  const objects = _getObjects(true);
   for (const object of objects) {
     if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
       return object;
