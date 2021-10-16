@@ -1,3 +1,8 @@
+/*
+this file bootraps the entire webaverse application.
+it uses the help of various managers and stores, and executes the render loop.
+*/
+
 import * as THREE from 'three';
 // import {loginManager} from './login.js';
 // import runtime from './runtime.js';
