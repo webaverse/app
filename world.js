@@ -524,20 +524,6 @@ world.addEventListener('trackedobjectadd', async e => {
     p.reject(new Error('app cleared during load: ' + contentId));
   };
   try {
-    // const options = JSON.parse(optionsString);
-    // const file = await contentIdToFile(contentId);
-    /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
-      contentId,
-      instanceId: instanceId,
-      physics: options.physics,
-      physics_url: options.physics_url,
-      autoScale: options.autoScale,
-      autoRun: options.autoRun,
-      dynamic,
-      monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-      ownerAddress: file.token ? file.token.owner.address : ""
-    }); */
-    
     const m = await metaversefile.import(contentId);
     if (!live) return _bailout(null);
     const app = metaversefile.createApp({
@@ -645,16 +631,6 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     _bindDestroy();
 
-    /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-      const monetizationPointer = file.token.owner.monetizationPointer;
-      const ownerAddress = file.token.owner.address.toLowerCase();
-      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-    } */
-
-    /* world.dispatchEvent(new MessageEvent('objectadd', {
-      data: app,
-    })); */
-
     p.accept(app);
   } catch (err) {
     p.reject(err);
@@ -678,10 +654,6 @@ world.addEventListener('trackedobjectremove', async e => {
     if (binding === object) {
       transformControls.bind(null);
     } */
-
-    /* world.dispatchEvent(new MessageEvent('objectremove', {
-      data: object,
-    })); */
   } else {
     console.warn('remove for non-tracked object', instanceId);
   }
