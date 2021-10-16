@@ -1,8 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
-// import logo from './logo.svg'
 import classes from './MagicMenu.module.css'
-// import MagicMenu from './magic-menu.js';
-// import App from '/app.js';
 import ioManager from '../io-manager.js';
 import {aiHost} from '../constants.js';
 import metaversefile from 'metaversefile';
