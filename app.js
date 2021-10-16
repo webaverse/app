@@ -21,7 +21,7 @@ import hpManager from './hp-manager.js';
 // import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
 // import {bindInterface as inventoryBindInterface} from './inventory.js';
-import fx from './fx.js';
+// import fx from './fx.js';
 import {parseCoord, getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
@@ -484,7 +484,7 @@ export default class WebaverseApp extends EventTarget {
       // activateManager.update();
       // dropManager.update();
       // npcManager.update(timeDiffCapped);
-      fx.update();
+      // fx.update();
 
       appManager.tick(timestamp, frame);
 
