@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
-import controlsManager from './controls-manager.js';
+// import controlsManager from './controls-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -184,7 +184,7 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-  } else if (controlsManager.isPossessed()) {
+  } else /* if (controlsManager.isPossessed()) */ {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
     
@@ -218,7 +218,7 @@ const _updateIo = timeDiff => {
         physicsManager.velocity.z *= 0.7;
       }
     }
-  } else {
+  } /* else {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
     direction.applyQuaternion(camera.quaternion);
@@ -229,7 +229,7 @@ const _updateIo = timeDiff => {
     
     camera.position.add(direction);
     camera.updateMatrixWorld();
-  }
+  } */
 };
 ioManager.update = _updateIo;
 
@@ -446,7 +446,7 @@ ioManager.keydown = e => {
     }
     case 32: { // space
       ioManager.keys.space = true;
-      if (controlsManager.isPossessed()) {
+      // if (controlsManager.isPossessed()) {
         if (!weaponsManager.isJumping()) {
           if (weaponsManager.canJumpOff()) {
             weaponsManager.jumpOff();
@@ -455,7 +455,7 @@ ioManager.keydown = e => {
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !weaponsManager.isFlying());
         } */
-      }
+      // }
       break;
     }
     /* case 17: { // ctrl
