@@ -6,33 +6,31 @@ import styles from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
-import App from '../app.js';
+import Webaverse from '../webaverse.js';
 import {world} from '../world.js';
 import weaponsManager from '../weapons-manager.js';
 import {camera} from '../app-object.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
-const _startApp = async (app, canvas) => {
-  app.setContentLoaded();
+const _startApp = async (weba, canvas) => {
+  weba.setContentLoaded();
 
-  // app.bindLogin();
-  app.bindInput();
-  app.bindInterface();
-  app.bindPhysics();
+  // weba.bindLogin();
+  weba.bindInput();
+  weba.bindInterface();
+  weba.bindPhysics();
   // const uploadFileInput = document.getElementById('upload-file-input');
-  // app.bindUploadFileInput(uploadFileInput);
+  // weba.bindUploadFileInput(uploadFileInput);
   // const canvas = document.getElementById('canvas');
-  app.bindCanvas(canvas);
+  weba.bindCanvas(canvas);
 
   // const mapCanvas = document.getElementById('map-canvas')
-  // app.bindMinimap(mapCanvas);
-
-  app.setPossessed(true);
+  // weba.bindMinimap(mapCanvas);
 
   /* const enterXrButton = document.getElementById('enter-xr-button');
   const noXrButton = document.getElementById('no-xr-button');
-  app.bindXrButton({
+  weba.bindXrButton({
     enterXrButton,
     // noXrButton,
     onSupported(ok) {
@@ -43,8 +41,8 @@ const _startApp = async (app, canvas) => {
     },
   }); */
 
-  await app.waitForLoad();
-  await app.startLoop();
+  await weba.waitForLoad();
+  await weba.startLoop();
   
   {
     const defaultAvatarUrl = './avatars/citrine.vrm';
@@ -60,7 +58,7 @@ const _startApp = async (app, canvas) => {
 function RootNode() {
   // const [count, setCount] = useState(0)
   const canvasRef = useRef();
-  const [app, setApp] = useState(() => new App());
+  const [app, setApp] = useState(() => new Webaverse());
   
   useEffect(() => {
     if (canvasRef.current) {

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import App from './app.js';
+import Webaverse from './webaverse.js';
 import {getRenderer, scene, camera, orthographicCamera} from './app-object.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
@@ -16,9 +16,9 @@ const iframed = isInIframe();
 camera.up.set(0, 0, -1);
 
 (async () => {
-  const app = new App();
-  await app.waitForLoad();
-  app.bindCanvas(document.createElement('canvas'));
+  const weba = new Webaverse();
+  await weba.waitForLoad();
+  weba.bindCanvas(document.createElement('canvas'));
   
   const [
     appResult,
@@ -119,7 +119,7 @@ camera.up.set(0, 0, -1);
   }
 
   // fixes a glitch where the first render has black opaque
-  app.render();
+  weba.render();
 
   const _getContainerMetrics = () => new THREE.Vector2(parseInt(container.style.left || '0', 10), parseInt(container.style.top || '0', 10));
 
@@ -162,7 +162,7 @@ camera.up.set(0, 0, -1);
         camera.lookAt(cameraTarget.clone().add(offset).add(perspectiveOffset));
 
         renderer.clear();
-        app.render();
+        weba.render();
       
         const canvas = document.createElement('canvas');
         canvas.width = width;
@@ -355,7 +355,7 @@ camera.up.set(0, 0, -1);
       renderer.setSize(dw, dh);
 
       renderer.clear();
-      app.render();
+      weba.render();
       
       document.body.appendChild(renderer.domElement);
       console.log('got el', renderer.domElement);

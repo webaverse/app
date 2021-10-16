@@ -79,7 +79,7 @@ const frameEvent = (() => {
   });
 })();
 
-export default class WebaverseApp extends EventTarget {
+export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
@@ -245,7 +245,7 @@ export default class WebaverseApp extends EventTarget {
     if (rigManager.localRig) {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
-      const decapitated = /*controlsManager.isPossessed() &&*/ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
+      const decapitated = /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
       if (decapitated) {
         rigManager.localRig.decapitate();
         // rigManager.localRig.aux.decapitate();
@@ -270,19 +270,16 @@ export default class WebaverseApp extends EventTarget {
     renderer2.render(scene2, camera);
   } */
 
-  async setAvatarUrl(url, ext) {
+  /* async setAvatarUrl(url, ext) {
     if (url) {
       await rigManager.setLocalAvatarUrl(url, ext);
       const cameraOffset = cameraManager.getCameraOffset();
       cameraOffset.z = 0;
     }
-    // controlsManager.setPossessed(!!url);
-    /* if (!url) {
-      rigManager.setLocalRigMatrix(null);
-    } */
+    controlsManager.setPossessed(!!url);
   }
   setPossessed(possessed) {
-    // controlsManager.setPossessed(possessed);
+    controlsManager.setPossessed(possessed);
   }
   async possess(object) {
     await cameraManager.requestPointerLock();
@@ -326,7 +323,7 @@ export default class WebaverseApp extends EventTarget {
         localVector2.set(1, 1, 1)
       )
     );
-  }
+  } */
   
   startLoop() {
     const renderer = getRenderer();
