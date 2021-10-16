@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import atlaspack from './atlaspack.js';
+// import atlaspack from './atlaspack.js';
 import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -157,7 +157,7 @@ export class WaitQueue {
   }
 }
 
-const _makeAtlas = (size, images) => {
+/* const _makeAtlas = (size, images) => {
   let atlasCanvas;
   const rects = [];
   {
@@ -209,7 +209,7 @@ const _makeAtlas = (size, images) => {
     atlasCanvas,
     rects,
   };
-};
+}; */
 export function mergeMeshes(meshes, geometries, textures) {
   const size = 512;
   const images = textures.map(texture => texture && texture.image);
