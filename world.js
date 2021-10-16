@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
-import Y from './yjs.js';
+import * as Y from 'yjs';
 
 import {AppManager} from './app-object.js';
 import hpManager from './hp-manager.js';

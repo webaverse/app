@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import Y from '../yjs.js';
+import * as Y from 'yjs';
 import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
