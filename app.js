@@ -22,7 +22,7 @@ import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 // import {bindInterface as inventoryBindInterface} from './inventory.js';
 // import fx from './fx.js';
-import {parseCoord, getExt} from './util.js';
+import {getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
 import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls, renderer2,*/ sceneHighPriority, sceneLowPriority, bindCanvas} from './app-object.js';
