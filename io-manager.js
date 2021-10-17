@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
-import weaponsManager from './weapons-manager.js';
+import game from './game.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
@@ -165,10 +165,10 @@ const _updateIo = timeDiff => {
           if (
             buttons[3] >= 0.5 && ioManager.lastButtons[index][3] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !weaponsManager.isJumping() &&
-            !weaponsManager.isSitting()
+            !game.isJumping() &&
+            !game.isSitting()
           ) {
-            weaponsManager.jump();
+            game.jump();
           }
         }
 
@@ -188,7 +188,7 @@ const _updateIo = timeDiff => {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
     
-    const isFlying = weaponsManager.isFlying();
+    const isFlying = game.isFlying();
     if (isFlying) {
       direction.applyQuaternion(camera.quaternion);
       _updateVertical(direction);
@@ -199,21 +199,21 @@ const _updateIo = timeDiff => {
       direction.applyEuler(cameraEuler);
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
-        weaponsManager.toggleCrouch();
+        game.toggleCrouch();
         // physicsManager.setCrouchState(!physicsManager.getCrouchState());
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !weaponsManager.isCrouched()) ? 3 : 1;
-      const speed = weaponsManager.getSpeed() * sprintMultiplier;
+      const sprintMultiplier = (ioManager.keys.shift && !game.isCrouched()) ? 3 : 1;
+      const speed = game.getSpeed() * sprintMultiplier;
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
       physicsManager.velocity.add(localVector);
 
       if (isFlying) {
         physicsManager.velocity.multiplyScalar(0.9);
-      } else if (weaponsManager.isJumping()) {
+      } else if (game.isJumping()) {
         physicsManager.velocity.x *= 0.7;
         physicsManager.velocity.z *= 0.7;
       }
@@ -278,30 +278,30 @@ ioManager.keydown = e => {
     case 55: // 7
     case 56: // 8
     {
-      weaponsManager.selectLoadout(e.which - 49);
+      game.selectLoadout(e.which - 49);
       break;
     }
     case 87: { // W
       ioManager.keys.up = true;
       if (!document.pointerLockElement) {
-        weaponsManager.menuVertical(-1);
+        game.menuVertical(-1);
       }
       break;
     }
     case 65: { // A
       ioManager.keys.left = true;
       if (!document.pointerLockElement) {
-        weaponsManager.menuHorizontal(-1);
+        game.menuHorizontal(-1);
       }
       break;
     }
     case 83: { // S
       ioManager.keys.down = true;
       if (!document.pointerLockElement) {
-        if (weaponsManager.menuOpen) {
-          weaponsManager.menuVertical(1);
+        if (game.menuOpen) {
+          game.menuVertical(1);
         } else {
-          // if (!weaponsManager.dragging) {
+          // if (!game.dragging) {
             // _setTransformMode('scale');
           // }
         }
@@ -311,17 +311,17 @@ ioManager.keydown = e => {
     case 68: { // D
       ioManager.keys.right = true;
       if (!document.pointerLockElement) {
-        weaponsManager.menuHorizontal(1);
+        game.menuHorizontal(1);
       }
       break;
     }
     case 82: { // R
       if (document.pointerLockElement) {
-        if (weaponsManager.canRotate()) {
-          weaponsManager.menuRotate(1);
+        if (game.canRotate()) {
+          game.menuRotate(1);
         }
       } else {
-        // if (!weaponsManager.dragging) {
+        // if (!game.dragging) {
           // _setTransformMode('rotate');
         // }
       }
@@ -330,23 +330,23 @@ ioManager.keydown = e => {
     case 70: { // F
       e.preventDefault();
       e.stopPropagation();
-      if (weaponsManager.canPush()) {
+      if (game.canPush()) {
         ioManager.keys.forward = true;
       } else {
-        if (weaponsManager.canJumpOff()) {
-          weaponsManager.jumpOff();
+        if (game.canJumpOff()) {
+          game.jumpOff();
         }
-        weaponsManager.toggleFly();
+        game.toggleFly();
       }
       break;
     }
     case 71: { // G
       if (document.pointerLockElement) {
-        /* if (weaponsManager.canTry()) {
-          weaponsManager.menuTry();
+        /* if (game.canTry()) {
+          game.menuTry();
         } */
       } else {
-        // if (!weaponsManager.dragging) {
+        // if (!game.dragging) {
           // _setTransformMode('translate');
         // }
       }
@@ -354,33 +354,33 @@ ioManager.keydown = e => {
     }
     /* case 90: { // Z
       if (!e.ctrlKey) {
-        if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('wall');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('wall');
+        if (game.canStartBuild()) {
+          game.startBuild('wall');
+        } else if (game.canBuild()) {
+          game.setBuildMode('wall');
         }
       }
       break;
     } */
     case 88: { // X
       if (!e.ctrlKey) {
-        /* if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('floor');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('floor');
+        /* if (game.canStartBuild()) {
+          game.startBuild('floor');
+        } else if (game.canBuild()) {
+          game.setBuildMode('floor');
         } else { */
-          weaponsManager.menuDelete();
+          game.menuDelete();
         // }
       }
       break;
     }
     case 67: { // C
       // if (!e.ctrlKey) {
-        /* if (weaponsManager.canStartBuild()) {
-          weaponsManager.startBuild('stair');
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('stair');
-        } else */if (weaponsManager.canPush()) {
+        /* if (game.canStartBuild()) {
+          game.startBuild('stair');
+        } else if (game.canBuild()) {
+          game.setBuildMode('stair');
+        } else */if (game.canPush()) {
           ioManager.keys.backward = true;
         } else {
           ioManager.keys.ctrl = true;
@@ -399,14 +399,14 @@ ioManager.keydown = e => {
       break;
     } */
     case 71: { // G
-      weaponsManager.menuDrop();
+      game.menuDrop();
       break;
     }
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuVDown(e);
+        game.menuVDown(e);
       // }
       break;
     }
@@ -414,7 +414,7 @@ ioManager.keydown = e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuBDown(e);
+        game.menuBDown(e);
       // }
       break;
     }
@@ -428,16 +428,16 @@ ioManager.keydown = e => {
       break;
     } */
     case 85: { // U
-      // if (weaponsManager.canUpload()) {
+      // if (game.canUpload()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuUpload();
+        game.menuUpload();
       // }
       break;
     }
     case 80: { // P
-      weaponsManager.destroyWorld()
-      weaponsManager.menuPhysics();
+      game.destroyWorld()
+      game.menuPhysics();
       break;
     }
     case 16: { // shift
@@ -447,13 +447,13 @@ ioManager.keydown = e => {
     case 32: { // space
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
-        if (!weaponsManager.isJumping()) {
-          if (weaponsManager.canJumpOff()) {
-            weaponsManager.jumpOff();
+        if (!game.isJumping()) {
+          if (game.canJumpOff()) {
+            game.jumpOff();
           }
-          weaponsManager.jump();
+          game.jump();
         } /* else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !weaponsManager.isFlying());
+          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
       // }
       break;
@@ -463,24 +463,24 @@ ioManager.keydown = e => {
       break;
     } */
     case 81: { // Q
-      // weaponsManager.setWeaponWheel(true);
-      if (weaponsManager.canToggleAxis()) {
-        weaponsManager.toggleAxis();
+      // game.setWeaponWheel(true);
+      if (game.canToggleAxis()) {
+        game.toggleAxis();
       }
       break;
     }
     case 69: { // E
       // if (document.pointerLockElement) {
-        weaponsManager.menuUseDown();
+        game.menuUseDown();
       // }
       break;
     }
     case 192: { // tilde
-      weaponsManager.toggleEditMode();
+      game.toggleEditMode();
       break;
     }
     case 13: { // enter
-      weaponsManager.enter();
+      game.enter();
       break;
     }
     /* case 77: { // M
@@ -488,11 +488,11 @@ ioManager.keydown = e => {
       break;
     } */
     case 74: { // J
-      weaponsManager.inventoryHack = !weaponsManager.inventoryHack;
+      game.inventoryHack = !game.inventoryHack;
       break;
     }
     case 27: { // esc
-      weaponsManager.setContextMenu(false);
+      game.setContextMenu(false);
       break;
     }
   }
@@ -503,7 +503,7 @@ ioManager.keyup = e => {
   }
   switch (e.which) {
     /* case 81: { // Q
-      weaponsManager.setWeaponWheel(false);
+      game.setWeaponWheel(false);
       break;
     } */
     case 87: { // W
@@ -532,7 +532,7 @@ ioManager.keyup = e => {
     } */
     case 69: { // E
       if (document.pointerLockElement) {
-        weaponsManager.menuUseUp();
+        game.menuUseUp();
       }
       break;
     }
@@ -553,7 +553,7 @@ ioManager.keyup = e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuVUp();
+        game.menuVUp();
       // }
       break;
     }
@@ -561,7 +561,7 @@ ioManager.keyup = e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.menuBUp();
+        game.menuBUp();
       // }
       break;
     }
@@ -570,17 +570,17 @@ ioManager.keyup = e => {
       break;
     }
     case 46: { // delete
-      const object = weaponsManager.getMouseSelectedObject();
+      const object = game.getMouseSelectedObject();
       if (object) {
-        weaponsManager.setMouseHoverObject(null);
-        weaponsManager.setMouseSelectedObject(null);
+        game.setMouseHoverObject(null);
+        game.setMouseSelectedObject(null);
         world.removeObject(object.instanceId);
       }
       break;
     }
     case 27: {
-      // if (weaponsManager.getMouseSelectedObject()) {
-        weaponsManager.setMouseSelectedObject(null);
+      // if (game.getMouseSelectedObject()) {
+        game.setMouseSelectedObject(null);
       // }
     }
   }
@@ -649,7 +649,7 @@ const _updateMouseHover = e => {
         if (object.isHtml) {
           htmlHover = true;
         } else {
-          if (weaponsManager.hoverEnabled) {
+          if (game.hoverEnabled) {
             mouseHoverObject = object;
             mouseHoverPhysicsId = result.objectId;
           }
@@ -657,7 +657,7 @@ const _updateMouseHover = e => {
       }
     }
   }
-  weaponsManager.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId, point);
+  game.setMouseHoverObject(mouseHoverObject, mouseHoverPhysicsId, point);
   const renderer = getRenderer();
   if (htmlHover) {
     renderer.domElement.classList.add('hover');
@@ -666,20 +666,20 @@ const _updateMouseHover = e => {
   }
 };
 ioManager.mousemove = e => {
-  /* if (weaponsManager.weaponWheel) {
-    weaponsManager.updateWeaponWheel(e);
+  /* if (game.weaponWheel) {
+    game.updateWeaponWheel(e);
   } else { */
     if (document.pointerLockElement) {
       _updateMouseMovement(e);
     } else {
-      if (weaponsManager.dragging) {
-        weaponsManager.menuDrag(e);
-        weaponsManager.menuDragRight(e);
+      if (game.dragging) {
+        game.menuDrag(e);
+        game.menuDragRight(e);
       } else {
         _updateMouseHover(e);
       }
     }
-    weaponsManager.setLastMouseEvent(e);
+    game.setLastMouseEvent(e);
   // }
 };
 ioManager.mouseleave = e => {
@@ -688,30 +688,30 @@ ioManager.mouseleave = e => {
 };
 ioManager.click = e => {
   if (document.pointerLockElement) {
-    weaponsManager.menuClick();
+    game.menuClick();
   } else {
-    // weaponsManager.setContextMenu(false);
+    // game.setContextMenu(false);
     
-    if (!weaponsManager.hoverEnabled) {
+    if (!game.hoverEnabled) {
       cameraManager.requestPointerLock();
     }
     
     /* if (controlsManager.isPossessed()) {
       cameraManager.requestPointerLock();
     } else {
-      const mouseHoverObject = weaponsManager.getMouseHoverObject();
-      const mouseHoverPhysicsId = weaponsManager.getMouseHoverPhysicsId();
+      const mouseHoverObject = game.getMouseHoverObject();
+      const mouseHoverPhysicsId = game.getMouseHoverPhysicsId();
       if (mouseHoverObject) {
-        const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
+        const mouseSelectedObject = game.getMouseSelectedObject();
         if (mouseHoverObject !== mouseSelectedObject) {
-          weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+          game.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
         } else {
-          weaponsManager.setMouseSelectedObject(null);
+          game.setMouseSelectedObject(null);
         }
       }
     } */
   }
-  weaponsManager.setLastMouseEvent(e);
+  game.setLastMouseEvent(e);
 };
 // let mouseDown = false;
 let lastMouseButtons = 0;
@@ -719,10 +719,10 @@ ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   if (document.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      weaponsManager.menuMouseDown();
+      game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      weaponsManager.menuAim();
+      game.menuAim();
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
@@ -730,40 +730,40 @@ ioManager.mousedown = e => {
       transformControls.handleMouseDown(raycaster);
     }
     if ((changedButtons & 1) && (e.buttons & 2)) { // right
-      weaponsManager.menuDragdownRight();
-      weaponsManager.setContextMenu(false);
+      game.menuDragdownRight();
+      game.setContextMenu(false);
     }
   }
   if ((changedButtons & 4) && (e.buttons & 4)) { // middle
     e.preventDefault();
-    weaponsManager.menuDragdown();
+    game.menuDragdown();
   }
   lastMouseButtons = e.buttons;
   // mouseDown = true;
-  weaponsManager.setLastMouseEvent(e);
+  game.setLastMouseEvent(e);
 };
 ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   // if (mouseDown) {
     if (document.pointerLockElement) {
       if ((changedButtons & 1) && !(e.buttons & 1)) { // left
-        weaponsManager.menuMouseUp();
+        game.menuMouseUp();
       }
       if ((changedButtons & 2) && !(e.buttons & 2)) { // right
-        weaponsManager.menuUnaim();
+        game.menuUnaim();
       }
     } else {
       if ((changedButtons & 2) && !(e.buttons & 2)) { // right
-        weaponsManager.menuDragupRight();
+        game.menuDragupRight();
       }
     }
     if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
-      weaponsManager.menuDragup();
+      game.menuDragup();
     }
     // mouseDown = false;
   // }
   lastMouseButtons = e.buttons;
-  weaponsManager.setLastMouseEvent(e);
+  game.setLastMouseEvent(e);
 };
 ioManager.paste = e => {
   if (!window.document.activeElement) {
@@ -775,7 +775,7 @@ ioManager.paste = e => {
         items[0].getAsString(accept);
       });
       s = s.replace(/[\n\r]+/g, '').slice(0, 256);
-      weaponsManager.menuPaste(s); */
+      game.menuPaste(s); */
     }
   }
 };
@@ -789,7 +789,7 @@ ioManager.bindInput = () => {
           items[0].getAsString(accept);
         });
         s = s.replace(/[\n\r]+/g, '').slice(0, 256);
-        weaponsManager.menuPaste(s);
+        game.menuPaste(s);
       }
     }
   }); */
