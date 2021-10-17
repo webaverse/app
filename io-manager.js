@@ -7,7 +7,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe} from './util.js';
-import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getContainerElement} from './app-object.js';
+import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getContainerElement} from './renderer.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import geometryManager from './geometry-manager.js';

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {scene, sceneLowPriority} from './app-object.js';
+import {scene, sceneLowPriority} from './renderer.js';
 import game from './game.js';
 import TransformGizmo from './TransformGizmo.js';
 import {capitalize} from './util.js';

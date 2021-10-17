@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {scene, camera, getRenderer} from './app-object.js';
+import {scene, camera, getRenderer} from './renderer.js';
 import {copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './shaders.js';
 
 /* const size = 1024;
