@@ -194,7 +194,7 @@ const _extractPhysicsGeometryForId = physicsId => {
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = getNextPhysicsId();
-  physx.geometryWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
+  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
   const physicsMesh = new THREE.Mesh(
@@ -235,7 +235,7 @@ physicsManager.addGeometry = mesh => {
   // mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   
   const physicsId = getNextPhysicsId();
-  physx.geometryWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId);
+  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);
@@ -254,10 +254,10 @@ physicsManager.addGeometry = mesh => {
   })); */
   return physicsObject;
 };
-physicsManager.cookGeometry = mesh => physx.geometryWorker.cookGeometryPhysics(physx.physics, mesh);
+physicsManager.cookGeometry = mesh => physx.physxWorker.cookGeometryPhysics(physx.physics, mesh);
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
-  physx.geometryWorker.addCookedGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
+  physx.physxWorker.addCookedGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
 
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
@@ -286,7 +286,7 @@ physicsManager.addConvexGeometry = mesh => {
   }
   
   const physicsId = getNextPhysicsId();
-  physx.geometryWorker.addConvexGeometryPhysics(physx.physics, physicsMesh, physicsId);
+  physx.physxWorker.addConvexGeometryPhysics(physx.physics, physicsMesh, physicsId);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
 
   const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
@@ -305,10 +305,10 @@ physicsManager.addConvexGeometry = mesh => {
   })); */
   return physicsObject;
 };
-physicsManager.cookConvexGeometry = mesh => physx.geometryWorker.cookConvexGeometryPhysics(physx.physics, mesh);
+physicsManager.cookConvexGeometry = mesh => physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
-  physx.geometryWorker.addCookedConvexGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
+  physx.physxWorker.addCookedConvexGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
@@ -325,24 +325,24 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   return physicsObject;
 };
 
-physicsManager.getGeometryForPhysicsId = physicsId => physx.geometryWorker.getGeometryPhysics(physx.physics, physicsId);
+physicsManager.getGeometryForPhysicsId = physicsId => physx.physxWorker.getGeometryPhysics(physx.physics, physicsId);
 physicsManager.disablePhysicsObject = physicsObject => {
-  physx.geometryWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+  physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enablePhysicsObject = physicsObject => {
-  physx.geometryWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+  physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometryQueries = physicsObject => {
-  physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+  physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enableGeometryQueries = physicsObject => {
-  physx.geometryWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+  physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.removeGeometry = physicsObject => {
-  physx.geometryWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
+  physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 
-physicsManager.raycast = (position, quaternion) => physx.geometryWorker.raycastPhysics(physx.physics, position, quaternion);
+physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 /* physicsManager.pushPhysicsUpdate = physicsId => {
   const physicsObject = physicsObjects[physicsId];
@@ -358,7 +358,7 @@ physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 physicsManager.simulatePhysics = timeDiff => {
   const t = timeDiff/1000;
   // console.log('simulate', timeDiff, t);
-  const updatesOut = physx.geometryWorker.simulatePhysics(physx.physics, physicsUpdates, t);
+  const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
@@ -633,7 +633,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     _getAvatarCapsule(localVector);
     localVector.add(p);
-    return physx.geometryWorker.collidePhysics(physx.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
+    return physx.physxWorker.collidePhysics(physx.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
   };
 })();
 const applyVelocity = (() => {

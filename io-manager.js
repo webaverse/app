@@ -645,7 +645,7 @@ const _updateMouseHover = e => {
       raycaster.ray.direction
     );
     
-    const result = physx.geometryWorker.raycastPhysics(physx.physics, position, quaternion);
+    const result = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
     
     if (result) {
       const object = world.appManager.getObjectFromPhysicsId(result.objectId);
