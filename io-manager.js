@@ -16,7 +16,7 @@ import {isInIframe} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getContainerElement} from './renderer.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import transformControls from './transform-controls.js';
 
 const localVector = new THREE.Vector3();
@@ -645,7 +645,7 @@ const _updateMouseHover = e => {
       raycaster.ray.direction
     );
     
-    const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+    const result = physx.geometryWorker.raycastPhysics(physx.physics, position, quaternion);
     
     if (result) {
       const object = world.appManager.getObjectFromPhysicsId(result.objectId);

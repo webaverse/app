@@ -4,7 +4,7 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -55,7 +55,7 @@ class LocalPlayer extends Player {
       
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+        physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
       
       const {instanceId} = app;
@@ -89,8 +89,8 @@ class LocalPlayer extends Player {
     
     const physicsObjects = object.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      // geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
-      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+      // physx.geometryWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
   }
   ungrab() {
@@ -99,8 +99,8 @@ class LocalPlayer extends Player {
       const object = world.appManager.getObjects().find(object => object.instanceId === grabSpec.instanceId);
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        // geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
-        geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+        // physx.geometryWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+        physx.geometryWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
     }
     
