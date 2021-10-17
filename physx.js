@@ -32,7 +32,7 @@ const geometryManager = {};
 
 geometryManager.waitForLoad = Module.waitForLoad;
 
-geometryManager.geometrySet = null;
+/* geometryManager.geometrySet = null;
 geometryManager.tracker = null;
 geometryManager.physics = null;
 geometryManager.landAllocators = null;
@@ -57,49 +57,9 @@ geometryManager.chunkMeshContainer = new THREE.Object3D();
 geometryManager.worldContainer.add(geometryManager.chunkMeshContainer);
 geometryManager.currentChunkMesh = null;
 geometryManager.currentVegetationMesh = null;
-geometryManager.currentThingMesh = null;
+geometryManager.currentThingMesh = null; */
 
-const _makeHitTracker = (onDmg, onPositionUpdate, onColorUpdate, onRemove) => {
-  let animation = null;
-  return {
-    hit(id, position, quaternion, dmg) {
-      if (animation) {
-        animation.end();
-        animation = null;
-      }
-
-      if (onDmg(id, dmg)) {
-        const startTime = Date.now();
-        const endTime = startTime + 500;
-        animation = {
-          update() {
-            const now = Date.now();
-            const factor = (now - startTime) / (endTime - startTime);
-            if (factor < 1) {
-              localVector2.set(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).multiplyScalar((1 - factor) * 0.2 / 2);
-              onPositionUpdate(localVector2);
-            } else {
-              animation.end();
-              animation = null;
-            }
-          },
-          end() {
-            onPositionUpdate(localVector2.set(0, 0, 0));
-            onColorUpdate(-1);
-          },
-        };
-        onColorUpdate(id);
-      } else {
-        onRemove(id, position, quaternion);
-      }
-    },
-    update() {
-      animation && animation.update();
-    },
-  };
-};
-
-const itemMeshes = [];
+/* const itemMeshes = [];
 const addItem = (position, quaternion) => {
   const itemMesh = (() => {
     const radius = 0.5;
@@ -227,10 +187,6 @@ const addItem = (position, quaternion) => {
 };
 geometryManager.addItem = addItem;
 
-/* const _align4 = n => {
-  const d = n % 4;
-  return d ? (n + 4 - d) : n;
-}; */
 const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
@@ -267,16 +223,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       };
       img.onerror = reject;
       img.src = './ground-texture.png';
-
-      /* basisLoader.load('ground-texture.basis', texture => {
-        // console.timeEnd('basis texture load');
-        texture.minFilter = THREE.LinearFilter;
-        accept(texture);
-      }, () => {
-        // console.log('onProgress');
-      }, err => {
-        reject(err);
-      }); */
     });
     landMaterial.uniforms.tex.value = texture;
     landMaterial.uniforms.tex.needsUpdate = true;
@@ -350,14 +296,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
   const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
   mesh.currentPosition = currentPosition;
-  /* window.getCurrentSubparcel = () => {
-    localVector.set(
-      Math.floor(currentPosition.x/SUBPARCEL_SIZE),
-      Math.floor(currentPosition.y/SUBPARCEL_SIZE),
-      Math.floor(currentPosition.z/SUBPARCEL_SIZE)
-    );
-    return window.getSubparcel(localVector.x, localVector.y, localVector.z);
-  }; */
   // const animalsTasks = [];
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
@@ -367,160 +305,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       debugger;
     }
   };
-  /* const _updatePackages = () => {
-    const packagesNeedUpdate = false;
-    if (packagesNeedUpdate) {
-      if (!packagesRunning) {
-        (async () => {
-          packagesRunning = true;
-          packagesNeedUpdate = false;
-
-          for (let i = 0; i < neededCoords.length; i++) {
-            const neededCoord = neededCoords[i];
-            const {index} = neededCoord;
-            const subparcel = world.peekSubparcelByIndex(index);
-            for (const pkg of subparcel.packages) {
-              if (!mesh.objects.some(object => object.package === pkg)) {
-                const p = await XRPackage.download(pkg.dataHash);
-                p.setMatrix(
-                  new THREE.Matrix4().compose(
-                    new THREE.Vector3().fromArray(pkg.position),
-                    new THREE.Quaternion().fromArray(pkg.quaternion),
-                    new THREE.Vector3(1, 1, 1)
-                  ).premultiply(mesh.matrixWorld)
-                );
-                await pe.add(p);
-                p.package = pkg;
-                mesh.objects.push(p);
-              }
-            }
-          }
-          mesh.objects.slice().forEach(p => {
-            const sx = Math.floor(p.package.position[0]/subparcelSize);
-            const sy = Math.floor(p.package.position[1]/subparcelSize);
-            const sz = Math.floor(p.package.position[2]/subparcelSize);
-            const index = world.getSubparcelIndex(sx, sy, sz);
-            if (!neededCoordIndices[index]) {
-              pe.remove(p);
-              mesh.objects.splice(mesh.objects.indexOf(p), 1);
-            } else {
-              const subparcel = world.peekSubparcelByIndex(index);
-              if (!subparcel.packages.includes(p.package)) {
-                pe.remove(p);
-                mesh.objects.splice(mesh.objects.indexOf(p), 1);
-              }
-            }
-          });
-
-          packagesRunning = false;
-        })();
-      }
-    }
-  }; */
-  /* const _killAnimalsTasks = index => {
-    const subparcelTasks = animalsTasks[index];
-    if (subparcelTasks) {
-      for (const task of subparcelTasks) {
-        task.cancel();
-      }
-      subparcelTasks.length = 0;
-    }
-  };
-  const _updateAnimalsRemove = () => {
-    if (removedCoords.length > 0) {
-      animals = animals.filter(animal => {
-        if (removedCoords.some(removedCoord => removedCoord.index === animal.index)) {
-          animal.parent.remove(animal);
-          animal.destroy();
-          return false;
-        } else {
-          return true;
-        }
-      });
-      for (const removedCoord of removedCoords) {
-        _killAnimalsTasks(removedCoord.index);
-      }
-    }
-  };
-  const _updateAnimalsAdd = () => {
-    for (const addedCoord of addedCoords) {
-      const {index} = addedCoord;
-      let subparcelTasks = animalsTasks[index];
-      if (!subparcelTasks) {
-        subparcelTasks = [];
-        animalsTasks[index] = subparcelTasks;
-      }
-
-      let live = true;
-      (async () => {
-        const subparcel = world.peekSubparcelByIndex(index);
-        await subparcel.load;
-        if (!live) return;
-
-        const spawners = subparcel.vegetations
-          .filter(vegetation => vegetation.name === 'spawner')
-          .map(vegetation => ({
-            position: vegetation.position,
-          }));
-
-        for (const spawner of spawners) {
-          if (!makeAnimal) {
-            makeAnimal = makeAnimalFactory(geometryWorker);
-          }
-
-          localVector.fromArray(spawner.position);
-          const animal = makeAnimal(localVector, Math.floor(Math.random()*0xFFFFFF), () => {
-            animal.parent.remove(animal);
-            animal.destroy();
-            animals.splice(animals.indexOf(animal), 1);
-            addItemaddItem(animal.position, animal.quaternion);
-          });
-          animal.index = subparcel.index;
-          mesh.add(animal);
-          animals.push(animal);
-        }
-      })()
-        .finally(() => {
-          if (live) {
-            subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
-          }
-        });
-      const task = {
-        cancel() {
-          live = false;
-        },
-      };
-      subparcelTasks.push(task);
-    }
-  };
-  const _updateAnimals = () => {
-    _updateAnimalsRemove();
-    _updateAnimalsAdd();
-  }; */
   mesh.update = position => {
     _updateCurrentPosition(position);
     // _updateAnimals();
   };
   return mesh;
-};
-
-/* world.addEventListener('load', async e => {
-  const {data: chunkSpec} = e;
-  const {seedString} = chunkSpec; 
-  const seed = Math.floor(alea(seedString)() * 0xFFFFFF);
-
-  await geometryWorker.waitForLoad();
-  geometryManager.physics = geometryWorker.makePhysics();
-
-  loadPromise.accept();
-}); */
-/* world.addEventListener('unload', () => {
-  const oldChunkMesh = currentChunkMesh;
-  if (oldChunkMesh) {
-    chunkMeshContainer.remove(oldChunkMesh);
-    currentChunkMesh = null;
-  }
-}); */
+}; */
 
 const geometryWorker = (() => {  
   class Allocator {
