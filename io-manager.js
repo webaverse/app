@@ -1,3 +1,9 @@
+/*
+io manager reads inputs from the browser.
+some inputs are implicit, like resize.
+the functionality is implemented in other managers.
+*/
+
 import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
