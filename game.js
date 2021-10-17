@@ -26,7 +26,7 @@ import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} 
 // import controlsManager from './controls-manager.js';
 // import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
-import * as popovers from './popovers.js';
+// import * as popovers from './popovers.js';
 // import messages from './messages.js';
 import {getExt, bindUploadFileButton, snapPosition} from './util.js';
 import Avatar from './avatars/avatars.js';
@@ -1527,7 +1527,7 @@ const _updateWeapons = (timestamp) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
-  popovers.update();
+  // popovers.update();
 
   // inventoryUpdate();
 };
