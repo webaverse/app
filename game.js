@@ -484,33 +484,6 @@ const _use = () => {
     }
   }
 };
-/* let useAnimation = null;
-const _useHold = () => {
-  const now = performance.now();
-  useAnimation = {
-    start: now,
-    end: now + 1000,
-  };
-  
-  const activePhysicsId = activateManager.getCurrentPhysicsId();
-  if (activePhysicsId) {
-    const activeObject = world.getObjectFromPhysicsId(activePhysicsId);
-    if (activeObject) {
-      const components = activeObject.getComponents();
-      const activateComponent = components.find(c => c.type === 'activate');
-      if (activateComponent) {
-        const app = activeObject.getApp ? activeObject.getApp() : null;
-        if (app) {
-          // console.log('use active object', app);
-          app.dispatchEvent(new MessageEvent('activate'));
-        }
-      }
-    }
-  }
-};
-const _useRelease = () => {
-  useAnimation = null;
-}; */
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
@@ -1073,7 +1046,7 @@ const _updateWeapons = (timestamp) => {
       const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
-        const object = world.getObjectFromPhysicsId(collisionId);
+        const object = world.appManager.getObjectFromPhysicsId(collisionId);
         if (object && !_isWear(object)) {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
@@ -1115,7 +1088,7 @@ const _updateWeapons = (timestamp) => {
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
-        highlightedPhysicsObject = world.getObjectFromPhysicsId(collision.objectId);
+        highlightedPhysicsObject = world.appManager.getObjectFromPhysicsId(collision.objectId);
         highlightedPhysicsId = collision.objectId;
       }
 
