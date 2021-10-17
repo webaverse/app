@@ -298,7 +298,7 @@ class AppManager extends EventTarget {
     }
   }
   getObjectFromPhysicsId(physicsId) {
-    for (const object of objects) {
+    for (const object of this.objects) {
       if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
         return object;
       }
