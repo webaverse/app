@@ -2542,12 +2542,6 @@ const weaponsManager = {
   menuUse() {
     _use();
   },
-  /* menuUseHold() {
-    _useHold();
-  },
-  menuUseRelease() {
-    _useRelease();
-  }, */
   menuDelete() {
     _delete();
   },
