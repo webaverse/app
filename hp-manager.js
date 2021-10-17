@@ -48,7 +48,7 @@ const update = (timestamp, timeDiff) => {
   
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction && useAction.animation === 'combo') {
-    const collision = physx.geometryWorker.collidePhysics(physx.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
+    const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
       const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);

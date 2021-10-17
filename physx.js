@@ -15,7 +15,7 @@ const physx = {};
 
 physx.waitForLoad = Module.waitForLoad;
 
-const geometryWorker = (() => {  
+const physxWorker = (() => {
   class Allocator {
     constructor() {
       this.offsets = [];
@@ -264,7 +264,7 @@ const geometryWorker = (() => {
 
     moduleInstance = Module;
     scratchStack = new ScratchStack();
-    physx.physics = geometryWorker.makePhysics();
+    physx.physics = physxWorker.makePhysics();
   })();
 
   let methodIndex = 0;
@@ -983,12 +983,12 @@ const geometryWorker = (() => {
   };
   return w;
 })();
-physx.geometryWorker = geometryWorker;
+physx.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update();
   
-  geometryWorker.update();
+  physxWorker.update();
 };
 physx.update = _updateGeometry;
 

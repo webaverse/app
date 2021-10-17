@@ -55,7 +55,7 @@ class LocalPlayer extends Player {
       
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
       
       const {instanceId} = app;
@@ -89,8 +89,8 @@ class LocalPlayer extends Player {
     
     const physicsObjects = object.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      // physx.geometryWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-      physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
   }
   ungrab() {
@@ -99,8 +99,8 @@ class LocalPlayer extends Player {
       const object = world.appManager.getObjects().find(object => object.instanceId === grabSpec.instanceId);
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        // physx.geometryWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
-        physx.geometryWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
     }
     

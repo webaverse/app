@@ -104,10 +104,10 @@ const _getGrabbedObject = i => {
     /* const grabbedObject = _getGrabbedObject(0);
     const grabbedPhysicsObjects = grabbedObject ? grabbedObject.getPhysicsObjects() : [];
     for (const physicsObject of grabbedPhysicsObjects) {
-      physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     } */
 
-    let collision = collisionEnabled && physx.geometryWorker.raycastPhysics(physx.physics, localVector, localQuaternion);
+    let collision = collisionEnabled && physx.physxWorker.raycastPhysics(physx.physics, localVector, localQuaternion);
     if (collision) {
       // console.log('got collision', collision);
       const {point} = collision;
@@ -123,7 +123,7 @@ const _getGrabbedObject = i => {
     }
 
     /* for (const physicsObject of grabbedPhysicsObjects) {
-      physx.geometryWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     } */
 
     const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
@@ -1037,7 +1037,7 @@ const _updateWeapons = (timestamp) => {
         
       const radius = 1;
       const halfHeight = 0.1;
-      const collision = physx.geometryWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
+      const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
         const object = world.appManager.getObjectFromPhysicsId(collisionId);
@@ -1075,20 +1075,20 @@ const _updateWeapons = (timestamp) => {
       /* const grabbedObject = _getGrabbedObject(0);
       const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
       for (const physicsId of grabbedPhysicsIds) {
-        // physx.geometryWorker.disableGeometryPhysics(physx.physics, physicsId);
-        physx.geometryWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
+        // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsId);
+        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
       } */
 
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
-      let collision = physx.geometryWorker.raycastPhysics(physx.physics, position, quaternion);
+      let collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.appManager.getObjectFromPhysicsId(collision.objectId);
         highlightedPhysicsId = collision.objectId;
       }
 
       /* for (const physicsId of grabbedPhysicsIds) {
-        // physx.geometryWorker.enableGeometryPhysics(physx.physics, physicsId);
-        physx.geometryWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
+        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsId);
+        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
       } */
     }
   };
@@ -1297,7 +1297,7 @@ const _updateWeapons = (timestamp) => {
 
   const _handleTeleport = () => {
     if (rigManager.localRig) {
-      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.geometryWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
+      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
         const localPlayer = useLocalPlayer();
         localPlayer.teleportTo(position, quaternion);
       });
