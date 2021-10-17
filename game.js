@@ -486,7 +486,7 @@ const _use = () => {
     }
   }
 };
-let useAnimation = null;
+/* let useAnimation = null;
 const _useHold = () => {
   const now = performance.now();
   useAnimation = {
@@ -512,7 +512,7 @@ const _useHold = () => {
 };
 const _useRelease = () => {
   useAnimation = null;
-};
+}; */
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
@@ -2517,12 +2517,12 @@ const weaponsManager = {
   menuUse() {
     _use();
   },
-  menuUseHold() {
+  /* menuUseHold() {
     _useHold();
   },
   menuUseRelease() {
     _useRelease();
-  },
+  }, */
   menuDelete() {
     _delete();
   },
