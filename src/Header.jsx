@@ -558,7 +558,6 @@ export default function Header({
     };
   }, []);
   useEffect(() => {
-    universe.handleUrlUpdate();
     _loadUrlState();
   }, []);
   useEffect(() => {

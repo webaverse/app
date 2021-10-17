@@ -8,6 +8,7 @@ import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 
 import Webaverse from '../webaverse.js';
+import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
@@ -39,6 +40,7 @@ const _startApp = async (weba, canvas) => {
   }); */
 
   await weba.waitForLoad();
+  universe.handleUrlUpdate();
   await weba.startLoop();
   
   {
