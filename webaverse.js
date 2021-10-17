@@ -404,7 +404,7 @@ export default class Webaverse extends EventTarget {
       game.pushAppUpdates();
 
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
+      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
