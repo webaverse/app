@@ -19,7 +19,6 @@ const _startApp = async (weba, canvas) => {
   // weba.bindLogin();
   weba.bindInput();
   weba.bindInterface();
-  weba.bindPhysics();
   // const uploadFileInput = document.getElementById('upload-file-input');
   // weba.bindUploadFileInput(uploadFileInput);
   // const canvas = document.getElementById('canvas');
