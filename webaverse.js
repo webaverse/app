@@ -124,9 +124,6 @@ export default class Webaverse extends EventTarget {
   setContentLoaded() {
     this.contentLoaded = true;
   }
-  /* bindLogin() {
-    loginManager.bindLogin();
-  } */
   bindInput() {
     ioManager.bindInput();
     world.bindInput();
@@ -134,35 +131,7 @@ export default class Webaverse extends EventTarget {
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
-    // universe.bindInterface();
-    // weaponsManager.bindInterface();
-    // inventoryBindInterface();
-    // mithrilInit();
   }
-  bindPhysics() {
-    weaponsManager.bindPhysics();
-  }
-  /* bindUploadFileInput(uploadFileInput) {
-    weaponsManager.bindUploadFileInput(uploadFileInput);
-  } */
-  /* bindMinimap(mapCanvas) {
-    minimap.init(mapCanvas);
-  } */
-  /* bindXrButton({
-    enterXrButton,
-    // noXrButton,
-    onSupported,
-  }) {
-    enterXrButton.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.enterXr();
-    });
-    (async () => {
-      const ok = await this.isXrSupported();
-      onSupported(ok);
-    })();
-  } */
   bindCanvas(c) {
     bindCanvas(c);
   }
@@ -267,68 +236,6 @@ export default class Webaverse extends EventTarget {
     // highlight render
     // renderer.render(highlightScene, camera);
   }
-  /* renderMinimap() {
-    minimap.update();
-  } */
-  /* renderDom() {
-    // dom render
-    renderer2.render(scene2, camera);
-  } */
-
-  /* async setAvatarUrl(url, ext) {
-    if (url) {
-      await rigManager.setLocalAvatarUrl(url, ext);
-      const cameraOffset = cameraManager.getCameraOffset();
-      cameraOffset.z = 0;
-    }
-    controlsManager.setPossessed(!!url);
-  }
-  setPossessed(possessed) {
-    controlsManager.setPossessed(possessed);
-  }
-  async possess(object) {
-    await cameraManager.requestPointerLock();
-
-    weaponsManager.setMouseHoverObject(null);
-    weaponsManager.setMouseSelectedObject(null);
-
-    const {contentId} = object;
-    if (typeof contentId === 'number') {
-      const res = await fetch(`${tokensHost}/${contentId}`);
-      const j = await res.json();
-      const {hash, name, ext} = j;
-      const u = `${storageHost}/ipfs/${hash}`;
-      await this.setAvatarUrl(u, ext);
-    } else if (typeof contentId === 'string') {
-      const ext = getExt(contentId);
-      await this.setAvatarUrl(contentId, ext);
-    }
-    const targetVector = localVector.copy(object.position)
-      .add(localVector2.set(0, physicsManager.getAvatarHeight()/2, 0));
-    camera.quaternion.setFromRotationMatrix(
-      localMatrix.lookAt(
-        camera.position,
-        targetVector,
-        localVector2.set(0, 1, 0)
-      )
-    );
-    const distance = camera.position.distanceTo(targetVector);
-    
-    const offset = cameraManager.getCameraOffset();
-    offset.set(0, 0, -distance);
-
-    camera.position.copy(targetVector)
-      .sub(localVector2.copy(offset).applyQuaternion(camera.quaternion));
-    camera.updateMatrixWorld();
-    
-    rigManager.setLocalRigMatrix(
-      localMatrix.compose(
-        targetVector,
-        camera.quaternion,
-        localVector2.set(1, 1, 1)
-      )
-    );
-  } */
   
   startLoop() {
     const renderer = getRenderer();
@@ -491,8 +398,6 @@ export default class Webaverse extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
 
       this.render();
-      // this.renderMinimap();
-      // this.renderDom();
     }
     renderer.setAnimationLoop(animate);
   }
