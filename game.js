@@ -21,7 +21,7 @@ import {makeTextMesh} from './vr-ui.js';
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './renderer.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 // import controlsManager from './controls-manager.js';
 // import buildTool from './build-tool.js';

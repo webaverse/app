@@ -10,7 +10,7 @@ import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
-import {camera} from '../app-object.js'
+import {camera} from '../renderer.js'
 import metaversefile from '../metaversefile-api.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';

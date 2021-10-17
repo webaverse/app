@@ -13,7 +13,7 @@ import {
   objectTextureSize,
   MAX_NAME_LENGTH, */
 } from './constants.js';
-import {getRenderer, scene} from './app-object.js';
+import {getRenderer, scene} from './renderer.js';
 import Module from './public/bin/geometry.js';
 
 const localVector = new THREE.Vector3();

@@ -4,7 +4,7 @@ import geometryManager from './geometry-manager.js';
 // import inventory from './inventory.js';
 // import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
-import {scene, camera} from './app-object.js';
+import {scene, camera} from './renderer.js';
 // import {WaitQueue} from './util.js';
 // import {loginManager} from './login.js';
 import {world} from './world.js';
