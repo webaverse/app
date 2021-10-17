@@ -583,12 +583,6 @@ const _mouseup = () => {
     o.untriggerAux && o.untriggerAux();
   } */
 };
-/* const _aim = () => {
-  world.appManager.aimed = true;
-};
-const _unaim = () => {
-  world.appManager.aimed = false;
-}; */
 
 /* const _try = async () => {
   const o = getGrabbedObject(0);
