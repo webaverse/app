@@ -1,3 +1,7 @@
+/*
+physx wasm integration.
+*/
+
 import * as THREE from 'three';
 // import {makePromise} from './util.js';
 import {getRenderer} from './renderer.js';
