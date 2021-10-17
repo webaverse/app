@@ -11,7 +11,7 @@ import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
 
 import {pointers} from './web-monetization.js';
-import {camera, scene, sceneHighPriority} from './app-object.js';
+import {camera, scene, sceneHighPriority} from './renderer.js';
 import {baseUnit} from './constants.js';
 import {unFrustumCull} from './util.js';
 /* import {

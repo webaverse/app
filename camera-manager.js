@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera/*, orbitControls*/} from './app-object.js';
+import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
 // import controlsManager from './controls-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';

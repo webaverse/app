@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Webaverse from './webaverse.js';
-import {getRenderer, scene, camera, orthographicCamera} from './app-object.js';
+import {getRenderer, scene, camera, orthographicCamera} from './renderer.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {parseQuery, parseExtents, isInIframe} from './util.js';

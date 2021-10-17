@@ -6,7 +6,7 @@ you can have as many app managers as you want.
 import * as THREE from 'three';
 import * as Y from 'yjs';
 
-import {camera, scene, sceneHighPriority} from './app-object.js';
+import {camera, scene, sceneHighPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import metaversefile from './metaversefile-api.js';
 

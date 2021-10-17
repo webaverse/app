@@ -4,7 +4,7 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
-import {scene} from './app-object.js';
+import {scene} from './renderer.js';
 // import dropManager from './drop-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 

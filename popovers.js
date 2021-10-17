@@ -1,6 +1,6 @@
 throw new Error('dead code')
 import * as THREE from 'three';
-import {getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, orthographicScene, camera, dolly} from './renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

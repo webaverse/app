@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import uiManager from './ui-manager.js';
-import {getRenderer, camera, dolly} from './app-object.js';
+import {getRenderer, camera, dolly} from './renderer.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
