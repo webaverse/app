@@ -827,16 +827,6 @@ const _handleUpload = async (item, transform = null) => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
 }; */
 
-const bindPhysics = () => {
-  /* physicsManager.addEventListener('voidout', e => {
-    // console.log('got voidout', weaponsManager.`);
-    if (weaponsManager.sceneLoaded) {
-      // console.log('prevent default');
-      e.data.cancel();
-    }
-  }); */
-};
-
 const _upload = () => {
   const uploadFileInput = document.getElementById('upload-file-input');
   uploadFileInput.click();
@@ -2483,7 +2473,6 @@ const weaponsManager = {
   }, */
   // bindInterface,
   // bindUploadFileInput,
-  bindPhysics,
   getMenu() {
     return this.menuOpen;
   },
