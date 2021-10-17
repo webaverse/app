@@ -1,3 +1,8 @@
+/*
+physics manager is the interface to the physics engine.
+it contains code for character capsules and world simulation.
+*/
+
 import * as THREE from 'three';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
