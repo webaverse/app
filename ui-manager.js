@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
-import weaponsManager from './weapons-manager.js';
 // import inventory from './inventory.js';
 // import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
