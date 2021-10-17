@@ -10,7 +10,7 @@ import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -101,14 +101,14 @@ export default class Webaverse extends EventTarget {
     super();
 
     this.loadPromise = Promise.all([
-      geometryManager.waitForLoad(),
+      physx.waitForLoad(),
       Avatar.waitForLoad(),
       transformControls.waitForLoad(),
       // WSRTC.waitForReady(),
       metaverseModules.waitForLoad(),
     ])
       /* .then(() => {
-        runtime.injectDependencies(geometryManager, physicsManager, world);
+        runtime.injectDependencies(physx, physicsManager, world);
       }); */
     this.contentLoaded = false;
   }

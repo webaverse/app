@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
@@ -48,7 +48,7 @@ const update = (timestamp, timeDiff) => {
   
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction && useAction.animation === 'combo') {
-    const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
+    const collision = physx.geometryWorker.collidePhysics(physx.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
       const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
