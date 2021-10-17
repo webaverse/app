@@ -37,8 +37,6 @@ import {getRenderer, scene, orthographicScene, avatarScene, camera, orthographic
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 
-const {appManager} = world;
-
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
@@ -254,7 +252,7 @@ export default class Webaverse extends EventTarget {
       const session = renderer.xr.getSession();
       const now = Date.now();
       
-      appManager.pretick(timestamp, frame);
+      world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // universe.update();
@@ -385,7 +383,7 @@ export default class Webaverse extends EventTarget {
       game.update(timestamp);
       hpManager.update(timestamp, timeDiffCapped);
 
-      appManager.tick(timestamp, frame);
+      world.appManager.tick(timestamp, frame);
 
       ioManager.updatePost();
       
