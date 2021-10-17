@@ -1521,7 +1521,9 @@ const _updateWeapons = (timestamp) => {
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    const visible = !!document.pointerLockElement && (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || useLocalPlayer().aimed) && !_getGrabbedObject(0);
+    const visible = !!document.pointerLockElement &&
+      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || useLocalPlayer().actions.some(action => action.type === 'aim')) &&
+      !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
@@ -2550,12 +2552,18 @@ const weaponsManager = {
   },
   menuAim() {
     const localPlayer = useLocalPlayer();
-    localPlayer.aimed = true;
+    if (!localPlayer.actions.some(action => action.type === 'aim')) {
+      localPlayer.actions.push({
+        type: 'aim',
+      });
+    }
   },
   menuUnaim() {
     const localPlayer = useLocalPlayer();
-    localPlayer.aimed = false;
-    // _unaim();
+    const index = localPlayer.actions.findIndex(action => action.type === 'aim');
+    if (index !== -1) {
+      localPlayer.actions.splice(index, 1);
+    }
   },
   menuDragdown(e) {
     this.dragging = true;
