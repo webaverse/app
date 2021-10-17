@@ -28,36 +28,36 @@ const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 const cubicBezier = easing(0, 1, 0, 1);
 
-const geometryManager = {};
+const physx = {};
 
-geometryManager.waitForLoad = Module.waitForLoad;
+physx.waitForLoad = Module.waitForLoad;
 
-/* geometryManager.geometrySet = null;
-geometryManager.tracker = null;
-geometryManager.physics = null;
-geometryManager.landAllocators = null;
-geometryManager.landBufferAttributes = null;
-geometryManager.vegetationAllocators = null;
-geometryManager.vegetationBufferAttributes = null;
-geometryManager.thingAllocators = null;
-geometryManager.thingBufferAttributes = null;
+/* physx.geometrySet = null;
+physx.tracker = null;
+physx.physics = null;
+physx.landAllocators = null;
+physx.landBufferAttributes = null;
+physx.vegetationAllocators = null;
+physx.vegetationBufferAttributes = null;
+physx.thingAllocators = null;
+physx.thingBufferAttributes = null;
 
-geometryManager.buildMeshes = {
+physx.buildMeshes = {
   walls: [null, null, null],
   platforms: [null, null, null],
   ramps: [null, null, null],
 };
-geometryManager.woodMesh = null;
-geometryManager.stoneMesh = null;
-geometryManager.metalMesh = null;
+physx.woodMesh = null;
+physx.stoneMesh = null;
+physx.metalMesh = null;
 
-geometryManager.worldContainer = new THREE.Object3D();
-scene.add(geometryManager.worldContainer);
-geometryManager.chunkMeshContainer = new THREE.Object3D();
-geometryManager.worldContainer.add(geometryManager.chunkMeshContainer);
-geometryManager.currentChunkMesh = null;
-geometryManager.currentVegetationMesh = null;
-geometryManager.currentThingMesh = null; */
+physx.worldContainer = new THREE.Object3D();
+scene.add(physx.worldContainer);
+physx.chunkMeshContainer = new THREE.Object3D();
+physx.worldContainer.add(physx.chunkMeshContainer);
+physx.currentChunkMesh = null;
+physx.currentVegetationMesh = null;
+physx.currentThingMesh = null; */
 
 /* const itemMeshes = [];
 const addItem = (position, quaternion) => {
@@ -70,9 +70,9 @@ const addItem = (position, quaternion) => {
     const object = new THREE.Object3D();
 
     const matMeshes = [
-      geometryManager.woodMesh,
-      geometryManager.stoneMesh,
-      geometryManager.metalMesh,
+      physx.woodMesh,
+      physx.stoneMesh,
+      physx.metalMesh,
     ];
     const matIndex = Math.floor(Math.random() * matMeshes.length);
     const matMesh = matMeshes[matIndex];
@@ -180,12 +180,12 @@ const addItem = (position, quaternion) => {
 
     return object;
   })();
-  itemMesh.position.copy(position).applyMatrix4(geometryManager.currentVegetationMesh.matrixWorld);
+  itemMesh.position.copy(position).applyMatrix4(physx.currentVegetationMesh.matrixWorld);
   itemMesh.quaternion.copy(quaternion);
   scene.add(itemMesh);
   itemMeshes.push(itemMesh);
 };
-geometryManager.addItem = addItem;
+physx.addItem = addItem;
 
 const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
@@ -231,14 +231,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   })();
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', geometryManager.landBufferAttributes.position);
-  geometry.setAttribute('normal', geometryManager.landBufferAttributes.normal);
-  geometry.setAttribute('uv', geometryManager.landBufferAttributes.uv);
-  // geometry.setAttribute('barycentric', geometryManager.landBufferAttributes.barycentric);
-  geometry.setAttribute('ao', geometryManager.landBufferAttributes.ao);
-  geometry.setAttribute('id', geometryManager.landBufferAttributes.id);
-  geometry.setAttribute('skyLight', geometryManager.landBufferAttributes.skyLight);
-  geometry.setAttribute('torchLight', geometryManager.landBufferAttributes.torchLight);
+  geometry.setAttribute('position', physx.landBufferAttributes.position);
+  geometry.setAttribute('normal', physx.landBufferAttributes.normal);
+  geometry.setAttribute('uv', physx.landBufferAttributes.uv);
+  // geometry.setAttribute('barycentric', physx.landBufferAttributes.barycentric);
+  geometry.setAttribute('ao', physx.landBufferAttributes.ao);
+  geometry.setAttribute('id', physx.landBufferAttributes.id);
+  geometry.setAttribute('skyLight', physx.landBufferAttributes.skyLight);
+  geometry.setAttribute('torchLight', physx.landBufferAttributes.torchLight);
   // geometry.allocators = allocators;
   // const {peeks} = bufferAttributes;
   // geometry.peeks = peeks;
@@ -561,7 +561,7 @@ const geometryWorker = (() => {
 
     moduleInstance = Module;
     scratchStack = new ScratchStack();
-    geometryManager.physics = geometryWorker.makePhysics();
+    physx.physics = geometryWorker.makePhysics();
   })();
 
   let methodIndex = 0;
@@ -1203,7 +1203,7 @@ const geometryWorker = (() => {
       localVector.set(0, 0, -1)
         .applyQuaternion(q)
         .toArray(scratchStack.f32, 3);
-      // geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.set(0, 0, 0).toArray(scratchStack.f32, 6);
       localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 9);
 
@@ -1271,7 +1271,7 @@ const geometryWorker = (() => {
     localQuaternion.copy(q)
       .premultiply(capsuleUpQuaternion)
       .toArray(scratchStack.f32, 3);
-    // geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
     localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
     localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
 
@@ -1518,7 +1518,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        geometryManager.currentVegetationMesh.updateGeometry({
+        physx.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
           idsStart,
@@ -1584,7 +1584,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        geometryManager.currentVegetationMesh.updateGeometry({
+        physx.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
           idsStart,
@@ -1648,7 +1648,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        geometryManager.currentChunkMesh.updateGeometry({
+        physx.currentChunkMesh.updateGeometry({
           positionsStart,
           normalsStart,
           uvsStart,
@@ -1712,7 +1712,7 @@ const geometryWorker = (() => {
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          geometryManager.currentChunkMesh.updateGeometry({
+          physx.currentChunkMesh.updateGeometry({
             positionsStart,
             normalsStart,
             uvsStart,
@@ -1752,7 +1752,7 @@ const geometryWorker = (() => {
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          geometryManager.currentVegetationMesh.updateGeometry({
+          physx.currentVegetationMesh.updateGeometry({
             positionsStart,
             uvsStart,
             idsStart,
@@ -2264,14 +2264,14 @@ const geometryWorker = (() => {
   };
   return w;
 })();
-geometryManager.geometryWorker = geometryWorker;
+physx.geometryWorker = geometryWorker;
 
 const _updateGeometry = () => {
-  geometryManager.crosshairMesh.update();
+  physx.crosshairMesh.update();
   
   geometryWorker.update();
 };
-geometryManager.update = _updateGeometry;
+physx.update = _updateGeometry;
 
 /* const _updatePhysics = p => {
   localVector.copy(p).add(localVector2.set(0, -1, 0));
@@ -2284,7 +2284,7 @@ geometryManager.update = _updateGeometry;
     itemMesh.update(p);
   }
 };
-geometryManager.updatePhysics = _updatePhysics; */
+physx.updatePhysics = _updatePhysics; */
 
 const _initModule = () => {
   if (Module.calledRun) {
@@ -2294,4 +2294,4 @@ const _initModule = () => {
 };
 _initModule();
 
-export default geometryManager;
+export default physx;
