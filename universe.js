@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import {rigManager} from './rig.js';
 import {getRenderer, scene, camera, dolly} from './app-object.js';
 import {world} from './world.js';
-import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 // import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';

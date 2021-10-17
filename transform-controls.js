@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {scene, sceneLowPriority} from './app-object.js';
-import weaponsManager from './weapons-manager.js';
+import game from './game.js';
 import TransformGizmo from './TransformGizmo.js';
 import {capitalize} from './util.js';
 
@@ -126,8 +126,8 @@ const transformControls = {
     }
   },
   update() {
-    const mouseSelectedObject = weaponsManager.getMouseSelectedObject();
-    this.transformGizmo.visible = !!mouseSelectedObject && !weaponsManager.contextMenu;
+    const mouseSelectedObject = game.getMouseSelectedObject();
+    this.transformGizmo.visible = !!mouseSelectedObject && !game.contextMenu;
     if (this.transformGizmo.visible) {
       this.transformGizmo.position.copy(mouseSelectedObject.position);
       this.transformGizmo.quaternion.copy(mouseSelectedObject.quaternion);

@@ -19,7 +19,7 @@ import * as blockchain from './blockchain.js';
 // import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
-import weaponsManager from './weapons-manager.js';
+import game from './game.js';
 import hpManager from './hp-manager.js';
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
@@ -474,20 +474,15 @@ export default class Webaverse extends EventTarget {
       };
       _updateRig();
 
-      // controlsManager.update();
       transformControls.update();
-      weaponsManager.update(timestamp);
+      game.update(timestamp);
       hpManager.update(timestamp, timeDiffCapped);
-      // activateManager.update();
-      // dropManager.update();
-      // npcManager.update(timeDiffCapped);
-      // fx.update();
 
       appManager.tick(timestamp, frame);
 
       ioManager.updatePost();
       
-      weaponsManager.pushAppUpdates();
+      game.pushAppUpdates();
 
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
       localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
