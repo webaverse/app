@@ -6,7 +6,7 @@ general game logic goes here.
 import * as THREE from 'three';
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
@@ -94,7 +94,7 @@ const _getGrabbedObject = i => {
   const localQuaternion3 = new THREE.Quaternion();
   const localMatrix = new THREE.Matrix4();
   
-  return */function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
+  return */function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
     grabMatrix.decompose(localVector, localQuaternion, localVector2);
     offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
     const offset = localVector3.length();
@@ -104,10 +104,10 @@ const _getGrabbedObject = i => {
     /* const grabbedObject = _getGrabbedObject(0);
     const grabbedPhysicsObjects = grabbedObject ? grabbedObject.getPhysicsObjects() : [];
     for (const physicsObject of grabbedPhysicsObjects) {
-      geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     } */
 
-    let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, localVector, localQuaternion);
+    let collision = collisionEnabled && physx.physxWorker.raycastPhysics(physx.physics, localVector, localQuaternion);
     if (collision) {
       // console.log('got collision', collision);
       const {point} = collision;
@@ -123,7 +123,7 @@ const _getGrabbedObject = i => {
     }
 
     /* for (const physicsObject of grabbedPhysicsObjects) {
-      geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+      physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     } */
 
     const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
@@ -990,7 +990,7 @@ const _updateWeapons = (timestamp) => {
         const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
-          geometryManager,
+          physx,
           gridSnap: weaponsManager.getGridSnap(),
         });
 
@@ -1037,7 +1037,7 @@ const _updateWeapons = (timestamp) => {
         
       const radius = 1;
       const halfHeight = 0.1;
-      const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
+      const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
         const object = world.appManager.getObjectFromPhysicsId(collisionId);
@@ -1075,20 +1075,20 @@ const _updateWeapons = (timestamp) => {
       /* const grabbedObject = _getGrabbedObject(0);
       const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
       for (const physicsId of grabbedPhysicsIds) {
-        // geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsId);
-        geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+        // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsId);
+        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
       } */
 
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
-      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      let collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.appManager.getObjectFromPhysicsId(collision.objectId);
         highlightedPhysicsId = collision.objectId;
       }
 
       /* for (const physicsId of grabbedPhysicsIds) {
-        // geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsId);
-        geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsId);
+        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
       } */
     }
   };
@@ -1278,7 +1278,7 @@ const _updateWeapons = (timestamp) => {
       updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
         collisionEnabled: true,
         handSnapEnabled: false,
-        geometryManager,
+        physx,
         gridSnap: weaponsManager.getGridSnap(),
       });
 
@@ -1297,7 +1297,7 @@ const _updateWeapons = (timestamp) => {
 
   const _handleTeleport = () => {
     if (rigManager.localRig) {
-      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, p, q), (position, quaternion) => {
+      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
         const localPlayer = useLocalPlayer();
         localPlayer.teleportTo(position, quaternion);
       });

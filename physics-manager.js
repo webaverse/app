@@ -6,7 +6,7 @@ it contains code for character capsules and world simulation.
 import * as THREE from 'three';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
@@ -194,7 +194,7 @@ const _extractPhysicsGeometryForId = physicsId => {
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = getNextPhysicsId();
-  geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
+  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
   const physicsMesh = new THREE.Mesh(
@@ -235,7 +235,7 @@ physicsManager.addGeometry = mesh => {
   // mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   
   const physicsId = getNextPhysicsId();
-  geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, physicsMesh, physicsId);
+  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);
@@ -254,10 +254,10 @@ physicsManager.addGeometry = mesh => {
   })); */
   return physicsObject;
 };
-physicsManager.cookGeometry = mesh => geometryManager.geometryWorker.cookGeometryPhysics(geometryManager.physics, mesh);
+physicsManager.cookGeometry = mesh => physx.physxWorker.cookGeometryPhysics(physx.physics, mesh);
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
-  geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
+  physx.physxWorker.addCookedGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
 
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
@@ -286,7 +286,7 @@ physicsManager.addConvexGeometry = mesh => {
   }
   
   const physicsId = getNextPhysicsId();
-  geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, physicsMesh, physicsId);
+  physx.physxWorker.addConvexGeometryPhysics(physx.physics, physicsMesh, physicsId);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
 
   const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
@@ -305,10 +305,10 @@ physicsManager.addConvexGeometry = mesh => {
   })); */
   return physicsObject;
 };
-physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
+physicsManager.cookConvexGeometry = mesh => physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
-  geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, scale, physicsId);
+  physx.physxWorker.addCookedConvexGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
@@ -325,24 +325,24 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   return physicsObject;
 };
 
-physicsManager.getGeometryForPhysicsId = physicsId => geometryManager.geometryWorker.getGeometryPhysics(geometryManager.physics, physicsId);
+physicsManager.getGeometryForPhysicsId = physicsId => physx.physxWorker.getGeometryPhysics(physx.physics, physicsId);
 physicsManager.disablePhysicsObject = physicsObject => {
-  geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
+  physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enablePhysicsObject = physicsObject => {
-  geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
+  physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometryQueries = physicsObject => {
-  geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+  physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enableGeometryQueries = physicsObject => {
-  geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsObject.physicsId);
+  physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.removeGeometry = physicsObject => {
-  geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsObject.physicsId);
+  physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 
-physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 /* physicsManager.pushPhysicsUpdate = physicsId => {
   const physicsObject = physicsObjects[physicsId];
@@ -358,7 +358,7 @@ physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 physicsManager.simulatePhysics = timeDiff => {
   const t = timeDiff/1000;
   // console.log('simulate', timeDiff, t);
-  const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, physicsUpdates, t);
+  const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
@@ -633,7 +633,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     _getAvatarCapsule(localVector);
     localVector.add(p);
-    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
+    return physx.physxWorker.collidePhysics(physx.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
   };
 })();
 const applyVelocity = (() => {
@@ -651,11 +651,11 @@ physicsManager.applyVelocity = applyVelocity;
     uiManager.popupMesh.quaternion.slerp(localQuaternion2, 0.1);
   }
 
-  geometryManager.updatePhysics(localVector3);
+  physx.updatePhysics(localVector3);
 }; */
 /* const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
-  geometryManager.currentChunkMesh.update(localVector3);
+  physx.currentChunkMesh.update(localVector3);
 }; */
 
 physicsManager.getGravity = () => gravity;
