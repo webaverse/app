@@ -1,3 +1,4 @@
+throw new Error('dead code')
 import * as THREE from 'three';
 import {getRenderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
