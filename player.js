@@ -97,7 +97,7 @@ class LocalPlayer extends Player {
   ungrab() {
     const grabSpec = this.grabs[0];
     if (grabSpec) {
-      const object = world.getObjects().find(object => object.instanceId === grabSpec.instanceId);
+      const object = world.appManager.getObjects().find(object => object.instanceId === grabSpec.instanceId);
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         // geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsObject.physicsId);

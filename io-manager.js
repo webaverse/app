@@ -642,7 +642,7 @@ const _updateMouseHover = e => {
     const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
     
     if (result) {
-      const object = world.getObjectFromPhysicsId(result.objectId);
+      const object = world.appManager.getObjectFromPhysicsId(result.objectId);
       if (object) {
         point = localVector.fromArray(result.point);
         
