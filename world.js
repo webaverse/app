@@ -392,16 +392,6 @@ world.bindInput = () => {
     throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
   }
 }; */
-
-world.getObjectFromPhysicsId = physicsId => {
-  const objects = appManager.getObjects();
-  for (const object of objects) {
-    if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
-      return object;
-    }
-  }
-  return null;
-};
 /* world.getNpcFromPhysicsId = physicsId => {
   const npcs = world.getNpcs();
   for (const npc of npcs) {
