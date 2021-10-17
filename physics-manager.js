@@ -759,8 +759,7 @@ const _updatePhysics = timeDiff => {
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (localPlayer.aimed || !!localPlayer.grabs[0]) {
-        // console.log('yes', localPlayer.aimed, localPlayer.grabs[0]);
+      } else if (localPlayer.actions.some(action => action.type === 'aim') || !!localPlayer.grabs[0]) {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);

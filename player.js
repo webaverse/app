@@ -28,7 +28,6 @@ class Player extends THREE.Object3D {
       this.rightHand,
     ];
     // this.playerId = 'Anonymous';
-    this.aimed = false;
     this.grabs = [null, null];
     this.wears = [];
     this.actions = [];
