@@ -142,64 +142,6 @@ let currentWorld = null;
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
   ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
 const enterWorld = async worldSpec => {
-  await physx.waitForLoad();
-  
-  /* let warpPhysicsId;
-  const _pre = () => {
-    if (currentWorld) {
-      warpMesh.visible = true;
-
-      if (worldSpec.extents) {
-        localBox.set(
-          localVector.fromArray(worldSpec.extents[0]),
-          localVector2.fromArray(worldSpec.extents[1]),
-        );
-      } else {
-        localBox.set(
-          localVector.set(-2, 0, -2),
-          localVector2.set(2, 4, 2),
-        );
-      }
-      const parcelAABB = localBox;
-      // const center = parcelAABB.getCenter(localVector);
-      // const size = parcelAABB.getSize(localVector2);
-      // console.log('got center size', center.toArray(), size.toArray());
-
-      warpPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(1000, 1, 1000), false);
-
-      const _containAvatar = () => {
-        physicsManager.getAvatarWorldObject(localObject);
-        physicsManager.getAvatarCapsule(localVector);
-        localVector.add(localObject.position);
-        const avatarAABB = localBox2.set(
-          localVector2.copy(localVector)
-            .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
-          localVector3.copy(localVector)
-            .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
-        );
-
-        avatarAABB.getCenter(localVector2);
-        const offset = localVector.set(-localVector2.x, -localVector2.y, -localVector2.z);
-
-        const renderer = getRenderer();
-        if (renderer.xr.getSession()) {
-          dolly.position.add(offset);
-        } else {
-          camera.position.add(offset);
-
-          localVector2
-            .copy(physicsManager.getAvatarCameraOffset())
-            .applyQuaternion(camera.quaternion);
-
-          camera.position.sub(localVector2);
-          camera.updateMatrixWorld();
-        }
-      };
-      _containAvatar();
-    };
-  };
-  _pre(); */
-
   world.disconnectRoom();
   
   const localPlayer = metaversefile.useLocalPlayer();
