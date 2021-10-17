@@ -4,7 +4,7 @@ this file contains the multiplayer code.
 
 import * as THREE from 'three';
 import {rigManager} from './rig.js';
-import {getRenderer, scene, camera, dolly} from './app-object.js';
+import {getRenderer, scene, camera, dolly} from './renderer.js';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 // import minimap from './minimap.js';

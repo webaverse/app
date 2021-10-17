@@ -4,7 +4,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
-import {getRenderer, scene, camera, dolly, avatarScene} from './app-object.js';
+import {getRenderer, scene, camera, dolly, avatarScene} from './renderer.js';
 // import {loginManager} from './login.js';
 // import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
