@@ -30,6 +30,7 @@ class AppManager extends EventTarget {
     
     this.pendingAddPromise = null;
     this.pushingLocalUpdates = false;
+    this.lastTimestamp = performance.now();
   }
   pretick(timestamp, frame) {
     localData.timestamp = timestamp;
