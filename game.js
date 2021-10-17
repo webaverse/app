@@ -18,7 +18,7 @@ import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
-import activateManager from './activate-manager.js';
+// import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './app-object.js';
