@@ -212,7 +212,7 @@ const enterWorld = async worldSpec => {
   physicsManager.setPhysicsEnabled(false);
 
   const _doLoad = async () => {
-    world.clear();
+    world.appManager.clear();
 
     const promises = [];
 
