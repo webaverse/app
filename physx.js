@@ -910,57 +910,6 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
-
-  /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
-    const inPs = w.alloc(Float32Array, ps.length);
-    inPs.set(ps);
-    const inHoles = w.alloc(Float32Array, holes.length);
-    inHoles.set(holes);
-    const inHoleCounts = w.alloc(Uint32Array, holeCounts.length);
-    inHoleCounts.set(holeCounts);
-    const inPoints = w.alloc(Float32Array, points.length);
-    inPoints.set(points);
-    const inZs = w.alloc(Float32Array, zs.length);
-    inZs.set(zs);
-    position.toArray(scratchStack.f32, 0);
-    const positionOffset = scratchStack.f32.byteOffset;
-    quaternion.toArray(scratchStack.f32, 3);
-    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
-    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length / 2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, objectId, positionOffset, quaternionOffset);
-
-    const outPositionsOffset = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT];
-    const outNumPositions = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 1];
-    const outUvsOffset = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 2];
-    const outNumUvs = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
-    const outIndicesOffset = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 4];
-    const outNumIndices = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 5];
-    const trianglePhysicsGeometry = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 6];
-    const convexPhysicsGeometry = moduleInstance.HEAPU32[resultOffset / Uint32Array.BYTES_PER_ELEMENT + 7];
-
-    const positions = moduleInstance.HEAPF32.subarray(outPositionsOffset / Float32Array.BYTES_PER_ELEMENT, outPositionsOffset / Float32Array.BYTES_PER_ELEMENT + outNumPositions);
-    const uvs = moduleInstance.HEAPF32.subarray(outUvsOffset / Float32Array.BYTES_PER_ELEMENT, outUvsOffset / Float32Array.BYTES_PER_ELEMENT + outNumUvs);
-    const indices = moduleInstance.HEAPU32.subarray(outIndicesOffset / Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset / Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
-
-    w.free(inPs.byteOffset);
-    w.free(inHoles.byteOffset);
-    w.free(inHoleCounts.byteOffset);
-    w.free(inPoints.byteOffset);
-    w.free(inZs.byteOffset);
-
-    return {
-      resultOffset,
-
-      positions,
-      uvs,
-      indices,
-      trianglePhysicsGeometry,
-      convexPhysicsGeometry,
-
-      destroy() {
-        moduleInstance._deleteEarcutResult(tracker, resultOffset);
-      },
-    };
-  }; */
   w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
