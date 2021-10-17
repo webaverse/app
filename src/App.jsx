@@ -6,10 +6,8 @@ import styles from './App.module.css'
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
+
 import Webaverse from '../webaverse.js';
-import {world} from '../world.js';
-import weaponsManager from '../weapons-manager.js';
-import {camera} from '../app-object.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
