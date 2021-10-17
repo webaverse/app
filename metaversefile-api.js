@@ -1,3 +1,9 @@
+/*
+metaversefile uses plugins to load files from the metaverse and load them as apps.
+it is an interface between raw data and the engine.
+metaversfile can load many file types, including javascript.
+*/
+
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
