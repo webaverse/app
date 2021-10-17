@@ -420,7 +420,7 @@ export default function Header({
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
-  const [objects, setObjects] = useState(world.getObjects().slice());
+  const [objects, setObjects] = useState(world.appManager.getObjects().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
@@ -484,10 +484,10 @@ export default function Header({
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   useEffect(() => {
     const update = e => {
-      setObjects(world.getObjects().slice());
+      setObjects(world.appManager.getObjects().slice());
     };
-    world.addEventListener('objectadd', update);
-    world.addEventListener('objectremove', update);
+    world.appManager.addEventListener('objectadd', update);
+    world.appManager.addEventListener('objectremove', update);
   }, []);
   useEffect(() => {
     localPlayer.addEventListener('wearupdate', e => {
