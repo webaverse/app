@@ -9,14 +9,22 @@ import path from 'path';
 
 
 if (process.argv.length < 4) {
-    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animation-baker.mjs dir/files*.fbx ani.cbor\n\n`);
+    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animations-baker.mjs dir/files*.fbx ani.cbor\n\n`);
     process.exit();
 }
 
 
 const baker = async (uriPath = "", animationFileNames, outFile) => {
     let animations = [];
-    let reversibleAnimationNames = [];
+    const reversibleAnimationNames = [
+        `left strafe walking.fbx`,
+        `left strafe.fbx`,
+        `right strafe walking.fbx`,
+        `right strafe.fbx`,
+        `Sneaking Forward.fbx`,
+        `Crouched Sneaking Left.fbx`,
+        `Crouched Sneaking Right.fbx`,
+        ];
     const fbxLoader = new FBXLoader();
     for (const name of animationFileNames) {
         const u = uriPath + name;
