@@ -1,17 +1,11 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { VOXLoader } from './VOXLoader.js';
-// import {bake, toggleElements} from './bakeUtils.js';
 import { getExt, makePromise, parseQuery } from './util.js';
 import Avatar from './avatars/avatars.js';
-import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
-//import * as metaverseModules from './metaverse-modules.js';
 import App from './app.js';
 import metaversefileApi from './metaversefile-api.js';
-
+import {defaultRendererUrl} from './constants.js'
 
 const defaultWidth = 512;
 const defaultHeight = 512;
@@ -65,7 +59,7 @@ const _makeRenderer = (width, height) => {
   directionalLight2.position.set(-2, 2, 2);
   scene.add(directionalLight2);
 
-  return { renderer, scene, camera };
+  return {renderer, scene, camera};
 };
 
 const _makeUiRenderer = () => {
@@ -74,7 +68,7 @@ const _makeUiRenderer = () => {
   const loadPromise = Promise.all([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.org/';
+      iframe.src = defaultRendererUrl;
       iframe.onload = () => {
         accept(iframe);
       };
@@ -141,7 +135,6 @@ const _makeIconString = (hash, ext, w, h) => {
     'vrm': icons.tShirt,
     'vox': icons.cube,
     'js': icons.code,
-    'wbn': icons.boxOpen,
   }[ext];
   const _split = s => {
     const splitCount = 32;
@@ -314,48 +307,6 @@ const _makeIconString = (hash, ext, w, h) => {
       } */
       return o;
     };
-    const _loadWbn = async () => {
-      let arrayBuffer;
-
-      if (url) {
-        const res = await fetch(url);
-        arrayBuffer = await res.arrayBuffer();
-      } else {
-        arrayBuffer = await new Promise((accept, reject) => {
-          const fr = new FileReader();
-          fr.onload = function () {
-            accept(this.result);
-          };
-          fr.onerror = reject;
-          fr.readAsArrayBuffer(file);
-        });
-      }
-
-      const files = {};
-      const bundle = new wbn.Bundle(arrayBuffer);
-      const { urls } = bundle;
-
-      for (const u of urls) {
-        const response = bundle.getResponse(u);
-        const { headers } = response;
-        const contentType = headers['content-type'] || 'application/octet-stream';
-        const b = new Blob([response.body], {
-          type: contentType,
-        });
-        const blobUrl = URL.createObjectURL(b);
-        const { pathname } = new URL(u);
-        files['.' + pathname] = blobUrl;
-      }
-      const u = './manifest.json';
-
-      for (const [key, value] of Object.entries(files)) {
-        if (getExt(key) === "glb") {
-          url = files[key];
-          return _loadGltf();
-        }
-      }
-      return;
-    };
 
     if (type === 'png' || type === 'jpg' || type === 'jpeg') {
       const canvas = await (async () => {
@@ -373,7 +324,7 @@ const _makeIconString = (hash, ext, w, h) => {
           return canvas;
         };
 
-        if (['glb', 'vrm', 'vox', 'wbn'].includes(ext)) {
+        if (['glb', 'vrm', 'vox'].includes(ext)) {
           const { renderer, scene, camera } = _makeRenderer(width, height);
 
           let o;
@@ -389,10 +340,6 @@ const _makeIconString = (hash, ext, w, h) => {
               }
               case 'vox': {
                 o = await _loadVox();
-                break;
-              }
-              case 'wbn': {
-                o = await _loadWbn();
                 break;
               }
             }
