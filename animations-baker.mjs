@@ -67,14 +67,12 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
     }
 
     const animationsJson = animations.map(a => a.toJSON());
-    const animationsString = JSON.stringify(animationsJson);
     const animationsCborBuffer = CBOR.encode({
         animations: animationsJson,
     });
     //console.log('decoding 1', animationsCborBuffer);
     CBOR.decode(animationsCborBuffer);
     console.log('exporting animations');
-    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
     fs.writeFileSync(outFile, Buffer.from(animationsCborBuffer));
     console.log('exported animations at', outFile);
 }
