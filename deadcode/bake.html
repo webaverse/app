@@ -1,0 +1,225 @@
+<html>
+<head>
+  <title>Webaverse Model Baker</title>
+  <link rel=stylesheet type='text/css' href="index.css">
+  <style>
+    #textarea {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 400px;
+      height: 200px;
+      background-color: #FFF;
+    }
+    #textarea.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<textarea class=hidden disabled id=textarea></textarea>
+
+<script src="./bin/geometry.js"></script>
+<script type=module>
+  import * as THREE from './three.module.js';
+  import {GLTFExporter} from './GLTFExporter.js';
+  import slice from './slice.js';
+  import App from './app.js';
+  import {renderer, scene, camera, orthographicCamera} from './app-object.js';
+  import {world} from './world.js';
+  import * as universe from './universe.js';
+  import {parseQuery, parseExtents, isInIframe} from './util.js';
+  // import {homeScnUrl, rarityColors} from './constants.js';
+
+  // window.slice = slice;
+
+  const cameraPosition = new THREE.Vector3(0, 100, 0);
+  const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
+  const perspectiveOffset = new THREE.Vector3(2, 0, -5);
+  // const iframed = isInIframe();
+  const exporter = new GLTFExporter();
+  // const loadDelayTime = 5000;
+
+  renderer.setPixelRatio(window.devicePixelRatio);
+  camera.up.set(0, 0, -1);
+
+  const _getNumTriangles = geometry => {
+    const {attributes: {position}, index} = geometry;
+    if (index) {
+      return index.array.length/3;
+    } else if (position) {
+      return position.array.length/9;
+    } else {
+      return 0;
+    }
+  };
+  const _getNumTextures = material => {
+    let result = 0;
+    for (const k in material) {
+      const v = material[k];
+      result += +(v instanceof THREE.Texture);
+    }
+    return result;
+  };
+
+  (async () => {
+    const q = parseQuery(location.search);
+    if (q.u) {
+      const w = 30;
+      const extents = parseExtents(q.e) || new THREE.Box3(
+        new THREE.Vector3(-w/2, 0, -w/2),
+        new THREE.Vector3(w/2, w, w/2)
+      );
+
+      const app = new App();
+      await app.waitForLoad();
+      const object = await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+      // window.object = object;
+      object.updateMatrixWorld();
+      // const replacementMeshes = [];
+      const planes = [
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, -1, 0), extents.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(-1, 0, 0), extents.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), extents.max),
+      ];
+      const oldGeometryMap = {};
+      const oldMaterialMap = {};
+      const geometryMap = {};
+      const materialMap = {};
+      const removeMeshes = [];
+      object.traverse(o => {
+        if (o.isMesh) {
+          const oldGeometry = o.geometry;
+          const oldMaterial = o.material;
+
+          oldGeometryMap[oldGeometry.uuid] = oldGeometry;
+          oldMaterialMap[oldMaterial.uuid] = oldMaterial;
+
+          let geometry = geometryMap[oldGeometry.uuid];
+          if (!geometry) {
+            geometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
+
+            for (const plane of planes) {
+              geometry = slice(geometry, plane);
+            }
+
+            geometry = new THREE.BufferGeometry().fromGeometry(geometry)
+              .applyMatrix4(o.matrixWorld.clone().invert());
+          }
+          o.geometry = geometry;
+          o.visible = _getNumTriangles(geometry) > 0;
+
+          if (o.visible) {
+            geometryMap[oldGeometry.uuid] = geometry;
+            materialMap[oldMaterial.uuid] = oldMaterial;
+          } else {
+            removeMeshes.push(o);
+          }
+        }
+      });
+      for (const mesh of removeMeshes) {
+        mesh.parent && mesh.parent.remove(mesh);
+      }
+
+      camera.position.set(0, 1, 2);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+      // fixes a glitch where the first render has black opaque
+      app.render();
+
+      renderer.clear();
+      app.render();
+
+      document.body.appendChild(renderer.domElement);
+
+      window.addEventListener('resize', e => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.clear();
+        app.render();
+      });
+
+      const oldGeometries = Object.keys(oldGeometryMap).map(k => oldGeometryMap[k]);
+      const oldMaterials = Object.keys(oldMaterialMap).map(k => oldMaterialMap[k]);
+      const geometries = Object.keys(geometryMap).map(k => geometryMap[k]);
+      const materials = Object.keys(materialMap).map(k => materialMap[k]);
+
+      const numOldMeshes = oldGeometries.length;
+      const numOldMaterials = oldMaterials.length;
+      let numOldTriangles = 0;
+      for (const geometry of oldGeometries) {
+        numOldTriangles += _getNumTriangles(geometry);
+      }
+      let numOldTextures = 0;
+      for (const material of oldMaterials) {
+        numOldTextures += _getNumTextures(material);
+      }
+
+      const numMeshes = geometries.length;
+      const numMaterials = materials.length;
+      let numTriangles = 0;
+      for (const geometry of geometries) {
+        numTriangles += _getNumTriangles(geometry);
+      }
+      let numTextures = 0;
+      for (const material of materials) {
+        numTextures += _getNumTextures(material);
+      }
+
+      const arrayBuffer = await new Promise((accept, reject) => {
+        exporter.parse(object, accept, {
+          binary: true,
+          includeCustomExtensions: true,
+        });
+      });
+      const size = arrayBuffer.byteLength;
+
+      const {dst} = q;
+      if (dst) {
+        fetch(dst, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: arrayBuffer,
+        }).then(res => res.blob());
+      } else {
+        const statsSpec = {numOldMeshes, numOldMaterials, numOldTriangles, numOldTextures, numMeshes, numMaterials, numTriangles, numTextures, size};
+        // console.log('got', statsSpec);
+
+        const textarea = document.getElementById('textarea');
+        textarea.value = JSON.stringify(statsSpec, null, 2);
+        textarea.classList.remove('hidden');
+      }
+
+      window.parent.postMessage({
+        method: 'result',
+        result: arrayBuffer,
+      }, '*');
+    }
+  })().catch(err => {
+    console.warn(err.stack);
+
+    const {dst} = q;
+    if (dst) {
+      fetch(dst, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: err.stack,
+      }).then(res => res.blob());
+    }
+
+    window.parent.postMessage({
+      method: 'error',
+      error: err.stack,
+    }, '*');
+  });
+</script>
+</body>
+
+</html>

@@ -1,8 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
-// import logo from './logo.svg'
 import classes from './MagicMenu.module.css'
-// import MagicMenu from './magic-menu.js';
-// import App from '/app.js';
 import ioManager from '../io-manager.js';
 import {aiHost} from '../constants.js';
 import metaversefile from 'metaversefile';
@@ -25,7 +22,7 @@ const openAiKey = (() => {
   return localStorage.getItem('openAiKey') || null;
 })();
 
-window.metaversefile = metaversefile; // XXX
+// window.metaversefile = metaversefile; // XXX
 const makeAi = prompt => {
   if (openAiKey) {
     const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(openAiKey)}`);

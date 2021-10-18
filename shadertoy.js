@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {scene, camera, getRenderer} from './app-object.js';
+import {scene, camera, getRenderer} from './renderer.js';
 import {copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './shaders.js';
 
 /* const size = 1024;
@@ -189,6 +189,7 @@ class ShadertoyRenderer {
           img.crossOrigin = 'Anonymous';
           const promise = new Promise((accept, reject) => {
             img.addEventListener('load', () => {
+              texture.image = img;
               texture.needsUpdate = true;
               accept();
             });
@@ -196,7 +197,7 @@ class ShadertoyRenderer {
           });
           promises.push(promise);
           img.src = `https://https-shadertoy-com.proxy.exokit.org${filepath}`;
-          const texture = new THREE.Texture(img);
+          const texture = new THREE.Texture();
           this.textures[id] = texture;
         }
         return this.textures[id];

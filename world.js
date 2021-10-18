@@ -1,132 +1,37 @@
-import * as THREE from 'three';
-// import storage from './storage.js';
-// import runtime from './runtime.js';
-import WSRTC from 'wsrtc/wsrtc.js';
-import Y from './yjs.js';
+/*
+this file contains the singleplayer code.
+*/
 
-import {AppManager} from './app-object.js';
+import * as THREE from 'three';
+import WSRTC from 'wsrtc/wsrtc.js';
+import * as Y from 'yjs';
+
 import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
+import {AppManager} from './app-manager.js';
 
 import {pointers} from './web-monetization.js';
-import {camera, scene, sceneHighPriority} from './app-object.js';
+import {camera, scene, sceneHighPriority} from './renderer.js';
 import {baseUnit} from './constants.js';
 import {unFrustumCull} from './util.js';
-import {
+/* import {
   storageHost,
-  // worldsHost,
+  worldsHost,
   tokensHost,
-} from './constants.js';
+} from './constants.js'; */
 import {makePromise, getRandomString, makeId} from './util.js';
 import metaversefile from './metaversefile-api.js';
 
 // world
-export const world = new EventTarget();
-const appManager = new AppManager(world);
+export const world = {};
+
+const appManager = new AppManager();
 world.appManager = appManager;
 
 world.lights = new THREE.Object3D();
 
-// static states are local and non-user editable
-// dynamic states are multiplayer and user-editable
-const states = {
-  static: null,
-  dynamic: null,
-};
-const _newState = dynamic => {
-  const k = dynamic ? 'dynamic' : 'static';
-  const newState = new Y.Doc();
-  states[k] = newState;
-  _bindState(dynamic, newState);
-};
-const _getState = dynamic => dynamic ? states.dynamic : states.static;
-const _setState = (dynamic, newState) => {
-  const k = dynamic ? 'dynamic' : 'static';
-  states[k] = newState;
-  _bindState(dynamic, newState);
-};
-const _bindState = (dynamic, state) => {
-  const objects = state.getArray('objects');
-  let lastObjects = [];
-  objects.observe(() => {
-    const nextObjects = objects.toJSON();
-
-    for (const name of nextObjects) {
-      if (!lastObjects.includes(name)) {
-        const trackedObject = _getOrCreateTrackedObject(name, dynamic);
-        world.dispatchEvent(new MessageEvent('trackedobjectadd', {
-          data: {
-            trackedObject,
-            dynamic,
-          },
-        }));
-      }
-    }
-    for (const name of lastObjects) {
-      if (!nextObjects.includes(name)) {
-        const trackedObject = state.getMap('objects.' + name);
-        world.dispatchEvent(new MessageEvent('trackedobjectremove', {
-          data: {
-            instanceId: name,
-            trackedObject,
-            dynamic,
-          },
-        }));
-      }
-    }
-
-    lastObjects = nextObjects;
-  });
-};
-_newState(true);
-_newState(false);
-const objects = {
-  static: [],
-  dynamic: [],
-};
-const _getObjects = dynamic => objects[dynamic ? 'dynamic' : 'static'];
-/* const _swapState = () => {
-  {
-    const {static: _static, dynamic} = states;
-    states.static = dynamic;
-    states.dynamic = _static;
-  }
-  {
-    const {static: _static, dynamic} = objects;
-    objects.static = dynamic;
-    objects.dynamic = _static;
-  }
-}; */
-
-world.newState = _newState;
-world.getState = _getState;
-world.setState = _setState;
-
 // multiplayer
 let wsrtc = null;
-
-const _getTrackedObject = (name, dynamic) => {
-  const state = _getState(dynamic);
-  const objects = state.getArray('objects');
-  return state.getMap('objects.' + name);
-};
-const _getOrCreateTrackedObject = (name, dynamic) => {
-  const state = _getState(dynamic);
-  const objects = state.getArray('objects');
-
-  let hadObject = false;
-  for (const object of objects) {
-    if (object === name) {
-      hadObject = true;
-      break;
-    }
-  }
-  if (!hadObject) {
-    objects.push([name]);
-  }
-
-  return state.getMap('objects.' + name);
-};
 
 // The extra Pose buffers we send along
 const extra = {
@@ -222,7 +127,7 @@ world.connectRoom = async (worldURL) => {
   // _lockAllObjects();
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
-  world.setState(true, wsrtc.room.state);
+  world.setState(wsrtc.room.state);
   if (mediaStream) {
     wsrtc.enableMic(mediaStream);
   }
@@ -375,330 +280,25 @@ world.connectRoom = async (worldURL) => {
     wsrtc.dispatchEvent(new MessageEvent('close'));
   })(wsrtc.close);
 
-  // states.dynamic = wsrtc.state;
-  // _bindState(states.dynamic, true);
-
   return wsrtc;
 };
 world.disconnectRoom = () => {
   if (wsrtc) {
     wsrtc.close();
     wsrtc = null;
-    
-    // remove dynamic objects
+
     world.clear();
-    // swap static objects back in
-    // _swapState();
-
-    world.newState(true);
-
-    /* const localObjects = objects.objects.dynamic.slice();
-    for (const object of localObjects) {
-      world.removeObject(object.instanceId);
-    }
-
-    states.dynamic = new Y.Doc();
-    _bindState(states.dynamic, true); */
+    world.newState();
   }
   return wsrtc;
 };
-world.clear = ({dynamic = true} = {}) => {
-  /* const staticObjects = world.getStaticObjects();
-  for (const object of staticObjects) {
-    world.removeStaticObject(object.instanceId);
-  } */
-  const objects = _getObjects(true)
-    .slice();
-  for (const object of objects) {
-    // if (!predicate(object)) {
-      world.removeObject(object.instanceId);
-    // }
-  }
-  world.dispatchEvent(new MessageEvent('clear', {
-    data: {
-      dynamic,
-    },
-  }));
-};
-
-world.initializeIfEmpty = spec => {
-  console.log('initialize if empty', spec); // XXX
-};
-
-world.getObjects = () => objects.dynamic.slice();
-// world.getStaticObjects = () => objects.static.slice();
-// world.getTrackedObject = name => _getTrackedObject(name, true);
-world.setTrackedObjectTransform = (name, p, q, s) => {
-  const dynamic = true;
-  const state = _getState(dynamic);
-  state.transact(function tx() {
-    const objects = state.getArray('objects');
-    const trackedObject = state.getMap('objects.' + name);
-    trackedObject.set('position', p.toArray());
-    trackedObject.set('quaternion', q.toArray());
-    trackedObject.set('scale', s.toArray());
-  });
-};
-let pendingAddPromise = null;
-
-const _addObject = dynamic => (contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) => {
-  const state = _getState(dynamic);
-  const instanceId = getRandomString();
-  state.transact(function tx() {
-    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
-    trackedObject.set('instanceId', instanceId);
-    trackedObject.set('contentId', contentId);
-    trackedObject.set('position', position.toArray());
-    trackedObject.set('quaternion', quaternion.toArray());
-    trackedObject.set('scale', scale.toArray());
-    trackedObject.set('components', JSON.stringify(components));
-    const originalJson = trackedObject.toJSON();
-    trackedObject.set('originalJson', JSON.stringify(originalJson));
-  });
-  if (pendingAddPromise) {
-    const result = pendingAddPromise;
-    result.instanceId = instanceId;
-    pendingAddPromise = null;
-    return result;
-  } else {
-    throw new Error('no pending world add object promise');
-  }
-};
-const _removeObject = (dynamic) => removeInstanceId => {
-  const state = _getState(dynamic);
-  state.transact(() => {
-    // const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
-    // if (index === -1) pointers.splice(index, 1);
-
-    const objects = state.getArray('objects');
-    const objectsJson = objects.toJSON();
-    const removeIndex = objectsJson.indexOf(removeInstanceId);
-    if (removeIndex !== -1) {
-      const allRemoveIndices = [removeIndex];
-      for (const removeIndex of allRemoveIndices) {
-        const instanceId = objectsJson[removeIndex];
-
-        objects.delete(removeIndex, 1);
-
-        const trackedObject = state.getMap('objects.' + instanceId);
-        const keys = Array.from(trackedObject.keys());
-        for (const key of keys) {
-          trackedObject.delete(key);
-        }
-      }
-    } else {
-      console.warn('invalid remove instance id', {dynamic, removeInstanceId, objectsJson});
-    }
-  });
-};
-world.addObject = _addObject(true);
-world.removeObject = _removeObject(true);
-world.addStaticObject = _addObject(false);
-world.removeStaticObject = _removeObject(false);
-world.addEventListener('trackedobjectadd', async e => {
-  const {trackedObject, dynamic} = e.data;
-  const trackedObjectJson = trackedObject.toJSON();
-  const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
-  const components = JSON.parse(componentsString);
-  
-  const p = makePromise();
-  pendingAddPromise = p;
-
-  let live = true;
-  
-  const clear = e => {
-    if (e.data.dynamic === dynamic) {
-      live = false;
-      cleanup();
-    }
-  };
-  const cleanup = () => {
-    world.removeEventListener('clear', clear);
-  };
-  world.addEventListener('clear', clear);
-  const _bailout = app => {
-    if (app) {
-      metaversefile.removeApp(app);
-      app.destroy();
-    }
-    p.reject(new Error('app cleared during load: ' + contentId));
-  };
-  try {
-    // const options = JSON.parse(optionsString);
-    // const file = await contentIdToFile(contentId);
-    /* let mesh = await runtime.loadFile(contentId, { // XXX convert these attributes to components
-      contentId,
-      instanceId: instanceId,
-      physics: options.physics,
-      physics_url: options.physics_url,
-      autoScale: options.autoScale,
-      autoRun: options.autoRun,
-      dynamic,
-      monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
-      ownerAddress: file.token ? file.token.owner.address : ""
-    }); */
-    
-    const m = await metaversefile.import(contentId);
-    if (!live) return _bailout(null);
-    const app = metaversefile.createApp({
-      name: contentId,
-      type: (() => {
-        const match = contentId.match(/\.([a-z0-9]+)$/i);
-        if (match) {
-          return match[1];
-        } else {
-          return '';
-        }
-      })(),
-      // components,
-    });
-    app.position.fromArray(position);
-    app.quaternion.fromArray(quaternion);
-    app.scale.fromArray(scale);
-    app.updateMatrixWorld();
-    app.contentId = contentId;
-    app.instanceId = instanceId;
-    app.setComponent('physics', true);
-    for (const {key, value} of components) {
-      app.setComponent(key, value);
-    }
-    // app.contentId = contentId;
-    metaversefile.addApp(app);
-    mesh = await app.addModule(m);
-    if (!live) return _bailout(app);
-    if (!mesh) {
-      console.warn('failed to load object', {contentId});
-    }
-
-    const _bindRender = () => {
-      unFrustumCull(app);
-
-      if (app.renderOrder === -Infinity) {
-        sceneHighPriority.add(app);
-      }
-    };
-    _bindRender();
-
-    const _bindTransforms = () => {
-      const _observe = e => {
-        if (!world.pushingLocalUpdates) {
-          if (e.keysChanged.has('position')) {
-            app.position.fromArray(trackedObject.get('position'));
-          }
-          if (e.keysChanged.has('quaternion')) {
-            app.quaternion.fromArray(trackedObject.get('quaternion'));
-          }
-          if (e.keysChanged.has('scale')) {
-            app.scale.fromArray(trackedObject.get('scale'));
-          }
-        }
-      };
-      trackedObject.observe(_observe);
-      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-    };
-    _bindTransforms();
-    
-    const _bindHitTracker = () => {
-      const hitTracker = hpManager.makeHitTracker();
-      app.parent.add(hitTracker);
-      hitTracker.add(app);
-      app.hitTracker = hitTracker;
-
-      const frame = e => {
-        const {timeDiff} = e.data;
-        hitTracker.update(timeDiff);
-      };
-      world.appManager.addEventListener('frame', frame);
-      app.addEventListener('destroy', () => {
-        hitTracker.parent.remove(hitTracker);
-        world.appManager.removeEventListener('frame', frame);
-      });
-      
-      app.addEventListener('die', () => {
-        metaversefile.removeApp(app);
-        app.destroy();
-      });
-    };
-    _bindHitTracker();
-
-    const objects = _getObjects(true);
-    objects.push(app);
-
-    const _bindDestroy = () => {
-      app.addEventListener('destroy', () => {
-        objects.splice(objects.indexOf(app), 1);
-        
-        const localPlayer = metaversefile.useLocalPlayer();
-        const localWearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-        if (localWearIndex !== -1) {
-          localPlayer.wears.splice(localWearIndex, 1);
-        }
-        
-        const remotePlayers = metaversefile.useRemotePlayers();
-        for (const remotePlayer of remotePlayers) {
-          const remoteWearIndex = remotePlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-          if (remoteWearIndex !== -1) {
-            remotePlayer.wears.splice(remoteWearIndex, 1);
-          }
-        }
-      });
-    };
-    _bindDestroy();
-
-    /* if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
-      const monetizationPointer = file.token.owner.monetizationPointer;
-      const ownerAddress = file.token.owner.address.toLowerCase();
-      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-    } */
-
-    world.dispatchEvent(new MessageEvent('objectadd', {
-      data: app,
-    }));
-
-    p.accept(app);
-  } catch (err) {
-    p.reject(err);
-  } finally {
-    cleanup();
-  }
-});
-
-world.addEventListener('trackedobjectremove', async e => {
-  const {instanceId, trackedObject, dynamic} = e.data;
-  const objects = _getObjects(dynamic);
-  const index = objects.findIndex(object => object.instanceId === instanceId);
-  if (index !== -1) {
-    const object = objects[index];
-    object.destroy && object.destroy();
-    metaversefile.removeApp(object);
-    // object.parent.remove(object);
-    trackedObject.unobserve();
-
-    /* const binding = transformControls.getBinding();
-    if (binding === object) {
-      transformControls.bind(null);
-    } */
-
-    world.dispatchEvent(new MessageEvent('objectremove', {
-      data: object,
-    }));
-  } else {
-    console.warn('remove for non-tracked object', instanceId);
-  }
-});
-world.isObject = object => objects.includes(object);
-
 world.bindInput = () => {
   window.addEventListener('resize', e => {
-    const objects = _getObjects(true)
-      .slice();
-    for (const o of objects) {
-      o.resize && o.resize();
-    }
+    appManager.resize(e);
   });
 };
 
-world.getWorldJson = async q => {
+/* world.getWorldJson = async q => {
   const _getDefaultSpec = () => ({
     default: true,
     objects: [],
@@ -791,18 +391,7 @@ world.getWorldJson = async q => {
   } else {
     throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
   }
-};
-
-world.getObjectFromPhysicsId = physicsId => {
-  const objects = _getObjects(true);
-  for (const object of objects) {
-    if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
-      return object;
-    }
-  }
-  return null;
-};
-world.pushingLocalUpdates = false;
+}; */
 /* world.getNpcFromPhysicsId = physicsId => {
   const npcs = world.getNpcs();
   for (const npc of npcs) {
@@ -815,43 +404,6 @@ world.pushingLocalUpdates = false;
   }
   return null;
 }; */
-
-const _bindLocalPlayerTeleport = () => {
-  const localPlayer = metaversefile.useLocalPlayer();
-  const lastLocalPlayerPosition = localPlayer.position.clone();
-  const lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
-  appManager.addEventListener('preframe', e => {
-    if (
-      !localPlayer.position.equals(lastLocalPlayerPosition) ||
-      !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
-    ) {
-      localPlayer.teleportTo(localPlayer.position, localPlayer.quaternion, {
-        relation: 'head',
-      });
-    }
-  });
-  appManager.addEventListener('startframe', e => {
-    if (rigManager.localRig) {
-      localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
-      localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
-      localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-      localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-      localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
-      localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
-    } else {
-      localPlayer.position.set(0, 0, 0);
-      localPlayer.quaternion.set(0, 0, 0, 1);
-      localPlayer.leftHand.position.set(0, 0, 0);
-      localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
-      localPlayer.rightHand.position.set(0, 0, 0);
-      localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
-    }
-    
-    lastLocalPlayerPosition.copy(localPlayer.position);
-    lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
-  });
-};
-_bindLocalPlayerTeleport();
 
 /* const micButton = document.getElementById('key-t');
 

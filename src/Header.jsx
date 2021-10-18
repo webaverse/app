@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import Y from '../yjs.js';
+import * as Y from 'yjs';
 import {Color} from './Color.js';
 import styles from './Header.module.css'
 import {world} from '../world.js'
 import {rigManager} from '../rig.js'
-import weaponsManager from '../weapons-manager.js'
+import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
-import {camera} from '../app-object.js'
+import {camera} from '../renderer.js'
 import metaversefile from '../metaversefile-api.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
@@ -353,16 +353,16 @@ const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
   }, [open, selectedApp, dragging]);
   useEffect(() => {
     const worldOpen = open === 'world';
-    weaponsManager.setHoverEnabled(worldOpen);
+    game.setHoverEnabled(worldOpen);
     
     if (!worldOpen) {
-      weaponsManager.setMouseSelectedObject(null);
+      game.setMouseSelectedObject(null);
     }
   }, [open]);
   useEffect(() => {
     const frame = e => {
       if (selectedApp) {
-        const position = weaponsManager.getMouseSelectedPosition();
+        const position = game.getMouseSelectedPosition();
         if (position) {
           const worldPoint = _world2canvas(position);
           // console.log('world point', worldPoint.z);
@@ -414,18 +414,21 @@ export default function Header({
 }) {
 	// console.log('index 2');
   const previewCanvasRef = useRef();
+  const panelsRef = useRef();
 	
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
-  const [objects, setObjects] = useState(world.getObjects().slice());
+  const [objects, setObjects] = useState(world.appManager.getObjects().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
-  const panelsRef = useRef();
+  
+  const localPlayer = metaversefile.useLocalPlayer();
+  const [wears, setWears] = useState(localPlayer.wears.slice());
   
   let [px, setPx] = useState(0);
   let [py, setPy] = useState(0);
@@ -472,7 +475,7 @@ export default function Header({
     }
   };
   const selectObject = (object, physicsId, position) => {
-    weaponsManager.setMouseSelectedObject(object, physicsId, position);
+    game.setMouseSelectedObject(object, physicsId, position);
     
     // const localPlayer = metaversefile.useLocalPlayer();
     // localPlayer.lookAt(object.position);
@@ -481,10 +484,15 @@ export default function Header({
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   useEffect(() => {
     const update = e => {
-      setObjects(world.getObjects().slice());
+      setObjects(world.appManager.getObjects().slice());
     };
-    world.addEventListener('objectadd', update);
-    world.addEventListener('objectremove', update);
+    world.appManager.addEventListener('objectadd', update);
+    world.appManager.addEventListener('objectremove', update);
+  }, []);
+  useEffect(() => {
+    localPlayer.addEventListener('wearupdate', e => {
+      setWears(localPlayer.wears.slice());
+    });
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
@@ -550,7 +558,6 @@ export default function Header({
     };
   }, []);
   useEffect(() => {
-    universe.handleUrlUpdate();
     _loadUrlState();
   }, []);
   useEffect(() => {
@@ -589,7 +596,7 @@ export default function Header({
       const key1 = lastEmoteKey.key;
       const key2 = key;
       const index = (key1 * 10) + key2;
-      weaponsManager.addLocalEmote(index);
+      game.addLocalEmote(index);
       
       lastEmoteKey.key = -1;
       lastEmoteKey.timestamp = 0;
@@ -654,13 +661,13 @@ export default function Header({
   }, []);
   useEffect(async () => {
     window.addEventListener('click', e => {
-      const hoverObject = weaponsManager.getMouseHoverObject();
+      const hoverObject = game.getMouseHoverObject();
       if (hoverObject) {
         e.preventDefault();
         e.stopPropagation();
         
-        const physicsId = weaponsManager.getMouseHoverPhysicsId();
-        const position = weaponsManager.getMouseHoverPosition();
+        const physicsId = game.getMouseHoverPhysicsId();
+        const position = game.getMouseHoverPosition();
         selectObject(hoverObject, physicsId, position);
       }
     });
@@ -777,13 +784,13 @@ export default function Header({
                           const physicsObject = physicsObjects[0] || null;
                           const physicsId = physicsObject ? physicsObject.physicsId : 0;
                           
-                          weaponsManager.setMouseHoverObject(null);
-                          weaponsManager.setMouseDomHoverObject(object, physicsId);
+                          game.setMouseHoverObject(null);
+                          game.setMouseDomHoverObject(object, physicsId);
                         }} onMouseLeave={e => {
-                          weaponsManager.setMouseDomHoverObject(null);
+                          game.setMouseDomHoverObject(null);
                         }} onMouseMove={e => {
                           e.stopPropagation();
-                          // weaponsManager.setMouseSelectedObject(null);
+                          // game.setMouseSelectedObject(null);
                         }}>
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="images/object.jpg" className={styles.img} />
