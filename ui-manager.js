@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import geometryManager from './geometry-manager.js';
-import weaponsManager from './weapons-manager.js';
+// import physx from './physx.js';
 // import inventory from './inventory.js';
 // import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
-import {scene, camera} from './app-object.js';
-import {WaitQueue} from './util.js';
+import {scene, camera} from './renderer.js';
+// import {WaitQueue} from './util.js';
 // import {loginManager} from './login.js';
 import {world} from './world.js';
 import {/*colors, */storageHost} from './constants.js';
@@ -20,7 +19,7 @@ const localColor = new THREE.Color();
 
 /* const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
-  const material = geometryManager.currentVegetationMesh.material[0];
+  const material = physx.currentVegetationMesh.material[0];
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
@@ -28,19 +27,19 @@ const _makeInventoryBuildsMesh = () => {
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
   const meshes = (() => {
     const result = Array(9);
-    for (let i = 0; i < geometryManager.buildMeshes.walls.length; i++) {
-      result[i*3] = geometryManager.buildMeshes.walls[i];
+    for (let i = 0; i < physx.buildMeshes.walls.length; i++) {
+      result[i*3] = physx.buildMeshes.walls[i];
     }
-    for (let i = 0; i < geometryManager.buildMeshes.platforms.length; i++) {
-      result[i*3+1] = geometryManager.buildMeshes.platforms[i];
+    for (let i = 0; i < physx.buildMeshes.platforms.length; i++) {
+      result[i*3+1] = physx.buildMeshes.platforms[i];
     }
-    for (let i = 0; i < geometryManager.buildMeshes.ramps.length; i++) {
-      result[i*3+2] = geometryManager.buildMeshes.ramps[i];
+    for (let i = 0; i < physx.buildMeshes.ramps.length; i++) {
+      result[i*3+2] = physx.buildMeshes.ramps[i];
     }
     return result;
   })();
   const geometries = meshes.map(m => m.geometry);
-  const material = geometryManager.buildMeshes.walls[0].material;
+  const material = physx.buildMeshes.walls[0].material;
 
   const h = 0.1;
   const arrowW = h/10;
@@ -154,7 +153,7 @@ const _makeInventoryShapesMesh = () => {
   return object;
 }; */
 
-/* geometryManager.waitForLoad().then(() => {
+/* physx.waitForLoad().then(() => {
   const hpMesh = (() => {
     const mesh = new THREE.Object3D();
 

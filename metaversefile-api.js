@@ -1,10 +1,16 @@
+/*
+metaversefile uses plugins to load files from the metaverse and load them as apps.
+it is an interface between raw data and the engine.
+metaversfile can load many file types, including javascript.
+*/
+
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {App, getRenderer, scene, sceneHighPriority, camera, dolly} from './app-object.js';
+import {getRenderer, scene, sceneHighPriority, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
@@ -20,7 +26,6 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
-import geometryManager from './geometry-manager.js';
 import {LocalPlayer, RemotePlayer} from './player.js';
 import {rarityColors} from './constants.js';
 
@@ -35,6 +40,74 @@ const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const gracePickupTime = 1000;
 const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
+
+class App extends THREE.Object3D {
+  constructor() {
+    super();
+
+    this.components = [];
+    // cleanup tracking
+    this.physicsObjects = [];
+    this.lastMatrix = new THREE.Matrix4();
+  }
+  getComponent(key) {
+    const component = this.components.find(component => component.key === key);
+    return component ? component.value : null;
+  }
+  setComponent(key, value = true) {
+    let component = this.components.find(component => component.key === key);
+    if (!component) {
+      component = {key, value};
+      this.components.push(component);
+    }
+    component.key = key;
+    component.value = value;
+    this.dispatchEvent({
+      type: 'componentupdate',
+      key,
+      value,
+    });
+  }
+  removeComponent(key) {
+    const index = this.components.findIndex(component => component.type === key);
+    if (index !== -1) {
+      this.components.splice(index, 1);
+      this.dispatchEvent({
+        type: 'componentupdate',
+        key,
+        value: null,
+      });
+    }
+  }
+  get contentId() {
+    return this.getComponent('contentId');
+  }
+  set contentId(contentId) {
+    this.setComponent('contentId', contentId);
+  }
+  get instanceId() {
+    return this.getComponent('instanceId');
+  }
+  set instanceId(instanceId) {
+    this.setComponent('instanceId', instanceId);
+  }
+  addModule(m) {
+    throw new Error('method not bound');
+  }
+  getPhysicsObjects() {
+    return this.physicsObjects;
+  }
+  activate() {
+    this.dispatchEvent({
+      type: 'activate',
+    });
+  }
+  destroy() {
+    this.dispatchEvent({
+      type: 'destroy',
+    });
+  }
+}
 
 const defaultModules = {
   moduleUrls,
@@ -145,7 +218,7 @@ const defaultComponents = {
                 app,
               },
             }));
-            world.removeObject(app.instanceId);
+            world.appManager.removeObject(app.instanceId);
           }
         }
       });
@@ -313,10 +386,10 @@ metaversefile.setApi({
   useWorld() {
     return {
       addObject() {
-        return world.addObject.apply(world, arguments);
+        return world.appManager.addObject.apply(world.appManager, arguments);
       },
       removeObject() {
-        return world.removeObject.apply(world, arguments);
+        return world.appManager.removeObject.apply(world.appManager, arguments);
       },
       getLights() {
         return world.lights;
@@ -570,7 +643,7 @@ metaversefile.setApi({
     return apps.filter(app => app.components.some(component => r.test(component.type)));
   },
   createApp({name = '', start_url = '', type = '', /*components = [], */in_front = false} = {}) {
-    const app = world.appManager.createApp(world.appManager.getNextAppId());
+    const app = new App();
     app.name = name;
     app.type = type;
     // app.components = components;
@@ -702,7 +775,7 @@ export default () => {
       // o.contentId = contentId;
       // o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
-        world.appManager.destroyApp(app.appId);
+        app.destroy();
         
         (async () => {
           const roots = ReactThreeFiber._roots;

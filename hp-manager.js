@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import geometryManager from './geometry-manager.js';
+import physx from './physx.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
-import {scene} from './app-object.js';
-import dropManager from './drop-manager.js';
+import {scene} from './renderer.js';
+// import dropManager from './drop-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3();
@@ -48,10 +48,10 @@ const update = (timestamp, timeDiff) => {
   
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction && useAction.animation === 'combo') {
-    const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
+    const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
-      const object = world.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
+      const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
       if (object) {
         const worldPosition = object.getWorldPosition(localVector);
         const {hit, died} = object.hitTracker.hit(typeof useAction.damage === 'number' ? useAction.damage : 30);

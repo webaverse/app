@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+<body>
+  <form id=mint-parcels-form>
+    <h1>Mint parcels</h1>
+    <div>
+      <a href="https://webaverse.github.io/parcels/parcels.json">parcels.json on Github</a>
+    </div>
+    <textarea id=parcels-json-input cols=80 rows=16 placeholder="paste parcels.json"></textarea>
+    <input type=submit value="Mint" disabled id=submit-button>
+  </form>
+  <form id=unstick-nft-form>
+    <h1>Unstick NFTs</h1>
+    <input type=submit value="Unstick">
+    <div id=unstick-nft-log></div>
+  </form>
+<!-- <script src="./bin/geometry.js"></script> -->
+<script type=module>
+import * as THREE from './three.module.js';
+// import {GLTFLoader} from './GLTFLoader.js';
+// import {GLTFExporter} from './GLTFExporter.js';
+// import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
+import {loginManager} from './login.js';
+import {web3, contracts, getNetworkName, getMainnetAddress, runSidechainTransaction, runMainnetTransaction} from './blockchain.js';
+
+const mintParcelsForm = document.getElementById('mint-parcels-form');
+const parcelsJsonInput = document.getElementById('parcels-json-input');
+const submitButton = document.getElementById('submit-button');
+
+(async () => {
+  await loginManager.waitForLoad();
+
+  submitButton.removeAttribute('disabled');
+  mintParcelsForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // const ethereumSpec = await window.ethereum.enable();
+    // const [address] = ethereumSpec;
+
+    const mnemonic = await loginManager.getMnemonic();
+    const address = await loginManager.getAddress();
+
+    const parcelsJsonString = parcelsJsonInput.value;
+    const parcelsJson = JSON.parse(parcelsJsonString);
+    // console.log('got parcels json', parcelsJson, address);
+    if (Array.isArray(parcelsJson)) {
+      for (let i = 0; i < parcelsJson.length; i++) {
+        const parcelJson = parcelsJson[i];
+        const {name, rarity, extents} = parcelJson;
+
+        let tokenId;
+        try {
+          const result = await runSidechainTransaction(mnemonic)('LAND', 'mintSingle', address, name);
+          console.log('got mint result 1', result);
+          tokenId = new web3['mainnetsidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+        } catch(err) {
+          tokenId = i + 1;
+          console.warn(err);
+        }
+        const hash = await contracts['mainnetsidechain'].LAND.methods.getHash(tokenId).call();
+        console.log('got hash', [tokenId, hash]);
+        {
+          const result2 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'rarity', rarity);
+          console.log('got mint result 2', result2);
+        }
+        {
+          const result3 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'extents', JSON.stringify(extents));
+          console.log('got mint result 3', result3);
+        }
+        /* await contracts['mainnetsidechain'].LAND.methods.mintSingle(address, name).send({
+          from: address,
+        }); */
+      }
+    } else {
+      throw new Error('input is not an array', parcelsJson);
+    }
+  });
+  
+  const unstickNftForm = document.getElementById('unstick-nft-form');
+  // const unstickNftChainnameInput = document.getElementById('unstick-nft-chainname-input');
+  const unstickNftTokennameInput = document.getElementById('unstick-nft-tokenname-input');
+  const unstickNftTokenidInput = document.getElementById('unstick-nft-tokenid-input');
+  const unstickNftLog = document.getElementById('unstick-nft-log');
+  unstickNftForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    unstickNftLog.innerHTML = '';
+
+    const sidechainAddress = loginManager.getAddress();
+    const mainnetAddress = await getMainnetAddress();
+
+    for (const tokenName of ['NFT', 'LAND']) {
+      const chainName = 'mainnet';
+      const otherChainName = 'sidechain';
+      // const tokenId = parseInt(unstickNftTokenidInput.value, 10);
+
+      const contract = contracts[chainName];
+      const proxyContract = contract[tokenName + 'Proxy'];
+      const otherContract = contracts[otherChainName];
+      const otherProxyContract = otherContract[tokenName + 'Proxy'];
+    
+      const [
+        depositedEntries,
+        withdrewEntries,
+        otherDepositedEntries,
+        otherWithdrewEntries,
+      ] = await Promise.all([
+        proxyContract.getPastEvents('Deposited', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        proxyContract.getPastEvents('Withdrew', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        otherProxyContract.getPastEvents('Deposited', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        otherProxyContract.getPastEvents('Withdrew', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+      ]);
+
+      console.log('got',
+        depositedEntries,
+        withdrewEntries,
+        otherDepositedEntries,
+        otherWithdrewEntries);
+
+      const _addText = s => {
+        const div = document.createElement('div');
+        div.innerText = s;
+        unstickNftLog.appendChild(div);
+      };
+      const _addButton = (s, fn) => {
+        const a = document.createElement('a');
+        a.href = '#';
+        a.innerText = s;
+        a.addEventListener('click', async e => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          await fn();
+        });
+        unstickNftLog.appendChild(a);
+      };
+
+      /* contract[tokenName].methods.ownerOf(tokenId).call(),
+      otherContract[tokenName].methods.ownerOf(tokenId).call(),
+      _addText(`Front owner: ${owner !== contract[tokenName + 'Proxy']._address ? owner : '[deposited]'}`);
+      _addText(`Back owner: ${otherOwner !== otherContract[tokenName + 'Proxy']._address ? otherOwner : '[deposited]'}`); */
+
+      console.log('got addresses', mainnetAddress, sidechainAddress);
+
+      // mainnet
+      _addText(tokenName + ' mainnet logs:');
+      for (const entry of withdrewEntries) {
+        let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
+        from = from.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
+        if (from === mainnetAddress) {
+          _addText('Withdrew: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + from);
+        }
+      }
+      for (const entry of depositedEntries) {
+        // console.log('got entry', entry);
+        let {transactionHash, blockNumber, returnValues: {to, tokenId}} = entry;
+        to = to.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
+        if (to === sidechainAddress) {
+          _addText('Deposited: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + to);
+          const networkName = getNetworkName();
+          const fullChainName = networkName;
+
+          const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
+          const signatureJson = await res.json();
+          _addText('Signature: ' + JSON.stringify(signatureJson));
+          const {timestamp, r, s, v} = signatureJson;
+
+          // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+
+          _addButton('Resubmit', async () => {
+            await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+          });
+        }
+      }
+
+      // back
+      _addText(tokenName + ' sidechain logs:');
+      for (const entry of otherWithdrewEntries) {
+        let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
+        from = from.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
+        if (from === sidechainAddress) {
+          _addText('Withdrew: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + from);
+        }
+      }
+      for (const entry of otherDepositedEntries) {
+        // console.log('got entry', entry);
+        let {transactionHash, blockNumber, returnValues: {to, tokenId}} = entry;
+        to = to.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
+        if (to === mainnetAddress) {
+          _addText('Deposited: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + to);
+          const networkName = getNetworkName();
+          const fullChainName = networkName + 'sidechain';
+
+          const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
+          const signatureJson = await res.json();
+          _addText('Signature: ' + JSON.stringify(signatureJson));
+          const {timestamp, r, s, v} = signatureJson;
+
+          // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+
+          _addButton('Resubmit', async () => {
+            await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+          });
+        }
+      }
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

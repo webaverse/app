@@ -8,7 +8,7 @@ import {storageHost} from './constants.js';
 import Avatar from './avatars/avatars.js';
 import extractPeaks from './webaudio-peaks.js';
 
-import App from './app.js';
+import Webaverse from './webaverse.js';
 
 const _loadVrm = async src => {
   let o;
@@ -85,17 +85,17 @@ window.onload = async () => {
     const container = document.getElementById('container2');
     container2.classList.remove('hidden');
 
-    const app = new App();
-    // app.bootstrapFromUrl(location);
-    app.bindLogin();
-    app.bindInput();
-    app.bindInterface();
+    const weba = new Webaverse();
+    // weba.bootstrapFromUrl(location);
+    weba.bindLogin();
+    weba.bindInput();
+    weba.bindInterface();
     const canvas = document.getElementById('canvas');
-    app.bindCanvas(canvas);
+    weba.bindCanvas(canvas);
     
-    await app.waitForLoad();    
-    app.contentLoaded = true;
-    app.startLoop();
+    await weba.waitForLoad();
+    weba.contentLoaded = true;
+    weba.startLoop();
     
     const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
     const loadedObject = await world.addObject(u);
