@@ -203,7 +203,7 @@ const loadPromise = (async () => {
       }
     })();
     animation.isIdle = /idle/i.test(animation.name);
-    animation.isJump = /jump/i.test(animation.name);
+    animation.isJump = /^jump/i.test(animation.name);
     animation.isSitting = /sitting/i.test(animation.name);
     // animation.isFalling  = /falling/i.test(animation.name);
     animation.isFloat  = /treading/i.test(animation.name);
@@ -220,7 +220,7 @@ const loadPromise = (async () => {
     animation.isDancing = /dancing/i.test(animation.name);
     animation.isCrouch = /crouch|sneak/i.test(animation.name);
     animation.isForward = /forward/i.test(animation.name);
-    animation.isBackward = /backward/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+    animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
     animation.isRight = /right/i.test(animation.name);
     animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
