@@ -20,16 +20,6 @@ import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localEuler = new THREE.Euler();
-const localColor = new Color();
-const localColor2 = new Color();
-const localColor3 = new Color();
-const localColor4 = new Color();
-const localColor5 = new Color();
-const localColor6 = new Color();
-
 // console.log('index 1');
 
 const _makeName = (N = 8) => (Math.random().toString(36)+'00000000000000000').slice(2, N+2);
