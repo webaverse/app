@@ -217,7 +217,7 @@ const _makeIconString = (hash, ext, w, h) => {
   // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let { url, hash, ext, type, width, height, dst } = parseQuery(decodeURIComponent(window.location.search));
+  let {url, hash, ext, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
   width = parseInt(width, 10);
   if (isNaN(width)) {
     width = defaultWidth;
@@ -315,7 +315,7 @@ const _makeIconString = (hash, ext, w, h) => {
 
           const htmlString = _makeIconString(hash, ext, width, height);
           const result = await uiRenderer.render(htmlString, width, height);
-          const { data, anchors } = result;
+          const {data, anchors} = result;
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
@@ -325,7 +325,7 @@ const _makeIconString = (hash, ext, w, h) => {
         };
 
         if (['glb', 'vrm', 'vox'].includes(ext)) {
-          const { renderer, scene, camera } = _makeRenderer(width, height);
+          const {renderer, scene, camera} = _makeRenderer(width, height);
 
           let o;
           try {
@@ -532,7 +532,7 @@ const _makeIconString = (hash, ext, w, h) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'gif' && ext !== 'gif') {
-      const { renderer, scene, camera } = _makeRenderer(width, height);
+      const {renderer, scene, camera} = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
@@ -582,7 +582,7 @@ const _makeIconString = (hash, ext, w, h) => {
         writeCtx.translate(0, -writeCanvas.height);
         writeCtx.drawImage(writeCanvas, 0, 0); */
 
-        gif.addFrame(writeCanvas, { delay: 50 });
+        gif.addFrame(writeCanvas, {delay: 50});
       }
       gif.render();
 
@@ -617,7 +617,7 @@ const _makeIconString = (hash, ext, w, h) => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else if (type === 'webm') {
-      const { renderer, scene, camera } = _makeRenderer(width, height);
+      const {renderer, scene, camera} = _makeRenderer(width, height);
 
       const o = await (async () => {
         switch (ext) {
