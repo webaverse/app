@@ -55,18 +55,19 @@ const makeAi = prompt => {
   }
 };
 
-function MagicMenu() {
-  const [open, setOpen] = useState(false);
-  const [page, setPage] = useState('');
+function MagicMenu({open, setOpen}) {
+  const [page, setPage] = useState('input');
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [compiling, setCompiling] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pointerLockElement, setPointerLockElement] = useState(null);
   const [needsFocus, setNeedsFocus] = useState(false);
   const [ai, setAi] = useState(null);
   const inputTextarea = useRef();
   const outputTextarea = useRef();
+  
+  const magicMenuOpen = open === 'magicMenu';
+  // console.log('got open', open, page, magicMenuOpen);
 
   const _compile = async () => {
     if (!compiling) {
@@ -121,44 +122,6 @@ function MagicMenu() {
       await metaversefile.load(dataUri);
     })();
   };
-
-  useEffect(() => {
-    const keydown = e => {
-      if (!open && e.which === 191 && !ioManager.inputFocused()) { // /
-        e.preventDefault();
-
-        const newOpen = !open;
-        if (newOpen) {
-          setPage('input');
-          setInput('');
-          setNeedsFocus(true);
-          setOpen(true);
-        }
-      } else if (open) {
-        e.stopPropagation();
-
-        if (e.which === 9) { // tab
-          e.preventDefault();
-          ioManager.click(new MouseEvent('click'));
-        } else if (e.which === 13 && window.document.activeElement !== outputTextarea.current) { // enter
-          e.preventDefault();
-          
-          if (page === 'input') {
-            _compile();
-          } else if (page === 'output') {
-            _run();
-          }
-        }
-      } else {
-        // e.stopPropagation();
-        ioManager.keydown(e);
-      }
-    };
-    window.addEventListener('keydown', keydown);
-    return () => {
-      window.removeEventListener('keydown', keydown);
-    };
-  }, [open, page]);
   useEffect(() => {
     const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
     const cleanups = types.map(type => {
@@ -181,35 +144,38 @@ function MagicMenu() {
     };
   }, []);
   useEffect(() => {
-    if (open) {
-      if (needsFocus && pointerLockElement) {
-        document.exitPointerLock();
-      } else if (needsFocus) {
-        if (page === 'input') {
-          inputTextarea.current.focus();
-        } else if (page === 'output') {
-          if (document.activeElement) {
-            document.activeElement.blur();
-          }
+    if (magicMenuOpen) {
+      if (page === 'input') {
+        inputTextarea.current.focus();
+      } else if (page === 'output') {
+        if (document.activeElement) {
+          document.activeElement.blur();
         }
-        setNeedsFocus(false);
-      } else if (!needsFocus && pointerLockElement) {
-        setOpen(false);
+      }
+      setNeedsFocus(false);
+    }
+  }, [magicMenuOpen, inputTextarea.current, needsFocus]);
+
+  const click = e => {
+    ioManager.click(new MouseEvent('click'));
+  };
+  const keydown = e => {
+    if (magicMenuOpen) {
+      if (e.which === 13 && window.document.activeElement !== outputTextarea.current) { // enter
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (page === 'input') {
+          _compile();
+        } else if (page === 'output') {
+          _run();
+        }
       }
     }
-  }, [open, inputTextarea.current, needsFocus, pointerLockElement]);
-  useEffect(() => {
-    const pointerlockchange = e => {
-      setPointerLockElement(window.document.pointerLockElement);
-    };
-    window.document.addEventListener('pointerlockchange', pointerlockchange);
-    return () => {
-      window.removeEventListener('pointerlockchange', pointerlockchange);
-    };
-  }, [pointerLockElement]);
+  };
   
   return (
-    <div className={classes.MagicMenu + ' ' + (open ? classes.open : '')}>
+    <div className={classes.MagicMenu + ' ' + (magicMenuOpen ? classes.open : '')} onClick={click}>
       <div className={classes.container} onClick={e => {
         e.preventDefault();
         e.stopPropagation();
@@ -224,7 +190,7 @@ function MagicMenu() {
             }
             setCompiling(false);
           }
-        }} onChange={e => { setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
+        }} onChange={e => { setInput(e.target.value); }} onKeyDown={keydown} placeholder="Ask for it..." ref={inputTextarea} />
         {(() => {
           switch (page) {
             case 'input': {

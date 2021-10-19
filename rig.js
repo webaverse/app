@@ -4,12 +4,13 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
-import {getRenderer, scene, camera, dolly, avatarScene} from './renderer.js';
+import {getRenderer, scene, camera, dolly} from './renderer.js';
 // import {loginManager} from './login.js';
 // import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import physicsManager from './physics-manager.js';
+import {chatManager} from './chat-manager.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -593,6 +594,48 @@ class RigManager {
       this.localRig.useTime = useTime;
       const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
+      {
+        // emote
+        const localPlayerMessages = chatManager.getMessages().filter(m => m.object === this.localRig.modelBones.Head);
+        const lastMessage = localPlayerMessages.length > 0 ? localPlayerMessages[localPlayerMessages.length - 1] : null;
+        let localPlayerEmotion = lastMessage && lastMessage.emotion;
+        let localPlayerFakeSpeech = lastMessage ? lastMessage.fakeSpeech : false;
+        if (localPlayerEmotion) {
+          // ensure new emotion and no others
+          let found = false;
+          for (let i = 0; i < this.localRig.emotes.length; i++) {
+            const emote = this.localRig.emotes[i];
+            if (emote.emotion) {
+              if (emote.emotion === localPlayerEmotion) {
+                found = true;
+              } else {
+                this.localRig.emotes.splice(i, 1);
+                i--;
+              }
+            }
+          }
+          if (!found) {
+            const emote = {
+              emotion: localPlayerEmotion,
+              value: 1,
+              fakeSpeech: localPlayerFakeSpeech,
+            };
+            this.localRig.emotes.push(emote);
+          }
+        } else {
+          // ensure no emotions
+          for (let i = 0; i < this.localRig.emotes.length; i++) {
+            const emote = this.localRig.emotes[i];
+            if (emote.emotion) {
+              this.localRig.emotes.splice(i, 1);
+              i--;
+            }
+          }
+        }
+        
+        // fake speech
+        this.localRig.fakeSpeechValue = localPlayerFakeSpeech ? 1 : 0;
+      }
 
       this.localRig.update(now, timeDiff);
       // this.localRig.aux.update(now, timeDiff);

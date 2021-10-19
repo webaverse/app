@@ -54,6 +54,12 @@ const _startApp = async (weba, canvas) => {
   }
 };
 
+const Crosshair = () => (
+  <div className={styles.crosshair} id="crosshair">
+    <img src="./assets/crosshair.svg" width={30} height={30} />
+  </div>
+);
+
 function RootNode() {
   // const [count, setCount] = useState(0)
   const canvasRef = useRef();
@@ -68,11 +74,8 @@ function RootNode() {
   return (
     <div className={styles.App} id="app">
       <Header app={app} />
-      <div className={styles.crosshair} id="crosshair">
-        <img src="./assets/crosshair.svg" width={30} height={30} />
-      </div>
+      <Crosshair />
       <canvas id="canvas" className={styles.canvas} ref={canvasRef} />
-      <MagicMenu />
       <Footer />
     </div>
   );
