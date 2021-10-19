@@ -343,6 +343,38 @@ const loaders = {
     return _voxLoader();
   },
 };
+
+const _loadImageTexture = src => {
+  const img = new Image();
+  img.onload = () => {
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+  img.crossOrigin = 'Anonymous';
+  img.src = src;
+  const texture = new THREE.Texture(img);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  // texture.anisotropy = 16;
+  return texture;
+};
+const _threeTone = _memoize(() => {
+  return _loadImageTexture('/textures/threeTone.jpg');
+});
+const _fiveTone = _memoize(() => {
+  return _loadImageTexture('/textures/fiveTone.jpg');
+});
+const gradientMaps = {
+  get threeTone() {
+    return _threeTone();
+  },
+  get fiveTone() {
+    return _fiveTone();
+  },
+};
+
 const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
 const abis = {
@@ -722,6 +754,9 @@ export default () => {
   },
   useAvatarInternal() {
     return Avatar;
+  },
+  useGradientMapsInternal() {
+    return gradientMaps;
   },
   async addModule(app, m) {
     currentAppRender = app;
