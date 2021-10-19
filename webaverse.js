@@ -211,7 +211,7 @@ export default class Webaverse extends EventTarget {
     scene.add(world.lights);
     if (rigManager.localRig) {
       scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
+      rigManager.localRig.model.visible = true; // Temporary, until render order has been implemented.
     }
     renderer.render(scene, camera);
 

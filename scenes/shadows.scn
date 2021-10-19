@@ -1,0 +1,126 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3]
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/desert-hill/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "physics": false,
+      "start_url": "/avatars/gear.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -13,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/treehouse/"
+    },
+    {
+      "position": [
+        41,
+        -9,
+        16
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
+        45,
+        -9,
+        16
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/dragon-mount/"
+    },
+    {
+      "position": [
+        -6,
+        0.16,
+        16
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
+    },
+    {
+      "position": [
+        -6,
+        1,
+        15
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "start_url": "https://webaverse.github.io/potion/"
+    }
+  ]
+}
