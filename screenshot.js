@@ -113,7 +113,7 @@ const _makeUiRenderer = () => {
       const result = await new Promise((accept, reject) => {
         mc.port1.onmessage = e => {
           const {data} = e;
-          const { error, result } = data;
+          const {error, result} = data;
 
           if (result) {
             console.log('time taken', Date.now() - start);
