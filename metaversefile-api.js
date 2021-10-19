@@ -917,14 +917,13 @@ export default () => {
       
       return app;
     } else if (renderSpec === null || renderSpec === undefined) {
-      // console.log('destroy app', app);
-      world.appManager.destroyApp(app.appId);
+      app.destroy();
       return null;
     } else if (renderSpec === true) {
       // console.log('background app', app);
       return null;
     } else {
-      world.appManager.destroyApp(app.appId);
+      app.destroy();
       console.warn('unknown renderSpec:', renderSpec);
       throw new Error('unknown renderSpec');
     }
