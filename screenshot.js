@@ -112,7 +112,7 @@ const _makeUiRenderer = () => {
       }, '*', [mc.port2]);
       const result = await new Promise((accept, reject) => {
         mc.port1.onmessage = e => {
-          const { data } = e;
+          const {data} = e;
           const { error, result } = data;
 
           if (result) {
