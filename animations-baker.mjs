@@ -1,4 +1,4 @@
-import CBOR from './cbor.mjs';
+import * as CBOR from 'borc';
 import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
