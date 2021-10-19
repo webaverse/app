@@ -1247,7 +1247,7 @@ class Avatar {
     }
 
     this.microphoneWorker = null;
-    this.volume = 0;
+    this.volume = -1;
 
     // this.lastTimestamp = Date.now();
 
@@ -2165,7 +2165,7 @@ class Avatar {
     } */
 
     if (this.options.visemes) {
-      const aaValue = Math.min(this.volume * 10, 1);
+      const aaValue = this.volume !== -1 ? Math.min(this.volume * 10, 1) : -1;
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -2236,13 +2236,15 @@ class Avatar {
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
       this.microphoneWorker = null;
-      this.volume = 0;
     }
     if (microphoneMediaStream) {
       this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
       this.microphoneWorker.addEventListener('volume', e => {
         this.volume = this.volume*0.8 + e.data*0.2;
       });
+      this.volume = 0;
+    } else {
+      this.volume = -1;
     }
   }
 
