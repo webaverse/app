@@ -239,6 +239,7 @@ export default class Webaverse extends EventTarget {
         rigManager.localRig.undecapitate();
         // rigManager.localRig.aux.undecapitate();
       }
+      avatarScene.add(world.lights);
       renderer.render(avatarScene, camera);
       if (decapitated) {
         rigManager.localRig.undecapitate();
