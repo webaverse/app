@@ -76,7 +76,6 @@ function RootNode() {
       <Header app={app} />
       <Crosshair />
       <canvas id="canvas" className={styles.canvas} ref={canvasRef} />
-      <MagicMenu />
       <Footer />
     </div>
   );
