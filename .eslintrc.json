@@ -1,6 +1,5 @@
 {
     "extends": [
-      "plugin:@next/next/recommended",
       "semistandard"
     ],
     "rules": {
