@@ -29,6 +29,7 @@
     "openai-api": "^1.2.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "smile2emoji": "^1.1.6",
     "three": "^0.133.1",
     "wsrtc": "./packages/wsrtc",
     "yjs": "^13.5.16"
