@@ -1,17 +1,20 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
+import styles from './Header.module.css';
+import Inspector from './Inspector.jsx';
+import Chat from './Chat.jsx';
+import MagicMenu from './MagicMenu.jsx';
 import * as Y from 'yjs';
 import {Color} from './Color.js';
-import styles from './Header.module.css'
 import {world} from '../world.js'
 import {rigManager} from '../rig.js'
 import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
-import {camera} from '../renderer.js'
 import metaversefile from '../metaversefile-api.js'
+import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
@@ -294,113 +297,6 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panels
   );
 };
 
-const _world2canvas = v => {
-  const dotView = localVector.set(0, 0, -1)
-    .applyQuaternion(camera.quaternion)
-    .dot(localVector2.copy(v).sub(camera.position));
-  if (dotView > 0) {
-    const worldPoint = v.clone()
-      .project(camera);
-    worldPoint.x = (worldPoint.x+1)/2;
-    worldPoint.y = 1-(worldPoint.y+1)/2;
-    worldPoint.z = Math.min(Math.max((1-(worldPoint.z+1)/2)*30, 0.25), 1);
-    return worldPoint;
-  } else {
-    return new THREE.Vector3(0, 0, -1);
-  }
-};
-
-const Inspector = ({open, setOpen, selectedApp, setSelectedApp}) => {
-  const [hoverPosition, setHoverPosition] = useState(null);
-  const [selectPosition, setSelectPosition] = useState(null);
-  const [dragging, setDragging] = useState(false);
-  
-  useEffect(() => {
-    const dragchange = e => {
-      const {dragging} = e.data;
-      // console.log('drag change', dragging);
-      setDragging(dragging);
-      setHoverPosition(null);
-    };
-    world.appManager.addEventListener('dragchange', dragchange);
-    const hoverchange = e => {
-      const worldOpen = open === 'world';
-      // console.log('check hover', [worldOpen, !selectedApp, !dragging]);
-      if (worldOpen && !selectedApp && !dragging) {
-        // console.log('hover change', e.data);
-        const {position} = e.data;
-        if (position) {
-          const worldPoint = _world2canvas(position);
-          // console.log('hover', worldPoint.toArray().join(', '));
-          setHoverPosition(worldPoint);
-        } else {
-          setHoverPosition(null);
-        }
-      } else {
-        setHoverPosition(null);
-      }
-    };
-    world.appManager.addEventListener('hoverchange', hoverchange);
-    const selectchange = e => {
-      setSelectedApp(e.data.app);
-    };
-    world.appManager.addEventListener('selectchange', selectchange);
-    return () => {
-      world.appManager.removeEventListener('dragchange', dragchange);
-      world.appManager.removeEventListener('hoverchange', hoverchange);
-      world.appManager.removeEventListener('selectchange', selectchange);
-    };
-  }, [open, selectedApp, dragging]);
-  useEffect(() => {
-    const worldOpen = open === 'world';
-    game.setHoverEnabled(worldOpen);
-    
-    if (!worldOpen) {
-      game.setMouseSelectedObject(null);
-    }
-  }, [open]);
-  useEffect(() => {
-    const frame = e => {
-      if (selectedApp) {
-        const position = game.getMouseSelectedPosition();
-        if (position) {
-          const worldPoint = _world2canvas(position);
-          // console.log('world point', worldPoint.z);
-          if (worldPoint.z > 0) {
-            setSelectPosition(worldPoint);
-          } else {
-            setSelectPosition(null);
-          }
-        } else {
-          setSelectPosition(null);
-        }
-      } else {
-        setSelectPosition(null);
-      }
-    };
-    world.appManager.addEventListener('frame', frame);
-    return () => {
-      world.appManager.removeEventListener('frame', frame);
-    };
-  }, [selectedApp]);
-
-  // hoverPosition && console.log('got', `translateX(${hoverPosition.x*100}vw) translateY(${hoverPosition.y*100}vh) scale(${hoverPosition.z})`);
-
-  const bindPosition = selectPosition || hoverPosition || null;
-  // console.log('bind position', bindPosition && bindPosition.toArray().join(','));
-
-  return (
-    <div className={classnames(styles.inspector, bindPosition ? styles.open : null)} style={bindPosition ? {
-      transform: `translateX(${bindPosition.x*100}vw) translateY(${bindPosition.y*100}vh)`,
-    } : null}>
-      <img src="/images/popup.svg" style={bindPosition ? {
-        transform: `scale(${bindPosition.z})`,
-        transformOrigin: '0 100%',
-      } : null} />
-    </div>
-  );
-};
-
 const NumberInput = ({input}) => {
   return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} onKeyDown={e => {
     if (e.which === 13) {
@@ -426,6 +322,7 @@ export default function Header({
   const [micOn, setMicOn] = useState(false);
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
+  const [dragging, setDragging] = useState(false);
   
   const localPlayer = metaversefile.useLocalPlayer();
   const [wears, setWears] = useState(localPlayer.wears.slice());
@@ -454,6 +351,7 @@ export default function Header({
   const multiplayerOpen = open === 'multiplayer';
   const characterOpen = open === 'character';
   const worldOpen = open === 'world';
+  const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
   
   /* setOpen = (setOpen => function() {
@@ -507,7 +405,7 @@ export default function Header({
     };
   }, []);
   useEffect(() => {
-    if (open && document.pointerLockElement) {
+    if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
     }
   }, [open]);
@@ -606,47 +504,85 @@ export default function Header({
     }
   };
   
+  const _handleNonInputKey = e => {
+    switch (e.which) {
+      case 13: { // enter
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen('chat');
+        return true;
+      }
+      case 84: { // T
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMic();
+        return true;
+      }
+      case 90: { // Z
+        e.preventDefault();
+        e.stopPropagation();
+        if (worldOpen) {
+          if (selectedApp) {
+            selectObject(null);
+          } else {
+            cameraManager.requestPointerLock();
+          }
+        } else {
+          setOpen('world');
+        }
+        return true;
+      }
+      case 191: { // /
+        if (!magicMenuOpen && !ioManager.inputFocused()) { 
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // setPage('input');
+          // setInput('');
+          // setNeedsFocus(true);
+          setOpen('magicMenu');
+        }
+        return true;
+      }
+    }
+    const match = e.code.match(/^Numpad([0-9])$/);
+    if (match) {
+      const key = parseInt(match[1], 10);
+      _emoteKey(key);
+      return true;
+    }
+    return false;
+  };
+  const _handleAnytimeKey = e => {
+    switch (e.which) {
+      case 9: { // tab
+        e.preventDefault();
+        e.stopPropagation();
+        if (characterOpen || magicMenuOpen) {
+          ioManager.click(new MouseEvent('click'));
+          cameraManager.requestPointerLock();
+        } else {
+          setOpen('character');
+        }
+        return true;
+      }
+    }
+    return false;
+  };
   useEffect(() => {
     const keydown = e => {
+      let handled = false;
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
       if (!inputFocused) {
-        switch (e.which) {
-          case 84: { // T
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMic();
-            break;
-          }
-          case 9: { // Tab
-            e.preventDefault();
-            e.stopPropagation();
-            if (characterOpen) {
-              cameraManager.requestPointerLock();
-            } else {
-              setOpen('character');
-            }
-            break;
-          }
-          case 90: { // Z
-            e.preventDefault();
-            e.stopPropagation();
-            if (worldOpen) {
-              if (selectedApp) {
-                selectObject(null);
-              } else {
-                cameraManager.requestPointerLock();
-              }
-            } else {
-              setOpen('world');
-            }
-            break;
-          }
-        }
-        const match = e.code.match(/^Numpad([0-9])$/);
-        if (match) {
-          const key = parseInt(match[1], 10);
-          _emoteKey(key);
-        }
+        handled = _handleNonInputKey(e);
+      }
+      if (!handled) {
+        handled = _handleAnytimeKey(e);
+      }
+      if (handled || inputFocused) {
+        // nothing
+      } else {
+        ioManager.keydown(e);
       }
     };
     window.addEventListener('keydown', keydown);
@@ -687,13 +623,30 @@ export default function Header({
       setSz(scale.z);
     }
   }, [selectedApp]);
+  useEffect(() => {
+    const dragchange = e => {
+      const {dragging} = e.data;
+      setDragging(dragging);
+    };
+    world.appManager.addEventListener('dragchange', dragchange);
+    const selectchange = e => {
+      setSelectedApp(e.data.app);
+    };
+    world.appManager.addEventListener('selectchange', selectchange);
+    return () => {
+      world.appManager.removeEventListener('dragchange', dragchange);
+      world.appManager.removeEventListener('selectchange', selectchange);
+    };
+  }, [dragging]);
 
 	return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
-      <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} setSelectedApp={setSelectedApp} />
-			<div className={styles.inner}>
+      <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
+			<Chat open={open} setOpen={setOpen} />
+      <MagicMenu open={open} setOpen={setOpen} />
+      <div className={styles.inner}>
 				<header className={styles.header}>
           <div className={styles.row}>
             <a href="/" className={styles.logo}>
