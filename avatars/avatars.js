@@ -9,6 +9,16 @@ import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
+import Simplex from '../simplex-noise.js';
+
+const _makeSimplexes = numSimplexes => {
+  const result = Array(numSimplexes);
+  for (let i = 0; i < numSimplexes; i++) {
+    result[i] = new Simplex(i + '');
+  }
+  return result;
+};
+const simplexes = _makeSimplexes(5);
 
 // import {FBXLoader} from '../FBXLoader.js';
 // import {downloadFile} from '../util.js';
@@ -1212,10 +1222,23 @@ class Avatar {
     this.emotes = [];
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
-      const _getVrmBlendShapeIndex = presetName => {
+      const _getBlendShapeIndexForPresetName = presetName => {
         const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
+          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
+            return shape.binds[0].index;
+          } else {
+            return -1;
+          }
+        } else {
+          return -1;
+        }
+      };
+      /* const _getBlendShapeIndexForName = name => {
+        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        if (Array.isArray(blendShapes)) {
+          const shape = blendShapes.find(blendShape => blendShape.name.toLowerCase() === name);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
             return shape.binds[0].index;
           } else {
@@ -1224,19 +1247,41 @@ class Avatar {
         } else {
           return null;
         }
-      };
+      }; */
       
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
-          const aaIndex = _getVrmBlendShapeIndex('a') || null;
-          const blinkLeftIndex = _getVrmBlendShapeIndex('blink_l') || null;
-          const blinkRightIndex = _getVrmBlendShapeIndex('blink_r') || null;
+          const blinkLeftIndex = _getBlendShapeIndexForPresetName('blink_l');
+          const blinkRightIndex = _getBlendShapeIndexForPresetName('blink_r');
+          const aIndex = _getBlendShapeIndexForPresetName('a');
+          const eIndex = _getBlendShapeIndexForPresetName('e');
+          const iIndex = _getBlendShapeIndexForPresetName('i');
+          const oIndex = _getBlendShapeIndexForPresetName('o');
+          const uIndex = _getBlendShapeIndexForPresetName('u');
+          const neutralIndex = _getBlendShapeIndexForPresetName('neutral');
+          const angryIndex = _getBlendShapeIndexForPresetName('angry');
+          const funIndex = _getBlendShapeIndexForPresetName('fun');
+          const joyIndex = _getBlendShapeIndexForPresetName('joy');
+          const sorrowIndex = _getBlendShapeIndexForPresetName('sorrow');
+          // const surprisedIndex = _getBlendShapeIndexForName('surprised');
+          // const extraIndex = _getBlendShapeIndexForName('extra');
           return [
             morphTargetInfluences,
-            aaIndex,
             blinkLeftIndex,
             blinkRightIndex,
+            aIndex,
+            eIndex,
+            iIndex,
+            oIndex,
+            uIndex,
+            neutralIndex,
+            angryIndex,
+            funIndex,
+            joyIndex,
+            sorrowIndex,
+            // surprisedIndex,
+            // extraIndex,
           ];
         } else {
           return null;
@@ -1349,6 +1394,8 @@ class Avatar {
     this.crouchState = false;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
+    this.fakeSpeechValue = 0;
+    this.fakeSpeechSmoothed = 0;
 	}
   static bindAvatar(object) {
     const model = object.scene;
@@ -2164,8 +2211,8 @@ class Avatar {
       this.decapitate();
     } */
 
-    if (this.options.visemes) {
-      const aaValue = this.volume !== -1 ? Math.min(this.volume * 10, 1) : -1;
+    const _updateVisemes = () => {
+      const volumeValue = this.volume !== -1 ? Math.min(this.volume * 10, 1) : -1;
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
@@ -2178,37 +2225,120 @@ class Avatar {
       })();
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         if (visemeMapping) {
-          const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
+          const [
+            morphTargetInfluences,
+            blinkLeftIndex,
+            blinkRightIndex,
+            aIndex,
+            eIndex,
+            iIndex,
+            oIndex,
+            uIndex,
+            neutralIndex,
+            angryIndex,
+            funIndex,
+            joyIndex,
+            sorrowIndex,
+            // surprisedIndex,
+            // extraIndex,
+          ] = visemeMapping;
           
           // reset
           for (let i = 0; i < morphTargetInfluences.length; i++) {
             morphTargetInfluences[i] = 0;
           }
           
-          // mouth volume
-          if (aaIndex !== null) {
-            morphTargetInfluences[aaIndex] = aaValue;
-          }
-          
-          // user
-          if (this.emotes.length > 0) {
-            for (const emote of this.emotes) {
-              if (emote.index < morphTargetInfluences.length) {
-                morphTargetInfluences[emote.index] = emote.value;
-              }
+          if (volumeValue !== -1) {
+            // mouth volume
+            if (aIndex !== -1) {
+              morphTargetInfluences[aIndex] = volumeValue;
+            }
+            if (eIndex !== -1) {
+              morphTargetInfluences[eIndex] = 0;
+            }
+            if (iIndex !== -1) {
+              morphTargetInfluences[iIndex] = 0;
+            }
+            if (oIndex !== -1) {
+              morphTargetInfluences[oIndex] = 0;
+            }
+            if (uIndex !== -1) {
+              morphTargetInfluences[uIndex] = 0;
             }
           } else {
-            // blink
-            if (blinkLeftIndex !== null) {
-              morphTargetInfluences[blinkLeftIndex] = blinkValue;
+            // speech
+            this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
+            const now2 = now / 1000 * 2;
+            let aValue = (simplexes[0].noise2D(now2, now2));
+            let eValue = (simplexes[1].noise2D(now2, now2));
+            let iValue = (simplexes[2].noise2D(now2, now2));
+            let oValue = (simplexes[3].noise2D(now2, now2));
+            let uValue = (simplexes[4].noise2D(now2, now2));
+            let totalValue = 1.5; // (Math.abs(aValue) + Math.abs(eValue) + Math.abs(iValue) + Math.abs(oValue) + Math.abs(uValue));
+            if (aIndex !== -1) {
+              morphTargetInfluences[aIndex] = this.fakeSpeechSmoothed * aValue/totalValue;
             }
-            if (blinkRightIndex !== null) {
-              morphTargetInfluences[blinkRightIndex] = blinkValue;
+            if (eIndex !== -1) {
+              morphTargetInfluences[eIndex] = this.fakeSpeechSmoothed * eValue/totalValue;
             }
+            if (iIndex !== -1) {
+              morphTargetInfluences[iIndex] = this.fakeSpeechSmoothed * iValue/totalValue;
+            }
+            if (oIndex !== -1) {
+              morphTargetInfluences[oIndex] = this.fakeSpeechSmoothed * oValue/totalValue;
+            }
+            if (uIndex !== -1) {
+              morphTargetInfluences[uIndex] = this.fakeSpeechSmoothed * uValue/totalValue;
+            }
+          }
+            
+          // emotes
+          if (this.emotes.length > 0) {
+            for (const emote of this.emotes) {
+              if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
+                morphTargetInfluences[emote.index] = emote.value;
+              } else {
+                let index = -1;
+                switch (emote.emotion) {
+                  case 'neutral': {
+                    index = neutralIndex;
+                    break;
+                  }
+                  case 'angry': {
+                    index = angryIndex;
+                    break;
+                  }
+                  case 'fun': {
+                    index = funIndex;
+                    break;
+                  }
+                  case 'joy': {
+                    index = joyIndex;
+                    break;
+                  }
+                  case 'sorrow': {
+                    index = sorrowIndex;
+                    break;
+                  }
+                }
+                if (index !== -1) {
+                  morphTargetInfluences[index] = emote.value;
+                }
+              }
+            }
+          }
+
+          // blink
+          if (blinkLeftIndex !== -1) {
+            morphTargetInfluences[blinkLeftIndex] = blinkValue;
+          }
+          if (blinkRightIndex !== -1) {
+            morphTargetInfluences[blinkRightIndex] = blinkValue;
           }
         }
       }
-    }
+    };
+    this.options.visemes && _updateVisemes();
 
     if (this.debugMeshes) {
       if (this.getTopEnabled()) {
