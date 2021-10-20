@@ -67,6 +67,7 @@ const oneVector = new THREE.Vector3(1, 1, 1);
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
 ]; */
 const cubicBezier = easing(0, 1, 0, 1);
+const useTotalTime = 1000;
 
 const _getGrabbedObject = i => {
   const localPlayer = useLocalPlayer();
@@ -967,10 +968,8 @@ const _updateWeapons = (timestamp) => {
     // moveMesh.visible = false;
 
     const localPlayer = useLocalPlayer();
-    const _isWear = o => {
-      const {instanceId} = o;
-      return localPlayer.wears.some(wear => wear.instanceId === instanceId);
-    };
+    const oldGrabUseTarget = grabUseMesh.visible ? grabUseMesh.target : null;
+    const _isWear = o => localPlayer.wears.some(wear => wear.instanceId === o.instanceId);
 
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
@@ -1017,7 +1016,7 @@ const _updateWeapons = (timestamp) => {
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
-        grabUseMesh.setComponent('value', weaponsManager.getUseSpecFactor(now));
+        grabUseMesh.setComponent('value', weaponsManager.getActivateFactor(now));
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
@@ -1040,9 +1039,17 @@ const _updateWeapons = (timestamp) => {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
+          
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
-          grabUseMesh.setComponent('value', weaponsManager.getUseSpecFactor(now));
+          if (object !== oldGrabUseTarget) {
+            const localPlayer = useLocalPlayer();
+            let activateActionIndex = localPlayer.actions.findIndex(action => action.type === 'activate');
+            if (activateActionIndex !== -1) {
+              localPlayer.actions.splice(activateActionIndex, 1);
+            }
+          }
+          grabUseMesh.setComponent('value', weaponsManager.getActivateFactor(now));
         }
       }
     }
@@ -1489,11 +1496,16 @@ const _updateWeapons = (timestamp) => {
   _updateDrags();
   
   const _updateUses = () => {
-    if (weaponsManager.useSpec && now >= weaponsManager.useSpec.endTime) {
-      if (grabUseMesh.target) {
-        grabUseMesh.target.activate();
+    const localPlayer = useLocalPlayer();
+    let activateActionIndex = localPlayer.actions.findIndex(action => action.type === 'activate');
+    if (activateActionIndex !== -1) {
+      const activateAction = localPlayer.actions[activateActionIndex];
+      if (activateAction.time >= useTotalTime) {
+        if (grabUseMesh.target) {
+          grabUseMesh.target.activate();
+        }
+        localPlayer.actions.splice(activateActionIndex, 1);
       }
-      weaponsManager.useSpec = null;
     }
   };
   _updateUses();
@@ -2441,7 +2453,6 @@ const weaponsManager = {
   inventoryHack: false,
   closestObject: null,
   usableObject: null,
-  useSpec: null,
   hoverEnabled: false,
   // sceneLoaded: false,
   /* getWeapon() {
@@ -3061,29 +3072,37 @@ const weaponsManager = {
   getDragRightSpec() {
     return dragRightSpec;
   },
-  getUseSpecFactor(now) {
-    const {useSpec} = weaponsManager;
-    if (useSpec) {
-      let f = (now - useSpec.startTime) /
-        (useSpec.endTime - useSpec.startTime);
-      f = Math.min(Math.max(f, 0), 1);
-      return f;
+  getActivateFactor(now) {
+    const localPlayer = useLocalPlayer();
+    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+    if (activateAction) {
+      return Math.min(Math.max(activateAction.time / useTotalTime, 0), 1);
     } else {
       return 0;
     }
   },
-  menuUseDown() {
+  menuActivateDown() {
     if (grabUseMesh.visible) {
-      const startTime = performance.now();
-      const endTime = startTime + 1000;
-      weaponsManager.useSpec = {
-        startTime,
-        endTime,
-      };
+      const localPlayer = useLocalPlayer();
+      let activateAction = localPlayer.actions.find(action => action.type === 'activate');
+      if (!activateAction) {
+        activateAction = {
+          type: 'activate',
+          time: 0,
+        };
+        localPlayer.actions.push(activateAction);
+      }
     }
   },
-  menuUseUp() {
-    weaponsManager.useSpec = null;
+  menuActivateUp() {
+    const localPlayer = useLocalPlayer();
+    for (let i = 0; i < localPlayer.actions.length; i++) {
+      const action = localPlayer.actions[i];
+      if (action.type === 'activate') {
+        localPlayer.actions.splice(i, 1);
+        i--;
+      }
+    }
   },
   update: _updateWeapons,
   pushAppUpdates: _pushAppUpdates,
