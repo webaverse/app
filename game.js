@@ -52,19 +52,14 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
-const identityQuaternion = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-const localMatrix4 = new THREE.Matrix4();
-const localMatrix5 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 const oneVector = new THREE.Vector3(1, 1, 1);
 
-// const gltfLoader = new GLTFLoader();
 /* const equipArmQuaternions = [
   new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(1, 0, 0), Math.PI/2)
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), Math.PI/2)),
