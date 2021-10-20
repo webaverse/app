@@ -714,6 +714,10 @@ const _updatePhysics = timeDiff => {
   if (throwAction) {
     throwAction.time += timeDiff;
   }
+  const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+  if (activateAction) {
+    activateAction.time += timeDiff;
+  }
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction) {
     useAction.time += timeDiff;
