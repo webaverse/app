@@ -477,7 +477,7 @@ ioManager.keydown = e => {
     }
     case 69: { // E
       // if (document.pointerLockElement) {
-        game.menuUseDown();
+        game.menuActivateDown();
       // }
       break;
     }
@@ -538,7 +538,7 @@ ioManager.keyup = e => {
     } */
     case 69: { // E
       if (document.pointerLockElement) {
-        game.menuUseUp();
+        game.menuActivateUp();
       }
       break;
     }
