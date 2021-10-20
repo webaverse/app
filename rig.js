@@ -599,7 +599,11 @@ class RigManager {
       this.localRig.jumpTime = jumpTime;
       this.localRig.flyState = !!flyAction;
       this.localRig.flyTime = flyTime;
+      this.localRig.activateState = !!activateAction && !crouchAction;
+      this.localRig.activateTime = activateTime;
       this.localRig.useTime = useTime;
+      this.localRig.narutoRunState = narutoRunState;
+      this.localRig.narutoRunTime = narutoRunTime;
       const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
       {
