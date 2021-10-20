@@ -19,6 +19,7 @@ import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+import { v4 as uuidv4 } from 'uuid';
 
 const localEuler = new THREE.Euler();
 
@@ -195,6 +196,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   const userOpen = open === 'user';
   
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loginOptionsExpand, setLoginOptionsExpand] = useState(false);
 
   /* (async () => {
     const {createSchema} = await ceramicAdmin.waitForLoad();
@@ -216,30 +218,84 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   }; */
   
   return (
+    <div>
     <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)} onClick={async e => {
       e.preventDefault();
       e.stopPropagation();
-
-      if (address) {
-        toggleOpen('user');
-      } else {
-        if (!loggingIn) {
-          setLoggingIn(true);
-          try {
-            const {address, profile} = await ceramicApi.login();
-            // console.log('login', {address, profile});
-            setAddress(address);
-          } catch(err) {
-            console.warn(err);
-          } finally {
-            setLoggingIn(false);
-          }
-        }
-      }
+      loginOptionsExpand ? setLoginOptionsExpand(false) : setLoginOptionsExpand(true);
     }}>
       <img src="images/soul.png" className={styles.icon} />
-      <div className={styles.name}>{loggingIn ? 'Logging in... ' : (address || 'Log in')}</div>
+      <div className={styles.name}>{loggingIn ? 'Logging in... ' : (address || 'Log in')}
+      </div>
     </div>
+      {
+        loginOptionsExpand ? 
+        <div className={styles.login_options}>
+          <a className={styles.metamask} onClick={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (address) {
+              toggleOpen('user');
+            } else {
+              if (!loggingIn) {
+                setLoggingIn(true);
+                try {
+                  const {address, profile} = await ceramicApi.login();
+                  // console.log('login', {address, profile});
+                  setAddress(address);
+                } catch(err) {
+                  console.warn(err);
+                } finally {
+                  setLoggingIn(false);
+                }
+              }
+            }
+          }}>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/2048px-MetaMask_Fox.svg.png"  width="30px" alt="" />
+            <span className={styles.metamask_text}
+          >MetaMask</span>
+            </a>
+          <a className={styles.discord} onClick={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log("discord loggin")
+            const id = '1234';
+            // const code = '1234';
+            const code = uuidv4().toString();
+            // console.log(code)
+            // const code = new Uint32Array(uuidv4()).toString(10).slice(-6);
+            // const code = new Uint32Array(crypto.randomBytes(4).buffer, 0, 1).toString(10).slice(-6);
+            const res = await fetch(`https://webaverse.com/login?id=${id}&code=${code}`);
+            const result = await res.json();
+            console.log(result, result);
+            // if (address) {
+            //   toggleOpen('user');
+            // } else {
+            //   if (!loggingIn) {
+            //     setLoggingIn(true);
+            //     try {
+
+            //       const {address, profile} = await ceramicApi.login();
+            //       // console.log('login', {address, profile});
+            //       setAddress(address);
+
+            //     } catch(err) {
+            //       console.warn(err);
+            //     } finally {
+            //       setLoggingIn(false);
+            //     }
+            //   }
+            // }
+
+          }}>
+            <img src="https://www.freepnglogos.com/uploads/discord-logo-png/concours-discord-cartes-voeux-fortnite-france-6.png" width="30px" alt="" />
+            <span className={styles.discord_text}>Discord</span></a>
+        </div>
+        : <div></div> }
+
+    </div>
+
   );
 };
 

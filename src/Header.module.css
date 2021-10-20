@@ -1,3 +1,33 @@
+.login_options {
+  background: black;
+  color: white;
+  font-size: initial;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metamask {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.discord {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.metamask_text {
+  margin-left: 10px;
+
+}
+
+.discord_text {
+  margin-left: 10px;
+
+}
+
 body {
   --header-height: 50px;
 }
