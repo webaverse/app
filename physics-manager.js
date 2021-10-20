@@ -736,19 +736,19 @@ const _updatePhysics = timeDiff => {
     }
   }
 
-  timeDiff /= 1000; // XXX
+  const timeDiffS = timeDiff / 1000;
 
   const avatarWorldObject = _getAvatarWorldObject(localObject);
   const avatarCameraOffset = _getAvatarCameraOffset();
 
   const renderer = getRenderer();
   if (renderer.xr.getSession()) {
-    _applyGravity(timeDiff);
+    _applyGravity(timeDiffS);
 
     if (ioManager.currentWalked || localPlayer.actions.some(action => action.type === 'jump')) {
       const originalPosition = avatarWorldObject.position.clone();
 
-      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiffS);
 
       dolly.position.add(
         avatarWorldObject.position.clone().sub(originalPosition)
@@ -760,33 +760,31 @@ const _updatePhysics = timeDiff => {
       rigManager.setLocalRigMatrix(null);
     }
   } else {
-    // if (unlocked) {
-      const selectedTool = cameraManager.getMode();
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (selectedTool === 'firstperson') {
-        _applyGravity(timeDiff);
-        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
-        _copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-      } else if (localPlayer.actions.some(action => action.type === 'aim') || !!localPlayer.grabs[0]) {
-        _applyGravity(timeDiff);
-        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
-        _copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-      } else if (selectedTool === 'isometric') {
-        _applyGravity(timeDiff);
-        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
-        _copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-      /* } else if (selectedTool === 'birdseye') {
-        _applyGravity(timeDiff);
-        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
-        _copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld(); */
-      } else {
-        throw new Error('invalid camera mode: ' + selectedTool);
-      } 
-    // }
+    const selectedTool = cameraManager.getMode();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    if (selectedTool === 'firstperson') {
+      _applyGravity(timeDiffS);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
+    } else if (localPlayer.actions.some(action => action.type === 'aim') || !!localPlayer.grabs[0]) {
+      _applyGravity(timeDiffS);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
+    } else if (selectedTool === 'isometric') {
+      _applyGravity(timeDiffS);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
+    /* } else if (selectedTool === 'birdseye') {
+      _applyGravity(timeDiffS);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld(); */
+    } else {
+      throw new Error('invalid camera mode: ' + selectedTool);
+    }
   }
 };
 physicsManager.update = _updatePhysics;
