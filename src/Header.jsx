@@ -20,6 +20,8 @@ import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
+const localEuler = new THREE.Euler();
+
 // console.log('index 1');
 
 const _makeName = (N = 8) => (Math.random().toString(36)+'00000000000000000').slice(2, N+2);
