@@ -968,7 +968,6 @@ const _updateWeapons = (timestamp) => {
     // moveMesh.visible = false;
 
     const localPlayer = useLocalPlayer();
-    const oldGrabUseTarget = grabUseMesh.visible ? grabUseMesh.target : null;
     const _isWear = o => localPlayer.wears.some(wear => wear.instanceId === o.instanceId);
 
     grabUseMesh.visible = false;
@@ -1042,13 +1041,6 @@ const _updateWeapons = (timestamp) => {
           
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
-          if (object !== oldGrabUseTarget) {
-            const localPlayer = useLocalPlayer();
-            let activateActionIndex = localPlayer.actions.findIndex(action => action.type === 'activate');
-            if (activateActionIndex !== -1) {
-              localPlayer.actions.splice(activateActionIndex, 1);
-            }
-          }
           grabUseMesh.setComponent('value', weaponsManager.getActivateFactor(now));
         }
       }
