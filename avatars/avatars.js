@@ -71,7 +71,7 @@ const animationsSelectMap = {
     'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
     'right strafe.fbx': new THREE.Vector3(1, 0, 0),
 
-    'running.fbx': new THREE.Vector3(0, 0, -1),
+    'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
     'walking.fbx': new THREE.Vector3(0, 0, -0.5),
 
     'running backwards.fbx': new THREE.Vector3(0, 0, 1),
@@ -96,7 +96,7 @@ const animationsDistanceMap = {
   'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
   'right strafe.fbx': new THREE.Vector3(1, 0, 0),
 
-  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
   'walking.fbx': new THREE.Vector3(0, 0, -0.5),
 
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
@@ -168,7 +168,7 @@ const loadPromise = (async () => {
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
   const runningAnimations = [
-    `running.fbx`,
+    `Fast Run.fbx`,
     `left strafe.fbx`,
     `right strafe.fbx`,
   ].map(name => animations.find(a => a.name === name));
@@ -188,7 +188,7 @@ const loadPromise = (async () => {
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
-        case 'running.fbx':
+        case 'Fast Run.fbx':
         case 'walking.fbx':
         case 'Sneaking Forward.fbx':
           return 'forward';
@@ -241,7 +241,7 @@ const loadPromise = (async () => {
     animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
     animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+    animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
     animation.isReverse = /reverse/i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
