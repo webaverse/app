@@ -44,7 +44,8 @@ const _startApp = async (weba, canvas) => {
   await weba.startLoop();
   
   {
-    const defaultAvatarUrl = './avatars/citrine.vrm';
+    const avatarURLs = ['./avatars/default-male.vrm', './avatars/default-female.vrm'];
+    const defaultAvatarUrl = avatarURLs[Math.floor(Math.random()*avatarURLs.length)];
     const contentId = defaultAvatarUrl;
     const avatarApp = await metaversefileApi.load(contentId);
     avatarApp.contentId = contentId;
