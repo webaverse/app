@@ -19,6 +19,7 @@ import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+import Tabs from "./components/Tabs";
 
 const localEuler = new THREE.Euler();
 
@@ -631,6 +632,13 @@ export default function Header({
     };
   }, [dragging]);
 
+  const equipments = [
+    'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b6202cc5-8c50-4720-9bd0-ae9b0a7dd8c7/d9xs76y-4924777c-79ba-4842-ad27-0590cd024585.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2I2MjAyY2M1LThjNTAtNDcyMC05YmQwLWFlOWIwYTdkZDhjN1wvZDl4czc2eS00OTI0Nzc3Yy03OWJhLTQ4NDItYWQyNy0wNTkwY2QwMjQ1ODUucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.c0fdlC76nlwNTW7xmg4YZnyV-P11jZ1zrtr6I12jsZM',
+    'https://pngimg.com/uploads/sword/sword_PNG5525.png',
+    'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b6202cc5-8c50-4720-9bd0-ae9b0a7dd8c7/d9xs76y-4924777c-79ba-4842-ad27-0590cd024585.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2I2MjAyY2M1LThjNTAtNDcyMC05YmQwLWFlOWIwYTdkZDhjN1wvZDl4czc2eS00OTI0Nzc3Yy03OWJhLTQ4NDItYWQyNy0wNTkwY2QwMjQ1ODUucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.c0fdlC76nlwNTW7xmg4YZnyV-P11jZ1zrtr6I12jsZM',
+    'https://pngimg.com/uploads/sword/sword_PNG5525.png',
+  ];
+
 	return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
@@ -687,6 +695,57 @@ export default function Header({
                   <div className={styles['panel-header']}>
                     <h1>Equipment</h1>
                   </div>
+                  <Tabs>
+                  <div label="Swords">
+                  <div className={styles.neonTab}>
+  <div className={styles.neonLeft}>
+  <img src="https://freepngimg.com/download/weapon/91292-weapon-game-angle-cartoon-sword-download-hq-png.png" width="60px" alt="" />
+
+  </div>
+  <div className={styles.neonRight}>
+  <p className={styles.neonText}>SWORD POWER</p>
+  <p className={styles.neonTextScore}>+ <span>20</span></p>
+  </div>
+</div>
+<div className={styles.neonTab}>
+  <div className={styles.neonLeft}>
+  <img src="https://freepngimg.com/download/weapon/91292-weapon-game-angle-cartoon-sword-download-hq-png.png" width="60px" alt="" />
+
+  </div>
+  <div className={styles.neonRight}>
+  <p className={styles.neonText}>SWORD POWER</p>
+  <p className={styles.neonTextScore}>+ <span>50</span></p>
+  </div>
+</div>
+                  </div>
+                  <div label="Guns">
+                    {/* <div className={styles.neons}>
+                        <div className={styles.neon}>M416 <span></span> <span></span> <span></span> <span></span></div>
+                        <div className={styles.neon}>AKM<span></span> <span></span> <span></span> <span></span></div>
+                        <div className={styles.neon}>P16 <span></span> <span></span> <span></span> <span></span></div>
+                    </div>                   */}
+                  </div>
+                  <div label="Armor">
+                  {/* <div className={styles.neons}>
+                        <div className={styles.neon}>Vest <span></span> <span></span> <span></span> <span></span></div>
+                        <div className={styles.neon}>Helmet<span></span> <span></span> <span></span> <span></span></div>
+                        <div className={styles.neon}>Pan<span></span> <span></span> <span></span> <span></span></div>
+                    </div>                     */}
+                  </div>
+                </Tabs>
+                  {/* <div className={styles.swords}>
+                    Swords
+                  </div>                
+                    <ul>
+                    {equipments.map(equipment => (
+
+                    <li className={styles.divshine}>
+                    <span>
+                    <img src={equipment} width="200px" alt="" />
+                    </span>
+                    </li>
+                  ))}
+                  </ul> */}
                 </div>)
               ]}
               open={open}

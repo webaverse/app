@@ -1,5 +1,219 @@
+.neonText {
+  color: #fff;
+  margin: 0;
+  text-shadow:
+  0 0 7px rgb(32, 60, 151),
+  0 0 10px rgb(32, 60, 151),
+  0 0 21px rgb(32, 60, 151),
+  0 0 42px rgb(32, 60, 151),
+  0 0 82px rgb(32, 60, 151),
+  0 0 92px rgb(32, 60, 151),
+  0 0 102px rgb(32, 60, 151),
+  0 0 151px rgb(32, 60, 151);
+}
+.neonTextScore {
+  margin: 0;
+  font-size: 4em;
+  color: #fff;
+  text-shadow:
+    0 0 7px rgb(32, 60, 151),
+    0 0 10px rgb(32, 60, 151),
+    0 0 21px rgb(32, 60, 151),
+    0 0 42px rgb(32, 60, 151),
+    0 0 82px rgb(32, 60, 151),
+    0 0 92px rgb(32, 60, 151),
+    0 0 102px rgb(32, 60, 151),
+    0 0 151px rgb(32, 60, 151);
+}
+.neonRight {
+  margin-top: 15px;
+
+}
+.neonLeft {
+  border: 1px solid #f10c0c;
+  padding: 10px;
+  border-radius: 50px;
+  box-shadow: 1px 1px 45px -5px #f10c0c
+
+}
+.neonTab {
+  font-family: "Gruppo";
+
+  border: 1px solid #10296e;
+  border-radius: 10px;
+  margin: 20px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 1px 1px 25px 10px #10296e
+
+}
+/* 
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+} */
+/* 
+body {
+  background: #000;
+} */
+/* 
+.neons {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+  margin-top: 90px
+}
+
+.neon {
+  width: 90%;
+  height: auto;
+  text-transform: uppercase;
+  background: none;
+  margin: 5px;
+  border: none;
+  line-height: 50px;
+  font-family: Arial, sans-serif;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 22px;
+  position: relative;
+  color: #03e9f4;
+  overflow: hidden;
+  transition: .15s;
+}
+
+.neon:first-child {
+  filter: hue-rotate(270deg);
+}
+
+.neon:hover {
+  color: #fff;
+  background: #03e9f4;
+  box-shadow: 0 0 5px #03e9f4,
+  0 0 25px #03e9f4,
+  0 0 50px #03e9f4,
+  0 0 200px #03e9f4;
+}
+
+.neon:nth-child(2) {
+  filter: hue-rotate(110deg);
+}
+
+span {
+  position: absolute;
+}
+
+span:first-child {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  animation: span1 linear infinite 1s;
+}
+
+span:nth-child(2) {
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  animation: span2 linear infinite 1s;
+  animation-delay: .25s;
+}
+
+span:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  animation: span3 linear infinite 1s;
+  animation-delay: .5s;
+}
+
+span:last-child {
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  animation: span4 linear infinite 1s;
+  animation-delay: .75s;
+}
+
+@keyframes span1 {
+  0% {
+      left: -100%;
+      background: linear-gradient(to right, transparent, #03e9f4);
+  }
+  50%, 100% {
+      left: 100%;
+      background: linear-gradient(to right, transparent, #03e9f4);
+  }
+}
+
+@keyframes span2 {
+  0% {
+      top: -100%;
+      background: linear-gradient(to bottom, transparent, #03e9f4);
+  }
+  50%, 100% {
+      top: 100%;
+      background: linear-gradient(to bottom, transparent, #03e9f4);
+  }
+}
+
+@keyframes span3 {
+  0% {
+      left: 100%;
+      background: linear-gradient(to left, transparent, #03e9f4);
+  }
+  50%, 100% {
+      left: -100%;
+      background: linear-gradient(to left, transparent, #03e9f4);
+  }
+}
+
+@keyframes span4 {
+  0% {
+      top: 100%;
+      background: linear-gradient(to top, transparent, #03e9f4);
+  }
+  50%, 100% {
+      top: -100%;
+      background: linear-gradient(to top, transparent, #03e9f4);
+  }
+} */
+
 body {
   --header-height: 50px;
+}
+
+.grid {
+  display: flex;                       /* establish flex container */
+  flex-wrap: wrap;                     /* enable flex items to wrap */
+  justify-content: start;
+  
+}
+.cell {
+  flex: 0 0 32%;                       /* don't grow, don't shrink, width */
+  height: auto;
+  margin: 2px;
+  background-color: #999;
+}
+.cell:hover {
+  background-color: rgb(241, 121, 121);
+}
+.cell > img {
+  width: 100px
 }
 
 .header {
@@ -71,7 +285,7 @@ body {
   display: flex;
   width: 400px;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
 }
 .header .tab .panels .panel {
   width: 100%;
