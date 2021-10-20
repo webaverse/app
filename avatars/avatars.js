@@ -2257,8 +2257,7 @@ class Avatar {
             morphTargetInfluences[i] = 0;
           }
           
-          if (volumeValue !== -1) {
-            // mouth volume
+          if (volumeValue !== -1) { // real speech
             if (aIndex !== -1) {
               morphTargetInfluences[aIndex] = volumeValue;
             }
@@ -2274,8 +2273,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = 0;
             }
-          } else {
-            // speech
+          } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
             const now2 = now / 1000 * 2;
             let aValue = (simplexes[0].noise2D(now2, now2));
