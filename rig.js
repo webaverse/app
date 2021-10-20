@@ -14,6 +14,7 @@ import {getRenderer, scene, dolly} from './renderer.js';
 import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
+import ioManager from './io-manager.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -571,8 +572,21 @@ class RigManager {
       const jumpTime = jumpAction? jumpAction.time : -1;
       const flyAction = localPlayer.actions.find(action => action.type === 'fly');
       const flyTime = flyAction ? flyAction.time : -1;
+      const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+      const activateTime = activateAction ? activateAction.time : -1;
       const useAction = localPlayer.actions.find(action => action.type === 'use');
       const useTime = useAction ? useAction.time : -1;
+      const narutoRunState = ioManager.keys.doubleShift;
+      const narutoRunTime = narutoRunState ? ((Date.now() - ioManager.getLastShiftDownTime())/1000) : 0;
+      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
+      const sitAnimation = sitAction ? sitAction.animation : '';
+      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+      const danceTime = danceAction ? danceAction.time : -1;
+      const danceAnimation = danceAction ? danceAction.animation : '';
+      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+      const throwTime = throwAction ? throwAction.time : -1;
+      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+      const crouchTime = crouchAction ? crouchAction.time : 1000;
       
       for (let i = 0; i < 2; i++) {
         this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
