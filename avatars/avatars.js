@@ -48,7 +48,9 @@ const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
 const defaultThrowAnimation = 'throw';
-const defaultCrouchAnimation = 'crouch';
+// const defaultCrouchAnimation = 'crouch';
+const defaultActivateAnimation = 'activate';
+const defaultNarutoRunAnimation = 'narutoRun';
 const useAnimationRate = 750;
 const crouchMaxTime = 200;
 
@@ -135,6 +137,8 @@ let sitAnimations;
 let danceAnimations;
 let throwAnimations;
 let crouchAnimations;
+let activateAnimations;
+let narutoRunAnimations;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -282,6 +286,23 @@ const loadPromise = (async () => {
   crouchAnimations = {
     crouch: animations.find(a => a.isCrouch),
   };
+  activateAnimations = {
+    activate: animations.find(a => a.isActivate),
+  };
+  narutoRunAnimations = {
+    narutoRun: animations.find(a => a.isNarutoRun),
+  };
+  {
+    const down10QuaternionArray = new THREE.Quaternion()
+      .setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.1)
+      .toArray();
+    [
+      'mixamorigSpine1.quaternion',
+      'mixamorigSpine2.quaternion',
+    ].forEach(k => {
+      narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
+    });
+  }
 
   /* // bake animations
   (async () => {
