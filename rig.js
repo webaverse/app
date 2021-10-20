@@ -14,6 +14,7 @@ import {getRenderer, scene, dolly} from './renderer.js';
 import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
+import ioManager from './io-manager.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -571,8 +572,21 @@ class RigManager {
       const jumpTime = jumpAction? jumpAction.time : -1;
       const flyAction = localPlayer.actions.find(action => action.type === 'fly');
       const flyTime = flyAction ? flyAction.time : -1;
+      const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+      const activateTime = activateAction ? activateAction.time : -1;
       const useAction = localPlayer.actions.find(action => action.type === 'use');
       const useTime = useAction ? useAction.time : -1;
+      const narutoRunState = ioManager.keys.doubleShift;
+      const narutoRunTime = narutoRunState ? ((Date.now() - ioManager.getLastShiftDownTime())/1000) : 0;
+      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
+      const sitAnimation = sitAction ? sitAction.animation : '';
+      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+      const danceTime = danceAction ? danceAction.time : -1;
+      const danceAnimation = danceAction ? danceAction.animation : '';
+      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+      const throwTime = throwAction ? throwAction.time : -1;
+      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+      const crouchTime = crouchAction ? crouchAction.time : 1000;
       
       for (let i = 0; i < 2; i++) {
         this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
@@ -585,7 +599,11 @@ class RigManager {
       this.localRig.jumpTime = jumpTime;
       this.localRig.flyState = !!flyAction;
       this.localRig.flyTime = flyTime;
+      this.localRig.activateState = !!activateAction && !crouchAction;
+      this.localRig.activateTime = activateTime;
       this.localRig.useTime = useTime;
+      this.localRig.narutoRunState = narutoRunState;
+      this.localRig.narutoRunTime = narutoRunTime;
       const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
       {
@@ -631,6 +649,17 @@ class RigManager {
         this.localRig.fakeSpeechValue = localPlayerFakeSpeech ? 1 : 0;
       }
 
+      rigManager.localRig.sitState = !!sitAction;
+      rigManager.localRig.sitAnimation = sitAnimation;
+      rigManager.localRig.danceState = !!danceAction;
+      rigManager.localRig.danceTime = danceTime;
+      rigManager.localRig.danceAnimation = danceAnimation;
+      rigManager.localRig.throwState = !!throwAction;
+      rigManager.localRig.throwTime = throwTime;
+      rigManager.localRig.crouchState = !!crouchAction;
+      rigManager.localRig.crouchTime = crouchTime;
+      // physicsManager.setSitState(sitState);
+
       this.localRig.update(now, timeDiff);
       // this.localRig.aux.update(now, timeDiff);
 
@@ -659,25 +688,6 @@ class RigManager {
         sitAnimation = null;
         physicsManager.setDamping();
       } */
-      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
-      const sitAnimation = sitAction ? sitAction.animation : '';
-      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
-      const danceTime = danceAction ? danceAction.time : -1;
-      const danceAnimation = danceAction ? danceAction.animation : '';
-      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-      const throwTime = throwAction ? throwAction.time : -1;
-      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-      const crouchTime = crouchAction ? crouchAction.time : 1000;
-      rigManager.localRig.sitState = !!sitAction;
-      rigManager.localRig.sitAnimation = sitAnimation;
-      rigManager.localRig.danceState = !!danceAction;
-      rigManager.localRig.danceTime = danceTime;
-      rigManager.localRig.danceAnimation = danceAnimation;
-      rigManager.localRig.throwState = !!throwAction;
-      rigManager.localRig.throwTime = throwTime;
-      rigManager.localRig.crouchState = !!crouchAction;
-      rigManager.localRig.crouchTime = crouchTime;
-      // physicsManager.setSitState(sitState);
 
       this.peerRigs.forEach(rig => {
         rig.update(now, timeDiff);
