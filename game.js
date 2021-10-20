@@ -1026,7 +1026,7 @@ const _updateWeapons = (timestamp) => {
     }
     if (!grabUseMesh.visible && !weaponsManager.editMode) {
       localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, 0, -0.3).applyQuaternion(localPlayer.quaternion));
+        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1-physicsManager.getAvatarCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
       const radius = 1;
       const halfHeight = 0.1;
