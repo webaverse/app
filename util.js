@@ -542,6 +542,8 @@ export const unFrustumCull = o => {
   o.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
+      o.castShadow = true;
+      o.receiveShadow = true;
     }
   });
 };
