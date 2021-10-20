@@ -6,14 +6,13 @@ import * as THREE from 'three';
 
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
+import {makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
-import {getRenderer, scene, camera, dolly} from './renderer.js';
+import {getRenderer, scene, dolly} from './renderer.js';
 // import {loginManager} from './login.js';
 // import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
-import physicsManager from './physics-manager.js';
 import {chatManager} from './chat-manager.js';
 import metaversefile from 'metaversefile';
 
@@ -29,7 +28,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
-const roundedRectGeometry = (() => {
+/* const roundedRectGeometry = (() => {
   const w = 1;
   const h = 0.15;
   const roundedRectShape = new THREE.Shape();
@@ -37,10 +36,6 @@ const roundedRectGeometry = (() => {
     ctx.moveTo( x, y + radius );
     ctx.lineTo( x, y + height - radius );
     ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-    /* ctx.lineTo( x + radius + indentWidth, y + height );
-    ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
-    ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
-    ctx.lineTo( x + width - radius - indentWidth, y + height ); */
     ctx.lineTo( x + width - radius, y + height );
     ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
     ctx.lineTo( x + width, y + radius );
@@ -53,11 +48,6 @@ const roundedRectGeometry = (() => {
     steps: 2,
     depth: 0,
     bevelEnabled: false,
-    /* bevelEnabled: true,
-    bevelThickness: 0,
-    bevelSize: 0,
-    bevelOffset: 0,
-    bevelSegments: 0, */
   };
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
     new THREE.CircleBufferGeometry(0.13, 32)
@@ -66,7 +56,7 @@ const roundedRectGeometry = (() => {
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
   ]);
   return geometry;
-})();
+})(); */
 const _makeRig = app => {
   if (app) {
     const {skinnedVrm} = app;
