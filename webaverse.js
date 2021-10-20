@@ -246,8 +246,6 @@ export default class Webaverse extends EventTarget {
         // rigManager.localRig.aux.undecapitate();
       }
     }
-    // highlight render
-    // renderer.render(highlightScene, camera);
   }
   
   startLoop() {
