@@ -649,6 +649,17 @@ class RigManager {
         this.localRig.fakeSpeechValue = localPlayerFakeSpeech ? 1 : 0;
       }
 
+      rigManager.localRig.sitState = !!sitAction;
+      rigManager.localRig.sitAnimation = sitAnimation;
+      rigManager.localRig.danceState = !!danceAction;
+      rigManager.localRig.danceTime = danceTime;
+      rigManager.localRig.danceAnimation = danceAnimation;
+      rigManager.localRig.throwState = !!throwAction;
+      rigManager.localRig.throwTime = throwTime;
+      rigManager.localRig.crouchState = !!crouchAction;
+      rigManager.localRig.crouchTime = crouchTime;
+      // physicsManager.setSitState(sitState);
+
       this.localRig.update(now, timeDiff);
       // this.localRig.aux.update(now, timeDiff);
 
@@ -677,25 +688,6 @@ class RigManager {
         sitAnimation = null;
         physicsManager.setDamping();
       } */
-      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
-      const sitAnimation = sitAction ? sitAction.animation : '';
-      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
-      const danceTime = danceAction ? danceAction.time : -1;
-      const danceAnimation = danceAction ? danceAction.animation : '';
-      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-      const throwTime = throwAction ? throwAction.time : -1;
-      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-      const crouchTime = crouchAction ? crouchAction.time : 1000;
-      rigManager.localRig.sitState = !!sitAction;
-      rigManager.localRig.sitAnimation = sitAnimation;
-      rigManager.localRig.danceState = !!danceAction;
-      rigManager.localRig.danceTime = danceTime;
-      rigManager.localRig.danceAnimation = danceAnimation;
-      rigManager.localRig.throwState = !!throwAction;
-      rigManager.localRig.throwTime = throwTime;
-      rigManager.localRig.crouchState = !!crouchAction;
-      rigManager.localRig.crouchTime = crouchTime;
-      // physicsManager.setSitState(sitState);
 
       this.peerRigs.forEach(rig => {
         rig.update(now, timeDiff);
