@@ -11,6 +11,13 @@ import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 
+/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => function(a, b) {
+  b.gravityPower *= 0.1;
+  b.stiffnessForce *= 0.1;
+  // b.dragForce *= 0.1;
+  return _createSpringBone.apply(this, arguments);
+})(VRMSpringBoneImporter.prototype._createSpringBone); */
+
 const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
   for (let i = 0; i < numSimplexes; i++) {
