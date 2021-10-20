@@ -981,7 +981,7 @@ const _updateWeapons = (timestamp) => {
         grabbedObject.updateMatrixWorld();
         // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
-        const {handSnap} = updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
+        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
@@ -1082,7 +1082,7 @@ const _updateWeapons = (timestamp) => {
       } */
 
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
-      let collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
+      const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         highlightedPhysicsObject = world.appManager.getObjectFromPhysicsId(collision.objectId);
         highlightedPhysicsId = collision.objectId;
@@ -2007,7 +2007,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-     _loadItemSpec1('./assets/type/Rainbow_Dash.png');
+      _loadItemSpec1('./assets/type/Rainbow_Dash.png');
     },
   },
   {
