@@ -17,7 +17,7 @@ import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 // import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from './shaders.js';
-import {makeTextMesh} from './vr-ui.js';
+// import {makeTextMesh} from './vr-ui.js';
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
@@ -25,7 +25,7 @@ import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} 
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 // import controlsManager from './controls-manager.js';
 // import buildTool from './build-tool.js';
-import * as notifications from './notifications.js';
+// import * as notifications from './notifications.js';
 // import * as popovers from './popovers.js';
 // import messages from './messages.js';
 import {getExt, bindUploadFileButton, snapPosition} from './util.js';
