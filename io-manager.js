@@ -30,6 +30,7 @@ const localEuler = new THREE.Euler();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
+const zeroVector = new THREE.Vector3();
 
 const ioManager = new EventTarget();
 
@@ -55,9 +56,12 @@ ioManager.keys = {
   forward: false,
   backward: false,
   shift: false,
+  doubleShift: false,
   space: false,
   ctrl: false,
 };
+let lastShiftDownTime = 0;
+ioManager.getLastShiftDownTime = () => lastShiftDownTime;
 const resetKeys = () => {
   for (const k in ioManager.keys) {
     ioManager.keys[k] = false;
@@ -94,6 +98,7 @@ const _updateVertical = direction => {
   }
 };
 
+const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
@@ -193,6 +198,13 @@ const _updateIo = timeDiff => {
   } else /* if (controlsManager.isPossessed()) */ {
     const direction = localVector.set(0, 0, 0);
     _updateHorizontal(direction);
+    if (direction.equals(zeroVector)) {
+      if (ioManager.keys.doubleShift) {
+        direction.copy(lastNonzeroDirectionVector);
+      }
+    } else {
+      lastNonzeroDirectionVector.copy(direction);
+    }
     
     const isFlying = game.isFlying();
     if (isFlying) {
@@ -211,7 +223,10 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !game.isCrouched()) ? 3 : 1;
+      const sprintMultiplier = (ioManager.keys.shift && !game.isCrouched()) ?
+        (ioManager.keys.doubleShift ? 20 : 3)
+      :
+        1;
       const speed = game.getSpeed() * sprintMultiplier;
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
@@ -448,6 +463,14 @@ ioManager.keydown = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = true;
+      
+      const now = Date.now();
+      const timeDiff = now - lastShiftDownTime;
+      if (timeDiff < 200) {
+        ioManager.keys.doubleShift = true;
+        game.menuUnaim();
+      }
+      lastShiftDownTime = now;
       break;
     }
     case 32: { // space
@@ -573,6 +596,7 @@ ioManager.keyup = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = false;
+      ioManager.keys.doubleShift = false;
       break;
     }
     case 46: { // delete
@@ -728,7 +752,9 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      game.menuAim();
+      if (!ioManager.keys.doubleShift) {
+        game.menuAim();
+      }
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
