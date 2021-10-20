@@ -37,14 +37,14 @@ const _makeRenderer = (width, height) => {
   }));
   scene.add(cubeMesh); */
 
-  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
   camera.position.copy(cameraPosition);
   camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
   // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
   // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
-  // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
+  // camera.fov = 2 * Math.atan( modelHeight/( 2 * dist ) ) * ( 180/Math.PI );
   // camera.updateProjectionMatrix();
 
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
@@ -157,8 +157,8 @@ const _makeIconString = (hash, ext, w, h) => {
     width: ${w}px;
     height: ${h}px;
     background-color: #FFF;
-    border: ${w / 20}px solid #ff7043;
-    border-top-width: ${w / 5}px;
+    border: ${w/20}px solid #ff7043;
+    border-top-width: ${w/5}px;
     font-family: 'Bangers';
   }
   .wrap {
@@ -188,24 +188,24 @@ const _makeIconString = (hash, ext, w, h) => {
   }
   .hash {
     position: absolute;
-    top: ${w / 20}px;
-    left: ${w / 20}px;
+    top: ${w/20}px;
+    left: ${w/20}px;
     color: #FFF;
-    font-size: ${w / 16}px;
+    font-size: ${w/16}px;
   }
   .label {
     position: absolute;
     bottom: 0;
     right: 0;
-    /* padding: ${w / 30}px; */
+    /* padding: ${w/30}px; */
     background-color: #000;
     color: #FFF;
-    font-size: ${w / 5}px;
+    font-size: ${w/5}px;
   }
   </style>
   <div class=body>
     <div class=icon>
-      <img ${icon ? `src="${icon}"` : ''} height=${h / 2}>
+      <img ${icon ? `src="${icon}"` : ''} height=${h/2}>
     </div>
     <div class=hash>${_split(hash)}</div>
     <div class=label>${ext.toUpperCase()}</div>
@@ -247,41 +247,11 @@ const _makeIconString = (hash, ext, w, h) => {
       let o;
       try {
         o = await metaversefileApi.load(url);
-        let waitPromise;
-
-        o.dispatchEvent({
-          type: 'wearupdate',
-          wear: true,
-          waitUntil(p) {
-            waitPromise = p;
-          },
-        })
-
-        if (waitPromise) {
-          await waitPromise;
-        }
-        o.scene = o.skinnedVrm.scene;
-
-
       } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
       } */
-
-      const rig = new Avatar(o, {
-        fingers: true,
-        hair: true,
-        visemes: true,
-        debug: false,
-      });
-      rig.model.isVrm = true;
-      /* rig.aux = oldRig.aux;
-      rig.aux.rig = rig; */
-
-      o = o.scene;
-      o.rig = rig;
-
       return o;
     };
     const _loadVox = async () => {
@@ -336,6 +306,33 @@ const _makeIconString = (hash, ext, w, h) => {
               }
               case 'vrm': {
                 o = await _loadVrm();
+                let waitPromise;
+
+                o.dispatchEvent({
+                  type: 'wearupdate',
+                  wear: true,
+                  waitUntil(p) {
+                    waitPromise = p;
+                  },
+                })
+          
+                if (waitPromise) {
+                  await waitPromise;
+                }
+                o.scene = o.skinnedVrm.scene;
+          
+                const rig = new Avatar(o, {
+                  fingers: true,
+                  hair: true,
+                  visemes: true,
+                  debug: false,
+                });
+                rig.model.isVrm = true;
+                /* rig.aux = oldRig.aux;
+                rig.aux.rig = rig; */
+          
+                o = o.scene;
+                o.rig = rig;
                 break;
               }
               case 'vox': {
@@ -356,9 +353,9 @@ const _makeIconString = (hash, ext, w, h) => {
             camera.position.x = 0;
             camera.position.y = center.y;
             camera.position.z = center.z - Math.max(
-              size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
-              Math.abs(size.x) / 2,
-              Math.abs(size.z) / 2
+              size.y/2/Math.tan(Math.PI * camera.fov/360),
+              Math.abs(size.x)/2,
+              Math.abs(size.z)/2
             ) * 1.2;
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -474,21 +471,21 @@ const _makeIconString = (hash, ext, w, h) => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (img.width > img.height) { // vertical padding needed
-            const scaleFactor = img.width / width;
-            const dstWidth = img.width / scaleFactor;
-            const dstHeight = img.height / scaleFactor;
+            const scaleFactor = img.width/width;
+            const dstWidth = img.width/scaleFactor;
+            const dstHeight = img.height/scaleFactor;
 
             const pixelsToAdd = dstWidth - dstHeight;
-            const pixelsToAddD2 = pixelsToAdd / 2;
+            const pixelsToAddD2 = pixelsToAdd/2;
 
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
           } else { // horizontal padding needed
-            const scaleFactor = img.height / height;
-            const dstWidth = img.width / scaleFactor;
-            const dstHeight = img.height / scaleFactor;
+            const scaleFactor = img.height/height;
+            const dstWidth = img.width/scaleFactor;
+            const dstHeight = img.height/scaleFactor;
 
             const pixelsToAdd = dstHeight - dstWidth;
-            const pixelsToAddD2 = pixelsToAdd / 2;
+            const pixelsToAddD2 = pixelsToAdd/2;
 
             ctx.drawImage(img, pixelsToAddD2, 0, dstWidth, dstHeight);
           }
@@ -508,8 +505,8 @@ const _makeIconString = (hash, ext, w, h) => {
         img.onerror = reject;
         img.src = URL.createObjectURL(blob);
       });
-      img.style.width = `${img.width / window.devicePixelRatio}px`;
-      img.style.height = `${img.height / window.devicePixelRatio}px`;
+      img.style.width = `${img.width/window.devicePixelRatio}px`;
+      img.style.height = `${img.height/window.devicePixelRatio}px`;
       screenshotResult.appendChild(img);
 
       const arrayBuffer = await blob.arrayBuffer();
@@ -560,10 +557,10 @@ const _makeIconString = (hash, ext, w, h) => {
       });
       for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
         camera.position.copy(center)
-          // .add(new THREE.Vector3(0, size.y / 2, 0))
+          // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
-            new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-              .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
+            new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
+              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -662,12 +659,12 @@ const _makeIconString = (hash, ext, w, h) => {
           o.rig.inputs.hmd.position.y = o.rig.height;
 
           let now = 0;
-          const timeDiff = 1 / FPS;
+          const timeDiff = 1/FPS;
           for (let i = 0; i < 100; i++) {
             o.rig.update(now, timeDiff);
             now += timeDiff * 1000;
 
-            camera.position.set(0, o.rig.height / 2, -1.5);
+            camera.position.set(0, o.rig.height/2, -1.5);
             camera.lookAt(center);
             camera.updateMatrixWorld();
             renderer.render(scene, camera);
@@ -676,17 +673,17 @@ const _makeIconString = (hash, ext, w, h) => {
           }
         } else if (isImage && isVideo) {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
-            o.position.y = Math.sin(i + Math.PI / 2) * 0.05;
+            o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2) * 1) * 0.005)
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
               )
             camera.position.copy(center)
               .add(
                 new THREE.Vector3(
                   0,
                   0,
-                  Math.max(size.x / 2, size.y / 2) * 2.2
+                  Math.max(size.x/2, size.y/2) * 2.2
                 )
               );
             camera.lookAt(center);
@@ -699,8 +696,8 @@ const _makeIconString = (hash, ext, w, h) => {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             camera.position.copy(center)
               .add(
-                new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
+                new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
+                  .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
               );
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -743,7 +740,7 @@ const _makeIconString = (hash, ext, w, h) => {
           ctx.drawImage(frame, 0, 0);
           track.requestFrame();
           await new Promise((accept, reject) => {
-            setTimeout(accept, 1000 / FPS);
+            setTimeout(accept, 1000/FPS);
           });
         }
         mediaRecorder.stop();
@@ -764,8 +761,8 @@ const _makeIconString = (hash, ext, w, h) => {
           video.onerror = reject;
           video.src = URL.createObjectURL(blob);
         });
-        video.style.width = `${width / window.devicePixelRatio}px`;
-        video.style.height = `${height / window.devicePixelRatio}px`;
+        video.style.width = `${width/window.devicePixelRatio}px`;
+        video.style.height = `${height/window.devicePixelRatio}px`;
         video.loop = true;
         screenshotResult.appendChild(video);
 
