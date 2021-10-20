@@ -55,9 +55,12 @@ ioManager.keys = {
   forward: false,
   backward: false,
   shift: false,
+  doubleShift: false,
   space: false,
   ctrl: false,
 };
+let lastShiftDownTime = 0;
+ioManager.getLastShiftDownTime = () => lastShiftDownTime;
 const resetKeys = () => {
   for (const k in ioManager.keys) {
     ioManager.keys[k] = false;
@@ -448,6 +451,14 @@ ioManager.keydown = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = true;
+      
+      const now = Date.now();
+      const timeDiff = now - lastShiftDownTime;
+      if (timeDiff < 200) {
+        ioManager.keys.doubleShift = true;
+        game.menuUnaim();
+      }
+      lastShiftDownTime = now;
       break;
     }
     case 32: { // space
@@ -573,6 +584,7 @@ ioManager.keyup = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = false;
+      ioManager.keys.doubleShift = false;
       break;
     }
     case 46: { // delete
@@ -728,7 +740,9 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      game.menuAim();
+      if (!ioManager.keys.doubleShift) {
+        game.menuAim();
+      }
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
