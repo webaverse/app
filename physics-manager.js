@@ -28,6 +28,7 @@ const localMatrix = new THREE.Matrix4();
 const localObject = new THREE.Object3D();
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
 
@@ -449,40 +450,32 @@ const _getAvatarWorldObject = o => {
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
+const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 0;
+physicsManager.getAvatarHeight = getAvatarHeight;
+
 const crouchMaxTime = 200;
+const activateMaxTime = 1000;
 const getAvatarCrouchFactor = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
   if (crouchAction) {
-    return Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
+    return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
   } else {
-    return 1;
-  }
-};
-const getAvatarHeight = () => {
-  if (rigManager.localRig) {
-    const f = getAvatarCrouchFactor();
-    let startValue, endValue;
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const isCrouched = localPlayer.actions.some(action => action.type === 'crouch');
-    if (isCrouched) {
-      startValue = rigManager.localRig.height;
-      endValue = rigManager.localRig.height * 0.6;
+    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+    if (activateAction) {
+      return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
     } else {
-      startValue = rigManager.localRig.height * 0.6;
-      endValue = rigManager.localRig.height;
+      return 1;
     }
-    return startValue*(1-f) + endValue*f;
-  } else {
-    return 0;
   }
 };
-physicsManager.getAvatarHeight = getAvatarHeight;
+physicsManager.getAvatarCrouchFactor = getAvatarCrouchFactor;
 
 const _getAvatarCapsule = v => {
-  v.set(0, -getAvatarHeight() * 0.5, 0); // XXX use the proper crouch height
-  v.radius = 0.3;
-  v.halfHeight = Math.max(rigManager.localRig ? (rigManager.localRig.height/2 - v.radius) : 0, 0);
+  const avatarHeight = getAvatarHeight();
+  v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
+  v.radius = 0.3/1.6 * avatarHeight;
+  v.halfHeight = Math.max(avatarHeight * 0.5 - v.radius, 0);
   return v;
 };
 physicsManager.getAvatarCapsule = _getAvatarCapsule;
@@ -540,8 +533,23 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       } */
       const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
-      if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
+      
+      // avatar facing direction
+      if (velocityAvatarDirection) {
+        const horizontalVelocity = localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
+        if (horizontalVelocity.lengthSq() > 0.001) {
+          localQuaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              zeroVector,
+              horizontalVelocity,
+              upVector
+            )
+          );
+        } else {
+          // if (rigManager.localRigMatrixEnabled) {
+          rigManager.localRigMatrix.decompose(localVector4, localQuaternion, localVector5);
+          // }
+        }
       }
 
       const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
@@ -563,9 +571,12 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       };
       if (collision) {
-        localVector4.fromArray(collision.direction);
-        camera.position.add(localVector4);
+        localVector4
+          .fromArray(collision.direction)
+          .add(localVector5.set(0, -getAvatarHeight() * (1-getAvatarCrouchFactor()) * 0.5, 0));
+        camera.position.add(localVector4)
         localVector.add(localVector4);
+        
         if (collision.grounded) {
           physicsManager.velocity.y = 0;
           _ensureNoJumpAction();
@@ -609,7 +620,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       
       const offset = physicsManager.getAvatarCameraOffset();
       camera.position.copy(localVector)
-        .sub(localVector3.copy(offset).applyQuaternion(camera.quaternion));
+        .sub(
+          localVector3.copy(offset)
+            .applyQuaternion(camera.quaternion)
+        );
     }
     localMatrix.compose(localVector, localQuaternion, localVector2);
 
