@@ -246,6 +246,8 @@ const loadPromise = (async () => {
     animation.isLeft = /left/i.test(animation.name);
     animation.isRight = /right/i.test(animation.name);
     animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+    animation.isActivate = /object/i.test(animation.name);
+    animation.isNarutoRun = /naruto run/i.test(animation.name);
     animation.isReverse = /reverse/i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
@@ -1416,6 +1418,8 @@ class Avatar {
     this.useAnimation = null;
     this.sitState = false;
     this.sitAnimation = null;
+    this.activateState = false;
+    this.activateTime = 0;
     this.danceState = false;
     this.danceTime = 0;
     this.danceAnimation = null;
@@ -1426,6 +1430,8 @@ class Avatar {
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
+    this.narutoRunState = false;
+    this.narutoRunTime = 0;
 	}
   static bindAvatar(object) {
     const model = object.scene;
@@ -2054,6 +2060,20 @@ class Avatar {
             const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
             const src2 = sitAnimation.interpolants[k];
             const v2 = src2.evaluate(1);
+
+            dst.fromArray(v2);
+          } else if (this.activateState) {
+            const activateAnimation = activateAnimations[defaultActivateAnimation];
+            const src2 = activateAnimation.interpolants[k];
+            const t2 = Math.pow(this.activateTime/1000*activateAnimation.duration/2, 0.5);
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          } else if (this.narutoRunState && !this.crouchState) {
+            const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
+            const src2 = narutoRunAnimation.interpolants[k];
+            const t2 = (this.narutoRunTime * 4) % narutoRunAnimation.duration;
+            const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
           } else if (this.danceState) {
