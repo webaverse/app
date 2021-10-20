@@ -1,3 +1,7 @@
+/*
+this file binds logical users (local player, remote players) to metaversefile (vrm) avatars.
+*/
+
 import * as THREE from 'three';
 
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
