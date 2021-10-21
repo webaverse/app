@@ -1542,19 +1542,16 @@ const _pushAppUpdates = () => {
       
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        physicsManager.pushUpdate(object, physicsObject);
+        physicsObject.position.copy(object.position);
+        physicsObject.quaternion.copy(object.quaternion);
+        physicsObject.scale.copy(object.scale);
+        physicsObject.updateMatrixWorld();
+        
+        physicsManager.pushUpdate(physicsObject);
         physicsObject.needsUpdate = false;
       }
       
       object.lastMatrix.copy(object.matrix);
-    } else {
-      const physicsObjects = object.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        if (physicsObject.needsUpdate) {
-          physicsManager.pushUpdate(null, physicsObject);
-          physicsObject.needsUpdate = false;
-        }
-      }
     }
   }
 
