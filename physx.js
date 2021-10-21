@@ -919,6 +919,25 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, id, ccdEnabled) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    const q = allocator.alloc(Float32Array, 4);
+    
+    position.toArray(p);
+    quaternion.toArray(q);
+    
+    moduleInstance._addCapsuleGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      radius,
+      halfHeight,
+      id,
+      +ccdEnabled,
+    );
+    allocator.freeAll();
+  };
   w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
