@@ -371,14 +371,7 @@ physicsManager.simulatePhysics = timeDiff => {
   }
 };
 
-physicsManager.pushUpdate = (object, physicsObject) => {
-  if (object) {
-    physicsObject.position.copy(object.position);
-    physicsObject.quaternion.copy(object.quaternion);
-    physicsObject.scale.copy(object.scale);
-    physicsObject.updateMatrixWorld();
-  }
-
+physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
