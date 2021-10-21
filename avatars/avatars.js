@@ -1432,7 +1432,9 @@ class Avatar {
     this.fakeSpeechSmoothed = 0;
     this.narutoRunState = false;
     this.narutoRunTime = 0;
-	}
+    this.aimState = false;
+    this.aimDirection = new THREE.Vector3();
+  }
   static bindAvatar(object) {
     const model = object.scene;
     const vrmExtension = object?.parser?.json?.extensions?.VRM;
