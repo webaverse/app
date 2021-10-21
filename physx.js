@@ -12,8 +12,11 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
+// const textEncoder = new TextEncoder();
+// const textDecoder = new TextDecoder();
+
+const scratchStackSize = 1024*1024;
+const maxNumUpdates = 256;
 
 const physx = {};
 
@@ -242,13 +245,12 @@ const physxWorker = (() => {
   }
   class ScratchStack {
     constructor() {
-      const size = 1024*1024;
-      this.ptr = moduleInstance._malloc(size);
+      this.ptr = moduleInstance._malloc(scratchStackSize);
 
-      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, size);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
+      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize);
+      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
+      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
+      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
     }
   }
   
@@ -286,7 +288,7 @@ const physxWorker = (() => {
   w.free = ptr => {
     moduleInstance._doFree(ptr);
   };
-  w.makeArenaAllocator = size => {
+  /* w.makeArenaAllocator = size => {
     const ptr = moduleInstance._makeArenaAllocator(size);
     const offset = moduleInstance.HEAP32[ptr / Uint32Array.BYTES_PER_ELEMENT];
     return {
@@ -494,10 +496,13 @@ const physxWorker = (() => {
   };
   w.makeTracker = function() {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
-  };
+  }; */
   w.makePhysics = () => moduleInstance._makePhysics();
   w.simulatePhysics = (physics, updates, elapsedTime) => {
-    const maxNumUpdates = 10;
+    if (updates.length > maxNumUpdates) {
+      throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
+    }
+
     let index = 0;
     const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
     index += maxNumUpdates;
