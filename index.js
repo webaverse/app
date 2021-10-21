@@ -46,7 +46,7 @@ const certs = {
   });
 
   const isHttps = !!certs.key && !!certs.cert;
-  const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3000);
+  const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3002);
   const httpServer = (() => {
     if (isHttps) {
       return https.createServer(certs, app);

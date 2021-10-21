@@ -260,15 +260,18 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
             e.stopPropagation();
 
             console.log("discord loggin")
-            const id = '1234';
-            // const code = '1234';
-            const code = uuidv4().toString();
-            // console.log(code)
-            // const code = new Uint32Array(uuidv4()).toString(10).slice(-6);
-            // const code = new Uint32Array(crypto.randomBytes(4).buffer, 0, 1).toString(10).slice(-6);
-            const res = await fetch(`https://webaverse.com/login?id=${id}&code=${code}`);
-            const result = await res.json();
-            console.log(result, result);
+
+            window.location.href = 'https://discord.com/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fwebaverse.com%2Flogin&response_type=code&scope=identify';
+
+            // const id = null;
+            // // const code = '1234';
+            // const code = 'umglZ1UvW5FP5iEMvrI07aY8AAff8st';
+            // // console.log(code)
+            // // const code = new Uint32Array(uuidv4()).toString(10).slice(-6);
+            // // const code = new Uint32Array(crypto.randomBytes(4).buffer, 0, 1).toString(10).slice(-6);
+            // const res = await fetch(`https://webaverse.com/login?id=${id}&code=${code}`);
+            // const result = await res.json();
+            // console.log(result, result);
             // if (address) {
             //   toggleOpen('user');
             // } else {
