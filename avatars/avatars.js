@@ -989,7 +989,6 @@ class Avatar {
     
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetEnabled = false;
-    this.revertBack = false;
 
     this.springBoneManager = null;
     let springBoneManagerPromise = null;
