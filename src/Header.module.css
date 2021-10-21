@@ -45,7 +45,8 @@
   padding: 20px;
   display: flex;
   justify-content: space-between;
-  box-shadow: 1px 1px 25px 10px #10296e
+  box-shadow: 1px 1px 25px 10px #10296e;
+  cursor: pointer;
 
 }
 

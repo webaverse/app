@@ -28,6 +28,7 @@ class Tab extends Component {
     }
 
     return (
+      // {classnames(styles.inspector, bindPosition ? styles.open : null)}
       <li className={classnames(styles[className[0]], styles[className[1]])} onClick={onClick}>
         {label}
       </li>
