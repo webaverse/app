@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
@@ -127,6 +128,7 @@ let animations;
 // let walkingBackwardAnimations;
 // let runningAnimations;
 // let runningBackwardAnimations;
+let idleAnimation;
 let jumpAnimation;
 // let sittingAnimation;
 let floatAnimation;
@@ -139,6 +141,8 @@ let throwAnimations;
 let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
+let aimAnimations;
+let makePitchYawAnimationMixer;
 const loadPromise = (async () => {
   const res = await fetch('../animations/animations.cbor');
   const arrayBuffer = await res.arrayBuffer();
@@ -248,6 +252,8 @@ const loadPromise = (async () => {
     animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
     animation.isActivate = /object/i.test(animation.name);
     animation.isNarutoRun = /naruto run/i.test(animation.name);
+    animation.isPitch = /pitch/i.test(animation.name);
+    animation.isYaw = /yaw/i.test(animation.name);
     animation.isReverse = /reverse/i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
@@ -261,6 +267,7 @@ const loadPromise = (async () => {
     } */
   });
   
+  idleAnimation = animations.find(a => a.isIdle);
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -305,6 +312,10 @@ const loadPromise = (async () => {
       narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
     });
   }
+  aimAnimations = {
+    pitch: animations.find(a => a.isPitch),
+    yaw: animations.find(a => a.isYaw),
+  };
 
   /* // bake animations
   (async () => {
@@ -415,6 +426,47 @@ const loadPromise = (async () => {
   })().catch(err => {
     console.warn(err);
   }); */
+  
+  {
+    const fbxLoader = new FBXLoader();
+    const _loadFbx = srcUrl => new Promise((accept, reject) => {
+      fbxLoader.load(srcUrl, accept, function onprogress() {}, reject);
+    });
+    const [
+      pitchFbx,
+      yawFbx,
+    ] = await Promise.all([
+      _loadFbx(`/animations/pitch.fbx`),
+      _loadFbx(`/animations/yaw.fbx`),
+    ]);
+    // console.log('got o', pitchFbx, yawFbx);
+    makePitchYawAnimationMixer = () => {
+      const root = pitchFbx;
+      const animationMixer = new THREE.AnimationMixer(root);
+      
+      const yawAnimation = yawFbx.animations[0];
+      const yawAction = animationMixer.clipAction(yawAnimation);
+      // yawAction.weight = 2;
+      yawAction.play();
+      // window.yawAction = yawAction;
+      
+      const pitchAnimation = pitchFbx.animations[0];
+      const pitchAction = animationMixer.clipAction(pitchAnimation);
+      // pitchAction.weight = 2;
+      pitchAction.play();
+      // window.pitchAction = pitchAction;
+      
+      return {
+        root,
+        update(pitchAngleFactor, yawAngleFactor) {
+          pitchAction.time = Math.min(Math.max(pitchAngleFactor * pitchAnimation.duration, 0), 1);
+          yawAction.time = Math.min(Math.max(yawAngleFactor * yawAnimation.duration, 0), 1);
+          // console.log('got time', pitchAction.time/pitchAnimation.duration, yawAction.time/yawAnimation.duration);
+          animationMixer.update(0);
+        },
+      };
+    };
+  }
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
@@ -1407,6 +1459,8 @@ class Avatar {
       new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
       // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
     ];
+    
+    this.pitchYawAnimationMixer = makePitchYawAnimationMixer();
 
     this.direction = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -2044,15 +2098,58 @@ class Avatar {
       const selectedAnimations = _selectAnimations(this.velocity, standKey);
       const selectedOtherAnimations = _selectAnimations(this.velocity, otherStandKey);
 
+      if (this.aimState) {
+        localEuler.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.set(0, 0, 0),
+            this.aimDirection,
+            localVector2.set(0, 1, 0)
+          ),
+          'YXZ'
+        );
+        const pitchAngleFactor = (-localEuler.x + Math.PI/2) / Math.PI;
+        if (localEuler.y < 0) {
+          localEuler.y += Math.PI*2;
+        }
+        const yawAngleFactor = (localEuler.y - Math.PI/2) / Math.PI;
+        
+        // console.log('yaw', yawAngleFactor);
+        this.pitchYawAnimationMixer.update(pitchAngleFactor, yawAngleFactor);
+      }
+
       for (const spec of this.animationMappings) {
         const {
           quaternionKey: k,
           quaternion: dst,
-          isTop
+          isTop,
         } = spec;
         if (dst) {
           // top override
-          if (this.jumpState) {
+          if (this.aimState) {
+            const _cleanMixamorig = k => k.replace(/^mixamorig/, '');
+            /* const {pitch, yaw} = aimAnimations;
+            localEuler.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector.set(0, 0, 0),
+                this.aimDirection,
+                localVector2.set(0, 1, 0)
+              ),
+              'YXZ'
+            );
+            const yawSrc = yaw.interpolants[k] || yaw.interpolants[_cleanMixamorig(k)];
+            const yawAngleFactor = (localEuler.y + Math.PI/2) / Math.PI;
+            const yawValue = yawSrc.evaluate(yawAngleFactor*yaw.duration);
+            
+            const pitchSrc = pitch.interpolants[k] || pitch.interpolants[_cleanMixamorig(k)];
+            const pitchAngleFactor = (-localEuler.x + Math.PI/2) / Math.PI;
+            const pitchValue = pitchSrc.evaluate(pitchAngleFactor*pitch.duration); */
+
+            // console.log('got k', k);
+            const _cleanAll = k => _cleanMixamorig(k).replace(/\.[^\.]*$/, '');
+            const bone = this.pitchYawAnimationMixer.root.getObjectByName(_cleanAll(k));
+
+            dst.copy(bone.quaternion);
+          } else if (this.jumpState) {
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -2196,15 +2293,24 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    if (!this.getBottomEnabled()) {
+    if (!this.getBottomEnabled()) {      
       this.outputs.hips.position.copy(this.inputs.hmd.position)
         .add(this.eyeToHipsOffset);
 
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+      if (!this.aimState) {
+        localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y += Math.PI;
+        this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+      } else {
+        // this.outputs.hips.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+        /* localEuler.setFromQuaternion(this.outputs.hips.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y += Math.PI;
+        this.outputs.hips.quaternion.setFromEuler(localEuler); */
+      }
     }
     if (!this.getTopEnabled() && this.debugMeshes) {
       this.outputs.hips.updateMatrixWorld();
