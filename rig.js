@@ -15,6 +15,7 @@ import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
 import ioManager from './io-manager.js';
+import {camera} from './renderer.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -587,6 +588,7 @@ class RigManager {
       const throwTime = throwAction ? throwAction.time : -1;
       const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
       const crouchTime = crouchAction ? crouchAction.time : 1000;
+      const aimAction = localPlayer.actions.find(action => action.type === 'aim');
       
       for (let i = 0; i < 2; i++) {
         this.localRig.setHandEnabled(i, !!session /* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
@@ -604,6 +606,11 @@ class RigManager {
       this.localRig.useTime = useTime;
       this.localRig.narutoRunState = narutoRunState;
       this.localRig.narutoRunTime = narutoRunTime;
+      this.localRig.aimState = !!aimAction;
+      if (aimAction) {
+        this.localRig.aimDirection.set(0, 0, -1)
+          .applyQuaternion(camera.quaternion);
+      }
       const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
       {
