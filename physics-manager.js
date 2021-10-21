@@ -4,6 +4,7 @@ it contains code for character capsules and world simulation.
 */
 
 import * as THREE from 'three';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physx from './physx.js';
@@ -191,6 +192,30 @@ const _extractPhysicsGeometryForId = physicsId => {
   geometry = geometry.toNonIndexed();
   geometry.computeVertexNormals();
   return geometry;
+};
+
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, ccdEnabled) => {
+  const physicsId = getNextPhysicsId();
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, ccdEnabled);
+  
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
+  const physicsMesh = new THREE.Mesh(
+    new THREE.CapsuleGeometry(radius, radius, halfHeight*2)
+  );
+  physicsMesh.visible = false;
+  // physicsMesh.position.copy(position);
+  // physicsMesh.quaternion.copy(quaternion);
+  // physicsMesh.scale.copy(size);
+  physicsObject.add(physicsMesh);
+  physicsObject.physicsMesh = physicsMesh;
+  physicsObjects[physicsId] = physicsObject;
+  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
+    data: {
+      physicsId,
+      // physicsObject
+    },
+  })); */
+  return physicsObject;
 };
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
