@@ -3,9 +3,9 @@ import * as THREE from 'three';
 /**
  * @author maximequiblier
  */
-function CapsuleBufferGeometry( radiusTop, radiusBottom, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength ) {
-
-    THREE.BufferGeometry.call( this );
+class CapsuleGeometry extends THREE.BufferGeometry {
+  constructor(radiusTop, radiusBottom, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength) {
+    super();
 
     this.type = 'CapsuleBufferGeometry';
 
@@ -276,13 +276,9 @@ function CapsuleBufferGeometry( radiusTop, radiusBottom, height, radialSegments,
         }
 
     }
-
+  }
 }
-
-CapsuleBufferGeometry.prototype = Object.create( THREE.BufferGeometry.prototype );
-CapsuleBufferGeometry.prototype.constructor = CapsuleBufferGeometry;
-
-CapsuleBufferGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength ) {
+CapsuleGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength ) {
 
     let cmin = null;
     let cmax = null;
@@ -316,7 +312,6 @@ CapsuleBufferGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, ra
     // If the big sphere contains the small one, return a SphereBufferGeometry
     if(height < Math.abs( r0 - r1 )){
         let g = new THREE.SphereBufferGeometry(r1, radialSegments, capsBottomSegments, thetaStart, thetaLength);
-
         g.translate(r1.x, r1.y, r1.z);
         return g;
     }
@@ -363,7 +358,7 @@ CapsuleBufferGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, ra
     translationMatrix.makeTranslation( middlePoint.x, middlePoint.y, middlePoint.z );
 
     // Instanciate a CylinderBufferGeometry from three.js
-    let g = new CapsuleBufferGeometry(radiusBottom, radiusTop, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength);
+    let g = new CapsuleGeometry(radiusBottom, radiusTop, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength);
 
     // applying transformations
     g.applyMatrix( rotationMatrix );
@@ -371,5 +366,6 @@ CapsuleBufferGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, ra
 
     return g;
 };
-
-module.exports = CapsuleBufferGeometry;
+export {
+  CapsuleGeometry,
+};
