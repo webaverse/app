@@ -1,13 +1,11 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
-import {bake, toggleElements} from './bakeUtils.js';
-import {getExt, parseQuery} from './util.js';
+import { getExt, makePromise, parseQuery } from './util.js';
 import Avatar from './avatars/avatars.js';
-// import wbn from './wbn.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
+import App from './app.js';
+import metaversefileApi from './metaversefile-api.js';
+import {defaultRendererUrl} from './constants.js'
 
 const defaultWidth = 512;
 const defaultHeight = 512;
@@ -39,14 +37,14 @@ const _makeRenderer = (width, height) => {
   }));
   scene.add(cubeMesh); */
 
-  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
   camera.position.copy(cameraPosition);
   camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
   // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
   // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
-  // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
+  // camera.fov = 2 * Math.atan( modelHeight/( 2 * dist ) ) * ( 180/Math.PI );
   // camera.updateProjectionMatrix();
 
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
@@ -70,7 +68,7 @@ const _makeUiRenderer = () => {
   const loadPromise = Promise.all([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
+      iframe.src = defaultRendererUrl;
       iframe.onload = () => {
         accept(iframe);
       };
@@ -137,7 +135,6 @@ const _makeIconString = (hash, ext, w, h) => {
     'vrm': icons.tShirt,
     'vox': icons.cube,
     'js': icons.code,
-    'wbn': icons.boxOpen,
   }[ext];
   const _split = s => {
     const splitCount = 32;
@@ -146,7 +143,7 @@ const _makeIconString = (hash, ext, w, h) => {
       if (i !== 0) {
         result += '<br>'
       }
-      result += s.slice(i, i+splitCount);
+      result += s.slice(i, i + splitCount);
     }
     return result;
   };
@@ -217,7 +214,7 @@ const _makeIconString = (hash, ext, w, h) => {
 };
 
 (async () => {
-  toggleElements(false);
+  // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
   let {url, hash, ext, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
@@ -237,55 +234,31 @@ const _makeIconString = (hash, ext, w, h) => {
     const _loadGltf = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new GLTFLoader().load(url, accept, function onprogress() {}, reject);
-        });
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
       } */
       console.log('loaded GLTF', o);
-      o = o.scene;
       return o;
     };
     const _loadVrm = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new GLTFLoader().load(url, accept, function onprogress() {}, reject);
-        });
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
       } */
-      console.log('loaded VRM', o);
-      
-      const rig = new Avatar(o, {
-        fingers: true,
-        hair: true,
-        visemes: true,
-        debug: false,
-      });
-      rig.model.isVrm = true;
-      /* rig.aux = oldRig.aux;
-      rig.aux.rig = rig; */
-      
-      o = o.scene;
-      o.rig = rig;
-      
       return o;
     };
     const _loadVox = async () => {
       let o;
       try {
-        o = await new Promise((accept, reject) => {
-          new VOXLoader({
-            scale: 0.01,
-          }).load(url, accept, function onprogress() {}, reject);
-        });
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+      } catch (err) {
         console.warn(err);
       } /* finally {
         URL.revokeObjectURL(u);
@@ -295,77 +268,14 @@ const _makeIconString = (hash, ext, w, h) => {
     const _loadImage = async () => {
       let o;
       try {
-        o = await (async () => {
-          const img = await new Promise((accept, reject) => {
-            const img = new Image();
-            img.onload = () => {
-              accept(img);
-            };
-            img.onerror = reject;
-            img.crossOrigin = 'Anonymous';
-            img.src = url;
-          });
-          const aspect = img.width / img.height;
-          const size = 1;
-          const geometry = new THREE.PlaneBufferGeometry(size, size / aspect);
-          const map = new THREE.Texture(img);
-          map.minFilter = THREE.LinearMipmapLinearFilter;
-          map.magFilter = THREE.LinearFilter;
-          map.anisotropy = 16;
-          map.needsUpdate = true;
-          const material = new THREE.MeshBasicMaterial({
-            map,
-            side: THREE.DoubleSide,
-          });
-          const mesh = new THREE.Mesh(geometry, material);
-          return mesh;
-        })();
-      } catch(err) {
+        o = await metaversefileApi.load(url);
+        //o.scene = o.children[0];
+      } catch (err) {
         console.warn(err);
-      }
+      } /* finally {
+        URL.revokeObjectURL(u);
+      } */
       return o;
-    };
-    const _loadWbn = async () => {
-      let arrayBuffer;
-
-      if (url) {
-        const res = await fetch(url);
-        arrayBuffer = await res.arrayBuffer();
-      } else {
-        arrayBuffer = await new Promise((accept, reject) => {
-          const fr = new FileReader();
-          fr.onload = function() {
-            accept(this.result);
-          };
-          fr.onerror = reject;
-          fr.readAsArrayBuffer(file);
-        });
-      }
-
-      const files = {};
-      const bundle = new wbn.Bundle(arrayBuffer);
-      const {urls} = bundle;
-
-      for (const u of urls) {
-        const response = bundle.getResponse(u);
-        const {headers} = response;
-        const contentType = headers['content-type'] || 'application/octet-stream';
-        const b = new Blob([response.body], {
-          type: contentType,
-        });
-        const blobUrl = URL.createObjectURL(b);
-        const {pathname} = new URL(u);
-        files['.' + pathname] = blobUrl;
-      }
-      const u = './manifest.json';
-
-      for (const [key, value] of Object.entries(files)) {
-        if (getExt(key) === "glb") {
-          url = files[key];
-          return _loadGltf();
-        }
-      }
-      return;
     };
 
     if (type === 'png' || type === 'jpg' || type === 'jpeg') {
@@ -384,7 +294,7 @@ const _makeIconString = (hash, ext, w, h) => {
           return canvas;
         };
 
-        if (['glb', 'vrm', 'vox', 'wbn'].includes(ext)) {
+        if (['glb', 'vrm', 'vox'].includes(ext)) {
           const {renderer, scene, camera} = _makeRenderer(width, height);
 
           let o;
@@ -396,14 +306,37 @@ const _makeIconString = (hash, ext, w, h) => {
               }
               case 'vrm': {
                 o = await _loadVrm();
+                let waitPromise;
+
+                o.dispatchEvent({
+                  type: 'wearupdate',
+                  wear: true,
+                  waitUntil(p) {
+                    waitPromise = p;
+                  },
+                })
+          
+                if (waitPromise) {
+                  await waitPromise;
+                }
+                o.scene = o.skinnedVrm.scene;
+          
+                const rig = new Avatar(o, {
+                  fingers: true,
+                  hair: true,
+                  visemes: true,
+                  debug: false,
+                });
+                rig.model.isVrm = true;
+                /* rig.aux = oldRig.aux;
+                rig.aux.rig = rig; */
+          
+                o = o.scene;
+                o.rig = rig;
                 break;
               }
               case 'vox': {
                 o = await _loadVox();
-                break;
-              }
-              case 'wbn': {
-                o = await _loadWbn();
                 break;
               }
             }
@@ -420,7 +353,7 @@ const _makeIconString = (hash, ext, w, h) => {
             camera.position.x = 0;
             camera.position.y = center.y;
             camera.position.z = center.z - Math.max(
-              size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
+              size.y/2/Math.tan(Math.PI * camera.fov/360),
               Math.abs(size.x)/2,
               Math.abs(size.z)/2
             ) * 1.2;
@@ -538,21 +471,21 @@ const _makeIconString = (hash, ext, w, h) => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (img.width > img.height) { // vertical padding needed
-            const scaleFactor = img.width / width;
-            const dstWidth = img.width / scaleFactor;
-            const dstHeight = img.height / scaleFactor;
-            
+            const scaleFactor = img.width/width;
+            const dstWidth = img.width/scaleFactor;
+            const dstHeight = img.height/scaleFactor;
+
             const pixelsToAdd = dstWidth - dstHeight;
-            const pixelsToAddD2 = pixelsToAdd / 2;
-            
+            const pixelsToAddD2 = pixelsToAdd/2;
+
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
           } else { // horizontal padding needed
-            const scaleFactor = img.height / height;
-            const dstWidth = img.width / scaleFactor;
-            const dstHeight = img.height / scaleFactor;
-            
+            const scaleFactor = img.height/height;
+            const dstWidth = img.width/scaleFactor;
+            const dstHeight = img.height/scaleFactor;
+
             const pixelsToAdd = dstHeight - dstWidth;
-            const pixelsToAddD2 = pixelsToAdd / 2;
+            const pixelsToAddD2 = pixelsToAdd/2;
 
             ctx.drawImage(img, pixelsToAddD2, 0, dstWidth, dstHeight);
           }
@@ -579,6 +512,7 @@ const _makeIconString = (hash, ext, w, h) => {
       const arrayBuffer = await blob.arrayBuffer();
 
       // console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
+
 
       if (dst) {
         fetch(dst, {
@@ -623,10 +557,10 @@ const _makeIconString = (hash, ext, w, h) => {
       });
       for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
         camera.position.copy(center)
-          // .add(new THREE.Vector3(0, size.y / 2, 0))
+          // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
-            new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-              .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
+            new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
+              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -698,7 +632,7 @@ const _makeIconString = (hash, ext, w, h) => {
         }
       })();
       scene.add(o);
-      
+
       if (o) {
         const boundingBox = new THREE.Box3().setFromObject(o);
         const center = boundingBox.getCenter(new THREE.Vector3());
@@ -723,14 +657,14 @@ const _makeIconString = (hash, ext, w, h) => {
           o.rig.setHandEnabled(1, false);
           o.rig.setBottomEnabled(false);
           o.rig.inputs.hmd.position.y = o.rig.height;
-          
+
           let now = 0;
           const timeDiff = 1/FPS;
           for (let i = 0; i < 100; i++) {
             o.rig.update(now, timeDiff);
             now += timeDiff * 1000;
-          
-            camera.position.set(0, o.rig.height / 2, -1.5);
+
+            camera.position.set(0, o.rig.height/2, -1.5);
             camera.lookAt(center);
             camera.updateMatrixWorld();
             renderer.render(scene, camera);
@@ -739,17 +673,17 @@ const _makeIconString = (hash, ext, w, h) => {
           }
         } else if (isImage && isVideo) {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
-            o.position.y = Math.sin(i + Math.PI / 2) * 0.05;
+            o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2)*1) * 0.005)
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
               )
             camera.position.copy(center)
               .add(
                 new THREE.Vector3(
                   0,
                   0,
-                  Math.max(size.x / 2, size.y / 2) * 2.2
+                  Math.max(size.x/2, size.y/2) * 2.2
                 )
               );
             camera.lookAt(center);
@@ -762,8 +696,8 @@ const _makeIconString = (hash, ext, w, h) => {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             camera.position.copy(center)
               .add(
-                new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
+                new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
+                  .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
               );
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -827,8 +761,8 @@ const _makeIconString = (hash, ext, w, h) => {
           video.onerror = reject;
           video.src = URL.createObjectURL(blob);
         });
-        video.style.width = `${width / window.devicePixelRatio}px`;
-        video.style.height = `${height / window.devicePixelRatio}px`;
+        video.style.width = `${width/window.devicePixelRatio}px`;
+        video.style.height = `${height/window.devicePixelRatio}px`;
         video.loop = true;
         screenshotResult.appendChild(video);
 
@@ -883,11 +817,11 @@ const _makeIconString = (hash, ext, w, h) => {
       throw new Error('unknown output format: ' + type + ' ' + ext);
     }
 
-    toggleElements(true);
+    // toggleElements(true);
   } catch (err) {
     console.warn(err.stack);
 
-    toggleElements(null, err);
+    // toggleElements(null, err);
 
     if (dst) {
       fetch(dst, {
