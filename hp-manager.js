@@ -81,11 +81,6 @@ const makeHitTracker = ({
           died: false,
         };
       } else {
-        /* jitterObject.dispatchEvent({
-          type: 'die',
-          position: cylinderMesh.startPosition.clone(),
-          quaternion: cylinderMesh.quaternion.clone(),
-        }); */
         return {
           hit: true,
           died: true,
