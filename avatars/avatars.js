@@ -18,9 +18,9 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => functi
     {
         b.gravityPower *= VRMSpringBoneImporter.prototype.sceneGravityPowerFactor;
     }
-    if (VRMSpringBoneImporter.prototype.sceneStiffnessForeFactor)
+    if (VRMSpringBoneImporter.prototype.sceneStiffnessForceFactor)
     {
-        b.stiffnessForce *= VRMSpringBoneImporter.prototype.sceneStiffnessForeFactor;
+        b.stiffnessForce *= VRMSpringBoneImporter.prototype.sceneStiffnessForceFactor;
     }
     // b.dragForce *= 0.1;
 
