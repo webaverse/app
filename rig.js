@@ -570,7 +570,7 @@ class RigManager {
       this.lastPosition.copy(currentPosition);
 
       const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-      const jumpTime = jumpAction? jumpAction.time : -1;
+      const jumpTime = jumpAction ? jumpAction.time : -1;
       const flyAction = localPlayer.actions.find(action => action.type === 'fly');
       const flyTime = flyAction ? flyAction.time : -1;
       const activateAction = localPlayer.actions.find(action => action.type === 'activate');
