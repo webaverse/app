@@ -1898,6 +1898,64 @@ class Avatar {
       }
     }
   }
+  static modelBoneRenames = {
+    spine: 'Spine',
+    chest: 'Chest',
+    upperChest: 'UpperChest',
+    neck: 'Neck',
+    head: 'Head',
+
+    leftShoulder: 'Right_shoulder',
+    leftUpperArm: 'Right_arm',
+    leftLowerArm: 'Right_elbow',
+    leftHand: 'Right_wrist',
+    leftThumb2: 'Right_thumb2',
+    leftThumb1: 'Right_thumb1',
+    leftThumb0: 'Right_thumb0',
+    leftIndexFinger1: 'Right_indexFinger1',
+    leftIndexFinger2: 'Right_indexFinger2',
+    leftIndexFinger3: 'Right_indexFinger3',
+    leftMiddleFinger1: 'Right_middleFinger1',
+    leftMiddleFinger2: 'Right_middleFinger2',
+    leftMiddleFinger3: 'Right_middleFinger3',
+    leftRingFinger1: 'Right_ringFinger1',
+    leftRingFinger2: 'Right_ringFinger2',
+    leftRingFinger3: 'Right_ringFinger3',
+    leftLittleFinger1: 'Right_littleFinger1',
+    leftLittleFinger2: 'Right_littleFinger2',
+    leftLittleFinger3: 'Right_littleFinger3',
+
+    rightShoulder: 'Left_shoulder',
+    rightUpperArm: 'Left_arm',
+    rightLowerArm: 'Left_elbow',
+    rightHand: 'Left_wrist',
+    rightThumb2: 'Left_thumb2',
+    rightThumb1: 'Left_thumb1',
+    rightThumb0: 'Left_thumb0',
+    rightIndexFinger1: 'Left_indexFinger1',
+    rightIndexFinger2: 'Left_indexFinger2',
+    rightIndexFinger3: 'Left_indexFinger3',
+    rightMiddleFinger1: 'Left_middleFinger1',
+    rightMiddleFinger2: 'Left_middleFinger2',
+    rightMiddleFinger3: 'Left_middleFinger3',
+    rightRingFinger1: 'Left_ringFinger1',
+    rightRingFinger2: 'Left_ringFinger2',
+    rightRingFinger3: 'Left_ringFinger3',
+    rightLittleFinger1: 'Left_littleFinger1',
+    rightLittleFinger2: 'Left_littleFinger2',
+    rightLittleFinger3: 'Left_littleFinger3',
+
+    leftUpperLeg: 'Right_leg',
+    leftLowerLeg: 'Right_knee',
+    leftFoot: 'Right_ankle',
+
+    rightUpperLeg: 'Left_leg',
+    rightLowerLeg: 'Left_knee',
+    rightFoot: 'Left_ankle',
+
+    // leftToe: 'Left_toe',
+    // rightToe: Right_toe',
+  }
   getEyePosition = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
