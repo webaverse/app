@@ -102,6 +102,14 @@ class App extends THREE.Object3D {
       type: 'activate',
     });
   }
+  wear() {
+    localPlayer.wear(this);
+  }
+  use() {
+    this.dispatchEvent({
+      type: 'use',
+    });
+  }
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
