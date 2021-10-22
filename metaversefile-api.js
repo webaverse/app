@@ -678,6 +678,10 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
+  getAppByInstanceId(instanceId) {
+    const r = _makeRegexp(instanceId);
+    return apps.find(app => r.test(app.instanceId));
+  },
   getAppByName(name) {
     const r = _makeRegexp(name);
     return apps.find(app => r.test(app.name));
