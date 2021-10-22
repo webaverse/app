@@ -3,7 +3,7 @@ import { getExt, makePromise, parseQuery } from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
-import App from './app.js';
+import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
 import {defaultRendererUrl} from './constants.js'
 
