@@ -467,7 +467,7 @@ const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
 const cubeGeometryPositions = cubeGeometry.attributes.position.array;
 const numCubeGeometryPositions = cubeGeometryPositions.length;
 const srcCubeGeometries = {};
-const _makeDebugMeshes = () => {
+/* const _makeDebugMeshes = () => {
   const geometries = [];
   const _makeCubeMesh = (color, scale = 1) => {
     color = new THREE.Color(color);
@@ -562,7 +562,7 @@ const _makeDebugMeshes = () => {
   mesh.frustumCulled = false;
   mesh.attributes = attributes;
   return mesh;
-};
+}; */
 
 const _getTailBones = skeleton => {
   const result = [];
@@ -890,13 +890,13 @@ class Avatar {
     this.flipY = flipY;
     this.flipLeg = flipLeg;
 
-    if (options.debug) {
+    /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
       this.model.add(debugMeshes);
       this.debugMeshes = debugMeshes;
     } else {
       this.debugMeshes = null;
-    }
+    } */
 
     modelBones.Head.traverse(o => {
       o.savedPosition = o.position.clone();
@@ -2267,9 +2267,9 @@ class Avatar {
       localEuler.y += Math.PI;
       this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
     }
-    if (!this.getTopEnabled() && this.debugMeshes) {
+    /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.outputs.hips.updateMatrixWorld();
-    }
+    } */
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
@@ -2315,7 +2315,6 @@ class Avatar {
     } 
     else {
       if (trackMouseAmount > 0) {
-
         const eyePosition = this.getEyePosition();
         this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -2493,7 +2492,7 @@ class Avatar {
     };
     this.options.visemes && _updateVisemes();
 
-    if (this.debugMeshes) {
+    /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
@@ -2512,7 +2511,7 @@ class Avatar {
         }
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    }
+    } */
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
@@ -2541,11 +2540,11 @@ class Avatar {
           o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
         }
       });
-      if (this.debugMeshes) {
+      /* if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
           attribute.visible = false;
         });
-      }
+      } */
       this.decapitated = true;
     }
   }
@@ -2557,11 +2556,11 @@ class Avatar {
           o.matrixWorld.copy(o.savedMatrixWorld);
         }
       });
-      if (this.debugMeshes) {
+      /* if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
           attribute.visible = true;
         });
-      }
+      } */
       this.decapitated = false;
     }
   }
