@@ -27,6 +27,7 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './player.js';
+import {getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
