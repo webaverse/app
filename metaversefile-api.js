@@ -16,7 +16,7 @@ import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
-import * as ui from './vr-ui.js';
+// import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -623,9 +623,9 @@ metaversefile.setApi({
   useAbis() {
     return abis;
   },
-  useUi() {
+  /* useUi() {
     return ui;
-  },
+  }, */
   useActivate(fn) {
     const app = currentAppRender;
     if (app) {
