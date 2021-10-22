@@ -2058,6 +2058,26 @@ class Avatar {
       this.undecapitate();
     } */
 
+    const _getHorizontalBlend = (selectedAnimations, k, target) => {
+      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
+      const totalDistance = distance1 + distance2;
+      // let factor1 = 1 - distance1/totalDistance;
+      let distanceFactor = 1 - distance2/totalDistance;
+      
+      const t1 = (now/1000) % selectedAnimations[0].duration;
+      const src1 = selectedAnimations[0].interpolants[k];
+      const v1 = src1.evaluate(t1);
+
+      const t2 = (now/1000) % selectedAnimations[1].duration;
+      const src2 = selectedAnimations[1].interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      target.fromArray(v1);
+      if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+        target.slerp(localQuaternion.fromArray(v2), distanceFactor);
+      }
+    };
     const _applyAnimation = () => {
       const standKey = this.crouchState ? 'stand' : 'crouch';
       const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
@@ -2105,96 +2125,157 @@ class Avatar {
       const selectedAnimations = _selectAnimations(this.velocity, standKey);
       const selectedOtherAnimations = _selectAnimations(this.velocity, otherStandKey);
 
-      for (const spec of this.animationMappings) {
-        const {
-          quaternionKey: k,
-          quaternion: dst,
-          isTop
-        } = spec;
-        if (dst) {
-          // top override
-          if (this.jumpState) {
+      const _getApplyFn = () => {
+        if (this.jumpState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.sitState) {
+          };
+        }
+        if (this.sitState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
             const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
             const src2 = sitAnimation.interpolants[k];
             const v2 = src2.evaluate(1);
 
             dst.fromArray(v2);
-          } else if (this.activateState) {
+          }
+        }
+        if (this.activateState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
             const activateAnimation = activateAnimations[defaultActivateAnimation];
             const src2 = activateAnimation.interpolants[k];
             const t2 = Math.pow(this.activateTime/1000*activateAnimation.duration/2, 0.5);
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.narutoRunState && !this.crouchState) {
+          };
+        }
+        if (this.narutoRunState && !this.crouchState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
             const t2 = (this.narutoRunTime * 4) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.danceState) {
+          };
+        }
+        if (this.danceState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.throwState) {
+          };
+        }
+        if (this.throwState) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
             const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
             const src2 = throwAnimation.interpolants[k];
             const t2 = this.throwTime/1000;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-          } else if (this.useTime >= 0 && isTop) {
-            const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]) || useAnimations[defaultUseAnimation];
-            const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          } else {
-            const _getHorizontalBlend = (selectedAnimations, target) => {
-              const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
-              const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
-              const totalDistance = distance1 + distance2;
-              // let factor1 = 1 - distance1/totalDistance;
-              let distanceFactor = 1 - distance2/totalDistance;
-              
-              const t1 = (now/1000) % selectedAnimations[0].duration;
-              const src1 = selectedAnimations[0].interpolants[k];
-              const v1 = src1.evaluate(t1);
-
-              const t2 = (now/1000) % selectedAnimations[1].duration;
-              const src2 = selectedAnimations[1].interpolants[k];
-              const v2 = src2.evaluate(t2);
-
-              target.fromArray(v1);
-              if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
-                target.slerp(localQuaternion.fromArray(v2), distanceFactor);
-              }
-            };
-            _getHorizontalBlend(selectedAnimations, localQuaternion2);
-            _getHorizontalBlend(selectedOtherAnimations, localQuaternion3);
-            dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
-          }
-          // blend
-          if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
-            const t2 = this.flyTime/1000;
-            const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-            const src2 = floatAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2 % floatAnimation.duration);
-
-            dst.slerp(localQuaternion.fromArray(v2), f);
-          }
+          };
         }
+        const _handleDefault = spec => {
+          const {
+            quaternionKey: k,
+            quaternion: dst,
+            isTop,
+          } = spec;
+          
+          _getHorizontalBlend(selectedAnimations, k, localQuaternion2);
+          _getHorizontalBlend(selectedOtherAnimations, k, localQuaternion3);
+          dst.copy(localQuaternion2).slerp(localQuaternion3, crouchFactor);
+        };
+        if (this.useTime >= 0) {
+          return spec => {
+            const {
+              quaternionKey: k,
+              quaternion: dst,
+              isTop,
+            } = spec;
+            
+            if (isTop) {
+              const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]) //|| useAnimations[defaultUseAnimation];
+              if (useAnimation) {
+                const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
+                const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                dst.fromArray(v2);
+              } else {
+                _handleDefault(spec);
+              }
+            } else {
+              _handleDefault(spec);
+            }
+          };
+        }
+        return _handleDefault;
+      };
+      const applyFn = _getApplyFn();
+      const _blendFly = spec => {
+        const {
+          quaternionKey: k,
+          quaternion: dst,
+          isTop,
+        } = spec;
+        
+        if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
+          const t2 = this.flyTime/1000;
+          const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+          const src2 = floatAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+          dst.slerp(localQuaternion.fromArray(v2), f);
+        }
+      };
+      for (const spec of this.animationMappings) {
+        applyFn(spec);
+        _blendFly(spec);
       }
     };
     _applyAnimation();
