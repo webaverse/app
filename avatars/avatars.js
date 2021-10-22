@@ -2199,7 +2199,7 @@ class Avatar {
     };
     _applyAnimation();
 
-    if (this.getTopEnabled()) {
+    if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
       this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
