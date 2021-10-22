@@ -639,6 +639,32 @@ metaversefile.setApi({
       throw new Error('useActivate cannot be called outside of render()');
     }
   },
+  useWear(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('wearupdate', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('wearupdate', fn);
+      });
+    } else {
+      throw new Error('useWear cannot be called outside of render()');
+    }
+  },
+  useUse(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('use', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('use', fn);
+      });
+    } else {
+      throw new Error('useUse cannot be called outside of render()');
+    }
+  },
   useResize(fn) {
     const app = currentAppRender;
     if (app) {
