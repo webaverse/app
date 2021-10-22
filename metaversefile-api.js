@@ -752,8 +752,11 @@ export default () => {
     apps.push(app);
   },
   removeApp(app) {
-    app.parent.remove(app);
-    apps.splice(apps.indexOf(app), 1);
+    app.parent && app.parent.remove(app);
+    const index = apps.indexOf(app);
+    if (index !== -1) {
+      apps.splice(index, 1);
+    }
   },
   useInternals() {
     if (!iframeContainer) {
