@@ -704,6 +704,12 @@ metaversefile.setApi({
     const r = _makeRegexp(componentType);
     return apps.filter(app => app.components.some(component => r.test(component.type)));
   },
+  getAppByPhysicsId(physicsId) {
+    return world.appManager.getObjectFromPhysicsId(physicsId);
+  },
+  getNextInstanceId() {
+    return getRandomString();
+  },
   createApp({name = '', start_url = '', type = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
     app.name = name;
