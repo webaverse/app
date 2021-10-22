@@ -1,7 +1,7 @@
 {
   "hair_physics":{
         "gravity_power_factor": 0.1,
-        "stiffness_fore_factor": 0.1
+        "stiffness_force_factor": 0.1
   },    
   "objects": [
     {
