@@ -537,10 +537,10 @@ const _click = () => {
     }
   }
 };
-const _mousedown = () => {
+const _startUse = () => {
   const localPlayer = useLocalPlayer();
   const objects = world.appManager.getObjects();
-  const wearApps = localPlayer.wears.map(({instanceId}) => objects.find(o => o.instanceId === instanceId));
+  const wearApps = localPlayer.wears.map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
@@ -559,6 +559,8 @@ const _mousedown = () => {
           scale,
         };
         localPlayer.actions.push(useAction);
+
+        wearApp.use();
       }
       break;
     }
@@ -568,7 +570,7 @@ const _mousedown = () => {
     o.triggerAux && o.triggerAux();
   } */
 };
-const _mouseup = () => {
+const _endUse = () => {
   const localPlayer = useLocalPlayer();
   const useActionIndex = localPlayer.actions.findIndex(action => action.type === 'use');
   if (useActionIndex !== -1) {
@@ -578,6 +580,12 @@ const _mouseup = () => {
     const o = world.appManager.equippedObjects[0];
     o.untriggerAux && o.untriggerAux();
   } */
+};
+const _mousedown = () => {
+  _startUse();
+};
+const _mouseup = () => {
+  _endUse();
 };
 
 /* const _try = async () => {
