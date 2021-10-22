@@ -307,15 +307,7 @@ const _makeIconString = (hash, ext, w, h) => {
               case 'vrm': {
                 o = await _loadVrm();
                 let waitPromise;
-
-                o.dispatchEvent({
-                  type: 'wearupdate',
-                  wear: true,
-                  waitUntil(p) {
-                    waitPromise = p;
-                  },
-                })
-          
+                await o.setSkinning(true);
                 if (waitPromise) {
                   await waitPromise;
                 }
