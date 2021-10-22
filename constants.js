@@ -1,6 +1,7 @@
 export const baseUnit = 4;
 export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
+export const defaultRendererUrl = 'https://render.exokit.org/'
 
 export const rarityColors = {
   common: [0xDCDCDC, 0x373737],
