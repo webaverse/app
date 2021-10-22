@@ -41,6 +41,21 @@ const update = (timestamp, timeDiff) => {
   damagePhysicsMesh.visible = !!damageAnimation;
 };
 
+const triggerDamageAnimation = collisionId => {
+  const timestamp = performance.now();
+  const physicsObject = physicsManager.getPhysicsObject(collisionId);
+  const {physicsMesh} = physicsObject;
+  damagePhysicsMesh.geometry = physicsMesh.geometry;
+  damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
+  damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+    .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
+      
+  damageAnimation = {
+    startTime: timestamp,
+    endTime: timestamp + hitAnimationLength,
+  };
+};
+
 const makeHitTracker = ({
   totalHp = 100,
 } = {}) => {
@@ -101,5 +116,6 @@ const makeHitTracker = ({
 const hpManager = {
   makeHitTracker,
   update,
+  triggerDamageAnimation,
 };
 export default hpManager;
