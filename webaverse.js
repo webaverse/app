@@ -390,10 +390,11 @@ export default class Webaverse extends EventTarget {
       }
 
       this.injectRigInput();
-      rigManager.update();
 
       transformControls.update();
       game.update(timestamp);
+      
+      rigManager.update();
 
       world.appManager.tick(timestamp, frame);
       hpManager.update(timestamp, timeDiffCapped);
