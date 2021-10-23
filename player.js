@@ -101,22 +101,22 @@ class LocalPlayer extends Player {
       });
     }
   }
-  grab(object) {
+  grab(app) {
     const renderer = getRenderer();
     const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
 
-    object.updateMatrixWorld();
-    object.savedRotation = object.rotation.clone();
-    object.startQuaternion = quaternion.clone();
+    app.updateMatrixWorld();
+    app.savedRotation = app.rotation.clone();
+    app.startQuaternion = quaternion.clone();
 
     this.grabs[0] = {
-      instanceId: object.instanceId,
-      matrix: localMatrix.copy(object.matrixWorld)
+      instanceId: app.instanceId,
+      matrix: localMatrix.copy(app.matrixWorld)
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray(),
     };
     
-    const physicsObjects = object.getPhysicsObjects();
+    const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
       // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
@@ -125,8 +125,8 @@ class LocalPlayer extends Player {
   ungrab() {
     const grabSpec = this.grabs[0];
     if (grabSpec) {
-      const object = world.appManager.getObjects().find(object => object.instanceId === grabSpec.instanceId);
-      const physicsObjects = object.getPhysicsObjects();
+      const app = metaversefile.apps.find(app => app.instanceId === grabSpec.instanceId);
+      const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
