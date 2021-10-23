@@ -354,9 +354,9 @@ ioManager.keydown = e => {
       if (game.canPush()) {
         ioManager.keys.forward = true;
       } else {
-        if (game.canJumpOff()) {
+        /* if (game.canJumpOff()) {
           game.jumpOff();
-        }
+        } */
         game.toggleFly();
       }
       break;
@@ -477,9 +477,6 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          if (game.canJumpOff()) {
-            game.jumpOff();
-          }
           game.jump();
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
