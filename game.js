@@ -927,76 +927,6 @@ const _gameUpdate = (timestamp) => {
   const renderer = getRenderer();
   
   const localPlayer = useLocalPlayer();
-
-  /* const _handleHighlight = () => {
-    // if (!editedObject) {
-      const width = 1;
-      const length = 100;    
-      localBox.setFromCenterAndSize(
-        localVector.set(0, 0, -length/2 - 0.05),
-        localVector2.set(width, width, length)
-      );
-
-      highlightMesh.visible = false;
-      const oldHighlightedObject = highlightedObject;
-      highlightedObject = null;
-
-      if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
-        const objects = world.appManager.getObjects();
-        for (const candidate of objects) {
-          if (!appManager.equippedObjects.includes(candidate)) {
-            const {leftHand: {position, quaternion}} = useLocalPlayer();
-            localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-              .premultiply(
-                localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-                  .invert()
-              )
-              .decompose(localVector, localQuaternion, localVector2);
-            if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
-              highlightMesh.position.copy(candidate.position);
-              highlightMesh.quaternion.copy(candidate.quaternion);
-              highlightMesh.visible = true;
-              highlightedObject = candidate;
-              break;
-            }
-          }
-        }
-      } else if (weaponsManager.getMenu() === 4) {
-        const itemEl = items4El.childNodes[selectedItemIndex];
-        if (itemEl) {
-          const instanceId = itemEl.getAttribute('instanceid');
-          const object = world.appManager.getObjects().find(o => o.instanceId === instanceId);
-          if (object) {
-            highlightedObject = object;
-            highlightMesh.position.copy(object.position);
-            highlightMesh.quaternion.copy(object.quaternion);
-            highlightMesh.visible = true;
-          }
-        }
-      }
-      if (highlightedObject !== oldHighlightedObject) {
-        // _updateMenu();
-      }
-    // }
-  };
-  _handleHighlight(); */
-
-  /* const _handleEdit = () => {
-    editMesh.visible = false;
-    
-    buildTool.update();
-
-    if (editedObject) {
-      editMesh.position.copy(editedObject.position);
-      editMesh.quaternion.copy(editedObject.quaternion);
-      editMesh.visible = true;
-
-      if (editedObject.isBuild) {
-        editedObject.update(useLocalPlayer().leftHand, weaponsManager.getGridSnap());
-      }
-    }
-  };
-  _handleEdit(); */
   
   const _updateLocalPlayer = () => {
     if (rigManager.localRig) {
@@ -1030,26 +960,6 @@ const _gameUpdate = (timestamp) => {
     }
   };
   _handlePush();
-
-  /* const _handleGrab = () => {
-    let changed = false;
-
-    if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
-      if (highlightedObject) {
-        _grab(highlightedObject);
-        highlightedObject = null;
-        changed = true;
-      }
-    }
-    if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
-      world.appManager.grabbedObjects[0] = null;
-      changed = true;
-    }
-    if (changed) {
-      _updateMenu();
-    }
-  };
-  _handleGrab(); */
 
   const _updateGrab = () => {
     // moveMesh.visible = false;
@@ -1133,20 +1043,6 @@ const _gameUpdate = (timestamp) => {
     }
   };
   _updateGrab();
-  
-  /* const _updateEquip = () => {
-    for (let i = 0; i < 2; i++) {
-      const equippedObject = world.appManager.equippedObjects[i];
-      if (equippedObject) {
-        rigManager.localRig.modelBones.Right_wrist.getWorldPosition(localVector);
-        rigManager.localRig.modelBones.Right_wrist.getWorldQuaternion(localQuaternion)
-          .multiply(equipArmQuaternions[i]);
-        equippedObject.position.copy(localVector);
-        equippedObject.quaternion.copy(localQuaternion);
-      }
-    }
-  };
-  _updateEquip(); */
 
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
@@ -1350,31 +1246,6 @@ const _gameUpdate = (timestamp) => {
   };
   _updateMouseDomHover();
 
-  /* const _handleDeploy = () => {
-    if (deployMesh.visible) {
-      const {leftHand: {position, quaternion}} = useLocalPlayer();
-      localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-      localMatrix2.compose(localVector.set(0, 0, -maxGrabDistance), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
-      updateGrabbedObject(deployMesh, localMatrix, localMatrix2, {
-        collisionEnabled: true,
-        handSnapEnabled: false,
-        physx,
-        gridSnap: weaponsManager.getGridSnap(),
-      });
-
-      localEuler.setFromQuaternion(quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-      localQuaternion.setFromEuler(localEuler);
-      deployMesh.quaternion.premultiply(localQuaternion);
-
-      deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
-      deployMesh.material.uniforms.uTime.needsUpdate = true;
-    }
-  };
-  _handleDeploy(); */
-
   const _handleTeleport = () => {
     if (rigManager.localRig) {
       teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
@@ -1384,67 +1255,6 @@ const _gameUpdate = (timestamp) => {
     }
   };
   _handleTeleport();
-  
-  /* const _handleEditAnimation = () => {
-    if (editMesh.visible) {
-      editMesh.material.uniforms.uHighlight.value = 1-(Date.now()%1000)/1000;
-      editMesh.material.uniforms.uHighlight.needsUpdate = true;
-    }
-  };
-  _handleEditAnimation();
-
-  const _handleUseAnimation = () => {
-    const progressBars = document.querySelectorAll('.progress');
-    if (useAnimation) {
-      if (highlightedObject) {
-        const now = Date.now();
-        const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
-        if (f < 1) {
-          for (const progressBar of progressBars) {
-            progressBar.classList.add('running');
-          }
-          const progressBarInners = Array.from(document.querySelectorAll('.progress > .bar'));
-          for (const progressBarInner of progressBarInners) {
-            progressBarInner.style.width = (f * 100) + '%';
-          }
-          
-          highlightMesh.material.uniforms.uTime.value = -(1-f);
-          highlightMesh.material.uniforms.uTime.needsUpdate = true;
-        } else {
-          editedObject = highlightedObject;
-          weaponsManager.setMenu(0);
-          useAnimation = null;
-          
-          highlightMesh.material.uniforms.uTime.value = 0;
-          highlightMesh.material.uniforms.uTime.needsUpdate = true;
-        }
-      } else {
-        useAnimation = null;
-      }
-      return;
-    }
-    
-    for (const progressBar of progressBars) {
-      progressBar.classList.remove('running');
-    }
-  };
-  _handleUseAnimation(); */
-  
-  /* const _handleThrowDrop = () => {
-    const localPlayer = useLocalPlayer();
-    const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-    const throwTime = throwAction ? throwAction.time : 0;
-    if (!droppedThrow && throwTime > 800) {
-      const {leftHand: {quaternion}} = useLocalPlayer();
-      dropManager.drop(rigManager.localRig.modelBones.Right_wrist, {
-        type: 'fruit',
-        velocity: new THREE.Vector3(0, 0, -20).applyQuaternion(quaternion),
-        angularVelocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).normalize().multiplyScalar(0.1),
-      });
-      droppedThrow = true;
-    }
-  };
-  _handleThrowDrop(); */
 
   const _handleClosestObject = () => {
     const objects = world.appManager.getObjects();
@@ -1637,10 +1447,6 @@ const _gameUpdate = (timestamp) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
-
-  // popovers.update();
-
-  // inventoryUpdate();
 };
 const _pushAppUpdates = () => {
   world.appManager.setPushingLocalUpdates(true);
