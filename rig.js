@@ -3,19 +3,18 @@ this file binds logical users (local player, remote players) to metaversefile (v
 */
 
 import * as THREE from 'three';
-
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import {makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
-import {getRenderer, scene, dolly} from './renderer.js';
+import {getRenderer, scene, camera, dolly} from './renderer.js';
 // import {loginManager} from './login.js';
 // import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
 import ioManager from './io-manager.js';
-import {camera} from './renderer.js';
+import {world} from './world.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -570,7 +569,7 @@ class RigManager {
       this.lastPosition.copy(currentPosition);
 
       const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-      const jumpTime = jumpAction? jumpAction.time : -1;
+      const jumpTime = jumpAction ? jumpAction.time : -1;
       const flyAction = localPlayer.actions.find(action => action.type === 'fly');
       const flyTime = flyAction ? flyAction.time : -1;
       const activateAction = localPlayer.actions.find(action => action.type === 'activate');
@@ -589,15 +588,32 @@ class RigManager {
       const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
       const crouchTime = crouchAction ? crouchAction.time : 1000;
       const aimAction = localPlayer.actions.find(action => action.type === 'aim');
+      const aimComponent = (() => {
+        for (const {instanceId} of localPlayer.wears) {
+          const app = metaversefile.getAppByInstanceId(instanceId);
+          for (const {key, value} of app.components) {
+            if (key === 'aim') {
+              return value;
+            }
+          }
+        }
+        return null;
+      })();
       
       for (let i = 0; i < 2; i++) {
-        this.localRig.setHandEnabled(i, !!session || (i === 0 && !!aimAction)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+        this.localRig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
       }
       this.localRig.setTopEnabled(
-        (!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) ||
-        !!aimAction
+        (!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled))
       );
-      this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
+      this.localRig.setBottomEnabled(
+        (
+          this.localRig.getTopEnabled() /* ||
+          this.localRig.getHandEnabled(0) ||
+          this.localRig.getHandEnabled(1) */
+        ) &&
+        this.smoothVelocity.length() < 0.001
+      );
       this.localRig.direction.copy(positionDiff);
       this.localRig.velocity.copy(this.smoothVelocity);
       this.localRig.jumpState = !!jumpAction;

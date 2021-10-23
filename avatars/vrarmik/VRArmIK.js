@@ -49,10 +49,11 @@ const FINGER_SPECS = [
 
 	class VRArmIK
 	{
-		constructor(arm, shoulder, shoulderPoser, target, left) {
+		constructor(arm, shoulder, shoulderPoser, shoulderAnchor, target, left) {
 			this.arm = arm;
 			this.shoulder = shoulder;
 			this.shoulderPoser = shoulderPoser;
+      this.shoulderAnchor = shoulderAnchor;
 			this.target = target;
 			this.left = left;
 
@@ -70,6 +71,8 @@ const FINGER_SPECS = [
 
 		Update()
 		{
+      this.shoulderAnchor.quaternion.identity();
+      
 			Helpers.updateMatrixWorld(this.arm.transform);
 			Helpers.updateMatrixWorld(this.arm.upperArm);
 

@@ -537,10 +537,10 @@ const _click = () => {
     }
   }
 };
-const _mousedown = () => {
+const _startUse = () => {
   const localPlayer = useLocalPlayer();
   const objects = world.appManager.getObjects();
-  const wearApps = localPlayer.wears.map(({instanceId}) => objects.find(o => o.instanceId === instanceId));
+  const wearApps = localPlayer.wears.map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
@@ -559,6 +559,8 @@ const _mousedown = () => {
           scale,
         };
         localPlayer.actions.push(useAction);
+
+        wearApp.use();
       }
       break;
     }
@@ -568,7 +570,7 @@ const _mousedown = () => {
     o.triggerAux && o.triggerAux();
   } */
 };
-const _mouseup = () => {
+const _endUse = () => {
   const localPlayer = useLocalPlayer();
   const useActionIndex = localPlayer.actions.findIndex(action => action.type === 'use');
   if (useActionIndex !== -1) {
@@ -578,6 +580,12 @@ const _mouseup = () => {
     const o = world.appManager.equippedObjects[0];
     o.untriggerAux && o.untriggerAux();
   } */
+};
+const _mousedown = () => {
+  _startUse();
+};
+const _mouseup = () => {
+  _endUse();
 };
 
 /* const _try = async () => {
@@ -848,14 +856,69 @@ world.appManager.addEventListener('objectadd', e => {
       hitTracker.parent.remove(hitTracker);
       world.appManager.removeEventListener('frame', frame);
     });
-
     app.addEventListener('die', () => {
       metaversefileApi.removeApp(app);
       app.destroy();
     });
+    app.hit = (damage, opts = {}) => {
+      const result = hitTracker.hit(damage);
+      const {hit, died} = result;
+      if (hit) {
+        /* if (damagePhysicsMesh.physicsId !== collisionId) {
+          const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          damagePhysicsMesh.geometry.dispose();
+          damagePhysicsMesh.geometry = geometry;
+          damagePhysicsMesh.physicsId = collisionId;
+        } */
+        
+        const {collisionId} = opts;
+        if (collisionId) {
+          hpManager.triggerDamageAnimation(collisionId);
+        }
+        
+        app.dispatchEvent({
+          type: 'hit',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+          hp: hitTracker.hp,
+          totalHp: hitTracker.totalHp,
+        });
+      }
+      if (died) {
+        app.dispatchEvent({
+          type: 'die',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+        });
+      }
+      return result;
+    };
+    app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
   };
   _bindHitTracker();
 });
+
+const hitboxOffsetDistance = 0.3;
+const cylinderMesh = (() => {
+  const radius = 1;
+  const height = 0.2;
+  const halfHeight = height/2;
+  const cylinderMesh = new THREE.Mesh(
+    new THREE.CylinderBufferGeometry(radius, radius, height),
+    new THREE.MeshBasicMaterial({
+      color: 0x00FFFF,
+    })
+  );
+  cylinderMesh.radius = radius;
+  cylinderMesh.halfHeight = halfHeight;
+  return cylinderMesh;
+})();
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
@@ -1501,6 +1564,32 @@ const _updateWeapons = (timestamp) => {
     }
   };
   _updateUses();
+  
+  const _updateHits = () => {
+    const localPlayer = useLocalPlayer();
+  
+    cylinderMesh.position.copy(localPlayer.position)
+      .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+    cylinderMesh.quaternion.copy(localPlayer.quaternion);
+    // cylinderMesh.startPosition.copy(localPlayer.position);
+    
+    const useAction = localPlayer.actions.find(action => action.type === 'use');
+    if (useAction && useAction.animation === 'combo') {
+      const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
+      if (collision) {
+        const collisionId = collision.objectId;
+        const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
+        if (object) {
+          // const worldPosition = object.getWorldPosition(localVector);
+          const damage = typeof useAction.damage === 'number' ? useAction.damage : 30;
+          object.hit(damage, {
+            collisionId,
+          });
+        }
+      }
+    }
+  };
+  _updateHits();
   
   const _updateEyes = () => {
     if (rigManager.localRig) {
