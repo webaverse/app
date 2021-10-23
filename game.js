@@ -1096,7 +1096,8 @@ const _gameUpdate = (timestamp) => {
       const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
-        highlightedPhysicsObject = world.appManager.getObjectFromPhysicsId(collision.objectId);
+        const physicsId = collision.objectId;
+        highlightedPhysicsObject = metaversefileApi.apps.find(app => app.getPhysicsObjects().some(po => po.physicsId === physicsId));
         highlightedPhysicsId = collision.objectId;
       }
 
