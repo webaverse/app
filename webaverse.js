@@ -373,7 +373,7 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {      
       timestamp = timestamp || performance.now();
       const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);
+      const timeDiffCapped = timeDiff; // Math.min(Math.max(timeDiff, 5), 100);
       lastTimestamp = timestamp;
 
       // const now = Date.now();
