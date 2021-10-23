@@ -106,6 +106,9 @@ class App extends THREE.Object3D {
   wear() {
     localPlayer.wear(this);
   }
+  unwear() {
+    localPlayer.unwear(this);
+  }
   use() {
     this.dispatchEvent({
       type: 'use',
