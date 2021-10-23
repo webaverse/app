@@ -734,6 +734,13 @@ metaversefile.setApi({
         await metaversefile.addModule(app, m);
       })();
     }
+    app.addEventListener('destroy', () => {
+      const localPlayer = metaversefile.useLocalPlayer();
+      const wearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
+      if (wearIndex) {
+        localPlayer.wears.splice(wearIndex, 1);
+      }
+    });
     return app;
   },
   createModule: (() => {
