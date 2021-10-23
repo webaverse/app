@@ -5,6 +5,7 @@ import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
+import metaversefile from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -67,9 +68,24 @@ class LocalPlayer extends Player {
       this.dispatchEvent({
         type: 'wearupdate',
         app,
+        wear: wearComponent,
       });
     } else {
       console.warn('cannot wear app with no wear component');
+    }
+  }
+  unwear(app) {
+    const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
+    if (index !== -1) {
+      this.wears.splice(index, 1);
+      metaversefile.removeApp(app);
+      app.destroy();
+      
+      this.dispatchEvent({
+        type: 'wearupdate',
+        app,
+        wear: null,
+      });
     }
   }
   grab(object) {

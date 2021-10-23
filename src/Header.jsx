@@ -693,7 +693,11 @@ export default function Header({
                         <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
                         <img src="images/flower.png" className={styles.icon} />
                         <div className={styles.name}>{wear.instanceId}</div>
-                        <button className={styles.button}>
+                        <button className={styles.button} onClick={e => {
+                          const localPlayer = metaversefile.useLocalPlayer();
+                          const app = metaversefile.getAppByInstanceId(wear.instanceId);
+                          localPlayer.unwear(app);
+                        }}>
                           <img src="images/release-01.svg" />
                         </button>
                         <div className={styles.background2} />
