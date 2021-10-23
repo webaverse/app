@@ -631,7 +631,7 @@ body {
   position: absolute;
   height: 70px;
   transform: translateX(-560px) !important;
-  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
   object-fit: cover;
   pointer-events: none;
   z-index: 1;
@@ -672,13 +672,12 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #ef5350;
   pointer-events: none;
-  visibility: hidden;
 }
 .equipment .button:hover + .background2 {
-  visibility: visible;
+  background-color: #ef5350;
 }
 .equipment .button:active + .background2 {
   background-color: #b71c1c;
+  transition: none;
 }
