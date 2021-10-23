@@ -684,9 +684,22 @@ export default function Header({
                     <h1>Sheila</h1>
                   </div>
                   <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
-                  <div className={styles['panel-header']}>
+                  {/* <div className={styles['panel-header']}>
                     <h1>Equipment</h1>
-                  </div>
+                  </div> */}
+                  {wears.map((wear, i) => {
+                    return (
+                      <div className={styles.equipment} key={i}>
+                        <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
+                        <img src="images/flower.png" className={styles.icon} />
+                        <div className={styles.name}>{wear.instanceId}</div>
+                        <button className={styles.button}>
+                          <img src="images/release-01.svg" />
+                        </button>
+                        <div className={styles.background2} />
+                      </div>
+                    );
+                  })}
                 </div>)
               ]}
               open={open}
