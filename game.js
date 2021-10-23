@@ -2426,8 +2426,8 @@ window.addEventListener('drop', async e => {
   const quaternion = camera.quaternion.clone();
   
   let arrowLoader = metaverseUi.makeArrowLoader();
-  metaverseUi.arrowLoader.position.copy(position);
-  metaverseUi.arrowLoader.quaternion.copy(quaternion);
+  arrowLoader.position.copy(position);
+  arrowLoader.quaternion.copy(quaternion);
   scene.add(arrowLoader);
   
   const items = Array.from(e.dataTransfer.items);
