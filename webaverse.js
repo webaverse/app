@@ -194,6 +194,122 @@ export default class Webaverse extends EventTarget {
     }
   }
   
+  injectRigInput() {
+    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
+    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
+
+    if (rigManager.localRigMatrixEnabled) {
+      localMatrix.copy(rigManager.localRigMatrix);
+    } else {
+      localMatrix.copy(camera.matrixWorld);
+    }
+    localMatrix
+      .decompose(localVector, localQuaternion, localVector2);
+
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    if (session) {
+      let inputSources = Array.from(session.inputSources);
+      inputSources = ['right', 'left']
+        .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
+      let pose;
+      if (inputSources[0] && (pose = frame.getPose(inputSources[0].gripSpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        if (!inputSources[0].profiles.includes('oculus-hand')) {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        } else {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
+        }
+        leftGamepadPosition = localVector2.toArray(localArray);
+        leftGamepadQuaternion = localQuaternion2.toArray(localArray2);
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          leftGamepadPointer = buttons[0].value;
+          leftGamepadGrip = buttons[1].value;
+        } else {
+          leftGamepadPointer = 0;
+          leftGamepadGrip = 0;
+        }
+        leftGamepadEnabled = true;
+      } else {
+        leftGamepadEnabled = false;
+      }
+      if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        if (!inputSources[1].profiles.includes('oculus-hand')) {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        } else {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), -Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
+        }
+        rightGamepadPosition = localVector2.toArray(localArray3);
+        rightGamepadQuaternion = localQuaternion2.toArray(localArray4);
+
+        const {gamepad} = inputSources[1];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          rightGamepadPointer = buttons[0].value;
+          rightGamepadGrip = buttons[1].value;
+        } else {
+          rightGamepadPointer = 0;
+          rightGamepadGrip = 0;
+        }
+        rightGamepadEnabled = true;
+      } else {
+        rightGamepadEnabled = false;
+      }
+    }
+
+    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    if (!leftGamepadPosition) {
+      // if (!physicsManager.getGlideState()) {
+        leftGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        leftGamepadQuaternion = localQuaternion.toArray();
+      /* } else {
+        leftGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
+          .premultiply(leftHandGlideQuaternion)
+          .toArray();
+      } */
+      leftGamepadPointer = 0;
+      leftGamepadGrip = 0;
+      leftGamepadEnabled = false;
+    }
+    if (!rightGamepadPosition) {
+      // if (!physicsManager.getGlideState()) {
+        rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        rightGamepadQuaternion = localQuaternion.toArray();
+      /* } else {
+        rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
+          .premultiply(rightHandGlideQuaternion)
+          .toArray();
+      } */
+      rightGamepadPointer = 0;
+      rightGamepadGrip = 0;
+      rightGamepadEnabled = false;
+    }
+
+    rigManager.setLocalAvatarPose([
+      [localVector.toArray(), localQuaternion.toArray()],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+    ]);
+  }
+  
   render() {
     const now = Date.now();
     frameEvent.data.now = now;
@@ -262,8 +378,7 @@ export default class Webaverse extends EventTarget {
       const timeDiffCapped = Math.min(Math.max(timeDiff, 5), 100);
       lastTimestamp = timestamp;
 
-      const session = renderer.xr.getSession();
-      const now = Date.now();
+      // const now = Date.now();
       
       world.appManager.pretick(timestamp, frame);
 
@@ -276,121 +391,8 @@ export default class Webaverse extends EventTarget {
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
-      const _updateRig = () => {
-        let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
-        let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
-
-        if (rigManager.localRigMatrixEnabled) {
-          localMatrix.copy(rigManager.localRigMatrix);
-        } else {
-          localMatrix.copy(camera.matrixWorld);
-        }
-        localMatrix
-          .decompose(localVector, localQuaternion, localVector2);
-
-        if (session) {
-          let inputSources = Array.from(session.inputSources);
-          inputSources = ['right', 'left']
-            .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
-          let pose;
-          if (inputSources[0] && (pose = frame.getPose(inputSources[0].gripSpace, renderer.xr.getReferenceSpace()))) {
-            localMatrix.fromArray(pose.transform.matrix)
-              .premultiply(dolly.matrix)
-              .decompose(localVector2, localQuaternion2, localVector3);
-            if (!inputSources[0].profiles.includes('oculus-hand')) {
-              localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
-            } else {
-              localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
-            }
-            leftGamepadPosition = localVector2.toArray(localArray);
-            leftGamepadQuaternion = localQuaternion2.toArray(localArray2);
-
-            const {gamepad} = inputSources[0];
-            if (gamepad && gamepad.buttons.length >= 2) {
-              const {buttons} = gamepad;
-              leftGamepadPointer = buttons[0].value;
-              leftGamepadGrip = buttons[1].value;
-            } else {
-              leftGamepadPointer = 0;
-              leftGamepadGrip = 0;
-            }
-            leftGamepadEnabled = true;
-          } else {
-            leftGamepadEnabled = false;
-          }
-          if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
-            localMatrix.fromArray(pose.transform.matrix)
-              .premultiply(dolly.matrix)
-              .decompose(localVector2, localQuaternion2, localVector3);
-            if (!inputSources[1].profiles.includes('oculus-hand')) {
-              localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
-            } else {
-              localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), -Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
-            }
-            rightGamepadPosition = localVector2.toArray(localArray3);
-            rightGamepadQuaternion = localQuaternion2.toArray(localArray4);
-
-            const {gamepad} = inputSources[1];
-            if (gamepad && gamepad.buttons.length >= 2) {
-              const {buttons} = gamepad;
-              rightGamepadPointer = buttons[0].value;
-              rightGamepadGrip = buttons[1].value;
-            } else {
-              rightGamepadPointer = 0;
-              rightGamepadGrip = 0;
-            }
-            rightGamepadEnabled = true;
-          } else {
-            rightGamepadEnabled = false;
-          }
-        }
-
-        const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
-        if (!leftGamepadPosition) {
-          // if (!physicsManager.getGlideState()) {
-            leftGamepadPosition = localVector2.copy(localVector)
-              .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-              .toArray();
-            leftGamepadQuaternion = localQuaternion.toArray();
-          /* } else {
-            leftGamepadPosition = localVector2.copy(localVector)
-              .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-              .toArray();
-            leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-              .premultiply(leftHandGlideQuaternion)
-              .toArray();
-          } */
-          leftGamepadPointer = 0;
-          leftGamepadGrip = 0;
-          leftGamepadEnabled = false;
-        }
-        if (!rightGamepadPosition) {
-          // if (!physicsManager.getGlideState()) {
-            rightGamepadPosition = localVector2.copy(localVector)
-              .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-              .toArray();
-            rightGamepadQuaternion = localQuaternion.toArray();
-          /* } else {
-            rightGamepadPosition = localVector2.copy(localVector)
-              .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-              .toArray();
-            rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-              .premultiply(rightHandGlideQuaternion)
-              .toArray();
-          } */
-          rightGamepadPointer = 0;
-          rightGamepadGrip = 0;
-          rightGamepadEnabled = false;
-        }
-
-        rigManager.setLocalAvatarPose([
-          [localVector.toArray(), localQuaternion.toArray()],
-          [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-          [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-        ]);
-        rigManager.update();
-      };
-      _updateRig();
+      this.injectRigInput();
+      rigManager.update();
 
       transformControls.update();
       game.update(timestamp);
@@ -402,6 +404,7 @@ export default class Webaverse extends EventTarget {
       
       game.pushAppUpdates();
 
+      const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
       localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
       localMatrix3.copy(xrCamera.matrix)
