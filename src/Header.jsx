@@ -20,7 +20,6 @@ import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 import Tabs from "./components/Tabs";
-import Draggable from "react-draggable";
 import {world2canvas} from './ThreeUtils.js';
 import stylesi from './Inspector.module.css';
 
@@ -637,28 +636,6 @@ export default function Header({
 
   const [dragPosition, setDragPosition] = useState(null);
 
-  function handleDrag (e) {
-    const characterOpen = open === 'character';
-    if (characterOpen) {
-      // console.log('hover change', e.data);
-      // const {position} = e.data;
-      // console.log(position)
-      const position = {x:0.1, y:1, z:-1.9};
-      if (position) {
-        console.log('ptrue')
-        const weaponPoint = world2canvas(position);
-        // console.log('hover', worldPoint.toArray().join(', '));
-        setDragPosition(weaponPoint);
-      } 
-      else {
-        setDragPosition(null);
-      }
-    } 
-    else {
-      setDragPosition(null);
-    }
-    console.log(dragPosition)
-  }
   // useEffect(() => {
   //   const dragchange = e => {
   //     const {draggingEquip} = e.data;
@@ -733,19 +710,6 @@ export default function Header({
                   </div>
                   <Tabs>
                   <div label="Swords">
-                  
-                  <div className={classnames(stylesi.inspector, dragPosition ? stylesi.open : null)} style={dragPosition ? {
-      transform: `translateX(${dragPosition.x*100}vw) translateY(${dragPosition.y*100}vh)`,
-    } : null}>
-      <img src="/images/popup.svg" style={dragPosition ? {
-        transform: `scale(${dragPosition.z})`,
-        transformOrigin: '0 100%',
-      } : null} />
-    </div>
-                  <Draggable onDrag={e =>{
-                    e.preventDefault();
-                    handleDrag(e)}}>
-
                     <div className={styles.neonTab} 
                       style={dragPosition ? {
                         transform: `translateX(${dragPosition.x*100}vw) translateY(${dragPosition.y*100}vh)`,
@@ -764,7 +728,6 @@ export default function Header({
                       <p className={styles.neonTextScore}>+ <span>20</span></p>
                       </div>
                     </div>
-                    </Draggable>
                     <div className={styles.neonTab} onClick={e => {
                       e.stopPropagation();
                       e.preventDefault();
