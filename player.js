@@ -78,9 +78,17 @@ class LocalPlayer extends Player {
     const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
     if (index !== -1) {
       this.wears.splice(index, 1);
-      metaversefile.removeApp(app);
-      app.destroy();
+      // metaversefile.removeApp(app);
+      // app.destroy();
       
+      app.position.copy(this.position)
+        .add(localVector.set(0, -physicsManager.getAvatarHeight() + 0.2, -1).applyQuaternion(this.quaternion));
+      app.quaternion.copy(this.quaternion);
+      
+      app.dispatchEvent({
+        type: 'wearupdate',
+        wear: null,
+      });
       this.dispatchEvent({
         type: 'wearupdate',
         app,
