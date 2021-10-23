@@ -72,7 +72,7 @@ const useTotalTime = 1000;
 const _getGrabbedObject = i => {
   const localPlayer = useLocalPlayer();
   const grabbedObjectInstanceId = localPlayer.grabs[i]?.instanceId;
-  const result = grabbedObjectInstanceId ? world.appManager.getObjects().find(object => object.instanceId === grabbedObjectInstanceId) : null;
+  const result = grabbedObjectInstanceId ? metaversefileApi.apps.find(object => object.instanceId === grabbedObjectInstanceId) : null;
   return result;
 };
 // window.getGrabbedObject = _getGrabbedObject;
@@ -531,7 +531,7 @@ const _click = () => {
 
   } else {
     // console.log('got click 4', !!highlightedPhysicsObject);
-    if (highlightedPhysicsObject && world.appManager.getObjects().includes(highlightedPhysicsObject)) {
+    if (highlightedPhysicsObject && metaversefileApi.apps.includes(highlightedPhysicsObject)) {
       _grab(highlightedPhysicsObject);
       // _updateMenu();
     }
@@ -540,7 +540,6 @@ const _click = () => {
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = useLocalPlayer();
-  const objects = world.appManager.getObjects();
   const wearApps = localPlayer.wears.map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
@@ -1066,8 +1065,9 @@ const _gameUpdate = (timestamp) => {
       const halfHeight = 0.1;
       const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
-        const collisionId = collision.objectId;
-        const object = world.appManager.getObjectFromPhysicsId(collisionId);
+        const physicsId = collision.objectId;
+        const object = metaversefileApi.apps.find(app => app.getPhysicsObjects().some(po => po.physicsId === physicsId));
+        // console.log('got apps',  instanceId, metaversefileApi.apps.map(a => a.instanceId), instanceId);
         if (object && !_isWear(object)) {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
@@ -1142,7 +1142,7 @@ const _gameUpdate = (timestamp) => {
       // window.highlightPhysicsMesh = highlightPhysicsMesh;
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      const unlocked = world.appManager.getObjects().includes(highlightedPhysicsObject);
+      const unlocked = metaversefileApi.apps.includes(highlightedPhysicsObject);
       highlightPhysicsMesh.material.uniforms.uColor.value.setHex(unlocked ? buildMaterial.uniforms.uColor.value.getHex() : 0xCCCCCC);
       highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
@@ -1295,7 +1295,7 @@ const _gameUpdate = (timestamp) => {
   _handleTeleport();
 
   const _handleClosestObject = () => {
-    const objects = world.appManager.getObjects();
+    const objects = metaversefileApi.apps;
     if (objects.length > 0) {
       let closestObject;
       
@@ -1358,7 +1358,7 @@ const _gameUpdate = (timestamp) => {
   _handleClosestObject();
   
   const _handleUsableObject = () => {
-    const objects = world.appManager.getObjects();
+    const objects = metaversefileApi.apps;
     if (objects.length > 0) {
       let usableObject;
       
@@ -1489,8 +1489,7 @@ const _gameUpdate = (timestamp) => {
 const _pushAppUpdates = () => {
   world.appManager.setPushingLocalUpdates(true);
   
-  const objects = world.appManager.getObjects();
-  for (const object of objects) {
+  for (const object of metaversefileApi.apps) {
     object.updateMatrixWorld();
     if (!object.matrix.equals(object.lastMatrix)) {
       object.matrix.decompose(localVector, localQuaternion, localVector2);
@@ -2841,14 +2840,15 @@ const weaponsManager = {
   ensureJump() {
     const localPlayer = useLocalPlayer();
     let jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-
-    // Temporary vehicle exit for debugging, OK to remove
-    let sitActionIndex = localPlayer.actions.findIndex(action => action.type === 'sit');
-
-    if(sitActionIndex !== -1) {
-      localPlayer.actions.splice(sitActionIndex, 1);
+    
+    const wears = localPlayer.wears.slice();
+    for (const {instanceId} of wears) {
+      const app = metaversefileApi.apps.find(a => a.instanceId === instanceId);
+      const sitComponent = app.getComponent('sit');
+      if (sitComponent) {
+        app.unwear();
+      }
     }
-    /////////////////////////////////////////////////
 
     if (!jumpAction) {
       jumpAction = {
@@ -2862,7 +2862,7 @@ const weaponsManager = {
     this.ensureJump();
     physicsManager.velocity.y += 5;
   },
-  canJumpOff() {
+  /* canJumpOff() {
     return rigManager.localRig ? (
       rigManager.localRig.aux?.sittables.length > 0
     ) : false;
@@ -2871,7 +2871,7 @@ const weaponsManager = {
     const auxPose = rigManager.localRig.aux.getPose();
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
-  },
+  }, */
   isSitting() {
     return useLocalPlayer().actions.some(action => action.type === 'sit');
   },
