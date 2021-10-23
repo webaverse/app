@@ -922,7 +922,7 @@ const cylinderMesh = (() => {
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
-const _updateWeapons = (timestamp) => {
+const _gameUpdate = (timestamp) => {
   const now = timestamp;
   const renderer = getRenderer();
   
@@ -3187,7 +3187,7 @@ const weaponsManager = {
       }
     }
   },
-  update: _updateWeapons,
+  update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
 };
 export default weaponsManager;
