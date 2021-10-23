@@ -12,7 +12,15 @@ phases:
       - echo Building the Docker image...
       - echo Logging in to Docker Hub...
       - echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-      - docker build -t $REPOSITORY_URI:latest .
+      - echo "${CODEBUILD_BUILD_ARN}"
+       - |
+         if expr "${CODEBUILD_BUILD_ARN}" : ".*CodeBuildProject-app-TestHarness-" >/dev/null; then
+           docker build -t $REPOSITORY_URI:latest ./tests/loading/Dockerfile
+         fi
+       - |
+         if expr "${CODEBUILD_BUILD_ARN}" : ".*CodeBuildProject-app-" >/dev/null; then
+           docker build -t $REPOSITORY_URI:latest .
+         fi
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
