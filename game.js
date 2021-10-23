@@ -925,6 +925,8 @@ let dragRightSpec = null;
 const _updateWeapons = (timestamp) => {
   const now = timestamp;
   const renderer = getRenderer();
+  
+  const localPlayer = useLocalPlayer();
 
   /* const _handleHighlight = () => {
     // if (!editedObject) {
@@ -995,6 +997,28 @@ const _updateWeapons = (timestamp) => {
     }
   };
   _handleEdit(); */
+  
+  const _updateLocalPlayer = () => {
+    if (rigManager.localRig) {
+      localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
+      localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
+      localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+      localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+      localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
+      localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
+    } else {
+      localPlayer.position.set(0, 0, 0);
+      localPlayer.quaternion.set(0, 0, 0, 1);
+      localPlayer.leftHand.position.set(0, 0, 0);
+      localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
+      localPlayer.rightHand.position.set(0, 0, 0);
+      localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
+    }
+    
+    lastLocalPlayerPosition.copy(localPlayer.position);
+    lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
+  };
+  _updateLocalPlayer();
 
   const _handlePush = () => {
     if (weaponsManager.canPush()) {
@@ -1030,7 +1054,6 @@ const _updateWeapons = (timestamp) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
-    const localPlayer = useLocalPlayer();
     const _isWear = o => localPlayer.wears.some(wear => wear.instanceId === o.instanceId);
 
     grabUseMesh.visible = false;
@@ -2476,10 +2499,12 @@ const _bindPointerLock = () => {
 };
 _bindPointerLock();
 
+let lastLocalPlayerPosition;
+let lastLocalPlayerQuaternion;
 const _bindLocalPlayerTeleport = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  const lastLocalPlayerPosition = localPlayer.position.clone();
-  const lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
+  lastLocalPlayerPosition = localPlayer.position.clone();
+  lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
   world.appManager.addEventListener('preframe', e => {
     if (
       !localPlayer.position.equals(lastLocalPlayerPosition) ||
@@ -2489,26 +2514,6 @@ const _bindLocalPlayerTeleport = () => {
         relation: 'head',
       });
     }
-  });
-  world.appManager.addEventListener('startframe', e => {
-    if (rigManager.localRig) {
-      localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
-      localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
-      localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-      localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-      localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
-      localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
-    } else {
-      localPlayer.position.set(0, 0, 0);
-      localPlayer.quaternion.set(0, 0, 0, 1);
-      localPlayer.leftHand.position.set(0, 0, 0);
-      localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
-      localPlayer.rightHand.position.set(0, 0, 0);
-      localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
-    }
-    
-    lastLocalPlayerPosition.copy(localPlayer.position);
-    lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
   });
 };
 _bindLocalPlayerTeleport();
