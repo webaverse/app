@@ -16,7 +16,7 @@ import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
-import * as ui from './vr-ui.js';
+// import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -27,6 +27,7 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './player.js';
+import {getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -631,9 +632,9 @@ metaversefile.setApi({
   useAbis() {
     return abis;
   },
-  useUi() {
+  /* useUi() {
     return ui;
-  },
+  }, */
   useActivate(fn) {
     const app = currentAppRender;
     if (app) {
@@ -645,6 +646,32 @@ metaversefile.setApi({
       });
     } else {
       throw new Error('useActivate cannot be called outside of render()');
+    }
+  },
+  useWear(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('wearupdate', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('wearupdate', fn);
+      });
+    } else {
+      throw new Error('useWear cannot be called outside of render()');
+    }
+  },
+  useUse(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('use', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('use', fn);
+      });
+    } else {
+      throw new Error('useUse cannot be called outside of render()');
     }
   },
   useResize(fn) {
@@ -659,6 +686,10 @@ metaversefile.setApi({
     } else {
       throw new Error('useResize cannot be called outside of render()');
     }
+  },
+  getAppByInstanceId(instanceId) {
+    const r = _makeRegexp(instanceId);
+    return apps.find(app => r.test(app.instanceId));
   },
   getAppByName(name) {
     const r = _makeRegexp(name);
@@ -681,6 +712,12 @@ metaversefile.setApi({
   getAppsByComponent(componentType) {
     const r = _makeRegexp(componentType);
     return apps.filter(app => app.components.some(component => r.test(component.type)));
+  },
+  getAppByPhysicsId(physicsId) {
+    return world.appManager.getObjectFromPhysicsId(physicsId);
+  },
+  getNextInstanceId() {
+    return getRandomString();
   },
   createApp({name = '', start_url = '', type = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
@@ -724,8 +761,11 @@ export default () => {
     apps.push(app);
   },
   removeApp(app) {
-    app.parent.remove(app);
-    apps.splice(apps.indexOf(app), 1);
+    app.parent && app.parent.remove(app);
+    const index = apps.indexOf(app);
+    if (index !== -1) {
+      apps.splice(index, 1);
+    }
   },
   useInternals() {
     if (!iframeContainer) {
