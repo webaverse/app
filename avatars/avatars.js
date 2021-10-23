@@ -1867,7 +1867,7 @@ class Avatar {
       armatureMatrixInverse,
     };
   }
-  static applyModelBoneOutputs(modelBones, modelBoneOutputs, topEnabled, bottomEnabled, lHandEnabled, rHandEnabled) {
+  static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
@@ -1880,7 +1880,7 @@ class Avatar {
         modelBone.initialQuaternion
       );
 
-      if (topEnabled) {
+      // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
             modelBone.quaternion.multiply(leftRotation); // center
@@ -1890,7 +1890,7 @@ class Avatar {
             modelBone.quaternion.multiply(rightRotation); // center
           }
         }
-      }
+      // }
       if (bottomEnabled) {
         if (k === 'Left_ankle' || k === 'Right_ankle') {
           modelBone.quaternion.multiply(upRotation);
@@ -2432,7 +2432,7 @@ class Avatar {
     Avatar.applyModelBoneOutputs(
       this.modelBones,
       this.modelBoneOutputs,
-      this.getTopEnabled(),
+      // this.getTopEnabled(),
       this.getBottomEnabled(),
       this.getHandEnabled(0),
       this.getHandEnabled(1),
