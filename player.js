@@ -47,32 +47,27 @@ class LocalPlayer extends Player {
     }));
   }
   wear(app) {
-    const wearComponent = app.getComponent('wear');
-    if (wearComponent) {
-      app.dispatchEvent({
-        type: 'wearupdate',
-        wear: wearComponent,
-      });
-      
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-      }
-      
-      const {instanceId} = app;
-      this.wears.push({
-        instanceId,
-      });
-      this.ungrab();
-      
-      this.dispatchEvent({
-        type: 'wearupdate',
-        app,
-        wear: wearComponent,
-      });
-    } else {
-      console.warn('cannot wear app with no wear component');
+    app.dispatchEvent({
+      type: 'wearupdate',
+      wear: true,
+    });
+    
+    const physicsObjects = app.getPhysicsObjects();
+    for (const physicsObject of physicsObjects) {
+      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
+    
+    const {instanceId} = app;
+    this.wears.push({
+      instanceId,
+    });
+    this.ungrab();
+    
+    this.dispatchEvent({
+      type: 'wearupdate',
+      app,
+      wear: true,
+    });
   }
   unwear(app) {
     const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
@@ -81,18 +76,28 @@ class LocalPlayer extends Player {
       // metaversefile.removeApp(app);
       // app.destroy();
       
-      app.position.copy(this.position)
-        .add(localVector.set(0, -physicsManager.getAvatarHeight() + 0.2, -1).applyQuaternion(this.quaternion));
-      app.quaternion.copy(this.quaternion);
+      const wearComponent = app.getComponent('wear');
+      if (wearComponent) {
+        app.position.copy(this.position)
+          .add(localVector.set(0, -physicsManager.getAvatarHeight() + 0.5, -0.5).applyQuaternion(this.quaternion));
+        app.quaternion.identity();
+        app.scale.set(1, 1, 1);
+        app.updateMatrixWorld();
+      }
+
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      }
       
       app.dispatchEvent({
         type: 'wearupdate',
-        wear: null,
+        wear: false,
       });
       this.dispatchEvent({
         type: 'wearupdate',
         app,
-        wear: null,
+        wear: false,
       });
     }
   }
