@@ -40,7 +40,7 @@ class AppManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('preframe', localFrameOpts));
   }
   tick(timestamp, frame) {
-    this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
+    // this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
     this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
   setPushingLocalUpdates(pushingLocalUpdates) {
