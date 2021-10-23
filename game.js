@@ -537,6 +537,7 @@ const _click = () => {
     }
   }
 };
+let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = useLocalPlayer();
   const objects = world.appManager.getObjects();
@@ -547,9 +548,10 @@ const _startUse = () => {
       let useAction = localPlayer.actions.find(action => action.type === 'use');
       if (!useAction) {
         const {instanceId} = wearApp;
-        const {boneAttachment, animation, position, quaternion, scale} = useComponent;
+        const {subtype, boneAttachment, animation, position, quaternion, scale} = useComponent;
         useAction = {
           type: 'use',
+          subtype,
           time: 0,
           instanceId,
           animation,
@@ -559,6 +561,9 @@ const _startUse = () => {
           scale,
         };
         localPlayer.actions.push(useAction);
+        if (useAction && useAction.subtype === 'pistol') {
+          lastPistolUseStartTime = performance.now();
+        }
 
         wearApp.use();
       }
@@ -930,6 +935,39 @@ const _gameUpdate = (timestamp) => {
   
   const _updateLocalPlayer = () => {
     if (rigManager.localRig) {
+      if (lastPistolUseStartTime >= 0) {
+        const lastUseTimeDiff = timestamp - lastPistolUseStartTime;
+        const kickbackTime = 300;
+        const kickbackExponent = 0.05;
+        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
+        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
+        const fakeArmLength = 0.2;
+        localQuaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.copy(rigManager.localRig.inputs.leftGamepad.position),
+            localVector2.copy(rigManager.localRig.inputs.leftGamepad.position)
+              .add(
+                localVector3.set(0, 1, -1)
+                  .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+              ),
+            localVector3.set(0, 0, 1)
+              .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+          )
+        )// .multiply(rigManager.localRig.inputs.leftGamepad.quaternion);
+        
+        rigManager.localRig.inputs.leftGamepad.position.sub(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+        );
+        
+        rigManager.localRig.inputs.leftGamepad.quaternion.slerp(localQuaternion, v);
+        
+        rigManager.localRig.inputs.leftGamepad.position.add(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+        );
+      }
+      
       localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
       localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
       localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
