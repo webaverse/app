@@ -310,12 +310,11 @@ export default class Webaverse extends EventTarget {
     ]);
   }
   
-  render() {
-    const now = Date.now();
-    frameEvent.data.now = now;
-    frameEvent.data.timeDiff = now - frameEvent.data.lastTimestamp;
+  render(timestamp, timeDiff) {
+    frameEvent.data.now = timestamp;
+    frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
-    frameEvent.data.lastTimestamp = now;
+    frameEvent.data.lastTimestamp = timestamp;
 
     // high priority render
     sceneHighPriority.add(world.lights);
@@ -371,7 +370,6 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
-    const startTime = Date.now();
     const animate = (timestamp, frame) => {      
       timestamp = timestamp || performance.now();
       const timeDiff = timestamp - lastTimestamp;
@@ -396,9 +394,9 @@ export default class Webaverse extends EventTarget {
 
       transformControls.update();
       game.update(timestamp);
-      hpManager.update(timestamp, timeDiffCapped);
 
       world.appManager.tick(timestamp, frame);
+      hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();
       
@@ -411,7 +409,7 @@ export default class Webaverse extends EventTarget {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      this.render();
+      this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);
   }
