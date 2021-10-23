@@ -665,6 +665,8 @@ body {
 .equipment .button > img {
   width: 30px;
   height: 30px;
+  filter: invert(0.3);
+  visibility: hidden;
 }
 .equipment .background2 {
   position: absolute;
@@ -673,6 +675,12 @@ body {
   left: 0;
   right: 0;
   pointer-events: none;
+}
+.equipment .button:hover > img {
+  filter: none;
+}
+.equipment:hover .button > img {
+   visibility: visible;
 }
 .equipment .button:hover + .background2 {
   background-color: #ef5350;

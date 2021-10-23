@@ -698,7 +698,7 @@ export default function Header({
                           const app = metaversefile.getAppByInstanceId(wear.instanceId);
                           localPlayer.unwear(app);
                         }}>
-                          <img src="images/release-01.svg" />
+                          <img src="images/remove-tag.svg" />
                         </button>
                         <div className={styles.background2} />
                       </div>
