@@ -34,19 +34,17 @@
     },
     {
       "position": [
-        8.4,
-        -1.74,
-        -5.49
+        -2,
+        -0.15,
+        10
       ],
       "quaternion": [
         0,
-        0.7071067811865475,
+        1,
         0,
-        0.7071067811865475
+        0
       ],
-      "physics": false,
-      "start_url": "/avatars/gear.vrm",
-      "dynamic": true
+      "start_url": "https://webaverse.github.io/sprite-avatar/index.js"
     },
     {
       "position": [
