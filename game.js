@@ -445,7 +445,7 @@ const _use = () => {
 
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
-  } else {
+  } /* else {
     const {leftHand: {position}} = useLocalPlayer();
 
     const portalObjects = world.getStaticObjects()
@@ -478,7 +478,7 @@ const _use = () => {
       }
       universe.pushUrl(u.href);
     }
-  }
+  } */
 };
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
