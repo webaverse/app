@@ -737,7 +737,7 @@ metaversefile.setApi({
     app.addEventListener('destroy', () => {
       const localPlayer = metaversefile.useLocalPlayer();
       const wearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-      if (wearIndex) {
+      if (wearIndex !== -1) {
         localPlayer.wears.splice(wearIndex, 1);
       }
     });
