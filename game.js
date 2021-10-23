@@ -312,7 +312,7 @@ let editedObject = null; */
 
 // const coord = new THREE.Vector3();
 // const lastCoord = coord.clone();
-let highlightedWorld = null;
+// let highlightedWorld = null;
 
 /* const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
@@ -2732,7 +2732,7 @@ const weaponsManager = {
       localPlayer.actions.push(crouchAction);
     }
   },
-  async destroyWorld() {
+  /* async destroyWorld() {
     if (highlightedWorld) {
       const {name} = highlightedWorld;
       const res = await fetch(`${worldsHost}/${name}`, {
@@ -2741,7 +2741,7 @@ const weaponsManager = {
       await res.blob();
       console.log('deleted', res.status);
     }
-  },
+  }, */
   selectLoadout(index) {
     _selectLoadout(index);
   },
@@ -2824,7 +2824,7 @@ const weaponsManager = {
   },
   canStartBuild() {
     return !world.appManager.grabbedObjects[0] && !highlightedObject;
-  }, */
+  },
   async startBuild(mode) {
     const object = await _loadItemSpec1('./assets/type/object.geo');
     object.setMode(mode);
@@ -2833,7 +2833,7 @@ const weaponsManager = {
   },
   setBuildMode(mode) {
     editedObject.setMode(mode);
-  },
+  }, */
   isJumping() {
     return useLocalPlayer().actions.some(action => action.type === 'jump');
   },
