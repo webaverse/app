@@ -72,7 +72,7 @@ const useTotalTime = 1000;
 const _getGrabbedObject = i => {
   const localPlayer = useLocalPlayer();
   const grabbedObjectInstanceId = localPlayer.grabs[i]?.instanceId;
-  const result = grabbedObjectInstanceId ? metaversefileApi.apps.find(object => object.instanceId === grabbedObjectInstanceId) : null;
+  const result = grabbedObjectInstanceId ? metaversefileApi.getAppByInstanceId(grabbedObjectInstanceId) : null;
   return result;
 };
 // window.getGrabbedObject = _getGrabbedObject;
@@ -336,7 +336,7 @@ const _selectLoadout = index => {
 
   /* (async () => {
     if (selectedLoadoutObject) {
-      world.appManager.removeObject(selectedLoadoutObject.instanceId);
+      world.appManager.removeTrackedApp(selectedLoadoutObject.instanceId);
       selectedLoadoutObject = null;
     }
 
@@ -490,9 +490,9 @@ const _delete = () => {
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
     
-    world.appManager.removeObject(grabbedObject.instanceId);
+    world.appManager.removeTrackedApp(grabbedObject.instanceId);
   /* } else if (editedObject) {
-    world.appManager.removeObject(editedObject.instanceId);
+    world.appManager.removeTrackedApp(editedObject.instanceId);
     editedObject = null;
 
     if (weaponsManager.getMenu() === 4) {
@@ -501,7 +501,7 @@ const _delete = () => {
       _updateMenu();
     } */
   } else if (highlightedPhysicsObject) {
-    world.appManager.removeObject(highlightedPhysicsObject.instanceId);
+    world.appManager.removeTrackedApp(highlightedPhysicsObject.instanceId);
     highlightedPhysicsObject = null;
 
     /* if (weaponsManager.getMenu() === 4) {
@@ -510,7 +510,7 @@ const _delete = () => {
       // _updateMenu();
     } */
   } else if (mouseSelectedObject) {
-    world.appManager.removeObject(mouseSelectedObject.instanceId);
+    world.appManager.removeTrackedApp(mouseSelectedObject.instanceId);
     
     if (mouseHoverObject === mouseSelectedObject) {
       weaponsManager.setMouseHoverObject(null);
@@ -519,21 +519,15 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  /* if (weaponsManager.canBuild()) {
-    // console.log('got click 2');
-    // editedObject.place();
-  } else */ if (_getGrabbedObject(0)) {
-    // console.log('got click 3');
+  if (_getGrabbedObject(0)) {
     _deselectLoadout();
 
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
 
   } else {
-    // console.log('got click 4', !!highlightedPhysicsObject);
-    if (highlightedPhysicsObject && metaversefileApi.apps.includes(highlightedPhysicsObject)) {
+    if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
-      // _updateMenu();
     }
   }
 };
@@ -842,72 +836,6 @@ const grabUseMesh = (() => {
 grabUseMesh.visible = false;
 sceneLowPriority.add(grabUseMesh);
 
-world.appManager.addEventListener('objectadd', e => {
-  const app = e.data;
-
-  const _bindHitTracker = () => {
-    const hitTracker = hpManager.makeHitTracker();
-    app.parent.add(hitTracker);
-    hitTracker.add(app);
-    app.hitTracker = hitTracker;
-
-    const frame = e => {
-      const {timeDiff} = e.data;
-      hitTracker.update(timeDiff);
-    };
-    world.appManager.addEventListener('frame', frame);
-    app.addEventListener('destroy', () => {
-      hitTracker.parent.remove(hitTracker);
-      world.appManager.removeEventListener('frame', frame);
-    });
-    app.addEventListener('die', () => {
-      metaversefileApi.removeApp(app);
-      app.destroy();
-    });
-    app.hit = (damage, opts = {}) => {
-      const result = hitTracker.hit(damage);
-      const {hit, died} = result;
-      if (hit) {
-        /* if (damagePhysicsMesh.physicsId !== collisionId) {
-          const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          damagePhysicsMesh.geometry.dispose();
-          damagePhysicsMesh.geometry = geometry;
-          damagePhysicsMesh.physicsId = collisionId;
-        } */
-        
-        const {collisionId} = opts;
-        if (collisionId) {
-          hpManager.triggerDamageAnimation(collisionId);
-        }
-        
-        app.dispatchEvent({
-          type: 'hit',
-          // position: cylinderMesh.position,
-          // quaternion: cylinderMesh.quaternion,
-          hp: hitTracker.hp,
-          totalHp: hitTracker.totalHp,
-        });
-      }
-      if (died) {
-        app.dispatchEvent({
-          type: 'die',
-          // position: cylinderMesh.position,
-          // quaternion: cylinderMesh.quaternion,
-        });
-      }
-      return result;
-    };
-    app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
-  };
-  _bindHitTracker();
-});
-
 const hitboxOffsetDistance = 0.3;
 const cylinderMesh = (() => {
   const radius = 1;
@@ -1066,8 +994,7 @@ const _gameUpdate = (timestamp) => {
       const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const physicsId = collision.objectId;
-        const object = metaversefileApi.apps.find(app => app.getPhysicsObjects().some(po => po.physicsId === physicsId));
-        // console.log('got apps',  instanceId, metaversefileApi.apps.map(a => a.instanceId), instanceId);
+        const object = metaversefileApi.getAppByPhysicsId(physicsId);
         if (object && !_isWear(object)) {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
@@ -1097,8 +1024,8 @@ const _gameUpdate = (timestamp) => {
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
-        highlightedPhysicsObject = metaversefileApi.apps.find(app => app.getPhysicsObjects().some(po => po.physicsId === physicsId));
-        highlightedPhysicsId = collision.objectId;
+        highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
+        highlightedPhysicsId = physicsId;
       }
 
       /* for (const physicsId of grabbedPhysicsIds) {
@@ -1143,8 +1070,7 @@ const _gameUpdate = (timestamp) => {
       // window.highlightPhysicsMesh = highlightPhysicsMesh;
       highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      const unlocked = metaversefileApi.apps.includes(highlightedPhysicsObject);
-      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(unlocked ? buildMaterial.uniforms.uColor.value.getHex() : 0xCCCCCC);
+      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
       highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
     }
@@ -1296,8 +1222,8 @@ const _gameUpdate = (timestamp) => {
   _handleTeleport();
 
   const _handleClosestObject = () => {
-    const objects = metaversefileApi.apps;
-    if (objects.length > 0) {
+    const apps = world.appManager.apps;
+    if (apps.length > 0) {
       let closestObject;
       
       if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
@@ -1308,7 +1234,7 @@ const _gameUpdate = (timestamp) => {
             localVector2
           );
           localVector.y -= physicsManager.getAvatarHeight() / 2;
-          const distanceSpecs = objects.map(object => {
+          const distanceSpecs = apps.map(object => {
             let distance = object.position.distanceTo(localVector);
             if (distance > 30) {
               distance = Infinity;
@@ -1330,7 +1256,7 @@ const _gameUpdate = (timestamp) => {
                 .applyQuaternion(camera.quaternion)
             );
             
-            const distanceSpecs = objects.map(object => {
+            const distanceSpecs = apps.map(object => {
               const distance =
                 object.position.distanceTo(camera.position) < 8 ?
                   localRay.distanceToPoint(object.position)
@@ -1359,8 +1285,8 @@ const _gameUpdate = (timestamp) => {
   _handleClosestObject();
   
   const _handleUsableObject = () => {
-    const objects = metaversefileApi.apps;
-    if (objects.length > 0) {
+    const apps = world.appManager.apps;
+    if (apps.length > 0) {
       let usableObject;
       
       if (
@@ -1374,7 +1300,7 @@ const _gameUpdate = (timestamp) => {
           localVector2
         );
         localVector.y -= physicsManager.getAvatarHeight() / 2;
-        const distanceSpecs = objects.map(object => {
+        const distanceSpecs = apps.map(object => {
           let distance = object.position.distanceTo(localVector);
           if (distance > 3) {
             distance = Infinity;
@@ -1450,7 +1376,7 @@ const _gameUpdate = (timestamp) => {
       const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
-        const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
+        const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
         if (object) {
           // const worldPosition = object.getWorldPosition(localVector);
           const damage = typeof useAction.damage === 'number' ? useAction.damage : 30;
@@ -1487,14 +1413,14 @@ const _gameUpdate = (timestamp) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 };
-const _pushAppUpdates = () => {
+const _pushWorldAppUpdates = () => {
   world.appManager.setPushingLocalUpdates(true);
   
-  for (const object of metaversefileApi.apps) {
+  for (const object of world.appManager.apps) {
     object.updateMatrixWorld();
     if (!object.matrix.equals(object.lastMatrix)) {
       object.matrix.decompose(localVector, localQuaternion, localVector2);
-      world.appManager.setTrackedObjectTransform(object.instanceId, localVector, localQuaternion, localVector2);
+      world.appManager.setTrackedAppTransform(object.instanceId, localVector, localQuaternion, localVector2);
       
       const physicsObjects = object.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -1512,6 +1438,9 @@ const _pushAppUpdates = () => {
   }
 
   world.appManager.setPushingLocalUpdates(false);
+};
+const _pushAppUpdates = () => {
+  _pushWorldAppUpdates();
 };
 
 /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
@@ -1774,7 +1703,7 @@ const _updateMenu = () => {
 
     locationLabel.innerText = `Overworld`;
   }
-}; */
+};
 
 const _loadItemSpec1 = async u => {
   const p = new Promise((accept, reject) => {
@@ -1787,9 +1716,6 @@ const _loadItemSpec1 = async u => {
 
   const object = await p;
   editedObject = object;
-  /* if (editedObject.isBuild) {
-    world.appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
-  } */
 
   weaponsManager.setMenu(0);
   // world.appManager.grabbedObjectOffsets[0] = maxGrabDistance;
@@ -2033,7 +1959,7 @@ const _selectTabDelta = offset => {
   }
   _selectTab(newSelectedTabIndex);
 };
-/* const bindInterface = () => {
+const bindInterface = () => {
   if (items1El && items2El && items3El && chatInputEl) {
     for (let i = 0; i < itemSpecs3.length; i++) {
       const itemSpec = itemSpecs3[i];
@@ -2110,7 +2036,7 @@ const _selectTabDelta = offset => {
           _ungrab();
         } else if (editedObject) {
           if (editedObject.isBuild && editedObject.getShapes().length === 0) {
-            world.appManager.removeObject(editedObject.instanceId);
+            world.appManager.removeTrackedApp(editedObject.instanceId);
           }
 
           editedObject = null;
@@ -2844,7 +2770,7 @@ const weaponsManager = {
     
     const wears = localPlayer.wears.slice();
     for (const {instanceId} of wears) {
-      const app = metaversefileApi.apps.find(a => a.instanceId === instanceId);
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
       const sitComponent = app.getComponent('sit');
       if (sitComponent) {
         app.unwear();
@@ -2954,23 +2880,31 @@ const weaponsManager = {
     })); */
   },
   getSpeed() {
-    const defaultSpeed = 0.1;
-    const flySpeed = defaultSpeed * 2;
-    const defaultCrouchSpeed = defaultSpeed * 0.6;
-    const sittable = rigManager?.localRig?.aux?.sittables[0];
+    let speed = 0;
+    
+    const walkSpeed = 0.1;
+    const flySpeed = walkSpeed * 2;
+    const defaultCrouchSpeed = walkSpeed * 0.6;
+    const sittable = rigManager?.localRig1?.aux?.sittables[0];
     const localPlayer = useLocalPlayer();
     if (sittable && !!sittable.model) {
       const {componentIndex} = sittable;
       const component = sittable.model.getComponents()[componentIndex];
-      const {speed = defaultSpeed} = component;
-      return speed;
+      speed = component.seed ?? walkSpeed;
     } else if (weaponsManager.isCrouched()) {
-      return defaultCrouchSpeed;
+      speed = defaultCrouchSpeed;
     } else if (weaponsManager.isFlying()) {
-      return flySpeed;
+      speed = flySpeed;
     } else {
-      return defaultSpeed;
+      speed = walkSpeed;
     }
+    
+    const sprintMultiplier = (ioManager.keys.shift && !this.isCrouched()) ?
+      (ioManager.keys.doubleShift ? 20 : 3)
+    :
+      1;
+    speed *= sprintMultiplier;
+    return speed;
   },
   getClosestObject() {
     return weaponsManager.closestObject;
