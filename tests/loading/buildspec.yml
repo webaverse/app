@@ -18,10 +18,11 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Starting the app...
+      - cd ../../
       - npm start
       - forever list
       - echo Running the tests...
-      - cd tests/loading
+      - cd ./tests/loading
       - npm start
   post_build:
     commands:
