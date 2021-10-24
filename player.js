@@ -73,8 +73,6 @@ class LocalPlayer extends Player {
     const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
     if (index !== -1) {
       this.wears.splice(index, 1);
-      // metaversefile.removeApp(app);
-      // app.destroy();
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
@@ -125,7 +123,7 @@ class LocalPlayer extends Player {
   ungrab() {
     const grabSpec = this.grabs[0];
     if (grabSpec) {
-      const app = metaversefile.apps.find(app => app.instanceId === grabSpec.instanceId);
+      const app = metaversefile.getAppByInstanceId(grabSpec.instanceId);
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);

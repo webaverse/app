@@ -71,7 +71,6 @@ class EquipmentRender {
       this.previewScene.add(newAvatar);
       
       newAvatar.instanceId = metaversefile.getNextInstanceId();
-      metaversefile.addAppToList(newAvatar);
       
       avatar = newAvatar;
     });

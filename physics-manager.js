@@ -209,12 +209,6 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, c
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      physicsId,
-      // physicsObject
-    },
-  })); */
   return physicsObject;
 };
 
@@ -233,12 +227,6 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      physicsId,
-      // physicsObject
-    },
-  })); */
   return physicsObject;
 };
 physicsManager.addGeometry = mesh => {
@@ -272,12 +260,6 @@ physicsManager.addGeometry = mesh => {
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      physicsId,
-      // physicsObject,
-    },
-  })); */
   return physicsObject;
 };
 physicsManager.cookGeometry = mesh => physx.physxWorker.cookGeometryPhysics(physx.physics, mesh);
@@ -291,12 +273,6 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      // physicsId,
-      physicsObject,
-    },
-  })); */
   return physicsObject;
 };
 
@@ -323,12 +299,6 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      physicsId,
-      // physicsObject,
-    },
-  })); */
   return physicsObject;
 };
 physicsManager.cookConvexGeometry = mesh => physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh);
@@ -342,12 +312,6 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
-  /* physicsManager.dispatchEvent(new MessageEvent('physicsobjectadd', {
-    data: {
-      physicsId,
-      // physicsObject,
-    },
-  })); */
   return physicsObject;
 };
 
@@ -610,7 +574,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       const sitAction = localPlayer.actions.find(action => action.type === 'sit');
 
       let objInstanceId = sitAction.controllingId;
-      let controlledObj = world.appManager.getObjects().find(o => o.instanceId === objInstanceId);
+      let controlledObj = world.appManager.getAppByInstanceId(objInstanceId);
       let sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
 
       const sitComponent = controlledObj.getComponent('sit');
