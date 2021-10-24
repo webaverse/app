@@ -55,7 +55,7 @@ class EquipmentRender {
     this.previewRenderer.xr.enabled = true;
 
     let avatar = null;
-    world.appManager.addEventListener("avatarupdate", (e) => {
+    world.appManager.addEventListener('avatarupdate', (e) => {
       if (avatar) {
         avatar.parent.remove(avatar);
         avatar = null;
