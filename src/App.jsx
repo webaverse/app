@@ -49,7 +49,6 @@ const _startApp = async (weba, canvas) => {
     const avatarApp = await metaversefileApi.load(contentId);
     // avatarApp.contentId = contentId;
     avatarApp.instanceId = metaversefileApi.getNextInstanceId();
-    metaversefileApi.addAppToList(avatarApp);
     const localPlayer = useLocalPlayer();
     localPlayer.setAvatar(avatarApp);
   }
