@@ -342,7 +342,7 @@ const _selectLoadout = index => {
 
     const loadout = loginManager.getLoadout();
     let item = loadout[selectedLoadoutIndex];
-    if (weaponsManager.inventoryHack) {
+    if (gameManager.inventoryHack) {
       if (selectedLoadoutIndex === 1) {
         item = ['https://avaer.github.io/pistol/manifest.json'];
       } else if (selectedLoadoutIndex === 2) {
@@ -391,7 +391,7 @@ const _selectLoadout = index => {
 
         _grab(selectedLoadoutObject);
 
-        weaponsManager.setMenu(0);
+        gameManager.setMenu(0);
       }
     }
   })().catch(console.warn); */
@@ -409,7 +409,7 @@ const _updateLoadoutInterface = () => {
 };
 
 const _use = () => {
-  if (weaponsManager.getMenu() === 3) {
+  if (gameManager.getMenu() === 3) {
     const itemSpec = itemSpecs3[selectedItemIndex];
     let {start_url, filename, content} = itemSpec;
 
@@ -425,25 +425,25 @@ const _use = () => {
     }
     world.appManager.addObject(start_url, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
-    weaponsManager.setMenu(0);
+    gameManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (highlightedObject /* && !editedObject */) {
     // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
-    weaponsManager.setMenu(0);
+    gameManager.setMenu(0);
     cameraManager.requestPointerLock();
-  } else if (weaponsManager.getMenu() === 1) {
+  } else if (gameManager.getMenu() === 1) {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
-  } else if (weaponsManager.getMenu() === 2) {
+  } else if (gameManager.getMenu() === 2) {
     const inventory = loginManager.getInventory();
     const itemSpec = inventory[selectedItemIndex];
 
     world.appManager.addObject(itemSpec.id, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
-    weaponsManager.setMenu(0);
+    gameManager.setMenu(0);
     cameraManager.requestPointerLock();
   } /* else {
     const {leftHand: {position}} = useLocalPlayer();
@@ -495,7 +495,7 @@ const _delete = () => {
     world.appManager.removeObject(editedObject.instanceId);
     editedObject = null;
 
-    if (weaponsManager.getMenu() === 4) {
+    if (gameManager.getMenu() === 4) {
       _selectItemDelta(1);
     } else {
       _updateMenu();
@@ -504,7 +504,7 @@ const _delete = () => {
     world.appManager.removeObject(highlightedPhysicsObject.instanceId);
     highlightedPhysicsObject = null;
 
-    /* if (weaponsManager.getMenu() === 4) {
+    /* if (gameManager.getMenu() === 4) {
       _selectItemDelta(1);
     } else {
       // _updateMenu();
@@ -513,13 +513,13 @@ const _delete = () => {
     world.appManager.removeObject(mouseSelectedObject.instanceId);
     
     if (mouseHoverObject === mouseSelectedObject) {
-      weaponsManager.setMouseHoverObject(null);
+      gameManager.setMouseHoverObject(null);
     }
-    weaponsManager.setMouseSelectedObject(null);
+    gameManager.setMouseSelectedObject(null);
   }
 };
 const _click = () => {
-  /* if (weaponsManager.canBuild()) {
+  /* if (gameManager.canBuild()) {
     // console.log('got click 2');
     // editedObject.place();
   } else */ if (_getGrabbedObject(0)) {
@@ -810,8 +810,8 @@ const _grab = object => {
   localPlayer.grab(object);
   
   // console.log('start grab');
-  weaponsManager.gridSnap = 0;
-  weaponsManager.editMode = false;
+  gameManager.gridSnap = 0;
+  gameManager.editMode = false;
 
   /* const distance = object.position.distanceTo(position);
   if (distance < maxGrabDistance) {
@@ -988,11 +988,11 @@ const _gameUpdate = (timestamp) => {
   _updateLocalPlayer();
 
   const _handlePush = () => {
-    if (weaponsManager.canPush()) {
+    if (gameManager.canPush()) {
       if (ioManager.keys.forward) {
-        weaponsManager.menuPush(-1);
+        gameManager.menuPush(-1);
       } else if (ioManager.keys.backward) {
-        weaponsManager.menuPush(1);
+        gameManager.menuPush(1);
       }
     }
   };
@@ -1017,7 +1017,7 @@ const _gameUpdate = (timestamp) => {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
-          gridSnap: weaponsManager.getGridSnap(),
+          gridSnap: gameManager.getGridSnap(),
         });
 
         grabbedObject.updateMatrixWorld();
@@ -1048,7 +1048,7 @@ const _gameUpdate = (timestamp) => {
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
-        grabUseMesh.setComponent('value', weaponsManager.getActivateFactor(now));
+        grabUseMesh.setComponent('value', gameManager.getActivateFactor(now));
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
@@ -1057,7 +1057,7 @@ const _gameUpdate = (timestamp) => {
         } */
       }
     }
-    if (!grabUseMesh.visible && !weaponsManager.editMode) {
+    if (!grabUseMesh.visible && !gameManager.editMode) {
       localVector.copy(localPlayer.position)
         .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1-physicsManager.getAvatarCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
@@ -1075,7 +1075,7 @@ const _gameUpdate = (timestamp) => {
           
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
-          grabUseMesh.setComponent('value', weaponsManager.getActivateFactor(now));
+          grabUseMesh.setComponent('value', gameManager.getActivateFactor(now));
         }
       }
     }
@@ -1085,7 +1085,7 @@ const _gameUpdate = (timestamp) => {
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
-    if (weaponsManager.editMode) {
+    if (gameManager.editMode) {
       /* const grabbedObject = _getGrabbedObject(0);
       const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
       for (const physicsId of grabbedPhysicsIds) {
@@ -1155,7 +1155,7 @@ const _gameUpdate = (timestamp) => {
     mouseHighlightPhysicsMesh.visible = false;
 
     const h = mouseHoverObject;
-    if (h && !weaponsManager.dragging) {
+    if (h && !gameManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
       /* if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
         const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
@@ -1300,7 +1300,7 @@ const _gameUpdate = (timestamp) => {
     if (objects.length > 0) {
       let closestObject;
       
-      if (!weaponsManager.getMouseSelectedObject() && !weaponsManager.contextMenu) {
+      if (!gameManager.getMouseSelectedObject() && !gameManager.contextMenu) {
         if (/*controlsManager.isPossessed() &&*/ cameraManager.getMode() !== 'firstperson') {
           rigManager.localRigMatrix.decompose(
             localVector,
@@ -1323,7 +1323,7 @@ const _gameUpdate = (timestamp) => {
             closestObject = closestDistanceSpec.object;
           }
         } else {
-          if ((!!rigManager.localRig && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || weaponsManager.dragging) {
+          if ((!!rigManager.localRig && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || gameManager.dragging) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
@@ -1346,14 +1346,14 @@ const _gameUpdate = (timestamp) => {
               closestObject = closestDistanceSpec.object;
             }
           } else {
-            closestObject = weaponsManager.getMouseHoverObject();
+            closestObject = gameManager.getMouseHoverObject();
           }
         }
       } else {
         closestObject = null;
       }
       
-      weaponsManager.closestObject = closestObject;
+      gameManager.closestObject = closestObject;
     }
   };
   _handleClosestObject();
@@ -1364,8 +1364,8 @@ const _gameUpdate = (timestamp) => {
       let usableObject;
       
       if (
-        !weaponsManager.getMouseSelectedObject() &&
-        !weaponsManager.contextMenu /* &&
+        !gameManager.getMouseSelectedObject() &&
+        !gameManager.contextMenu /* &&
         controlsManager.isPossessed() */
       ) {
         rigManager.localRigMatrix.decompose(
@@ -1392,16 +1392,16 @@ const _gameUpdate = (timestamp) => {
         usableObject = null;
       }
       
-      weaponsManager.usableObject = usableObject;
+      gameManager.usableObject = usableObject;
     }
   };
   _handleUsableObject();
   
   const _updateDrags = () => {
-    const {draggingRight} = weaponsManager;
+    const {draggingRight} = gameManager;
     if (draggingRight !== lastDraggingRight) {
       if (draggingRight) {
-        const e = weaponsManager.getLastMouseEvent();
+        const e = gameManager.getLastMouseEvent();
         if (e) {
           const {clientX, clientY} = e;
           const cameraStartPosition = camera.position.clone();
@@ -1623,7 +1623,7 @@ const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
   _updateMenu();
 };
-const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
+const _getItemsEl = () => document.getElementById('items-' + gameManager.getMenu());
 const _selectItemDelta = offset => {
   const itemsEl = _getItemsEl();
 
@@ -1644,7 +1644,7 @@ const _selectItemDelta = offset => {
 let lastCameraFocus = -1;
 const _updateMenu = () => {
   if (menu1El && menu2El && menu3El && menu4El) {
-    const {menuOpen} = weaponsManager;
+    const {menuOpen} = gameManager;
 
     menu1El.classList.toggle('open', menuOpen === 1);
     menu2El.classList.toggle('open', menuOpen === 2);
@@ -1791,7 +1791,7 @@ const _loadItemSpec1 = async u => {
     world.appManager.grabbedObjectMatrices[0].compose(localVector.set(0, 0, -baseUnit*0.75), localQuaternion.set(0, 0, 0, 1), localVector2.set(1, 1, 1));
   } */
 
-  weaponsManager.setMenu(0);
+  gameManager.setMenu(0);
   // world.appManager.grabbedObjectOffsets[0] = maxGrabDistance;
   cameraManager.requestPointerLock();
 
@@ -2022,10 +2022,10 @@ const itemSpecs1 = [
   },
 ];
 const _selectTab = newSelectedTabIndex => {
-  weaponsManager.setMenu(newSelectedTabIndex + 1);
+  gameManager.setMenu(newSelectedTabIndex + 1);
 };
 const _selectTabDelta = offset => {
-  let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
+  let newSelectedTabIndex = (gameManager.getMenu() - 1) + offset;
   if (newSelectedTabIndex >= tabs.length) {
     newSelectedTabIndex = 0;
   } else if (newSelectedTabIndex < 0) {
@@ -2116,14 +2116,14 @@ const _selectTabDelta = offset => {
           editedObject = null;
           _updateMenu();
         } else {
-          const hasMenu = !!weaponsManager.getMenu();
+          const hasMenu = !!gameManager.getMenu();
           if (hasMenu && !document.pointerLockElement) {
             cameraManager.requestPointerLock();
           } else if (!hasMenu && document.pointerLockElement) {
             document.exitPointerLock();
           }
 
-          weaponsManager.setMenu(hasMenu ? 0 : 1);
+          gameManager.setMenu(hasMenu ? 0 : 1);
         }
       });
     });
@@ -2239,7 +2239,7 @@ const _selectTabDelta = offset => {
     chatInputEl.addEventListener('keydown', e => {
       switch (e.which) {
         case 13: { // enter
-          weaponsManager.enter();
+          gameManager.enter();
           break;
         }
       }
@@ -2326,18 +2326,18 @@ scene.add(cubeMesh); */
     lastMouseEvent.clientY === dragRightSpec.clientY &&
     mouseHoverObject
   ) {
-    weaponsManager.setContextMenu(true);
-    weaponsManager.setContextMenuObject(mouseHoverObject);
+    gameManager.setContextMenu(true);
+    gameManager.setContextMenuObject(mouseHoverObject);
   
-    weaponsManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+    gameManager.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
   }
 }); */
 
 const _bindPointerLock = () => {
   document.addEventListener('pointerlockchange', () => {
-    weaponsManager.setMouseHoverObject(null);
+    gameManager.setMouseHoverObject(null);
     if (!document.pointerLockElement) {
-      weaponsManager.editMode = false;
+      gameManager.editMode = false;
     }
   });
 };
@@ -2364,7 +2364,7 @@ _bindLocalPlayerTeleport();
 
 let droppedThrow = false;
 let lastMouseEvent = null;
-const weaponsManager = {
+const gameManager = {
   // weapons,
   // cubeMesh,
   /* buildMode: 'wall',
@@ -2389,16 +2389,16 @@ const weaponsManager = {
     selectedWeapon = newSelectedWeapon;
   }, */
   /* setWeaponWheel(newOpen) {
-    if (newOpen && !weaponsManager.weaponWheel) {
+    if (newOpen && !gameManager.weaponWheel) {
       wheel.style.display = 'flex';
       wheelDotCanvas.style.display = null;
       wheelDotCanvas.style.left = `${window.innerWidth/2}px`;
       wheelDotCanvas.style.top = `${window.innerHeight/2}px`;
-      weaponsManager.weaponWheel = true;
-    } else if (weaponsManager.weaponWheel && !newOpen) {
+      gameManager.weaponWheel = true;
+    } else if (gameManager.weaponWheel && !newOpen) {
       wheel.style.display = 'none';
       wheelDotCanvas.style.display = 'none';
-      weaponsManager.weaponWheel = false;
+      gameManager.weaponWheel = false;
     }
   },
   updateWeaponWheel(e) {
@@ -2592,7 +2592,7 @@ const weaponsManager = {
     console.log('menu drop');
   }, */
   /* menuPhysics() {
-    const selectedObject = weaponsManager.getMouseSelectedObject();
+    const selectedObject = gameManager.getMouseSelectedObject();
     // console.log('menu physics', selectedObject);
     if (selectedObject) {
       const physicsIds = selectedObject.getPhysicsIds ? selectedObject.getPhysicsIds() : [];
@@ -2694,8 +2694,8 @@ const weaponsManager = {
     if (flyActionIndex !== -1) {
       localPlayer.actions.splice(flyActionIndex, 1);
       
-      if (!weaponsManager.isJumping()) {
-        weaponsManager.ensureJump();
+      if (!gameManager.isJumping()) {
+        gameManager.ensureJump();
       }
       physicsManager.velocity.setScalar(0);
     } else {
@@ -2705,11 +2705,11 @@ const weaponsManager = {
       };
       localPlayer.actions.push(flyAction);
       
-      if (weaponsManager.isJumping()) {
+      if (gameManager.isJumping()) {
         const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
         localPlayer.actions.splice(jumpActionIndex, 1);
       }
-      if (weaponsManager.isCrouched()) {
+      if (gameManager.isCrouched()) {
         const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
         localPlayer.actions.splice(crouchActionIndex, 1);
       }
@@ -2964,19 +2964,19 @@ const weaponsManager = {
       const component = sittable.model.getComponents()[componentIndex];
       const {speed = defaultSpeed} = component;
       return speed;
-    } else if (weaponsManager.isCrouched()) {
+    } else if (gameManager.isCrouched()) {
       return defaultCrouchSpeed;
-    } else if (weaponsManager.isFlying()) {
+    } else if (gameManager.isFlying()) {
       return flySpeed;
     } else {
       return defaultSpeed;
     }
   },
   getClosestObject() {
-    return weaponsManager.closestObject;
+    return gameManager.closestObject;
   },
   getUsableObject() {
-    return weaponsManager.usableObject;
+    return gameManager.usableObject;
   },
   getLastMouseEvent() {
     return lastMouseEvent;
@@ -3035,4 +3035,4 @@ const weaponsManager = {
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
 };
-export default weaponsManager;
+export default gameManager;

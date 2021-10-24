@@ -468,8 +468,26 @@ const _getAvatarWorldObject = o => {
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
-const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 0;
+const getAvatarHeight = () => {
+  return rigManager.localRig ? rigManager.localRig.height : 0;
+};
 physicsManager.getAvatarHeight = getAvatarHeight;
+
+const getAvatarOffset = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+  if (crouchAction) {
+    return 0.55; // 0.24
+  } else {
+    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+    if (activateAction) {
+      return 1.1;
+    } else {
+      return 0;
+    }
+  }
+}
+physicsManager.getAvatarOffset = getAvatarOffset;
 
 const crouchMaxTime = 200;
 const activateMaxTime = 1000;
@@ -477,11 +495,11 @@ const getAvatarCrouchFactor = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
   if (crouchAction) {
-    return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
+    return (1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime) + 0.4;
   } else {
     const activateAction = localPlayer.actions.find(action => action.type === 'activate');
     if (activateAction) {
-      return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
+      return (1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1)) + 0.78;
     } else {
       return 1;
     }
@@ -490,7 +508,7 @@ const getAvatarCrouchFactor = () => {
 physicsManager.getAvatarCrouchFactor = getAvatarCrouchFactor;
 
 const _getAvatarCapsule = v => {
-  const avatarHeight = getAvatarHeight();
+  const avatarHeight = getAvatarHeight() - getAvatarOffset() / 2;
   v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
   v.radius = 0.3/1.6 * avatarHeight;
   v.halfHeight = Math.max(avatarHeight * 0.5 - v.radius, 0);
@@ -589,9 +607,11 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       };
       if (collision) {
+        let offset = getAvatarOffset();
+        let offsetHeight = getAvatarHeight() - offset;
         localVector4
           .fromArray(collision.direction)
-          .add(localVector5.set(0, -getAvatarHeight() * (1-getAvatarCrouchFactor()) * 0.5, 0));
+          .add(localVector5.set(0, -offsetHeight * (1-getAvatarCrouchFactor()) * 0.5, 0));
         camera.position.add(localVector4)
         localVector.add(localVector4);
         
@@ -607,8 +627,25 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       physicsManager.velocity.y = 0;
 
-      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
 
+      ///ensure no actions
+      const flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
+      if (flyActionIndex !== -1) {
+          localPlayer.actions.splice(flyActionIndex, 1);
+        }
+
+      const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+      if (crouchActionIndex !== -1) {
+          localPlayer.actions.splice(crouchActionIndex, 1);
+        }
+
+      const activateActionIndex = localPlayer.actions.findIndex(action => action.type === 'activate');
+      if (activateActionIndex !== -1) {
+          localPlayer.actions.splice(activateActionIndex, 1);
+        }
+      ///
+
+      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
       let objInstanceId = sitAction.controllingId;
       let controlledObj = world.appManager.getObjects().find(o => o.instanceId === objInstanceId);
       let sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
