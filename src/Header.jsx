@@ -16,7 +16,7 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
-import * as ceramicApi from '../ceramic.js';
+import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
@@ -188,57 +188,6 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
           </div>
         ))}
       </div> : null}
-    </div>
-  );
-};
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
-  const userOpen = open === 'user';
-  
-  const [loggingIn, setLoggingIn] = useState(false);
-
-  /* (async () => {
-    const {createSchema} = await ceramicAdmin.waitForLoad();
-    const schema = await createSchema();
-    console.log('create', schema);
-  })(); */
-  
-  /* const login = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      const addresses = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
-      const [address] = addresses;
-      // console.log('address', {address});
-      setAddress(address);
-    } else {
-      console.warn('no ethereum');
-    }
-  }; */
-  
-  return (
-    <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)} onClick={async e => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (address) {
-        toggleOpen('user');
-      } else {
-        if (!loggingIn) {
-          setLoggingIn(true);
-          try {
-            const {address, profile} = await ceramicApi.login();
-            // console.log('login', {address, profile});
-            setAddress(address);
-          } catch(err) {
-            console.warn(err);
-          } finally {
-            setLoggingIn(false);
-          }
-        }
-      }
-    }}>
-      <img src="images/soul.png" className={styles.icon} />
-      <div className={styles.name}>{loggingIn ? 'Logging in... ' : (address || 'Log in')}</div>
     </div>
   );
 };
