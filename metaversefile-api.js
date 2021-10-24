@@ -114,6 +114,13 @@ class App extends THREE.Object3D {
       type: 'use',
     });
   }
+  hit(damage) {
+    this.dispatchEvent({
+      type: 'hit',
+      hp: 100,
+      totalHp: 100,
+    });
+  }
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -230,7 +237,8 @@ const defaultComponents = {
                 app,
               },
             }));
-            world.appManager.removeObject(app.instanceId);
+            world.appManager.removeApp(app);
+            app.destroy();
           }
         }
       });
@@ -397,9 +405,9 @@ const abis = {
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
-const apps = [];
+// const apps = [];
 metaversefile.setApi({
-  apps,
+  // apps,
   async import(s) {
     if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
       s = `/@proxy/${s}`;
@@ -429,12 +437,12 @@ metaversefile.setApi({
   },
   useWorld() {
     return {
-      addObject() {
+      /* addObject() {
         return world.appManager.addObject.apply(world.appManager, arguments);
       },
       removeObject() {
         return world.appManager.removeObject.apply(world.appManager, arguments);
-      },
+      }, */
       getLights() {
         return world.lights;
       },
@@ -690,7 +698,7 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
-  getAppByInstanceId(instanceId) {
+  /* getAppByInstanceId(instanceId) {
     const r = _makeRegexp(instanceId);
     return apps.find(app => r.test(app.instanceId));
   },
@@ -718,13 +726,13 @@ metaversefile.setApi({
   },
   getAppByPhysicsId(physicsId) {
     return world.appManager.getObjectFromPhysicsId(physicsId);
-  },
+  }, */
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({name = '', start_url = '', type = '', /*components = [], */in_front = false} = {}) {
+  createApp({/* name = '', */start_url = '', type = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
-    app.name = name;
+    // app.name = name;
     app.type = type;
     // app.components = components;
     if (in_front) {
@@ -763,7 +771,25 @@ export default () => {
       return result;
     };
   })(),
-  addAppToList(app) {
+  addApp(app) {
+    return world.appManager.addApp.apply(world.appManager, arguments);
+  },
+  removeApp() {
+    return world.appManager.removeApp.apply(world.appManager, arguments);
+  },
+  addTrackedApp() {
+    return world.appManager.addTrackedApp.apply(world.appManager, arguments);
+  },
+  removeTrackedApp(app) {
+    return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
+  },
+  getAppByInstanceId() {
+    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments);
+  },
+  getAppByPhysicsId() {
+    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments);
+  },
+  /* addAppToList(app) {
     apps.push(app);
   },
   addApp(app) {
@@ -776,7 +802,7 @@ export default () => {
     if (index !== -1) {
       apps.splice(index, 1);
     }
-  },
+  }, */
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');

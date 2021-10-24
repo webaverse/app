@@ -308,7 +308,7 @@ export default function Header({
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
-  const [objects, setObjects] = useState(world.appManager.getObjects().slice());
+  const [apps, setApps] = useState(world.appManager.getApps().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
@@ -346,11 +346,6 @@ export default function Header({
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
   
-  /* setOpen = (setOpen => function() {
-    console.log('set open', new Error().stack);
-    return setOpen.apply(this, arguments);
-  })(setOpen); */
-  
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
   };
@@ -364,20 +359,17 @@ export default function Header({
       setMicOn(false);
     }
   };
-  const selectObject = (object, physicsId, position) => {
-    game.setMouseSelectedObject(object, physicsId, position);
-    
-    // const localPlayer = metaversefile.useLocalPlayer();
-    // localPlayer.lookAt(object.position);
+  const selectApp = (app, physicsId, position) => {
+    game.setMouseSelectedObject(app, physicsId, position);
   };
   
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   useEffect(() => {
     const update = e => {
-      setObjects(world.appManager.getObjects().slice());
+      setApps(world.appManager.getApps().slice());
     };
-    world.appManager.addEventListener('objectadd', update);
-    world.appManager.addEventListener('objectremove', update);
+    world.appManager.addEventListener('appadd', update);
+    world.appManager.addEventListener('appremove', update);
   }, []);
   useEffect(() => {
     localPlayer.addEventListener('wearupdate', e => {
@@ -515,7 +507,7 @@ export default function Header({
         e.stopPropagation();
         if (worldOpen) {
           if (selectedApp) {
-            selectObject(null);
+            selectApp(null);
           } else {
             cameraManager.requestPointerLock();
           }
@@ -596,7 +588,7 @@ export default function Header({
         
         const physicsId = game.getMouseHoverPhysicsId();
         const position = game.getMouseHoverPosition();
-        selectObject(hoverObject, physicsId, position);
+        selectApp(hoverObject, physicsId, position);
       }
     });
   }, []);
@@ -728,26 +720,26 @@ export default function Header({
                     <h1>Tokens</h1>
                   </div>
                   <div className={styles.objects}>
-                    {objects.map((object, i) => {
+                    {apps.map((app, i) => {
                       return (
-                        <div className={classnames(styles.object, object === selectedApp ? styles.selected : null)} key={i} onClick={e => {
+                        <div className={classnames(styles.object, app === selectedApp ? styles.selected : null)} key={i} onClick={e => {
                           e.preventDefault();
                           e.stopPropagation();
                           
-                          const physicsObjects = object.getPhysicsObjects();
+                          const physicsObjects = app.getPhysicsObjects();
                           const physicsObject = physicsObjects[0] || null;
                           const physicsId = physicsObject ? physicsObject.physicsId : 0;
-                          selectObject(object, physicsId);
+                          selectApp(app, physicsId);
                           
                           const localPlayer = metaversefile.useLocalPlayer();
-                          localPlayer.lookAt(object.position);
+                          localPlayer.lookAt(app.position);
                         }} onMouseEnter={e => {
-                          const physicsObjects = object.getPhysicsObjects();
+                          const physicsObjects = app.getPhysicsObjects();
                           const physicsObject = physicsObjects[0] || null;
                           const physicsId = physicsObject ? physicsObject.physicsId : 0;
                           
                           game.setMouseHoverObject(null);
-                          game.setMouseDomHoverObject(object, physicsId);
+                          game.setMouseDomHoverObject(app, physicsId);
                         }} onMouseLeave={e => {
                           game.setMouseDomHoverObject(null);
                         }} onMouseMove={e => {
@@ -757,7 +749,7 @@ export default function Header({
                           <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
                           <img src="images/object.jpg" className={styles.img} />
                           <div className={styles.wrap}>
-                            <div className={styles.name}>{object.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
+                            <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
                           </div>
                         </div>
                       );

@@ -223,11 +223,7 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !game.isCrouched()) ?
-        (ioManager.keys.doubleShift ? 20 : 3)
-      :
-        1;
-      const speed = game.getSpeed() * sprintMultiplier;
+      const speed = game.getSpeed();
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
       physicsManager.velocity.add(localVector);
@@ -669,7 +665,7 @@ const _updateMouseHover = e => {
     const result = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
     
     if (result) {
-      const object = world.appManager.getObjectFromPhysicsId(result.objectId);
+      const object = world.appManager.getAppByPhysicsId(result.objectId);
       if (object) {
         point = localVector.fromArray(result.point);
         
