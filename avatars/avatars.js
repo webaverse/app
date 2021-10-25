@@ -282,7 +282,7 @@ const loadPromise = (async () => {
     `Crouched Sneaking Right reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
-  animations.forEach(animation => {
+  for (const animation of animations) {
     /* animation.direction = (() => {
       switch (animation.name) {
         case 'Fast Run.fbx':
@@ -349,7 +349,7 @@ const loadPromise = (async () => {
     /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
       animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
     } */
-  });
+  }
   
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
