@@ -365,7 +365,7 @@ const _selectLoadout = index => {
       if (isNaN(id)) {
         id = contentId;
       }
-      selectedLoadoutObject = await world.appManager.addObject(id);
+      selectedLoadoutObject = await world.appManager.addTrackedApp(id);
 
       if (selectedLoadoutObject.getComponents().some(component => component.type === 'use')) {
         if (selectedLoadoutObject.getPhysicsIds) {
@@ -423,7 +423,7 @@ const _use = () => {
       start_url = URL.createObjectURL(blob);
       start_url += '/' + filename;
     }
-    world.appManager.addObject(start_url, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
+    world.appManager.addTrackedApp(start_url, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
@@ -441,7 +441,7 @@ const _use = () => {
     const inventory = loginManager.getInventory();
     const itemSpec = inventory[selectedItemIndex];
 
-    world.appManager.addObject(itemSpec.id, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
+    world.appManager.addTrackedApp(itemSpec.id, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
@@ -788,7 +788,7 @@ const _handleUpload = async (item, transform = null) => {
   }
   const {position, quaternion} = transform;
   
-  world.appManager.addObject(u, position, quaternion, oneVector);
+  world.appManager.addTrackedApp(u, position, quaternion, oneVector);
 };
 /* const bindUploadFileInput = uploadFileInput => {
   bindUploadFileButton(uploadFileInput, _handleUpload);
@@ -1712,7 +1712,7 @@ const _loadItemSpec1 = async u => {
     }, {once: true});
   });
 
-  world.appManager.addObject(u, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
+  world.appManager.addTrackedApp(u, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
   const object = await p;
   editedObject = object;
