@@ -2273,9 +2273,7 @@ class Avatar {
       const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
       const isBackward = _getAngleToBackwardAnimation(keyAnimationAnglesMirror) < Math.PI*0.4;
-      // this.backwardFactor = Math.min(Math.max(this.backwardFactor + timeDiff/0.3 * (isBackward ? 1 : -1), 0), 1);
       if (isBackward !== this.lastIsBackward) {
-        // console.log('change', isBackward);
         this.backwardAnimationSpec = {
           startFactor: this.lastBackwardFactor,
           endFactor: isBackward ? 1 : 0,
