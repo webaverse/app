@@ -14,12 +14,32 @@ import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 
-/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => function(a, b) {
-  b.gravityPower *= 0.1;
-  b.stiffnessForce *= 0.1;
-  // b.dragForce *= 0.1;
-  return _createSpringBone.apply(this, arguments);
-})(VRMSpringBoneImporter.prototype._createSpringBone); */
+VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
+  const localVector = new THREE.Vector3();
+  return function(a, b) {
+    const bone = _createSpringBone.apply(this, arguments);
+    const initialDragForce = bone.dragForce;
+    const initialStiffnessForce = bone.stiffnessForce;
+    // const initialGravityPower = bone.gravityPower;
+    
+    Object.defineProperty(bone, 'stiffnessForce', {
+      get() {
+        localVector.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
+        const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(physicsManager.velocity.y)*0.5, 0), 4), 2);
+        return initialStiffnessForce * (0.05 + 0.1*f);
+      },
+      set(v) {},
+    });
+    Object.defineProperty(bone, 'dragForce', {
+      get() {
+        return initialDragForce * 0.75;
+      },
+      set(v) {},
+    });
+    
+    return bone;
+  };
+})(VRMSpringBoneImporter.prototype._createSpringBone);
 
 const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
