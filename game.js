@@ -2615,29 +2615,31 @@ const gameManager = {
     return useLocalPlayer().actions.some(action => action.type === 'fly');
   },
   toggleFly() {
-    const localPlayer = useLocalPlayer();
-    let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
-    if (flyActionIndex !== -1) {
-      localPlayer.actions.splice(flyActionIndex, 1);
-      
-      if (!gameManager.isJumping()) {
-        gameManager.ensureJump();
-      }
-      physicsManager.velocity.setScalar(0);
-    } else {
-      const flyAction = {
-        type: 'fly',
-        time: 0,
-      };
-      localPlayer.actions.push(flyAction);
-      
-      if (gameManager.isJumping()) {
-        const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
-        localPlayer.actions.splice(jumpActionIndex, 1);
-      }
-      if (gameManager.isCrouched()) {
-        const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
-        localPlayer.actions.splice(crouchActionIndex, 1);
+    if(!gameManager.isSitting()) { 
+      const localPlayer = useLocalPlayer();
+      let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
+      if (flyActionIndex !== -1) {
+        localPlayer.actions.splice(flyActionIndex, 1);
+        
+        if (!gameManager.isJumping()) {
+          gameManager.ensureJump();
+        }
+        physicsManager.velocity.setScalar(0);
+      } else {
+        const flyAction = {
+          type: 'fly',
+          time: 0,
+        };
+        localPlayer.actions.push(flyAction);
+        
+        if (gameManager.isJumping()) {
+          const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
+          localPlayer.actions.splice(jumpActionIndex, 1);
+        }
+        if (gameManager.isCrouched()) {
+          const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+          localPlayer.actions.splice(crouchActionIndex, 1);
+        }
       }
     }
   },
@@ -2645,18 +2647,20 @@ const gameManager = {
     return useLocalPlayer().actions.some(action => action.type === 'crouch');
   },
   toggleCrouch() {
-    const localPlayer = useLocalPlayer();
-    let crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
-    if (crouchActionIndex !== -1) {
-      const crouchAction = localPlayer.actions[crouchActionIndex];
-      crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down';
-    } else {
-      const crouchAction = {
-        type: 'crouch',
-        direction: 'down',
-        time: 0,
-      };
-      localPlayer.actions.push(crouchAction);
+    if(!gameManager.isSitting()) {
+      const localPlayer = useLocalPlayer();
+      let crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+      if (crouchActionIndex !== -1) {
+        const crouchAction = localPlayer.actions[crouchActionIndex];
+        crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down';
+      } else {
+        const crouchAction = {
+          type: 'crouch',
+          direction: 'down',
+          time: 0,
+        };
+        localPlayer.actions.push(crouchAction);
+      }
     }
   },
   /* async destroyWorld() {
