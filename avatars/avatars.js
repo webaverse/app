@@ -2837,6 +2837,63 @@ class Avatar {
     };
     this.options.visemes && _updateVisemes();
 
+    // Hair Wind effect
+    const _updateWind = () => {
+        if (this.springBoneManager.springBoneGroupList && this.springBoneManager.springBoneGroupList.length > 0)
+        {
+            var hairPhysics = null;
+            if (this.app.components)
+            {
+                hairPhysics = this.app.components.find( ({ key }) => key === 'hairPhysics' );
+                if (hairPhysics)
+                {
+                    hairPhysics = hairPhysics.value;
+                }
+            }
+        
+            if (!hairPhysics)
+            {
+                return;
+            }
+
+            if (hairPhysics.windDirectionX === 'undefined') hairPhysics.windDirectionX = 0.0;
+            if (hairPhysics.windDirectionY === 'undefined') hairPhysics.windDirectionY = 1.0;
+            if (hairPhysics.windDirectionZ === 'undefined') hairPhysics.windDirectionZ = 0.0;
+            if (hairPhysics.windForceFactor === 'undefined') hairPhysics.windForceFactor = 0.0;
+
+            if (hairPhysics.windForceFactor == 0)
+            {
+                return;
+            }
+
+            const now2 = now / 1000 * 2;
+            var noiseX = (simplexes[0].noise2D(now2, now2));
+            var noiseY = (simplexes[1].noise2D(now2, now2));
+            var noiseZ = (simplexes[2].noise2D(now2, now2));
+
+            noiseX = Math.abs(noiseX) * hairPhysics.windForceFactor;
+            noiseY = Math.abs(noiseY) * hairPhysics.windForceFactor;
+            noiseZ = Math.abs(noiseZ) * hairPhysics.windForceFactor;
+
+            var gravityDirNew = new Vector3(noiseX * hairPhysics.windDirectionX,noiseY * hairPhysics.windDirectionY,noiseZ * hairPhysics.windDirectionZ);
+            if (hairPhysics.windForceFactor == 0)
+            {
+                gravityDirNew = new Vector3(0,1,0);
+            }
+
+            for(var i=0;i<this.springBoneManager.springBoneGroupList.length;i++)
+            {
+                for(var j=0;j<this.springBoneManager.springBoneGroupList[i].length;j++)
+                {
+                    var item = this.springBoneManager.springBoneGroupList[i][j];
+                    item.gravityDir.copy(gravityDirNew);
+                }
+            }
+        }
+    };
+    _updateWind();
+
+
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
