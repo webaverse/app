@@ -153,16 +153,16 @@ const animationsAngleArrays = {
 };
 const animationsAngleArraysMirror = {
   walk: [
-    {name: 'left strafe walking reverse.fbx', angle: -Math.PI/2},
-    {name: 'right strafe walking reverse.fbx', angle: Math.PI/2},
+    {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+    {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
   ],
   run: [
-    {name: 'left strafe reverse.fbx', angle: -Math.PI/2},
-    {name: 'right strafe reverse.fbx', angle: Math.PI/2},
+    {name: 'left strafe reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+    {name: 'right strafe reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
   ],
   crouch: [
-    {name: 'Crouched Sneaking Left reverse.fbx', angle: -Math.PI/2},
-    {name: 'Crouched Sneaking Right reverse.fbx', angle: Math.PI/2},
+    {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+    {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
   ],
 };
 const animationsIdleArrays = {
@@ -2165,10 +2165,9 @@ class Avatar {
           if (angleToBackwardAnimation < Math.PI * 0.3) {
             const sideIndex = backwardIndex === 0 ? 1 : 0;
             const wrongAngle = closest2AnimationAngles[sideIndex].angle;
-            const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.angle === wrongAngle);
-            // console.log('side', newAnimationAngle.name);
+            const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
             closest2AnimationAngles[sideIndex] = newAnimationAngle;
-            closest2Animations[sideIndex] = newAnimationAngle.animation;
+            // closest2Animations[sideIndex] = newAnimationAngle.animation;
           }
         }
         return closest2AnimationAngles;
@@ -2209,8 +2208,9 @@ class Avatar {
       const idleAnimationOther = _getIdleAnimation(keyOther);
       
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAngles[0].angle));
-      const angleFactor = (halfPi - angleToClosestAnimation) / halfPi;
-      const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 1.5, 1);
+      const angleBetweenAnimations = Math.abs(angleDifference(keyAnimationAngles[0].angle, keyAnimationAngles[1].angle));
+      const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
+      const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
 
       const _getHorizontalBlend = (k, target) => {
