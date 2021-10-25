@@ -206,6 +206,8 @@ const _updateIo = timeDiff => {
       lastNonzeroDirectionVector.copy(direction);
     }
     
+    physicsManager.direction.copy(direction);
+    
     const isFlying = game.isFlying();
     if (isFlying) {
       direction.applyQuaternion(camera.quaternion);
@@ -222,11 +224,11 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (localVector.length() > 0) {
+    if (direction.length() > 0) {
       const speed = game.getSpeed();
-      localVector.normalize().multiplyScalar(speed * timeDiff);
+      direction.normalize().multiplyScalar(speed * timeDiff);
 
-      physicsManager.velocity.add(localVector);
+      physicsManager.velocity.add(direction);
 
       if (isFlying) {
         physicsManager.velocity.multiplyScalar(0.9);

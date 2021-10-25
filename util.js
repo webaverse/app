@@ -607,3 +607,12 @@ export function makeId(length) {
   return result;
 }
 
+export function mod(a, n) {
+  return (a % n + n) % n;
+}
+
+export function angleDifference(angle1, angle2) {
+  let a = angle2 - angle1;
+  a = mod(a + Math.PI, Math.PI*2) - Math.PI;
+  return a;
+}

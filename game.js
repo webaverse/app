@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import physx from './physx.js';
 import cameraManager from './camera-manager.js';
-import uiManager from './ui-manager.js';
+// import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 // import {loginManager} from './login.js';
 import physicsManager from './physics-manager.js';
@@ -21,17 +21,17 @@ import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from '.
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
-import {getRenderer, scene, sceneLowPriority, orthographicScene, camera, dolly} from './renderer.js';
+import {getRenderer, scene, sceneLowPriority, /* orthographicScene, */ camera /*, dolly*/} from './renderer.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 // import controlsManager from './controls-manager.js';
 // import buildTool from './build-tool.js';
 // import * as notifications from './notifications.js';
 // import * as popovers from './popovers.js';
 // import messages from './messages.js';
-import {getExt, bindUploadFileButton, snapPosition} from './util.js';
-import Avatar from './avatars/avatars.js';
-import hpManager from './hp-manager.js';
-import {baseUnit, maxGrabDistance, storageHost, worldsHost} from './constants.js';
+import {/* getExt, bindUploadFileButton, */snapPosition} from './util.js';
+// import Avatar from './avatars/avatars.js';
+// import hpManager from './hp-manager.js';
+import {/* baseUnit, */maxGrabDistance, storageHost /*, worldsHost*/} from './constants.js';
 import easing from './easing.js';
 // import fx from './fx.js';
 // import metaversefile from 'metaversefile';
@@ -2789,6 +2789,9 @@ const gameManager = {
     this.ensureJump();
     physicsManager.velocity.y += 5;
   },
+  isMovingBackward() {
+    return physicsManager.direction.z > 0 && this.isAiming();
+  },
   /* canJumpOff() {
     return rigManager.localRig ? (
       rigManager.localRig.aux?.sittables.length > 0
@@ -2799,6 +2802,9 @@ const gameManager = {
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
   }, */
+  isAiming() {
+    return useLocalPlayer().actions.some(action => action.type === 'aim');
+  },
   isSitting() {
     return useLocalPlayer().actions.some(action => action.type === 'sit');
   },
@@ -2884,14 +2890,10 @@ const gameManager = {
     
     const walkSpeed = 0.1;
     const flySpeed = walkSpeed * 2;
-    const defaultCrouchSpeed = walkSpeed * 0.6;
-    const sittable = rigManager?.localRig1?.aux?.sittables[0];
-    const localPlayer = useLocalPlayer();
-    if (sittable && !!sittable.model) {
-      const {componentIndex} = sittable;
-      const component = sittable.model.getComponents()[componentIndex];
-      speed = component.seed ?? walkSpeed;
-    } else if (gameManager.isCrouched()) {
+    const defaultCrouchSpeed = walkSpeed * 0.7;
+    const isCrouched = gameManager.isCrouched();
+    const isMovingBackward = gameManager.isMovingBackward();
+    if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
@@ -2899,11 +2901,15 @@ const gameManager = {
       speed = walkSpeed;
     }
     
-    const sprintMultiplier = (ioManager.keys.shift && !this.isCrouched()) ?
+    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleShift ? 20 : 3)
     :
       1;
     speed *= sprintMultiplier;
+    
+    const backwardMultiplier = isMovingBackward ? 0.7 : 1;
+    speed *= backwardMultiplier;
+    
     return speed;
   },
   getClosestObject() {
