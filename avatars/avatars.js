@@ -39,6 +39,7 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
+const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -1500,6 +1501,9 @@ class Avatar {
     this.narutoRunTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
+    this.lastIsBackward = false;
+    this.lastBackwardFactor = 0;
+    this.backwardAnimationSpec = null;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2149,74 +2153,155 @@ class Avatar {
           }
         }
       };
-      const _getClosest2Animations = key => {
+      const _getClosest2AnimationAngles = key => {
         const animationAngleArray = animationsAngleArrays[key];
-        const animationAngleArrayMirror = animationsAngleArraysMirror[key];
         animationAngleArray.sort((a, b) => {
           const aDistance = Math.abs(angleDifference(angle, a.angle));
           const bDistance = Math.abs(angleDifference(angle, b.angle));
           return aDistance - bDistance;
         });
         const closest2AnimationAngles = animationAngleArray.slice(0, 2);
-        const closest2Animations = closest2AnimationAngles.map(({animation}) => animation);
-        const backwardIndex = closest2Animations.findIndex(a => a.isBackward);
-        if (backwardIndex !== -1) {
-          const backwardAnimationAngle = closest2AnimationAngles[backwardIndex];
-          const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-          if (angleToBackwardAnimation < Math.PI * 0.3) {
-            const sideIndex = backwardIndex === 0 ? 1 : 0;
-            const wrongAngle = closest2AnimationAngles[sideIndex].angle;
-            const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
-            closest2AnimationAngles[sideIndex] = newAnimationAngle;
-            // closest2Animations[sideIndex] = newAnimationAngle.animation;
-          }
-        }
         return closest2AnimationAngles;
       };
+      const _getMirrorAnimationAngles = (animationAngles, key) => {
+        const animations = animationAngles.map(({animation}) => animation);
+        const animationAngleArrayMirror = animationsAngleArraysMirror[key];
+        
+        const backwardIndex = animations.findIndex(a => a.isBackward);
+        if (backwardIndex !== -1) {
+          const backwardAnimationAngle = animationAngles[backwardIndex];
+          const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+          // if (angleToBackwardAnimation < Math.PI * 0.3) {
+            const sideIndex = backwardIndex === 0 ? 1 : 0;
+            const wrongAngle = animationAngles[sideIndex].angle;
+            const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
+            animationAngles = animationAngles.slice();
+            animationAngles[sideIndex] = newAnimationAngle;
+            // animations[sideIndex] = newAnimationAngle.animation;
+            // return {
+              // return animationAngles;
+              // angleToBackwardAnimation,
+            // };
+          // }
+        }
+        // return {
+          return animationAngles;
+          // angleToBackwardAnimation: Infinity,
+        // ;
+      };
+      const _getAngleToBackwardAnimation = animationAngles => {
+        const animations = animationAngles.map(({animation}) => animation);
+        
+        const backwardIndex = animations.findIndex(a => a.isBackward);
+        if (backwardIndex !== -1) {
+          const backwardAnimationAngle = animationAngles[backwardIndex];
+          const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+          return angleToBackwardAnimation;
+        } else {
+          return Infinity;
+        }
+      };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
-      const _get3wayBlend = (horizontalAnimationAngles, idleAnimation, angleFactor, speedFactor, k, target) => {
-        const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
-        const src1 = horizontalAnimationAngles[0].animation.interpolants[k];
-        const v1 = src1.evaluate(t1);
+      const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, target) => {
+        // normal horizontal blend
+        {
+          const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
+          const src1 = horizontalAnimationAngles[0].animation.interpolants[k];
+          const v1 = src1.evaluate(t1);
 
-        const t2 = timeSeconds % horizontalAnimationAngles[1].animation.duration;
-        const src2 = horizontalAnimationAngles[1].animation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-        
-        localQuaternion3.fromArray(v2)
-          .slerp(localQuaternion4.fromArray(v1), angleFactor);
-      
-        const t3 = timeSeconds % idleAnimation.duration;
-        const src3 = idleAnimation.interpolants[k];
-        const v3 = src3.evaluate(t3);
-        
-        target.fromArray(v3)
-          .slerp(localQuaternion3, speedFactor);
+          const t2 = timeSeconds % horizontalAnimationAngles[1].animation.duration;
+          const src2 = horizontalAnimationAngles[1].animation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          
+          localQuaternion3.fromArray(v2)
+            .slerp(localQuaternion4.fromArray(v1), angleFactor);
+        }
+          
+        // mirror horizontal blend
+        {
+          const t1 = timeSeconds % horizontalAnimationAnglesMirror[0].animation.duration;
+          const src1 = horizontalAnimationAnglesMirror[0].animation.interpolants[k];
+          const v1 = src1.evaluate(t1);
+
+          const t2 = timeSeconds % horizontalAnimationAnglesMirror[1].animation.duration;
+          const src2 = horizontalAnimationAnglesMirror[1].animation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          
+          localQuaternion4.fromArray(v2)
+            .slerp(localQuaternion5.fromArray(v1), angleFactor);
+        }
+
+        // blend mirrors together
+        localQuaternion5.copy(localQuaternion3)
+          .slerp(localQuaternion4, mirrorFactor);
+
+        // blend mirrors with idle
+        {
+          const t3 = timeSeconds % idleAnimation.duration;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
+          
+          target.fromArray(v3)
+            .slerp(localQuaternion5, speedFactor);
+        }
       };
       
+      // current stand/crouch
       const key = _getAnimationKey(
         this.crouchState,
         this.velocity,
       );
-      const keyAnimationAngles = _getClosest2Animations(key);
+      const keyAnimationAngles = _getClosest2AnimationAngles(key);
+      const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
       
+      // opposite stand/crouch
       const keyOther = _getAnimationKey(
         !this.crouchState,
         this.velocity,
       );
-      const keyAnimationAnglesOther = _getClosest2Animations(keyOther);
+      const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
+      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, key);
       const idleAnimationOther = _getIdleAnimation(keyOther);
       
-      const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAngles[0].angle));
-      const angleBetweenAnimations = Math.abs(angleDifference(keyAnimationAngles[0].angle, keyAnimationAngles[1].angle));
+      const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAnglesMirror[0].angle));
+      const angleBetweenAnimations = Math.abs(angleDifference(keyAnimationAnglesMirror[0].angle, keyAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
       const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+      const isBackward = _getAngleToBackwardAnimation(keyAnimationAnglesMirror) < Math.PI*0.4;
+      // this.backwardFactor = Math.min(Math.max(this.backwardFactor + timeDiff/0.3 * (isBackward ? 1 : -1), 0), 1);
+      if (isBackward !== this.lastIsBackward) {
+        // console.log('change', isBackward);
+        this.backwardAnimationSpec = {
+          startFactor: this.lastBackwardFactor,
+          endFactor: isBackward ? 1 : 0,
+          startTime: now,
+          endTime: now + 100,
+        };
+        this.lastIsBackward = isBackward;
+      }
+      let mirrorFactor;
+      if (this.backwardAnimationSpec) {
+        const f = (now - this.backwardAnimationSpec.startTime) / (this.backwardAnimationSpec.endTime - this.backwardAnimationSpec.startTime);
+        if (f >= 1) {
+          mirrorFactor = this.backwardAnimationSpec.endFactor;
+          this.backwardAnimationSpec = null;
+        } else {
+          mirrorFactor = this.backwardAnimationSpec.startFactor +
+            Math.pow(
+              f,
+              0.5
+            ) * (this.backwardAnimationSpec.endFactor - this.backwardAnimationSpec.startFactor);
+        }
+      } else {
+        mirrorFactor = isBackward ? 1 : 0;
+      }
+      this.lastBackwardFactor = mirrorFactor;
 
       const _getHorizontalBlend = (k, target) => {
-        _get3wayBlend(keyAnimationAngles, idleAnimation, angleFactor, speedFactor, k, localQuaternion);
-        _get3wayBlend(keyAnimationAnglesOther, idleAnimationOther, angleFactor, speedFactor, k, localQuaternion2);
+        _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, localQuaternion);
+        _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, localQuaternion2);
         
         target.copy(localQuaternion)
           .slerp(localQuaternion2, crouchFactor);
