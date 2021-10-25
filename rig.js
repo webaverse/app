@@ -614,7 +614,7 @@ class RigManager {
         ) &&
         this.smoothVelocity.length() < 0.001
       );
-      this.localRig.direction.copy(positionDiff);
+      this.localRig.direction.copy(positionDiff).normalize();
       this.localRig.velocity.copy(this.smoothVelocity);
       this.localRig.jumpState = !!jumpAction;
       this.localRig.jumpTime = jumpTime;
