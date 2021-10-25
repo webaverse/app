@@ -2277,7 +2277,7 @@ class Avatar {
           startFactor: this.lastBackwardFactor,
           endFactor: isBackward ? 1 : 0,
           startTime: now,
-          endTime: now + 100,
+          endTime: now + 150,
         };
         this.lastIsBackward = isBackward;
       }
