@@ -18,25 +18,43 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
   return function(a, b) {
     const bone = _createSpringBone.apply(this, arguments);
-    const initialDragForce = bone.dragForce;
-    const initialStiffnessForce = bone.stiffnessForce;
-    // const initialGravityPower = bone.gravityPower;
+    bone.initialDragForce = bone.dragForce;
+    bone.initialStiffnessForce = bone.stiffnessForce;
+    bone.initialGravityPower = bone.gravityPower;
+    bone.initialRadius = bone.radius;
+
+    bone.factorDragForce = 1.0;
+    bone.factorStiffnessForce = 1.0;
+    bone.factorGravityPower = 1.0;
+    bone.deltaRadius = 0.0;
     
     Object.defineProperty(bone, 'stiffnessForce', {
       get() {
         localVector.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
         const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(physicsManager.velocity.y)*0.5, 0), 4), 2);
-        return initialStiffnessForce * (0.05 + 0.1*f);
+        return bone.initialStiffnessForce * (0.05 + 0.1*f);
       },
       set(v) {},
     });
     Object.defineProperty(bone, 'dragForce', {
       get() {
-        return initialDragForce * 0.75;
+        return bone.initialDragForce * bone.factorDragForce;
       },
       set(v) {},
     });
-    
+    Object.defineProperty(bone, 'gravityPower', {
+        get() {
+          return bone.initialGravityPower * bone.factorGravityPower;
+        },
+        set(v) {},
+      });
+      Object.defineProperty(bone, 'radius', {
+        get() {
+          return bone.initialRadius + bone.deltaRadius;
+        },
+        set(v) {},
+      });
+        
     return bone;
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone);
@@ -1123,6 +1141,7 @@ class Avatar {
         springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
+            this.applyHairBoneFactor();
           });
       });
     }
@@ -2045,6 +2064,44 @@ class Avatar {
 
     // leftToe: 'Left_toe',
     // rightToe: Right_toe',
+  }
+  applyHairBoneFactor()
+  {
+    var hairPhysics = null;
+    if (this.app.components)
+    {
+        for(var i=0;i<this.app.components.length;i++)
+        {
+            if (this.app.components[i].key == 'hairPhysics')
+            {
+                hairPhysics = this.app.components[i].value;
+            }
+        }
+        //console.log(this.app.components);
+        //console.log(hairPhysics);
+    }
+
+    if (!hairPhysics)
+    {
+        return;
+    }
+
+    const dragForceFactor = (hairPhysics.dragForceFactor?hairPhysics.dragForceFactor:1.0);
+    const gravityPowerFactor = (hairPhysics.gravityPowerFactor?hairPhysics.gravityPowerFactor:1.0);
+    const stiffnessForceFactor = (hairPhysics.stiffnessForceFactor?hairPhysics.stiffnessForceFactor:1.0);
+    const radiusDelta = (hairPhysics.radiusDelta?hairPhysics.radiusDelta:0.0);
+
+    for(var i=0;i<this.springBoneManager.springBoneGroupList.length;i++)
+    {
+        for(var j=0;j<this.springBoneManager.springBoneGroupList[i].length;j++)
+        {
+            var item = this.springBoneManager.springBoneGroupList[i][j];
+            item.factorDragForce = dragForceFactor;
+            item.factorStiffnessForce = stiffnessForceFactor;
+            item.factorGravityPower = gravityPowerFactor;
+            item.deltaRadius = radiusDelta;
+        }
+    }
   }
   getEyePosition = (() => {
     const localVector = new THREE.Vector3();
