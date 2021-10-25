@@ -283,7 +283,7 @@ const loadPromise = (async () => {
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   animations.forEach(animation => {
-    animation.direction = (() => {
+    /* animation.direction = (() => {
       switch (animation.name) {
         case 'Fast Run.fbx':
         case 'walking.fbx':
@@ -305,9 +305,6 @@ const loadPromise = (async () => {
         case 'Crouched Sneaking Right.fbx':
           return 'right';
         case 'jump.fbx':
-        /* case 'falling.fbx':
-        case 'falling idle.fbx':
-        case 'falling landing.fbx': */
           return 'jump';
         // case 'floating.fbx':
         case 'treading water.fbx':
@@ -315,7 +312,7 @@ const loadPromise = (async () => {
         default:
           return null;
       }
-    })();
+    })(); */
     animation.isIdle = /idle/i.test(animation.name);
     animation.isJump = /^jump/i.test(animation.name);
     animation.isSitting = /sitting/i.test(animation.name);
