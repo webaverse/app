@@ -2890,9 +2890,10 @@ const gameManager = {
     
     const walkSpeed = 0.1;
     const flySpeed = walkSpeed * 2;
-    const defaultCrouchSpeed = walkSpeed * 0.6;
+    const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
-    if (isCrouched) {
+    const isMovingBackward = gameManager.isMovingBackward();
+    if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
@@ -2906,7 +2907,7 @@ const gameManager = {
       1;
     speed *= sprintMultiplier;
     
-    const backwardMultiplier = (gameManager.isMovingBackward() && !isCrouched) ? 0.6 : 1;
+    const backwardMultiplier = isMovingBackward ? 0.7 : 1;
     speed *= backwardMultiplier;
     
     return speed;
