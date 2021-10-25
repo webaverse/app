@@ -1475,6 +1475,7 @@ class Avatar {
       // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
     ];
 
+    // shared state
     this.direction = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.jumpState = false;
@@ -1501,6 +1502,8 @@ class Avatar {
     this.narutoRunTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
+    
+    // internal state
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
