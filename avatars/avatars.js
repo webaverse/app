@@ -232,7 +232,7 @@ const loadPromise = (async () => {
     animationsIdleArrays[k].animation = animations.find(animation => animation.name === animationsIdleArrays[k].name);
   }
 
-  const _normalizeAnimationDurations = (animations, baseAnimation) => {
+  const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
     for (let i = 1; i < animations.length; i++) {
       const animation = animations[i];
       const oldDuration = animation.duration;
@@ -240,10 +240,10 @@ const loadPromise = (async () => {
       for (const track of animation.tracks) {
         const {times} = track;
         for (let j = 0; j < times.length; j++) {
-          times[j] *= newDuration/oldDuration;
+          times[j] *= newDuration / oldDuration * factor;
         }
       }
-      animation.duration = newDuration;
+      animation.duration = newDuration * factor;
     }
   };
   const walkingAnimations = [
