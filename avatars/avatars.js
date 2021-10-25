@@ -276,6 +276,12 @@ const loadPromise = (async () => {
     `Crouched Sneaking Right.fbx`,
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0]);
+  const crouchingBackwardAnimations = [
+    `Sneaking Forward reverse.fbx`,
+    `Crouched Sneaking Left reverse.fbx`,
+    `Crouched Sneaking Right reverse.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0]);
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
