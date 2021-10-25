@@ -2789,6 +2789,9 @@ const gameManager = {
     this.ensureJump();
     physicsManager.velocity.y += 5;
   },
+  isMovingBackward() {
+    return physicsManager.direction.z > 0 && this.isAiming();
+  },
   /* canJumpOff() {
     return rigManager.localRig ? (
       rigManager.localRig.aux?.sittables.length > 0
@@ -2799,6 +2802,9 @@ const gameManager = {
     auxPose.sittables.length = 0;
     rigManager.localRig.aux.setPose(auxPose);
   }, */
+  isAiming() {
+    return useLocalPlayer().actions.some(action => action.type === 'aim');
+  },
   isSitting() {
     return useLocalPlayer().actions.some(action => action.type === 'sit');
   },
@@ -2885,13 +2891,8 @@ const gameManager = {
     const walkSpeed = 0.1;
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.6;
-    const sittable = rigManager?.localRig1?.aux?.sittables[0];
-    const localPlayer = useLocalPlayer();
-    if (sittable && !!sittable.model) {
-      const {componentIndex} = sittable;
-      const component = sittable.model.getComponents()[componentIndex];
-      speed = component.seed ?? walkSpeed;
-    } else if (gameManager.isCrouched()) {
+    const isCrouched = gameManager.isCrouched();
+    if (isCrouched) {
       speed = defaultCrouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
@@ -2899,11 +2900,15 @@ const gameManager = {
       speed = walkSpeed;
     }
     
-    const sprintMultiplier = (ioManager.keys.shift && !this.isCrouched()) ?
+    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleShift ? 20 : 3)
     :
       1;
     speed *= sprintMultiplier;
+    
+    const backwardMultiplier = (gameManager.isMovingBackward() && !isCrouched) ? 0.6 : 1;
+    speed *= backwardMultiplier;
+    
     return speed;
   },
   getClosestObject() {
