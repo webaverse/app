@@ -8,6 +8,7 @@ import LegsManager from './vrarmik/LegsManager.js';
 // import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
+import {angleDifference} from '../util.js';
 import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
