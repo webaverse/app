@@ -12,7 +12,7 @@ export default ({errors}) => {
           );
         })}
       </ul>
-      <p>Supported browsers include Chrome, Safari or Opera.</p>
+      <p>Supported browsers include Chrome, Safari and Opera.</p>
     </div>
   );
 };
