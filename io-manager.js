@@ -18,6 +18,7 @@ import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getConta
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
 import transformControls from './transform-controls.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -197,9 +198,13 @@ const _updateIo = timeDiff => {
     }
   } else /* if (controlsManager.isPossessed()) */ {
     const direction = localVector.set(0, 0, 0);
+    
+    const localPlayer = metaversefile.useLocalPlayer();
+    const narutoRunAction = localPlayer.getAction('narutoRun');
+    
     _updateHorizontal(direction);
     if (direction.equals(zeroVector)) {
-      if (ioManager.keys.doubleShift) {
+      if (narutoRunAction) {
         direction.copy(lastNonzeroDirectionVector);
       }
     } else {
@@ -749,9 +754,9 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      if (!ioManager.keys.doubleShift) {
+      // if (!ioManager.keys.doubleShift) {
         game.menuAim();
-      }
+      // }
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left

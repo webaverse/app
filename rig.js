@@ -107,7 +107,7 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.activateState = !!activateAction && !crouchAction;
   rig.activateTime = activateTime;
   rig.useTime = useTime;
-  rig.narutoRunState = !!narutoRunAction;
+  rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = narutoRunTime;
   rig.aimState = !!aimAction;
   rig.aimDirection.set(0, 0, -1);
