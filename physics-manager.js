@@ -539,9 +539,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       };
       if (collision) {
+        const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
         localVector4
           .fromArray(collision.direction)
-          .add(localVector5.set(0, -getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, 0));
+          .add(localVector5.set(0, -crouchOffset, 0));
         camera.position.add(localVector4)
         localVector.add(localVector4);
         
