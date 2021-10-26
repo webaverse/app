@@ -560,9 +560,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
       const sitAction = localPlayer.actions.find(action => action.type === 'sit');
 
-      let objInstanceId = sitAction.controllingId;
-      let controlledObj = world.appManager.getAppByInstanceId(objInstanceId);
-      let sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
+      const objInstanceId = sitAction.controllingId;
+      const controlledObj = world.appManager.getAppByInstanceId(objInstanceId);
+      const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
 
       const sitComponent = controlledObj.getComponent('sit');
       const {sitOffset = [0, 0, 0], damping} = sitComponent;
