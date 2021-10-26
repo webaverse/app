@@ -47,3 +47,4 @@ export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
 
 export const crouchMaxTime = 200;
+export const activateMaxTime = 750;
