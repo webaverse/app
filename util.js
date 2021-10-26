@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
+import {tokensHost, storageHost, accountsHost} from './constants.js';
+import { loginEndpoint } from './constants.js';
+import { getAddressFromMnemonic } from './blockchain.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -607,3 +609,43 @@ export function makeId(length) {
   return result;
 }
 
+async function contentIdToStorageUrl(id) {
+  if (typeof id === 'number') {
+    const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
+    return `${storageHost}/${hash}`;
+  } else if (typeof id === 'string') {
+    return id;
+  } else {
+    return null;
+  }
+}
+
+async function pullUserObject(loginToken) {
+  const address = getAddressFromMnemonic(loginToken.mnemonic);
+  const res = await fetch(`${accountsHost}/${address}`);
+  const result = await res.json();
+  return result;
+}
+
+export const handleDiscordLogin = async discordUrl => {
+  if (!discordUrl) {
+    return;
+  }
+  debugger;
+  try{
+    const urlSearchParams = new URLSearchParams(new URL(discordUrl).search);
+    const {id, code} = Object.fromEntries(urlSearchParams.entries());
+    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}`, {
+      method: 'POST',
+    });
+    res = await res.json();
+    if (!res.error) {
+      return await pullUserObject(res);
+    } else {
+      //console.warn('Unable to login ', res.error);
+      return res;
+    }
+  }catch(e){
+    
+  }
+};
