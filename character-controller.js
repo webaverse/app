@@ -17,6 +17,25 @@ const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+class BiActionInterpolant {
+  constructor(fn, minValue, maxValue) {
+    this.fn = fn;
+    this.value = minValue;
+    this.minValue = minValue;
+    this.maxValue = maxValue;
+  }
+  update(timeDiff) {
+    this.value += (this.fn() ? 1 : -1) * timeDiff;
+    this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
+  }
+  get() {
+    return this.value;
+  }
+  getNormalized() {
+    return this.value / (this.maxValue - this.minValue);
+  }
+}
+
 class PlayerHand {
   constructor() {
     this.position = new THREE.Vector3();
