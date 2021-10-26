@@ -631,7 +631,6 @@ export const handleDiscordLogin = async discordUrl => {
   if (!discordUrl) {
     return;
   }
-  debugger;
   try{
     const urlSearchParams = new URLSearchParams(new URL(discordUrl).search);
     const {id, code} = Object.fromEntries(urlSearchParams.entries());
@@ -649,3 +648,13 @@ export const handleDiscordLogin = async discordUrl => {
     
   }
 };
+
+export function mod(a, n) {
+  return (a % n + n) % n;
+}
+
+export function angleDifference(angle1, angle2) {
+  let a = angle2 - angle1;
+  a = mod(a + Math.PI, Math.PI*2) - Math.PI;
+  return a;
+}
