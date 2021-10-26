@@ -2814,10 +2814,10 @@ const gameManager = {
     rigManager.localRig.aux.setPose(auxPose);
   }, */
   isAiming() {
-    return useLocalPlayer().actions.some(action => action.type === 'aim');
+    return useLocalPlayer().getAction('aim');
   },
   isSitting() {
-    return useLocalPlayer().actions.some(action => action.type === 'sit');
+    return useLocalPlayer().getAction('sit');
   },
   /* setSceneLoaded(sceneLoaded) {
     this.sceneLoaded = sceneLoaded;
