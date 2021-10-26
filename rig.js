@@ -602,7 +602,7 @@ class RigManager {
           this.localRig.getHandEnabled(0) ||
           this.localRig.getHandEnabled(1) */
         ) &&
-        this.smoothVelocity.length() < 0.001
+        this.smoothVelocity.length() < 0.001,
       );
       this.localRig.direction.copy(positionDiff).normalize();
       this.localRig.velocity.copy(this.smoothVelocity);
@@ -616,12 +616,20 @@ class RigManager {
       this.localRig.narutoRunState = narutoRunState;
       this.localRig.narutoRunTime = narutoRunTime;
       this.localRig.aimState = !!aimAction;
-      if (aimAction) {
-        this.localRig.aimDirection.set(0, 0, -1)
-          .applyQuaternion(camera.quaternion);
-      }
+      this.localRig.aimDirection.set(0, 0, -1);
+      aimAction && this.localRig.aimDirection.applyQuaternion(camera.quaternion);
       const useAnimation = (useAction?.animation) || '';
       this.localRig.useAnimation = useAnimation;
+      this.localRig.sitState = !!sitAction;
+      this.localRig.sitAnimation = sitAnimation;
+      this.localRig.danceState = !!danceAction;
+      this.localRig.danceTime = danceTime;
+      this.localRig.danceAnimation = danceAnimation;
+      this.localRig.throwState = !!throwAction;
+      this.localRig.throwTime = throwTime;
+      this.localRig.crouchState = !!crouchAction;
+      this.localRig.crouchTime = crouchTime;
+      
       {
         // emote
         const localPlayerMessages = chatManager.getMessages().filter(m => m.object === this.localRig.modelBones.Head);
@@ -664,17 +672,6 @@ class RigManager {
         // fake speech
         this.localRig.fakeSpeechValue = localPlayerFakeSpeech ? 1 : 0;
       }
-
-      rigManager.localRig.sitState = !!sitAction;
-      rigManager.localRig.sitAnimation = sitAnimation;
-      rigManager.localRig.danceState = !!danceAction;
-      rigManager.localRig.danceTime = danceTime;
-      rigManager.localRig.danceAnimation = danceAnimation;
-      rigManager.localRig.throwState = !!throwAction;
-      rigManager.localRig.throwTime = throwTime;
-      rigManager.localRig.crouchState = !!crouchAction;
-      rigManager.localRig.crouchTime = crouchTime;
-      // physicsManager.setSitState(sitState);
 
       this.localRig.update(now, timeDiff);
       // this.localRig.aux.update(now, timeDiff);
