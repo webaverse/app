@@ -96,9 +96,9 @@ function applyPlayerActionsToAvatar(player, rig) {
   const danceAnimation = danceAction ? danceAction.animation : '';
   const throwAction = player.actions.find(action => action.type === 'throw');
   const throwTime = throwAction ? throwAction.time : -1;
-  const crouchAction = player.actions.find(action => action.type === 'crouch');
-  const crouchTime = crouchAction ? crouchAction.time : 1000;
   const aimAction = player.actions.find(action => action.type === 'aim');
+  const crouchAction = player.actions.find(action => action.type === 'crouch');
+  // const crouchTime = crouchAction ? crouchAction.time : 1000;
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = jumpTime;
@@ -120,8 +120,8 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.danceAnimation = danceAnimation;
   rig.throwState = !!throwAction;
   rig.throwTime = throwTime;
-  rig.crouchState = !!crouchAction;
-  rig.crouchTime = crouchTime;
+  // rig.crouchState = !!player.actionInterpolants.crouch.fn();
+  rig.crouchTime = player.actionInterpolants.crouch.getInverse();
 }
 
 class RigManager {

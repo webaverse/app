@@ -2662,8 +2662,9 @@ const gameManager = {
     const localPlayer = useLocalPlayer();
     let crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
     if (crouchActionIndex !== -1) {
-      const crouchAction = localPlayer.actions[crouchActionIndex];
-      crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down';
+      /* const crouchAction = localPlayer.actions[crouchActionIndex];
+      crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down'; */
+      localPlayer.actions.splice(crouchActionIndex, 1);
     } else {
       const crouchAction = {
         type: 'crouch',
