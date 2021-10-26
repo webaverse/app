@@ -1,0 +1,12 @@
+{
+  "name": "error-placeholder",
+  "description": "Placeholder in case of failed loading",
+  "xr_type": "webxr-site@0.0.1",
+  "start_url": "index.js",
+  "components": [
+    {
+      "type": "activate",
+      "subtype": "open"
+    }
+  ]
+}
