@@ -6,6 +6,7 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
+import {crouchMaxTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -197,7 +198,6 @@ class RemotePlayer extends Player {
   }
 }
 
-const crouchMaxTime = 200;
 const activateMaxTime = 1000;
 function getAvatarCrouchFactor() {
   const localPlayer = metaversefile.useLocalPlayer();
