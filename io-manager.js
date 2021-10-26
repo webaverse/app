@@ -20,7 +20,7 @@ import physx from './physx.js';
 import transformControls from './transform-controls.js';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
