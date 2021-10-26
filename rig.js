@@ -502,16 +502,6 @@ class RigManager {
       }
     }
   }
-
-  unhighlightPeerRigs() {
-    for (const peerRig of this.peerRigs.values()) {
-      peerRig.rigCapsule.visible = false;
-    }
-  }
-
-  highlightPeerRig(peerRig) {
-    peerRig.rigCapsule.visible = true;
-  }
   
   getRigTransforms() {
     if (this.localRig) {
