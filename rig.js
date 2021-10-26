@@ -14,20 +14,20 @@ import Avatar from './avatars/avatars.js';
 // import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
 import ioManager from './io-manager.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
+/* const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-const localRaycaster = new THREE.Raycaster();
+const localRaycaster = new THREE.Raycaster(); */
 
 /* const roundedRectGeometry = (() => {
   const w = 1;
