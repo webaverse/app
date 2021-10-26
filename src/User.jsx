@@ -58,6 +58,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           const {address, profile} = await ceramicApi.login();
           // console.log('login', {address, profile});
           setAddress(address);
+          userRef.setIsComponentVisible(false);
         } catch (err) {
           console.warn(err);
         } finally {
@@ -83,6 +84,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           e.stopPropagation();
           if (address) {
             toggleOpen('user');
+            userRef.setIsComponentVisible(false);
           }else{
             userRef.setIsComponentVisible(true);
             setLoginButtons(true);
