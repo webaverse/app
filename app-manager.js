@@ -302,9 +302,6 @@ class AppManager extends EventTarget {
     });
   }
   addApp(app) {
-    if (!app.contentId) {
-      debugger;
-    }
     this.apps.push(app);
     scene.add(app);
   }
