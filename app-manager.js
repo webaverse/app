@@ -107,6 +107,15 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
+
+        // Add Error placeholder
+        const errorPH = this.getErrorPlaceholder();
+        errorPH.position.fromArray(app.position);
+        errorPH.quaternion.fromArray(app.quaternion);
+        errorPH.scale.fromArray(app.scale);
+        this.addApp(errorPH);        
+
+        // Remove app
         if (app) {
           this.removeApp(app);
           app.destroy();
@@ -318,6 +327,20 @@ class AppManager extends EventTarget {
     for (const app of apps) {
       app.resize && app.resize(e);
     }
+  }
+  getErrorPlaceholder() {
+    const app = metaversefile.createApp({
+        name: 'error-placeholder',
+      });
+    app.contentId = 'error-placeholder';
+    (async () => {
+      await metaverseModules.waitForLoad();
+      const {modules} = metaversefile.useDefaultModules();
+      const m = modules['errorPlaceholder'];
+      await app.addModule(m);
+      console.log(app);
+    })();
+    return app;
   }
 }
 export {
