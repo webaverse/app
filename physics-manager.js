@@ -12,6 +12,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
+import {getAvatarCrouchFactor} from './character-controller.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {world} from './world.js';
@@ -437,24 +438,6 @@ physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
 const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 0;
 physicsManager.getAvatarHeight = getAvatarHeight;
-
-const crouchMaxTime = 200;
-const activateMaxTime = 1000;
-const getAvatarCrouchFactor = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-  if (crouchAction) {
-    return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
-  } else {
-    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-    if (activateAction) {
-      return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
-    } else {
-      return 1;
-    }
-  }
-};
-physicsManager.getAvatarCrouchFactor = getAvatarCrouchFactor;
 
 const _getAvatarCapsule = v => {
   const avatarHeight = getAvatarHeight();
