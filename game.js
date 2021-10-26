@@ -21,6 +21,7 @@ import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from '.
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
+import {getAvatarCrouchFactor} from './character-controller.js';
 import {getRenderer, scene, sceneLowPriority, /* orthographicScene, */ camera /*, dolly*/} from './renderer.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 // import controlsManager from './controls-manager.js';
@@ -987,7 +988,7 @@ const _gameUpdate = (timestamp) => {
     }
     if (!grabUseMesh.visible && !gameManager.editMode) {
       localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1-physicsManager.getAvatarCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
+        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1-getAvatarCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
       const radius = 1;
       const halfHeight = 0.1;
