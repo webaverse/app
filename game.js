@@ -21,6 +21,7 @@ import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from '.
 // import activateManager from './activate-manager.js';
 // import dropManager from './drop-manager.js';
 import {teleportMeshes} from './teleport.js';
+import {getPlayerCrouchFactor} from './character-controller.js';
 import {getRenderer, scene, sceneLowPriority, /* orthographicScene, */ camera /*, dolly*/} from './renderer.js';
 // import {inventoryAvatarScene, inventoryAvatarCamera, inventoryAvatarRenderer, update as inventoryUpdate} from './inventory.js';
 // import controlsManager from './controls-manager.js';
@@ -987,7 +988,7 @@ const _gameUpdate = (timestamp) => {
     }
     if (!grabUseMesh.visible && !gameManager.editMode) {
       localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1-physicsManager.getAvatarCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
+        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
       const radius = 1;
       const halfHeight = 0.1;
@@ -2611,19 +2612,32 @@ const gameManager = {
       _updateMenu();
     }
   }, */
+  menuDoubleShift() {
+    const localPlayer = useLocalPlayer();
+    let narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+    if (!narutoRunAction) {
+      narutoRunAction = {
+        type: 'narutoRun',
+        time: 0,
+      };
+      localPlayer.actions.push(narutoRunAction);
+    }
+  },
+  menuUnDoubleShift() {
+    const localPlayer = useLocalPlayer();
+    const narutoRunActionIndex = localPlayer.actions.findIndex(action => action.type === 'narutoRun');
+    if (narutoRunActionIndex !== -1) {
+      localPlayer.actions.splice(narutoRunActionIndex, 1);
+    }
+  },
   isFlying() {
     return useLocalPlayer().actions.some(action => action.type === 'fly');
   },
   toggleFly() {
     const localPlayer = useLocalPlayer();
-    let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
+    const flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
     if (flyActionIndex !== -1) {
       localPlayer.actions.splice(flyActionIndex, 1);
-      
-      if (!gameManager.isJumping()) {
-        gameManager.ensureJump();
-      }
-      physicsManager.velocity.setScalar(0);
     } else {
       const flyAction = {
         type: 'fly',
@@ -2648,13 +2662,10 @@ const gameManager = {
     const localPlayer = useLocalPlayer();
     let crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
     if (crouchActionIndex !== -1) {
-      const crouchAction = localPlayer.actions[crouchActionIndex];
-      crouchAction.direction = crouchAction.direction === 'down' ? 'up' : 'down';
+      localPlayer.actions.splice(crouchActionIndex, 1);
     } else {
       const crouchAction = {
         type: 'crouch',
-        direction: 'down',
-        time: 0,
       };
       localPlayer.actions.push(crouchAction);
     }

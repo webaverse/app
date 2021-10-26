@@ -13,6 +13,7 @@ import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
+import {crouchMaxTime} from '../constants.js';
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -63,10 +64,7 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const lastQuaternion = new THREE.Quaternion();
-let trackMouseAmount = 0;
-
-const halfPi = Math.PI/2;
+// const halfPi = Math.PI/2;
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
@@ -80,7 +78,6 @@ const defaultThrowAnimation = 'throw';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 const useAnimationRate = 750;
-const crouchMaxTime = 200;
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
@@ -1516,7 +1513,7 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    this.crouchState = false;
+    // this.crouchState = false;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
@@ -1530,6 +1527,8 @@ class Avatar {
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
+    this.lastEyeTargetQuaternion = new THREE.Quaternion();
+    this.trackMouseAmount = 0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2164,7 +2163,7 @@ class Avatar {
     
     const _applyAnimation = () => {
       const runSpeed = 0.5;
-      const currentSpeed = this.velocity.length();
+      const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
@@ -2195,8 +2194,8 @@ class Avatar {
         
         const backwardIndex = animations.findIndex(a => a.isBackward);
         if (backwardIndex !== -1) {
-          const backwardAnimationAngle = animationAngles[backwardIndex];
-          const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+          // const backwardAnimationAngle = animationAngles[backwardIndex];
+          // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
           // if (angleToBackwardAnimation < Math.PI * 0.3) {
             const sideIndex = backwardIndex === 0 ? 1 : 0;
             const wrongAngle = animationAngles[sideIndex].angle;
@@ -2274,7 +2273,7 @@ class Avatar {
       
       // current stand/crouch
       const key = _getAnimationKey(
-        this.crouchState,
+        false,
         this.velocity,
       );
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
@@ -2283,11 +2282,11 @@ class Avatar {
       
       // opposite stand/crouch
       const keyOther = _getAnimationKey(
-        !this.crouchState,
+        true,
         this.velocity,
       );
       const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
-      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, key);
+      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, keyOther);
       const idleAnimationOther = _getIdleAnimation(keyOther);
       
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAnglesMirror[0].angle));
@@ -2329,6 +2328,7 @@ class Avatar {
         
         target.copy(localQuaternion)
           .slerp(localQuaternion2, crouchFactor);
+
         /* const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
         const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
         const totalDistance = distance1 + distance2;
@@ -2450,7 +2450,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime * 4) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * 4) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
@@ -2641,20 +2641,19 @@ class Avatar {
         )
 
       if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
-
-        if(trackMouseAmount < 1) {
-          trackMouseAmount += timeDiff*3;
+        if (this.trackMouseAmount < 1) {
+          this.trackMouseAmount += timeDiff*3;
         } else {
-          trackMouseAmount = 1;
+          this.trackMouseAmount = 1;
         }
         
-        lastQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, trackMouseAmount);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.lastEyeTargetQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, this.trackMouseAmount);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
       } 
       else {
-        trackMouseAmount = 0;
-        lastQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.trackMouseAmount = 0;
+        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
       }
 
       this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
@@ -2662,7 +2661,7 @@ class Avatar {
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
     } 
     else {
-      if (trackMouseAmount > 0) {
+      if (this.trackMouseAmount > 0) {
         const eyePosition = this.getEyePosition();
         this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -2681,17 +2680,17 @@ class Avatar {
             .invert()
         )
 
-        lastQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
 
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
 
-        if(trackMouseAmount <= 0) {
-          trackMouseAmount = 0;
+        if (this.trackMouseAmount <= 0) {
+          this.trackMouseAmount = 0;
         } else {
-          trackMouseAmount -= timeDiff*3;
+          this.trackMouseAmount -= timeDiff*3;
         }
       }
     }

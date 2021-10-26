@@ -1,3 +1,7 @@
+/*
+this file is responisible for maintaining player state that is network-replicated.
+*/
+
 import * as THREE from 'three';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
@@ -6,11 +10,34 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
+import {crouchMaxTime, activateMaxTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+
+class BiActionInterpolant {
+  constructor(fn, minValue, maxValue) {
+    this.fn = fn;
+    this.value = minValue;
+    this.minValue = minValue;
+    this.maxValue = maxValue;
+  }
+  update(timeDiff) {
+    this.value += (this.fn() ? 1 : -1) * timeDiff;
+    this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
+  }
+  get() {
+    return this.value;
+  }
+  getNormalized() {
+    return this.value / (this.maxValue - this.minValue);
+  }
+  getInverse() {
+    return this.maxValue - this.value;
+  }
+}
 
 class PlayerHand {
   constructor() {
@@ -32,6 +59,16 @@ class Player extends THREE.Object3D {
     this.grabs = [null, null];
     this.wears = [];
     this.actions = [];
+
+    this.actionInterpolants = {
+      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+    };
+  }
+  getAction(type) {
+    return this.actions.find(action => action.type === type);
+  }
+  hasAction(type) {
+    return this.actions.some(action => action.type === type);
   }
 }
 class LocalPlayer extends Player {
@@ -197,7 +234,55 @@ class RemotePlayer extends Player {
   }
 }
 
+function getPlayerCrouchFactor(player) {
+  let factor = 1;
+  factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
+  
+  const activateAction = player.actions.find(action => action.type === 'activate');
+  if (activateAction) {
+    factor *= 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
+  }
+  
+  return factor;
+};
+
+function update(timeDiff) {
+  const localPlayer = metaversefile.useLocalPlayer();
+  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+  if (jumpAction) {
+    jumpAction.time += timeDiff;
+  }
+  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+  if (flyAction) {
+    flyAction.time += timeDiff;
+  }
+  const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+  if (danceAction) {
+    danceAction.time += timeDiff;
+  }
+  const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+  if (throwAction) {
+    throwAction.time += timeDiff;
+  }
+  const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+  if (narutoRunAction) {
+    narutoRunAction.time += timeDiff;
+  }
+  const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+  if (activateAction) {
+    activateAction.time += timeDiff;
+  }
+  const useAction = localPlayer.actions.find(action => action.type === 'use');
+  if (useAction) {
+    useAction.time += timeDiff;
+  }
+  
+  localPlayer.actionInterpolants.crouch.update(timeDiff);
+}
+
 export {
   LocalPlayer,
   RemotePlayer,
+  getPlayerCrouchFactor,
+  update,
 };

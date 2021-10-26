@@ -4,7 +4,7 @@ it contains code for character capsules and world simulation.
 */
 
 import * as THREE from 'three';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physx from './physx.js';
@@ -12,6 +12,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
+import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {world} from './world.js';
@@ -438,24 +439,6 @@ physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 0;
 physicsManager.getAvatarHeight = getAvatarHeight;
 
-const crouchMaxTime = 200;
-const activateMaxTime = 1000;
-const getAvatarCrouchFactor = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-  if (crouchAction) {
-    return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
-  } else {
-    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-    if (activateAction) {
-      return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
-    } else {
-      return 1;
-    }
-  }
-};
-physicsManager.getAvatarCrouchFactor = getAvatarCrouchFactor;
-
 const _getAvatarCapsule = v => {
   const avatarHeight = getAvatarHeight();
   v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
@@ -556,9 +539,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       };
       if (collision) {
+        const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
         localVector4
           .fromArray(collision.direction)
-          .add(localVector5.set(0, -getAvatarHeight() * (1-getAvatarCrouchFactor()) * 0.5, 0));
+          .add(localVector5.set(0, -crouchOffset, 0));
         camera.position.add(localVector4)
         localVector.add(localVector4);
         
@@ -696,45 +680,6 @@ const _copyPQS = (dst, src) => {
   dst.scale.copy(src.scale);
 };
 const _updatePhysics = timeDiff => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-  if (jumpAction) {
-    jumpAction.time += timeDiff;
-  }
-  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
-  if (flyAction) {
-    flyAction.time += timeDiff;
-  }
-  const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
-  if (danceAction) {
-    danceAction.time += timeDiff;
-  }
-  const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-  if (throwAction) {
-    throwAction.time += timeDiff;
-  }
-  const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-  if (activateAction) {
-    activateAction.time += timeDiff;
-  }
-  const useAction = localPlayer.actions.find(action => action.type === 'use');
-  if (useAction) {
-    useAction.time += timeDiff;
-  }
-  const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
-  if (crouchActionIndex !== -1) {
-    const crouchAction = localPlayer.actions[crouchActionIndex];
-    if (crouchAction.direction === 'down') {
-      crouchAction.time += timeDiff;
-      crouchAction.time = Math.min(crouchAction.time, crouchMaxTime);
-    } else if (crouchAction.direction === 'up') {
-      crouchAction.time -= timeDiff;
-      if (crouchAction.time < 0) {
-        localPlayer.actions.splice(crouchActionIndex, 1);
-      }
-    }
-  }
-
   const timeDiffS = timeDiff / 1000;
 
   const avatarWorldObject = _getAvatarWorldObject(localObject);
