@@ -2679,8 +2679,8 @@ class Avatar {
             .invert()
         )
 
-        lastQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
 
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
