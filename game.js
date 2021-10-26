@@ -2620,11 +2620,6 @@ const gameManager = {
     let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
     if (flyActionIndex !== -1) {
       localPlayer.actions.splice(flyActionIndex, 1);
-      
-      if (!gameManager.isJumping()) {
-        gameManager.ensureJump();
-      }
-      physicsManager.velocity.setScalar(0);
     } else {
       const flyAction = {
         type: 'fly',
