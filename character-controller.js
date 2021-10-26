@@ -10,7 +10,7 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {crouchMaxTime} from './constants.js';
+import {crouchMaxTime, activateMaxTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -202,7 +202,6 @@ class RemotePlayer extends Player {
   }
 }
 
-const activateMaxTime = 1000;
 function getPlayerCrouchFactor(player) {
   const crouchAction = player.actions.find(action => action.type === 'crouch');
   if (crouchAction) {
