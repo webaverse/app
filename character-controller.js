@@ -1,5 +1,5 @@
 /*
-character controller is responisible for maintaining player state that is network-replicated.
+this file is responisible for maintaining player state that is network-replicated.
 */
 
 import * as THREE from 'three';

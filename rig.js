@@ -1,5 +1,5 @@
 /*
-this file binds logical users (local player, remote players) to metaversefile (vrm) avatars.
+this file binds logical characters (local player, remote players, npcs) to metaversefile (vrm) avatars.
 */
 
 import * as THREE from 'three';
