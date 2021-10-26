@@ -2270,7 +2270,7 @@ class Avatar {
         }
       };
       
-      // current stand/crouch
+      // stand
       const key = _getAnimationKey(
         false,
         this.velocity,
@@ -2279,7 +2279,7 @@ class Avatar {
       const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
       
-      // opposite stand/crouch
+      // crouch
       const keyOther = _getAnimationKey(
         true,
         this.velocity,
