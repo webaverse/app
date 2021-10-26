@@ -711,7 +711,7 @@ const _updatePhysics = timeDiff => {
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld();
-    } else if (localPlayer.actions.some(action => action.type === 'aim') || !!localPlayer.grabs[0]) {
+    } else if (localPlayer.hasAction('aim') && !localPlayer.hasAction('narutoRun')) {
       _applyGravity(timeDiffS);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
