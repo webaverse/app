@@ -63,9 +63,6 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const lastQuaternion = new THREE.Quaternion();
-let trackMouseAmount = 0;
-
 const halfPi = Math.PI/2;
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
@@ -1530,6 +1527,8 @@ class Avatar {
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
+    this.lastEyeTargetQuaternion = new THREE.Quaternion();
+    this.trackMouseAmount = 0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2641,20 +2640,19 @@ class Avatar {
         )
 
       if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
-
-        if(trackMouseAmount < 1) {
-          trackMouseAmount += timeDiff*3;
+        if (this.trackMouseAmount < 1) {
+          this.trackMouseAmount += timeDiff*3;
         } else {
-          trackMouseAmount = 1;
+          this.trackMouseAmount = 1;
         }
         
-        lastQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, trackMouseAmount);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.lastEyeTargetQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, this.trackMouseAmount);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
       } 
       else {
-        trackMouseAmount = 0;
-        lastQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, lastQuaternion, localVector2);
+        this.trackMouseAmount = 0;
+        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
       }
 
       this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
@@ -2662,7 +2660,7 @@ class Avatar {
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
     } 
     else {
-      if (trackMouseAmount > 0) {
+      if (this.trackMouseAmount > 0) {
         const eyePosition = this.getEyePosition();
         this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -2688,10 +2686,10 @@ class Avatar {
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
 
-        if(trackMouseAmount <= 0) {
-          trackMouseAmount = 0;
+        if (this.trackMouseAmount <= 0) {
+          this.trackMouseAmount = 0;
         } else {
-          trackMouseAmount -= timeDiff*3;
+          this.trackMouseAmount -= timeDiff*3;
         }
       }
     }
