@@ -34,6 +34,9 @@ class BiActionInterpolant {
   getNormalized() {
     return this.value / (this.maxValue - this.minValue);
   }
+  getInverse() {
+    return this.maxValue - this.value;
+  }
 }
 
 class PlayerHand {
@@ -232,17 +235,15 @@ class RemotePlayer extends Player {
 }
 
 function getPlayerCrouchFactor(player) {
-  const crouchAction = player.actions.find(action => action.type === 'crouch');
-  if (crouchAction) {
-    return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
-  } else {
-    const activateAction = player.actions.find(action => action.type === 'activate');
-    if (activateAction) {
-      return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
-    } else {
-      return 1;
-    }
+  let factor = 1;
+  factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
+  
+  const activateAction = player.actions.find(action => action.type === 'activate');
+  if (activateAction) {
+    factor *= 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
   }
+  
+  return factor;
 };
 
 function update(timeDiff) {
@@ -275,9 +276,18 @@ function update(timeDiff) {
   if (useAction) {
     useAction.time += timeDiff;
   }
-  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-  if (crouchAction) {
-    crouchAction.time += timeDiff;
+  const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+  if (crouchActionIndex !== -1) {
+    const crouchAction = localPlayer.actions[crouchActionIndex];
+    if (crouchAction.direction === 'down') {
+      crouchAction.time += timeDiff;
+      crouchAction.time = Math.min(crouchAction.time, crouchMaxTime);
+    } else if (crouchAction.direction === 'up') {
+      crouchAction.time -= timeDiff;
+      if (crouchAction.time < 0) {
+        localPlayer.actions.splice(crouchActionIndex, 1);
+      }
+    }
   }
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);

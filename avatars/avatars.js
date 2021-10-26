@@ -1513,7 +1513,7 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    this.crouchState = false;
+    // this.crouchState = false;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
@@ -2163,7 +2163,7 @@ class Avatar {
     
     const _applyAnimation = () => {
       const runSpeed = 0.5;
-      const currentSpeed = this.velocity.length();
+      const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
@@ -2273,7 +2273,7 @@ class Avatar {
       
       // current stand/crouch
       const key = _getAnimationKey(
-        this.crouchState,
+        false,
         this.velocity,
       );
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
@@ -2282,7 +2282,7 @@ class Avatar {
       
       // opposite stand/crouch
       const keyOther = _getAnimationKey(
-        !this.crouchState,
+        true,
         this.velocity,
       );
       const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
@@ -2328,6 +2328,7 @@ class Avatar {
         
         target.copy(localQuaternion)
           .slerp(localQuaternion2, crouchFactor);
+
         /* const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
         const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
         const totalDistance = distance1 + distance2;
