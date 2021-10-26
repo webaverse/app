@@ -275,6 +275,10 @@ function update(timeDiff) {
   if (useAction) {
     useAction.time += timeDiff;
   }
+  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+  if (crouchAction) {
+    crouchAction.time += timeDiff;
+  }
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);
 }
