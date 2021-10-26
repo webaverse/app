@@ -1,3 +1,7 @@
+/*
+character controller is responisible for maintaining player state that is network-replicated.
+*/
+
 import * as THREE from 'three';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
