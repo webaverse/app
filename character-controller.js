@@ -56,6 +56,16 @@ class Player extends THREE.Object3D {
     this.grabs = [null, null];
     this.wears = [];
     this.actions = [];
+
+    this.actionInterpolants = {
+      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+    };
+  }
+  getAction(type) {
+    return this.actions.find(action => action.type === type);
+  }
+  hasAction(type) {
+    return this.actions.some(action => action.type === type);
   }
 }
 class LocalPlayer extends Player {
