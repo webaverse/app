@@ -3,7 +3,7 @@ this file binds logical users (local player, remote players) to metaversefile (v
 */
 
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import {makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
@@ -78,6 +78,52 @@ const _makeRig = app => {
   }
   return null;
 };
+function applyPlayerActionsToAvatar(player, rig) {
+  const jumpAction = player.actions.find(action => action.type === 'jump');
+  const jumpTime = jumpAction ? jumpAction.time : -1;
+  const flyAction = player.actions.find(action => action.type === 'fly');
+  const flyTime = flyAction ? flyAction.time : -1;
+  const activateAction = player.actions.find(action => action.type === 'activate');
+  const activateTime = activateAction ? activateAction.time : -1;
+  const useAction = player.actions.find(action => action.type === 'use');
+  const useTime = useAction ? useAction.time : -1;
+  const narutoRunState = ioManager.keys.doubleShift;
+  const narutoRunTime = narutoRunState ? ((Date.now() - ioManager.getLastShiftDownTime())/1000) : 0;
+  const sitAction = player.actions.find(action => action.type === 'sit');
+  const sitAnimation = sitAction ? sitAction.animation : '';
+  const danceAction = player.actions.find(action => action.type === 'dansu');
+  const danceTime = danceAction ? danceAction.time : -1;
+  const danceAnimation = danceAction ? danceAction.animation : '';
+  const throwAction = player.actions.find(action => action.type === 'throw');
+  const throwTime = throwAction ? throwAction.time : -1;
+  const crouchAction = player.actions.find(action => action.type === 'crouch');
+  const crouchTime = crouchAction ? crouchAction.time : 1000;
+  const aimAction = player.actions.find(action => action.type === 'aim');
+
+  rig.jumpState = !!jumpAction;
+  rig.jumpTime = jumpTime;
+  rig.flyState = !!flyAction;
+  rig.flyTime = flyTime;
+  rig.activateState = !!activateAction && !crouchAction;
+  rig.activateTime = activateTime;
+  rig.useTime = useTime;
+  rig.narutoRunState = narutoRunState;
+  rig.narutoRunTime = narutoRunTime;
+  rig.aimState = !!aimAction;
+  rig.aimDirection.set(0, 0, -1);
+  aimAction && rig.aimDirection.applyQuaternion(camera.quaternion);
+  const useAnimation = (useAction?.animation) || '';
+  rig.useAnimation = useAnimation;
+  rig.sitState = !!sitAction;
+  rig.sitAnimation = sitAnimation;
+  rig.danceState = !!danceAction;
+  rig.danceTime = danceTime;
+  rig.danceAnimation = danceAnimation;
+  rig.throwState = !!throwAction;
+  rig.throwTime = throwTime;
+  rig.crouchState = !!crouchAction;
+  rig.crouchTime = crouchTime;
+}
 
 class RigManager {
   constructor(scene) {
@@ -501,145 +547,113 @@ class RigManager {
     if (this.localRig) {
       const now = Date.now();
       const timeDiff = (now - this.lastTimetamp) / 1000;
-      
-      const localPlayer = metaversefile.useLocalPlayer();
-      
+
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
-      let currentPosition, currentQuaternion;
-      if (!session) {
-        currentPosition = this.localRig.inputs.hmd.position;
-        currentQuaternion = this.localRig.inputs.hmd.quaternion;
-      } else {
-        currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-        currentQuaternion = this.localRig.inputs.hmd.quaternion;
-      }
-      const positionDiff = localVector2.copy(this.lastPosition)
-        .sub(currentPosition)
-        .multiplyScalar(0.1/timeDiff);
-      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-      positionDiff.applyEuler(localEuler2);
-      this.smoothVelocity.lerp(positionDiff, 0.5);
-      this.lastPosition.copy(currentPosition);
-
-      const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-      const jumpTime = jumpAction ? jumpAction.time : -1;
-      const flyAction = localPlayer.actions.find(action => action.type === 'fly');
-      const flyTime = flyAction ? flyAction.time : -1;
-      const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-      const activateTime = activateAction ? activateAction.time : -1;
-      const useAction = localPlayer.actions.find(action => action.type === 'use');
-      const useTime = useAction ? useAction.time : -1;
-      const narutoRunState = ioManager.keys.doubleShift;
-      const narutoRunTime = narutoRunState ? ((Date.now() - ioManager.getLastShiftDownTime())/1000) : 0;
-      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
-      const sitAnimation = sitAction ? sitAction.animation : '';
-      const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
-      const danceTime = danceAction ? danceAction.time : -1;
-      const danceAnimation = danceAction ? danceAction.animation : '';
-      const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-      const throwTime = throwAction ? throwAction.time : -1;
-      const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
-      const crouchTime = crouchAction ? crouchAction.time : 1000;
-      const aimAction = localPlayer.actions.find(action => action.type === 'aim');
-      const aimComponent = (() => {
-        for (const {instanceId} of localPlayer.wears) {
-          const app = metaversefile.getAppByInstanceId(instanceId);
-          for (const {key, value} of app.components) {
-            if (key === 'aim') {
-              return value;
+      const localPlayer = metaversefile.useLocalPlayer();
+      
+      const _setTransforms = () => {
+        let currentPosition, currentQuaternion;
+        if (!session) {
+          currentPosition = this.localRig.inputs.hmd.position;
+          currentQuaternion = this.localRig.inputs.hmd.quaternion;
+        } else {
+          currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
+          currentQuaternion = this.localRig.inputs.hmd.quaternion;
+        }
+        const positionDiff = localVector2.copy(this.lastPosition)
+          .sub(currentPosition)
+          .multiplyScalar(0.1/timeDiff);
+        localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y += Math.PI;
+        localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+        positionDiff.applyEuler(localEuler2);
+        this.smoothVelocity.lerp(positionDiff, 0.5);
+        this.lastPosition.copy(currentPosition);
+        this.localRig.direction.copy(positionDiff).normalize();
+        this.localRig.velocity.copy(this.smoothVelocity);
+      };
+      _setTransforms();
+      
+      const _setIkModes = () => {
+        const aimAction = localPlayer.actions.find(action => action.type === 'aim');
+        const aimComponent = (() => {
+          for (const {instanceId} of localPlayer.wears) {
+            const app = metaversefile.getAppByInstanceId(instanceId);
+            for (const {key, value} of app.components) {
+              if (key === 'aim') {
+                return value;
+              }
             }
           }
+          return null;
+        })();
+        for (let i = 0; i < 2; i++) {
+          this.localRig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
         }
-        return null;
-      })();
+        this.localRig.setTopEnabled(
+          (!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled))
+        );
+        this.localRig.setBottomEnabled(
+          (
+            this.localRig.getTopEnabled() /* ||
+            this.localRig.getHandEnabled(0) ||
+            this.localRig.getHandEnabled(1) */
+          ) &&
+          this.smoothVelocity.length() < 0.001,
+        );
+      };
+      _setIkModes();
+
+      applyPlayerActionsToAvatar(localPlayer, this.localRig);
       
-      for (let i = 0; i < 2; i++) {
-        this.localRig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
-      }
-      this.localRig.setTopEnabled(
-        (!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled))
-      );
-      this.localRig.setBottomEnabled(
-        (
-          this.localRig.getTopEnabled() /* ||
-          this.localRig.getHandEnabled(0) ||
-          this.localRig.getHandEnabled(1) */
-        ) &&
-        this.smoothVelocity.length() < 0.001,
-      );
-      this.localRig.direction.copy(positionDiff).normalize();
-      this.localRig.velocity.copy(this.smoothVelocity);
-      this.localRig.jumpState = !!jumpAction;
-      this.localRig.jumpTime = jumpTime;
-      this.localRig.flyState = !!flyAction;
-      this.localRig.flyTime = flyTime;
-      this.localRig.activateState = !!activateAction && !crouchAction;
-      this.localRig.activateTime = activateTime;
-      this.localRig.useTime = useTime;
-      this.localRig.narutoRunState = narutoRunState;
-      this.localRig.narutoRunTime = narutoRunTime;
-      this.localRig.aimState = !!aimAction;
-      this.localRig.aimDirection.set(0, 0, -1);
-      aimAction && this.localRig.aimDirection.applyQuaternion(camera.quaternion);
-      const useAnimation = (useAction?.animation) || '';
-      this.localRig.useAnimation = useAnimation;
-      this.localRig.sitState = !!sitAction;
-      this.localRig.sitAnimation = sitAnimation;
-      this.localRig.danceState = !!danceAction;
-      this.localRig.danceTime = danceTime;
-      this.localRig.danceAnimation = danceAnimation;
-      this.localRig.throwState = !!throwAction;
-      this.localRig.throwTime = throwTime;
-      this.localRig.crouchState = !!crouchAction;
-      this.localRig.crouchTime = crouchTime;
-      
-      {
-        // emote
+      const _applyChatModifiers = () => {
         const localPlayerMessages = chatManager.getMessages().filter(m => m.object === this.localRig.modelBones.Head);
         const lastMessage = localPlayerMessages.length > 0 ? localPlayerMessages[localPlayerMessages.length - 1] : null;
-        const localPlayerEmotion = lastMessage && lastMessage.emotion;
-        const localPlayerFakeSpeech = lastMessage ? lastMessage.fakeSpeech : false;
-        if (localPlayerEmotion) {
-          // ensure new emotion and no others
-          let found = false;
-          for (let i = 0; i < this.localRig.emotes.length; i++) {
-            const emote = this.localRig.emotes[i];
-            if (emote.emotion) {
-              if (emote.emotion === localPlayerEmotion) {
-                found = true;
-              } else {
+        const _applyChatEmote = message => {
+          const localPlayerEmotion = message?.emotion;
+          if (localPlayerEmotion) {
+            // ensure new emotion and no others
+            let found = false;
+            for (let i = 0; i < this.localRig.emotes.length; i++) {
+              const emote = this.localRig.emotes[i];
+              if (emote.emotion) {
+                if (emote.emotion === localPlayerEmotion) {
+                  found = true;
+                } else {
+                  this.localRig.emotes.splice(i, 1);
+                  i--;
+                }
+              }
+            }
+            if (!found) {
+              const emote = {
+                emotion: localPlayerEmotion,
+                value: 1,
+              };
+              this.localRig.emotes.push(emote);
+            }
+          } else {
+            // ensure no emotions
+            for (let i = 0; i < this.localRig.emotes.length; i++) {
+              const emote = this.localRig.emotes[i];
+              if (emote.emotion) {
                 this.localRig.emotes.splice(i, 1);
                 i--;
               }
             }
           }
-          if (!found) {
-            const emote = {
-              emotion: localPlayerEmotion,
-              value: 1,
-              fakeSpeech: localPlayerFakeSpeech,
-            };
-            this.localRig.emotes.push(emote);
-          }
-        } else {
-          // ensure no emotions
-          for (let i = 0; i < this.localRig.emotes.length; i++) {
-            const emote = this.localRig.emotes[i];
-            if (emote.emotion) {
-              this.localRig.emotes.splice(i, 1);
-              i--;
-            }
-          }
-        }
+        };
+        _applyChatEmote(lastMessage);
         
-        // fake speech
-        this.localRig.fakeSpeechValue = localPlayerFakeSpeech ? 1 : 0;
-      }
+        const _applyFakeSpeech = message => {
+          this.localRig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
+        };
+        _applyFakeSpeech(lastMessage);
+      };
+      _applyChatModifiers();
 
       this.localRig.update(now, timeDiff);
 
