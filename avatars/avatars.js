@@ -2194,8 +2194,8 @@ class Avatar {
         
         const backwardIndex = animations.findIndex(a => a.isBackward);
         if (backwardIndex !== -1) {
-          const backwardAnimationAngle = animationAngles[backwardIndex];
-          const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+          // const backwardAnimationAngle = animationAngles[backwardIndex];
+          // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
           // if (angleToBackwardAnimation < Math.PI * 0.3) {
             const sideIndex = backwardIndex === 0 ? 1 : 0;
             const wrongAngle = animationAngles[sideIndex].angle;
