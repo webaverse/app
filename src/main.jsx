@@ -10,7 +10,9 @@ ReactDOM.render(
     {WebWorkerSupport ? (
       <App />
     ) : (
-      <Error />
+      <Error errors={[
+        'WebWorker modules',
+      ]} />
     )}
   </React.StrictMode>,
   document.getElementById('root'),
