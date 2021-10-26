@@ -1513,8 +1513,7 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    // this.crouchState = false;
-    this.crouchTime = crouchMaxTime;
+    this.crouchTime = 0;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
@@ -2440,7 +2439,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        if (this.narutoRunState && !this.crouchState) {
+        if (this.narutoRunState) {
           return spec => {
             const {
               quaternionKey: k,
