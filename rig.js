@@ -112,8 +112,7 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.aimState = !!aimAction;
   rig.aimDirection.set(0, 0, -1);
   aimAction && rig.aimDirection.applyQuaternion(camera.quaternion);
-  const useAnimation = (useAction?.animation) || '';
-  rig.useAnimation = useAnimation;
+  rig.useAnimation = (useAction?.animation) || '';
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
