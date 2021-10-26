@@ -4,7 +4,7 @@ it contains code for character capsules and world simulation.
 */
 
 import * as THREE from 'three';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physx from './physx.js';
@@ -12,7 +12,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
-import {getAvatarCrouchFactor} from './character-controller.js';
+import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {world} from './world.js';
@@ -541,7 +541,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       if (collision) {
         localVector4
           .fromArray(collision.direction)
-          .add(localVector5.set(0, -getAvatarHeight() * (1-getAvatarCrouchFactor()) * 0.5, 0));
+          .add(localVector5.set(0, -getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, 0));
         camera.position.add(localVector4)
         localVector.add(localVector4);
         
