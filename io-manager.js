@@ -466,7 +466,7 @@ ioManager.keydown = e => {
       const timeDiff = now - lastShiftDownTime;
       if (timeDiff < 200) {
         ioManager.keys.doubleShift = true;
-        game.menuUnaim();
+        game.menuDoubleShift();
       }
       lastShiftDownTime = now;
       break;
@@ -592,6 +592,8 @@ ioManager.keyup = e => {
     case 16: { // shift
       ioManager.keys.shift = false;
       ioManager.keys.doubleShift = false;
+      
+      game.menuUnDoubleShift();
       break;
     }
     case 46: { // delete

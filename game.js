@@ -2612,6 +2612,24 @@ const gameManager = {
       _updateMenu();
     }
   }, */
+  menuDoubleShift() {
+    const localPlayer = useLocalPlayer();
+    let narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+    if (!narutoRunAction) {
+      narutoRunAction = {
+        type: 'narutoRun',
+        time: 0,
+      };
+      localPlayer.actions.push(narutoRunAction);
+    }
+  },
+  menuUnDoubleShift() {
+    const localPlayer = useLocalPlayer();
+    const narutoRunActionIndex = localPlayer.actions.findIndex(action => action.type === 'narutoRun');
+    if (narutoRunActionIndex !== -1) {
+      localPlayer.actions.splice(narutoRunActionIndex, 1);
+    }
+  },
   isFlying() {
     return useLocalPlayer().actions.some(action => action.type === 'fly');
   },

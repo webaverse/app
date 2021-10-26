@@ -234,6 +234,10 @@ function update(timeDiff) {
   if (throwAction) {
     throwAction.time += timeDiff;
   }
+  const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+  if (narutoRunAction) {
+    narutoRunAction.time += timeDiff;
+  }
   const activateAction = localPlayer.actions.find(action => action.type === 'activate');
   if (activateAction) {
     activateAction.time += timeDiff;
