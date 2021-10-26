@@ -27,8 +27,8 @@ import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 // import {bindInterface as inventoryBindInterface} from './inventory.js';
 // import fx from './fx.js';
-import {getExt} from './util.js';
-import {storageHost, tokensHost} from './constants.js';
+// import {getExt} from './util.js';
+// import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
 import * as characterController from './character-controller.js';
 import {
@@ -38,7 +38,7 @@ import {
   avatarScene,
   camera,
   orthographicCamera,
-  avatarCamera,
+  // avatarCamera,
   dolly,
   // orbitControls,
   // renderer2,
@@ -54,21 +54,21 @@ import * as metaverseModules from './metaverse-modules.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
+/* const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
 const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
 const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
+const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)); */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
+// const localVector4 = new THREE.Vector3();
+// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
+// const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localArray = Array(4);
 const localArray2 = Array(4);
