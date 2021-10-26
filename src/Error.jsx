@@ -1,13 +1,18 @@
 import React from 'react';
 
-export default () => {
+export default ({errors}) => {
   return (
     <div>
-      <h1>
-        Sorry ES-6 Module loading as Web-Workers is not supported in this browser.
-        <br/>
-        Please use some other browser. Supported browsers are Chrome, Safari or Opera.
-      </h1>
+      <h1>Browser not supported</h1>
+      <p>Your browser is missing the following required features:</p>
+      <ul>
+        {errors.map((error, i) => {
+          return (
+            <li key={i}>{error}</li>
+          );
+        })}
+      </ul>
+      <p>Supported browsers include Chrome, Safari or Opera.</p>
     </div>
   );
 };
