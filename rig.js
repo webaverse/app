@@ -636,8 +636,8 @@ class RigManager {
         // emote
         const localPlayerMessages = chatManager.getMessages().filter(m => m.object === this.localRig.modelBones.Head);
         const lastMessage = localPlayerMessages.length > 0 ? localPlayerMessages[localPlayerMessages.length - 1] : null;
-        let localPlayerEmotion = lastMessage && lastMessage.emotion;
-        let localPlayerFakeSpeech = lastMessage ? lastMessage.fakeSpeech : false;
+        const localPlayerEmotion = lastMessage && lastMessage.emotion;
+        const localPlayerFakeSpeech = lastMessage ? lastMessage.fakeSpeech : false;
         if (localPlayerEmotion) {
           // ensure new emotion and no others
           let found = false;
