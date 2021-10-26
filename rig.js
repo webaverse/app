@@ -530,7 +530,7 @@ class RigManager {
   }
 
   update() {
-    if (this.localRig /* && controlsManager.isPossessed()*/) {
+    if (this.localRig) {
       const now = Date.now();
       const timeDiff = (now - this.lastTimetamp) / 1000;
       
@@ -674,51 +674,12 @@ class RigManager {
       }
 
       this.localRig.update(now, timeDiff);
-      // this.localRig.aux.update(now, timeDiff);
-
-      /* let sitState = false; // this.localRig.aux.sittables.length > 0 && !!this.localRig.aux.sittables[0].model;
-      let sitAnimation;
-      if (sitState) {
-        const sittable = this.localRig.aux.sittables[0];
-        const {model, componentIndex} = sittable;
-        const component = model.getComponents()[componentIndex];
-        const {subtype = 'chair', sitBone = 'Spine', sitOffset = [0, 0, 0], damping} = component;
-        physicsManager.setSitController(sittable.model);
-        sitAnimation = subtype;
-        const spineBone = sittable.model.getObjectByName(sitBone);
-        if (spineBone) {
-          physicsManager.setSitTarget(spineBone);
-        } else {
-          physicsManager.setSitTarget(sittable.model);
-        }
-        physicsManager.setSitOffset(sitOffset);
-        if (typeof damping === 'number') {
-          physicsManager.setDamping(damping);
-        } else {
-          physicsManager.setDamping();
-        }
-      } else {
-        sitAnimation = null;
-        physicsManager.setDamping();
-      } */
 
       this.peerRigs.forEach(rig => {
         rig.update(now, timeDiff);
-        // rig.aux.update(now, timeDiff);
       });
-      
 
       this.lastTimetamp = now;
-
-      /* for (let i = 0; i < appManager.grabs.length; i++) {
-        const grab = appManager.grabs[i === 0 ? 1 : 0];
-        if (grab) {
-          const transforms = this.getRigTransforms();
-          const transform = transforms[i];
-          grab.position.copy(transform.position);
-          grab.quaternion.copy(transform.quaternion);
-        }
-      } */
     }
   }
 }
