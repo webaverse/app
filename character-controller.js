@@ -199,13 +199,12 @@ class RemotePlayer extends Player {
 }
 
 const activateMaxTime = 1000;
-function getAvatarCrouchFactor() {
-  const localPlayer = metaversefile.useLocalPlayer();
-  const crouchAction = localPlayer.actions.find(action => action.type === 'crouch');
+function getPlayerCrouchFactor(player) {
+  const crouchAction = player.actions.find(action => action.type === 'crouch');
   if (crouchAction) {
     return 1 - 0.4 * Math.min(Math.max(crouchAction.time, 0), crouchMaxTime) / crouchMaxTime;
   } else {
-    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+    const activateAction = player.actions.find(action => action.type === 'activate');
     if (activateAction) {
       return 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
     } else {
@@ -258,6 +257,6 @@ function update(timeDiff) {
 export {
   LocalPlayer,
   RemotePlayer,
-  getAvatarCrouchFactor,
+  getPlayerCrouchFactor,
   update,
 };
