@@ -275,19 +275,8 @@ function update(timeDiff) {
   if (useAction) {
     useAction.time += timeDiff;
   }
-  const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
-  if (crouchActionIndex !== -1) {
-    const crouchAction = localPlayer.actions[crouchActionIndex];
-    if (crouchAction.direction === 'down') {
-      crouchAction.time += timeDiff;
-      crouchAction.time = Math.min(crouchAction.time, crouchMaxTime);
-    } else if (crouchAction.direction === 'up') {
-      crouchAction.time -= timeDiff;
-      if (crouchAction.time < 0) {
-        localPlayer.actions.splice(crouchActionIndex, 1);
-      }
-    }
-  }
+  
+  localPlayer.actionInterpolants.crouch.update(timeDiff);
 }
 
 export {

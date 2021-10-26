@@ -2635,7 +2635,7 @@ const gameManager = {
   },
   toggleFly() {
     const localPlayer = useLocalPlayer();
-    let flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
+    const flyActionIndex = localPlayer.actions.findIndex(action => action.type === 'fly');
     if (flyActionIndex !== -1) {
       localPlayer.actions.splice(flyActionIndex, 1);
     } else {
