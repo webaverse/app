@@ -197,7 +197,49 @@ class RemotePlayer extends Player {
   }
 }
 
+function update(timeDiff) {
+  const localPlayer = metaversefile.useLocalPlayer();
+  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+  if (jumpAction) {
+    jumpAction.time += timeDiff;
+  }
+  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+  if (flyAction) {
+    flyAction.time += timeDiff;
+  }
+  const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+  if (danceAction) {
+    danceAction.time += timeDiff;
+  }
+  const throwAction = localPlayer.actions.find(action => action.type === 'throw');
+  if (throwAction) {
+    throwAction.time += timeDiff;
+  }
+  const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+  if (activateAction) {
+    activateAction.time += timeDiff;
+  }
+  const useAction = localPlayer.actions.find(action => action.type === 'use');
+  if (useAction) {
+    useAction.time += timeDiff;
+  }
+  const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
+  if (crouchActionIndex !== -1) {
+    const crouchAction = localPlayer.actions[crouchActionIndex];
+    if (crouchAction.direction === 'down') {
+      crouchAction.time += timeDiff;
+      crouchAction.time = Math.min(crouchAction.time, crouchMaxTime);
+    } else if (crouchAction.direction === 'up') {
+      crouchAction.time -= timeDiff;
+      if (crouchAction.time < 0) {
+        localPlayer.actions.splice(crouchActionIndex, 1);
+      }
+    }
+  }
+}
+
 export {
   LocalPlayer,
   RemotePlayer,
+  update,
 };

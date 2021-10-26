@@ -30,6 +30,7 @@ import equipmentRender from './equipment-render.js';
 import {getExt} from './util.js';
 import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
+import * as characterController from './character-controller.js';
 import {
   getRenderer,
   scene,
@@ -388,6 +389,8 @@ export default class Webaverse extends EventTarget {
         // }
         physicsManager.simulatePhysics(timeDiffCapped);
       }
+      
+      characterController.update(timeDiffCapped);
 
       this.injectRigInput();
 
