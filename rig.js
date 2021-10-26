@@ -470,38 +470,6 @@ class RigManager {
       peerRig.volume = player.volume;
     }
   }
-
-  intersectPeerRigs(raycaster) {
-    let closestPeerRig = null;
-    let closestPeerRigDistance = Infinity;
-    for (const peerRig of this.peerRigs.values()) {
-      /* console.log('got peer rig', peerRig);
-      if (!peerRig.rigCapsule) {
-        debugger;
-      } */
-      localMatrix2.compose(peerRig.inputs.hmd.position, peerRig.inputs.hmd.quaternion, localVector2.set(1, 1, 1));
-      localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
-        .premultiply(
-          localMatrix3.getInverse(
-            localMatrix2
-          )
-        )
-        .decompose(localRaycaster.ray.origin, localQuaternion, localVector2);
-      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-      const intersection = localRaycaster.ray.intersectBox(peerRig.rigCapsule.geometry.boundingBox, localVector);
-      if (intersection) {
-        const object = peerRig;
-        const point = intersection.applyMatrix4(localMatrix2);
-        return {
-          object,
-          point,
-          uv: null,
-        };
-      } else {
-        return null;
-      }
-    }
-  }
   
   getRigTransforms() {
     if (this.localRig) {
