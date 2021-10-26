@@ -2286,7 +2286,7 @@ class Avatar {
         this.velocity,
       );
       const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
-      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, key);
+      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, keyOther);
       const idleAnimationOther = _getIdleAnimation(keyOther);
       
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAnglesMirror[0].angle));
