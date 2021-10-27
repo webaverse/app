@@ -17,16 +17,12 @@ const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
-class BiActionInterpolant {
+class Interpolant {
   constructor(fn, minValue, maxValue) {
     this.fn = fn;
     this.value = minValue;
     this.minValue = minValue;
     this.maxValue = maxValue;
-  }
-  update(timeDiff) {
-    this.value += (this.fn() ? 1 : -1) * timeDiff;
-    this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
   }
   get() {
     return this.value;
@@ -36,6 +32,28 @@ class BiActionInterpolant {
   }
   getInverse() {
     return this.maxValue - this.value;
+  }
+}
+class BiActionInterpolant extends Interpolant {
+  constructor(fn, minValue, maxValue) {
+    super(fn, minValue, maxValue);
+  }
+  update(timeDiff) {
+    this.value += (this.fn() ? 1 : -1) * timeDiff;
+    this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
+  }
+}
+class UniActionInterpolant extends Interpolant {
+  constructor(fn, minValue, maxValue) {
+    super(fn, minValue, maxValue);
+  }
+  update(timeDiff) {
+    if (this.fn()) {
+      this.value += timeDiff;
+      this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
+    } else {
+      this.value = this.minValue;
+    }
   }
 }
 
