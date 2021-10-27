@@ -6,7 +6,7 @@ the purpose of this file is to hold these objects and to make sure they are corr
 import * as THREE from 'three';
 import {minFov} from './constants.js';
 
-let canvas = null, context = null, renderer = null;
+let canvas = null, context = null, renderer = null, composer = null, renderTarget = null;
 
 function bindCanvas(c) {
   canvas = c;
@@ -52,6 +52,23 @@ function getContainerElement() {
   const container = canvas.parentNode;
   return container;
 }
+
+function setComposer(newComposer)
+{
+    composer = newComposer;
+}
+
+function getComposer()
+{
+    return composer;
+}
+
+function getRenderTarget()
+{
+    return renderTarget;
+}
+
+renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
 const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
@@ -128,6 +145,9 @@ export {
   bindCanvas,
   getRenderer,
   getContainerElement,
+  setComposer,
+  getComposer,
+  getRenderTarget,
   scene,
   orthographicScene,
   avatarScene,
