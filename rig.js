@@ -16,6 +16,7 @@ import {chatManager} from './chat-manager.js';
 import ioManager from './io-manager.js';
 // import {world} from './world.js';
 import metaversefile from 'metaversefile';
+import Simplex from './simplex-noise.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -28,6 +29,15 @@ const localEuler2 = new THREE.Euler();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster(); */
+
+const _makeSimplexes = numSimplexes => {
+    const result = Array(numSimplexes);
+    for (let i = 0; i < numSimplexes; i++) {
+      result[i] = new Simplex(i + '');
+    }
+    return result;
+  };
+  const simplexes = _makeSimplexes(3);
 
 /* const roundedRectGeometry = (() => {
   const w = 1;
@@ -59,6 +69,43 @@ const localRaycaster = new THREE.Raycaster(); */
   return geometry;
 })(); */
 const _makeRig = app => {
+
+
+    function initWindParameters(rig)
+    {
+        var hairPhysics = null;
+        if (rig.app.components)
+        {
+            hairPhysics = rig.app.components.find( ({ key }) => key === 'hairPhysics' );
+            if (hairPhysics)
+            {
+                hairPhysics = hairPhysics.value;
+            }
+        }
+    
+        if (!hairPhysics)
+        {
+            return;
+        }
+
+        if (hairPhysics.windDirectionX === 'undefined') hairPhysics.windDirectionX = 0.0;
+        if (hairPhysics.windDirectionY === 'undefined') hairPhysics.windDirectionY = 1.0;
+        if (hairPhysics.windDirectionZ === 'undefined') hairPhysics.windDirectionZ = 0.0;
+        if (hairPhysics.windForceFactor === 'undefined') hairPhysics.windForceFactor = 0.0;
+
+        if (hairPhysics.windForceFactor == 0)
+        {
+            return;
+        }
+
+        hairPhysics.gravityDirection = new THREE.Vector3(0,1,0);
+
+        if (hairPhysics != null)
+        {
+            rig.hairPhysics = hairPhysics;
+        }
+    }
+
   if (app) {
     const {skinnedVrm} = app;
     if (skinnedVrm) {
@@ -70,6 +117,8 @@ const _makeRig = app => {
       });
       // localRig.model = o;
       localRig.app = app;
+
+      initWindParameters(localRig);
       
       unFrustumCull(app);
       
@@ -651,6 +700,41 @@ class RigManager {
         _applyFakeSpeech(lastMessage);
       };
       _applyChatModifiers();
+
+      const _applyWind = () => {
+            if (this.localRig.hairPhysics === 'undefined' || !this.localRig.hairPhysics)
+            {
+                return;
+            }
+
+            const hairPhysics = this.localRig.hairPhysics;
+
+            const now2 = now / 1000 * 2;
+            var noiseX = (simplexes[0].noise2D(now2, now2));
+            var noiseY = (simplexes[1].noise2D(now2, now2));
+            var noiseZ = (simplexes[2].noise2D(now2, now2));
+
+            noiseX = Math.abs(noiseX) * hairPhysics.windForceFactor;
+            noiseY = Math.abs(noiseY) * hairPhysics.windForceFactor;
+            noiseZ = Math.abs(noiseZ) * hairPhysics.windForceFactor;
+
+            hairPhysics.gravityDirection.set(noiseX * hairPhysics.windDirectionX,noiseY * hairPhysics.windDirectionY,noiseZ * hairPhysics.windDirectionZ);
+            if (hairPhysics.windForceFactor == 0)
+            {
+                hairPhysics.gravityDirection.set(0,1,0);
+            }
+
+            for(var i=0;i<this.localRig.springBoneManager.springBoneGroupList.length;i++)
+            {
+                for(var j=0;j<this.localRig.springBoneManager.springBoneGroupList[i].length;j++)
+                {
+                    var item = this.localRig.springBoneManager.springBoneGroupList[i][j];
+                    item.gravityDir.copy(hairPhysics.gravityDirection);
+                    item.gravityPower = hairPhysics.windForceFactor;
+                }
+            }
+      };
+      _applyWind();
 
       this.localRig.update(now, timeDiff);
 
