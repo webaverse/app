@@ -206,11 +206,35 @@ class RigManager {
 
   async _switchAvatar(oldRig, newApp) {
     // prepare for wearing
-    await newApp.setSkinning(true);
+    {
+      let waitPromise;
+      newApp.dispatchEvent({
+        type: 'wearupdate',
+        wear: {},
+        waitUntil(p) {
+          waitPromise = p;
+        },
+      });
+      if (waitPromise) {
+        await waitPromise;
+      }
+    }
     
     // unwear old rig
     if (oldRig) {
-      await oldRig.app.setSkinning(false);
+      {
+        let waitPromise;
+        oldRig.app.dispatchEvent({
+          type: 'wearupdate',
+          wear: null,
+          waitUntil(p) {
+            waitPromise = p;
+          },
+        });
+        if (waitPromise) {
+          await waitPromise;
+        }
+      }
     }
     if (!newApp.rig) {
       newApp.rig = _makeRig(newApp);
