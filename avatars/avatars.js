@@ -1506,7 +1506,7 @@ class Avatar {
     this.useAnimation = null;
     this.sitState = false;
     this.sitAnimation = null;
-    this.activateState = false;
+    // this.activateState = false;
     this.activateTime = 0;
     this.danceState = false;
     this.danceTime = 0;
@@ -2424,7 +2424,7 @@ class Avatar {
             dst.fromArray(v2);
           }
         }
-        if (this.activateState) {
+        if (this.activateTime > 0) {
           return spec => {
             const {
               quaternionKey: k,
