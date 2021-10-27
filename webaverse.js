@@ -31,6 +31,15 @@ import equipmentRender from './equipment-render.js';
 // import {storageHost, tokensHost} from './constants.js';
 // import './procgen.js';
 import * as characterController from './character-controller.js';
+
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
+import { DotScreenShader } from 'three/examples/jsm/shaders/DotScreenShader.js';
+import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
+
+
 import {
   getRenderer,
   scene,
@@ -45,6 +54,9 @@ import {
   sceneHighPriority,
   sceneLowPriority,
   bindCanvas,
+  getComposer,
+  setComposer,
+  getRenderTarget,
 } from './renderer.js';
 // import {mithrilInit} from './mithril-ui/index.js'
 // import TransformGizmo from './TransformGizmo.js';
@@ -320,8 +332,12 @@ export default class Webaverse extends EventTarget {
     // high priority render
     sceneHighPriority.add(world.lights);
     const renderer = getRenderer();
+    const renderTarget = getRenderTarget();
+    renderer.setRenderTarget(renderTarget);
     renderer.clear();
     renderer.render(sceneHighPriority, camera);
+
+    const composer = getComposer();
 
     // main render
     scene.add(world.lights);
@@ -362,6 +378,9 @@ export default class Webaverse extends EventTarget {
         // rigManager.localRig.aux.undecapitate();
       }
     }
+    renderer.setRenderTarget(null);
+
+    composer.render();
   }
   
   startLoop() {
@@ -369,6 +388,41 @@ export default class Webaverse extends EventTarget {
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
+
+
+    // Post-processing effects
+    // First we render all scenes into since renderTarget and then we apply Post-processing effects
+    const composer = new EffectComposer( renderer );
+
+    const renderTarget = getRenderTarget();
+
+    const texturePass1 = new TexturePass( renderTarget.texture );
+    composer.addPass( texturePass1 );
+
+    // const effect1 = new ShaderPass( DotScreenShader );
+    // effect1.uniforms[ 'scale' ].value = 4;
+    // composer.addPass( effect1 );
+
+    // const effect2 = new ShaderPass( RGBShiftShader );
+    // effect2.uniforms[ 'amount' ].value = 0.0015;
+    // composer.addPass( effect2 );
+
+    const pixelPass = new ShaderPass( PixelShader );
+    pixelPass.uniforms[ "resolution" ].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
+    pixelPass.uniforms[ "resolution" ].value.multiplyScalar( window.devicePixelRatio );
+    pixelPass.uniforms[ "pixelSize" ].value = 4.0;
+    pixelPass.enabled = false;
+    composer.addPass( pixelPass );
+
+    setComposer(composer);
+
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key == 'k') {
+            pixelPass.enabled = !pixelPass.enabled;
+        }
+     });    
+
     
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {      
