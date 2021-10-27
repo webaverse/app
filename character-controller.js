@@ -272,12 +272,7 @@ class RemotePlayer extends Player {
 function getPlayerCrouchFactor(player) {
   let factor = 1;
   factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
-  
-  const activateAction = player.actions.find(action => action.type === 'activate');
-  if (activateAction) {
-    factor *= 1 - 0.8 * Math.pow(Math.min(Math.max(activateAction.time*2, 0), activateMaxTime) / activateMaxTime, 1);
-  }
-  
+  factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
   return factor;
 };
 
@@ -303,10 +298,10 @@ function update(timeDiff) {
   if (narutoRunAction) {
     narutoRunAction.time += timeDiff;
   }
-  const activateAction = localPlayer.actions.find(action => action.type === 'activate');
+  /* const activateAction = localPlayer.actions.find(action => action.type === 'activate');
   if (activateAction) {
     activateAction.time += timeDiff;
-  }
+  } */
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction) {
     useAction.time += timeDiff;
