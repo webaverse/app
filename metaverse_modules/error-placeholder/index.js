@@ -28,8 +28,8 @@ const geometry = BufferGeometryUtils.mergeBufferGeometries([
 ]);
 const material = new MeshBasicMaterial({
   side: DoubleSide,
-  // transparent: true,
-  // alphaTest: 0.1,
+  transparent: true,
+  alphaTest: 0.5,
 });
 (async () => {
   try {
