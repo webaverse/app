@@ -313,6 +313,7 @@ function update(timeDiff) {
   }
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);
+  localPlayer.actionInterpolants.activate.update(timeDiff);
 }
 
 export {
