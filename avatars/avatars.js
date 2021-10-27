@@ -1513,7 +1513,7 @@ class Avatar {
     this.danceAnimation = null;
     this.throwState = null;
     this.throwTime = 0;
-    this.crouchTime = 0;
+    this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
