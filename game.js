@@ -68,7 +68,6 @@ const oneVector = new THREE.Vector3(1, 1, 1);
     .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Quaternion(0, 1, 0), -Math.PI/2)),
 ]; */
 const cubicBezier = easing(0, 1, 0, 1);
-const useTotalTime = 1000;
 
 const _getGrabbedObject = i => {
   const localPlayer = useLocalPlayer();
@@ -977,7 +976,7 @@ const _gameUpdate = (timestamp) => {
         // grabUseMesh.scale.copy(grabbedObject.scale);
         grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
-        grabUseMesh.setComponent('value', gameManager.getActivateFactor(now));
+        grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
 
         /* if (handSnap) {
           moveMesh.position.copy(grabbedObject.position);
@@ -1003,7 +1002,7 @@ const _gameUpdate = (timestamp) => {
           
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
-          grabUseMesh.setComponent('value', gameManager.getActivateFactor(now));
+          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
         }
       }
     }
@@ -1351,15 +1350,13 @@ const _gameUpdate = (timestamp) => {
   
   const _updateUses = () => {
     const localPlayer = useLocalPlayer();
-    let activateActionIndex = localPlayer.actions.findIndex(action => action.type === 'activate');
-    if (activateActionIndex !== -1) {
-      const activateAction = localPlayer.actions[activateActionIndex];
-      if (activateAction.time >= useTotalTime) {
-        if (grabUseMesh.target) {
-          grabUseMesh.target.activate();
-        }
-        localPlayer.actions.splice(activateActionIndex, 1);
+    const v = localPlayer.actionInterpolants.activate.getNormalized();
+    
+    if (v >= 1) {
+      if (grabUseMesh.target) {
+        grabUseMesh.target.activate();
       }
+      localPlayer.removeAction('activate');
     }
   };
   _updateUses();
@@ -2941,15 +2938,6 @@ const gameManager = {
   },
   getDragRightSpec() {
     return dragRightSpec;
-  },
-  getActivateFactor(now) {
-    const localPlayer = useLocalPlayer();
-    const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-    if (activateAction) {
-      return Math.min(Math.max(activateAction.time / useTotalTime, 0), 1);
-    } else {
-      return 0;
-    }
   },
   menuActivateDown() {
     if (grabUseMesh.visible) {
