@@ -840,7 +840,8 @@ const cylinderMesh = (() => {
 
 let lastDraggingRight = false;
 let dragRightSpec = null;
-const _gameUpdate = (timestamp) => {
+let fovFactor = 0;
+const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
   
@@ -1388,6 +1389,31 @@ const _gameUpdate = (timestamp) => {
     }
   };
   _updateEyes();
+  
+  const updateFov = () => {
+    if (!renderer.xr.getSession()) {
+      const fovInTime = 3;
+      const fovOutTime = 0.3;
+      const minFov = 60;
+      const maxFov = 120;
+      
+      const narutoRun = localPlayer.getAction('narutoRun');
+      if (narutoRun) {
+        if (ioManager.lastNonzeroDirectionVector.z < 0) {    
+          fovFactor += timeDiff / 1000 / fovInTime;
+        } else {
+          fovFactor -= timeDiff / 1000 / fovInTime;
+        }
+      } else {
+        fovFactor -= timeDiff / 1000 / fovOutTime;
+      }
+      fovFactor = Math.min(Math.max(fovFactor, 0), 1);
+
+      camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
+      camera.updateProjectionMatrix();
+    }
+  };
+  updateFov();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
