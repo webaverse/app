@@ -122,7 +122,7 @@ const _getGrabbedObject = i => {
   };
 // })();
 
-const items1El = document.getElementById('items-1');
+/* const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
 const items3El = document.getElementById('items-3');
 const items4El = document.getElementById('items-4');
@@ -162,7 +162,7 @@ const gridSnapEl = document.getElementById('grid-snap');
 const tabs = Array.from(document.querySelectorAll('#profile-icon > .nav'));
 const chatEl = document.getElementById('chat');
 const chatInputEl = document.getElementById('chat-input');
-const chatMessagesEl = document.getElementById('chat-messages');
+const chatMessagesEl = document.getElementById('chat-messages'); */
 
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
@@ -382,7 +382,7 @@ const _selectLoadout = index => {
     }
   })().catch(console.warn); */
 };
-const _deselectLoadout = () => {
+/* const _deselectLoadout = () => {
   selectedLoadoutIndex = -1;
   selectedLoadoutObject = null;
   _updateLoadoutInterface();
@@ -392,7 +392,7 @@ const _updateLoadoutInterface = () => {
     const itemEl = loadoutItems[i];
     itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
   }
-};
+}; */
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -2560,7 +2560,7 @@ const gameManager = {
     } else {
       this.gridSnap = 0;
     }
-    gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
+    // gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
   },
   getGridSnap() {
     if (this.gridSnap === 0) {
@@ -2707,7 +2707,7 @@ const gameManager = {
     return this.menuOpen === 1;
   }, */
   menuUpload: _upload,
-  enter() {
+  /* enter() {
     if (chatInputEl) {
       chatInputEl.classList.toggle('open');
       if (chatInputEl.classList.contains('open')) {
@@ -2722,7 +2722,7 @@ const gameManager = {
         }
       }
     }
-  },
+  }, */
   addLocalEmote(index) {
     if (rigManager.localRig) {
       const timestamp = performance.now();
