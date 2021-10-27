@@ -100,6 +100,7 @@ const _updateVertical = direction => {
 };
 
 const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
