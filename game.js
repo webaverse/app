@@ -20,7 +20,7 @@ import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import {getRenderer, scene, sceneLowPriority, /* orthographicScene, */ camera /*, dolly*/} from './renderer.js';
 import {snapPosition} from './util.js';
-import {maxGrabDistance, storageHost} from './constants.js';
+import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
@@ -1394,8 +1394,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (!renderer.xr.getSession()) {
       const fovInTime = 3;
       const fovOutTime = 0.3;
-      const minFov = 60;
-      const maxFov = 120;
       
       const narutoRun = localPlayer.getAction('narutoRun');
       if (narutoRun) {
