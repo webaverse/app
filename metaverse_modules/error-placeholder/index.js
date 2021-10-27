@@ -30,7 +30,6 @@ const material = new MeshBasicMaterial({
   side: DoubleSide,
   // transparent: true,
   // alphaTest: 0.1,
-  anisotropy: 16,
 });
 (async () => {
   try {
@@ -45,6 +44,7 @@ const material = new MeshBasicMaterial({
     });
     const texture = new Texture(img);
     texture.encoding = sRGBEncoding;
+    texture.anisotropy = 16;
     // texture.minFilter = NearestFilter;
     // texture.magFilter = NearestFilter;
     texture.needsUpdate = true;
