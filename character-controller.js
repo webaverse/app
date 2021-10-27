@@ -70,6 +70,12 @@ class Player extends THREE.Object3D {
   hasAction(type) {
     return this.actions.some(action => action.type === type);
   }
+  addAction(action) {
+    this.actions.push(action);
+  }
+  removeAction(type) {
+    this.actions = this.actions.filter(action => action.type !== type);
+  }
 }
 class LocalPlayer extends Player {
   constructor() {
