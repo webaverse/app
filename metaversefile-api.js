@@ -16,7 +16,7 @@ import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
-import * as ui from './vr-ui.js';
+// import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -26,7 +26,8 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
-import {LocalPlayer, RemotePlayer} from './player.js';
+import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import {getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -100,6 +101,24 @@ class App extends THREE.Object3D {
   activate() {
     this.dispatchEvent({
       type: 'activate',
+    });
+  }
+  wear() {
+    localPlayer.wear(this);
+  }
+  unwear() {
+    localPlayer.unwear(this);
+  }
+  use() {
+    this.dispatchEvent({
+      type: 'use',
+    });
+  }
+  hit(damage) {
+    this.dispatchEvent({
+      type: 'hit',
+      hp: 100,
+      totalHp: 100,
     });
   }
   destroy() {
@@ -218,7 +237,8 @@ const defaultComponents = {
                 app,
               },
             }));
-            world.appManager.removeObject(app.instanceId);
+            world.appManager.removeApp(app);
+            app.destroy();
           }
         }
       });
@@ -385,9 +405,9 @@ const abis = {
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
-const apps = [];
+// const apps = [];
 metaversefile.setApi({
-  apps,
+  // apps,
   async import(s) {
     if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
       s = `/@proxy/${s}`;
@@ -417,12 +437,12 @@ metaversefile.setApi({
   },
   useWorld() {
     return {
-      addObject() {
+      /* addObject() {
         return world.appManager.addObject.apply(world.appManager, arguments);
       },
       removeObject() {
         return world.appManager.removeObject.apply(world.appManager, arguments);
-      },
+      }, */
       getLights() {
         return world.lights;
       },
@@ -623,9 +643,9 @@ metaversefile.setApi({
   useAbis() {
     return abis;
   },
-  useUi() {
+  /* useUi() {
     return ui;
-  },
+  }, */
   useActivate(fn) {
     const app = currentAppRender;
     if (app) {
@@ -637,6 +657,32 @@ metaversefile.setApi({
       });
     } else {
       throw new Error('useActivate cannot be called outside of render()');
+    }
+  },
+  useWear(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('wearupdate', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('wearupdate', fn);
+      });
+    } else {
+      throw new Error('useWear cannot be called outside of render()');
+    }
+  },
+  useUse(fn) {
+    const app = currentAppRender;
+    if (app) {
+      app.addEventListener('use', e => {
+        fn(e);
+      });
+      app.addEventListener('destroy', () => {
+        window.removeEventListener('use', fn);
+      });
+    } else {
+      throw new Error('useUse cannot be called outside of render()');
     }
   },
   useResize(fn) {
@@ -651,6 +697,10 @@ metaversefile.setApi({
     } else {
       throw new Error('useResize cannot be called outside of render()');
     }
+  },
+  /* getAppByInstanceId(instanceId) {
+    const r = _makeRegexp(instanceId);
+    return apps.find(app => r.test(app.instanceId));
   },
   getAppByName(name) {
     const r = _makeRegexp(name);
@@ -674,9 +724,15 @@ metaversefile.setApi({
     const r = _makeRegexp(componentType);
     return apps.filter(app => app.components.some(component => r.test(component.type)));
   },
-  createApp({name = '', start_url = '', type = '', /*components = [], */in_front = false} = {}) {
+  getAppByPhysicsId(physicsId) {
+    return world.appManager.getObjectFromPhysicsId(physicsId);
+  }, */
+  getNextInstanceId() {
+    return getRandomString();
+  },
+  createApp({/* name = '', */start_url = '', type = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
-    app.name = name;
+    // app.name = name;
     app.type = type;
     // app.components = components;
     if (in_front) {
@@ -689,6 +745,13 @@ metaversefile.setApi({
         await metaversefile.addModule(app, m);
       })();
     }
+    app.addEventListener('destroy', () => {
+      const localPlayer = metaversefile.useLocalPlayer();
+      const wearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
+      if (wearIndex !== -1) {
+        localPlayer.wears.splice(wearIndex, 1);
+      }
+    });
     return app;
   },
   createModule: (() => {
@@ -708,7 +771,25 @@ export default () => {
       return result;
     };
   })(),
-  addAppToList(app) {
+  addApp(app) {
+    return world.appManager.addApp.apply(world.appManager, arguments);
+  },
+  removeApp() {
+    return world.appManager.removeApp.apply(world.appManager, arguments);
+  },
+  addTrackedApp() {
+    return world.appManager.addTrackedApp.apply(world.appManager, arguments);
+  },
+  removeTrackedApp(app) {
+    return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
+  },
+  getAppByInstanceId() {
+    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments);
+  },
+  getAppByPhysicsId() {
+    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments);
+  },
+  /* addAppToList(app) {
     apps.push(app);
   },
   addApp(app) {
@@ -716,9 +797,12 @@ export default () => {
     apps.push(app);
   },
   removeApp(app) {
-    app.parent.remove(app);
-    apps.splice(apps.indexOf(app), 1);
-  },
+    app.parent && app.parent.remove(app);
+    const index = apps.indexOf(app);
+    if (index !== -1) {
+      apps.splice(index, 1);
+    }
+  }, */
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');

@@ -25,82 +25,9 @@ const damagePhysicsMesh = _makeDamagePhysicsMesh();
 damagePhysicsMesh.visible = false;
 scene.add(damagePhysicsMesh);
 
-const radius = 1;
-const height = 0.2;
-const halfHeight = height/2;
-const offsetDistance = 0.3;
-const cylinderMesh = new THREE.Mesh(
-  new THREE.CylinderBufferGeometry(radius, radius, height),
-  new THREE.MeshBasicMaterial({
-    color: 0x00FFFF,
-  })
-);
-cylinderMesh.startPosition = new THREE.Vector3();
 const hitAnimationLength = 300;
 let damageAnimation = null;
 const update = (timestamp, timeDiff) => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  
-  cylinderMesh.position.copy(localPlayer.position)
-    .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(localPlayer.quaternion));
-  cylinderMesh.quaternion.copy(localPlayer.quaternion);
-  cylinderMesh.startPosition.copy(localPlayer.position);
-  
-  const useAction = localPlayer.actions.find(action => action.type === 'use');
-  if (useAction && useAction.animation === 'combo') {
-    const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-    if (collision) {
-      const collisionId = collision.objectId;
-      const object = world.appManager.getObjectFromPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
-      if (object) {
-        const worldPosition = object.getWorldPosition(localVector);
-        const {hit, died} = object.hitTracker.hit(typeof useAction.damage === 'number' ? useAction.damage : 30);
-        
-        if (hit) {
-          /* if (damagePhysicsMesh.physicsId !== collisionId) {
-            const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
-            let geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
-            geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
-            geometry = geometry.toNonIndexed();
-            geometry.computeVertexNormals();
-
-            damagePhysicsMesh.geometry.dispose();
-            damagePhysicsMesh.geometry = geometry;
-            damagePhysicsMesh.physicsId = collisionId;
-          } */
-              
-          const physicsObject = physicsManager.getPhysicsObject(collisionId);
-          const {physicsMesh} = physicsObject;
-          damagePhysicsMesh.geometry = physicsMesh.geometry;
-          damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
-          damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-            .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
-              
-          damageAnimation = {
-            startTime: timestamp,
-            endTime: timestamp + hitAnimationLength,
-          };
-          
-          object.dispatchEvent({
-            type: 'hit',
-            position: cylinderMesh.position,
-            quaternion: cylinderMesh.quaternion,
-            hp: object.hitTracker.hp,
-            totalHp: object.hitTracker.totalHp,
-          });
-        }
-        if (died) {
-          object.dispatchEvent({
-            type: 'die',
-            position: cylinderMesh.position,
-            quaternion: cylinderMesh.quaternion,
-          });
-        }
-      }
-    }
-  }
-
   if (damageAnimation) {
     if (timestamp < damageAnimation.endTime) {
       const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
@@ -112,6 +39,21 @@ const update = (timestamp, timeDiff) => {
     }
   }
   damagePhysicsMesh.visible = !!damageAnimation;
+};
+
+const triggerDamageAnimation = collisionId => {
+  const timestamp = performance.now();
+  const physicsObject = physicsManager.getPhysicsObject(collisionId);
+  const {physicsMesh} = physicsObject;
+  damagePhysicsMesh.geometry = physicsMesh.geometry;
+  damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
+  damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+    .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
+      
+  damageAnimation = {
+    startTime: timestamp,
+    endTime: timestamp + hitAnimationLength,
+  };
 };
 
 const makeHitTracker = ({
@@ -139,11 +81,6 @@ const makeHitTracker = ({
           died: false,
         };
       } else {
-        /* jitterObject.dispatchEvent({
-          type: 'die',
-          position: cylinderMesh.startPosition.clone(),
-          quaternion: cylinderMesh.quaternion.clone(),
-        }); */
         return {
           hit: true,
           died: true,
@@ -174,5 +111,6 @@ const makeHitTracker = ({
 const hpManager = {
   makeHitTracker,
   update,
+  triggerDamageAnimation,
 };
 export default hpManager;

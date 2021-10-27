@@ -4,6 +4,7 @@ the purpose of this file is to hold these objects and to make sure they are corr
 */
 
 import * as THREE from 'three';
+import {minFov} from './constants.js';
 
 let canvas = null, context = null, renderer = null;
 
@@ -56,7 +57,7 @@ const scene = new THREE.Scene();
 const orthographicScene = new THREE.Scene();
 const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 
