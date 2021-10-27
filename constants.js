@@ -48,3 +48,5 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
+export const minFov = 60;
+export const maxFov = 120;
