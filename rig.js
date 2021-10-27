@@ -83,8 +83,8 @@ function applyPlayerActionsToAvatar(player, rig) {
   const jumpTime = jumpAction ? jumpAction.time : -1;
   const flyAction = player.actions.find(action => action.type === 'fly');
   const flyTime = flyAction ? flyAction.time : -1;
-  const activateAction = player.actions.find(action => action.type === 'activate');
-  const activateTime = activateAction ? activateAction.time : -1;
+  // const activateAction = player.actions.find(action => action.type === 'activate');
+  // const activateTime = activateAction ? activateAction.time : -1;
   const useAction = player.actions.find(action => action.type === 'use');
   const useTime = useAction ? useAction.time : -1;
   const narutoRunAction = player.actions.find(action => action.type === 'narutoRun');
@@ -103,8 +103,8 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.jumpTime = jumpTime;
   rig.flyState = !!flyAction;
   rig.flyTime = flyTime;
-  rig.activateState = !!activateAction && !crouchAction;
-  rig.activateTime = activateTime;
+  // rig.activateState = !!activateAction && !crouchAction;
+  rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = useTime;
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = narutoRunTime;
