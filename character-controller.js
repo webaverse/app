@@ -64,6 +64,12 @@ class Player extends THREE.Object3D {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
     };
   }
+  static controlActionTypes = [
+    'jump',
+    'crouch',
+    'fly',
+    'sit',
+  ]
   getAction(type) {
     return this.actions.find(action => action.type === type);
   }
@@ -75,6 +81,10 @@ class Player extends THREE.Object3D {
   }
   removeAction(type) {
     this.actions = this.actions.filter(action => action.type !== type);
+  }
+  setControlAction(action) {
+    this.actions = this.actions.filter(action => !Player.controlActionTypes.includes(action.type));
+    this.actions.push(action);
   }
 }
 class LocalPlayer extends Player {

@@ -2643,16 +2643,7 @@ const gameManager = {
         type: 'fly',
         time: 0,
       };
-      localPlayer.actions.push(flyAction);
-      
-      if (gameManager.isJumping()) {
-        const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
-        localPlayer.actions.splice(jumpActionIndex, 1);
-      }
-      if (gameManager.isCrouched()) {
-        const crouchActionIndex = localPlayer.actions.findIndex(action => action.type === 'crouch');
-        localPlayer.actions.splice(crouchActionIndex, 1);
-      }
+      localPlayer.setControlAction(flyAction);
     }
   },
   isCrouched() {
