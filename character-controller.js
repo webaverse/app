@@ -80,6 +80,7 @@ class Player extends THREE.Object3D {
 
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
     };
   }
   static controlActionTypes = [
