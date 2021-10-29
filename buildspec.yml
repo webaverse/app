@@ -18,7 +18,7 @@ phases:
       - echo Starting the app...
       - cd ../../
       - echo Running the tests...
-      - npm run start
+      - npm run test
   post_build:
     commands:
       - echo Build completed on `date`
