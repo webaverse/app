@@ -2,9 +2,9 @@ var assert = require('assert');
 const LoadTester = require('./loading/index');
 
 
-describe('Array', function() {
-  describe('#indexOf()', function() {
-    it('should return -1 when the value is not present', async (done) => {
+describe('Running Pupeeteer', function() {
+  describe('Loading Test Suite', function() {
+    it('Checking Scenes', async (done) => {
      const appTester = new LoadTester({
         slowMo: 0,
         host: 'http://localhost:3000',
@@ -18,6 +18,7 @@ describe('Array', function() {
         }finally{
           this.stats.errors.push(value);
         }
+        assert(value, Error);
       }
 
       await appTester.run();
