@@ -12,8 +12,6 @@ phases:
       - npm install -y
       - npm install wsrtc@0.0.6
       - npm install metaversefile@0.0.32
-      - cd tests/loading
-      - npm install -y
   build:
     commands:
       - echo Build started on `date`
