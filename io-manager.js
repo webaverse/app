@@ -18,9 +18,10 @@ import {getRenderer, /*renderer2,*/ scene, camera, avatarCamera, dolly, getConta
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
 import transformControls from './transform-controls.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -99,6 +100,7 @@ const _updateVertical = direction => {
 };
 
 const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
@@ -197,14 +199,20 @@ const _updateIo = timeDiff => {
     }
   } else /* if (controlsManager.isPossessed()) */ {
     const direction = localVector.set(0, 0, 0);
+    
+    const localPlayer = metaversefile.useLocalPlayer();
+    const narutoRunAction = localPlayer.getAction('narutoRun');
+    
     _updateHorizontal(direction);
     if (direction.equals(zeroVector)) {
-      if (ioManager.keys.doubleShift) {
+      if (narutoRunAction) {
         direction.copy(lastNonzeroDirectionVector);
       }
     } else {
       lastNonzeroDirectionVector.copy(direction);
     }
+    
+    physicsManager.direction.copy(direction);
     
     const isFlying = game.isFlying();
     if (isFlying) {
@@ -222,15 +230,11 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (localVector.length() > 0) {
-      const sprintMultiplier = (ioManager.keys.shift && !game.isCrouched()) ?
-        (ioManager.keys.doubleShift ? 20 : 3)
-      :
-        1;
-      const speed = game.getSpeed() * sprintMultiplier;
-      localVector.normalize().multiplyScalar(speed * timeDiff);
+    if (direction.length() > 0) {
+      const speed = game.getSpeed();
+      direction.normalize().multiplyScalar(speed * timeDiff);
 
-      physicsManager.velocity.add(localVector);
+      physicsManager.velocity.add(direction);
 
       if (isFlying) {
         physicsManager.velocity.multiplyScalar(0.9);
@@ -354,9 +358,9 @@ ioManager.keydown = e => {
       if (game.canPush()) {
         ioManager.keys.forward = true;
       } else {
-        if (game.canJumpOff()) {
+        /* if (game.canJumpOff()) {
           game.jumpOff();
-        }
+        } */
         game.toggleFly();
       }
       break;
@@ -468,7 +472,7 @@ ioManager.keydown = e => {
       const timeDiff = now - lastShiftDownTime;
       if (timeDiff < 200) {
         ioManager.keys.doubleShift = true;
-        game.menuUnaim();
+        game.menuDoubleShift();
       }
       lastShiftDownTime = now;
       break;
@@ -477,9 +481,6 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          if (game.canJumpOff()) {
-            game.jumpOff();
-          }
           game.jump();
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
@@ -597,6 +598,8 @@ ioManager.keyup = e => {
     case 16: { // shift
       ioManager.keys.shift = false;
       ioManager.keys.doubleShift = false;
+      
+      game.menuUnDoubleShift();
       break;
     }
     case 46: { // delete
@@ -672,7 +675,7 @@ const _updateMouseHover = e => {
     const result = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
     
     if (result) {
-      const object = world.appManager.getObjectFromPhysicsId(result.objectId);
+      const object = world.appManager.getAppByPhysicsId(result.objectId);
       if (object) {
         point = localVector.fromArray(result.point);
         
@@ -752,9 +755,9 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      if (!ioManager.keys.doubleShift) {
+      // if (!ioManager.keys.doubleShift) {
         game.menuAim();
-      }
+      // }
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
