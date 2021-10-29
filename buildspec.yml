@@ -10,8 +10,6 @@ phases:
       - apt install sudo -y
       - sudo npm install forever -g
       - npm install -y
-      - npm install wsrtc@0.0.6
-      - npm install metaversefile@0.0.32
   build:
     commands:
       - echo Build started on `date`
