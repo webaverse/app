@@ -425,7 +425,7 @@ class SSAOPass extends Pass {
 
 			cache.set( object, object.visible );
 
-			if ( object.isPoints || object.isLine ) object.visible = false;
+			if ( object.isPoints || object.isLine || object.isLowPriority ) object.visible = false;
 
 		} );
 
