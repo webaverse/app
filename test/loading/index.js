@@ -39,7 +39,7 @@ module.exports = class LoadTester {
 
   async init() {
     this.browser = await puppeteer.launch({
-      headless: false, // change to false for debug
+      headless: true, // change to false for debug
       slowMo: this.config.slowMo,
       defaultViewport: null,
       args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'],
