@@ -5,7 +5,8 @@ const LoadTester = require('./loading/index');
 describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
     it('Checking Scenes', async (done) => {
-     const appTester = new LoadTester({
+      let error = false;
+      const appTester = new LoadTester({
         slowMo: 0,
         host: 'http://localhost:3000',
       })
@@ -18,10 +19,11 @@ describe('Running Pupeeteer', function() {
         }finally{
           this.stats.errors.push(value);
         }
-        assert(value, Error);
+        error = true;
       }
 
       await appTester.run();
+      assert.equal(error,false);
       done();
     });
   });
