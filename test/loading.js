@@ -8,7 +8,7 @@ describe('Running Pupeeteer', function() {
       let error = false;
       const appTester = new LoadTester({
         slowMo: 0,
-        host: 'http://localhost:3000',
+        host: 'https://app.webaverse.com',
       })
 
       appTester.PromiseIntercept = (value) =>{
