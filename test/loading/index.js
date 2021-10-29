@@ -63,6 +63,7 @@ module.exports = class LoadTester {
       await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
 
       await this.page.evaluateOnNewDocument(() => {
+        Error.stackTraceLimit = 1000;
         ((Promise) => {
 
           let originalOnFailure;
@@ -75,9 +76,11 @@ module.exports = class LoadTester {
               }else if(typeof originalOnFailure === 'function'){
                 console.log('originalOnFailure was a function',originalOnFailure);
                 console.log('onFailure was a value',onFailure);
+                PromiseIntercept(originalOnFailure.toString());                
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return originalOnFailure(onFailure);
               }else if(typeof onFailure === 'object'){
+                debugger;
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return onFailure;
               }
