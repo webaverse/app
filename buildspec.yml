@@ -1,37 +1,29 @@
 version: 0.2
 
 phases:
-  pre_build:
+  install:
+    runtime-versions:
+      nodejs: latest
     commands:
-      - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo Entered the install phase...
+      - apt update -y
+      - apt install sudo -y
+      - sudo npm install forever -g
+      - npm install -y
+      - npm install wsrtc@0.0.6
+      - npm install metaversefile@0.0.32
+      - cd tests/loading
+      - npm install -y
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
-      - echo Logging in to Docker Hub...
-      - echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-      - echo "${CODEBUILD_BUILD_ARN}"
-       - |
-         if expr "${CODEBUILD_BUILD_ARN}" : ".*CodeBuildProject-app-TestHarness-" >/dev/null; then
-           docker build -t $REPOSITORY_URI:latest ./tests/loading/Dockerfile
-         fi
-       - |
-         if expr "${CODEBUILD_BUILD_ARN}" : ".*CodeBuildProject-app-" >/dev/null; then
-           docker build -t $REPOSITORY_URI:latest .
-         fi
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - echo Starting the app...
+      - cd ../../
+      - echo Running the tests...
+      - npm run start
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing the Docker images...
-      - echo Logging in to Amazon ECR...
-      - aws --version
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions file...
-      - printf '[{"name":"ECSContainer-app-'$AWS_DEFAULT_REGION'","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf 'Results' > test_results.json
 artifacts:
-    files: imagedefinitions.json
+    files: test_results.json
