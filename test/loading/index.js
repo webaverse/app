@@ -7,7 +7,7 @@ function sleep(seconds) {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 
-class LoadTester {
+module.exports = class LoadTester {
   async addStat(type, stat) {
     if (!this.stats) {
       this.stats = {
@@ -27,9 +27,19 @@ class LoadTester {
     }
   }
 
+  PromiseIntercept(value){
+    try{
+      console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
+    }catch(e){
+      console.log('Promise Error Intercepted ',  JSON.stringify(value));
+    }finally{
+      this.stats.errors.push(value);
+    }
+  }
+
   async init() {
     this.browser = await puppeteer.launch({
-      headless: true, // change to false for debug
+      headless: false, // change to false for debug
       slowMo: this.config.slowMo,
       defaultViewport: null,
       args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'],
@@ -49,6 +59,50 @@ class LoadTester {
       .on('requestfailed', request => {
         this.addStat('NETWORK', `Request-Error: ${request.failure().errorText} ${request.url()}`);
       });
+
+      await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
+
+      await this.page.evaluateOnNewDocument(() => {
+        ((Promise) => {
+
+          let originalOnFailure;
+
+          const customFailure = (onFailure)=>{
+              if(typeof onFailure === 'function'){
+                originalOnFailure = onFailure;
+                console.log('OnFailure was a function');
+                return customFailureCaller;
+              }else if(typeof originalOnFailure === 'function'){
+                console.log('originalOnFailure was a function',originalOnFailure);
+                console.log('onFailure was a value',onFailure);
+                PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
+                return originalOnFailure(onFailure);
+              }else if(typeof onFailure === 'object'){
+                PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
+                return onFailure;
+              }
+              return originalOnFailure || onFailure;
+          }
+      
+
+          const customFailureCaller = (e) =>{
+            PromiseIntercept(e);
+            originalOnFailure(e);
+          }
+
+          var originalThen = Promise.prototype.then;
+          Promise.prototype.then = function(onFulfilled, onFailure) {
+             return originalThen.call(this, function(value) {
+              if(onFulfilled){
+                  return onFulfilled(value);   
+              }
+              if(onFailure){
+                originalOnFailure = onFailure;
+              }
+             }, customFailure);
+          };
+      })(this.Promise)
+      })
   }
 
   async testScene(sceneUrl) {
@@ -59,10 +113,7 @@ class LoadTester {
     });
 
     const t1 = performance.now();
-
     this.addStat('PERFORMANCE', `Street Scene Loaded in ${Number(t1 - t0).toFixed(0) / 1000}s`);
-
-    await sleep(20);
   }
 
   async test() {
@@ -87,7 +138,6 @@ class LoadTester {
 
   constructor(config) {
     this.config = config;
-    this.run();
   }
 
   async finish() {
@@ -97,9 +147,9 @@ class LoadTester {
   }
 }
 
-new LoadTester(
-  {
-    slowMo: 0,
-    host: 'http://localhost:3000',
-  },
-);
+// new LoadTester(
+//   {
+//     slowMo: 0,
+//     host: 'http://localhost:3000',
+//   },
+// );
