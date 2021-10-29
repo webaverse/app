@@ -5,6 +5,7 @@ const moduleUrls = {
   silk: `./metaverse_modules/silk/`,
   card: `./metaverse_modules/card/`,
   arrowLoader: `./metaverse_modules/arrow-loader/`,
+  errorPlaceholder: `./metaverse_modules/error-placeholder/`,
 };
 const modules = {};
 const loadPromise = (async () => {
