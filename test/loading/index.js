@@ -40,9 +40,9 @@ module.exports = class LoadTester {
   PromiseIntercept(value){
     let reportError = false;
     try{
-      console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
+      // console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
     }catch(e){
-      console.log('Promise Error Intercepted ',  JSON.stringify(value));
+      // console.log('Promise Error Intercepted ',  JSON.stringify(value));
     }finally{
       this.stats.errors.push(value);
     }
@@ -95,8 +95,6 @@ module.exports = class LoadTester {
       .on('console', message => {
         if (message.type().substr(0, 3).toUpperCase() === 'ERR') {
           this.addStat('ERROR', 'Page-Error: ' + message.text());
-        }else{
-          console.log(message);
         }
       })
       .on('requestfailed', request => {
@@ -114,16 +112,15 @@ module.exports = class LoadTester {
           const customFailure = (onFailure)=>{
               if(typeof onFailure === 'function'){
                 originalOnFailure = onFailure;
-                console.log('OnFailure was a function');
+                // console.log('OnFailure was a function');
                 return customFailureCaller;
               }else if(typeof originalOnFailure === 'function'){
-                console.log('originalOnFailure was a function',originalOnFailure);
-                console.log('onFailure was a value',onFailure);
+                // console.log('originalOnFailure was a function',originalOnFailure);
+                // console.log('onFailure was a value',onFailure);
                 //PromiseIntercept(originalOnFailure.toString());                
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return originalOnFailure(onFailure);
               }else if(typeof onFailure === 'object'){
-                debugger;
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return onFailure;
               }
@@ -167,6 +164,7 @@ module.exports = class LoadTester {
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
       console.log(scene, this.stats);
+      this.scenes.push(this.stats);
       this.stats = {
         errors: [],
         network: [],
@@ -184,10 +182,10 @@ module.exports = class LoadTester {
 
   constructor(config) {
     this.config = config;
+    this.scenes = [];
   }
 
   async finish() {
-    console.log(this.stats);
     this.browser.close();
     this.browser = null;
   }
