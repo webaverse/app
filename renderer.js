@@ -1,17 +1,17 @@
 /*
-this file contains tha main objects we use for rendering.
+this file contains the main objects we use for rendering.
 the purpose of this file is to hold these objects and to make sure they are correctly configured (e.g. handle canvas resize)
 */
 
 import * as THREE from 'three';
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
 let canvas = null, context = null, renderer = null, composer = null, renderTarget = null;
 
 function bindCanvas(c) {
+  // initialize renderer
   canvas = c;
-  
-  const rect = canvas.getBoundingClientRect();
   context = canvas && canvas.getContext('webgl2', {
     antialias: true,
     alpha: true,
@@ -25,12 +25,14 @@ function bindCanvas(c) {
     alpha: true,
     // preserveDrawingBuffer: false,
   });
+
+  const rect = renderer.domElement.getBoundingClientRect();
   renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  // renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
