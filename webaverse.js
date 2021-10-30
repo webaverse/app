@@ -39,7 +39,7 @@ import {
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 // import {WebaverseRenderPass} from './webaverse-render-pass.js';
-import {parseQuery} from './util.js';
+// import {parseQuery} from './util.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -70,7 +70,7 @@ const sessionOpts = {
     'hand-tracking',
   ],
 };
-const hqDefault = parseQuery(window.location.search)['hq'] === '1';
+// const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 const frameEvent = (() => {
   const now = Date.now();
