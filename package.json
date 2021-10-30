@@ -8,7 +8,7 @@
     "dev": "node index.js",
     "build": "vite build",
     "serve": "vite preview",
-    "test": "npm start && mocha --timeout 0"
+    "test": "npm start && mocha --timeout 60000"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
