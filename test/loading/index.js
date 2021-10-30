@@ -43,7 +43,9 @@ module.exports = class LoadTester {
       slowMo: this.config.slowMo,
       defaultViewport: null,
       args: [		
-      '--use-gl=egl',
+      // '--use-gl=egl',
+      '--disable-gpu',
+      '--enable-webgl',
       '--no-sandbox',
       '--enable-precise-memory-info',
       '--enable-begin-frame-control',
