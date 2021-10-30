@@ -1,4 +1,4 @@
-name: Tests
+name: Mocha Tests
 'on':
   push:
   pull_request:
@@ -29,15 +29,12 @@ jobs:
             ${{ runner.os }}-node-v${{ matrix.node }}-
       - name: APT Update
         run: sudo apt update -y
-      - name: APT Install
-        run: sudo apt install sudo -y
       - name: Install Forever
         run: sudo npm install forever -g
       - name: Install Dependencies
         run: sudo npm install -y
       - name: Pre-Build
         run: |
-              sudo apt-get update
               # Install apt-transport-https
               sudo apt-get install -y apt-transport-https
               # Use apt to install the Chrome dependencies
@@ -52,5 +49,5 @@ jobs:
               sudo ls ./node_modules/puppeteer/.local-chromium/
               # Print out missing libs
               echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-901912/chrome-linux/chrome | grep not
-      - name: Run Tests
+      - name: Run Mocha Tests
         run: sudo npm run test
