@@ -54,6 +54,8 @@ module.exports = class LoadTester {
       .on('console', message => {
         if (message.type().substr(0, 3).toUpperCase() === 'ERR') {
           this.addStat('ERROR', 'Page-Error: ' + message.text());
+        }else{
+          console.log(message);
         }
       })
       .on('requestfailed', request => {
