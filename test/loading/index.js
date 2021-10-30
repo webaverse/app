@@ -42,11 +42,26 @@ module.exports = class LoadTester {
       headless: true, // change to false for debug
       slowMo: this.config.slowMo,
       defaultViewport: null,
-      args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'],
+      args: [		
+      '--use-gl=egl',
+      '--no-sandbox',
+      '--enable-precise-memory-info',
+      '--enable-begin-frame-control',
+      '--enable-surface-synchronization',
+      '--run-all-compositor-stages-before-draw',
+      '--disable-threaded-animation',
+      '--disable-threaded-scrolling',
+      '--disable-checker-imaging'],
     });
     var self = this;
 
     this.page = await this.browser.newPage();
+
+
+    this.devtools = await this.page.target().createCDPSession();
+    await this.devtools.send( 'HeadlessExperimental.enable' );
+    await this.devtools.send( 'HeapProfiler.enable' );
+
     await this.page.setDefaultNavigationTimeout(0);
 
     this.errorIndex = 0;

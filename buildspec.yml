@@ -22,6 +22,7 @@ phases:
       - apt-get install -y apt-transport-https
 
       # Use apt to install the Chrome dependencies
+      - apt-get install xvfb
       - apt-get install -y libxcursor1
       - apt-get install -y libgtk-3-dev
       - apt-get install -y libxss1
@@ -37,7 +38,7 @@ phases:
       - echo Build started on `date`
       - echo Starting the app...
       - echo Running the tests...
-      - npm run test
+      - xvfb-run --auto-servernum npm run test
   post_build:
     commands:
       - echo Build completed on `date`
