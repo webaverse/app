@@ -302,10 +302,6 @@ export default class Webaverse extends EventTarget {
         }
       `,
       fragmentShader: `\
-        /* vec3 pow2(vec3 c, float f) {
-          return vec3(c.r*f, c.g*f, c.b*f);
-        } */
-      
         uniform sampler2D tDiffuse;
         varying vec2 vUv;
         void main() {
