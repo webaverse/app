@@ -6,39 +6,23 @@ it uses the help of various managers and stores, and executes the render loop.
 import * as THREE from 'three';
 import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
-// import {PixelShader} from 'three/examples/jsm/shaders/PixelShader.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
-import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
+// import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
-// import {loginManager} from './login.js';
-// import runtime from './runtime.js';
-// import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-// import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
-// import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
-// import controlsManager from './controls-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import activateManager from './activate-manager.js';
-// import dropManager from './drop-manager.js';
-// import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
-// import {bindInterface as inventoryBindInterface} from './inventory.js';
-// import fx from './fx.js';
-// import {getExt} from './util.js';
-// import {storageHost, tokensHost} from './constants.js';
-// import './procgen.js';
 import * as characterController from './character-controller.js';
 import {
   getRenderer,
@@ -46,29 +30,17 @@ import {
   sceneHighPriority,
   sceneLowPriority,
   rootScene,
-  // orthographicScene,
-  // avatarScene,
   camera,
-  // orthographicCamera,
-  // avatarCamera,
   dolly,
-  // orbitControls,
-  // renderer2,
   bindCanvas,
   getComposer,
 } from './renderer.js';
-// import {mithrilInit} from './mithril-ui/index.js'
-// import TransformGizmo from './TransformGizmo.js';
-// import WSRTC from 'wsrtc/wsrtc.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
+import {parseQuery} from './util.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-/* const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
-const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
-const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)); */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -96,6 +68,7 @@ const sessionOpts = {
     'hand-tracking',
   ],
 };
+const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 const frameEvent = (() => {
   const now = Date.now();
@@ -116,6 +89,7 @@ class WebaversePass extends Pass {
     this.clear = true;
 
     this.internalRenderPass = internalRenderPass;
+    this.running = !!internalRenderPass;
   }
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     // ensure lights attached
@@ -144,8 +118,14 @@ class WebaversePass extends Pass {
     sceneLowPriority.traverse(o => {
       o.isLowPriority = true;
     });
-    this.internalRenderPass.renderToScreen = this.renderToScreen;
-    this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+    if (this.running) {
+      this.internalRenderPass.renderToScreen = this.renderToScreen;
+      this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+    } else {
+      renderer.setRenderTarget(renderTarget);
+      renderer.clear();
+      renderer.render(rootScene, camera);
+    }
     
     // undecapitate
     if (rigManager.localRig) {
@@ -222,6 +202,7 @@ export default class Webaverse extends EventTarget {
     internalRenderPass.maxDistance = 0.1;
     // internalRenderPass.output = SSAOPass.OUTPUT.SSAO;
     const webaversePass = new WebaversePass(internalRenderPass);
+    webaversePass.running = hqDefault;
     composer.addPass(webaversePass);
     
     /* const ssaoPass = new SSAOPass(scene, camera, size.x, size.y);
@@ -239,7 +220,7 @@ export default class Webaverse extends EventTarget {
       height: size.y,
     });
     bokehPass.needsSwap = true;
-    // bokehPass.enabled = false;
+    bokehPass.enabled = hqDefault;
     composer.addPass(bokehPass);
     
     /* const afterimagePass = new AfterimagePass();
@@ -253,7 +234,7 @@ export default class Webaverse extends EventTarget {
     adaptToneMappingPass.setMaxLuminance(10);
     adaptToneMappingPass.setMinLuminance(0);
     adaptToneMappingPass.setMiddleGrey(3);
-    // adaptToneMappingPass.enabled = false;
+    adaptToneMappingPass.enabled = hqDefault;
     // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
     composer.addPass(adaptToneMappingPass);
     
@@ -291,11 +272,11 @@ export default class Webaverse extends EventTarget {
     darkenPass.enabled = false;  
     composer.addPass(darkenPass); */
     
-    const bloomPass = new BloomPass(/*strength = */1, /*kernelSize = */15, /*sigma = */4, /*resolution = */256);
+    // const bloomPass = new BloomPass(/*strength = */1, /*kernelSize = */15, /*sigma = */4, /*resolution = */256);
     // adaptToneMappingPass.needsSwap = true;
     // bloomPass.copyUniforms["opacity"].value = 0.5;
-    bloomPass.enabled = false;
-    composer.addPass(bloomPass);
+    // bloomPass.enabled = false;
+    // composer.addPass(bloomPass);
     
     const resolution = size;
     const strength = 0.2;
@@ -306,7 +287,7 @@ export default class Webaverse extends EventTarget {
     // unrealBloomPass.strength = params.bloomStrength;
     // unrealBloomPass.radius = params.bloomRadius;
     // unrealBloomPass.copyUniforms['opacity'].value = 0.5;
-    // unrealBloomPass.enabled = false;
+    unrealBloomPass.enabled = hqDefault;
     composer.addPass(unrealBloomPass);
     
     const colorPass = new ShaderPass({
@@ -341,34 +322,17 @@ export default class Webaverse extends EventTarget {
     });
     // colorPass.enabled = false;
     composer.addPass(colorPass);
-    
-    // const value = 0.1;
-    // renderer.toneMappingExposure = Math.pow( value, 4.0 );
-
-    /* const pixelPass = new ShaderPass(PixelShader);
-    pixelPass.uniforms['resolution'].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
-    pixelPass.uniforms['resolution'].value.multiplyScalar( window.devicePixelRatio );
-    pixelPass.uniforms['pixelSize'].value = 4.0;
-    pixelPass.enabled = false;
-    composer.addPass(pixelPass); */
 
     document.addEventListener('keydown', (event) => { // XXX move to io manager
       if (event.key === 'h') {
-        afterimagePass.enabled = !afterimagePass.enabled;
+        webaversePass.running = !webaversePass.running;
       } else if (event.key === 'j') {
-        adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
+        bokehPass.enabled = !bokehPass.enabled;
       } else if (event.key === 'k') {
         adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
       } else if (event.key === 'l') {
-        bloomPass.enabled = !bloomPass.enabled;
         unrealBloomPass.enabled = !unrealBloomPass.enabled;
       }
-      // colorPass.enabled = bloomPass.enabled;
-      /* if (colorPass.enabled) {
-        renderer.outputEncoding = THREE.LinearEncoding;
-      } else {
-        renderer.outputEncoding = THREE.sRGBEncoding;
-      } */
     });
   }
   bindPreviewCanvas(previewCanvas) {
