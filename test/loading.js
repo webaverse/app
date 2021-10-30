@@ -8,7 +8,7 @@ describe('Running Pupeeteer', function() {
       let error = false;
       const appTester = new LoadTester({
         slowMo: 0,
-        host: 'https://localhost:3000',
+        host: 'http://localhost:3000',
       })
 
       appTester.MochaIntercept = ()=>{
