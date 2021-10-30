@@ -405,6 +405,7 @@ const abis = {
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
+let wasDecapitated = false;
 // const apps = [];
 metaversefile.setApi({
   // apps,
@@ -473,16 +474,18 @@ metaversefile.setApi({
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
       if (rigManager.localRig) {
-        rigManager.localRig.model.visible = true;
+        wasDecapitated = rigManager.localRig.decapitated;
+        rigManager.localRig.undecapitate();
       }
     }
   },
   useAfterRender() {
     recursion--;
     if (recursion === 0) {
-      // scene.directionalLight.castShadow = true;
-      if (rigManager.localRig) {
-        rigManager.localRig.model.visible = false;
+      // console.log('was decap', wasDecapitated);
+      if (rigManager.localRig && wasDecapitated) {
+        rigManager.localRig.decapitate();
+        rigManager.localRig.skeleton.update();
       }
     }
   },
