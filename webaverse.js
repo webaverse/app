@@ -382,6 +382,8 @@ export default class Webaverse extends EventTarget {
       world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
+      cameraManager.update(timeDiffCapped);
+      
       // universe.update();
       if (this.contentLoaded) {
         // if (controlsManager.isPossessed()) {
