@@ -44,6 +44,21 @@ function bindCanvas(c) {
   }
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
+
+  // initialize post-processing
+  {
+    const size = renderer.getSize(new THREE.Vector2());
+    const pixelRatio = renderer.getPixelRatio();
+    const encoding = THREE.sRGBEncoding;
+    const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.x * pixelRatio, size.y * pixelRatio, {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      encoding,
+    });
+    renderTarget.samples = context.MAX_SAMPLES;
+    composer = new EffectComposer(renderer, renderTarget);
+  }
 }
 
 function getRenderer() {
