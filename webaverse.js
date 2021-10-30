@@ -89,7 +89,6 @@ class WebaversePass extends Pass {
     this.clear = true;
 
     this.internalRenderPass = internalRenderPass;
-    this.running = !!internalRenderPass;
   }
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     // ensure lights attached
@@ -118,7 +117,7 @@ class WebaversePass extends Pass {
     sceneLowPriority.traverse(o => {
       o.isLowPriority = true;
     });
-    if (this.running) {
+    if (this.internalRenderPass) {
       this.internalRenderPass.renderToScreen = this.renderToScreen;
       this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
     } else {
@@ -201,8 +200,7 @@ export default class Webaverse extends EventTarget {
     internalRenderPass.minDistance = 0.005;
     internalRenderPass.maxDistance = 0.1;
     // internalRenderPass.output = SSAOPass.OUTPUT.SSAO;
-    const webaversePass = new WebaversePass(internalRenderPass);
-    webaversePass.running = hqDefault;
+    const webaversePass = new WebaversePass(hqDefault ? internalRenderPass : null);
     composer.addPass(webaversePass);
     
     /* const ssaoPass = new SSAOPass(scene, camera, size.x, size.y);
@@ -325,7 +323,7 @@ export default class Webaverse extends EventTarget {
 
     document.addEventListener('keydown', (event) => { // XXX move to io manager
       if (event.key === 'h') {
-        webaversePass.running = !webaversePass.running;
+        webaversePass.internalRenderPass = webaversePass.internalRenderPass ? null : internalRenderPass;
       } else if (event.key === 'j') {
         bokehPass.enabled = !bokehPass.enabled;
       } else if (event.key === 'k') {
