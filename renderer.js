@@ -33,7 +33,7 @@ function bindCanvas(c) {
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
   // renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.gammaFactor = 2.2;
+  // renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   if (!canvas) {
