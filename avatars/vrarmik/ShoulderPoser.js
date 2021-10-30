@@ -75,45 +75,55 @@ class ShoulderPoser {
   		.magnitude);
   } */
 
-  Update(leftArmIk, rightArmIk) {
-    this.shoulder.proneFactor = this.getProneFactor();
-    this.shoulder.prone = this.shoulder.proneFactor > 0;
-    if (this.shoulder.prone) {
-      this.shoulder.lastProneTimestamp = Date.now();
-    } else {
-      this.shoulder.lastStandTimestamp = Date.now();
+  Update(enabled, leftEnabled, rightEnabled) {
+    if (enabled) {
+      this.shoulder.spine.quaternion.set(0, 0, 0, 1);
+      
+      this.shoulder.proneFactor = this.getProneFactor();
+      this.shoulder.prone = this.shoulder.proneFactor > 0;
+      if (this.shoulder.prone) {
+        this.shoulder.lastProneTimestamp = Date.now();
+      } else {
+        this.shoulder.lastStandTimestamp = Date.now();
+      }
+
+      this.updateHips();
+
+      // this.shoulder.transform.rotation = Quaternion.identity;
+      // this.positionShoulder();
+      this.rotateShoulderBase();
+
+      /* if (this.enableDistinctShoulderRotation)
+      {
+        this.rotateLeftShoulder(rotation);
+        this.rotateRightShoulder(rotation);
+      } */
+
+      /* if (this.enableShoulderDislocation)
+      {
+        this.clampShoulderHandDistance();
+      }
+      else
+      {
+        this.shoulder.leftArm.transform.localPosition = Vector3.zero;
+        this.shoulder.rightArm.transform.localPosition = Vector3.zero;
+      } */
+
+      this.updateNeck();
+
+      // Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
+    } else if (leftEnabled || rightEnabled) {
+      // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
+      this.updateHips();
+
+      Helpers.updateMatrix(this.shoulder.hips);
+      Helpers.updateMatrixWorld(this.shoulder.spine);
+      Helpers.updateMatrixWorld(this.shoulder.chest);
+      Helpers.updateMatrixWorld(this.shoulder.upperChest);
+      Helpers.updateMatrixMatrixWorld(this.shoulder.upperChest);
+      Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
+      Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
     }
-
-    this.shoulder.spine.quaternion.set(0, 0, 0, 1);
-
-    this.updateHips();
-
-    leftArmIk && this.shoulder.leftShoulderAnchor.quaternion.set(0, 0, 0, 1);
-    rightArmIk && this.shoulder.rightShoulderAnchor.quaternion.set(0, 0, 0, 1);
-
-    // this.shoulder.transform.rotation = Quaternion.identity;
-    // this.positionShoulder();
-    this.rotateShoulderBase();
-
-    /* if (this.enableDistinctShoulderRotation)
-    {
-    	this.rotateLeftShoulder(rotation);
-    	this.rotateRightShoulder(rotation);
-    } */
-
-    /* if (this.enableShoulderDislocation)
-    {
-    	this.clampShoulderHandDistance();
-    }
-    else
-    {
-    	this.shoulder.leftArm.transform.localPosition = Vector3.zero;
-    	this.shoulder.rightArm.transform.localPosition = Vector3.zero;
-    } */
-
-    this.updateNeck();
-
-    // Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
   }
 
   /* updateHips() {
@@ -202,9 +212,9 @@ class ShoulderPoser {
     const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
       .multiply(z180Quaternion);
     /* const hmdXYRotation = localQuaternion2.setFromRotationMatrix(localMatrix.lookAt(
-      	new THREE.Vector3(),
-      	new THREE.Vector3(0, 0, -1).applyQuaternion(hmdRotation),
-      	new THREE.Vector3(0, 1, 0).applyQuaternion(hmdRotation)
+        new THREE.Vector3(),
+        new THREE.Vector3(0, 0, -1).applyQuaternion(hmdRotation),
+        new THREE.Vector3(0, 1, 0).applyQuaternion(hmdRotation)
       )); */
     const hmdEuler = localEuler.setFromQuaternion(hmdRotation, 'YXZ');
     hmdEuler.x = 0;
