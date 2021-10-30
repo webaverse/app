@@ -1,63 +1,46 @@
 /*
-this file bootraps the entire webaverse application.
+this file bootraps the webaverse engine.
 it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-// import {loginManager} from './login.js';
-// import runtime from './runtime.js';
-import {parseQuery, downloadFile} from './util.js';
+import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
+// import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
+// import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
+import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
+import {SSAOPass} from './SSAOPass.js';
 import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
-// import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
-// import controlsManager from './controls-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import activateManager from './activate-manager.js';
-// import dropManager from './drop-manager.js';
-// import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
-// import {bindInterface as inventoryBindInterface} from './inventory.js';
-// import fx from './fx.js';
-// import {getExt} from './util.js';
-// import {storageHost, tokensHost} from './constants.js';
-// import './procgen.js';
 import * as characterController from './character-controller.js';
 import {
   getRenderer,
   scene,
-  orthographicScene,
-  avatarScene,
-  camera,
-  orthographicCamera,
-  // avatarCamera,
-  dolly,
-  // orbitControls,
-  // renderer2,
   sceneHighPriority,
   sceneLowPriority,
+  rootScene,
+  camera,
+  dolly,
   bindCanvas,
+  getComposer,
 } from './renderer.js';
-// import {mithrilInit} from './mithril-ui/index.js'
-// import TransformGizmo from './TransformGizmo.js';
-// import WSRTC from 'wsrtc/wsrtc.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
+import {parseQuery} from './util.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-/* const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
-const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
-const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)); */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -85,6 +68,7 @@ const sessionOpts = {
     'hand-tracking',
   ],
 };
+const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 const frameEvent = (() => {
   const now = Date.now();
@@ -96,6 +80,62 @@ const frameEvent = (() => {
     },
   });
 })();
+
+class WebaversePass extends Pass {
+  constructor(internalRenderPass) {
+    super();
+
+    this.needsSwap = true;
+    this.clear = true;
+
+    this.internalRenderPass = internalRenderPass;
+    this.running = !!internalRenderPass;
+  }
+  render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
+    // ensure lights attached
+    scene.add(world.lights);
+    
+    // decapitate avatar if needed
+    const decapitated = /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
+    if (rigManager.localRig) {
+      scene.add(rigManager.localRig.model);
+      if (decapitated) {
+        rigManager.localRig.decapitate();
+        // rigManager.localRig.aux.decapitate();
+      } else {
+        rigManager.localRig.undecapitate();
+        // rigManager.localRig.aux.undecapitate();
+      }
+    }
+    
+    // render
+    sceneHighPriority.traverse(o => {
+      o.isLowPriority = false;
+    });
+    scene.traverse(o => {
+      o.isLowPriority = false;
+    });
+    sceneLowPriority.traverse(o => {
+      o.isLowPriority = true;
+    });
+    if (this.running) {
+      this.internalRenderPass.renderToScreen = this.renderToScreen;
+      this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+    } else {
+      renderer.setRenderTarget(renderTarget);
+      renderer.clear();
+      renderer.render(rootScene, camera);
+    }
+    
+    // undecapitate
+    if (rigManager.localRig) {
+      if (decapitated) {
+        rigManager.localRig.undecapitate();
+        // rigManager.localRig.aux.undecapitate();
+      }
+    }
+  }
+}
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -147,6 +187,153 @@ export default class Webaverse extends EventTarget {
   }
   bindCanvas(c) {
     bindCanvas(c);
+    
+    const renderer = getRenderer();
+    const size = renderer.getSize(new THREE.Vector2())
+      .multiplyScalar(renderer.getPixelRatio());  
+
+    // const context = renderer.getContext();
+    // context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+
+    const composer = getComposer();
+    const internalRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
+    internalRenderPass.kernelRadius = 16;
+    internalRenderPass.minDistance = 0.005;
+    internalRenderPass.maxDistance = 0.1;
+    // internalRenderPass.output = SSAOPass.OUTPUT.SSAO;
+    const webaversePass = new WebaversePass(internalRenderPass);
+    webaversePass.running = hqDefault;
+    composer.addPass(webaversePass);
+    
+    /* const ssaoPass = new SSAOPass(scene, camera, size.x, size.y);
+    ssaoPass.kernelRadius = 16;
+    ssaoPass.output = SSAOPass.OUTPUT.Beauty;
+    ssaoPass.needsSwap = true;
+    ssaoPass.clear = true;
+    composer.addPass(ssaoPass); */
+    
+    const bokehPass = new BokehPass(rootScene, camera, {
+      focus: 3.0,
+      aperture: 0.00002,
+      maxblur: 0.005,
+      width: size.x,
+      height: size.y,
+    });
+    bokehPass.needsSwap = true;
+    bokehPass.enabled = hqDefault;
+    composer.addPass(bokehPass);
+    
+    /* const afterimagePass = new AfterimagePass();
+    afterimagePass.uniforms['damp'].value = 0.6;
+    afterimagePass.enabled = false;
+    composer.addPass(afterimagePass); */
+    
+    const adaptToneMappingPass = new AdaptiveToneMappingPass(/*adaptive = */true, /* resolution = */256);
+    // adaptToneMappingPass.needsSwap = true;
+    adaptToneMappingPass.setAdaptionRate(100);
+    adaptToneMappingPass.setMaxLuminance(10);
+    adaptToneMappingPass.setMinLuminance(0);
+    adaptToneMappingPass.setMiddleGrey(3);
+    adaptToneMappingPass.enabled = hqDefault;
+    // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
+    composer.addPass(adaptToneMappingPass);
+    
+    /* const darkenPass = new ShaderPass({
+      uniforms: {
+        tDiffuse: {
+          value: null,
+        },
+      },
+      vertexShader: `\
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+      `,
+      fragmentShader: `\
+        vec3 pow2(vec3 c, float f) {
+          return vec3(c.r*f, c.g*f, c.b*f);
+        }
+      
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          // c = LinearTosRGB(c);
+          // c = sRGBToLinear(c);
+          // c.rgb = pow2(c.rgb, 0.7);
+          // c.rgb *= 0.5;
+          // c.a = 1.;
+          gl_FragColor = c;
+        }
+      `,
+    });
+    darkenPass.enabled = false;  
+    composer.addPass(darkenPass); */
+    
+    // const bloomPass = new BloomPass(/*strength = */1, /*kernelSize = */15, /*sigma = */4, /*resolution = */256);
+    // adaptToneMappingPass.needsSwap = true;
+    // bloomPass.copyUniforms["opacity"].value = 0.5;
+    // bloomPass.enabled = false;
+    // composer.addPass(bloomPass);
+    
+    const resolution = size;
+    const strength = 0.2;
+    const radius = 0.5;
+    const threshold = 0.8;
+    const unrealBloomPass = new UnrealBloomPass(resolution, strength, radius, threshold);
+    // unrealBloomPass.threshold = params.bloomThreshold;
+    // unrealBloomPass.strength = params.bloomStrength;
+    // unrealBloomPass.radius = params.bloomRadius;
+    // unrealBloomPass.copyUniforms['opacity'].value = 0.5;
+    unrealBloomPass.enabled = hqDefault;
+    composer.addPass(unrealBloomPass);
+    
+    const colorPass = new ShaderPass({
+      uniforms: {
+        tDiffuse: {
+          value: null,
+        },
+      },
+      vertexShader: `\
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+      `,
+      fragmentShader: `\
+        /* vec3 pow2(vec3 c, float f) {
+          return vec3(c.r*f, c.g*f, c.b*f);
+        } */
+      
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          c = LinearTosRGB(c);
+          // c = sRGBToLinear(c);
+          // c.rgb = pow2(c.rgb, 0.8);
+          // c.a = 1.;
+          gl_FragColor = c;
+        }
+      `,
+    });
+    // colorPass.enabled = false;
+    composer.addPass(colorPass);
+
+    document.addEventListener('keydown', (event) => { // XXX move to io manager
+      if (event.key === 'h') {
+        webaversePass.running = !webaversePass.running;
+      } else if (event.key === 'j') {
+        bokehPass.enabled = !bokehPass.enabled;
+      } else if (event.key === 'k') {
+        adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
+      } else if (event.key === 'l') {
+        unrealBloomPass.enabled = !unrealBloomPass.enabled;
+      }
+    });
   }
   bindPreviewCanvas(previewCanvas) {
     equipmentRender.bindPreviewCanvas(previewCanvas);
@@ -316,52 +503,12 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     frameEvent.data.lastTimestamp = timestamp;
-
-    // high priority render
-    sceneHighPriority.add(world.lights);
-    const renderer = getRenderer();
-    renderer.clear();
-    renderer.render(sceneHighPriority, camera);
-
-    // main render
-    scene.add(world.lights);
-    if (rigManager.localRig) {
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-    }
-    renderer.render(scene, camera);
-
-    // orthographic render
-    orthographicScene.add(world.lights);
-    renderer.render(orthographicScene, orthographicCamera);
-    
-    // low priority render
-    sceneLowPriority.add(world.lights);
-    renderer.render(sceneLowPriority, camera);
     
     // equipment panel render
     equipmentRender.previewScene.add(world.lights);
     equipmentRender.render();
-    
-    // decapitate avatar if needed
-    if (rigManager.localRig) {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        // rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-      avatarScene.add(world.lights);
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-    }
+
+    getComposer().render();
   }
   
   startLoop() {

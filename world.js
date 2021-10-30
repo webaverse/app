@@ -272,7 +272,7 @@ appManager.addEventListener('appadd', e => {
 
   const _bindHitTracker = () => {
     const hitTracker = hpManager.makeHitTracker();
-    scene.add(hitTracker);
+    app.parent.add(hitTracker);
     hitTracker.add(app);
     app.hitTracker = hitTracker;
 
@@ -287,7 +287,7 @@ appManager.addEventListener('appadd', e => {
     };
     app.addEventListener('die', die);
     app.addEventListener('destroy', () => {
-      scene.remove(hitTracker);
+      hitTracker.parent.remove(hitTracker);
       world.appManager.removeEventListener('frame', frame);
       world.appManager.removeEventListener('die', die);
     });
