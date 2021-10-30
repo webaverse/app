@@ -1,5 +1,6 @@
 var assert = require('assert');
 const LoadTester = require('./loading/index');
+const mlog = require('mocha-logger');
 
 describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
@@ -15,6 +16,12 @@ describe('Running Pupeeteer', function() {
       }
 
       await appTester.run();
+      if(error){
+        mlog.error(JSON.parse(JSON.stringify(appTester.scenes),null, 5))
+      }else{
+        mlog.success(JSON.parse(JSON.stringify(appTester.scenes),null, 5))
+      }
+
       assert.equal(error,false);
       done();
     });
