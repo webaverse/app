@@ -1,9 +1,38 @@
 {
   "objects": [
     {
-      "type": "application/background",
+      "type": "application/rendersettings",
       "content": {
-        "color": [0, 0, 0]
+        "background": {
+          "color": [0, 0, 0]
+        },
+        "fog": {
+          "fogType": "exp",
+          "args": [[2.52, 1.74, 3.88], 0.01]
+        },
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
+        },
+        "dof": {
+          "focus": 3.0,
+          "aperture": 0.00002,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.2,
+          "radius": 0.5,
+          "threshold": 0.8
+        }
       }
     },
     {
@@ -42,7 +71,7 @@
             "type": "application/light",
             "content": {
               "lightType": "point",
-              "args": [[255, 255, 255], 2, 2]
+              "args": [[255, 255, 255], 2, 5]
             }
           }
         ]
@@ -70,7 +99,7 @@
             "type": "application/light",
             "content": {
               "lightType": "point",
-              "args": [[255, 255, 255], 2, 2]
+              "args": [[255, 255, 255], 2, 5]
             },
             "position": [0, 0, 0.2]
           }
