@@ -317,14 +317,14 @@ export default class Webaverse extends EventTarget {
     // colorPass.enabled = false;
     composer.addPass(colorPass);
 
-    document.addEventListener('keydown', (event) => { // XXX move to io manager
-      if (event.key === 'h') {
-        webaversePass.internalRenderPass = webaversePass.internalRenderPass ? null : internalRenderPass;
-      } else if (event.key === 'j') {
+    document.addEventListener('keydown', e => { // XXX move to io manager
+      if (e.key === 'h') {
+        webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : internalRenderPass;
+      } else if (e.key === 'j') {
         bokehPass.enabled = !bokehPass.enabled;
-      } else if (event.key === 'k') {
+      } else if (e.key === 'k') {
         adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
-      } else if (event.key === 'l') {
+      } else if (e.key === 'l') {
         unrealBloomPass.enabled = !unrealBloomPass.enabled;
       }
     });
