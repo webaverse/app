@@ -10,6 +10,28 @@ phases:
       - apt install sudo -y
       - sudo npm install forever -g
       - npm install -y
+  libInstall:
+    commands:
+      # Upgrade apt
+      - apt-get upgrade
+
+      # Update libs
+      - apt-get update
+
+      # Install apt-transport-https
+      - apt-get install -y apt-transport-https
+
+      # Use apt to install the Chrome dependencies
+      - apt-get install -y libxcursor1
+      - apt-get install -y libgtk-3-dev
+      - apt-get install -y libxss1
+      - apt-get install -y libasound2
+      - apt-get install -y libnspr4
+      - apt-get install -y libnss3
+      - apt-get install -y libx11-xcb1
+      - ls ./node_modules/puppeteer/.local-chromium/
+      # Print out missing libs
+      #- echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-549031/chrome-linux/chrome | grep not
   build:
     commands:
       - echo Build started on `date`
