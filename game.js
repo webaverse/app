@@ -506,11 +506,10 @@ const _delete = () => {
 };
 const _click = () => {
   if (_getGrabbedObject(0)) {
-    _deselectLoadout();
+    // _deselectLoadout();
 
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
-
   } else {
     if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
