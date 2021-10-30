@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
-import cameraManager from './camera-manager.js';
+// import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
@@ -33,7 +33,7 @@ import {rarityColors} from './constants.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localMatrix = new THREE.Matrix4();
+// const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const defaultScale = new THREE.Vector3(1, 1, 1);
 
