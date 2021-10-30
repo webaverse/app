@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: '${{ matrix.node }}'
       - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: 'Cache node_modules'
         uses: actions/cache@v2
         with:
