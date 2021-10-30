@@ -17,6 +17,13 @@
       }
     },
     {
+      "type": "application/fog",
+      "content": {
+        "fogType": "exp",
+        "args": [[255, 255, 255], 0.01]
+      }
+    },
+    {
       "position": [
         0,
         0,
