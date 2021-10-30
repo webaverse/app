@@ -1438,6 +1438,21 @@ const _pushWorldAppUpdates = () => {
     }
   }
 
+  if(rigManager.localRig)
+    {
+      const physicsObjects = rigManager.localRig.app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physicsObject.position.copy(rigManager.localRig.app.position);
+        physicsObject.quaternion.copy(rigManager.localRig.app.quaternion);
+        physicsObject.scale.copy(rigManager.localRig.app.scale);
+        physicsObject.updateMatrixWorld();
+        
+        physicsManager.pushUpdate(physicsObject);
+        physicsObject.needsUpdate = false;
+      }
+    }
+  
+
   world.appManager.setPushingLocalUpdates(false);
 };
 const _pushAppUpdates = () => {

@@ -70,6 +70,7 @@ const _makeRig = app => {
       });
       // localRig.model = o;
       localRig.app = app;
+      console.log(localRig, "localrig");
       
       unFrustumCull(app);
       
@@ -545,6 +546,9 @@ class RigManager {
       const now = Date.now();
       const timeDiff = (now - this.lastTimetamp) / 1000;
 
+      //this.localRig.app.physicsObjects[0].visible = true;
+      //this.localRig.app.physicsObjects[0].physicsMesh.visible = true;
+
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
       const localPlayer = metaversefile.useLocalPlayer();
@@ -571,6 +575,9 @@ class RigManager {
         this.lastPosition.copy(currentPosition);
         this.localRig.direction.copy(positionDiff).normalize();
         this.localRig.velocity.copy(this.smoothVelocity);
+
+        //this.localRig.app.physicsObjects[0].visible = true;
+        //this.localRig.app.physicsObjects[0].physicsMesh.visible = true;
       };
       _setTransforms();
       

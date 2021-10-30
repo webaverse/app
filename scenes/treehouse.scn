@@ -4,24 +4,25 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 255, 255], 2]
+        "args": [[255, 255, 255], 0.5]
       }
     },
     {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 2],
-        "position": [1, 2, 3]
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
     {
       "position": [
         0,
-        0,
+        -10,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "./sword"
     },
     {
       "position": [
@@ -29,28 +30,26 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox-anime/"
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
     },
     {
       "position": [
-        4,
         0,
-        1
+        -12,
+        0
       ],
       "quaternion": [
         0,
-        0.7071067811865475,
+        1,
         0,
-        0.7071067811865475
+        0
       ],
-      "physics": false,
-      "start_url": "/avatars/gear.vrm",
-      "dynamic": true
+      "start_url": "./ocean"
     },
     {
       "position": [
         -13,
-        0,
+        10,
         0
       ],
       "quaternion": [
@@ -63,23 +62,9 @@
     },
     {
       "position": [
-        24,
-        0,
-        16
-      ],
-      "quaternion": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/ramp/"
-    },
-    {
-      "position": [
-        27,
-        0,
-        16
+        -6,
+        -2,
+        32
       ],
       "quaternion": [
         0,
@@ -88,20 +73,6 @@
         1
       ],
       "start_url": "https://webaverse.github.io/hovercraft/"
-    },
-    {
-      "position": [
-        35,
-        0,
-        16
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/dragon-mount/"
     },
     {
       "position": [
@@ -119,9 +90,9 @@
     },
     {
       "position": [
-        -6,
-        1,
-        15
+        20,
+        -1,
+        -4
       ],
       "quaternion": [
         0,
@@ -129,12 +100,7 @@
         0,
         1
       ],
-      "scale": [
-        0.5,
-        0.5,
-        0.5
-      ],
-      "start_url": "https://webaverse.github.io/potion/"
+      "start_url": "https://webaverse.github.io/pistol/"
     }
   ]
 }
