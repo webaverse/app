@@ -18,7 +18,7 @@ import {rigManager} from './rig.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import {getRenderer, scene, sceneLowPriority, /* orthographicScene, */ camera /*, dolly*/} from './renderer.js';
+import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
@@ -506,11 +506,10 @@ const _delete = () => {
 };
 const _click = () => {
   if (_getGrabbedObject(0)) {
-    _deselectLoadout();
+    // _deselectLoadout();
 
     const localPlayer = useLocalPlayer();
     localPlayer.ungrab();
-
   } else {
     if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
