@@ -6,7 +6,7 @@ you can have as many app managers as you want.
 import * as THREE from 'three';
 import * as Y from 'yjs';
 
-import {scene, sceneHighPriority} from './renderer.js';
+import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import metaversefile from './metaversefile-api.js';
 
@@ -115,7 +115,7 @@ class AppManager extends EventTarget {
             errorPH.quaternion.fromArray(app.quaternion);
             errorPH.scale.fromArray(app.scale);
         }
-        this.addApp(errorPH);        
+        this.addApp(errorPH);
 
         // Remove app
         if (app) {
@@ -314,7 +314,31 @@ class AppManager extends EventTarget {
   }
   addApp(app) {
     this.apps.push(app);
-    scene.add(app);
+    
+    const renderPriority = app.getComponent('renderPriority');
+    switch (renderPriority) {
+      case 'high': {
+        sceneHighPriority.add(app);
+        break;
+      }
+      case 'low': {
+        sceneLowPriority.add(app);
+        /* console.log('got render priority', renderPriority, sceneLowPriority, app, app.parent);
+        Object.defineProperty(app, 'parent', {
+          get() {
+            return sceneLowPriority;
+          },
+          set(v) {
+            debugger;
+          },
+        }); */
+        break;
+      }
+      default: {
+        scene.add(app);
+        break;
+      }
+    }
   }
   removeApp(app) {
     const index = this.apps.indexOf(app);
