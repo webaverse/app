@@ -7,7 +7,8 @@
     "start": "forever start index.js",
     "dev": "node index.js",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "npm start && mocha --timeout 0"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
@@ -58,6 +59,10 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "mocha": "^9.1.3",
+    "mocha-logger": "^1.0.7",
+    "puppeteer": "^10.4.0",
+    "puppeteer-extra": "^3.2.3",
     "vite": "^2.5.1"
   }
 }
