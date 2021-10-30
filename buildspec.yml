@@ -10,7 +10,7 @@ phases:
       - apt install sudo -y
       - sudo npm install forever -g
       - npm install -y
-  libInstall:
+  pre_build:
     commands:
       # Upgrade apt
       - apt-get upgrade
