@@ -1,7 +1,6 @@
 var assert = require('assert');
 const LoadTester = require('./loading/index');
 
-
 describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
     it('Checking Scenes', async (done) => {
@@ -11,14 +10,7 @@ describe('Running Pupeeteer', function() {
         host: 'https://app.webaverse.com',
       })
 
-      appTester.PromiseIntercept = (value) =>{
-        try{
-          console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
-        }catch(e){
-          console.log('Promise Error Intercepted ',  JSON.stringify(value));
-        }finally{
-          this.stats.errors.push(value);
-        }
+      appTester.MochaIntercept = ()=>{
         error = true;
       }
 
