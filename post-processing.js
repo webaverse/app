@@ -24,9 +24,9 @@ import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
-import {parseQuery} from './util.js';
+// import {parseQuery} from './util.js';
 
-const hqDefault = parseQuery(window.location.search)['hq'] === '1';
+// const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 // const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -134,7 +134,7 @@ function makeHdrPass({
   adaptToneMappingPass.setMaxLuminance(maxLuminance);
   adaptToneMappingPass.setMinLuminance(minLuminance);
   adaptToneMappingPass.setMiddleGrey(middleGrey);
-  adaptToneMappingPass.enabled = hqDefault;
+  // adaptToneMappingPass.enabled = hqDefault;
   // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
   return adaptToneMappingPass;
 }
@@ -153,7 +153,7 @@ function makeBloomPass({
   // unrealBloomPass.strength = params.bloomStrength;
   // unrealBloomPass.radius = params.bloomRadius;
   // unrealBloomPass.copyUniforms['opacity'].value = 0.5;
-  unrealBloomPass.enabled = hqDefault;
+  // unrealBloomPass.enabled = hqDefault;
   return unrealBloomPass;
 }
 function makeEncodingPass() {
