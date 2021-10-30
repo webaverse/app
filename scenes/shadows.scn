@@ -1,0 +1,138 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[255, 255, 255], 0.01]
+        },
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
+        },
+        "dof": {
+          "focus": 3.0,
+          "aperture": 0.00002,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.2,
+          "radius": 0.5,
+          "threshold": 0.8
+        }
+      }
+    },    
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/desert-hill/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        -2,
+        -0.15,
+        10
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/sprite-avatar/index.js"
+    },
+    {
+      "position": [
+        -13,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/treehouse/"
+    },
+    {
+      "position": [
+        -6,
+        -2,
+        32
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
+        -6,
+        0.16,
+        16
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
+    },
+    {
+      "position": [
+        20,
+        -1,
+        -4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/pistol/"
+    }
+  ]
+}

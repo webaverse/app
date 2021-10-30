@@ -1,6 +1,7 @@
 export const baseUnit = 4;
 export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
+export const defaultRendererUrl = 'https://render.exokit.org/'
 
 export const rarityColors = {
   common: [0xDCDCDC, 0x373737],
@@ -45,3 +46,8 @@ export const worldUrl = 'worlds.webaverse.com';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
+
+export const crouchMaxTime = 200;
+export const activateMaxTime = 750;
+export const minFov = 60;
+export const maxFov = 120;

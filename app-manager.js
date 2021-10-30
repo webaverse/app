@@ -1,14 +1,16 @@
 /*
-app manager binds y.js data to live running metaversefile app objects.
+app manager binds y.js data to live running metaversefile apps.
 you can have as many app managers as you want.
 */
 
 import * as THREE from 'three';
 import * as Y from 'yjs';
 
-import {camera, scene, sceneHighPriority} from './renderer.js';
+import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import metaversefile from './metaversefile-api.js';
+
+const appsMapName = 'apps';
 
 const localData = {
   timestamp: 0,
@@ -20,11 +22,12 @@ const localFrameOpts = {
 };
 
 class AppManager extends EventTarget {
-  constructor({state = new Y.Doc(), objects = []} = {}) {
+  constructor({state = new Y.Doc(), apps = []} = {}) {
     super();
     
     this.state = state;
-    this.objects = objects;
+    this.apps = apps;
+    
     this.bindState(this.state);
     this.bindEvents();
     
@@ -40,48 +43,54 @@ class AppManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('preframe', localFrameOpts));
   }
   tick(timestamp, frame) {
-    this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
+    // this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
     this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
   setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
   }
   bindState(state) {
-    const objects = state.getArray('objects');
-    let lastObjects = [];
-    objects.observe(() => {
-      const nextObjects = objects.toJSON();
+    const apps = state.getArray(appsMapName);
+    let lastApps = [];
+    apps.observe(() => {
+      const nextApps = apps.toJSON();
 
-      for (const name of nextObjects) {
-        if (!lastObjects.includes(name)) {
-          const trackedObject = this.getOrCreateTrackedObject(name);
-          this.dispatchEvent(new MessageEvent('trackedobjectadd', {
+      // console.log('next apps', nextApps, lastApps);
+
+      for (const instanceId of nextApps) {
+        if (!lastApps.includes(instanceId)) {
+          // console.log('detected new app', instanceId);
+          const trackedApp = this.getOrCreateTrackedApp(instanceId);
+          this.dispatchEvent(new MessageEvent('trackedappadd', {
             data: {
-              trackedObject,
+              trackedApp,
             },
           }));
         }
       }
-      for (const name of lastObjects) {
-        if (!nextObjects.includes(name)) {
-          const trackedObject = state.getMap('objects.' + name);
-          this.dispatchEvent(new MessageEvent('trackedobjectremove', {
+      for (const instanceId of lastApps) {
+        if (!nextApps.includes(instanceId)) {
+          // console.log('detected app removal', instanceId);
+          const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+          const app = this.getAppByInstanceId(instanceId);
+          this.dispatchEvent(new MessageEvent('trackedappremove', {
             data: {
-              instanceId: name,
-              trackedObject,
+              instanceId,
+              trackedApp,
+              app,
             },
           }));
         }
       }
 
-      lastObjects = nextObjects;
+      lastApps = nextApps;
     });
   }
   bindEvents() {
-    this.addEventListener('trackedobjectadd', async e => {
-      const {trackedObject} = e.data;
-      const trackedObjectJson = trackedObject.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedObjectJson;
+    this.addEventListener('trackedappadd', async e => {
+      const {trackedApp} = e.data;
+      const trackedAppJson = trackedApp.toJSON();
+      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedAppJson;
       const components = JSON.parse(componentsString);
       
       const p = makePromise();
@@ -98,8 +107,19 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
+
+        // Add Error placeholder
+        const errorPH = this.getErrorPlaceholder();
         if (app) {
-          metaversefile.removeApp(app);
+            errorPH.position.fromArray(app.position);
+            errorPH.quaternion.fromArray(app.quaternion);
+            errorPH.scale.fromArray(app.scale);
+        }
+        this.addApp(errorPH);
+
+        // Remove app
+        if (app) {
+          this.removeApp(app);
           app.destroy();
         }
         p.reject(new Error('app cleared during load: ' + contentId));
@@ -117,7 +137,6 @@ class AppManager extends EventTarget {
               return '';
             }
           })(),
-          // components,
         });
         app.position.fromArray(position);
         app.quaternion.fromArray(quaternion);
@@ -129,12 +148,13 @@ class AppManager extends EventTarget {
         for (const {key, value} of components) {
           app.setComponent(key, value);
         }
-        metaversefile.addApp(app);
         const mesh = await app.addModule(m);
         if (!live) return _bailout(app);
         if (!mesh) {
           console.warn('failed to load object', {contentId});
         }
+        
+        this.addApp(app);
 
         const _bindRender = () => {
           // unFrustumCull(app);
@@ -148,33 +168,31 @@ class AppManager extends EventTarget {
         const _bindTransforms = () => {
           const _observe = e => {
             if (!this.pushingLocalUpdates) {
-              console.log('got', trackedObject.toJSON(), trackedObjectJson, trackedObject.get('position'));
+              // console.log('got', trackedApp.toJSON(), trackedAppJson, trackedApp.get('position'));
               if (e.keysChanged.has('position')) {
-                app.position.fromArray(trackedObject.get('position'));
+                app.position.fromArray(trackedApp.get('position'));
               }
               if (e.keysChanged.has('quaternion')) {
-                app.quaternion.fromArray(trackedObject.get('quaternion'));
+                app.quaternion.fromArray(trackedApp.get('quaternion'));
               }
               if (e.keysChanged.has('scale')) {
-                app.scale.fromArray(trackedObject.get('scale'));
+                app.scale.fromArray(trackedApp.get('scale'));
               }
             }
           };
-          trackedObject.observe(_observe);
-          trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+          trackedApp.observe(_observe);
+          trackedApp.unobserve = trackedApp.unobserve.bind(trackedApp, _observe);
         };
         _bindTransforms();
 
-        const _bindDestroy = () => {
+        /* const _bindDestroy = () => {
           app.addEventListener('destroy', () => {
-            this.objects.splice(this.objects.indexOf(app), 1);
+            this.apps.splice(this.apps.indexOf(app), 1);
           });
         };
-        _bindDestroy();
-        
-        this.objects.push(app);
+        _bindDestroy(); */
 
-        this.dispatchEvent(new MessageEvent('objectadd', {
+        this.dispatchEvent(new MessageEvent('appadd', {
           data: app,
         }));
 
@@ -185,79 +203,72 @@ class AppManager extends EventTarget {
         cleanup();
       }
     });
-    this.addEventListener('trackedobjectremove', async e => {
-      const {instanceId, trackedObject} = e.data;
-      const index = this.objects.findIndex(object => object.instanceId === instanceId);
-      if (index !== -1) {
-        const object = this.objects[index];
-        object.destroy && object.destroy();
-        metaversefile.removeApp(object);
-        trackedObject.unobserve();
+    this.addEventListener('trackedappremove', async e => {
+      const {instanceId, trackedApp, app} = e.data;
+      
+      trackedApp.unobserve();
+      
+      this.removeApp(app);
+      app.destroy();
 
-        this.dispatchEvent(new MessageEvent('objectremove', {
-          data: object,
-        }));
-      } else {
-        console.warn('remove for non-tracked object', instanceId);
-      }
+      this.dispatchEvent(new MessageEvent('appremove', {
+        data: app,
+      }));
     });
   }
-  getObjects() {
-    return this.objects;
+  getApps() {
+    return this.apps;
   }
-  getTrackedObject(name) {
-    const {state} = this;
-    const objects = state.getArray('objects');
-    return state.getMap('objects.' + name);
+  getAppByInstanceId(instanceId) {
+    return this.apps.find(app => app.instanceId === instanceId);
   }
-  getOrCreateTrackedObject(name) {
+  getAppByPhysicsId(physicsId) {
+    for (const app of this.apps) {
+      if (app.getPhysicsObjects && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
+        return app;
+      }
+    }
+    return null;
+  }
+  getOrCreateTrackedApp(instanceId) {
     const {state} = this;
-    const objects = state.getArray('objects');
+    const apps = state.getArray(appsMapName);
 
     let hadObject = false;
-    for (const object of objects) {
-      if (object === name) {
+    for (const app of apps) {
+      if (app === instanceId) {
         hadObject = true;
         break;
       }
     }
     if (!hadObject) {
-      objects.push([name]);
+      apps.push([instanceId]);
     }
 
-    return state.getMap('objects.' + name);
+    return state.getMap(appsMapName + '.' + instanceId);
   }  
   clear() {
-    const objects = this.objects.slice();
-    for (const object of objects) {
-      this.removeObject(object.instanceId);
+    const apps = this.apps.slice();
+    for (const app of apps) {
+      this.removeApp(app);
+      app.destroy();
     }
     this.dispatchEvent(new MessageEvent('clear'));
   }
-  setTrackedObjectTransform(name, p, q, s) {
-    const {state} = this;
-    state.transact(function tx() {
-      const objects = state.getArray('objects');
-      const trackedObject = state.getMap('objects.' + name);
-      trackedObject.set('position', p.toArray());
-      trackedObject.set('quaternion', q.toArray());
-      trackedObject.set('scale', s.toArray());
-    });
-  }
-  addObject(contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) {
+  addTrackedApp(contentId, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), scale = new THREE.Vector3(1, 1, 1), components = []) {
     const self = this;
     const {state} = this;
     const instanceId = getRandomString();
     state.transact(function tx() {
-      const trackedObject = self.getOrCreateTrackedObject(instanceId);
-      trackedObject.set('instanceId', instanceId);
-      trackedObject.set('contentId', contentId);
-      trackedObject.set('position', position.toArray());
-      trackedObject.set('quaternion', quaternion.toArray());
-      trackedObject.set('scale', scale.toArray());
-      trackedObject.set('components', JSON.stringify(components));
-      const originalJson = trackedObject.toJSON();
-      trackedObject.set('originalJson', JSON.stringify(originalJson));
+      const trackedApp = self.getOrCreateTrackedApp(instanceId);
+      trackedApp.set('instanceId', instanceId);
+      trackedApp.set('contentId', contentId);
+      trackedApp.set('position', position.toArray());
+      trackedApp.set('quaternion', quaternion.toArray());
+      trackedApp.set('scale', scale.toArray());
+      trackedApp.set('components', JSON.stringify(components));
+      const originalJson = trackedApp.toJSON();
+      trackedApp.set('originalJson', JSON.stringify(originalJson));
     });
     if (this.pendingAddPromise) {
       const result = this.pendingAddPromise;
@@ -268,43 +279,93 @@ class AppManager extends EventTarget {
       throw new Error('no pending world add object promise');
     }
   }
-  removeObject(removeInstanceId) {
+  removeTrackedApp(removeInstanceId) {
     const {state} = this;
     state.transact(() => {
-      const objects = state.getArray('objects');
-      const objectsJson = objects.toJSON();
-      const removeIndex = objectsJson.indexOf(removeInstanceId);
+      const apps = state.getArray(appsMapName);
+      const appsJson = apps.toJSON();
+      const removeIndex = appsJson.indexOf(removeInstanceId);
       if (removeIndex !== -1) {
         const allRemoveIndices = [removeIndex];
         for (const removeIndex of allRemoveIndices) {
-          const instanceId = objectsJson[removeIndex];
+          const instanceId = appsJson[removeIndex];
 
-          objects.delete(removeIndex, 1);
+          apps.delete(removeIndex, 1);
 
-          const trackedObject = state.getMap('objects.' + instanceId);
-          const keys = Array.from(trackedObject.keys());
+          const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+          const keys = Array.from(trackedApp.keys());
           for (const key of keys) {
-            trackedObject.delete(key);
+            trackedApp.delete(key);
           }
         }
       } else {
-        console.warn('invalid remove instance id', {removeInstanceId, objectsJson});
+        console.warn('invalid remove instance id', {removeInstanceId, appsJson});
       }
     });
   }
-  resize(e) {
-    const objects = this.objects.slice();
-    for (const o of objects) {
-      o.resize && o.resize(e);
-    }
+  setTrackedAppTransform(instanceId, p, q, s) {
+    const {state} = this;
+    state.transact(function tx() {
+      const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+      trackedApp.set('position', p.toArray());
+      trackedApp.set('quaternion', q.toArray());
+      trackedApp.set('scale', s.toArray());
+    });
   }
-  getObjectFromPhysicsId(physicsId) {
-    for (const object of this.objects) {
-      if (object.getPhysicsObjects && object.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
-        return object;
+  addApp(app) {
+    this.apps.push(app);
+    
+    const renderPriority = app.getComponent('renderPriority');
+    switch (renderPriority) {
+      case 'high': {
+        sceneHighPriority.add(app);
+        break;
+      }
+      case 'low': {
+        sceneLowPriority.add(app);
+        /* console.log('got render priority', renderPriority, sceneLowPriority, app, app.parent);
+        Object.defineProperty(app, 'parent', {
+          get() {
+            return sceneLowPriority;
+          },
+          set(v) {
+            debugger;
+          },
+        }); */
+        break;
+      }
+      default: {
+        scene.add(app);
+        break;
       }
     }
-    return null;
+  }
+  removeApp(app) {
+    const index = this.apps.indexOf(app);
+    // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId), new Error().stack);
+    if (index !== -1) {
+      this.apps.splice(index, 1);
+    }
+    app.parent && app.parent.remove(app);
+  }
+  resize(e) {
+    const apps = this.apps.slice();
+    for (const app of apps) {
+      app.resize && app.resize(e);
+    }
+  }
+  getErrorPlaceholder() {
+    const app = metaversefile.createApp({
+        name: 'error-placeholder',
+      });
+    app.contentId = 'error-placeholder';
+    (async () => {
+      await metaverseModules.waitForLoad();
+      const {modules} = metaversefile.useDefaultModules();
+      const m = modules['errorPlaceholder'];
+      await app.addModule(m);
+    })();
+    return app;
   }
 }
 export {

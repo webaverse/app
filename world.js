@@ -20,7 +20,7 @@ import {unFrustumCull} from './util.js';
   tokensHost,
 } from './constants.js'; */
 import {makePromise, getRandomString, makeId} from './util.js';
-import metaversefile from './metaversefile-api.js';
+import metaversefileApi from './metaversefile-api.js';
 
 // world
 export const world = {};
@@ -76,40 +76,6 @@ world.disableMic = () => {
 };
 
 world.isConnected = () => !!wsrtc;
-/* world.reset = () => {
-  const state = _getState(true);
-  state.transact(() => {
-    const objects = state.getArray('objects');
-    const objectsJson = objects.toJSON();
-    for (const instanceId of objectsJson) {
-      const trackedObject = state.getMap('objects.' + instanceId);
-      const originalJsonString = trackedObject.get('originalJson');
-      const originalJson = JSON.parse(originalJsonString);
-      
-      const previousKeys = Array.from(trackedObject.keys());
-      for (const key of previousKeys) {
-        const value = originalJson[key];
-        const oldValue = trackedObject.get(key);
-        if (value !== undefined) {
-          if (trackedObject.get(key) !== value) {
-            trackedObject.set(key, value);
-          }
-        } else {
-          trackedObject.delete(key);
-        }
-      }
-      for (const key in originalJson) {
-        if (!previousKeys.includes(key)) {
-          const value = originalJson[key];
-          if (trackedObject.get(key) !== value) {
-            trackedObject.set(key, value);
-          }
-        }
-      }
-      trackedObject.set('originalJson', originalJsonString);
-    }
-  });
-}; */
 world.connectRoom = async (worldURL) => {
   // console.log('connect room 1');
   // await didInteract;
@@ -292,11 +258,82 @@ world.disconnectRoom = () => {
   }
   return wsrtc;
 };
+world.clear = () => {
+  appManager.clear();
+};
 world.bindInput = () => {
   window.addEventListener('resize', e => {
     appManager.resize(e);
   });
 };
+
+appManager.addEventListener('appadd', e => {
+  const app = e.data;
+
+  const _bindHitTracker = () => {
+    const hitTracker = hpManager.makeHitTracker();
+    app.parent.add(hitTracker);
+    hitTracker.add(app);
+    app.hitTracker = hitTracker;
+
+    const frame = e => {
+      const {timeDiff} = e.data;
+      hitTracker.update(timeDiff);
+    };
+    world.appManager.addEventListener('frame', frame);
+    const die = () => {
+      metaversefileApi.removeApp(app);
+      app.destroy();
+    };
+    app.addEventListener('die', die);
+    app.addEventListener('destroy', () => {
+      hitTracker.parent.remove(hitTracker);
+      world.appManager.removeEventListener('frame', frame);
+      world.appManager.removeEventListener('die', die);
+    });
+    app.hit = (_hit => function(damage, opts = {}) {
+      const result = hitTracker.hit(damage);
+      const {hit, died} = result;
+      if (hit) {
+        /* if (damagePhysicsMesh.physicsId !== collisionId) {
+          const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          damagePhysicsMesh.geometry.dispose();
+          damagePhysicsMesh.geometry = geometry;
+          damagePhysicsMesh.physicsId = collisionId;
+        } */
+        
+        const {collisionId} = opts;
+        if (collisionId) {
+          hpManager.triggerDamageAnimation(collisionId);
+        }
+        
+        app.dispatchEvent({
+          type: 'hit',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+          hp: hitTracker.hp,
+          totalHp: hitTracker.totalHp,
+        });
+      }
+      if (died) {
+        app.dispatchEvent({
+          type: 'die',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+        });
+      }
+      return result;
+    })(app.hit);
+    app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
+  };
+  _bindHitTracker();
+});
 
 /* world.getWorldJson = async q => {
   const _getDefaultSpec = () => ({

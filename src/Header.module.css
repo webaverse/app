@@ -74,9 +74,11 @@ body {
   overflow: hidden;
 }
 .header .tab .panels .panel {
+  display: flex;
   width: 100%;
   height: 100%;
   background-color: #000;
+  flex-direction: column;
 }
 .header .panel-header {
   display: flex;
@@ -245,23 +247,35 @@ body {
 .header .tab.top.right.open {
   transform: translateX(-400px);
 }
-.header .tab .background {
+.header .tab .label .background {
   position: absolute;
   top: 0;
   bottom: 0;
   height: 100%;
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.header .tab.left .background {
+.header .tab.left .label .background {
   left: 0;
   transform: rotateZ(180deg) translateX(-100%);
 }
-.header .tab.right .background {
+.header .tab.right .label .background {
   right: 0;
   transform: translateX(-100%);
 }
-.header .tab .background.blue {
+.background.blue {
   filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
+}
+.background.green {
+  /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
+  filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg) brightness(89%) contrast(84%);
+}
+.background.orange {
+  /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
+  /* filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg) brightness(89%) contrast(84%); */
+  filter: invert(66%) sepia(57%) saturate(4815%) hue-rotate(333deg) brightness(104%) contrast(101%);
+}
+.background.violet {
+  filter: invert(61%) sepia(14%) saturate(1642%) hue-rotate(219deg) brightness(82%) contrast(95%);
 }
 .header .tab:not(.disabled):hover .label,
 .header .tab.open .label
@@ -479,10 +493,6 @@ body {
   transform: translateX(-100%);
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.location .input-wrap .background.green {
-  /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
-  filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg) brightness(89%) contrast(84%);
-}
 .location .input-wrap .input {
   position: relative;
   height: inherit;
@@ -604,4 +614,78 @@ body {
 
 .sidebar .nft .tokenid {
   font-size: 13px;
+}
+
+.equipment {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #222;
+  overflow: hidden;
+  cursor: pointer;
+}
+.equipment:hover .background {
+  transform: translateX(-220px) !important;
+}
+.equipment .background {
+  position: absolute;
+  height: 70px;
+  transform: translateX(-560px) !important;
+  transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+.equipment .icon {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  padding: 10px;
+  object-fit: contain;
+  z-index: 1;
+}
+.equipment .name {
+  position: relative;
+  margin-right: auto;
+  font-size: 20px;
+  z-index: 1;
+}
+.equipment .button {
+  position: relative;
+  display: flex;
+  width: 70px;
+  height: 70px;
+  background-color: transparent;
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  cursor: inherit;
+  z-index: 1;
+}
+.equipment .button > img {
+  width: 30px;
+  height: 30px;
+  filter: invert(0.3);
+  visibility: hidden;
+}
+.equipment .background2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.equipment .button:hover > img {
+  filter: none;
+}
+.equipment:hover .button > img {
+   visibility: visible;
+}
+.equipment .button:hover + .background2 {
+  background-color: #ef5350;
+}
+.equipment .button:active + .background2 {
+  background-color: #b71c1c;
+  transition: none;
 }

@@ -1,16 +1,17 @@
 /*
-this file contains tha main objects we use for rendering.
+this file contains the main objects we use for rendering.
 the purpose of this file is to hold these objects and to make sure they are correctly configured (e.g. handle canvas resize)
 */
 
 import * as THREE from 'three';
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import {minFov} from './constants.js';
 
-let canvas = null, context = null, renderer = null;
+let canvas = null, context = null, renderer = null, composer = null, renderTarget = null;
 
 function bindCanvas(c) {
+  // initialize renderer
   canvas = c;
-  
-  const rect = canvas.getBoundingClientRect();
   context = canvas && canvas.getContext('webgl2', {
     antialias: true,
     alpha: true,
@@ -24,15 +25,17 @@ function bindCanvas(c) {
     alpha: true,
     // preserveDrawingBuffer: false,
   });
+
+  const rect = renderer.domElement.getBoundingClientRect();
   renderer.setSize(rect.width, rect.height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.gammaFactor = 2.2;
-  // renderer.shadowMap.enabled = true;
-  // renderer.shadowMap.type = THREE.PCFShadowMap;
+  // renderer.outputEncoding = THREE.sRGBEncoding;
+  // renderer.gammaFactor = 2.2;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   if (!canvas) {
     canvas = renderer.domElement;
   }
@@ -41,6 +44,21 @@ function bindCanvas(c) {
   }
   context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
+
+  // initialize post-processing
+  {
+    const size = renderer.getSize(new THREE.Vector2());
+    const pixelRatio = renderer.getPixelRatio();
+    const encoding = THREE.sRGBEncoding;
+    const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.x * pixelRatio, size.y * pixelRatio, {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      encoding,
+    });
+    renderTarget.samples = context.MAX_SAMPLES;
+    composer = new EffectComposer(renderer, renderTarget);
+  }
 }
 
 function getRenderer() {
@@ -52,52 +70,68 @@ function getContainerElement() {
   return container;
 }
 
-const scene = new THREE.Scene();
-const orthographicScene = new THREE.Scene();
-const avatarScene = new THREE.Scene();
+function getComposer() {
+  return composer;
+}
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
+
+const scene = new THREE.Scene();
+scene.name = 'scene';
+const sceneHighPriority = new THREE.Scene();
+sceneHighPriority.name = 'highPriorioty';
+const sceneLowPriority = new THREE.Scene();
+sceneLowPriority.name = 'lowPriorioty';
+const rootScene = new THREE.Scene();
+rootScene.name = 'root';
+rootScene.add(sceneHighPriority);
+rootScene.add(scene);
+rootScene.add(sceneLowPriority);
+
+// const orthographicScene = new THREE.Scene();
+// const avatarScene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 
-const avatarCamera = camera.clone();
+/* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
-avatarCamera.updateProjectionMatrix();
+avatarCamera.updateProjectionMatrix(); */
 
 const dolly = new THREE.Object3D();
 // fixes a bug: avatar glitching when dropped exactly at an axis
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
-dolly.add(avatarCamera);
+// dolly.add(avatarCamera);
 scene.add(dolly);
 
-const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
-scene.add(orthographicCamera);
-
-const sceneHighPriority = new THREE.Scene();
-const sceneLowPriority = new THREE.Scene();
+// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+// scene.add(orthographicCamera);
 
 window.addEventListener('resize', e => {
   const renderer = getRenderer();
-  if (renderer.xr.getSession()) {
-    renderer.xr.isPresenting = false;
-  }
+  if (renderer) {
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = false;
+    }
 
-  const containerElement = getContainerElement();
-  const rect = containerElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height);
-  // renderer2.setSize(window.innerWidth, window.innerHeight);
+    const containerElement = getContainerElement();
+    const rect = containerElement.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height);
+    // renderer2.setSize(window.innerWidth, window.innerHeight);
 
-  const aspect = rect.width / rect.height;
-  camera.aspect = aspect;
-  camera.updateProjectionMatrix();
+    const aspect = rect.width / rect.height;
+    camera.aspect = aspect;
+    camera.updateProjectionMatrix();
 
-  avatarCamera.aspect = aspect;
-  avatarCamera.updateProjectionMatrix();
-  
-  if (renderer.xr.getSession()) {
-    renderer.xr.isPresenting = true;
+    // avatarCamera.aspect = aspect;
+    // avatarCamera.updateProjectionMatrix();
+    
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = true;
+    }
   }
 });
 
@@ -127,12 +161,13 @@ export {
   bindCanvas,
   getRenderer,
   getContainerElement,
+  getComposer,
   scene,
-  orthographicScene,
-  avatarScene,
+  rootScene,
+  // avatarScene,
   camera,
-  orthographicCamera,
-  avatarCamera,
+  // orthographicCamera,
+  // avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/
   sceneHighPriority,
