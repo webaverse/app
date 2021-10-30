@@ -10,7 +10,7 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, camera, dolly} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
-import cameraManager from './camera-manager.js';
+// import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
@@ -27,13 +27,14 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import * as postProcessing from './post-processing.js';
 import {getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localMatrix = new THREE.Matrix4();
+// const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const defaultScale = new THREE.Vector3(1, 1, 1);
 
@@ -405,6 +406,7 @@ const abis = {
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
+let wasDecapitated = false;
 // const apps = [];
 metaversefile.setApi({
   // apps,
@@ -448,6 +450,9 @@ metaversefile.setApi({
       },
     };
   },
+  usePostProcessing() {
+    return postProcessing;
+  },
   createAvatar(o, options) {
     return new Avatar(o, options);
   },
@@ -473,16 +478,18 @@ metaversefile.setApi({
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
       if (rigManager.localRig) {
-        rigManager.localRig.model.visible = true;
+        wasDecapitated = rigManager.localRig.decapitated;
+        rigManager.localRig.undecapitate();
       }
     }
   },
   useAfterRender() {
     recursion--;
     if (recursion === 0) {
-      // scene.directionalLight.castShadow = true;
-      if (rigManager.localRig) {
-        rigManager.localRig.model.visible = false;
+      // console.log('was decap', wasDecapitated);
+      if (rigManager.localRig && wasDecapitated) {
+        rigManager.localRig.decapitate();
+        rigManager.localRig.skeleton.update();
       }
     }
   },
@@ -828,6 +835,7 @@ export default () => {
     return {
       renderer,
       scene,
+      rootScene,
       camera,
       sceneHighPriority,
       iframeContainer,
