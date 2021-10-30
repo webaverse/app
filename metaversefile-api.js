@@ -10,7 +10,7 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, camera, dolly} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {rigManager} from './rig.js';
@@ -831,6 +831,7 @@ export default () => {
     return {
       renderer,
       scene,
+      rootScene,
       camera,
       sceneHighPriority,
       iframeContainer,
