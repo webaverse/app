@@ -81,7 +81,7 @@ const frameEvent = (() => {
   });
 })();
 
-class WebaversePass extends Pass {
+class WebaverseRenderPass extends Pass {
   constructor(internalRenderPass) {
     super();
 
@@ -200,8 +200,8 @@ export default class Webaverse extends EventTarget {
     internalRenderPass.minDistance = 0.005;
     internalRenderPass.maxDistance = 0.1;
     // internalRenderPass.output = SSAOPass.OUTPUT.SSAO;
-    const webaversePass = new WebaversePass(hqDefault ? internalRenderPass : null);
-    composer.addPass(webaversePass);
+    const webaverseRenderPass = new WebaverseRenderPass(hqDefault ? internalRenderPass : null);
+    composer.addPass(webaverseRenderPass);
     
     /* const ssaoPass = new SSAOPass(scene, camera, size.x, size.y);
     ssaoPass.kernelRadius = 16;
