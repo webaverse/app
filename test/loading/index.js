@@ -112,7 +112,7 @@ module.exports = class LoadTester {
     const t0 = performance.now();
 
     await this.page.goto(sceneUrl, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'networkidle2',
     });
 
     const t1 = performance.now();
