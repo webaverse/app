@@ -84,7 +84,6 @@ const sceneLowPriority = new THREE.Scene();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
-rootScene.fog = new THREE.FogExp2(0xFFFFFF, 0.01);
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
