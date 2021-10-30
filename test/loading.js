@@ -17,13 +17,13 @@ describe('Running Pupeeteer', function() {
 
       await appTester.run();
       if(error){
-        mlog.error(JSON.parse(JSON.stringify(appTester.scenes),null, 5))
+        mlog.error(JSON.stringify(appTester.scenes,null, 5))
       }else{
-        mlog.success(JSON.parse(JSON.stringify(appTester.scenes),null, 5))
+        mlog.success(JSON.stringify(appTester.scenes,null, 5))
       }
 
       assert.equal(error,false);
-      done();
+      //done();
     });
   });
 });
