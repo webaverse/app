@@ -234,7 +234,7 @@ export default class Webaverse extends EventTarget {
     const bokehPass = new BokehPass(rootScene, camera, {
       focus: 3.0,
       aperture: 0.00002,
-      maxblur: 0.0025,
+      maxblur: 0.005,
       width: size.x,
       height: size.y,
     });
