@@ -195,46 +195,52 @@ export default class Webaverse extends EventTarget {
     // context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
     const composer = getComposer();
-    const internalRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
-    internalRenderPass.kernelRadius = 16;
-    internalRenderPass.minDistance = 0.005;
-    internalRenderPass.maxDistance = 0.1;
-    // internalRenderPass.output = SSAOPass.OUTPUT.SSAO;
-    const webaverseRenderPass = new WebaverseRenderPass(hqDefault ? internalRenderPass : null);
+    
+    const _makeSsaoRenderPass = () => {
+      const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
+      ssaoRenderPass.kernelRadius = 16;
+      ssaoRenderPass.minDistance = 0.005;
+      ssaoRenderPass.maxDistance = 0.1;
+      // ssaoRenderPass.output = SSAOPass.OUTPUT.SSAO;
+      return ssaoRenderPass;
+    };
+    const ssaoRenderPass = _makeSsaoRenderPass();
+    const webaverseRenderPass = new WebaverseRenderPass(hqDefault ? ssaoRenderPass : null);
     composer.addPass(webaverseRenderPass);
     
-    /* const ssaoPass = new SSAOPass(scene, camera, size.x, size.y);
-    ssaoPass.kernelRadius = 16;
-    ssaoPass.output = SSAOPass.OUTPUT.Beauty;
-    ssaoPass.needsSwap = true;
-    ssaoPass.clear = true;
-    composer.addPass(ssaoPass); */
-    
-    const bokehPass = new BokehPass(rootScene, camera, {
-      focus: 3.0,
-      aperture: 0.00002,
-      maxblur: 0.005,
-      width: size.x,
-      height: size.y,
-    });
-    bokehPass.needsSwap = true;
-    bokehPass.enabled = hqDefault;
-    composer.addPass(bokehPass);
+    const _makeDofPass = () => {
+      const bokehPass = new BokehPass(rootScene, camera, {
+        focus: 3.0,
+        aperture: 0.00002,
+        maxblur: 0.005,
+        width: size.x,
+        height: size.y,
+      });
+      bokehPass.needsSwap = true;
+      bokehPass.enabled = hqDefault;
+      return bokehPass;
+    };
+    const dofPass = _makeDofPass();
+    composer.addPass(dofPass);
     
     /* const afterimagePass = new AfterimagePass();
     afterimagePass.uniforms['damp'].value = 0.6;
     afterimagePass.enabled = false;
     composer.addPass(afterimagePass); */
     
-    const adaptToneMappingPass = new AdaptiveToneMappingPass(/*adaptive = */true, /* resolution = */256);
-    // adaptToneMappingPass.needsSwap = true;
-    adaptToneMappingPass.setAdaptionRate(100);
-    adaptToneMappingPass.setMaxLuminance(10);
-    adaptToneMappingPass.setMinLuminance(0);
-    adaptToneMappingPass.setMiddleGrey(3);
-    adaptToneMappingPass.enabled = hqDefault;
-    // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
-    composer.addPass(adaptToneMappingPass);
+    const _makeHdrPass = () => {
+      const adaptToneMappingPass = new AdaptiveToneMappingPass(/*adaptive = */true, /* resolution = */256);
+      // adaptToneMappingPass.needsSwap = true;
+      adaptToneMappingPass.setAdaptionRate(100);
+      adaptToneMappingPass.setMaxLuminance(10);
+      adaptToneMappingPass.setMinLuminance(0);
+      adaptToneMappingPass.setMiddleGrey(3);
+      adaptToneMappingPass.enabled = hqDefault;
+      // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
+      return adaptToneMappingPass;
+    };
+    const hdrPass = _makeHdrPass();
+    composer.addPass(hdrPass);
     
     /* const darkenPass = new ShaderPass({
       uniforms: {
@@ -276,50 +282,58 @@ export default class Webaverse extends EventTarget {
     // bloomPass.enabled = false;
     // composer.addPass(bloomPass);
     
-    const resolution = size;
-    const strength = 0.2;
-    const radius = 0.5;
-    const threshold = 0.8;
-    const unrealBloomPass = new UnrealBloomPass(resolution, strength, radius, threshold);
-    // unrealBloomPass.threshold = params.bloomThreshold;
-    // unrealBloomPass.strength = params.bloomStrength;
-    // unrealBloomPass.radius = params.bloomRadius;
-    // unrealBloomPass.copyUniforms['opacity'].value = 0.5;
-    unrealBloomPass.enabled = hqDefault;
-    composer.addPass(unrealBloomPass);
+    const _makeBloomPass = () => {
+      const resolution = size;
+      const strength = 0.2;
+      const radius = 0.5;
+      const threshold = 0.8;
+      const unrealBloomPass = new UnrealBloomPass(resolution, strength, radius, threshold);
+      // unrealBloomPass.threshold = params.bloomThreshold;
+      // unrealBloomPass.strength = params.bloomStrength;
+      // unrealBloomPass.radius = params.bloomRadius;
+      // unrealBloomPass.copyUniforms['opacity'].value = 0.5;
+      unrealBloomPass.enabled = hqDefault;
+      return unrealBloomPass;
+    };
+    const bloomPass = _makeBloomPass();
+    composer.addPass(bloomPass);
     
-    const colorPass = new ShaderPass({
-      uniforms: {
-        tDiffuse: {
-          value: null,
+    const _makeEncodingPass = () => {
+      const encodingPass = new ShaderPass({
+        uniforms: {
+          tDiffuse: {
+            value: null,
+          },
         },
-      },
-      vertexShader: `\
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        }
-      `,
-      fragmentShader: `\
-        uniform sampler2D tDiffuse;
-        varying vec2 vUv;
-        void main() {
-          vec4 c = texture2D(tDiffuse, vUv);
-          c = LinearTosRGB(c);
-          // c = sRGBToLinear(c);
-          // c.rgb = pow2(c.rgb, 0.8);
-          // c.a = 1.;
-          gl_FragColor = c;
-        }
-      `,
-    });
-    // colorPass.enabled = false;
-    composer.addPass(colorPass);
+        vertexShader: `\
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `\
+          uniform sampler2D tDiffuse;
+          varying vec2 vUv;
+          void main() {
+            vec4 c = texture2D(tDiffuse, vUv);
+            c = LinearTosRGB(c);
+            // c = sRGBToLinear(c);
+            // c.rgb = pow2(c.rgb, 0.8);
+            // c.a = 1.;
+            gl_FragColor = c;
+          }
+        `,
+      });
+      // encodingPass.enabled = false;
+      return encodingPass;
+    };
+    const encodingPass = _makeEncodingPass();
+    composer.addPass(encodingPass);
 
     document.addEventListener('keydown', e => { // XXX move to io manager
       if (e.key === 'h') {
-        webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : internalRenderPass;
+        webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : ssaoRenderPass;
       } else if (e.key === 'j') {
         bokehPass.enabled = !bokehPass.enabled;
       } else if (e.key === 'k') {
