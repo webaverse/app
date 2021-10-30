@@ -197,6 +197,22 @@ const cameraManager = {
       camera.updateMatrixWorld();
     } */
   },
+  update(timeDiff) {
+    const zDiff = Math.abs(cameraOffset.z - cameraOffsetTargetZ);
+    if (zDiff === 0) {
+      // nothing
+    } else if (zDiff > 0.000001) {
+      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      cameraOffset.z = cameraOffset.z * 0.8 + 0.2 * cameraOffsetTargetZ;
+      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+    } else {
+      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      cameraOffset.z = cameraOffsetTargetZ;
+      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+    }
+  },
   // switchCamera,
   // selectTool,
 };
