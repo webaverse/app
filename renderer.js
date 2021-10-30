@@ -70,69 +70,69 @@ function getContainerElement() {
   return container;
 }
 
-function setComposer(newComposer)
-{
-    composer = newComposer;
-}
-
-function getComposer()
-{
-    return composer;
-}
-
-function getRenderTarget()
-{
-    return renderTarget;
+function getComposer() {
+  return composer;
 }
 
 renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
 const scene = new THREE.Scene();
-const orthographicScene = new THREE.Scene();
-const avatarScene = new THREE.Scene();
+scene.name = 'scene';
+const sceneHighPriority = new THREE.Scene();
+sceneHighPriority.name = 'highPriorioty';
+const sceneLowPriority = new THREE.Scene();
+sceneLowPriority.name = 'lowPriorioty';
+const rootScene = new THREE.Scene();
+rootScene.name = 'root';
+rootScene.fog = new THREE.FogExp2(0xFFFFFF, 0.01);
+rootScene.add(sceneHighPriority);
+rootScene.add(scene);
+rootScene.add(sceneLowPriority);
+
+// const orthographicScene = new THREE.Scene();
+// const avatarScene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 
-const avatarCamera = camera.clone();
+/* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
-avatarCamera.updateProjectionMatrix();
+avatarCamera.updateProjectionMatrix(); */
 
 const dolly = new THREE.Object3D();
 // fixes a bug: avatar glitching when dropped exactly at an axis
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
-dolly.add(avatarCamera);
+// dolly.add(avatarCamera);
 scene.add(dolly);
 
-const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
-scene.add(orthographicCamera);
-
-const sceneHighPriority = new THREE.Scene();
-const sceneLowPriority = new THREE.Scene();
+// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+// scene.add(orthographicCamera);
 
 window.addEventListener('resize', e => {
   const renderer = getRenderer();
-  if (renderer.xr.getSession()) {
-    renderer.xr.isPresenting = false;
-  }
+  if (renderer) {
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = false;
+    }
 
-  const containerElement = getContainerElement();
-  const rect = containerElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height);
-  // renderer2.setSize(window.innerWidth, window.innerHeight);
+    const containerElement = getContainerElement();
+    const rect = containerElement.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height);
+    // renderer2.setSize(window.innerWidth, window.innerHeight);
 
-  const aspect = rect.width / rect.height;
-  camera.aspect = aspect;
-  camera.updateProjectionMatrix();
+    const aspect = rect.width / rect.height;
+    camera.aspect = aspect;
+    camera.updateProjectionMatrix();
 
-  avatarCamera.aspect = aspect;
-  avatarCamera.updateProjectionMatrix();
-  
-  if (renderer.xr.getSession()) {
-    renderer.xr.isPresenting = true;
+    // avatarCamera.aspect = aspect;
+    // avatarCamera.updateProjectionMatrix();
+    
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = true;
+    }
   }
 });
 
