@@ -10,6 +10,7 @@ const localVector = new THREE.Vector3();
 const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const birdsEyeHeight = 10;
 const cameraOffset = new THREE.Vector3();
+let cameraOffsetTargetZ = cameraOffset.z;
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
@@ -180,9 +181,12 @@ const cameraManager = {
   
     // if (controlsManager.isPossessed()) {
       camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+      
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
+      
+      cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+      
 
       // physicsManager.unlockControls();
     /* } else {
