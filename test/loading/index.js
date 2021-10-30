@@ -7,6 +7,12 @@ function sleep(seconds) {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 
+
+const ignoreErrors= [
+  /** Internal ThreeJS error sometimes gets caught in the extendTexture */
+  'at GLTFTextureTransformExtension.extendTexture'
+]
+
 module.exports = class LoadTester {
   async addStat(type, stat) {
     if (!this.stats) {
@@ -27,7 +33,12 @@ module.exports = class LoadTester {
     }
   }
 
+  MochaIntercept(){
+
+  }
+
   PromiseIntercept(value){
+    let reportError = false;
     try{
       console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
     }catch(e){
@@ -35,6 +46,19 @@ module.exports = class LoadTester {
     }finally{
       this.stats.errors.push(value);
     }
+    for (const error of ignoreErrors) {
+      if(typeof value !== 'string'){
+        value = JSON.stringify(value);
+      }
+      if(value.includes(error)){
+        reportError = true;
+      }
+    }
+
+    if(reportError){
+      this.MochaIntercept();
+    }
+    
   }
 
   async init() {
@@ -95,7 +119,7 @@ module.exports = class LoadTester {
               }else if(typeof originalOnFailure === 'function'){
                 console.log('originalOnFailure was a function',originalOnFailure);
                 console.log('onFailure was a value',onFailure);
-                PromiseIntercept(originalOnFailure.toString());                
+                //PromiseIntercept(originalOnFailure.toString());                
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return originalOnFailure(onFailure);
               }else if(typeof onFailure === 'object'){
