@@ -31,7 +31,7 @@ phases:
       - apt-get install -y libx11-xcb1
       - ls ./node_modules/puppeteer/.local-chromium/
       # Print out missing libs
-      #- echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-549031/chrome-linux/chrome | grep not
+      - echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-901912/chrome-linux/chrome | grep not
   build:
     commands:
       - echo Build started on `date`
