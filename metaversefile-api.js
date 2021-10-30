@@ -27,6 +27,7 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import * as postProcessing from './post-processing.js';
 import {getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
@@ -448,6 +449,9 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  usePostProcessing() {
+    return postProcessing;
   },
   createAvatar(o, options) {
     return new Avatar(o, options);
