@@ -297,6 +297,12 @@ sceneLowPriority.add(mouseDomHoverPhysicsMesh);
 let mouseDomHoverObject = null;
 let mouseDomHoverPhysicsId = 0;
 
+const mouseDomEquipmentHoverPhysicsMesh = _makeHighlightPhysicsMesh(hoverEquipmentMaterial);
+mouseDomEquipmentHoverPhysicsMesh.visible = false;
+sceneLowPriority.add(mouseDomEquipmentHoverPhysicsMesh);
+let mouseDomEquipmentHoverObject = null;
+let mouseDomEquipmentHoverPhysicsId = 0;
+
 /* const editMesh = _makeTargetMesh();
 editMesh.visible = false;
 scene.add(editMesh);
@@ -1204,6 +1210,45 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updateMouseDomHover();
+  
+  const _updateMouseDomEquipmentHover = () => {
+    mouseDomEquipmentHoverPhysicsMesh.visible = false;
+
+    if (mouseDomEquipmentHoverObject && !mouseSelectedObject) {
+      const physicsId = mouseDomEquipmentHoverPhysicsId;
+      /* if (mouseHighlightPhysicsMesh.physicsId !== physicsId) {
+        const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
+
+        if (physicsGeometry) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          mouseHighlightPhysicsMesh.geometry.dispose();
+          mouseHighlightPhysicsMesh.geometry = geometry;
+          // mouseHighlightPhysicsMesh.scale.setScalar(1.05);
+          mouseHighlightPhysicsMesh.physicsId = physicsId;
+        }
+      } */
+
+      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      if (physicsObject) {
+        const {physicsMesh} = physicsObject;
+        mouseDomEquipmentHoverPhysicsMesh.geometry = physicsMesh.geometry;
+        localMatrix2.copy(physicsMesh.matrixWorld)
+          // .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
+          .decompose(mouseDomEquipmentHoverPhysicsMesh.position, mouseDomEquipmentHoverPhysicsMesh.quaternion, mouseDomEquipmentHoverPhysicsMesh.scale);
+        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
+        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.distanceOffset.value = -mouseDomEquipmentHoverPhysicsMesh.position.distanceTo(camera.position)
+        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+        mouseDomEquipmentHoverPhysicsMesh.visible = true;
+      }
+    }
+  };
+  _updateMouseDomEquipmentHover();
 
   const _handleTeleport = () => {
     if (rigManager.localRig) {
@@ -2894,17 +2939,12 @@ const gameManager = {
   getMouseDomHoverPhysicsId() {
     return mouseDomHoverPhysicsId;
   },
-  setMouseDomHoverObject(o, physicsId) {
-    mouseDomHoverObject = o;
-    mouseDomHoverPhysicsId = physicsId;
-    
-    /* // console.log('set mouse dom hover', !!mouseHoverObject);
-    world.appManager.dispatchEvent(new MessageEvent('hoverchange', {
-      data: {
-        app: mouseDomHoverObject,
-        physicsId: mouseDomHoverPhysicsId,
-      },
-    })); */
+  getMouseDomEquipmentHoverObject(o, physicsId) {
+    return mouseDomEquipmentHoverObject;
+  },
+  setMouseDomEquipmentHoverObject(o, physicsId) {
+    mouseDomEquipmentHoverObject = o;
+    mouseDomEquipmentHoverPhysicsId = physicsId;
   },
   getSpeed() {
     let speed = 0;
