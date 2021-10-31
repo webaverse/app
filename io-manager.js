@@ -504,7 +504,11 @@ ioManager.keydown = e => {
     }
     case 69: { // E
       // if (document.pointerLockElement) {
-        game.menuActivateDown();
+        if (game.canRotate()) {
+          game.menuRotate(-1);
+        } else {
+          game.menuActivateDown();
+        }
       // }
       break;
     }
