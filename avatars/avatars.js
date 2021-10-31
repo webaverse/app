@@ -61,14 +61,13 @@ VRMSpringBone.prototype.update = (_update => {
     localMatrix2.multiply(this._getParentMatrixWorld());
 
     // several parameters
-    // console.log('got delta', this.stiffnessForce);
-    // const stiffness = getVelocityDampingFactor((1 - this.stiffnessForce) * 0.0001, delta * 1000);
+    // const stiffness = getVelocityDampingFactor((1 - this.stiffnessForce) * 0.0001, delta * 1000); // old
     const stiffness = this.stiffnessForce * delta;
     const f = getVelocityDampingFactor(this.gravityPower * 0.5, delta * 1000);
-    // const f = this.gravityPower * delta;
+    // const f = this.gravityPower * delta; // old
     const external = localVector2.copy(this.gravityDir).multiplyScalar(f);
     const drag = getVelocityDampingFactor((1 - this.dragForce) * 0.5, delta * 1000);
-    // const drag = 1 - this.dragForce;
+    // const drag = 1 - this.dragForce; // old
 
     // verlet積分で次の位置を計算
     this._nextTail
