@@ -429,11 +429,10 @@ class AppManager extends EventTarget {
     
     srcAppManager.state.transact(() => {
       dstAppManager.state.transact(() => {
-        const srcTrackedApp = this.getTrackedApp(instanceId);
-        const dstTrackedApp = dstAppManager.getTrackedApp(instanceId);
-        console.log('got tracked app in src dst', srcTrackedApp, dstTrackedApp);
+        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+        // const dstTrackedApp = dstAppManager.getTrackedApp(instanceId);
+        // console.log('got tracked app in src dst', srcTrackedApp, dstTrackedApp);
         
-        // const instanceId = srcTrackedApp.get('instanceId');
         const contentId = srcTrackedApp.get('contentId');
         const position = srcTrackedApp.get('position');
         const quaternion = srcTrackedApp.get('quaternion');
@@ -447,8 +446,13 @@ class AppManager extends EventTarget {
           scale,
           components,
         );
-        
         srcAppManager.removeTrackedAppInternal(instanceId);
+        
+        const srcAppIndex = srcAppManager.apps.indexOf(app);
+        // const dstAppIndex = dstAppManager.apps.findIndex(app => app.instanceId === instanceId);
+        srcAppManager.apps.splice(srcAppIndex, 1);
+        
+        dstAppManager.apps.push(app);
       });
     });
     const srcTrackedApp = this.getTrackedApp(instanceId);
