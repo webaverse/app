@@ -376,7 +376,13 @@ export default function Header({
   }, []);
   useEffect(() => {
     localPlayer.addEventListener('wearupdate', e => {
-      setWearActions(_getWearActions());
+      const wearActions = _getWearActions();
+      setWearActions(wearActions);
+      
+      const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
+      if (mouseDomEquipmentHoverObject && !wearActions.some(wearAction => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
+        game.setMouseDomEquipmentHoverObject(null);
+      }
     });
   }, []);
   useEffect(() => {
@@ -684,7 +690,19 @@ export default function Header({
                   </div> */}
                   {wearActions.map((wearAction, i) => {
                     return (
-                      <div className={styles.equipment} key={i}>
+                      <div
+                        className={styles.equipment}
+                        key={i}
+                        onMouseEnter={e => {
+                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          game.setMouseHoverObject(null);
+                          const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+                          game.setMouseDomEquipmentHoverObject(app, physicsId);
+                        }}
+                        onMouseLeave={e => {
+                          game.setMouseDomEquipmentHoverObject(null);
+                        }}
+                      >
                         <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
                         <img src="images/flower.png" className={styles.icon} />
                         <div className={styles.name}>{wearAction.instanceId}</div>
