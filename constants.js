@@ -52,3 +52,6 @@ export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const minFov = 60;
 export const maxFov = 120;
+export const groundFriction = 0.28;
+export const airFriction = groundFriction;
+export const flyFriction = 0.5;

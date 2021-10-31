@@ -616,3 +616,7 @@ export function angleDifference(angle1, angle2) {
   a = mod(a + Math.PI, Math.PI*2) - Math.PI;
   return a;
 }
+
+export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
+  return Math.pow(dampingPer60Hz, timeDiff / 60);
+}

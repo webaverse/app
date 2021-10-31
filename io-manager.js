@@ -12,11 +12,12 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
-import {isInIframe} from './util.js';
+import {isInIframe, getVelocityDampingFactor} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
+import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
 
@@ -237,10 +238,12 @@ const _updateIo = timeDiff => {
       physicsManager.velocity.add(direction);
 
       if (isFlying) {
-        physicsManager.velocity.multiplyScalar(0.9);
+        const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+        physicsManager.velocity.multiplyScalar(factor);
       } else if (game.isJumping()) {
-        physicsManager.velocity.x *= 0.7;
-        physicsManager.velocity.z *= 0.7;
+        const factor = getVelocityDampingFactor(airFriction, timeDiff);
+        physicsManager.velocity.x *= factor;
+        physicsManager.velocity.z *= factor;
       }
     }
   } /* else {
