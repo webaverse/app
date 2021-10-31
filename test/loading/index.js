@@ -104,14 +104,14 @@ module.exports = class LoadTester {
   PromiseIntercept(value){
     let reportError = false;
     try{
-      console.error('Promise Error Intercepted ',  JSON.parse(value,null, 4));
+      // console.error('Promise Error Intercepted ',  JSON.parse(value,null, 4));
     }catch(e){
-      console.error('Promise Error Intercepted ',  JSON.stringify(value));
+      // console.error('Promise Error Intercepted ',  JSON.stringify(value));
     }finally{
       try{
         self.stats.errors.push(value);
       }catch(e){
-        console.log('internal emit',e);
+        // console.log('internal emit',e);
       }
     }
     for (const error of ignoreErrors) {
@@ -232,7 +232,7 @@ module.exports = class LoadTester {
         waitUntil: 'networkidle2',
         // timeout: 60000
       }).catch((e)=>{
-        console.log(e);
+        // console.log(e);
       });
         
     }catch(e){
