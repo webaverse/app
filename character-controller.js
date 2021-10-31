@@ -94,6 +94,7 @@ class Player extends THREE.Object3D {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
     };
   }
   static controlActionTypes = [
@@ -307,10 +308,10 @@ function update(timeDiff) {
   if (throwAction) {
     throwAction.time += timeDiff;
   }
-  const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+  /* const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
   if (narutoRunAction) {
     narutoRunAction.time += timeDiff;
-  }
+  } */
   /* const activateAction = localPlayer.actions.find(action => action.type === 'activate');
   if (activateAction) {
     activateAction.time += timeDiff;
@@ -323,6 +324,7 @@ function update(timeDiff) {
   localPlayer.actionInterpolants.crouch.update(timeDiff);
   localPlayer.actionInterpolants.activate.update(timeDiff);
   localPlayer.actionInterpolants.use.update(timeDiff);
+  localPlayer.actionInterpolants.narutoRun.update(timeDiff);
 }
 
 export {
