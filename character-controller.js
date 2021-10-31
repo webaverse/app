@@ -56,7 +56,7 @@ class UniActionInterpolant extends Interpolant {
     }
   }
 }
-class ModActionInterpolant extends Interpolant {
+class InfiniteActionInterpolant extends Interpolant {
   constructor(fn, minValue) {
     super(fn, minValue);
   }
@@ -93,6 +93,7 @@ class Player extends THREE.Object3D {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
+      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
     };
   }
   static controlActionTypes = [
