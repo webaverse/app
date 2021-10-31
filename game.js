@@ -939,8 +939,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
         grabbedObject.updateMatrixWorld();
-        // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
-        
+
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
@@ -949,21 +948,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
         });
 
         grabbedObject.updateMatrixWorld();
-        
-        // const newMatrix = localMatrix4.copy(grabbedObject.matrixWorld);
-        /* if (grabbedObject.getPhysicsIds) {
-          const physicsIds = grabbedObject.getPhysicsIds();
-          for (const physicsId of physicsIds) {
-            const physicsTransform = physicsManager.getPhysicsTransform(physicsId);
-            
-            const oldTransformMatrix = localMatrix5.compose(physicsTransform.position, physicsTransform.quaternion, physicsTransform.scale);
-            oldTransformMatrix.clone()
-              .premultiply(oldMatrix.invert())
-              .premultiply(newMatrix)
-              .decompose(localVector, localQuaternion, localVector2);
-            physicsManager.setPhysicsTransform(physicsId, localVector, localQuaternion, localVector2);
-          }
-        } */
         
         grabUseMesh.position.copy(camera.position)
           .add(
@@ -977,12 +961,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
         grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
-
-        /* if (handSnap) {
-          moveMesh.position.copy(grabbedObject.position);
-          moveMesh.quaternion.copy(grabbedObject.quaternion);
-          moveMesh.visible = true;
-        } */
       }
     }
     if (!grabUseMesh.visible && !gameManager.editMode) {
