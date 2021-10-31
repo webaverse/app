@@ -930,7 +930,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     const _isWear = o => localPlayer.actions.some(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
-    grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
@@ -962,6 +961,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
+    grabUseMesh.visible = false;
     if (!gameManager.editMode) {
       localVector.copy(localPlayer.position)
         .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
