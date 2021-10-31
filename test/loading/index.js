@@ -247,7 +247,7 @@ module.exports = class LoadTester {
     //setupRequestInterception();
 
     const t1 = performance.now();
-    this.addStat('PERFORMANCE', `Scene Loaded in ${(Number(t1 - t0).toFixed(0) / 1000)-15}s`);
+    this.addStat('PERFORMANCE', `Scene Loaded in ${Number(t1 - t0 - 15).toFixed(0) / 1000}s`);
   }
 
   async test() {
