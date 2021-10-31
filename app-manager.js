@@ -85,6 +85,14 @@ class AppManager extends EventTarget {
 
       lastApps = nextApps;
     });
+
+    const resize = e => {
+      appManager.resize(e);
+    };
+    window.addEventListener('resize', resize);
+    this.cleanup = () => {
+      window.removeEventListener('resize', resize);
+    };
   }
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
@@ -366,6 +374,9 @@ class AppManager extends EventTarget {
       await app.addModule(m);
     })();
     return app;
+  }
+  destroy() {
+    this.cleanup();
   }
 }
 export {

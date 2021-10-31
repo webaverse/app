@@ -125,7 +125,6 @@ export default class Webaverse extends EventTarget {
   }
   bindInput() {
     ioManager.bindInput();
-    world.bindInput();
   }
   bindInterface() {
     ioManager.bindInterface();
