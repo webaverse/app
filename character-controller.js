@@ -11,6 +11,7 @@ import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
 import {crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {AppManager} from './app-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -88,6 +89,8 @@ class Player extends THREE.Object3D {
     // this.playerId = 'Anonymous';
     this.actions = [];
 
+    this.appManager = new AppManager();
+
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
@@ -139,6 +142,8 @@ class LocalPlayer extends Player {
       type: 'wearupdate',
       wear: true,
     });
+    
+    world.appManager.transplantApp(app, this.appManager);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
