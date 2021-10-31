@@ -56,6 +56,18 @@ class UniActionInterpolant extends Interpolant {
     }
   }
 }
+class ModActionInterpolant extends Interpolant {
+  constructor(fn, minValue) {
+    super(fn, minValue);
+  }
+  update(timeDiff) {
+    if (this.fn()) {
+      this.value += timeDiff;
+    } else {
+      this.value = this.minValue;
+    }
+  }
+}
 
 class PlayerHand {
   constructor() {
