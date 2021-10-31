@@ -91,11 +91,11 @@ function applyPlayerActionsToAvatar(player, rig) {
   // const narutoRunTime = narutoRunAction ? narutoRunAction.time : 0;
   const sitAction = player.actions.find(action => action.type === 'sit');
   const sitAnimation = sitAction ? sitAction.animation : '';
-  const danceAction = player.actions.find(action => action.type === 'dansu');
-  const danceTime = danceAction ? danceAction.time : -1;
+  const danceAction = player.actions.find(action => action.type === 'dance');
+  // const danceTime = danceAction ? danceAction.time : -1;
   const danceAnimation = danceAction ? danceAction.animation : '';
   const throwAction = player.actions.find(action => action.type === 'throw');
-  const throwTime = throwAction ? throwAction.time : -1;
+  // const throwTime = throwAction ? throwAction.time : -1;
   const aimAction = player.actions.find(action => action.type === 'aim');
   const crouchAction = player.actions.find(action => action.type === 'crouch');
 
@@ -115,10 +115,10 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
-  rig.danceTime = danceTime;
+  rig.danceTime = player.actionInterpolants.dance.get();
   rig.danceAnimation = danceAnimation;
   rig.throwState = !!throwAction;
-  rig.throwTime = throwTime;
+  rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
 }
 
