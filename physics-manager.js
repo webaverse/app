@@ -568,24 +568,24 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       const sitAction = localPlayer.actions.find(action => action.type === 'sit');
 
       const objInstanceId = sitAction.controllingId;
-      const controlledObj = world.appManager.getAppByInstanceId(objInstanceId);
-      const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledObj;
+      const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
+      const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
-      const sitComponent = controlledObj.getComponent('sit');
+      const sitComponent = controlledApp.getComponent('sit');
       const {sitOffset = [0, 0, 0], damping} = sitComponent;
 
       physicsManager.setSitOffset(sitOffset);
 
-      applyVelocity(controlledObj.position, physicsManager.velocity, timeDiffS);
+      applyVelocity(controlledApp.position, physicsManager.velocity, timeDiffS);
       if (physicsManager.velocity.lengthSq() > 0) {
-        controlledObj.quaternion
+        controlledApp.quaternion
           .setFromUnitVectors(
             localVector4.set(0, 0, -1),
             localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
           )
           .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
-      controlledObj.updateMatrixWorld();
+      controlledApp.updateMatrixWorld();
 
       localMatrix.copy(sitPos.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
