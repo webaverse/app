@@ -15,8 +15,8 @@ import {
   getRenderer,
   getComposer,
   scene,
-  sceneHighPriority,
-  sceneLowPriority,
+  // sceneHighPriority,
+  // sceneLowPriority,
   rootScene,
   camera,
 } from './renderer.js';
