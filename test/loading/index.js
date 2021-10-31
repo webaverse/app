@@ -15,7 +15,7 @@ const ignoreErrors= [
 
 let self;
 
-module.exports = class LoadTester {
+class LoadTester {
 
   ignoreList = [
     'blob'
@@ -157,7 +157,7 @@ module.exports = class LoadTester {
     // await this.devtools.send( 'HeadlessExperimental.enable' );
     // await this.devtools.send( 'HeapProfiler.enable' );
 
-    await this.page.setDefaultNavigationTimeout(0);
+    await this.page.setDefaultNavigationTimeout(60000);
 
     this.page
       .on('console', message => {
@@ -228,26 +228,22 @@ module.exports = class LoadTester {
     await sleep(5);
     const t0 = performance.now();
     try{
-      this.page.goto(sceneUrl,{
+      await this.page.goto(sceneUrl,{
         waitUntil: 'networkidle2',
-        // timeout: 60000
-      }).catch((e)=>{
-        // console.log(e);
       });
-        
-    }catch(e){
 
+      await this.waitForLoadToComplete();
+      
+      const t1 = performance.now();
+      this.addStat('PERFORMANCE', `Scene Loaded in ${Number(t1 - t0).toFixed(0) / 1000}s`);
+
+    }catch(e){
+      const t1 = performance.now();
+      this.addStat('PERFORMANCE', `Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`);
+      /** Signa the Mocha Intercept */
+      this.MochaIntercept();
     }
 
-    /** Wait for Request Fill in  */
-    await sleep(15);
-
-    await this.waitForLoadToComplete();
-
-    //setupRequestInterception();
-
-    const t1 = performance.now();
-    this.addStat('PERFORMANCE', `Scene Loaded in ${Number(t1 - t0 - 15).toFixed(0) / 1000}s`);
   }
 
   async test() {
@@ -278,14 +274,16 @@ module.exports = class LoadTester {
   }
 
   async finish() {
-    this.browser.close();
+    await this.browser.close();
     this.browser = null;
   }
 }
+
+module.exports = LoadTester;
 
 // new LoadTester(
 //   {
 //     slowMo: 0,
 //     host: 'http://localhost:3000',
 //   },
-// );
+// ).run();
