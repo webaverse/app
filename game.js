@@ -957,13 +957,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
               .multiplyScalar(3)
           );
         grabUseMesh.quaternion.copy(camera.quaternion);
-        // grabUseMesh.scale.copy(grabbedObject.scale);
-        grabUseMesh.visible = true;
+        // grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
-    if (!grabUseMesh.visible && !gameManager.editMode) {
+    if (!gameManager.editMode) {
       localVector.copy(localPlayer.position)
         .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
