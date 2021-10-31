@@ -13,7 +13,14 @@ const ignoreErrors= [
   'at GLTFTextureTransformExtension.extendTexture'
 ]
 
+let self;
+
 module.exports = class LoadTester {
+
+  ignoreList = [
+    'blob'
+  ]
+
   async addStat(type, stat) {
     if (!this.stats) {
       this.stats = {
@@ -33,6 +40,63 @@ module.exports = class LoadTester {
     }
   }
 
+
+  requestFinishedListener = (request) => {
+    if (request.resolver) {
+      request.resolver();
+      delete request.resolver;
+    }
+  };
+
+  requestFailedListener = (request) => {
+    if (request.resolver) {
+      request.resolver();
+      delete request.resolver;
+    }
+    this.stats.network.push(`Failed Request `+ request.url());
+  };
+
+  requestListener = (request) => {
+    if (request.resourceType() === 'xhr') {
+      const index = ignoreList.indexOf(request.url());
+      if (index < 0) {
+      this.requestPromises.push(
+        new Promise(resolve => {
+          request.resolver = resolve;
+        }),
+      );
+      }
+    }
+  };
+
+  async waitForLoadToComplete() {
+    if (this.requestPromises.length === 0) {
+      return;
+    }
+    await Promise.all(this.requestPromises);
+    this.requestPromises = [];
+  }
+
+
+
+  waitForRequests = (page, ignoreList) => {
+    return;
+    page.on('request', request => {
+      if (request.resourceType() === "xhr") {
+        // check if request is in observed list
+        const index = ignoreList.indexOf(request.url());
+        if (index < 0) {
+        this.requestPromises.push(
+          new Promise(resolve => {
+            request.resolver = resolve;
+          }),
+        );
+        }
+      }
+      request.continue();
+    })
+  }
+
   MochaIntercept(){
 
   }
@@ -40,11 +104,15 @@ module.exports = class LoadTester {
   PromiseIntercept(value){
     let reportError = false;
     try{
-      // console.log('Promise Error Intercepted ',  JSON.parse(value,null, 4));
+      console.error('Promise Error Intercepted ',  JSON.parse(value,null, 4));
     }catch(e){
-      // console.log('Promise Error Intercepted ',  JSON.stringify(value));
+      console.error('Promise Error Intercepted ',  JSON.stringify(value));
     }finally{
-      this.stats.errors.push(value);
+      try{
+        self.stats.errors.push(value);
+      }catch(e){
+        console.log('internal emit',e);
+      }
     }
     for (const error of ignoreErrors) {
       if(typeof value !== 'string'){
@@ -56,7 +124,7 @@ module.exports = class LoadTester {
     }
 
     if(reportError){
-      this.MochaIntercept();
+      self.MochaIntercept();
     }
     
   }
@@ -64,8 +132,9 @@ module.exports = class LoadTester {
   async init() {
     this.browser = await puppeteer.launch({
       headless: true, // change to false for debug
-      slowMo: this.config.slowMo,
       defaultViewport: null,
+      ignoreHTTPSErrors: true, 
+      dumpio: false,
       args: [		
       // '--use-gl=egl',
       '--disable-gpu',
@@ -79,18 +148,17 @@ module.exports = class LoadTester {
       '--disable-threaded-scrolling',
       '--disable-checker-imaging'],
     });
-    var self = this;
+    self = this;
 
     this.page = await this.browser.newPage();
 
 
-    this.devtools = await this.page.target().createCDPSession();
-    await this.devtools.send( 'HeadlessExperimental.enable' );
-    await this.devtools.send( 'HeapProfiler.enable' );
+    // this.devtools = await this.page.target().createCDPSession();
+    // await this.devtools.send( 'HeadlessExperimental.enable' );
+    // await this.devtools.send( 'HeapProfiler.enable' );
 
     await this.page.setDefaultNavigationTimeout(0);
 
-    this.errorIndex = 0;
     this.page
       .on('console', message => {
         if (message.type().substr(0, 3).toUpperCase() === 'ERR') {
@@ -100,6 +168,8 @@ module.exports = class LoadTester {
       .on('requestfailed', request => {
         this.addStat('NETWORK', `Request-Error: ${request.failure().errorText} ${request.url()}`);
       });
+
+    this.setupRequestInterception();
 
       await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
 
@@ -148,15 +218,36 @@ module.exports = class LoadTester {
       })
   }
 
-  async testScene(sceneUrl) {
-    const t0 = performance.now();
+  setupRequestInterception(){
+    this.page.on('request',this.requestListener);
+    this.page.on('requestfailed', this.requestFailedListener);
+    this.page.on('requestfinished', this.requestFinishedListener);
+  }
 
-    await this.page.goto(sceneUrl, {
-      waitUntil: 'networkidle2',
-    });
+  async testScene(sceneUrl) {
+    await sleep(5);
+    const t0 = performance.now();
+    try{
+      this.page.goto(sceneUrl,{
+        waitUntil: 'networkidle2',
+        // timeout: 60000
+      }).catch((e)=>{
+        console.log(e);
+      });
+        
+    }catch(e){
+
+    }
+
+    /** Wait for Request Fill in  */
+    await sleep(15);
+
+    await this.waitForLoadToComplete();
+
+    //setupRequestInterception();
 
     const t1 = performance.now();
-    this.addStat('PERFORMANCE', `Street Scene Loaded in ${Number(t1 - t0).toFixed(0) / 1000}s`);
+    this.addStat('PERFORMANCE', `Scene Loaded in ${(Number(t1 - t0).toFixed(0) / 1000)-15}s`);
   }
 
   async test() {
@@ -183,6 +274,7 @@ module.exports = class LoadTester {
   constructor(config) {
     this.config = config;
     this.scenes = [];
+    this.requestPromises = [];
   }
 
   async finish() {
