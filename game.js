@@ -1450,34 +1450,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 };
-const _pushWorldAppUpdates = () => {
-  world.appManager.setPushingLocalUpdates(true);
-  
-  for (const object of world.appManager.apps) {
-    object.updateMatrixWorld();
-    if (!object.matrix.equals(object.lastMatrix)) {
-      object.matrix.decompose(localVector, localQuaternion, localVector2);
-      world.appManager.setTrackedAppTransform(object.instanceId, localVector, localQuaternion, localVector2);
-      
-      const physicsObjects = object.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        physicsObject.position.copy(object.position);
-        physicsObject.quaternion.copy(object.quaternion);
-        physicsObject.scale.copy(object.scale);
-        physicsObject.updateMatrixWorld();
-        
-        physicsManager.pushUpdate(physicsObject);
-        physicsObject.needsUpdate = false;
-      }
-      
-      object.lastMatrix.copy(object.matrix);
-    }
-  }
-
-  world.appManager.setPushingLocalUpdates(false);
-};
 const _pushAppUpdates = () => {
-  _pushWorldAppUpdates();
+  world.appManager.pushAppUpdates();
+  
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.appManager.pushAppUpdates();
+  
+  const remotePlayers = metaversefileApi.useRemotePlayers();
+  for (const remotePlayer of remotePlayers) {
+    remotePlayer.appManager.pushAppUpdates();
+  }
 };
 
 /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
