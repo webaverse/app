@@ -86,7 +86,6 @@ class Player extends THREE.Object3D {
       this.rightHand,
     ];
     // this.playerId = 'Anonymous';
-    this.grabs = [null, null];
     this.actions = [];
 
     this.actionInterpolants = {
@@ -191,20 +190,27 @@ class LocalPlayer extends Player {
       });
     }
   }
-  grab(app) {
+  grab(app, hand = 'left') {
     const renderer = getRenderer();
-    const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
+    const localPlayer = metaversefile.useLocalPlayer();
+    const {position, quaternion} = renderer.xr.getSession() ?
+      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
+    :
+      camera;
 
     app.updateMatrixWorld();
     app.savedRotation = app.rotation.clone();
     app.startQuaternion = quaternion.clone();
 
-    this.grabs[0] = {
+    const grabAction = {
+      type: 'grab',
+      hand,
       instanceId: app.instanceId,
       matrix: localMatrix.copy(app.matrixWorld)
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
-        .toArray(),
+        .toArray()
     };
+    localPlayer.actions.push(grabAction);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -213,17 +219,17 @@ class LocalPlayer extends Player {
     }
   }
   ungrab() {
-    const grabSpec = this.grabs[0];
-    if (grabSpec) {
-      const app = metaversefile.getAppByInstanceId(grabSpec.instanceId);
+    const grabActions = this.actions.filter(action => action.type === 'grab');
+    for (const grabAction of grabActions) {
+      const app = metaversefile.getAppByInstanceId(grabAction.instanceId);
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
+      const actionIndex = this.actions.indexOf(grabAction);
+      this.actions.splice(actionIndex, 1);
     }
-    
-    this.grabs[0] = null;
   }
   lookAt(p) {
     const cameraOffset = cameraManager.getCameraOffset();

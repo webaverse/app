@@ -55,9 +55,15 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 ]; */
 const cubicBezier = easing(0, 1, 0, 1);
 
-const _getGrabbedObject = i => {
+const _getGrabAction = i => {
+  const targetHand = i === 0 ? 'left' : 'right';
   const localPlayer = useLocalPlayer();
-  const grabbedObjectInstanceId = localPlayer.grabs[i]?.instanceId;
+  const grabAction = localPlayer.actions.find(action => action.type === 'grab' && action.hand === targetHand);
+  return grabAction;
+};
+const _getGrabbedObject = i => {
+  const grabAction = _getGrabAction(i);
+  const grabbedObjectInstanceId = grabAction?.instanceId;
   const result = grabbedObjectInstanceId ? metaversefileApi.getAppByInstanceId(grabbedObjectInstanceId) : null;
   return result;
 };
@@ -414,7 +420,6 @@ const _use = () => {
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (highlightedObject /* && !editedObject */) {
-    // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
@@ -921,6 +926,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
+      const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = localPlayer.hands[i];
@@ -929,7 +935,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         grabbedObject.updateMatrixWorld();
         // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
+        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
@@ -2515,13 +2521,18 @@ const gameManager = {
   },
   menuPush(direction) {
     const localPlayer = useLocalPlayer();
-    const matrix = localMatrix.fromArray(localPlayer.grabs[0].matrix);
-    matrix
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.z += direction * 0.1;
-    matrix
-      .compose(localVector, localQuaternion, localVector2)
-      .toArray(localPlayer.grabs[0].matrix);
+    const grabAction = localPlayer.actions.find(action => action.type === 'wear' && action.hand === 'left');
+    if (grabAction) {
+      const matrix = localMatrix.fromArray(grabAction.matrix);
+      matrix
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector.z += direction * 0.1;
+      matrix
+        .compose(localVector, localQuaternion, localVector2)
+        .toArray(grabAction.matrix);
+    } else {
+      console.warn('trying to push with no grab object');
+    }
   },
   /* menuDrop() {
     console.log('menu drop');
