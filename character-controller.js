@@ -10,7 +10,7 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {crouchMaxTime, activateMaxTime} from './constants.js';
+import {crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -56,6 +56,18 @@ class UniActionInterpolant extends Interpolant {
     }
   }
 }
+class InfiniteActionInterpolant extends Interpolant {
+  constructor(fn, minValue) {
+    super(fn, minValue);
+  }
+  update(timeDiff) {
+    if (this.fn()) {
+      this.value += timeDiff;
+    } else {
+      this.value = this.minValue;
+    }
+  }
+}
 
 class PlayerHand {
   constructor() {
@@ -74,13 +86,17 @@ class Player extends THREE.Object3D {
       this.rightHand,
     ];
     // this.playerId = 'Anonymous';
-    this.grabs = [null, null];
-    this.wears = [];
     this.actions = [];
 
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
+      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
+      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
+      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
+      throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
     };
   }
   static controlActionTypes = [
@@ -130,7 +146,8 @@ class LocalPlayer extends Player {
     }
     
     const {instanceId} = app;
-    this.wears.push({
+    this.actions.push({
+      type: 'wear',
       instanceId,
     });
     this.ungrab();
@@ -142,9 +159,11 @@ class LocalPlayer extends Player {
     });
   }
   unwear(app) {
-    const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-    if (index !== -1) {
-      this.wears.splice(index, 1);
+    const wearActionIndex = this.actions.findIndex(({type, instanceId}) => {
+      return type === 'wear' && instanceId === app.instanceId;
+    });
+    if (wearActionIndex !== -1) {
+      this.actions.splice(wearActionIndex, 1);
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
@@ -171,20 +190,27 @@ class LocalPlayer extends Player {
       });
     }
   }
-  grab(app) {
+  grab(app, hand = 'left') {
     const renderer = getRenderer();
-    const {position, quaternion} = renderer.xr.getSession() ? useLocalPlayer().leftHand : camera;
+    const localPlayer = metaversefile.useLocalPlayer();
+    const {position, quaternion} = renderer.xr.getSession() ?
+      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
+    :
+      camera;
 
     app.updateMatrixWorld();
     app.savedRotation = app.rotation.clone();
     app.startQuaternion = quaternion.clone();
 
-    this.grabs[0] = {
+    const grabAction = {
+      type: 'grab',
+      hand,
       instanceId: app.instanceId,
       matrix: localMatrix.copy(app.matrixWorld)
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
-        .toArray(),
+        .toArray()
     };
+    localPlayer.actions.push(grabAction);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -193,17 +219,17 @@ class LocalPlayer extends Player {
     }
   }
   ungrab() {
-    const grabSpec = this.grabs[0];
-    if (grabSpec) {
-      const app = metaversefile.getAppByInstanceId(grabSpec.instanceId);
+    const grabActions = this.actions.filter(action => action.type === 'grab');
+    for (const grabAction of grabActions) {
+      const app = metaversefile.getAppByInstanceId(grabAction.instanceId);
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       }
+      const actionIndex = this.actions.indexOf(grabAction);
+      this.actions.splice(actionIndex, 1);
     }
-    
-    this.grabs[0] = null;
   }
   lookAt(p) {
     const cameraOffset = cameraManager.getCameraOffset();
@@ -278,37 +304,43 @@ function getPlayerCrouchFactor(player) {
 
 function update(timeDiff) {
   const localPlayer = metaversefile.useLocalPlayer();
-  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+  /* const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
   if (jumpAction) {
     jumpAction.time += timeDiff;
-  }
-  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+  } */
+  /* const flyAction = localPlayer.actions.find(action => action.type === 'fly');
   if (flyAction) {
     flyAction.time += timeDiff;
-  }
-  const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
+  } */
+  /* const danceAction = localPlayer.actions.find(action => action.type === 'dance');
   if (danceAction) {
     danceAction.time += timeDiff;
   }
   const throwAction = localPlayer.actions.find(action => action.type === 'throw');
   if (throwAction) {
     throwAction.time += timeDiff;
-  }
-  const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
+  } */
+  /* const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
   if (narutoRunAction) {
     narutoRunAction.time += timeDiff;
-  }
+  } */
   /* const activateAction = localPlayer.actions.find(action => action.type === 'activate');
   if (activateAction) {
     activateAction.time += timeDiff;
-  } */
+  }
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction) {
     useAction.time += timeDiff;
-  }
+  } */
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);
   localPlayer.actionInterpolants.activate.update(timeDiff);
+  localPlayer.actionInterpolants.use.update(timeDiff);
+  localPlayer.actionInterpolants.narutoRun.update(timeDiff);
+  localPlayer.actionInterpolants.fly.update(timeDiff);
+  localPlayer.actionInterpolants.jump.update(timeDiff);
+  localPlayer.actionInterpolants.dance.update(timeDiff);
+  localPlayer.actionInterpolants.throw.update(timeDiff);
 }
 
 export {

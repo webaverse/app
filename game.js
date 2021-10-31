@@ -55,9 +55,15 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 ]; */
 const cubicBezier = easing(0, 1, 0, 1);
 
-const _getGrabbedObject = i => {
+const _getGrabAction = i => {
+  const targetHand = i === 0 ? 'left' : 'right';
   const localPlayer = useLocalPlayer();
-  const grabbedObjectInstanceId = localPlayer.grabs[i]?.instanceId;
+  const grabAction = localPlayer.actions.find(action => action.type === 'grab' && action.hand === targetHand);
+  return grabAction;
+};
+const _getGrabbedObject = i => {
+  const grabAction = _getGrabAction(i);
+  const grabbedObjectInstanceId = grabAction?.instanceId;
   const result = grabbedObjectInstanceId ? metaversefileApi.getAppByInstanceId(grabbedObjectInstanceId) : null;
   return result;
 };
@@ -414,7 +420,6 @@ const _use = () => {
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (highlightedObject /* && !editedObject */) {
-    // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
@@ -519,7 +524,9 @@ const _click = () => {
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = useLocalPlayer();
-  const wearApps = localPlayer.wears.map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
+  const wearApps = localPlayer.actions
+    .filter(action => action.type === 'wear')
+    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
@@ -530,7 +537,7 @@ const _startUse = () => {
         useAction = {
           type: 'use',
           subtype,
-          time: 0,
+          // time: 0,
           instanceId,
           animation,
           boneAttachment,
@@ -915,10 +922,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
-    const _isWear = o => localPlayer.wears.some(wear => wear.instanceId === o.instanceId);
+    const _isWear = o => localPlayer.actions.some(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
+      const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = localPlayer.hands[i];
@@ -927,7 +935,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         grabbedObject.updateMatrixWorld();
         // const oldMatrix = localMatrix2.copy(grabbedObject.matrixWorld);
         
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(localPlayer.grabs[i].matrix), {
+        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
@@ -2513,13 +2521,18 @@ const gameManager = {
   },
   menuPush(direction) {
     const localPlayer = useLocalPlayer();
-    const matrix = localMatrix.fromArray(localPlayer.grabs[0].matrix);
-    matrix
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.z += direction * 0.1;
-    matrix
-      .compose(localVector, localQuaternion, localVector2)
-      .toArray(localPlayer.grabs[0].matrix);
+    const grabAction = localPlayer.actions.find(action => action.type === 'grab' && action.hand === 'left');
+    if (grabAction) {
+      const matrix = localMatrix.fromArray(grabAction.matrix);
+      matrix
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector.z += direction * 0.1;
+      matrix
+        .compose(localVector, localQuaternion, localVector2)
+        .toArray(grabAction.matrix);
+    } else {
+      console.warn('trying to push with no grab object');
+    }
   },
   /* menuDrop() {
     console.log('menu drop');
@@ -2572,14 +2585,14 @@ const gameManager = {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
-      // physicsManager.setDanceState('dansu');
+      // physicsManager.setDanceState('dance');
       const localPlayer = useLocalPlayer();
-      let action = localPlayer.actions.find(action => action.type === 'dansu');
+      let action = localPlayer.actions.find(action => action.type === 'dance');
       if (!action) {
         action = {
-          type: 'dansu',
+          type: 'dance',
           animation: 'dansu',
-          time: 0,
+          // time: 0,
         };
         localPlayer.actions.push(action);
       }
@@ -2588,7 +2601,7 @@ const gameManager = {
   menuVUp(e) {
     // physicsManager.setDanceState(null);
     const localPlayer = useLocalPlayer();
-    const actionIndex = localPlayer.actions.findIndex(action => action.type === 'dansu');
+    const actionIndex = localPlayer.actions.findIndex(action => action.type === 'dance');
     if (actionIndex !== -1) {
       localPlayer.actions.splice(actionIndex, 1);
     }
@@ -2624,7 +2637,7 @@ const gameManager = {
     if (!narutoRunAction) {
       narutoRunAction = {
         type: 'narutoRun',
-        time: 0,
+        // time: 0,
       };
       localPlayer.actions.push(narutoRunAction);
     }
@@ -2776,8 +2789,8 @@ const gameManager = {
     const localPlayer = useLocalPlayer();
     let jumpAction = localPlayer.actions.find(action => action.type === 'jump');
     
-    const wears = localPlayer.wears.slice();
-    for (const {instanceId} of wears) {
+    const wearActions = localPlayer.actions.filter(action => action.type === 'wear');
+    for (const {instanceId} of wearActions) {
       const app = metaversefileApi.getAppByInstanceId(instanceId);
       const sitComponent = app.getComponent('sit');
       if (sitComponent) {
@@ -2788,7 +2801,7 @@ const gameManager = {
     if (!jumpAction) {
       jumpAction = {
         type: 'jump',
-        time: 0,
+        // time: 0,
       };
       localPlayer.actions.push(jumpAction);
     }
@@ -2955,7 +2968,7 @@ const gameManager = {
       if (!activateAction) {
         activateAction = {
           type: 'activate',
-          time: 0,
+          // time: 0,
         };
         localPlayer.actions.push(activateAction);
       }
