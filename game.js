@@ -15,7 +15,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
-import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial} from './shaders.js';
+import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
