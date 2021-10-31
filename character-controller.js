@@ -314,11 +314,11 @@ function update(timeDiff) {
   /* const activateAction = localPlayer.actions.find(action => action.type === 'activate');
   if (activateAction) {
     activateAction.time += timeDiff;
-  } */
+  }
   const useAction = localPlayer.actions.find(action => action.type === 'use');
   if (useAction) {
     useAction.time += timeDiff;
-  }
+  } */
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);
   localPlayer.actionInterpolants.activate.update(timeDiff);
