@@ -295,6 +295,7 @@ class AppManager extends EventTarget {
     trackedApp.set('components', JSON.stringify(components));
     const originalJson = trackedApp.toJSON();
     trackedApp.set('originalJson', JSON.stringify(originalJson));
+    return trackedApp;
   }
   addTrackedApp(
     contentId,
