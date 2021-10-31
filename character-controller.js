@@ -322,6 +322,7 @@ function update(timeDiff) {
   
   localPlayer.actionInterpolants.crouch.update(timeDiff);
   localPlayer.actionInterpolants.activate.update(timeDiff);
+  localPlayer.actionInterpolants.use.update(timeDiff);
 }
 
 export {
