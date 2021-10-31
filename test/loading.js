@@ -14,12 +14,12 @@ describe('Running Pupeeteer', function() {
       const server = ChildProcess.spawn('node',[path.resolve(__dirname,'../index.js')]);
       server.on('error',(payload)=>{
         error = true;
-        console.log(payload);
+        // console.log(payload);
         mlog.error(payload)
       });
 
       server.on('message',(payload)=>{
-        console.log(payload);
+        // console.log(payload);
         // mlog.error(payload)
       });
 
@@ -34,28 +34,25 @@ describe('Running Pupeeteer', function() {
           error = true;
         }
   
-        await appTester.run();
+        try{
+          await appTester.run();
+        }catch(e){
+          //digest pupeteer crash error that comes up very rare.
+        }
+
+  
         if(error){
           mlog.error(JSON.stringify(appTester.scenes,null, 5))
         }else{
           mlog.success(JSON.stringify(appTester.scenes,null, 5))
         }
-
-        process.on('uncaughtException',(e)=>{
-          error = true;
-          mlog.error(e);
-          assert.equal(error,false);
-        })
   
-        process.on('unhandledRejection',(e)=>{
-          error = true;
-          mlog.error(e);
+        server.kill('SIGINT');
+        server.on('exit',()=>{
           assert.equal(error,false);
-        })
-  
+          done();
+        });
 
-        assert.equal(error,false);
-        //done();
       })
 
 

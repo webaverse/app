@@ -259,7 +259,12 @@ class LoadTester {
       };
     }
 
-    this.finish();
+    try{
+      this.finish();      
+    }catch(e){
+      //finish may throw error;
+    }
+
   }
 
   async run() {
@@ -274,7 +279,11 @@ class LoadTester {
   }
 
   async finish() {
-    await this.browser.close();
+    try{
+      await this.browser.close();
+    }catch(e){
+      //close may throw error;
+    }
     this.browser = null;
   }
 }
