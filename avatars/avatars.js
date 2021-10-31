@@ -8,12 +8,23 @@ import LegsManager from './vrarmik/LegsManager.js';
 // import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
 // import skeletonString from './skeleton.js';
-import {angleDifference} from '../util.js';
+import {angleDifference, getVelocityDampingFactor} from '../util.js';
 import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime} from '../constants.js';
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
+const localQuaternion5 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -53,16 +64,6 @@ const simplexes = _makeSimplexes(5);
 
 // import {FBXLoader} from '../FBXLoader.js';
 // import {downloadFile} from '../util.js';
-
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
-const localQuaternion4 = new THREE.Quaternion();
-const localQuaternion5 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
 
 // const halfPi = Math.PI/2;
 const upVector = new THREE.Vector3(0, 1, 0);
