@@ -76,11 +76,11 @@ function getComposer() {
 
 renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
-const scene = new THREE.Scene();
+const scene = new THREE.Object3D();
 scene.name = 'scene';
-const sceneHighPriority = new THREE.Scene();
+const sceneHighPriority = new THREE.Object3D();
 sceneHighPriority.name = 'highPriorioty';
-const sceneLowPriority = new THREE.Scene();
+const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
