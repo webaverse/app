@@ -530,7 +530,7 @@ const _startUse = () => {
         useAction = {
           type: 'use',
           subtype,
-          time: 0,
+          // time: 0,
           instanceId,
           animation,
           boneAttachment,

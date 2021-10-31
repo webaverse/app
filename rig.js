@@ -105,13 +105,13 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.flyTime = flyTime;
   // rig.activateState = !!activateAction && !crouchAction;
   rig.activateTime = player.actionInterpolants.activate.get();
-  rig.useTime = useTime;
+  rig.useTime = player.actionInterpolants.use.get();
+  rig.useAnimation = (useAction?.animation) || '';
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = narutoRunTime;
   rig.aimState = !!aimAction;
   rig.aimDirection.set(0, 0, -1);
   aimAction && rig.aimDirection.applyQuaternion(camera.quaternion);
-  rig.useAnimation = (useAction?.animation) || '';
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
