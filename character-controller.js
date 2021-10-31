@@ -95,6 +95,7 @@ class Player extends THREE.Object3D {
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
+      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
     };
   }
   static controlActionTypes = [
@@ -296,10 +297,10 @@ function update(timeDiff) {
   if (jumpAction) {
     jumpAction.time += timeDiff;
   }
-  const flyAction = localPlayer.actions.find(action => action.type === 'fly');
+  /* const flyAction = localPlayer.actions.find(action => action.type === 'fly');
   if (flyAction) {
     flyAction.time += timeDiff;
-  }
+  } */
   const danceAction = localPlayer.actions.find(action => action.type === 'dansu');
   if (danceAction) {
     danceAction.time += timeDiff;
@@ -325,6 +326,7 @@ function update(timeDiff) {
   localPlayer.actionInterpolants.activate.update(timeDiff);
   localPlayer.actionInterpolants.use.update(timeDiff);
   localPlayer.actionInterpolants.narutoRun.update(timeDiff);
+  localPlayer.actionInterpolants.fly.update(timeDiff);
 }
 
 export {
