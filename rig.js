@@ -80,7 +80,7 @@ const _makeRig = app => {
 };
 function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.actions.find(action => action.type === 'jump');
-  const jumpTime = jumpAction ? jumpAction.time : -1;
+  // const jumpTime = jumpAction ? jumpAction.time : -1;
   const flyAction = player.actions.find(action => action.type === 'fly');
   // const flyTime = flyAction ? flyAction.time : -1;
   // const activateAction = player.actions.find(action => action.type === 'activate');
@@ -100,7 +100,7 @@ function applyPlayerActionsToAvatar(player, rig) {
   const crouchAction = player.actions.find(action => action.type === 'crouch');
 
   rig.jumpState = !!jumpAction;
-  rig.jumpTime = jumpTime;
+  rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   // rig.activateState = !!activateAction && !crouchAction;

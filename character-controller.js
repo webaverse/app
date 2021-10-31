@@ -96,6 +96,7 @@ class Player extends THREE.Object3D {
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
+      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
     };
   }
   static controlActionTypes = [
@@ -293,10 +294,10 @@ function getPlayerCrouchFactor(player) {
 
 function update(timeDiff) {
   const localPlayer = metaversefile.useLocalPlayer();
-  const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
+  /* const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
   if (jumpAction) {
     jumpAction.time += timeDiff;
-  }
+  } */
   /* const flyAction = localPlayer.actions.find(action => action.type === 'fly');
   if (flyAction) {
     flyAction.time += timeDiff;
@@ -327,6 +328,7 @@ function update(timeDiff) {
   localPlayer.actionInterpolants.use.update(timeDiff);
   localPlayer.actionInterpolants.narutoRun.update(timeDiff);
   localPlayer.actionInterpolants.fly.update(timeDiff);
+  localPlayer.actionInterpolants.jump.update(timeDiff);
 }
 
 export {
