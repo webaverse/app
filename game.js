@@ -2572,14 +2572,14 @@ const gameManager = {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
-      // physicsManager.setDanceState('dansu');
+      // physicsManager.setDanceState('dance');
       const localPlayer = useLocalPlayer();
-      let action = localPlayer.actions.find(action => action.type === 'dansu');
+      let action = localPlayer.actions.find(action => action.type === 'dance');
       if (!action) {
         action = {
-          type: 'dansu',
+          type: 'dance',
           animation: 'dansu',
-          time: 0,
+          // time: 0,
         };
         localPlayer.actions.push(action);
       }
@@ -2588,7 +2588,7 @@ const gameManager = {
   menuVUp(e) {
     // physicsManager.setDanceState(null);
     const localPlayer = useLocalPlayer();
-    const actionIndex = localPlayer.actions.findIndex(action => action.type === 'dansu');
+    const actionIndex = localPlayer.actions.findIndex(action => action.type === 'dance');
     if (actionIndex !== -1) {
       localPlayer.actions.splice(actionIndex, 1);
     }
@@ -2624,7 +2624,7 @@ const gameManager = {
     if (!narutoRunAction) {
       narutoRunAction = {
         type: 'narutoRun',
-        time: 0,
+        // time: 0,
       };
       localPlayer.actions.push(narutoRunAction);
     }
@@ -2788,7 +2788,7 @@ const gameManager = {
     if (!jumpAction) {
       jumpAction = {
         type: 'jump',
-        time: 0,
+        // time: 0,
       };
       localPlayer.actions.push(jumpAction);
     }
@@ -2955,7 +2955,7 @@ const gameManager = {
       if (!activateAction) {
         activateAction = {
           type: 'activate',
-          time: 0,
+          // time: 0,
         };
         localPlayer.actions.push(activateAction);
       }
