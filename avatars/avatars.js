@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMSpringBone, VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
@@ -26,6 +26,83 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+VRMSpringBone.prototype.update = (_update => function(delta) {
+  if (delta <= 0) return;
+
+  // 親スプリングボーンの姿勢は常に変化している。
+  // それに基づいて処理直前に自分のworldMatrixを更新しておく
+  this.bone.matrixWorld.multiplyMatrices(this._getParentMatrixWorld(), this.bone.matrix);
+
+  if (this.bone.parent) {
+    // SpringBoneは親から順に処理されていくため、
+    // 親のmatrixWorldは最新状態の前提でworldMatrixからquaternionを取り出す。
+    // 制限はあるけれど、計算は少ないのでgetWorldQuaternionではなくこの方法を取る。
+    getWorldQuaternionLite(this.bone.parent, this._parentWorldRotation);
+  } else {
+    this._parentWorldRotation.copy(IDENTITY_QUATERNION);
+  }
+
+  // Get bone position in center space
+  this._getMatrixWorldToCenter(_matA);
+  _matA.multiply(this.bone.matrixWorld); // 🔥 ??
+  this._centerSpacePosition.setFromMatrixPosition(_matA);
+
+  // Get parent position in center space
+  this._getMatrixWorldToCenter(_matB);
+  _matB.multiply(this._getParentMatrixWorld());
+
+  // several parameters
+  const stiffness = this.stiffnessForce * delta;
+  const external = _v3B.copy(this.gravityDir).multiplyScalar(this.gravityPower * delta);
+
+  // verlet積分で次の位置を計算
+  this._nextTail
+    .copy(this._currentTail)
+    .add(
+      _v3A
+        .copy(this._currentTail)
+        .sub(this._prevTail)
+        .multiplyScalar(1 - this.dragForce),
+    ) // 前フレームの移動を継続する(減衰もあるよ)
+    .add(
+      _v3A
+        .copy(this._boneAxis)
+        .applyMatrix4(this._initialLocalMatrix)
+        .applyMatrix4(_matB)
+        .sub(this._centerSpacePosition)
+        .normalize()
+        .multiplyScalar(stiffness),
+    ) // 親の回転による子ボーンの移動目標
+    .add(external); // 外力による移動量
+
+  // normalize bone length
+  this._nextTail
+    .sub(this._centerSpacePosition)
+    .normalize()
+    .multiplyScalar(this._centerSpaceBoneLength)
+    .add(this._centerSpacePosition);
+
+  // Collisionで移動
+  this._collision(this._nextTail);
+
+  this._prevTail.copy(this._currentTail);
+  this._currentTail.copy(this._nextTail);
+
+  // Apply rotation, convert vector3 thing into actual quaternion
+  // Original UniVRM is doing world unit calculus at here but we're gonna do this on local unit
+  // since Three.js is not good at world coordination stuff
+  const initialCenterSpaceMatrixInv = mat4InvertCompat(_matA.copy(_matB.multiply(this._initialLocalMatrix)));
+  const applyRotation = _quatA.setFromUnitVectors(
+    this._boneAxis,
+    _v3A.copy(this._nextTail).applyMatrix4(initialCenterSpaceMatrixInv).normalize(),
+  );
+
+  this.bone.quaternion.copy(this._initialLocalRotation).multiply(applyRotation);
+
+  // We need to update its matrixWorld manually, since we tweaked the bone by our hand
+  this.bone.updateMatrix();
+  this.bone.matrixWorld.multiplyMatrices(this._getParentMatrixWorld(), this.bone.matrix);
+})(VRMSpringBone.prototype.update);
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
   return function(a, b) {
