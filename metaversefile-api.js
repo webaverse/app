@@ -793,10 +793,18 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getAppByInstanceId() {
-    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments);
+    const localPlayer = this.useLocalPlayer();
+    const remotePlayers = this.useRemotePlayers();
+    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getAppByInstanceId.apply(localPlayer.appManager, arguments) ||
+      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByInstanceId.apply(remotePlayer.appManager, arguments));
   },
   getAppByPhysicsId() {
-    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments);
+    const localPlayer = this.useLocalPlayer();
+    const remotePlayers = this.useRemotePlayers();
+    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
+      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
   /* addAppToList(app) {
     apps.push(app);
