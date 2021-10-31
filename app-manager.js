@@ -373,15 +373,6 @@ class AppManager extends EventTarget {
       }
       case 'low': {
         sceneLowPriority.add(app);
-        /* console.log('got render priority', renderPriority, sceneLowPriority, app, app.parent);
-        Object.defineProperty(app, 'parent', {
-          get() {
-            return sceneLowPriority;
-          },
-          set(v) {
-            debugger;
-          },
-        }); */
         break;
       }
       default: {
@@ -430,8 +421,6 @@ class AppManager extends EventTarget {
     srcAppManager.state.transact(() => {
       dstAppManager.state.transact(() => {
         const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
-        // const dstTrackedApp = dstAppManager.getTrackedApp(instanceId);
-        // console.log('got tracked app in src dst', srcTrackedApp, dstTrackedApp);
         
         const contentId = srcTrackedApp.get('contentId');
         const position = srcTrackedApp.get('position');
