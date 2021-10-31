@@ -13,7 +13,7 @@ import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime} from '../constants.js';
+import {crouchMaxTime, useMaxTime} from '../constants.js';
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -77,7 +77,6 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
-const useAnimationRate = 750;
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 const crouchMagnitude = 0.2;
@@ -2507,7 +2506,7 @@ class Avatar {
             if (isTop) {
               const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]) //|| useAnimations[defaultUseAnimation];
               if (useAnimation) {
-                const t2 = (this.useTime/useAnimationRate) % useAnimation.duration;
+                const t2 = (this.useTime/useMaxTime) % useAnimation.duration;
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
