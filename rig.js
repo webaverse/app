@@ -552,11 +552,13 @@ class RigManager {
       const _setIkModes = () => {
         const aimAction = localPlayer.actions.find(action => action.type === 'aim');
         const aimComponent = (() => {
-          for (const {instanceId} of localPlayer.wears) {
-            const app = metaversefile.getAppByInstanceId(instanceId);
-            for (const {key, value} of app.components) {
-              if (key === 'aim') {
-                return value;
+          for (const action of localPlayer.actions) {
+            if (action.type === 'wear') {
+              const app = metaversefile.getAppByInstanceId(action.instanceId);
+              for (const {key, value} of app.components) {
+                if (key === 'aim') {
+                  return value;
+                }
               }
             }
           }

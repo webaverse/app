@@ -519,7 +519,9 @@ const _click = () => {
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = useLocalPlayer();
-  const wearApps = localPlayer.wears.map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
+  const wearApps = localPlayer.actions
+    .filter(action => action.type === 'wear')
+    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
@@ -915,7 +917,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
-    const _isWear = o => localPlayer.wears.some(wear => wear.instanceId === o.instanceId);
+    const _isWear = o => localPlayer.actions.some(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
     grabUseMesh.visible = false;
     for (let i = 0; i < 2; i++) {
@@ -2776,8 +2778,8 @@ const gameManager = {
     const localPlayer = useLocalPlayer();
     let jumpAction = localPlayer.actions.find(action => action.type === 'jump');
     
-    const wears = localPlayer.wears.slice();
-    for (const {instanceId} of wears) {
+    const wearActions = localPlayer.actions.filter(action => action.type === 'wear');
+    for (const {instanceId} of wearActions) {
       const app = metaversefileApi.getAppByInstanceId(instanceId);
       const sitComponent = app.getComponent('sit');
       if (sitComponent) {
