@@ -170,6 +170,8 @@ class LocalPlayer extends Player {
     if (wearActionIndex !== -1) {
       this.actions.splice(wearActionIndex, 1);
       
+      this.appManager.transplantApp(app, world.appManager);
+      
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
         app.position.copy(this.position)
