@@ -87,7 +87,6 @@ class Player extends THREE.Object3D {
     ];
     // this.playerId = 'Anonymous';
     this.grabs = [null, null];
-    this.wears = [];
     this.actions = [];
 
     this.actionInterpolants = {
@@ -148,7 +147,8 @@ class LocalPlayer extends Player {
     }
     
     const {instanceId} = app;
-    this.wears.push({
+    this.actions.push({
+      type: 'wear',
       instanceId,
     });
     this.ungrab();
@@ -160,9 +160,11 @@ class LocalPlayer extends Player {
     });
   }
   unwear(app) {
-    const index = this.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-    if (index !== -1) {
-      this.wears.splice(index, 1);
+    const wearActionIndex = this.actions.findIndex(({type, instanceId}) => {
+      return type === 'wear' && instanceId === app.instanceId;
+    });
+    if (wearActionIndex !== -1) {
+      this.actions.splice(wearActionIndex, 1);
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
