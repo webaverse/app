@@ -25,6 +25,7 @@ import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
 import * as postProcessing from './post-processing.js';
+// import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
@@ -41,8 +42,8 @@ import * as metaverseModules from './metaverse-modules.js';
 // import {WebaverseRenderPass} from './webaverse-render-pass.js';
 // import {parseQuery} from './util.js';
 
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+// const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+// const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -182,18 +183,11 @@ export default class Webaverse extends EventTarget {
     }
   }
   
-  injectRigInput() {
+  /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
-    if (rigManager.localRigMatrixEnabled) {
-      localMatrix.copy(rigManager.localRigMatrix);
-    } else {
-      localMatrix.copy(camera.matrixWorld);
-    }
-    localMatrix
-      .decompose(localVector, localQuaternion, localVector2);
-
+    const localPlayer = metaversefileApi.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     if (session) {
@@ -251,41 +245,26 @@ export default class Webaverse extends EventTarget {
       } else {
         rightGamepadEnabled = false;
       }
+    } else {
+      localMatrix.copy(localPlayer.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
     }
 
     const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
     if (!leftGamepadPosition) {
-      // if (!physicsManager.getGlideState()) {
-        leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        leftGamepadQuaternion = localQuaternion.toArray();
-      /* } else {
-        leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-          .premultiply(leftHandGlideQuaternion)
-          .toArray();
-      } */
+      leftGamepadPosition = localVector2.copy(localVector)
+        .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        .toArray();
+      leftGamepadQuaternion = localQuaternion.toArray();
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
       leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
-      // if (!physicsManager.getGlideState()) {
-        rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        rightGamepadQuaternion = localQuaternion.toArray();
-      /* } else {
-        rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-          .premultiply(rightHandGlideQuaternion)
-          .toArray();
-      } */
+      rightGamepadPosition = localVector2.copy(localVector)
+        .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        .toArray();
+      rightGamepadQuaternion = localQuaternion.toArray();
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
       rightGamepadEnabled = false;
@@ -296,7 +275,7 @@ export default class Webaverse extends EventTarget {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
-  }
+  } */
   
   render(timestamp, timeDiff) {
     frameEvent.data.now = timestamp;
@@ -329,6 +308,8 @@ export default class Webaverse extends EventTarget {
       world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
+      // this.injectRigInput();
+      
       cameraManager.update(timeDiffCapped);
       
       // universe.update();
@@ -340,8 +321,6 @@ export default class Webaverse extends EventTarget {
       }
       
       characterController.update(timeDiffCapped);
-
-      this.injectRigInput();
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
