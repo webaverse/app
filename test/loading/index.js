@@ -83,7 +83,6 @@ class LoadTester {
     return;
     page.on('request', request => {
       if (request.resourceType() === "xhr") {
-        // check if request is in observed list
         const index = ignoreList.indexOf(request.url());
         if (index < 0) {
         this.requestPromises.push(
@@ -104,14 +103,11 @@ class LoadTester {
   PromiseIntercept(value){
     let reportError = false;
     try{
-      // console.error('Promise Error Intercepted ',  JSON.parse(value,null, 4));
     }catch(e){
-      // console.error('Promise Error Intercepted ',  JSON.stringify(value));
     }finally{
       try{
         self.stats.errors.push(value);
       }catch(e){
-        // console.log('internal emit',e);
       }
     }
     for (const error of ignoreErrors) {
@@ -136,7 +132,6 @@ class LoadTester {
       ignoreHTTPSErrors: true, 
       dumpio: false,
       args: [		
-      // '--use-gl=egl',
       '--disable-gpu',
       '--enable-webgl',
       '--no-sandbox',
@@ -151,12 +146,6 @@ class LoadTester {
     self = this;
 
     this.page = await this.browser.newPage();
-
-
-
-    // this.devtools = await this.page.target().createCDPSession();
-    // await this.devtools.send( 'HeadlessExperimental.enable' );
-    // await this.devtools.send( 'HeapProfiler.enable' );
 
     await this.page.setDefaultNavigationTimeout(60000);
 
@@ -183,12 +172,8 @@ class LoadTester {
           const customFailure = (onFailure)=>{
               if(typeof onFailure === 'function'){
                 originalOnFailure = onFailure;
-                // console.log('OnFailure was a function');
                 return customFailureCaller;
               }else if(typeof originalOnFailure === 'function'){
-                // console.log('originalOnFailure was a function',originalOnFailure);
-                // console.log('onFailure was a value',onFailure);
-                //PromiseIntercept(originalOnFailure.toString());                
                 PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
                 return originalOnFailure(onFailure);
               }else if(typeof onFailure === 'object'){
@@ -290,10 +275,3 @@ class LoadTester {
 
 
 module.exports = LoadTester;
-
-// new LoadTester(
-//   {
-//     slowMo: 0,
-//     host: 'http://localhost:3000',
-//   },
-// ).run();
