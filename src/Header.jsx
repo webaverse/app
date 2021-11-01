@@ -300,6 +300,9 @@ const NumberInput = ({input}) => {
 export default function Header({
   app,
 }) {
+  
+  const _getWearActions = () => Array.from(localPlayer.getActions()).filter(action => action.type === 'wear');
+  
 	// console.log('index 2');
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
@@ -317,7 +320,7 @@ export default function Header({
   const [dragging, setDragging] = useState(false);
   
   const localPlayer = metaversefile.useLocalPlayer();
-  const [wears, setWears] = useState(localPlayer.wears.slice());
+  const [wearActions, setWearActions] = useState(_getWearActions());
   
   let [px, setPx] = useState(0);
   let [py, setPy] = useState(0);
@@ -373,7 +376,13 @@ export default function Header({
   }, []);
   useEffect(() => {
     localPlayer.addEventListener('wearupdate', e => {
-      setWears(localPlayer.wears.slice());
+      const wearActions = _getWearActions();
+      setWearActions(wearActions);
+      
+      const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
+      if (mouseDomEquipmentHoverObject && !wearActions.some(action => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
+        game.setMouseDomEquipmentHoverObject(null);
+      }
     });
   }, []);
   useEffect(() => {
@@ -679,15 +688,27 @@ export default function Header({
                   {/* <div className={styles['panel-header']}>
                     <h1>Equipment</h1>
                   </div> */}
-                  {wears.map((wear, i) => {
+                  {wearActions.map((wearAction, i) => {
                     return (
-                      <div className={styles.equipment} key={i}>
+                      <div
+                        className={styles.equipment}
+                        key={i}
+                        onMouseEnter={e => {
+                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          game.setMouseHoverObject(null);
+                          const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+                          game.setMouseDomEquipmentHoverObject(app, physicsId);
+                        }}
+                        onMouseLeave={e => {
+                          game.setMouseDomEquipmentHoverObject(null);
+                        }}
+                      >
                         <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
                         <img src="images/flower.png" className={styles.icon} />
-                        <div className={styles.name}>{wear.instanceId}</div>
+                        <div className={styles.name}>{wearAction.instanceId}</div>
                         <button className={styles.button} onClick={e => {
                           const localPlayer = metaversefile.useLocalPlayer();
-                          const app = metaversefile.getAppByInstanceId(wear.instanceId);
+                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
                           localPlayer.unwear(app);
                         }}>
                           <img src="images/remove.svg" />
