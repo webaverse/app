@@ -271,6 +271,16 @@ class AppManager extends EventTarget {
     }
     return null;
   }
+  hasTrackedApp(instanceId) {
+    const {state} = this;
+    const apps = state.getArray(appsMapName);
+    for (const app of apps) {
+      if (app === instanceId) {
+        return true;
+      }
+    }
+    return false;
+  }
   clear() {
     const apps = this.apps.slice();
     for (const app of apps) {
