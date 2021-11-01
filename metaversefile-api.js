@@ -764,15 +764,15 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getAppByInstanceId() {
-    const localPlayer = this.useLocalPlayer();
-    const remotePlayers = this.useRemotePlayers();
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
     return world.appManager.getAppByInstanceId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getAppByInstanceId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByInstanceId.apply(remotePlayer.appManager, arguments));
   },
   getAppByPhysicsId() {
-    const localPlayer = this.useLocalPlayer();
-    const remotePlayers = this.useRemotePlayers();
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
     return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
