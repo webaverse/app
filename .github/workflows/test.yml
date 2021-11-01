@@ -54,3 +54,5 @@ jobs:
               npm run start
               cd test
               npm run test
+              echo "Exited with '$?'"
+
