@@ -223,7 +223,9 @@ class LocalPlayer extends Player {
       wear: true,
     });
     
-    world.appManager.transplantApp(app, this.appManager);
+    if (world.appManager.hasTrackedApp(app.instanceId)) {
+      world.appManager.transplantApp(app, this.appManager);
+    }
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -250,7 +252,9 @@ class LocalPlayer extends Player {
     if (wearActionIndex !== -1) {
       this.removeActionIndex(wearActionIndex);
       
-      this.appManager.transplantApp(app, world.appManager);
+      if (this.appManager.hasTrackedApp(app.instanceId)) {
+        this.appManager.transplantApp(app, world.appManager);
+      }
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
