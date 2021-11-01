@@ -15,7 +15,7 @@ import {rigManager} from './rig.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction} from './constants.js';
 
@@ -387,32 +387,13 @@ physicsManager.animals = animals; */
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
   if (rigManager.localRig) {
-    // let gliding;
     const localPlayer = metaversefileApi.useLocalPlayer();
     const isFlying = localPlayer.hasAction('fly');
     if (isFlying) {
       physicsManager.velocity.multiplyScalar(0.9);
-      // gliding = false;
     } else {
       localVector.copy(gravity)
         .multiplyScalar(timeDiff);
-
-      /* if (glideState && physicsManager.velocity.y < 0) {
-        const transforms = rigManager.getRigTransforms();
-
-        localVector
-          .add(
-            localVector2.copy(transforms[0].position)
-              .sub(transforms[1].position)
-              .normalize()
-              .applyQuaternion(leftQuaternion)
-              .multiplyScalar(3)
-          );
-        physicsManager.velocity.y *= 0.95;
-        gliding = true;
-      } else { */
-        // gliding = false;
-      // }
       physicsManager.velocity.add(localVector);
     }
   }
@@ -486,27 +467,6 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         localVector4.applyQuaternion(localQuaternion);
       }
       localVector.add(localVector4);
-      /* if (localVector.y < 0) {
-        let cancelled = false;
-        const e = new MessageEvent('voidout', {
-          data: {
-            cancel() {
-              cancelled = true;
-            },
-          },
-        });
-        physicsManager.dispatchEvent(e);
-        // console.log('default prevented', ignored);
-        if (!cancelled) {
-          // console.log('voided out');
-          const deltaY = -localVector.y + 1;
-          localVector.y += deltaY;
-          camera.position.y += deltaY;
-          camera.updateMatrixWorld();
-          
-          physicsManager.velocity.setScalar(0);
-        }
-      } */
       const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
       
       // avatar facing direction
