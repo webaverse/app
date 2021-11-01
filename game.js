@@ -1474,6 +1474,23 @@ const _pushWorldAppUpdates = () => {
     }
   }
 
+  if(rigManager.localRig)
+  {
+    const avCaps = rigManager.localRig.app;
+    //console.log(avCaps);
+
+    const physicsObjects = avCaps.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physicsObject.position.copy(avCaps.position);
+        physicsObject.quaternion.copy(avCaps.quaternion);
+        physicsObject.scale.copy(avCaps.scale);
+        physicsObject.updateMatrixWorld();
+        
+        physicsManager.pushUpdate(physicsObject);
+        physicsObject.needsUpdate = false;
+      }
+  }
+
   world.appManager.setPushingLocalUpdates(false);
 };
 const _pushAppUpdates = () => {

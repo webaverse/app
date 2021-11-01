@@ -511,7 +511,9 @@ const physxWorker = (() => {
     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
     index += maxNumUpdates*4;
     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*7;
+    index += maxNumUpdates*3;
+    const velocities = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+    index += maxNumUpdates*3;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
@@ -519,6 +521,7 @@ const physxWorker = (() => {
       update.position.toArray(positions, i*3);
       update.quaternion.toArray(quaternions, i*4);
       update.scale.toArray(scales, i*3);
+      update.velocity.toArray(velocities, i*3);
     }
 
     const numNewUpdates = moduleInstance._simulatePhysics(
@@ -528,7 +531,8 @@ const physxWorker = (() => {
       quaternions.byteOffset,
       scales.byteOffset,
       updates.length,
-      elapsedTime
+      elapsedTime,
+      velocities.byteOffset
     );
     
     const newUpdates = Array(numNewUpdates);
@@ -927,7 +931,7 @@ const physxWorker = (() => {
     position.toArray(p);
     quaternion.toArray(q);
     
-    moduleInstance._addCapsuleGeometryPhysics(
+    moduleInstance._addCapsuleGeometry(
       physics,
       p.byteOffset,
       q.byteOffset,

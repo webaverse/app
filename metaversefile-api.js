@@ -51,6 +51,7 @@ class App extends THREE.Object3D {
     // cleanup tracking
     this.physicsObjects = [];
     this.lastMatrix = new THREE.Matrix4();
+    this.velocity = new THREE.Vector3();
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
@@ -560,6 +561,35 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, ccdEnabled) {
+        const basePosition = position;
+        const baseQuaternion = quaternion;
+        const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
+        app.updateMatrixWorld();
+        localMatrix
+          .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
+          .premultiply(app.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+        position = localVector;
+        quaternion = localQuaternion;
+        //size = localVector2;
+        
+        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, ccdEnabled);
+        physicsObject.position.copy(app.position);
+        physicsObject.quaternion.copy(app.quaternion);
+        physicsObject.scale.copy(app.scale);
+        
+        const {physicsMesh} = physicsObject;
+        physicsMesh.position.copy(basePosition);
+        physicsMesh.quaternion.copy(baseQuaternion);
+        physicsMesh.scale.copy(baseScale);
+        // app.add(physicsObject);
+        physicsObject.updateMatrixWorld();
+        
+        app.physicsObjects.push(physicsObject);
+        // physicsManager.pushUpdate(app, physicsObject);
+        return physicsObject;
+      })(physics.addCapsuleGeometry);
       physics.addGeometry = (addGeometry => function(mesh) {
         const oldParent = mesh.parent;
         
