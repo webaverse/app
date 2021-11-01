@@ -398,8 +398,8 @@ class AppManager extends EventTarget {
     // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId), new Error().stack);
     if (index !== -1) {
       this.apps.splice(index, 1);
+      app.parent && app.parent.remove(app);
     }
-    app.parent && app.parent.remove(app);
   }
   resize(e) {
     const apps = this.apps.slice();
