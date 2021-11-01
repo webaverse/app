@@ -51,4 +51,5 @@ jobs:
               # Print out missing libs
               echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-901912/chrome-linux/chrome | grep not
       - name: Run Mocha Tests
-        run: sudo npm run test
+        run: npm run setup:test
+        run: npm run test
