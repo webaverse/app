@@ -261,11 +261,6 @@ world.disconnectRoom = () => {
 world.clear = () => {
   appManager.clear();
 };
-world.bindInput = () => {
-  window.addEventListener('resize', e => {
-    appManager.resize(e);
-  });
-};
 
 appManager.addEventListener('appadd', e => {
   const app = e.data;

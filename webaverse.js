@@ -30,7 +30,7 @@ import {
   scene,
   sceneHighPriority,
   sceneLowPriority,
-  rootScene,
+  // rootScene,
   camera,
   dolly,
   bindCanvas,
@@ -125,7 +125,6 @@ export default class Webaverse extends EventTarget {
   }
   bindInput() {
     ioManager.bindInput();
-    world.bindInput();
   }
   bindInterface() {
     ioManager.bindInterface();

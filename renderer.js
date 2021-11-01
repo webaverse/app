@@ -24,6 +24,7 @@ function bindCanvas(c) {
     antialias: true,
     alpha: true,
     // preserveDrawingBuffer: false,
+    // logarithmicDepthBuffer: true,
   });
 
   const rect = renderer.domElement.getBoundingClientRect();
@@ -76,11 +77,11 @@ function getComposer() {
 
 renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
-const scene = new THREE.Scene();
+const scene = new THREE.Object3D();
 scene.name = 'scene';
-const sceneHighPriority = new THREE.Scene();
+const sceneHighPriority = new THREE.Object3D();
 sceneHighPriority.name = 'highPriorioty';
-const sceneLowPriority = new THREE.Scene();
+const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
@@ -94,6 +95,7 @@ rootScene.add(sceneLowPriority);
 const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
+camera.name = 'sceneCamera';
 
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
