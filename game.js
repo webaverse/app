@@ -45,7 +45,10 @@ const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
+
 const oneVector = new THREE.Vector3(1, 1, 1);
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -595,8 +598,36 @@ const _gameUpdate = (timestamp, timeDiff) => {
   
   const localPlayer = useLocalPlayer();
   
-  const _updateLocalPlayer = () => {
-    if (rigManager.localRig) {
+  const _updateFakeHands = () => {
+    const session = renderer.xr.getSession();
+    if (!session) {
+      localMatrix.copy(localPlayer.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+
+      const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+      {
+        const leftGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+        const leftGamepadQuaternion = localQuaternion;
+        const leftGamepadPointer = 0;
+        const leftGamepadGrip = 0;
+        const leftGamepadEnabled = false;
+        
+        localPlayer.leftHand.position.copy(leftGamepadPosition);
+        localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
+      }
+      {
+        const rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+        const rightGamepadQuaternion = localQuaternion;
+        const rightGamepadPointer = 0;
+        const rightGamepadGrip = 0;
+        const rightGamepadEnabled = false;
+
+        localPlayer.rightHand.position.copy(rightGamepadPosition);
+        localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
+      }
+      
       if (lastPistolUseStartTime >= 0) {
         const lastUseTimeDiff = timestamp - lastPistolUseStartTime;
         const kickbackTime = 300;
@@ -606,49 +637,32 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const fakeArmLength = 0.2;
         localQuaternion.setFromRotationMatrix(
           localMatrix.lookAt(
-            localVector.copy(rigManager.localRig.inputs.leftGamepad.position),
-            localVector2.copy(rigManager.localRig.inputs.leftGamepad.position)
+            localVector.copy(localPlayer.leftHand.position),
+            localVector2.copy(localPlayer.leftHand.position)
               .add(
                 localVector3.set(0, 1, -1)
-                  .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+                  .applyQuaternion(localPlayer.leftHand.quaternion)
               ),
             localVector3.set(0, 0, 1)
-              .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+              .applyQuaternion(localPlayer.leftHand.quaternion)
           )
-        )// .multiply(rigManager.localRig.inputs.leftGamepad.quaternion);
+        )// .multiply(localPlayer.leftHand.quaternion);
         
-        rigManager.localRig.inputs.leftGamepad.position.sub(
+        localPlayer.leftHand.position.sub(
           localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+            .applyQuaternion(localPlayer.leftHand.quaternion)
         );
         
-        rigManager.localRig.inputs.leftGamepad.quaternion.slerp(localQuaternion, v);
+        localPlayer.leftHand.quaternion.slerp(localQuaternion, v);
         
-        rigManager.localRig.inputs.leftGamepad.position.add(
+        localPlayer.leftHand.position.add(
           localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion)
+            .applyQuaternion(localPlayer.leftHand.quaternion)
         );
       }
-      
-      localPlayer.position.copy(rigManager.localRig.inputs.hmd.position);
-      localPlayer.quaternion.copy(rigManager.localRig.inputs.hmd.quaternion);
-      localPlayer.leftHand.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-      localPlayer.leftHand.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-      localPlayer.rightHand.position.copy(rigManager.localRig.inputs.rightGamepad.position);
-      localPlayer.rightHand.quaternion.copy(rigManager.localRig.inputs.rightGamepad.quaternion);
-    } else {
-      localPlayer.position.set(0, 0, 0);
-      localPlayer.quaternion.set(0, 0, 0, 1);
-      localPlayer.leftHand.position.set(0, 0, 0);
-      localPlayer.leftHand.quaternion.set(0, 0, 0, 1);
-      localPlayer.rightHand.position.set(0, 0, 0);
-      localPlayer.rightHand.quaternion.set(0, 0, 0, 1);
     }
-    
-    lastLocalPlayerPosition.copy(localPlayer.position);
-    lastLocalPlayerQuaternion.copy(localPlayer.quaternion);
   };
-  _updateLocalPlayer();
+  _updateFakeHands();
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
