@@ -8,7 +8,6 @@ const mlog = require('mocha-logger');
 describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
     it('Checking Scenes', async (done) => {
-
       const appTester = new LoadTester({
         slowMo: 0,
         host: 'http://localhost:3000',
@@ -32,9 +31,9 @@ describe('Running Pupeeteer', function() {
       }
 
       assert.equal(error,false);
-      if(error){
-        process.exit(1);
-      }
+      // if(error){
+      //   process.exit(1);
+      // }
     });
   });
 });
