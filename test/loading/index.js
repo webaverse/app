@@ -86,9 +86,11 @@ class LoadTester {
   };
 
   requestListener = (request) => {
-    if(request.resourceType() === 'xhr' || request.resourceType() === 'fetch'){
-      this.lastActivityAt = performance.now();
-    }
+    // if(request.resourceType() === 'xhr' || request.resourceType() === 'fetch'){
+    //   this.lastActivityAt = performance.now();
+    // }
+    this.lastActivityAt = performance.now();
+
     request.continue();
   };
 
