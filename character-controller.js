@@ -23,6 +23,10 @@ const localMatrix2 = new THREE.Matrix4();
 class PlayerHand extends THREE.Object3D {
   constructor() {
     super();
+
+    this.pointer = 0;
+    this.grab = 0;
+    this.enabled = false;
   }
 }
 class Player extends THREE.Object3D {
