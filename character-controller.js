@@ -11,11 +11,9 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {actionsMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
-
-const actionsMapName = 'actions';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
