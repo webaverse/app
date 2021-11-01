@@ -730,6 +730,7 @@ const _countCharacters = (name, regex) => {
   return result;
 };
 const _findHips = skeleton => skeleton.bones.find(bone => /hip|rootx/i.test(bone.name));
+const _findChest = skeleton => skeleton.bones.find(bone => /chest/i.test(bone.name));
 const _findHead = tailBones => {
   const headBones = tailBones.map(tailBone => {
     const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
@@ -1127,7 +1128,13 @@ class Avatar {
       });
     }
 
-    const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
+
+    //const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
+    const _getOffset = (bone) => {
+        if (bone === undefined) return null;
+        else return bone.getWorldPosition(new THREE.Vector3()).sub(bone.parent.getWorldPosition(new THREE.Vector3()));
+    };
+
     this.initializeBonePositions({
       spine: _getOffset(modelBones.Spine),
       chest: _getOffset(modelBones.Chest),
@@ -1195,10 +1202,10 @@ class Avatar {
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
-    const indexDistance = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
-      .distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3()));
-    const handWidth = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
-      .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
+    let indexDistance = 0;
+        if (modelBones.Left_indexFinger1) indexDistance = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3()));
+    let handWidth = 0;
+        if (modelBones.Left_indexFinger1) handWidth = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
     this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
@@ -1585,6 +1592,11 @@ class Avatar {
 	  let Neck = boneMap.neck;
 	  let UpperChest = boneMap.upperChest;
 	  let Chest = boneMap.chest;
+
+      if (!Chest) {
+          Chest = Neck.parent;
+      }
+
 	  let Hips = boneMap.hips;
 	  let Spine = boneMap.spine;
 	  let Left_shoulder = boneMap.leftShoulder;
@@ -1640,7 +1652,8 @@ class Avatar {
       Head = _findHead(tailBones);
       Neck = Head.parent;
       UpperChest = Neck.parent;
-      Chest = UpperChest.parent;
+      //Chest = UpperChest.parent;
+      Chest = _findChest(skeleton);
       Hips = _findHips(skeleton);
       Spine = _findSpine(Chest, Hips);
       Left_shoulder = _findShoulder(tailBones, true);
@@ -1963,30 +1976,34 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
 
-      if (/hips|thumb|finger/i.test(k)) {
-        modelBone.position.copy(modelBoneOutput.position);
-      }
-      modelBone.quaternion.multiplyQuaternions(
-        modelBoneOutput.quaternion,
-        modelBone.initialQuaternion
-      );
+      if (modelBone) {
+        if (/hips|thumb|finger/i.test(k)) {
+            modelBone.position.copy(modelBoneOutput.position);
+        }
+        if (modelBone && modelBone.quaternion) {
+            modelBone.quaternion.multiplyQuaternions(
+                modelBoneOutput.quaternion,
+                modelBone.initialQuaternion
+            );
+        }
 
-      // if (topEnabled) {
-        if (k === 'Left_wrist') {
-          if (rHandEnabled) {
-            modelBone.quaternion.multiply(leftRotation); // center
-          }
-        } else if (k === 'Right_wrist') {
-          if (lHandEnabled) {
-            modelBone.quaternion.multiply(rightRotation); // center
-          }
+        // if (topEnabled) {
+            if (k === 'Left_wrist') {
+            if (rHandEnabled) {
+                modelBone.quaternion.multiply(leftRotation); // center
+            }
+            } else if (k === 'Right_wrist') {
+            if (lHandEnabled) {
+                modelBone.quaternion.multiply(rightRotation); // center
+            }
+            }
+        // }
+        if (bottomEnabled) {
+            if (k === 'Left_ankle' || k === 'Right_ankle') {
+            modelBone.quaternion.multiply(upRotation);
+            }
         }
-      // }
-      if (bottomEnabled) {
-        if (k === 'Left_ankle' || k === 'Right_ankle') {
-          modelBone.quaternion.multiply(upRotation);
-        }
-      }
+    }
     }
   }
   static modelBoneRenames = {
@@ -2063,14 +2080,15 @@ class Avatar {
           neckToHeadDiff.z *= -1;
         }
         return modelBones.Head.getWorldPosition(localVector)
-          .add(neckToHeadDiff);
+          .add(neckToHeadDiff)
+          .divideScalar(2);
       }
     }
   })()
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.chest.position.copy(setups.chest);
-    this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
+    if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
     this.shoulderTransforms.eyes.position.copy(setups.eyes);
@@ -2079,41 +2097,41 @@ class Avatar {
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
     this.shoulderTransforms.leftArm.lowerArm.position.copy(setups.leftLowerArm);
     this.shoulderTransforms.leftArm.hand.position.copy(setups.leftHand);
-    this.shoulderTransforms.leftArm.thumb2.position.copy(setups.leftThumb2);
-    this.shoulderTransforms.leftArm.thumb1.position.copy(setups.leftThumb1);
-    this.shoulderTransforms.leftArm.thumb0.position.copy(setups.leftThumb0);
-    this.shoulderTransforms.leftArm.indexFinger3.position.copy(setups.leftIndexFinger3);
-    this.shoulderTransforms.leftArm.indexFinger2.position.copy(setups.leftIndexFinger2);
-    this.shoulderTransforms.leftArm.indexFinger1.position.copy(setups.leftIndexFinger1);
-    this.shoulderTransforms.leftArm.middleFinger3.position.copy(setups.leftMiddleFinger3);
-    this.shoulderTransforms.leftArm.middleFinger2.position.copy(setups.leftMiddleFinger2);
-    this.shoulderTransforms.leftArm.middleFinger1.position.copy(setups.leftMiddleFinger1);
-    this.shoulderTransforms.leftArm.ringFinger3.position.copy(setups.leftRingFinger3);
-    this.shoulderTransforms.leftArm.ringFinger2.position.copy(setups.leftRingFinger2);
-    this.shoulderTransforms.leftArm.ringFinger1.position.copy(setups.leftRingFinger1);
-    this.shoulderTransforms.leftArm.littleFinger3.position.copy(setups.leftLittleFinger3);
-    this.shoulderTransforms.leftArm.littleFinger2.position.copy(setups.leftLittleFinger2);
-    this.shoulderTransforms.leftArm.littleFinger1.position.copy(setups.leftLittleFinger1);
+    if (setups.leftThumb2) this.shoulderTransforms.leftArm.thumb2.position.copy(setups.leftThumb2);
+    if (setups.leftThumb1) this.shoulderTransforms.leftArm.thumb1.position.copy(setups.leftThumb1);
+    if (setups.leftThumb0) this.shoulderTransforms.leftArm.thumb0.position.copy(setups.leftThumb0);
+    if (setups.leftIndexFinger3) this.shoulderTransforms.leftArm.indexFinger3.position.copy(setups.leftIndexFinger3);
+    if (setups.leftIndexFinger2) this.shoulderTransforms.leftArm.indexFinger2.position.copy(setups.leftIndexFinger2);
+    if (setups.leftIndexFinger1) this.shoulderTransforms.leftArm.indexFinger1.position.copy(setups.leftIndexFinger1);
+    if (setups.leftMiddleFinger3) this.shoulderTransforms.leftArm.middleFinger3.position.copy(setups.leftMiddleFinger3);
+    if (setups.leftMiddleFinger2) this.shoulderTransforms.leftArm.middleFinger2.position.copy(setups.leftMiddleFinger2);
+    if (setups.leftMiddleFinger1) this.shoulderTransforms.leftArm.middleFinger1.position.copy(setups.leftMiddleFinger1);
+    if (setups.leftRingFinger3) this.shoulderTransforms.leftArm.ringFinger3.position.copy(setups.leftRingFinger3);
+    if (setups.leftRingFinger2) this.shoulderTransforms.leftArm.ringFinger2.position.copy(setups.leftRingFinger2);
+    if (setups.leftRingFinger1) this.shoulderTransforms.leftArm.ringFinger1.position.copy(setups.leftRingFinger1);
+    if (setups.leftLittleFinger3) this.shoulderTransforms.leftArm.littleFinger3.position.copy(setups.leftLittleFinger3);
+    if (setups.leftLittleFinger2) this.shoulderTransforms.leftArm.littleFinger2.position.copy(setups.leftLittleFinger2);
+    if (setups.leftLittleFinger1) this.shoulderTransforms.leftArm.littleFinger1.position.copy(setups.leftLittleFinger1);
 
     this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
     this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
     this.shoulderTransforms.rightArm.lowerArm.position.copy(setups.rightLowerArm);
     this.shoulderTransforms.rightArm.hand.position.copy(setups.rightHand);
-    this.shoulderTransforms.rightArm.thumb2.position.copy(setups.rightThumb2);
-    this.shoulderTransforms.rightArm.thumb1.position.copy(setups.rightThumb1);
-    this.shoulderTransforms.rightArm.thumb0.position.copy(setups.rightThumb0);
-    this.shoulderTransforms.rightArm.indexFinger3.position.copy(setups.rightIndexFinger3);
-    this.shoulderTransforms.rightArm.indexFinger2.position.copy(setups.rightIndexFinger2);
-    this.shoulderTransforms.rightArm.indexFinger1.position.copy(setups.rightIndexFinger1);
-    this.shoulderTransforms.rightArm.middleFinger3.position.copy(setups.rightMiddleFinger3);
-    this.shoulderTransforms.rightArm.middleFinger2.position.copy(setups.rightMiddleFinger2);
-    this.shoulderTransforms.rightArm.middleFinger1.position.copy(setups.rightMiddleFinger1);
-    this.shoulderTransforms.rightArm.ringFinger3.position.copy(setups.rightRingFinger3);
-    this.shoulderTransforms.rightArm.ringFinger2.position.copy(setups.rightRingFinger2);
-    this.shoulderTransforms.rightArm.ringFinger1.position.copy(setups.rightRingFinger1);
-    this.shoulderTransforms.rightArm.littleFinger3.position.copy(setups.rightLittleFinger3);
-    this.shoulderTransforms.rightArm.littleFinger2.position.copy(setups.rightLittleFinger2);
-    this.shoulderTransforms.rightArm.littleFinger1.position.copy(setups.rightLittleFinger1);
+    if (setups.rightThumb2) this.shoulderTransforms.rightArm.thumb2.position.copy(setups.rightThumb2);
+    if (setups.rightThumb1) this.shoulderTransforms.rightArm.thumb1.position.copy(setups.rightThumb1);
+    if (setups.rightThumb0) this.shoulderTransforms.rightArm.thumb0.position.copy(setups.rightThumb0);
+    if (setups.rightIndexFinger3) this.shoulderTransforms.rightArm.indexFinger3.position.copy(setups.rightIndexFinger3);
+    if (setups.rightIndexFinger2) this.shoulderTransforms.rightArm.indexFinger2.position.copy(setups.rightIndexFinger2);
+    if (setups.rightIndexFinger1) this.shoulderTransforms.rightArm.indexFinger1.position.copy(setups.rightIndexFinger1);
+    if (setups.rightMiddleFinger3) this.shoulderTransforms.rightArm.middleFinger3.position.copy(setups.rightMiddleFinger3);
+    if (setups.rightMiddleFinger2) this.shoulderTransforms.rightArm.middleFinger2.position.copy(setups.rightMiddleFinger2);
+    if (setups.rightMiddleFinger1) this.shoulderTransforms.rightArm.middleFinger1.position.copy(setups.rightMiddleFinger1);
+    if (setups.rightRingFinger3) this.shoulderTransforms.rightArm.ringFinger3.position.copy(setups.rightRingFinger3);
+    if (setups.rightRingFinger2) this.shoulderTransforms.rightArm.ringFinger2.position.copy(setups.rightRingFinger2);
+    if (setups.rightRingFinger1) this.shoulderTransforms.rightArm.ringFinger1.position.copy(setups.rightRingFinger1);
+    if (setups.rightLittleFinger3) this.shoulderTransforms.rightArm.littleFinger3.position.copy(setups.rightLittleFinger3);
+    if (setups.rightLittleFinger2) this.shoulderTransforms.rightArm.littleFinger2.position.copy(setups.rightLittleFinger2);
+    if (setups.rightLittleFinger1) this.shoulderTransforms.rightArm.littleFinger1.position.copy(setups.rightLittleFinger1);
 
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
