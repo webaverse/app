@@ -481,9 +481,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
             )
           );
         } else {
-          // if (rigManager.localRigMatrixEnabled) {
-          rigManager.localRigMatrix.decompose(localVector4, localQuaternion, localVector5);
-          // }
+          localPlayer.matrixWorld.decompose(localVector4, localQuaternion, localVector5);
         }
       }
 
@@ -560,8 +558,16 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     }
     localMatrix.compose(localVector, localQuaternion, localVector2);
 
-    // apply
-    rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
+    // apply to player
+    if (updateRig) {
+      localPlayer.matrix.copy(localMatrix);
+    } else {
+      localPlayer.matrix.identity();
+    }
+    localPlayer.matrix
+      .decompose(localPlayer.position, localPlayer.quaternion, localPlayer.scale);
+    localPlayer.matrixWorld.copy(localPlayer.matrix);
+
     if (rigManager.localRig) {
       if (localPlayer.hasAction('jump')) {
        rigManager.localRig.setFloorHeight(-0xFFFFFF);
