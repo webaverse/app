@@ -1591,12 +1591,7 @@ class Avatar {
 	  let Head = boneMap.head;
 	  let Neck = boneMap.neck;
 	  let UpperChest = boneMap.upperChest;
-	  let Chest = boneMap.chest;
-
-      if (!Chest) {
-          Chest = Neck.parent;
-      }
-
+	  let Chest = boneMap.chest || boneMap.neck?.parent;
 	  let Hips = boneMap.hips;
 	  let Spine = boneMap.spine;
 	  let Left_shoulder = boneMap.leftShoulder;
