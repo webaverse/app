@@ -900,7 +900,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       
       if (!gameManager.getMouseSelectedObject() && !gameManager.contextMenu) {
         if (/*controlsManager.isPossessed() &&*/ cameraManager.getMode() !== 'firstperson') {
-          rigManager.localRigMatrix.decompose(
+          localPlayer.matrixWorld.decompose(
             localVector,
             localQuaternion,
             localVector2
@@ -966,7 +966,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         !gameManager.contextMenu /* &&
         controlsManager.isPossessed() */
       ) {
-        rigManager.localRigMatrix.decompose(
+        localPlayer.matrixWorld.decompose(
           localVector,
           localQuaternion,
           localVector2
