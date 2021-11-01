@@ -10,6 +10,7 @@ import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from './metaversefile-api.js';
+import * as metaverseModules from './metaverse-modules.js';
 
 const appsMapName = 'apps';
 
