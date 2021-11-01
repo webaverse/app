@@ -4,22 +4,12 @@ this file contains the singleplayer code.
 
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
-// import * as Y from 'yjs';
 
 import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
 
-// import {pointers} from './web-monetization.js';
-// import {camera, scene, sceneHighPriority} from './renderer.js';
-// import {baseUnit} from './constants.js';
-// import {unFrustumCull} from './util.js';
-/* import {
-  storageHost,
-  worldsHost,
-  tokensHost,
-} from './constants.js'; */
-import {/* makePromise, getRandomString, */makeId} from './util.js';
+import {makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
 
 // world
@@ -47,10 +37,6 @@ const extra = {
   states: new Float32Array(15),
 };
 
-/* const didInteract = new Promise(resolve => window.addEventListener('click', e =>
-  resolve(true)
-, {once: true})); */
-
 let mediaStream = null;
 world.micEnabled = () => !!mediaStream;
 world.enableMic = async () => {
@@ -77,20 +63,10 @@ world.disableMic = () => {
 
 world.isConnected = () => !!wsrtc;
 world.connectRoom = async (worldURL) => {
-  // console.log('connect room 1');
-  // await didInteract;
-
   await WSRTC.waitForReady();
-
-  /* // reset the world to initial state
-  world.reset();
-  // swap out dynamic state to static (locked)
-  _swapState(); */
   
   // clear the world
   world.clear();
-
-  // _lockAllObjects();
 
   wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
   world.setState(wsrtc.room.state);
@@ -290,19 +266,6 @@ appManager.addEventListener('appadd', e => {
       const result = hitTracker.hit(damage);
       const {hit, died} = result;
       if (hit) {
-        /* if (damagePhysicsMesh.physicsId !== collisionId) {
-          const physicsGeometry = physicsManager.getGeometryForPhysicsId(collisionId);
-          let geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
-          geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
-          geometry = geometry.toNonIndexed();
-          geometry.computeVertexNormals();
-
-          damagePhysicsMesh.geometry.dispose();
-          damagePhysicsMesh.geometry = geometry;
-          damagePhysicsMesh.physicsId = collisionId;
-        } */
-        
         const {collisionId} = opts;
         if (collisionId) {
           hpManager.triggerDamageAnimation(collisionId);
@@ -329,127 +292,3 @@ appManager.addEventListener('appadd', e => {
   };
   _bindHitTracker();
 });
-
-/* world.getWorldJson = async q => {
-  const _getDefaultSpec = () => ({
-    default: true,
-    objects: [],
-  });
-  const _getSpecFromUrl = async u => {
-    return {
-      objects: [
-        {
-          start_url: u,
-        }
-      ],
-    };
-  };
-  const _hashExtNameToStartUrl = (hash, ext, name) => {
-    let start_url;
-    if (ext === 'html') {
-      start_url = `${storageHost}/ipfs/${hash}`;
-    } else {
-      start_url = `${storageHost}/${hash}/${name}.${ext}`;
-    }
-    return start_url;
-  };
-  const _fetchSpecFromTokenId = async idString => {
-    const id = parseInt(idString, 10);
-    if (!isNaN(id)) { // token id
-      const res = await fetch(`${tokensHost}/${id}`);
-      const j = await res.json();
-      const {hash} = j.properties;
-      if (hash) {
-        const {name, ext} = j.properties;
-        const start_url = _hashExtNameToStartUrl(hash, ext, name);
-        return {
-          objects: [
-            {
-              start_url,
-            }
-          ],
-        };
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  };
-  const _getSpecFromHashExt = (hash, ext) => {
-    const name = 'token';
-    const start_url = _hashExtNameToStartUrl(hash, ext, name);
-    return {
-      objects: [
-        {
-          start_url,
-        }
-      ],
-    };
-  };
-  const _dynamicizeSpec = spec => {
-    for (const object of spec.objects) {
-      object.dynamic = true;
-      object.autoScale = false;
-      object.autoRun = true;
-    }
-    spec.objects.splice(0, 0, {
-      start_url: `https://webaverse.github.io/pedestal/index.js`,
-    });
-  };
-
-  let spec;
-  const {u, t, h, e} = q;
-  if (u) {
-    spec = _getSpecFromUrl(u);
-  } else if (h && e) {
-    spec = _getSpecFromHashExt(h, e);
-    _dynamicizeSpec(spec);
-    camera.position.set(0, 0, baseUnit);
-    // camera.updateMatrixWorld();
-  } else if (t) {
-    spec = await _fetchSpecFromTokenId(t);
-    _dynamicizeSpec(spec);
-    camera.position.set(0, 0, baseUnit);
-    // camera.updateMatrixWorld();
-  } else {
-    spec = _getDefaultSpec();
-  }
-  if (spec) {
-    if (q.r) {
-      spec.room = q.r;
-    }
-    return spec;
-  } else {
-    throw new Error('could not resolve query string to start spec: ' + JSON.stringify(q));
-  }
-}; */
-/* world.getNpcFromPhysicsId = physicsId => {
-  const npcs = world.getNpcs();
-  for (const npc of npcs) {
-    if (npc.getPhysicsIds) {
-      const physicsIds = npc.getPhysicsIds();
-      if (physicsIds.includes(physicsId)) {
-        return npc;
-      }
-    }
-  }
-  return null;
-}; */
-
-/* const micButton = document.getElementById('key-t');
-
-world.toggleMic = async () => {
-  if (!wsrtc.mediaStream) {
-    micButton && micButton.classList.add('enabled');
-    wsrtc.enableMic();
-  } else {
-    micButton && micButton.classList.remove('enabled');
-    wsrtc.disableMic();
-  }
-};
-
-micButton && micButton.addEventListener('click', async e => {
-  world.toggleMic()
-    .catch(console.warn);
-}); */
