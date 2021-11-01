@@ -648,6 +648,7 @@ const _copyPQS = (dst, src) => {
 };
 const _updatePhysics = timeDiff => {
   const timeDiffS = timeDiff / 1000;
+  const localPlayer = metaversefileApi.useLocalPlayer();
 
   const avatarWorldObject = _getAvatarWorldObject(localObject);
   const avatarCameraOffset = _getAvatarCameraOffset();
@@ -673,7 +674,6 @@ const _updatePhysics = timeDiff => {
     }
   } else {
     const selectedTool = cameraManager.getMode();
-    const localPlayer = metaversefileApi.useLocalPlayer();
     if (selectedTool === 'firstperson') {
       _applyGravity(timeDiffS);
       _applyDamping(timeDiffS);
