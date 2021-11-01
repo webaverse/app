@@ -1985,20 +1985,20 @@ class Avatar {
       );
 
       // if (topEnabled) {
-          if (k === 'Left_wrist') {
+        if (k === 'Left_wrist') {
           if (rHandEnabled) {
-              modelBone.quaternion.multiply(leftRotation); // center
+            modelBone.quaternion.multiply(leftRotation); // center
           }
-          } else if (k === 'Right_wrist') {
+        } else if (k === 'Right_wrist') {
           if (lHandEnabled) {
-              modelBone.quaternion.multiply(rightRotation); // center
+            modelBone.quaternion.multiply(rightRotation); // center
           }
-          }
+        }
       // }
       if (bottomEnabled) {
-          if (k === 'Left_ankle' || k === 'Right_ankle') {
+        if (k === 'Left_ankle' || k === 'Right_ankle') {
           modelBone.quaternion.multiply(upRotation);
-          }
+        }
       }
     }
   }
