@@ -8,56 +8,17 @@ import * as THREE from 'three';
 import {makeRigCapsule} from './vr-ui.js';
 import {unFrustumCull} from './util.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-// import {loginManager} from './login.js';
-// import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
-// import {RigAux} from './rig-aux.js';
 import {chatManager} from './chat-manager.js';
-import ioManager from './io-manager.js';
-// import {world} from './world.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
-/* const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
-const localRaycaster = new THREE.Raycaster(); */
 
-/* const roundedRectGeometry = (() => {
-  const w = 1;
-  const h = 0.15;
-  const roundedRectShape = new THREE.Shape();
-  ( function roundedRect( ctx, x, y, width, height, radius ) {
-    ctx.moveTo( x, y + radius );
-    ctx.lineTo( x, y + height - radius );
-    ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-    ctx.lineTo( x + width - radius, y + height );
-    ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
-    ctx.lineTo( x + width, y + radius );
-    ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
-    ctx.lineTo( x + radius, y );
-    ctx.quadraticCurveTo( x, y, x, y + radius );
-  } )( roundedRectShape, 0, 0, w, h, h/2 );
-
-  const extrudeSettings = {
-    steps: 2,
-    depth: 0,
-    bevelEnabled: false,
-  };
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    new THREE.CircleBufferGeometry(0.13, 32)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
-    new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
-  ]);
-  return geometry;
-})(); */
 const _makeRig = app => {
   if (app) {
     const {skinnedVrm} = app;
@@ -68,7 +29,6 @@ const _makeRig = app => {
         visemes: true,
         debug: false,
       });
-      // localRig.model = o;
       localRig.app = app;
       
       unFrustumCull(app);
@@ -80,22 +40,14 @@ const _makeRig = app => {
 };
 function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
-  // const jumpTime = jumpAction ? jumpAction.time : -1;
   const flyAction = player.getAction('fly');
-  // const flyTime = flyAction ? flyAction.time : -1;
-  // const activateAction = player.actions.find(action => action.type === 'activate');
-  // const activateTime = activateAction ? activateAction.time : -1;
   const useAction = player.getAction('use');
-  // const useTime = useAction ? useAction.time : -1;
   const narutoRunAction = player.getAction('narutoRun');
-  // const narutoRunTime = narutoRunAction ? narutoRunAction.time : 0;
   const sitAction = player.getAction('sit');
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
-  // const danceTime = danceAction ? danceAction.time : -1;
   const danceAnimation = danceAction ? danceAction.animation : '';
   const throwAction = player.getAction('throw');
-  // const throwTime = throwAction ? throwAction.time : -1;
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
 
@@ -103,7 +55,6 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
-  // rig.activateState = !!activateAction && !crouchAction;
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = player.actionInterpolants.use.get();
   rig.useAnimation = (useAction?.animation) || '';
@@ -137,29 +88,6 @@ class RigManager {
     
     this.lastTimetamp = Date.now();
   }
-  
-  /* setFromLogin() {
-    if (!this.localRig) {
-      this.setDefault();
-    }
-
-    const avatar = loginManager.getAvatar();
-    if (avatar.url) {
-      rigManager.setLocalAvatarUrl(avatar.url, avatar.ext);
-    }
-    if (avatar.preview) {
-      rigManager.setLocalAvatarImage(avatar.preview);
-    }
-    loginManager.addEventListener('avatarchange', e => {
-      const avatar = e.data;
-      const newAvatarUrl = avatar ? avatar.url : null;
-      if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-        rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.ext);
-        rigManager.setLocalAvatarImage(avatar.preview);
-      }
-    });
-    
-  } */
 
   setLocalRigMatrix(rm) {
     if (rm) {
@@ -169,40 +97,6 @@ class RigManager {
       this.localRigMatrixEnabled = false;
     }
   }
-
-  /* setLocalAvatarName(name) {
-    this.localRig.textMesh.text = name;
-    this.localRig.textMesh.sync();
-  }
-
-  setLocalAvatarImage(avatarImage) {
-    if (this.localRig.textMesh.avatarMesh) {
-      this.localRig.textMesh.remove(this.localRig.textMesh.avatarMesh);
-      this.localRig.textMesh.avatarMesh = null;
-    }
-    const geometry = new THREE.CircleBufferGeometry(0.1, 32);
-    const img = new Image();
-    img.src = avatarImage;
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      texture.needsUpdate = true;
-    };
-    img.onerror = err => {
-      console.warn(err.stack);
-    };
-    const texture = new THREE.Texture(img);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
-
-    const avatarMesh = new THREE.Mesh(geometry, material);
-    avatarMesh.position.x = -0.5;
-    avatarMesh.position.y = -0.02;
-
-    this.localRig.textMesh.add(avatarMesh);
-    this.localRig.textMesh.avatarMesh = avatarMesh;
-  } */
 
   async _switchAvatar(oldRig, newApp) {
     await newApp.setSkinning(true);
@@ -220,15 +114,6 @@ class RigManager {
   async setLocalAvatar(app) {
     this.localRig = await this._switchAvatar(this.localRig, app);
   }
-  
-  /* isPeerRig(rig) {
-    for (const peerRig of this.peerRigs.values()) {
-      if (peerRig === rig) {
-        return true;
-      }
-    }
-    return false;
-  } */
 
   async addPeerRig(peerId, meta) {
     const contentId = meta.avatarUrl;
@@ -268,20 +153,9 @@ class RigManager {
     }
   }
 
-  /* setPeerAvatarName(name, peerId) {
-    const peerRig = this.peerRigs.get(peerId);
-    peerRig.textMesh.text = name;
-    peerRig.textMesh.sync();
-  } */
-
   async setPeerAvatar(peerId, app) {
     this.peerRigs.set(peerId, _makeRig(app));
   }
-
-  /* async setPeerAvatarAux(aux, peerId) {
-    const oldPeerRig = this.peerRigs.get(peerId);
-    oldPeerRig.aux.setPose(aux);
-  } */
   
   setLocalMicMediaStream(mediaStream, options) {
     this.localRig.setMicrophoneMediaStream(mediaStream, options);
@@ -364,36 +238,6 @@ class RigManager {
       return null;
     }
   }
-
-  /* getPeerAvatarPose(peerId) {
-    const peerRig = this.peerRigs.get(peerId);
-
-    const hmdPosition = peerRig.inputs.hmd.position.toArray();
-    const hmdQuaternion = peerRig.inputs.hmd.quaternion.toArray();
-
-    const leftGamepadPosition = peerRig.inputs.leftGamepad.position.toArray();
-    const leftGamepadQuaternion = peerRig.inputs.leftGamepad.quaternion.toArray();
-    const leftGamepadPointer = peerRig.inputs.leftGamepad.pointer;
-    const leftGamepadGrip = peerRig.inputs.leftGamepad.grip;
-
-    const rightGamepadPosition = peerRig.inputs.rightGamepad.position.toArray();
-    const rightGamepadQuaternion = peerRig.inputs.rightGamepad.quaternion.toArray();
-    const rightGamepadPointer = peerRig.inputs.rightGamepad.pointer;
-    const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
-
-    const floorHeight = peerRig.getFloorHeight();
-    const topEnabled = peerRig.getTopEnabled();
-    const bottomEnabled = peerRig.getBottomEnabled();
-
-    return [
-      [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
-      floorHeight,
-      topEnabled,
-      bottomEnabled,
-    ];
-  } */
 
   setLocalAvatarPose(poseArray) {
     if (this.localRig) {
@@ -642,6 +486,5 @@ class RigManager {
 const rigManager = new RigManager(scene);
 
 export {
-  // RigManager,
   rigManager,
 };
