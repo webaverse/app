@@ -78,22 +78,11 @@ class RigManager {
     this.scene = scene;
 
     this.localRig = null;
-    this.localRigMatrix = new THREE.Matrix4();
-    this.localRigMatrixEnabled = false;
     
     this.lastPosition = new THREE.Vector3();
     this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
-  }
-
-  setLocalRigMatrix(rm) {
-    if (rm) {
-      this.localRigMatrix.copy(rm);
-      this.localRigMatrixEnabled = true;
-    } else {
-      this.localRigMatrixEnabled = false;
-    }
   }
 
   async _switchAvatar(oldRig, newApp) {
