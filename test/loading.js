@@ -31,6 +31,11 @@ describe('Running Pupeeteer', function() {
         mlog.success(JSON.stringify(appTester.scenes,null, 5))
       }
 
+      if(error){
+        /** Github actions occasionally pass assertion */
+        process.exit(1);
+      }
+
       assert.equal(error,false);
       done();
     });
