@@ -705,35 +705,6 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
-  /* getAppByInstanceId(instanceId) {
-    const r = _makeRegexp(instanceId);
-    return apps.find(app => r.test(app.instanceId));
-  },
-  getAppByName(name) {
-    const r = _makeRegexp(name);
-    return apps.find(app => r.test(app.name));
-  },
-  getAppsByName(name) {
-    const r = _makeRegexp(name);
-    return apps.filter(app => r.test(app.name));
-  },
-  getAppsByType(type) {
-    const r = _makeRegexp(type);
-    return apps.filter(app => r.test(app.type));
-  },
-  getAppsByTypes(types) {
-    return types.flatMap(type => {
-      const r = _makeRegexp(type);
-      return apps.filter(app => r.test(app.type));
-    });
-  },
-  getAppsByComponent(componentType) {
-    const r = _makeRegexp(componentType);
-    return apps.filter(app => app.components.some(component => r.test(component.type)));
-  },
-  getAppByPhysicsId(physicsId) {
-    return world.appManager.getObjectFromPhysicsId(physicsId);
-  }, */
   getNextInstanceId() {
     return getRandomString();
   },
@@ -754,9 +725,11 @@ metaversefile.setApi({
     }
     app.addEventListener('destroy', () => {
       const localPlayer = metaversefile.useLocalPlayer();
-      const wearIndex = localPlayer.wears.findIndex(({instanceId}) => instanceId === app.instanceId);
-      if (wearIndex !== -1) {
-        localPlayer.wears.splice(wearIndex, 1);
+      const wearActionIndex = localPlayer.findActionIndex(action => {
+        return action.type === 'wear' && action.instanceId === app.instanceId;
+      });
+      if (wearActionIndex !== -1) {
+        localPlayer.removeActionIndex(wearActionIndex);
       }
     });
     return app;
@@ -791,25 +764,19 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getAppByInstanceId() {
-    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments);
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getAppByInstanceId.apply(localPlayer.appManager, arguments) ||
+      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByInstanceId.apply(remotePlayer.appManager, arguments));
   },
   getAppByPhysicsId() {
-    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments);
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
+      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
-  /* addAppToList(app) {
-    apps.push(app);
-  },
-  addApp(app) {
-    scene.add(app);
-    apps.push(app);
-  },
-  removeApp(app) {
-    app.parent && app.parent.remove(app);
-    const index = apps.indexOf(app);
-    if (index !== -1) {
-      apps.splice(index, 1);
-    }
-  }, */
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
@@ -1024,13 +991,5 @@ export default () => {
 App.prototype.addModule = function(m) {
   return metaversefile.addModule(this, m);
 };
-/* [
-  './lol.jsx',
-  './street/.metaversefile',
-  './assets2/sacks3.glb',
-].map(async u => {
-  const module = await metaversefile.import(u);
-  metaversefile.add(module);
-}); */
 
 export default metaversefile;
