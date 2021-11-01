@@ -58,7 +58,7 @@ class LoadTester {
           if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
             console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
 
-            if(self.timeOfLastRequest - self.timeOfSecondLastRequest > 400 && self.lastCheckedAt - self.lastActivityAt > 60000){
+            if(self.lastCheckedAt - self.lastActivityAt > 10000){
               clearInterval(outInterval);
               resolve();
             }  
