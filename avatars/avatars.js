@@ -1129,11 +1129,7 @@ class Avatar {
     }
 
 
-    //const _getOffset = (bone, parent = bone.parent) => bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
-    const _getOffset = (bone) => {
-        if (bone === undefined) return null;
-        else return bone.getWorldPosition(new THREE.Vector3()).sub(bone.parent.getWorldPosition(new THREE.Vector3()));
-    };
+    const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
     this.initializeBonePositions({
       spine: _getOffset(modelBones.Spine),
