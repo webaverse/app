@@ -380,7 +380,7 @@ export default function Header({
       setWearActions(wearActions);
       
       const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
-      if (mouseDomEquipmentHoverObject && !wearActions.some(wearAction => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
+      if (mouseDomEquipmentHoverObject && !wearActions.some(action => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
         game.setMouseDomEquipmentHoverObject(null);
       }
     });
