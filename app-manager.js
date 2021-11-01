@@ -452,6 +452,9 @@ class AppManager extends EventTarget {
     srcAppManager.setBlindStateMode(false);
     dstAppManager.setBlindStateMode(false);
   }
+  hasApp(app) {
+    return this.apps.includes(app);
+  }
   pushAppUpdates() {
     this.setPushingLocalUpdates(true);
     
