@@ -32,8 +32,6 @@ jobs:
             ${{ runner.os }}-node-v${{ matrix.node }}-
       - name: APT Update
         run: sudo apt update -y
-      - name: Install Forever
-        run: sudo npm install forever -g
       - name: Install Dependencies
         run: sudo npm install -y
       - name: Pre-Build
