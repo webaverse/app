@@ -30,7 +30,7 @@ import {
   scene,
   sceneHighPriority,
   sceneLowPriority,
-  rootScene,
+  // rootScene,
   camera,
   dolly,
   bindCanvas,

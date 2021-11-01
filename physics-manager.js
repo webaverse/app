@@ -389,7 +389,7 @@ const _applyGravity = timeDiff => {
   if (rigManager.localRig) {
     // let gliding;
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const isFlying = localPlayer.actions.some(action => action.type === 'fly');
+    const isFlying = localPlayer.hasAction('fly');
     if (isFlying) {
       physicsManager.velocity.multiplyScalar(0.9);
       // gliding = false;
@@ -420,7 +420,7 @@ const _applyGravity = timeDiff => {
 const _applyDamping = timeDiffS => {
   if (rigManager.localRig) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    if (!localPlayer.actions.some(action => action.type === 'fly') && !localPlayer.actions.some(action => action.type === 'jump') /*!jumpState || gliding*/) {
+    if (!localPlayer.hasAction('fly') && !localPlayer.hasAction('jump') /*!jumpState || gliding*/) {
       const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
       physicsManager.velocity.x *= factor;
       physicsManager.velocity.z *= factor;
@@ -475,7 +475,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
     // capsule physics
     const localPlayer = metaversefileApi.useLocalPlayer();
-    if (!localPlayer.actions.some(action => action.type === 'sit')) {
+    if (!localPlayer.hasAction('sit')) {
       applyVelocity(camera.position, physicsManager.velocity, timeDiffS);
 
       camera.updateMatrixWorld();
@@ -527,23 +527,20 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         }
       }
 
-      const jumpActionIndex = localPlayer.actions.findIndex(action => action.type === 'jump');
+      const jumpAction = localPlayer.getAction('jump');
       const _ensureJumpAction = () => {
-        if (jumpActionIndex === -1) {
-          const jumpAction = {
+        if (!jumpAction) {
+          const newJumpAction = {
             type: 'jump',
             time: 0,
           };
-          localPlayer.actions.push(jumpAction);
+          localPlayer.addAction(newJumpAction);
         } else {
-          const jumpAction = localPlayer.actions[jumpActionIndex];
-          jumpAction.time = 0;
+          jumpAction.set('time', 0);
         }
       };
       const _ensureNoJumpAction = () => {
-        if (jumpActionIndex !== -1) {
-          localPlayer.actions.splice(jumpActionIndex, 1);
-        }
+        localPlayer.removeAction('jump');
       };
       if (collision) {
         const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
@@ -556,16 +553,16 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         if (collision.grounded) {
           physicsManager.velocity.y = 0;
           _ensureNoJumpAction();
-        } else if (jumpActionIndex === -1) {
+        } else if (!jumpAction) {
           _ensureJumpAction();
         }
-      } else if (jumpActionIndex == -1 && physicsManager.velocity.y < -4) {
+      } else if (!jumpAction && physicsManager.velocity.y < -4) {
         _ensureJumpAction();
       }
     } else {
       physicsManager.velocity.y = 0;
 
-      const sitAction = localPlayer.actions.find(action => action.type === 'sit');
+      const sitAction = localPlayer.getAction('sit');
 
       const objInstanceId = sitAction.controllingId;
       const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
@@ -606,7 +603,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     // apply
     rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
     if (rigManager.localRig) {
-      if (localPlayer.actions.some(action => action.type === 'jump')) {
+      if (localPlayer.hasAction('jump')) {
        rigManager.localRig.setFloorHeight(-0xFFFFFF);
 
       } else {
