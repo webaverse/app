@@ -1203,7 +1203,7 @@ const _bindPointerLock = () => {
 };
 _bindPointerLock();
 
-let lastLocalPlayerPosition;
+/* let lastLocalPlayerPosition;
 let lastLocalPlayerQuaternion;
 const _bindLocalPlayerTeleport = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -1220,7 +1220,7 @@ const _bindLocalPlayerTeleport = () => {
     }
   });
 };
-_bindLocalPlayerTeleport();
+_bindLocalPlayerTeleport(); */
 
 // let droppedThrow = false;
 let lastMouseEvent = null;
