@@ -252,6 +252,7 @@ class LoadTester {
   }
 
   async run() {
+    await sleep(10);
     await this.init();
     await this.test();
   }
