@@ -5,20 +5,34 @@ const path = require('path');
 const mlog = require('mocha-logger');
 
 
-
-
 describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
     it('Checking Scenes', async (done) => {
 
-      const server = ChildProcess.spawn('node',[path.resolve(__dirname,'../index.js')]);
+      mlog.log(path.resolve(__dirname,'../index.js'));
+
+      const server = ChildProcess.exec('cd .. && npm run dev');
       server.on('error',(payload)=>{
         error = true;
-        mlog.error(payload)
+        mlog.log(payload)
+      });
+
+      server.stdout.on('data',(_d)=>{
+        mlog.log(Buffer(_d).toString());
+      })
+
+      server.stdout.on('error',(e)=>{
+        error = true;
+        mlog.error(Buffer(e).toString())
       });
 
       server.on('message',(payload)=>{
-        });
+        
+      });
+
+      server.on('disconnect',(payload)=>{
+        mlog.log(payload);
+      });
 
       server.on('spawn',async ()=>{
         let error = false;
