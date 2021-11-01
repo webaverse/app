@@ -12,6 +12,6 @@
     "puppeteer": "^10.4.0",
     "puppeteer-extra": "^3.2.3"
   },
-  "author": "",
+  "author": "Muhammad Abeer <abeersaqib@gmail.com>",
   "license": "ISC"
 }
