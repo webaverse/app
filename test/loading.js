@@ -14,14 +14,11 @@ describe('Running Pupeeteer', function() {
       const server = ChildProcess.spawn('node',[path.resolve(__dirname,'../index.js')]);
       server.on('error',(payload)=>{
         error = true;
-        // console.log(payload);
         mlog.error(payload)
       });
 
       server.on('message',(payload)=>{
-        // console.log(payload);
-        // mlog.error(payload)
-      });
+        });
 
       server.on('spawn',async ()=>{
         let error = false;
