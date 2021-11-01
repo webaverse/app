@@ -668,9 +668,6 @@ const _updatePhysics = timeDiff => {
       );
     } else {
       physicsManager.velocity.y = 0;
-      // _collideItems(avatarWorldObject.matrix);
-      // _collideChunk(avatarWorldObject.matrix);
-      rigManager.setLocalRigMatrix(null);
     }
   } else {
     const selectedTool = cameraManager.getMode();
