@@ -2161,7 +2161,7 @@ class Avatar {
     } */
     
     const _applyAnimation = () => {
-      const runSpeed = 0.5;
+      const runSpeed = 0.75;
       const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
