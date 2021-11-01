@@ -3,6 +3,7 @@ this file is responisible for maintaining player state that is network-replicate
 */
 
 import * as THREE from 'three';
+import * as Y from 'yjs';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
@@ -12,6 +13,8 @@ import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
 import {crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
+
+const actionsMapName = 'actions';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -86,8 +89,9 @@ class Player extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
+    this.state = new Y.Doc();
     // this.playerId = 'Anonymous';
-    this.actions = [];
+    // this.actions = [];
 
     this.appManager = new AppManager();
 
@@ -108,21 +112,97 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
+  getActions() {
+    return this.state.getArray(actionsMapName);
+  }
+  findAction(fn) {
+    const actions = this.getActions();
+    for (const action of actions) {
+      if (fn(action)) {
+        return action;
+      }
+    }
+    return null;
+  }
+  findActionIndex(fn) {
+    const actions = this.getActions();
+    let i = 0;
+    for (const action of actions) {
+      if (fn(action)) {
+        return i;
+      }
+      i++
+    }
+    return -1;
+  }
   getAction(type) {
-    return this.actions.find(action => action.type === type);
+    const actions = this.getActions();
+    for (const action of actions) {
+      if (action.type === type) {
+        return action;
+      }
+    }
+    return null;
+  }
+  getActionIndex(type) {
+    const actions = this.getActions();
+    let i = 0;
+    for (const action of actions) {
+      if (action.type === type) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+  indexOfAction(action) {
+    const actions = this.getActions();
+    let i = 0;
+    for (const a of actions) {
+      if (a === action) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
   }
   hasAction(type) {
-    return this.actions.some(action => action.type === type);
+    const actions = this.getActions();
+    for (const action of actions) {
+      if (action.type === type) {
+        return true;
+      }
+    }
+    return false;
   }
   addAction(action) {
-    this.actions.push(action);
+    this.getActions().push([action]);
   }
   removeAction(type) {
-    this.actions = this.actions.filter(action => action.type !== type);
+    const actions = this.getActions();
+    let i = 0;
+    for (const action of actions) {
+      if (action.type === type) {
+        actions.delete(i);
+        break;
+      }
+      i++;
+    }
+  }
+  removeActionIndex(index) {
+    this.getActions().delete(index);
   }
   setControlAction(action) {
-    this.actions = this.actions.filter(action => !Player.controlActionTypes.includes(action.type));
-    this.actions.push(action);
+    const actions = this.getActions();
+    for (let i = 0; i < actions.length; i++) {
+      const action = actions.get(i);
+      const isControlAction = Player.controlActionTypes.includes(action.type);
+      if (isControlAction) {
+        actions.delete(i);
+        i--;
+      }
+    }
+    actions.push([action]);
   }
 }
 class LocalPlayer extends Player {
@@ -151,7 +231,7 @@ class LocalPlayer extends Player {
     }
     
     const {instanceId} = app;
-    this.actions.push({
+    this.addAction({
       type: 'wear',
       instanceId,
     });
@@ -164,11 +244,11 @@ class LocalPlayer extends Player {
     });
   }
   unwear(app) {
-    const wearActionIndex = this.actions.findIndex(({type, instanceId}) => {
+    const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
     if (wearActionIndex !== -1) {
-      this.actions.splice(wearActionIndex, 1);
+      this.removeActionIndex(wearActionIndex);
       
       this.appManager.transplantApp(app, world.appManager);
       
@@ -217,7 +297,7 @@ class LocalPlayer extends Player {
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray()
     };
-    localPlayer.actions.push(grabAction);
+    localPlayer.addAction(grabAction);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -226,16 +306,20 @@ class LocalPlayer extends Player {
     }
   }
   ungrab() {
-    const grabActions = this.actions.filter(action => action.type === 'grab');
-    for (const grabAction of grabActions) {
-      const app = metaversefile.getAppByInstanceId(grabAction.instanceId);
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
-        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+    const actions = Array.from(this.getActions());
+    let removeOffset = 0;
+    for (let i = 0; i < actions.length; i++) {
+      const action = actions[i];
+      if (action.type === 'grab') {
+        const app = metaversefile.getAppByInstanceId(action.instanceId);
+        const physicsObjects = app.getPhysicsObjects();
+        for (const physicsObject of physicsObjects) {
+          // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        }
+        this.removeActionIndex(i + removeOffset);
+        removeOffset -= 1;
       }
-      const actionIndex = this.actions.indexOf(grabAction);
-      this.actions.splice(actionIndex, 1);
     }
   }
   lookAt(p) {
