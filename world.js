@@ -4,22 +4,22 @@ this file contains the singleplayer code.
 
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
-import * as Y from 'yjs';
+// import * as Y from 'yjs';
 
 import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
 
-import {pointers} from './web-monetization.js';
-import {camera, scene, sceneHighPriority} from './renderer.js';
-import {baseUnit} from './constants.js';
-import {unFrustumCull} from './util.js';
+// import {pointers} from './web-monetization.js';
+// import {camera, scene, sceneHighPriority} from './renderer.js';
+// import {baseUnit} from './constants.js';
+// import {unFrustumCull} from './util.js';
 /* import {
   storageHost,
   worldsHost,
   tokensHost,
 } from './constants.js'; */
-import {makePromise, getRandomString, makeId} from './util.js';
+import {/* makePromise, getRandomString, */makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
 
 // world
