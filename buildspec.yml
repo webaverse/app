@@ -7,41 +7,31 @@ phases:
     commands:
       - echo Entered the install phase...
       - apt update -y
-      - apt install sudo -y
       - sudo npm install forever -g
       - npm install -y
   pre_build:
     commands:
-      # Upgrade apt
-      # - apt-get upgrade
-
-      # Update libs
-      - apt-get update
-
-      # Install apt-transport-https
-      - apt-get install -y apt-transport-https
-
-      # Use apt to install the Chrome dependencies
-      - apt-get install xvfb
-      - apt-get install -y libxcursor1
-      - apt-get install -y libgtk-3-dev
-      - apt-get install -y libxss1
-      - apt-get install -y libasound2
-      - apt-get install -y libnspr4
-      - apt-get install -y libnss3
-      - apt-get install -y libx11-xcb1
-      - ls ./node_modules/puppeteer/.local-chromium/
-      # Print out missing libs
-      - echo "Missing Libs" || ldd ./node_modules/puppeteer/.local-chromium/linux-901912/chrome-linux/chrome | grep not
+      - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
       - echo Build started on `date`
-      - echo Starting the app...
-      - echo Running the tests...
-      - xvfb-run --auto-servernum npm run test
+      - echo Building the Docker image...
+      - echo Logging in to Docker Hub...
+      - echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
-      - printf 'Results' > test_results.json
+      - echo Pushing the Docker images...
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"ECSContainer-app-'$AWS_DEFAULT_REGION'","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
-    files: test_results.json
+    files: imagedefinitions.json

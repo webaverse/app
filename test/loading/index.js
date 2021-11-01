@@ -21,6 +21,7 @@ class LoadTester {
     'blob'
   ]
 
+
   async addStat(type, stat) {
     if (!this.stats) {
       this.stats = {
@@ -39,7 +40,6 @@ class LoadTester {
       this.stats[type] = stat;
     }
   }
-
 
   requestFinishedListener = (request) => {
     if (request.resolver) {
@@ -96,7 +96,7 @@ class LoadTester {
       request.continue();
     })
   }
-
+  
   MochaIntercept(){
 
   }
@@ -151,6 +151,7 @@ class LoadTester {
     self = this;
 
     this.page = await this.browser.newPage();
+
 
 
     // this.devtools = await this.page.target().createCDPSession();
@@ -243,7 +244,6 @@ class LoadTester {
       /** Signa the Mocha Intercept */
       this.MochaIntercept();
     }
-
   }
 
   async test() {
@@ -264,7 +264,6 @@ class LoadTester {
     }catch(e){
       //finish may throw error;
     }
-
   }
 
   async run() {
@@ -275,6 +274,7 @@ class LoadTester {
   constructor(config) {
     this.config = config;
     this.scenes = [];
+
     this.requestPromises = [];
   }
 
@@ -287,6 +287,7 @@ class LoadTester {
     this.browser = null;
   }
 }
+
 
 module.exports = LoadTester;
 
