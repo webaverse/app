@@ -960,6 +960,7 @@ class Avatar {
       skinnedMeshes,
       skeleton,
       modelBones,
+      foundModelBones,
       flipZ,
       flipY,
       flipLeg,
@@ -971,6 +972,7 @@ class Avatar {
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
+    this.foundModelBones = foundModelBones;
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
@@ -1758,6 +1760,14 @@ class Avatar {
         console.warn('missing bone', k);
       }
     } */
+    
+    const foundModelBones = {};
+    for (const k in modelBones) {
+      const v = modelBones[k];
+      if (v) {
+        foundModelBones[k] = v;
+      }
+    }
 
 	  const armature = _findArmature(Hips);
 
@@ -1953,6 +1963,7 @@ class Avatar {
       skinnedMeshes,
       skeleton,
       modelBones,
+      foundModelBones,
       flipZ,
       flipY,
       flipLeg,
@@ -2702,7 +2713,7 @@ class Avatar {
     }
 
     Avatar.applyModelBoneOutputs(
-      this.modelBones,
+      this.foundModelBones,
       this.modelBoneOutputs,
       // this.getTopEnabled(),
       this.getBottomEnabled(),
