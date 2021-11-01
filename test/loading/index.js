@@ -56,7 +56,7 @@ class LoadTester {
       let outInterval = setInterval(() => {
         try{
           if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
-            console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
+            //console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
 
             if(self.lastCheckedAt - self.lastActivityAt > 10000){
               clearInterval(outInterval);
@@ -263,7 +263,7 @@ class LoadTester {
     for (const scene of scenes) {
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
-      console.log(scene, this.stats);
+      //console.log(scene, this.stats);
       this.scenes.push(this.stats);
       this.stats = {
         errors: [],
