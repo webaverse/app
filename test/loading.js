@@ -59,7 +59,6 @@ describe('Running Pupeeteer', function() {
     });
   });
 });
-=======
 const mlog = require('mocha-logger');
 
 describe('Running Pupeeteer', function() {
