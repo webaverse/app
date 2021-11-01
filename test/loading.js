@@ -31,6 +31,7 @@ describe('Running Pupeeteer', function() {
       }
 
       assert.equal(error,false);
+      done();
       // if(error){
       //   process.exit(1);
       // }
