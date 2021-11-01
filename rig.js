@@ -85,8 +85,6 @@ class RigManager {
     this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
-    
-    this.lastTimetamp = Date.now();
   }
 
   setLocalRigMatrix(rm) {
@@ -359,10 +357,9 @@ class RigManager {
     }
   }
 
-  update() {
+  update(timestamp, timeDiff) {
     if (this.localRig) {
-      const now = Date.now();
-      const timeDiff = (now - this.lastTimetamp) / 1000;
+      const timeDiffS = timeDiff / 1000;
 
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
@@ -379,7 +376,7 @@ class RigManager {
         }
         const positionDiff = localVector2.copy(this.lastPosition)
           .sub(currentPosition)
-          .multiplyScalar(0.1/timeDiff);
+          .multiplyScalar(0.1/timeDiffS);
         localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
         localEuler.x = 0;
         localEuler.z = 0;
@@ -473,13 +470,11 @@ class RigManager {
       };
       _applyChatModifiers();
 
-      this.localRig.update(now, timeDiff);
+      this.localRig.update(timestamp, timeDiffS);
 
       this.peerRigs.forEach(rig => {
-        rig.update(now, timeDiff);
+        rig.update(timestamp, timeDiffS);
       });
-
-      this.lastTimetamp = now;
     }
   }
 }
