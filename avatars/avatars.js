@@ -1967,34 +1967,32 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
 
-      if (modelBone) {
-        if (/hips|thumb|finger/i.test(k)) {
-            modelBone.position.copy(modelBoneOutput.position);
-        }
-        if (modelBone && modelBone.quaternion) {
-            modelBone.quaternion.multiplyQuaternions(
-                modelBoneOutput.quaternion,
-                modelBone.initialQuaternion
-            );
-        }
+      if (/hips|thumb|finger/i.test(k)) {
+          modelBone.position.copy(modelBoneOutput.position);
+      }
+      if (modelBone && modelBone.quaternion) {
+          modelBone.quaternion.multiplyQuaternions(
+              modelBoneOutput.quaternion,
+              modelBone.initialQuaternion
+          );
+      }
 
-        // if (topEnabled) {
-            if (k === 'Left_wrist') {
-            if (rHandEnabled) {
-                modelBone.quaternion.multiply(leftRotation); // center
-            }
-            } else if (k === 'Right_wrist') {
-            if (lHandEnabled) {
-                modelBone.quaternion.multiply(rightRotation); // center
-            }
-            }
-        // }
-        if (bottomEnabled) {
-            if (k === 'Left_ankle' || k === 'Right_ankle') {
-            modelBone.quaternion.multiply(upRotation);
-            }
-        }
-    }
+      // if (topEnabled) {
+          if (k === 'Left_wrist') {
+          if (rHandEnabled) {
+              modelBone.quaternion.multiply(leftRotation); // center
+          }
+          } else if (k === 'Right_wrist') {
+          if (lHandEnabled) {
+              modelBone.quaternion.multiply(rightRotation); // center
+          }
+          }
+      // }
+      if (bottomEnabled) {
+          if (k === 'Left_ankle' || k === 'Right_ankle') {
+          modelBone.quaternion.multiply(upRotation);
+          }
+      }
     }
   }
   static modelBoneRenames = {
