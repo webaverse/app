@@ -1222,7 +1222,6 @@ const _bindLocalPlayerTeleport = () => {
 };
 _bindLocalPlayerTeleport(); */
 
-// let droppedThrow = false;
 let lastMouseEvent = null;
 const gameManager = {
   menuOpen: 0,
