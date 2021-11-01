@@ -705,35 +705,6 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
-  /* getAppByInstanceId(instanceId) {
-    const r = _makeRegexp(instanceId);
-    return apps.find(app => r.test(app.instanceId));
-  },
-  getAppByName(name) {
-    const r = _makeRegexp(name);
-    return apps.find(app => r.test(app.name));
-  },
-  getAppsByName(name) {
-    const r = _makeRegexp(name);
-    return apps.filter(app => r.test(app.name));
-  },
-  getAppsByType(type) {
-    const r = _makeRegexp(type);
-    return apps.filter(app => r.test(app.type));
-  },
-  getAppsByTypes(types) {
-    return types.flatMap(type => {
-      const r = _makeRegexp(type);
-      return apps.filter(app => r.test(app.type));
-    });
-  },
-  getAppsByComponent(componentType) {
-    const r = _makeRegexp(componentType);
-    return apps.filter(app => app.components.some(component => r.test(component.type)));
-  },
-  getAppByPhysicsId(physicsId) {
-    return world.appManager.getObjectFromPhysicsId(physicsId);
-  }, */
   getNextInstanceId() {
     return getRandomString();
   },
