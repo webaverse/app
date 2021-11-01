@@ -32,6 +32,9 @@ describe('Running Pupeeteer', function() {
       }
 
       assert.equal(error,false);
+      if(error){
+        process.exit(1);
+      }
     });
   });
 });
