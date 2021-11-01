@@ -806,20 +806,6 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
-  /* addAppToList(app) {
-    apps.push(app);
-  },
-  addApp(app) {
-    scene.add(app);
-    apps.push(app);
-  },
-  removeApp(app) {
-    app.parent && app.parent.remove(app);
-    const index = apps.indexOf(app);
-    if (index !== -1) {
-      apps.splice(index, 1);
-    }
-  }, */
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
@@ -1034,13 +1020,5 @@ export default () => {
 App.prototype.addModule = function(m) {
   return metaversefile.addModule(this, m);
 };
-/* [
-  './lol.jsx',
-  './street/.metaversefile',
-  './assets2/sacks3.glb',
-].map(async u => {
-  const module = await metaversefile.import(u);
-  metaversefile.add(module);
-}); */
 
 export default metaversefile;
