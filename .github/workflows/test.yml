@@ -49,5 +49,10 @@ jobs:
               sudo apt-get install -y libx11-xcb1
       - name: Change to Tests Module
         run: npm run setup:test
-      - name: Run Mocha Tests
-        run: npm run test
+      - name: Run Tests
+        run: |
+              npm run start
+              cd test
+              npm run test
+              echo "Exited with '$?'"
+

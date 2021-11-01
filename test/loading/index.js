@@ -22,6 +22,11 @@ class LoadTester {
   ]
 
 
+  timeOfLastRequest = 0;
+  timeOfSecondLastRequest = 0;
+  lastCheckedAt = 0;
+  lastActivityAt = 0;
+
   async addStat(type, stat) {
     if (!this.stats) {
       this.stats = {
@@ -41,32 +46,52 @@ class LoadTester {
     }
   }
 
+
+  waitForNetworkIdle = ()=>{
+    self.timeOfSecondLastRequest = 0;
+    self.timeOfLastRequest = 0;
+    self.lastCheckedAt = 0;
+    return new Promise((resolve)=>{
+
+      let outInterval = setInterval(() => {
+        try{
+          if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
+            //console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
+
+            if(self.lastCheckedAt - self.lastActivityAt > 10000){
+              clearInterval(outInterval);
+              resolve();
+            }  
+          }
+          self.lastCheckedAt = performance.now();
+
+          
+        }catch(e){
+
+        }
+      }, 400);
+    });
+  }
+
   requestFinishedListener = (request) => {
-    if (request.resolver) {
-      request.resolver();
-      delete request.resolver;
-    }
+    this.timeOfSecondLastRequest = this.timeOfLastRequest;
+    this.timeOfLastRequest = performance.now();
   };
 
   requestFailedListener = (request) => {
-    if (request.resolver) {
-      request.resolver();
-      delete request.resolver;
-    }
+    this.timeOfSecondLastRequest = this.timeOfLastRequest;
+    this.timeOfLastRequest = performance.now();
     this.stats.network.push(`Failed Request `+ request.url());
+    this.MochaIntercept();
   };
 
   requestListener = (request) => {
-    if (request.resourceType() === 'xhr') {
-      const index = ignoreList.indexOf(request.url());
-      if (index < 0) {
-      this.requestPromises.push(
-        new Promise(resolve => {
-          request.resolver = resolve;
-        }),
-      );
-      }
-    }
+    // if(request.resourceType() === 'xhr' || request.resourceType() === 'fetch'){
+    //   this.lastActivityAt = performance.now();
+    // }
+    this.lastActivityAt = performance.now();
+
+    request.continue();
   };
 
   async waitForLoadToComplete() {
@@ -159,9 +184,9 @@ class LoadTester {
         this.addStat('NETWORK', `Request-Error: ${request.failure().errorText} ${request.url()}`);
       });
 
-    this.setupRequestInterception();
+    await this.setupRequestInterception();
 
-      await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
+    await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
 
       await this.page.evaluateOnNewDocument(() => {
         Error.stackTraceLimit = 1000;
@@ -204,7 +229,8 @@ class LoadTester {
       })
   }
 
-  setupRequestInterception(){
+  async setupRequestInterception(){
+    await this.page.setRequestInterception(true);
     this.page.on('request',this.requestListener);
     this.page.on('requestfailed', this.requestFailedListener);
     this.page.on('requestfinished', this.requestFinishedListener);
@@ -215,8 +241,10 @@ class LoadTester {
     const t0 = performance.now();
     try{
       await this.page.goto(sceneUrl,{
-        waitUntil: 'networkidle2',
+        waitUntil: 'domcontentloaded',
       });
+
+      await this.waitForNetworkIdle();
 
       await this.waitForLoadToComplete();
       
@@ -235,7 +263,7 @@ class LoadTester {
     for (const scene of scenes) {
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
-      console.log(scene, this.stats);
+      //console.log(scene, this.stats);
       this.scenes.push(this.stats);
       this.stats = {
         errors: [],
@@ -252,7 +280,6 @@ class LoadTester {
   }
 
   async run() {
-    await sleep(10);
     await this.init();
     await this.test();
   }
@@ -276,3 +303,7 @@ class LoadTester {
 
 
 module.exports = LoadTester;
+
+// new LoadTester({
+//   host: 'http://localhost:3000'
+// }).run();
