@@ -78,22 +78,11 @@ class RigManager {
     this.scene = scene;
 
     this.localRig = null;
-    this.localRigMatrix = new THREE.Matrix4();
-    this.localRigMatrixEnabled = false;
     
     this.lastPosition = new THREE.Vector3();
     this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
-  }
-
-  setLocalRigMatrix(rm) {
-    if (rm) {
-      this.localRigMatrix.copy(rm);
-      this.localRigMatrixEnabled = true;
-    } else {
-      this.localRigMatrixEnabled = false;
-    }
   }
 
   async _switchAvatar(oldRig, newApp) {
@@ -368,6 +357,13 @@ class RigManager {
       const _setTransforms = () => {
         let currentPosition, currentQuaternion;
         if (!session) {
+          this.localRig.inputs.hmd.position.copy(localPlayer.position);
+          this.localRig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
+          this.localRig.inputs.leftGamepad.position.copy(localPlayer.leftHand.position);
+          this.localRig.inputs.leftGamepad.quaternion.copy(localPlayer.leftHand.quaternion);
+          this.localRig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
+          this.localRig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
+          
           currentPosition = this.localRig.inputs.hmd.position;
           currentQuaternion = this.localRig.inputs.hmd.quaternion;
         } else {
