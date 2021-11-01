@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - echo Entered the install phase...
+      - apt update -y
+      - apt install sudo -y
+      - sudo npm install forever -g
+      - npm install -y
+      - npm install wsrtc@0.0.6
+      - npm install metaversefile@0.0.32
+      - cd tests/loading
+      - npm install -y
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Starting the app...
+      - cd ../../
+      - npm start
+      - forever list
+      - echo Running the tests...
+      - cd ./tests/loading
+      - npm start
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - printf 'Results' > test_results.json
+artifacts:
+    files: test_results.json

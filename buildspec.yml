@@ -1,6 +1,14 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - echo Entered the install phase...
+      - apt update -y
+      - sudo npm install forever -g
+      - npm install -y
   pre_build:
     commands:
       - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
