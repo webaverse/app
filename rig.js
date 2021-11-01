@@ -357,6 +357,13 @@ class RigManager {
       const _setTransforms = () => {
         let currentPosition, currentQuaternion;
         if (!session) {
+          this.localRig.inputs.hmd.position.copy(localPlayer.position);
+          this.localRig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
+          this.localRig.inputs.leftGamepad.position.copy(localPlayer.leftHand.position);
+          this.localRig.inputs.leftGamepad.quaternion.copy(localPlayer.leftHand.quaternion);
+          this.localRig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
+          this.localRig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
+          
           currentPosition = this.localRig.inputs.hmd.position;
           currentQuaternion = this.localRig.inputs.hmd.quaternion;
         } else {
