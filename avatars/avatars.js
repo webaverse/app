@@ -80,7 +80,7 @@ const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
-const crouchMagnitude = 0.2;
+// const crouchMagnitude = 0.2;
 /* const animationsSelectMap = {
   crouch: {
     'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
