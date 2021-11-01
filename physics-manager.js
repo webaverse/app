@@ -576,9 +576,6 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
       }
     }
-
-    // collide items
-    // _collideItems(localMatrix);
   }
 };
 const _collideCapsule = (() => {
