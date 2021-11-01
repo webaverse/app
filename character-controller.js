@@ -36,8 +36,6 @@ class Player extends THREE.Object3D {
       this.rightHand,
     ];
     this.state = new Y.Doc();
-    // this.playerId = 'Anonymous';
-    // this.actions = [];
     this.appManager = new AppManager({
       state: this.state,
     });
@@ -346,35 +344,6 @@ function getPlayerCrouchFactor(player) {
 
 function update(timeDiff) {
   const localPlayer = metaversefile.useLocalPlayer();
-  /* const jumpAction = localPlayer.actions.find(action => action.type === 'jump');
-  if (jumpAction) {
-    jumpAction.time += timeDiff;
-  } */
-  /* const flyAction = localPlayer.actions.find(action => action.type === 'fly');
-  if (flyAction) {
-    flyAction.time += timeDiff;
-  } */
-  /* const danceAction = localPlayer.actions.find(action => action.type === 'dance');
-  if (danceAction) {
-    danceAction.time += timeDiff;
-  }
-  const throwAction = localPlayer.actions.find(action => action.type === 'throw');
-  if (throwAction) {
-    throwAction.time += timeDiff;
-  } */
-  /* const narutoRunAction = localPlayer.actions.find(action => action.type === 'narutoRun');
-  if (narutoRunAction) {
-    narutoRunAction.time += timeDiff;
-  } */
-  /* const activateAction = localPlayer.actions.find(action => action.type === 'activate');
-  if (activateAction) {
-    activateAction.time += timeDiff;
-  }
-  const useAction = localPlayer.actions.find(action => action.type === 'use');
-  if (useAction) {
-    useAction.time += timeDiff;
-  } */
-  
   localPlayer.actionInterpolants.crouch.update(timeDiff);
   localPlayer.actionInterpolants.activate.update(timeDiff);
   localPlayer.actionInterpolants.use.update(timeDiff);
