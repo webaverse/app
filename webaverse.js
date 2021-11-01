@@ -1,63 +1,48 @@
 /*
-this file bootraps the entire webaverse application.
+this file bootraps the webaverse engine.
 it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-// import {loginManager} from './login.js';
-// import runtime from './runtime.js';
-import {parseQuery, downloadFile} from './util.js';
+// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+// import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+// import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+// import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
+// import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
+// import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
+// import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
+// import {SSAOPass} from './SSAOPass.js';
 import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
-// import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
-// import controlsManager from './controls-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import activateManager from './activate-manager.js';
-// import dropManager from './drop-manager.js';
-// import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
-// import {bindInterface as inventoryBindInterface} from './inventory.js';
-// import fx from './fx.js';
-// import {getExt} from './util.js';
-// import {storageHost, tokensHost} from './constants.js';
-// import './procgen.js';
 import * as characterController from './character-controller.js';
+import * as postProcessing from './post-processing.js';
 import {
   getRenderer,
   scene,
-  orthographicScene,
-  avatarScene,
-  camera,
-  orthographicCamera,
-  // avatarCamera,
-  dolly,
-  // orbitControls,
-  // renderer2,
   sceneHighPriority,
   sceneLowPriority,
+  // rootScene,
+  camera,
+  dolly,
   bindCanvas,
+  getComposer,
 } from './renderer.js';
-// import {mithrilInit} from './mithril-ui/index.js'
-// import TransformGizmo from './TransformGizmo.js';
-// import WSRTC from 'wsrtc/wsrtc.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
+// import {WebaverseRenderPass} from './webaverse-render-pass.js';
+// import {parseQuery} from './util.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-/* const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
-const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
-const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)); */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -85,6 +70,7 @@ const sessionOpts = {
     'hand-tracking',
   ],
 };
+// const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 const frameEvent = (() => {
   const now = Date.now();
@@ -139,7 +125,6 @@ export default class Webaverse extends EventTarget {
   }
   bindInput() {
     ioManager.bindInput();
-    world.bindInput();
   }
   bindInterface() {
     ioManager.bindInterface();
@@ -147,6 +132,8 @@ export default class Webaverse extends EventTarget {
   }
   bindCanvas(c) {
     bindCanvas(c);
+    
+    postProcessing.bindCanvas();
   }
   bindPreviewCanvas(previewCanvas) {
     equipmentRender.bindPreviewCanvas(previewCanvas);
@@ -316,52 +303,12 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     frameEvent.data.lastTimestamp = timestamp;
-
-    // high priority render
-    sceneHighPriority.add(world.lights);
-    const renderer = getRenderer();
-    renderer.clear();
-    renderer.render(sceneHighPriority, camera);
-
-    // main render
-    scene.add(world.lights);
-    if (rigManager.localRig) {
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-    }
-    renderer.render(scene, camera);
-
-    // orthographic render
-    orthographicScene.add(world.lights);
-    renderer.render(orthographicScene, orthographicCamera);
-    
-    // low priority render
-    sceneLowPriority.add(world.lights);
-    renderer.render(sceneLowPriority, camera);
     
     // equipment panel render
     equipmentRender.previewScene.add(world.lights);
     equipmentRender.render();
-    
-    // decapitate avatar if needed
-    if (rigManager.localRig) {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        // rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-      avatarScene.add(world.lights);
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-    }
+
+    getComposer().render();
   }
   
   startLoop() {
@@ -382,6 +329,8 @@ export default class Webaverse extends EventTarget {
       world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
+      cameraManager.update(timeDiffCapped);
+      
       // universe.update();
       if (this.contentLoaded) {
         // if (controlsManager.isPossessed()) {

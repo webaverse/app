@@ -79,46 +79,46 @@ const _makeRig = app => {
   return null;
 };
 function applyPlayerActionsToAvatar(player, rig) {
-  const jumpAction = player.actions.find(action => action.type === 'jump');
-  const jumpTime = jumpAction ? jumpAction.time : -1;
-  const flyAction = player.actions.find(action => action.type === 'fly');
-  const flyTime = flyAction ? flyAction.time : -1;
+  const jumpAction = player.getAction('jump');
+  // const jumpTime = jumpAction ? jumpAction.time : -1;
+  const flyAction = player.getAction('fly');
+  // const flyTime = flyAction ? flyAction.time : -1;
   // const activateAction = player.actions.find(action => action.type === 'activate');
   // const activateTime = activateAction ? activateAction.time : -1;
-  const useAction = player.actions.find(action => action.type === 'use');
-  const useTime = useAction ? useAction.time : -1;
-  const narutoRunAction = player.actions.find(action => action.type === 'narutoRun');
-  const narutoRunTime = narutoRunAction ? narutoRunAction.time : 0;
-  const sitAction = player.actions.find(action => action.type === 'sit');
+  const useAction = player.getAction('use');
+  // const useTime = useAction ? useAction.time : -1;
+  const narutoRunAction = player.getAction('narutoRun');
+  // const narutoRunTime = narutoRunAction ? narutoRunAction.time : 0;
+  const sitAction = player.getAction('sit');
   const sitAnimation = sitAction ? sitAction.animation : '';
-  const danceAction = player.actions.find(action => action.type === 'dansu');
-  const danceTime = danceAction ? danceAction.time : -1;
+  const danceAction = player.getAction('dance');
+  // const danceTime = danceAction ? danceAction.time : -1;
   const danceAnimation = danceAction ? danceAction.animation : '';
-  const throwAction = player.actions.find(action => action.type === 'throw');
-  const throwTime = throwAction ? throwAction.time : -1;
-  const aimAction = player.actions.find(action => action.type === 'aim');
-  const crouchAction = player.actions.find(action => action.type === 'crouch');
+  const throwAction = player.getAction('throw');
+  // const throwTime = throwAction ? throwAction.time : -1;
+  const aimAction = player.getAction('aim');
+  const crouchAction = player.getAction('crouch');
 
   rig.jumpState = !!jumpAction;
-  rig.jumpTime = jumpTime;
+  rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
-  rig.flyTime = flyTime;
+  rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   // rig.activateState = !!activateAction && !crouchAction;
   rig.activateTime = player.actionInterpolants.activate.get();
-  rig.useTime = useTime;
+  rig.useTime = player.actionInterpolants.use.get();
+  rig.useAnimation = (useAction?.animation) || '';
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
-  rig.narutoRunTime = narutoRunTime;
+  rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimDirection.set(0, 0, -1);
   aimAction && rig.aimDirection.applyQuaternion(camera.quaternion);
-  rig.useAnimation = (useAction?.animation) || '';
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
-  rig.danceTime = danceTime;
+  rig.danceTime = player.actionInterpolants.dance.get();
   rig.danceAnimation = danceAnimation;
   rig.throwState = !!throwAction;
-  rig.throwTime = throwTime;
+  rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
 }
 
@@ -550,13 +550,15 @@ class RigManager {
       _setTransforms();
       
       const _setIkModes = () => {
-        const aimAction = localPlayer.actions.find(action => action.type === 'aim');
+        const aimAction = localPlayer.getAction('aim');
         const aimComponent = (() => {
-          for (const {instanceId} of localPlayer.wears) {
-            const app = metaversefile.getAppByInstanceId(instanceId);
-            for (const {key, value} of app.components) {
-              if (key === 'aim') {
-                return value;
+          for (const action of localPlayer.getActions()) {
+            if (action.type === 'wear') {
+              const app = metaversefile.getAppByInstanceId(action.instanceId);
+              for (const {key, value} of app.components) {
+                if (key === 'aim') {
+                  return value;
+                }
               }
             }
           }

@@ -60,6 +60,7 @@ const makeHitTracker = ({
   totalHp = 100,
 } = {}) => {
   const jitterObject = new THREE.Object3D();
+  jitterObject.name = 'hitTracker';
   let hitTime = -1;
   jitterObject.hp = totalHp;
   jitterObject.totalHp = totalHp;

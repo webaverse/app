@@ -45,8 +45,8 @@ class EquipmentRender {
     this.previewRenderer.autoClear = false;
     this.previewRenderer.sortObjects = false;
     this.previewRenderer.physicallyCorrectLights = true;
-    this.previewRenderer.outputEncoding = THREE.sRGBEncoding;
-    this.previewRenderer.gammaFactor = 2.2;
+    // this.previewRenderer.outputEncoding = THREE.sRGBEncoding;
+    // this.previewRenderer.gammaFactor = 2.2;
 
     if (!this.previewContext) {
       this.previewContext = this.previewRenderer.getContext();
