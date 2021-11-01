@@ -24,6 +24,7 @@ function bindCanvas(c) {
     antialias: true,
     alpha: true,
     // preserveDrawingBuffer: false,
+    // logarithmicDepthBuffer: true,
   });
 
   const rect = renderer.domElement.getBoundingClientRect();
