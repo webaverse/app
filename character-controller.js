@@ -92,8 +92,9 @@ class Player extends THREE.Object3D {
     this.state = new Y.Doc();
     // this.playerId = 'Anonymous';
     // this.actions = [];
-
-    this.appManager = new AppManager();
+    this.appManager = new AppManager({
+      state: this.state,
+    });
 
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),

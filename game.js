@@ -1349,7 +1349,7 @@ const gameManager = {
   },
   menuPush(direction) {
     const localPlayer = useLocalPlayer();
-    const grabAction = localPlayer.actions.find(action => action.type === 'grab' && action.hand === 'left');
+    const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === 'left');
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
       matrix
