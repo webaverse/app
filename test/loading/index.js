@@ -56,9 +56,9 @@ class LoadTester {
       let outInterval = setInterval(() => {
         try{
           if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
-            // console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.timeOfLastRequest , 's');
+            console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
 
-            if(self.timeOfLastRequest - self.timeOfSecondLastRequest > 400 && self.lastCheckedAt - self.lastActivityAt > 15000){
+            if(self.timeOfLastRequest - self.timeOfSecondLastRequest > 400 && self.lastCheckedAt - self.lastActivityAt > 60000){
               clearInterval(outInterval);
               resolve();
             }  
@@ -86,7 +86,9 @@ class LoadTester {
   };
 
   requestListener = (request) => {
-    this.lastActivityAt = performance.now()
+    if(request.resourceType() === 'xhr' || request.resourceType() === 'fetch'){
+      this.lastActivityAt = performance.now();
+    }
     request.continue();
   };
 
@@ -300,6 +302,6 @@ class LoadTester {
 
 module.exports = LoadTester;
 
-new LoadTester({
-  host: 'http://localhost:3000'
-}).run();
+// new LoadTester({
+//   host: 'http://localhost:3000'
+// }).run();
