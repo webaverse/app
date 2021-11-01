@@ -53,7 +53,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "../street/"
     },
     {
       "position": [
@@ -61,7 +61,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox-anime/"
+      "start_url": "../skybox-anime/"
     },
     {
       "position": [
@@ -167,6 +167,20 @@
         0.5
       ],
       "start_url": "https://webaverse.github.io/potion/"
+    },
+    {
+      "position": [
+        1,
+        0,
+        3
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/scissors/"
     }
   ]
 }

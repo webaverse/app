@@ -22,10 +22,9 @@ const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
-class PlayerHand {
+class PlayerHand extends THREE.Object3D {
   constructor() {
-    this.position = new THREE.Vector3();
-    this.quaternion = new THREE.Quaternion();
+    super();
   }
 }
 class Player extends THREE.Object3D {

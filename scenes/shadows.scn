@@ -62,7 +62,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "../atmospheric-sky/"
     },
     {
       "position": [
@@ -76,7 +76,22 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/sprite-avatar/index.js"
+      "start_url": "../sprite-avatar/"
+    },
+    {
+      "position": [
+        -1,
+        -0.15,
+        10
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
+      "dynamic": true
     },
     {
       "position": [
@@ -132,7 +147,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/pistol/"
+      "start_url": "../pistol/"
     }
   ]
 }
