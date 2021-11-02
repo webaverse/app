@@ -14,6 +14,7 @@ import metaversefile from './metaversefile-api.js';
 import {actionsMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
+import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -54,6 +55,34 @@ class Player extends THREE.Object3D {
       dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
     };
+    
+    const actions = this.getActions();
+    let lastActions = [];
+    const observe = () => {
+      const nextActions = Array.from(this.getActions());
+      for (const nextAction of nextActions) {
+        if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
+          this.dispatchEvent({
+            type: 'actionadd',
+            action: nextAction,
+          });
+          // console.log('add action', nextAction);
+        }
+      }
+      for (const lastAction of lastActions) {
+        if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
+          this.dispatchEvent({
+            type: 'actionremove',
+            action: lastAction,
+          });
+          // console.log('remove action', lastAction);
+        }
+      }
+      // console.log('actions changed');
+      lastActions = nextActions;
+    };
+    actions.observe(observe);
+    actions.unobserve = actions.unobserve.bind(actions, observe);
   }
   static controlActionTypes = [
     'jump',
@@ -125,6 +154,8 @@ class Player extends THREE.Object3D {
     return false;
   }
   addAction(action) {
+    action = clone(action);
+    action.actionId = makeId(5);
     this.getActions().push([action]);
   }
   removeAction(type) {
