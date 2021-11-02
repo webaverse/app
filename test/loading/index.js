@@ -3,15 +3,10 @@ const puppeteer = require('puppeteer-extra');
 const {performance} = require('perf_hooks');
 const scenes = require('../../scenes/scenes.json');
 
-function sleep(seconds) {
-  return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-}
-
-
-const ignoreErrors= [
+const ignoreErrors=  [
   /** Internal ThreeJS error sometimes gets caught in the extendTexture */
-  //'at GLTFTextureTransformExtension.extendTexture'
-]
+  // 'at GLTFTextureTransformExtension.extendTexture'
+];
 
 let self;
 
