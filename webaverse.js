@@ -4,14 +4,6 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
-// import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
-// import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-// import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
-// import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
-// import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-// import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
-// import {SSAOPass} from './SSAOPass.js';
 import {rigManager} from './rig.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
@@ -39,8 +31,6 @@ import {
 } from './renderer.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
-// import {WebaverseRenderPass} from './webaverse-render-pass.js';
-// import {parseQuery} from './util.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -71,7 +61,6 @@ const sessionOpts = {
     'hand-tracking',
   ],
 };
-// const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 const frameEvent = (() => {
   const now = Date.now();
@@ -95,9 +84,6 @@ export default class Webaverse extends EventTarget {
       // WSRTC.waitForReady(),
       metaverseModules.waitForLoad(),
     ])
-      /* .then(() => {
-        runtime.injectDependencies(physx, physicsManager, world);
-      }); */
     this.contentLoaded = false;
   }
   
@@ -302,8 +288,6 @@ export default class Webaverse extends EventTarget {
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
-
-      // const now = Date.now();
       
       world.appManager.pretick(timestamp, frame);
 
@@ -314,9 +298,7 @@ export default class Webaverse extends EventTarget {
       
       // universe.update();
       if (this.contentLoaded) {
-        // if (controlsManager.isPossessed()) {
-          physicsManager.update(timeDiffCapped);
-        // }
+        physicsManager.update(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
       
