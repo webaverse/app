@@ -15,29 +15,9 @@ const {useLocalPlayer} = metaversefileApi;
 const _startApp = async (weba, canvas) => {
   weba.setContentLoaded();
 
-  // weba.bindLogin();
   weba.bindInput();
   weba.bindInterface();
-  // const uploadFileInput = document.getElementById('upload-file-input');
-  // weba.bindUploadFileInput(uploadFileInput);
-  // const canvas = document.getElementById('canvas');
   weba.bindCanvas(canvas);
-
-  // const mapCanvas = document.getElementById('map-canvas')
-  // weba.bindMinimap(mapCanvas);
-
-  /* const enterXrButton = document.getElementById('enter-xr-button');
-  const noXrButton = document.getElementById('no-xr-button');
-  weba.bindXrButton({
-    enterXrButton,
-    // noXrButton,
-    onSupported(ok) {
-      if (ok) {
-        enterXrButton.style.display = null;
-        noXrButton.style.display = 'none';
-      }
-    },
-  }); */
 
   await weba.waitForLoad();
   universe.handleUrlUpdate();
@@ -47,7 +27,6 @@ const _startApp = async (weba, canvas) => {
     const defaultAvatarUrl = './avatars/citrine.vrm';
     const contentId = defaultAvatarUrl;
     const avatarApp = await metaversefileApi.load(contentId);
-    // avatarApp.contentId = contentId;
     avatarApp.instanceId = metaversefileApi.getNextInstanceId();
     const localPlayer = useLocalPlayer();
     localPlayer.setAvatar(avatarApp);
@@ -61,7 +40,6 @@ const Crosshair = () => (
 );
 
 function RootNode() {
-  // const [count, setCount] = useState(0)
   const canvasRef = useRef();
   const [app, setApp] = useState(() => new Webaverse());
   
