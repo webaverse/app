@@ -12,7 +12,7 @@ jobs:
     #if: " contains(github.event.head_commit.message, '[run test]')"
     name: 'Node.js v${{ matrix.node }}'
     runs-on: ubuntu-latest
-    environment: Production
+    environment: Test
     strategy:
       matrix:
         node:
