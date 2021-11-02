@@ -208,6 +208,9 @@ class LocalPlayer extends Player {
     
     if (world.appManager.hasTrackedApp(app.instanceId)) {
       world.appManager.transplantApp(app, this.appManager);
+    } else {
+      // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
+      // debugger;
     }
     
     const physicsObjects = app.getPhysicsObjects();
@@ -237,6 +240,9 @@ class LocalPlayer extends Player {
       
       if (this.appManager.hasTrackedApp(app.instanceId)) {
         this.appManager.transplantApp(app, world.appManager);
+      } else {
+        // console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
+        // debugger;
       }
       
       const wearComponent = app.getComponent('wear');
