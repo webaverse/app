@@ -290,14 +290,10 @@ class AppManager extends EventTarget {
         const index = this.apps.indexOf(app);
         if (index !== -1) {
           this.apps.splice(index, 1);
-        } else {
-          debugger;
         }
       } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
-        } else {
-          debugger;
         }
       }
     });
