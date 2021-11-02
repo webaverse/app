@@ -14,6 +14,7 @@ import metaversefile from './metaversefile-api.js';
 import {actionsMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
+import {getState, setState} from './state.js';
 import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -31,8 +32,15 @@ class PlayerHand extends THREE.Object3D {
   }
 }
 class Player extends THREE.Object3D {
-  constructor() {
+  constructor({prefix = 'player.' + makeId(5), state = new Y.Doc()} = {}) {
     super();
+
+    this.prefix = prefix;
+    this.state = state;
+    this.appManager = new AppManager({
+      prefix,
+      state,
+    });
 
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
@@ -40,11 +48,6 @@ class Player extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
-    this.state = new Y.Doc();
-    this.appManager = new AppManager({
-      state: this.state,
-    });
-
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
@@ -186,8 +189,8 @@ class Player extends THREE.Object3D {
   }
 }
 class LocalPlayer extends Player {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
   }
   setAvatar(app) {
     rigManager.setLocalAvatar(app);
@@ -365,8 +368,8 @@ class LocalPlayer extends Player {
   })()
 }
 class RemotePlayer extends Player {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
   }
 }
 

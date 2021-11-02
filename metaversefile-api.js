@@ -28,7 +28,8 @@ import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
-import {getRandomString} from './util.js';
+import {getState} from './state.js';
+import {makeId, getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -246,7 +247,10 @@ const defaultComponents = {
     }
   },
 };
-const localPlayer = new LocalPlayer();
+const localPlayer = new LocalPlayer({
+  prefix: 'player.' + makeId(5),
+  state: getState(),
+});
 const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
