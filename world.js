@@ -8,14 +8,18 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
-
+import {getState, setState} from './state.js';
 import {makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
+import {appsMapName} from './constants.js';
 
 // world
 export const world = {};
 
-const appManager = new AppManager();
+const appManager = new AppManager({
+  prefix: appsMapName,
+  state: getState(),
+});
 world.appManager = appManager;
 
 world.lights = new THREE.Object3D();
