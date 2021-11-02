@@ -1,7 +1,6 @@
 
 name: Mocha Tests
 'on':
-  push:
   pull_request:
     types:
       - opened
