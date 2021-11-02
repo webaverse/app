@@ -124,8 +124,8 @@ export function makePromise() {
 let nextMeshId = 0;
 export const getNextMeshId = () => ++nextMeshId;
 
-export function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
+export function clone(o) {
+  return JSON.parse(JSON.stringify(o));
 }
 
 export class WaitQueue {
