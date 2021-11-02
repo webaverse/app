@@ -32,8 +32,7 @@ function ChatInput({open, setOpen}) {
           
           if (value) {
             const text = checkText(value);
-            const targetObject = rigManager.localRig ? rigManager.localRig.modelBones.Head : new THREE.Object3D();
-            chatManager.addMessage(targetObject, text, {
+            chatManager.addMessage(text, {
               timeout: 3000,
             });
           }
@@ -113,8 +112,8 @@ function ChatMessages() {
       if (messageGroups.length > 0) {
         for (const messageGroup of messageGroups) {
           world2canvas(
-            messageGroup.object.getWorldPosition(localVector)
-              .add(localVector2.set(0, 0.2, 0)),
+            messageGroup.player.getWorldPosition(localVector)
+              .add(localVector2.set(0, 0, 0)),
             messageGroup.position
           );
         }
@@ -127,50 +126,27 @@ function ChatMessages() {
     };
   }, [messageGroups]);
   useEffect(() => {
+    const localPlayer = metaversefile.useLocalPlayer();
     const update = () => {
-      let newMessageGroups = messageGroups;
-      let changed = false;
+      const newMessageGroups = [];
       
-      // add new messages
-      const messages = chatManager.getMessages();
-      for (const message of messages) {
-        const {object} = message;
-        let messageGroup = newMessageGroups.find(group => group.object === object);
-        if (!messageGroup) {
-          messageGroup = {
-            object,
-            messages: [],
-            position: new THREE.Vector3(),
-          };
-          newMessageGroups.push(messageGroup);
-        }
-        const messageIndex = messageGroup.messages.indexOf(message);
-        if (messageIndex === -1) {
-          messageGroup.messages.push(message);
-          changed = true;
-        }
+      const localPlayerChatMessages = Array.from(localPlayer.getActions()).filter(action => action.type === 'chat');
+      if (localPlayerChatMessages.length > 0) {
+        const localPlayerMessageGroup = {
+          player: localPlayer,
+          messages: localPlayerChatMessages,
+          position: new THREE.Vector3(),
+        };
+        newMessageGroups.push(localPlayerMessageGroup);
       }
-      // remove old messages
-      for (const messageGroup of newMessageGroups) {
-        messageGroup.messages = messageGroup.messages.filter(m => {
-          if (messages.includes(m)) {
-            return true;
-          } else {
-            changed = true;
-            return false;
-          }
-        });
-      }
-      newMessageGroups = newMessageGroups.filter(messageGroup => messageGroup.messages.length > 0);
-      if (changed) {
-        setMessageGroups(newMessageGroups);
-      }
+
+      setMessageGroups(newMessageGroups);
     };
-    chatManager.addEventListener('messageadd', update);
-    chatManager.addEventListener('messageremove', update);
+    localPlayer.addEventListener('actionadd', update);
+    localPlayer.addEventListener('actionremove', update);
     return () => {
-      chatManager.removeEventListener('messageadd', update);
-      chatManager.removeEventListener('messageremove', update);
+      localPlayer.removeEventListener('actionadd', update);
+      localPlayer.removeEventListener('actionremove', update);
     };
   }, [messageGroups]);
 

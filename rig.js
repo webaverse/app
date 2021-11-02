@@ -421,8 +421,8 @@ class RigManager {
       applyPlayerActionsToAvatar(localPlayer, this.localRig);
       
       const _applyChatModifiers = () => {
-        const localPlayerMessages = chatManager.getMessages().filter(m => m.object === this.localRig.modelBones.Head);
-        const lastMessage = localPlayerMessages.length > 0 ? localPlayerMessages[localPlayerMessages.length - 1] : null;
+        const localPlayerChatActions = Array.from(localPlayer.getActions()).filter(action => action.type === 'chat');
+        const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
         const _applyChatEmote = message => {
           const localPlayerEmotion = message?.emotion;
           if (localPlayerEmotion) {

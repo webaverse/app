@@ -1,3 +1,7 @@
+import {makeId} from './util.js';
+import metaversefileApi from './metaversefile-api.js';
+const {useLocalPlayer} = metaversefileApi;
+
 const _getEmotion = text => {
   let match;
   if (match = text.match(/(😃|😊|😁|😄|😆|(?:^|\s)lol(?:$|\s))/)) {
@@ -24,48 +28,60 @@ class ChatManager extends EventTarget {
   constructor() {
     super();
 
-    this.messages = [];
+    this.messageActions = [];
   }
-  getMessages() {
-    return this.messages;
-  }
-  addMessage(object = null, message = '', {timeout = 3000} = {}) {
+  /* getMessageActions() {
+    return this.messageActions;
+  } */
+  addMessage(message = '', {timeout = 3000} = {}) {
+    const localPlayer = useLocalPlayer();
+    const chatId = makeId(5);
     const match = _getEmotion(message);
     const emotion = match && match.emotion;
     const fakeSpeech = match ? (match[1] !== message) : true;
     const m = {
-      object,
+      type: 'chat',
+      chatId,
       message,
       emotion,
       fakeSpeech,
     };
-    this.messages.push(m);
+    localPlayer.addAction(m);
+    this.messageActions.push(m);
     
-    this.dispatchEvent(new MessageEvent('messageadd', {
+    /* this.dispatchEvent(new MessageEvent('messageadd', {
       data: m,
-    }));
+    })); */
     
     const localTimeout = setTimeout(() => {
       this.removeMessage(m);
     }, timeout);
-  
-    const messageremove = e => {
-      if (e.data === m) {
-        clearTimeout(localTimeout);
-        this.removeEventListener('messageremove', messageremove);
-      }
+    m.cleanup = () => {
+      clearTimeout(localTimeout);
     };
-    this.addEventListener('messageremove', messageremove);
+    
+    return m;
   }
   removeMessage(m) {
-    const index = this.messages.indexOf(m);
+    const localPlayer = useLocalPlayer();
+    const index = this.messageActions.indexOf(m);
     if (index !== -1) {
-      const m = this.messages[index];
-      this.messages.splice(index, 1);
+      const m = this.messageActions[index];
+      m.cleanup();
+      this.messageActions.splice(index, 1);
       
-      this.dispatchEvent(new MessageEvent('messageremove', {
+      const actionIndex = localPlayer.findActionIndex(action => action.chatId === m.chatId);
+      if (actionIndex !== -1) {
+        localPlayer.removeActionIndex(actionIndex);
+      } else {
+        console.warn('remove unknown message action 2', m);
+      }
+      
+      /* this.dispatchEvent(new MessageEvent('messageremove', {
         data: m,
-      }));
+      })); */
+    } else {
+      console.warn('remove unknown message action 1', m);
     }
   }
 }
