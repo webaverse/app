@@ -21,7 +21,7 @@
         0,
         0
       ],
-      "start_url": "../street/"
+      "start_url": "https://webaverse.github.io/street/"
     },
     {
       "position": [
@@ -29,7 +29,7 @@
         30,
         -30
       ],
-      "start_url": "../floating-island/"
+      "start_url": "https://webaverse.github.io/floating-island/"
     },
     {
       "position": [
@@ -37,7 +37,7 @@
         0,
         0
       ],
-      "start_url": "../skybox/"
+      "start_url": "https://webaverse.github.io/skybox/"
     },
     {
       "position": [
@@ -45,7 +45,7 @@
         0,
         -2
       ],
-      "start_url": "../mirror/"
+      "start_url": "https://webaverse.github.io/mirror/"
     },
     {
       "position": [
