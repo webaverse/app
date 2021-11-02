@@ -70,6 +70,7 @@ class LoadTester {
 
           
         }catch(e){
+          console.warn(e);
 
         }finally{
           retries--;
@@ -99,7 +100,7 @@ class LoadTester {
 
           
         }catch(e){
-
+          console.warn(e);
         }
       }, 400);
     });
@@ -161,10 +162,12 @@ class LoadTester {
     let reportError = false;
     try{
     }catch(e){
+      console.warn(e);
     }finally{
       try{
         self.stats.errors.push(value);
       }catch(e){
+        console.warn(e);
       }
     }
     for (const error of ignoreErrors) {
@@ -306,6 +309,7 @@ class LoadTester {
     try{
       this.finish();      
     }catch(e){
+      console.warn(e);
       //finish may throw error;
     }
   }
@@ -326,6 +330,7 @@ class LoadTester {
     try{
       await this.browser.close();
     }catch(e){
+      console.warn(e);
       //close may throw error;
     }
     this.browser = null;
