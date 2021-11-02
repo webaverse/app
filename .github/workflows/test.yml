@@ -1,5 +1,5 @@
 
-name: Mocha Tests
+name: Test Cases
 'on':
   push:
   pull_request:
