@@ -88,9 +88,8 @@ class LoadTester {
       let outInterval = setInterval(() => {
         try{
           if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
-            //console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');
-
-            if(self.lastCheckedAt - self.lastActivityAt > 2000){
+            //console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');            
+            if(self.lastCheckedAt - self.lastActivityAt > 10000){
               clearInterval(outInterval);
               resolve();
             }  
@@ -118,9 +117,6 @@ class LoadTester {
   };
 
   requestListener = (request) => {
-    // if(request.resourceType() === 'xhr' || request.resourceType() === 'fetch'){
-    //   this.lastActivityAt = performance.now();
-    // }
     this.lastActivityAt = performance.now();
 
     request.continue();
@@ -294,7 +290,6 @@ class LoadTester {
     for (const scene of scenes) {
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
-      //console.log(scene, this.stats);
       this.scenes.push(this.stats);
       this.stats = {
         errors: [],
@@ -334,7 +329,3 @@ class LoadTester {
 
 
 module.exports = LoadTester;
-
-// new LoadTester({
-//   host: 'http://localhost:3000'
-// }).run();

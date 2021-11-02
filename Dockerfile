@@ -15,8 +15,6 @@ RUN apt update -y
 RUN apt install sudo -y
 RUN npm install forever -g
 RUN npm install
-RUN npm install wsrtc@0.0.6
-RUN npm install metaversefile@0.0.32
 RUN npm list
 	
 
