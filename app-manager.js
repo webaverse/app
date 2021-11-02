@@ -27,9 +27,10 @@ const localFrameOpts = {
 };
 
 class AppManager extends EventTarget {
-  constructor({state = new Y.Doc(), apps = []} = {}) {
+  constructor({prefix = appsMapName, state = new Y.Doc(), apps = []} = {}) {
     super();
     
+    this.prefix = prefix;
     this.state = state;
     this.apps = apps;
     
@@ -56,7 +57,7 @@ class AppManager extends EventTarget {
     this.pushingLocalUpdates = pushingLocalUpdates;
   }
   bindState(state) {
-    const apps = state.getArray(appsMapName);
+    const apps = state.getArray(this.prefix);
     let lastApps = [];
     apps.observe(() => {
       if (!this.stateBlindMode) {
@@ -78,7 +79,7 @@ class AppManager extends EventTarget {
         for (const instanceId of lastApps) {
           if (!nextApps.includes(instanceId)) {
             // console.log('detected app removal', instanceId);
-            const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+            const trackedApp = state.getMap(this.prefix + '.' + instanceId);
             const app = this.getAppByInstanceId(instanceId);
             this.dispatchEvent(new MessageEvent('trackedappremove', {
               data: {
@@ -245,7 +246,7 @@ class AppManager extends EventTarget {
   }
   getOrCreateTrackedApp(instanceId) {
     const {state} = this;
-    const apps = state.getArray(appsMapName);
+    const apps = state.getArray(this.prefix);
 
     let hadObject = false;
     for (const app of apps) {
@@ -258,21 +259,21 @@ class AppManager extends EventTarget {
       apps.push([instanceId]);
     }
 
-    return state.getMap(appsMapName + '.' + instanceId);
+    return state.getMap(this.prefix + '.' + instanceId);
   }
   getTrackedApp(instanceId) {
     const {state} = this;
-    const apps = state.getArray(appsMapName);
+    const apps = state.getArray(this.prefix);
     for (const app of apps) {
       if (app === instanceId) {
-        return state.getMap(appsMapName + '.' + instanceId);
+        return state.getMap(this.prefix + '.' + instanceId);
       }
     }
     return null;
   }
   hasTrackedApp(instanceId) {
     const {state} = this;
-    const apps = state.getArray(appsMapName);
+    const apps = state.getArray(this.prefix);
     for (const app of apps) {
       if (app === instanceId) {
         return true;
@@ -338,7 +339,7 @@ class AppManager extends EventTarget {
   }
   removeTrackedAppInternal(removeInstanceId) {
     const {state} = this;
-    const apps = state.getArray(appsMapName);
+    const apps = state.getArray(this.prefix);
     const appsJson = apps.toJSON();
     const removeIndex = appsJson.indexOf(removeInstanceId);
     if (removeIndex !== -1) {
@@ -348,7 +349,7 @@ class AppManager extends EventTarget {
 
         apps.delete(removeIndex, 1);
 
-        const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+        const trackedApp = state.getMap(this.prefix + '.' + instanceId);
         const keys = Array.from(trackedApp.keys());
         for (const key of keys) {
           trackedApp.delete(key);
@@ -366,8 +367,9 @@ class AppManager extends EventTarget {
   }
   setTrackedAppTransform(instanceId, p, q, s) {
     const {state} = this;
+    const self = this;
     state.transact(function tx() {
-      const trackedApp = state.getMap(appsMapName + '.' + instanceId);
+      const trackedApp = state.getMap(self.prefix + '.' + instanceId);
       trackedApp.set('position', p.toArray());
       trackedApp.set('quaternion', q.toArray());
       trackedApp.set('scale', s.toArray());
