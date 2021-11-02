@@ -21,6 +21,7 @@ describe('Running Pupeeteer', function() {
       try{
         await appTester.run();
       }catch(e){
+        mlog.log(e);
         //digest pupeteer crash error that comes up very rare.
       }
 
