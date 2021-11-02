@@ -368,8 +368,8 @@ class LocalPlayer extends Player {
   })()
 }
 class RemotePlayer extends Player {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
   }
 }
 
