@@ -1,3 +1,5 @@
+throw new Error('lol');
+
 import * as THREE from 'three';
 import {appManager, scene, camera, dolly} from './renderer.js';
 
