@@ -10,7 +10,7 @@ function sleep(seconds) {
 
 const ignoreErrors= [
   /** Internal ThreeJS error sometimes gets caught in the extendTexture */
-  'at GLTFTextureTransformExtension.extendTexture'
+  //'at GLTFTextureTransformExtension.extendTexture'
 ]
 
 let self;
@@ -46,6 +46,38 @@ class LoadTester {
     }
   }
 
+  waitForServerBoot = ()=>{
+    let retries = 5;
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+    return new Promise((resolve,reject)=>{
+
+      let outInterval = setInterval(async () => {
+        try{
+
+
+              if(retries < 0){
+                clearInterval(outInterval);
+                return reject();  
+              }
+
+              const res = await fetch(self.config.host);
+              if(res.ok){
+                console.log('Webaverse is running tests. Sit tight! :)');
+                clearInterval(outInterval);
+                return resolve();  
+              }
+
+          
+        }catch(e){
+
+        }finally{
+          retries--;
+        }
+      }, 1000);
+    });
+  }
+  
 
   waitForNetworkIdle = ()=>{
     self.timeOfSecondLastRequest = 0;
@@ -56,7 +88,7 @@ class LoadTester {
       let outInterval = setInterval(() => {
         try{
           if(self.timeOfLastRequest > 0  && self.timeOfSecondLastRequest > 0){
-            
+            //console.log(`Time Diff between last requests is `,self.timeOfLastRequest - self.timeOfSecondLastRequest,'s' , 'and last checked at' ,self.lastCheckedAt - self.lastActivityAt , 's');            
             if(self.lastCheckedAt - self.lastActivityAt > 10000){
               clearInterval(outInterval);
               resolve();
@@ -147,6 +179,7 @@ class LoadTester {
   }
 
   async init() {
+    await this.waitForServerBoot();
     this.browser = await puppeteer.launch({
       headless: true, // change to false for debug
       defaultViewport: null,
@@ -164,7 +197,6 @@ class LoadTester {
       '--disable-threaded-scrolling',
       '--disable-checker-imaging'],
     });
-    self = this;
 
     this.page = await this.browser.newPage();
 
@@ -233,7 +265,6 @@ class LoadTester {
   }
 
   async testScene(sceneUrl) {
-    await sleep(5);
     const t0 = performance.now();
     try{
       await this.page.goto(sceneUrl,{
@@ -282,7 +313,7 @@ class LoadTester {
   constructor(config) {
     this.config = config;
     this.scenes = [];
-
+    self = this;
     this.requestPromises = [];
   }
 
