@@ -11,7 +11,7 @@ import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
-import {appsMapName} from './constants.js';
+import {worldMapName} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -28,7 +28,7 @@ const localFrameOpts = {
 
 const appManagers = [];
 class AppManager extends EventTarget {
-  constructor({prefix = appsMapName, state = new Y.Doc(), apps = []} = {}) {
+  constructor({prefix = worldMapName, state = new Y.Doc(), apps = []} = {}) {
     super();
     
     this.prefix = prefix;
