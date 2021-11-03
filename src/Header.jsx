@@ -301,7 +301,7 @@ export default function Header({
   app,
 }) {
   
-  const _getWearActions = () => Array.from(localPlayer.getActions()).filter(action => action.type === 'wear');
+  const _getWearActions = () => Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
   
 	// console.log('index 2');
   const previewCanvasRef = useRef();

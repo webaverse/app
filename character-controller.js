@@ -96,11 +96,14 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
-  getActions() {
-    return this.state.getArray(actionsMapName);
+  getActionsState() {
+    return this.state.getArray(this.prefix + '.' + actionsMapName);
+  }
+  getAvatarState() {
+    return this.state.getMap(this.prefix + '.' + avatarMapName);
   }
   findAction(fn) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (fn(action)) {
         return action;
@@ -109,7 +112,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   findActionIndex(fn) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (fn(action)) {
@@ -120,7 +123,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   getAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (action.type === type) {
         return action;
@@ -129,7 +132,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   getActionIndex(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (action.type === type) {
@@ -140,7 +143,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   indexOfAction(action) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const a of actions) {
       if (a === action) {
@@ -151,7 +154,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   hasAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (action.type === type) {
         return true;
@@ -162,10 +165,10 @@ class Player extends THREE.Object3D {
   addAction(action) {
     action = clone(action);
     action.actionId = makeId(5);
-    this.getActions().push([action]);
+    this.getActionsState().push([action]);
   }
   removeAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (action.type === type) {
@@ -176,10 +179,10 @@ class Player extends THREE.Object3D {
     }
   }
   removeActionIndex(index) {
-    this.getActions().delete(index);
+    this.getActionsState().delete(index);
   }
   setControlAction(action) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
       const action = actions.get(i);
       const isControlAction = Player.controlActionTypes.includes(action.type);
@@ -302,7 +305,7 @@ class LocalPlayer extends Player {
     }
   }
   ungrab() {
-    const actions = Array.from(this.getActions());
+    const actions = Array.from(this.getActionsState());
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
