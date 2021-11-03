@@ -44,7 +44,7 @@ export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
 
-export const appsMapName = 'apps';
+export const worldMapName = 'world';
 export const actionsMapName = 'actions';
 export const avatarMapName = 'avatars';
 
