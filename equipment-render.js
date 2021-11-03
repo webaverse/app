@@ -55,13 +55,14 @@ class EquipmentRender {
     this.previewRenderer.xr.enabled = true;
 
     let avatar = null;
-    world.appManager.addEventListener('avatarupdate', (e) => {
+    const localPlayer = metaversefile.useLocalPlayer();
+    localPlayer.addEventListener('avatarupdate', e => {
       if (avatar) {
         avatar.parent.remove(avatar);
         avatar = null;
       }
       
-      const newAvatar = e.data.app.clone();
+      const newAvatar = e.app.clone();
 
       newAvatar.position.set(0, 0, 0);
       newAvatar.rotation.set(0, 0, 0);
