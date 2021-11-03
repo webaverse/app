@@ -4,7 +4,6 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-import {rigManager} from './rig.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -17,7 +16,7 @@ import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
 import * as postProcessing from './post-processing.js';
-// import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
@@ -236,7 +235,7 @@ export default class Webaverse extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
     }
 
-    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    const handOffsetScale = localPlayer ? localPlayer.avatar.height / 1.5 : 1;
     if (!leftGamepadPosition) {
       leftGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
@@ -307,9 +306,12 @@ export default class Webaverse extends EventTarget {
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      rigManager.update(timestamp, timeDiffCapped);
-
+      // rigManager.update(timestamp, timeDiffCapped);
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.update(timestamp, timeDiffCapped);
+      
       world.appManager.tick(timestamp, frame);
+
       hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();
