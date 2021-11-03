@@ -243,14 +243,14 @@ class AppManager extends EventTarget {
         
         this.addApp(app);
 
-        const _bindRender = () => {
+        /* const _bindRender = () => {
           // unFrustumCull(app);
 
           if (app.renderOrder === -Infinity) {
             sceneHighPriority.add(app);
           }
         };
-        _bindRender();
+        _bindRender(); */
 
         this.bindTrackedApp(trackedApp, app);
 
