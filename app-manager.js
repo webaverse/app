@@ -106,8 +106,6 @@ class AppManager extends EventTarget {
               
               const e = new MessageEvent('trackedappmigrate', {
                 data: {
-                  // instanceId,
-                  // trackedApp,
                   app,
                   sourceAppManager: this,
                   destinationAppManager: peerOwnerAppManager,
@@ -278,8 +276,6 @@ class AppManager extends EventTarget {
     });
     this.addEventListener('trackedappmigrate', async e => {
       const {
-        // instanceId,
-        // trackedApp,
         app,
         sourceAppManager,
         destinationAppManager,
