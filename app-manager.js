@@ -28,7 +28,7 @@ const localFrameOpts = {
 
 const appManagers = [];
 class AppManager extends EventTarget {
-  constructor({prefix = worldMapName, state = new Y.Doc(), apps = []} = {}) {
+  constructor({prefix = worldMapName, state = new Y.Doc(), apps = [], autoSceneManagement = true} = {}) {
     super();
     
     this.prefix = prefix;
@@ -41,6 +41,7 @@ class AppManager extends EventTarget {
     this.pendingAddPromise = null;
     this.pushingLocalUpdates = false;
     this.lastTimestamp = performance.now();
+    this.autoSceneManagement = autoSceneManagement;
     // this.stateBlindMode = false;
   
     appManagers.push(this);
@@ -444,19 +445,21 @@ class AppManager extends EventTarget {
   addApp(app) {
     this.apps.push(app);
     
-    const renderPriority = app.getComponent('renderPriority');
-    switch (renderPriority) {
-      case 'high': {
-        sceneHighPriority.add(app);
-        break;
-      }
-      case 'low': {
-        sceneLowPriority.add(app);
-        break;
-      }
-      default: {
-        scene.add(app);
-        break;
+    if (this.autoSceneManagement) {
+      const renderPriority = app.getComponent('renderPriority');
+      switch (renderPriority) {
+        case 'high': {
+          sceneHighPriority.add(app);
+          break;
+        }
+        case 'low': {
+          sceneLowPriority.add(app);
+          break;
+        }
+        default: {
+          scene.add(app);
+          break;
+        }
       }
     }
   }
@@ -465,7 +468,10 @@ class AppManager extends EventTarget {
     // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId), new Error().stack);
     if (index !== -1) {
       this.apps.splice(index, 1);
-      app.parent && app.parent.remove(app);
+      
+      if (this.autoSceneManagement) {
+        app.parent.remove(app);
+      }
     }
   }
   resize(e) {
