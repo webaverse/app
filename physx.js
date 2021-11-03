@@ -870,9 +870,9 @@ const physxWorker = (() => {
 
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator();
-    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024);
+    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2);
     const numPositions = allocator.alloc(Uint32Array, 1);
-    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024);
+    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024 * 2);
     const numIndices = allocator.alloc(Uint32Array, 1);
 
     const ok = moduleInstance._getGeometryPhysics(
