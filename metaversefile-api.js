@@ -810,9 +810,9 @@ export default () => {
       iframeContainer,
     };
   },
-  useRigManagerInternal() {
+  /* useRigManagerInternal() {
     return rigManager;
-  },
+  }, */
   useAvatarInternal() {
     return Avatar;
   },
