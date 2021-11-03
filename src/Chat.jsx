@@ -11,7 +11,6 @@ import {world} from '../world.js';
 import {chatManager} from '../chat-manager.js';
 import {world2canvas} from './ThreeUtils.js';
 import metaversefile from 'metaversefile';
-import {rigManager} from '../rig.js';
 import ioManager from '../io-manager.js';
 
 const localVector = new THREE.Vector3();
