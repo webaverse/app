@@ -6,15 +6,16 @@ import * as THREE from 'three';
 import * as Y from 'yjs';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
+// import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {actionsMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {actionsMapName, avatarMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {getState, setState} from './state.js';
+import {applyPlayerToAvatar, switchAvatar} from './avatar-binding.js';
 import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -40,6 +41,7 @@ class Player extends THREE.Object3D {
     this.appManager = new AppManager({
       prefix,
       state,
+      autoSceneManagement: false,
     });
 
     this.leftHand = new PlayerHand();
@@ -59,10 +61,12 @@ class Player extends THREE.Object3D {
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
     };
     
-    const actions = this.getActions();
+    this.avatarEpoch = 0;
+    
+    const actions = this.getActionsState();
     let lastActions = [];
-    const observe = () => {
-      const nextActions = Array.from(this.getActions());
+    const observeActionsFn = () => {
+      const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
         if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
           this.dispatchEvent({
@@ -84,8 +88,79 @@ class Player extends THREE.Object3D {
       // console.log('actions changed');
       lastActions = nextActions;
     };
-    actions.observe(observe);
-    actions.unobserve = actions.unobserve.bind(actions, observe);
+    actions.observe(observeActionsFn);
+    
+    const avatar = this.getAvatarState();
+    let lastAvatarInstanceId = '';
+    let lastAvatarApp = null;
+    let observeAvatarEpoch = 0;
+    const observeAvatarFn = async () => {
+      const localEpoch = ++observeAvatarEpoch;
+      
+      // we are in an observer and we want to perform a state transaction as a result
+      // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
+      await Promise.resolve();
+      if (observeAvatarEpoch !== localEpoch) return;
+      
+      const avatar = this.getAvatarState();
+      const instanceId = avatar.get('instanceId') ?? '';
+      if (lastAvatarInstanceId !== instanceId) {
+        lastAvatarInstanceId = instanceId;
+        
+        // remove last app
+        if (lastAvatarApp) {
+          const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(lastAvatarApp.instanceId);
+          if (oldPeerOwnerAppManager) {
+            // console.log('transplant last app');
+            this.appManager.transplantApp(lastAvatarApp, oldPeerOwnerAppManager);
+          } else {
+            // console.log('remove last app', lastAvatarApp);
+            this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
+          }
+          lastAvatarApp = null;
+        }
+        
+        const _setNextAvatarApp = app => {
+          // console.log('set next avatar app', app);
+          (async () => {
+            const nextAvatar = await switchAvatar(this.avatar, app);
+            if (observeAvatarEpoch !== localEpoch) return;
+            this.avatar = nextAvatar;
+          })();
+          lastAvatarApp = app;
+          
+          this.dispatchEvent({
+            type: 'avatarupdate',
+            app,
+          });
+        };
+        
+        // add next app from player app manager
+        const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
+        // console.log('add next avatar local', nextAvatarApp);
+        if (nextAvatarApp) {
+          _setNextAvatarApp(nextAvatarApp);
+        } else {
+          // add next app from world app manager
+          const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
+          // console.log('add next avatar world', nextAvatarApp);
+          if (nextAvatarApp) {
+            world.appManager.transplantApp(nextAvatarApp, this.appManager);
+            _setNextAvatarApp(nextAvatarApp);
+          } else {
+            console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
+          }
+        }
+      }
+    };
+    avatar.observe(observeAvatarFn);
+  
+    this.cleanup = () => {
+      actions.unobserve(observeActionsFn);
+      avatar.unobserve(observeAvatarFn);
+    };
+    
+    this.avatar = null;
   }
   static controlActionTypes = [
     'jump',
@@ -93,11 +168,14 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
-  getActions() {
-    return this.state.getArray(actionsMapName);
+  getActionsState() {
+    return this.state.getArray(this.prefix + '.' + actionsMapName);
+  }
+  getAvatarState() {
+    return this.state.getMap(this.prefix + '.' + avatarMapName);
   }
   findAction(fn) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (fn(action)) {
         return action;
@@ -106,7 +184,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   findActionIndex(fn) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (fn(action)) {
@@ -117,7 +195,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   getAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (action.type === type) {
         return action;
@@ -126,7 +204,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   getActionIndex(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (action.type === type) {
@@ -137,7 +215,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   indexOfAction(action) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const a of actions) {
       if (a === action) {
@@ -148,7 +226,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   hasAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (const action of actions) {
       if (action.type === type) {
         return true;
@@ -159,10 +237,10 @@ class Player extends THREE.Object3D {
   addAction(action) {
     action = clone(action);
     action.actionId = makeId(5);
-    this.getActions().push([action]);
+    this.getActionsState().push([action]);
   }
   removeAction(type) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
       if (action.type === type) {
@@ -173,10 +251,10 @@ class Player extends THREE.Object3D {
     }
   }
   removeActionIndex(index) {
-    this.getActions().delete(index);
+    this.getActionsState().delete(index);
   }
   setControlAction(action) {
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
       const action = actions.get(i);
       const isControlAction = Player.controlActionTypes.includes(action.type);
@@ -187,18 +265,44 @@ class Player extends THREE.Object3D {
     }
     actions.push([action]);
   }
+  setMicMediaStream(mediaStream, options) {
+    this.avatar.setMicrophoneMediaStream(mediaStream, options);
+  }
+  update(timestamp, timeDiff) {
+    if (this.avatar) {
+      const renderer = getRenderer();
+      const session = renderer.xr.getSession();
+      applyPlayerToAvatar(this, session, this.avatar);
+
+      const timeDiffS = timeDiff / 1000;
+      this.avatar.update(timestamp, timeDiffS);
+    }
+  }
+  destroy() {
+    this.cleanup();
+    this.appManager.destroy();
+  }
 }
 class LocalPlayer extends Player {
   constructor(opts) {
     super(opts);
   }
-  setAvatar(app) {
-    rigManager.setLocalAvatar(app);
-    world.appManager.dispatchEvent(new MessageEvent('avatarupdate', {
-      data: {
-        app,
-      },
-    }));
+  async setAvatarUrl(u) {
+    const localAvatarEpoch = ++this.avatarEpoch;
+    const avatarApp = await this.appManager.addTrackedApp(u);
+    if (this.avatarEpoch !== localAvatarEpoch) {
+      this.appManager.removeTrackedApp(avatarApp.instanceId);
+      return;
+    }
+    
+    this.setAvatarApp(avatarApp);
+  }
+  setAvatarApp(app) {
+    const self = this;
+    this.state.transact(function tx() {
+      const avatar = self.getAvatarState();
+      avatar.set('instanceId', app.instanceId);
+    });
   }
   wear(app) {
     app.dispatchEvent({
@@ -299,7 +403,7 @@ class LocalPlayer extends Player {
     }
   }
   ungrab() {
-    const actions = Array.from(this.getActions());
+    const actions = Array.from(this.getActionsState());
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];

@@ -62,7 +62,7 @@
         0,
         0
       ],
-      "start_url": "../atmospheric-sky/"
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
     },
     {
       "position": [
@@ -76,7 +76,7 @@
         0,
         0
       ],
-      "start_url": "../sprite-avatar/"
+      "start_url": "https://webaverse.github.io/sprite-avatar/"
     },
     {
       "position": [
@@ -147,7 +147,7 @@
         0,
         1
       ],
-      "start_url": "../pistol/"
+      "start_url": "https://webaverse.github.io/pistol/"
     }
   ]
 }

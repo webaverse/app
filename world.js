@@ -6,18 +6,18 @@ import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 
 import hpManager from './hp-manager.js';
-import {rigManager} from './rig.js';
+// import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
 import {getState, setState} from './state.js';
 import {makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
-import {appsMapName} from './constants.js';
+import {worldMapName} from './constants.js';
 
 // world
 export const world = {};
 
 const appManager = new AppManager({
-  prefix: appsMapName,
+  prefix: worldMapName,
   state: getState(),
 });
 world.appManager = appManager;
@@ -49,7 +49,9 @@ world.enableMic = async () => {
   if (wsrtc) {
     wsrtc.enableMic(mediaStream);
   }
-  rigManager.setLocalMicMediaStream(mediaStream, {
+  
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.setMicMediaStream(mediaStream, {
     audioContext: WSRTC.getAudioContext(),
   });
 };
@@ -61,7 +63,9 @@ world.disableMic = () => {
       WSRTC.destroyUserMedia(mediaStream);
     }
     mediaStream = null;
-    rigManager.setLocalMicMediaStream(null);
+    
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.setMicMediaStream(null);
   }
 };
 
@@ -79,7 +83,8 @@ world.connectRoom = async (worldURL) => {
   }
 
   const sendUpdate = () => {
-    const rig = rigManager.localRig;
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const rig = localPlayer.avatar;
     if (rig) {
       const {hmd, leftGamepad, rightGamepad} = rig.inputs;
       const user = wsrtc.localUser;
@@ -137,10 +142,12 @@ world.connectRoom = async (worldURL) => {
     }
   };
   const sendMetadataUpdate = () => {
-    if (rigManager.localRig) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const rig = localPlayer.avatar;
+    if (rig) {
       wsrtc.localUser.setMetadata({
         name,
-        avatarUrl: rigManager.localRig.app.contentId,
+        avatarUrl: rig.app.contentId,
       });
     }
   };

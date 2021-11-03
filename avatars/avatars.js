@@ -23,6 +23,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
 const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -1500,7 +1501,6 @@ class Avatar {
 
     // shared state
     this.direction = new THREE.Vector3();
-    this.velocity = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
     this.flyState = false;
@@ -1526,6 +1526,8 @@ class Avatar {
     this.aimDirection = new THREE.Vector3();
     
     // internal state
+    this.lastPosition = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
@@ -2172,6 +2174,26 @@ class Avatar {
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+
+    const _updatePosition = () => {
+      const currentPosition = this.inputs.hmd.position;
+      const currentQuaternion = this.inputs.hmd.quaternion;
+      
+      const positionDiff = localVector.copy(this.lastPosition)
+        .sub(currentPosition)
+        .divideScalar(timeDiff)
+        .multiplyScalar(0.1);
+      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+      positionDiff.applyEuler(localEuler2);
+      this.velocity.copy(positionDiff);
+      this.lastPosition.copy(currentPosition);
+      this.direction.copy(positionDiff).normalize();
+    };
+    _updatePosition();
     
     const _applyAnimation = () => {
       const runSpeed = 0.75;
