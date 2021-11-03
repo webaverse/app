@@ -193,6 +193,10 @@ class Player extends THREE.Object3D {
     }
     actions.push([action]);
   }
+  destroy() {
+    this.cleanup();
+    this.appManager.destroy();
+  }
 }
 class LocalPlayer extends Player {
   constructor(opts) {
@@ -378,9 +382,6 @@ class LocalPlayer extends Player {
       physicsManager.velocity.set(0, 0, 0);
     };
   })()
-  destroy() {
-    this.cleanup();
-  }
 }
 class RemotePlayer extends Player {
   constructor(opts) {
