@@ -59,6 +59,14 @@ class AppManager extends EventTarget {
   setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
   }
+  getPeerOwnerAppManager(instanceId) {
+    for (const appManager of appManagers) {
+      if (appManager !== this && appManager.state === this.state && appManager.hasTrackedApp(instanceId)) {
+        return appManager;
+      }
+    }
+    return null;
+  }
   bindState(state) {
     const apps = state.getArray(this.prefix);
     let lastApps = [];
