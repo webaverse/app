@@ -163,6 +163,18 @@ function applyPlayerModesToAvatar(player, session, rig) {
     rig.velocity.length() < 0.001,
   );
 }
+async function switchAvatar(oldRig, newApp) {
+  await newApp.setSkinning(true);
+  
+  // unwear old rig
+  if (oldRig) {
+    await oldRig.app.setSkinning(false);
+  }
+  if (!newApp.rig) {
+    newApp.rig = makeRig(newApp);
+  }
+  return newApp.rig;
+}
 
 class RigManager {
   constructor(scene) {
@@ -172,21 +184,8 @@ class RigManager {
     this.peerRigs = new Map();
   }
 
-  async _switchAvatar(oldRig, newApp) {
-    await newApp.setSkinning(true);
-    
-    // unwear old rig
-    if (oldRig) {
-      await oldRig.app.setSkinning(false);
-    }
-    if (!newApp.rig) {
-      newApp.rig = makeRig(newApp);
-    }
-    return newApp.rig;
-  }
-
   async setLocalAvatar(app) {
-    this.localRig = await this._switchAvatar(this.localRig, app);
+    this.localRig = await switchAvatar(this.localRig, app);
   }
   
   setLocalMicMediaStream(mediaStream, options) {
