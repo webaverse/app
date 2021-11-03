@@ -72,6 +72,50 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
 }
+function applyPlayerChatToAvatar(player, rig) {
+  const localPlayerChatActions = Array.from(player.getActionsState()).filter(action => action.type === 'chat');
+  const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
+  const _applyChatEmote = message => {
+    const localPlayerEmotion = message?.emotion;
+    if (localPlayerEmotion) {
+      // ensure new emotion and no others
+      let found = false;
+      for (let i = 0; i < rig.emotes.length; i++) {
+        const emote = rig.emotes[i];
+        if (emote.emotion) {
+          if (emote.emotion === localPlayerEmotion) {
+            found = true;
+          } else {
+            rig.emotes.splice(i, 1);
+            i--;
+          }
+        }
+      }
+      if (!found) {
+        const emote = {
+          emotion: localPlayerEmotion,
+          value: 1,
+        };
+        rig.emotes.push(emote);
+      }
+    } else {
+      // ensure no emotions
+      for (let i = 0; i < rig.emotes.length; i++) {
+        const emote = rig.emotes[i];
+        if (emote.emotion) {
+          rig.emotes.splice(i, 1);
+          i--;
+        }
+      }
+    }
+  };
+  _applyChatEmote(lastMessage);
+  
+  const _applyFakeSpeech = message => {
+    rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
+  };
+  _applyFakeSpeech(lastMessage);
+}
 
 class RigManager {
   constructor(scene) {
@@ -120,21 +164,21 @@ class RigManager {
       const session = renderer.xr.getSession();
       const localPlayer = metaversefile.useLocalPlayer();
       
-      const _setTransforms = () => {
+      const _setTransforms = (player, rig) => {
         let currentPosition, currentQuaternion;
         if (!session) {
-          this.localRig.inputs.hmd.position.copy(localPlayer.position);
-          this.localRig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
-          this.localRig.inputs.leftGamepad.position.copy(localPlayer.leftHand.position);
-          this.localRig.inputs.leftGamepad.quaternion.copy(localPlayer.leftHand.quaternion);
-          this.localRig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
-          this.localRig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
+          rig.inputs.hmd.position.copy(localPlayer.position);
+          rig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
+          rig.inputs.leftGamepad.position.copy(localPlayer.leftHand.position);
+          rig.inputs.leftGamepad.quaternion.copy(localPlayer.leftHand.quaternion);
+          rig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
+          rig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
           
-          currentPosition = this.localRig.inputs.hmd.position;
-          currentQuaternion = this.localRig.inputs.hmd.quaternion;
+          currentPosition = rig.inputs.hmd.position;
+          currentQuaternion = rig.inputs.hmd.quaternion;
         } else {
           currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-          currentQuaternion = this.localRig.inputs.hmd.quaternion;
+          currentQuaternion = rig.inputs.hmd.quaternion;
         }
         const positionDiff = localVector2.copy(this.lastPosition)
           .sub(currentPosition)
@@ -147,17 +191,17 @@ class RigManager {
         positionDiff.applyEuler(localEuler2);
         this.smoothVelocity.lerp(positionDiff, 0.5);
         this.lastPosition.copy(currentPosition);
-        this.localRig.direction.copy(positionDiff).normalize();
-        this.localRig.velocity.copy(this.smoothVelocity);
+        rig.direction.copy(positionDiff).normalize();
+        rig.velocity.copy(this.smoothVelocity);
       };
-      _setTransforms();
+      _setTransforms(localPlayer, this.localRig);
       
-      const _setIkModes = () => {
-        const aimAction = localPlayer.getAction('aim');
+      const _setIkModes = (player, rig) => {
+        const aimAction = player.getAction('aim');
         const aimComponent = (() => {
-          for (const action of localPlayer.getActionsState()) {
+          for (const action of player.getActionsState()) {
             if (action.type === 'wear') {
-              const app = metaversefile.getAppByInstanceId(action.instanceId);
+              const app = player.appManager.getAppByInstanceId(action.instanceId);
               for (const {key, value} of app.components) {
                 if (key === 'aim') {
                   return value;
@@ -168,69 +212,24 @@ class RigManager {
           return null;
         })();
         for (let i = 0; i < 2; i++) {
-          this.localRig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+          rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
         }
-        this.localRig.setTopEnabled(
-          (!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled))
+        rig.setTopEnabled(
+          (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
         );
-        this.localRig.setBottomEnabled(
+        rig.setBottomEnabled(
           (
-            this.localRig.getTopEnabled() /* ||
-            this.localRig.getHandEnabled(0) ||
-            this.localRig.getHandEnabled(1) */
+            rig.getTopEnabled() /* ||
+            rig.getHandEnabled(0) ||
+            rig.getHandEnabled(1) */
           ) &&
           this.smoothVelocity.length() < 0.001,
         );
       };
-      _setIkModes();
+      _setIkModes(localPlayer, this.localRig);
 
       applyPlayerActionsToAvatar(localPlayer, this.localRig);
-      
-      const _applyChatModifiers = () => {
-        const localPlayerChatActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'chat');
-        const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
-        const _applyChatEmote = message => {
-          const localPlayerEmotion = message?.emotion;
-          if (localPlayerEmotion) {
-            // ensure new emotion and no others
-            let found = false;
-            for (let i = 0; i < this.localRig.emotes.length; i++) {
-              const emote = this.localRig.emotes[i];
-              if (emote.emotion) {
-                if (emote.emotion === localPlayerEmotion) {
-                  found = true;
-                } else {
-                  this.localRig.emotes.splice(i, 1);
-                  i--;
-                }
-              }
-            }
-            if (!found) {
-              const emote = {
-                emotion: localPlayerEmotion,
-                value: 1,
-              };
-              this.localRig.emotes.push(emote);
-            }
-          } else {
-            // ensure no emotions
-            for (let i = 0; i < this.localRig.emotes.length; i++) {
-              const emote = this.localRig.emotes[i];
-              if (emote.emotion) {
-                this.localRig.emotes.splice(i, 1);
-                i--;
-              }
-            }
-          }
-        };
-        _applyChatEmote(lastMessage);
-        
-        const _applyFakeSpeech = message => {
-          this.localRig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
-        };
-        _applyFakeSpeech(lastMessage);
-      };
-      _applyChatModifiers();
+      applyPlayerChatToAvatar(localPlayer, this.localRig);
 
       this.localRig.update(timestamp, timeDiffS);
 
