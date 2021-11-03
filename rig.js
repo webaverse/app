@@ -19,7 +19,7 @@ import metaversefile from 'metaversefile';
 // const localEuler = new THREE.Euler();
 // const localEuler2 = new THREE.Euler();
 
-const _makeRig = app => {
+function makeRig(app) {
   if (app) {
     const {skinnedVrm} = app;
     if (skinnedVrm) {
@@ -37,7 +37,7 @@ const _makeRig = app => {
     }
   }
   return null;
-};
+}
 function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
@@ -180,7 +180,7 @@ class RigManager {
       await oldRig.app.setSkinning(false);
     }
     if (!newApp.rig) {
-      newApp.rig = _makeRig(newApp);
+      newApp.rig = makeRig(newApp);
     }
     return newApp.rig;
   }
