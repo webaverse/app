@@ -206,7 +206,7 @@ class RigManager {
             rig.getHandEnabled(0) ||
             rig.getHandEnabled(1) */
           ) &&
-          this.localRig.velocity.length() < 0.001,
+          rig.velocity.length() < 0.001,
         );
       };
       _setIkModes(localPlayer, this.localRig);
