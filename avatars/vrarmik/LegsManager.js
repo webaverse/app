@@ -54,6 +54,19 @@ class Leg {
     this.foot.endTransform = new THREE.Object3D();
     this.foot.startHmdFloorTransform = new THREE.Object3D();
 
+    this.leftToe = new THREE.Object3D();
+    this.rightToe = new THREE.Object3D();
+
+    this.leftToe.stickTransform = new THREE.Object3D();
+    this.leftToe.startTransform = new THREE.Object3D();
+    this.leftToe.endTransform = new THREE.Object3D();
+    this.leftToe.startHmdFloorTransform = new THREE.Object3D();
+
+    this.rightToe.stickTransform = new THREE.Object3D();
+    this.rightToe.startTransform = new THREE.Object3D();
+    this.rightToe.endTransform = new THREE.Object3D();
+    this.rightToe.startHmdFloorTransform = new THREE.Object3D();
+
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
     this.lowerLeg.add(this.foot);
