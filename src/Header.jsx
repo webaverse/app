@@ -8,7 +8,6 @@ import MagicMenu from './MagicMenu.jsx';
 import * as Y from 'yjs';
 import {Color} from './Color.js';
 import {world} from '../world.js'
-import {rigManager} from '../rig.js'
 import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
@@ -151,7 +150,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
         </div>
         {rooms.map((room, i) => (
           <div className={styles.room} onClick={async e => {
-            if (!world.isConnected() && rigManager.localRig) {
+            if (!world.isConnected() /* && useLocalPlayer().avatar */) {
               universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${room.name}`);
               /* const isConnected = world.isConnected();
               setMultiplayerConnected(isConnected);
@@ -301,7 +300,7 @@ export default function Header({
   app,
 }) {
   
-  const _getWearActions = () => Array.from(localPlayer.getActions()).filter(action => action.type === 'wear');
+  const _getWearActions = () => Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
   
 	// console.log('index 2');
   const previewCanvasRef = useRef();

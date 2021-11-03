@@ -23,14 +23,9 @@ const _startApp = async (weba, canvas) => {
   universe.handleUrlUpdate();
   await weba.startLoop();
   
-  {
-    const defaultAvatarUrl = './avatars/citrine.vrm';
-    const contentId = defaultAvatarUrl;
-    const avatarApp = await metaversefileApi.load(contentId);
-    avatarApp.instanceId = metaversefileApi.getNextInstanceId();
-    const localPlayer = useLocalPlayer();
-    localPlayer.setAvatar(avatarApp);
-  }
+  const defaultAvatarUrl = './avatars/citrine.vrm';
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  await localPlayer.setAvatarUrl(defaultAvatarUrl);
 };
 
 const Crosshair = () => (
