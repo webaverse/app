@@ -408,18 +408,19 @@ class AppManager extends EventTarget {
     const appsJson = apps.toJSON();
     const removeIndex = appsJson.indexOf(removeInstanceId);
     if (removeIndex !== -1) {
-      const allRemoveIndices = [removeIndex];
-      for (const removeIndex of allRemoveIndices) {
+      // const allRemoveIndices = [removeIndex];
+      // for (const removeIndex of allRemoveIndices) {
         const instanceId = appsJson[removeIndex];
 
         apps.delete(removeIndex, 1);
 
-        const trackedApp = state.getMap(this.prefix + '.' + instanceId);
+        const trackedAppKey = this.prefix + '.' + instanceId;
+        const trackedApp = state.getMap(trackedAppKey);
         const keys = Array.from(trackedApp.keys());
         for (const key of keys) {
           trackedApp.delete(key);
         }
-      }
+      // }
     } else {
       console.warn('invalid remove instance id', {removeInstanceId, appsJson});
     }
