@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import * as Y from 'yjs';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
+// import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -15,6 +15,7 @@ import {actionsMapName, avatarMapName, crouchMaxTime, activateMaxTime, useMaxTim
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {getState, setState} from './state.js';
+import {applyPlayerToAvatar, switchAvatar} from './avatar-binding.js';
 import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -121,7 +122,11 @@ class Player extends THREE.Object3D {
         
         const _setNextAvatarApp = app => {
           // console.log('set next avatar app', app);
-          rigManager.setLocalAvatar(app);
+          (async () => {
+            const nextAvatar = await switchAvatar(this.avatar, app);
+            if (observeAvatarEpoch !== localEpoch) return;
+            this.avatar = nextAvatar;
+          })();
           lastAvatarApp = app;
           
           this.dispatchEvent({
@@ -154,6 +159,8 @@ class Player extends THREE.Object3D {
       actions.unobserve(observeActionsFn);
       avatar.unobserve(observeAvatarFn);
     };
+    
+    this.avatar = null;
   }
   static controlActionTypes = [
     'jump',
@@ -257,6 +264,19 @@ class Player extends THREE.Object3D {
       }
     }
     actions.push([action]);
+  }
+  setMicMediaStream(mediaStream, options) {
+    this.avatar.setMicrophoneMediaStream(mediaStream, options);
+  }
+  update(timestamp, timeDiff) {
+    if (this.avatar) {
+      const renderer = getRenderer();
+      const session = renderer.xr.getSession();
+      applyPlayerToAvatar(this, session, this.avatar);
+
+      const timeDiffS = timeDiff / 1000;
+      this.avatar.update(timestamp, timeDiffS);
+    }
   }
   destroy() {
     this.cleanup();

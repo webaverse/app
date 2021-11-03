@@ -2,6 +2,8 @@
 this file binds logical characters (local player, remote players, npcs) to metaversefile (vrm) avatars.
 */
 
+throw new Error('dead code');
+
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -19,7 +21,7 @@ import metaversefile from 'metaversefile';
 // const localEuler = new THREE.Euler();
 // const localEuler2 = new THREE.Euler();
 
-const _makeRig = app => {
+function makeRig(app) {
   if (app) {
     const {skinnedVrm} = app;
     if (skinnedVrm) {
@@ -37,7 +39,7 @@ const _makeRig = app => {
     }
   }
   return null;
-};
+}
 function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
@@ -163,6 +165,18 @@ function applyPlayerModesToAvatar(player, session, rig) {
     rig.velocity.length() < 0.001,
   );
 }
+async function switchAvatar(oldRig, newApp) {
+  await newApp.setSkinning(true);
+  
+  // unwear old rig
+  if (oldRig) {
+    await oldRig.app.setSkinning(false);
+  }
+  if (!newApp.rig) {
+    newApp.rig = makeRig(newApp);
+  }
+  return newApp.rig;
+}
 
 class RigManager {
   constructor(scene) {
@@ -172,21 +186,8 @@ class RigManager {
     this.peerRigs = new Map();
   }
 
-  async _switchAvatar(oldRig, newApp) {
-    await newApp.setSkinning(true);
-    
-    // unwear old rig
-    if (oldRig) {
-      await oldRig.app.setSkinning(false);
-    }
-    if (!newApp.rig) {
-      newApp.rig = _makeRig(newApp);
-    }
-    return newApp.rig;
-  }
-
   async setLocalAvatar(app) {
-    this.localRig = await this._switchAvatar(this.localRig, app);
+    this.localRig = await switchAvatar(this.localRig, app);
   }
   
   setLocalMicMediaStream(mediaStream, options) {

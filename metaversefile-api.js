@@ -13,12 +13,10 @@ import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
-import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
-// import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
@@ -189,7 +187,7 @@ const defaultComponents = {
         
         glowMesh.visible = !animation;
         if (!animation) {
-          rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
+          localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
           localVector.y = 0;
           const distance = localVector.distanceTo(app.position);
           if (distance < 1) {
@@ -214,20 +212,20 @@ const defaultComponents = {
           if (timeFactor < 1) {
             if (timeFactor < tailTimeFactorCutoff) {
               const f = cubicBezier(timeFactor);
-              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                 .add(localVector2.set(0, headOffset, 0));
               app.position.copy(animation.startPosition).lerp(localVector, f);
             } else {
               {
                 const f = cubicBezier(tailTimeFactorCutoff);
-                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, headOffset, 0));
                 app.position.copy(animation.startPosition).lerp(localVector, f);
               }
               {
                 const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
                 const f = cubicBezier2(tailTimeFactor);
-                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, bodyOffset, 0));
                 app.position.lerp(localVector, f);
                 app.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
@@ -481,9 +479,9 @@ metaversefile.setApi({
     recursion++;
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
-      if (rigManager.localRig) {
-        wasDecapitated = rigManager.localRig.decapitated;
-        rigManager.localRig.undecapitate();
+      if (localPlayer.avatar) {
+        wasDecapitated = localPlayer.avatar.decapitated;
+        localPlayer.avatar.undecapitate();
       }
     }
   },
@@ -491,9 +489,9 @@ metaversefile.setApi({
     recursion--;
     if (recursion === 0) {
       // console.log('was decap', wasDecapitated);
-      if (rigManager.localRig && wasDecapitated) {
-        rigManager.localRig.decapitate();
-        rigManager.localRig.skeleton.update();
+      if (localPlayer.avatar && wasDecapitated) {
+        localPlayer.avatar.decapitate();
+        localPlayer.avatar.skeleton.update();
       }
     }
   },
@@ -812,9 +810,9 @@ export default () => {
       iframeContainer,
     };
   },
-  useRigManagerInternal() {
+  /* useRigManagerInternal() {
     return rigManager;
-  },
+  }, */
   useAvatarInternal() {
     return Avatar;
   },

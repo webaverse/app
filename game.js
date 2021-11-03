@@ -14,7 +14,6 @@ import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
-import {rigManager} from './rig.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
@@ -604,7 +603,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localMatrix.copy(localPlayer.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
 
-      const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+      const handOffsetScale = localPlayer.avatar ? localPlayer.avatar.height / 1.5 : 1;
       {
         const leftGamepadPosition = localVector2.copy(localVector)
           .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
@@ -898,8 +897,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _updateMouseDomEquipmentHover();
 
   const _handleTeleport = () => {
-    if (rigManager.localRig) {
-      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
+    if (localPlayer.avatar) {
+      teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
         const localPlayer = useLocalPlayer();
         localPlayer.teleportTo(position, quaternion);
       });
@@ -935,7 +934,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
             closestObject = closestDistanceSpec.object;
           }
         } else {
-          if ((!!rigManager.localRig && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || gameManager.dragging) {
+          if ((!!localPlayer.avatar && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || gameManager.dragging) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
@@ -1074,16 +1073,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _updateHits();
   
   const _updateEyes = () => {
-    if (rigManager.localRig) {
+    if (localPlayer.avatar) {
       if (!document.pointerLockElement && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
-        rigManager.localRig.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+        localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
-        rigManager.localRig.eyeTargetEnabled = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
       } else {
-        rigManager.localRig.eyeTargetEnabled = false;
+        localPlayer.avatar.eyeTargetEnabled = false;
       }
     }
   };
@@ -1123,7 +1122,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = useLocalPlayer();
   localPlayer.appManager.pushAppUpdates();
   
   const remotePlayers = metaversefileApi.useRemotePlayers();
@@ -1206,7 +1205,7 @@ _bindPointerLock();
 /* let lastLocalPlayerPosition;
 let lastLocalPlayerQuaternion;
 const _bindLocalPlayerTeleport = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = useLocalPlayer();
   lastLocalPlayerPosition = localPlayer.position.clone();
   lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
   world.appManager.addEventListener('preframe', e => {
@@ -1496,7 +1495,8 @@ const gameManager = {
   },
   menuUpload: _upload,
   addLocalEmote(index) {
-    if (rigManager.localRig) {
+    const localPlayer = useLocalPlayer();
+    if (localPlayer.avatar) {
       const timestamp = performance.now();
       const startTimestamp = timestamp;
       const aTimestamp = startTimestamp + 300;
@@ -1507,9 +1507,9 @@ const gameManager = {
         index,
         value: 0,
       };
-      rigManager.localRig.emotes.push(emote);
+      localPlayer.avatar.emotes.push(emote);
       const _finish = () => {
-        rigManager.localRig.emotes.splice(rigManager.localRig.emotes.indexOf(emote), 1);
+        localPlayer.avatar.emotes.splice(localPlayer.avatar.emotes.indexOf(emote), 1);
         world.appManager.removeEventListener('frame', frame);
       };
       const frame = e => {
