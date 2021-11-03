@@ -106,8 +106,6 @@ class Player extends THREE.Object3D {
       if (lastAvatarInstanceId !== instanceId) {
         lastAvatarInstanceId = instanceId;
         
-        window.lastAvatarApp = lastAvatarApp;
-        
         // remove last app
         if (lastAvatarApp) {
           const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(lastAvatarApp.instanceId);
