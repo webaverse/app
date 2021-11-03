@@ -116,6 +116,53 @@ function applyPlayerChatToAvatar(player, rig) {
   };
   _applyFakeSpeech(lastMessage);
 }
+function applyPlayerTransformsToAvatar(player, session, rig) {
+  // let currentPosition, currentQuaternion;
+  if (!session) {
+    rig.inputs.hmd.position.copy(player.position);
+    rig.inputs.hmd.quaternion.copy(player.quaternion);
+    rig.inputs.leftGamepad.position.copy(player.leftHand.position);
+    rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
+    rig.inputs.rightGamepad.position.copy(player.rightHand.position);
+    rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
+    
+    // currentPosition = rig.inputs.hmd.position;
+    // currentQuaternion = rig.inputs.hmd.quaternion;
+  } /* else {
+    currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
+    currentQuaternion = rig.inputs.hmd.quaternion;
+  } */
+}
+function applyPlayerModesToAvatar(player, session, rig) {
+  const aimAction = player.getAction('aim');
+  const aimComponent = (() => {
+    for (const action of player.getActionsState()) {
+      if (action.type === 'wear') {
+        const app = player.appManager.getAppByInstanceId(action.instanceId);
+        for (const {key, value} of app.components) {
+          if (key === 'aim') {
+            return value;
+          }
+        }
+      }
+    }
+    return null;
+  })();
+  for (let i = 0; i < 2; i++) {
+    rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+  }
+  rig.setTopEnabled(
+    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
+  );
+  rig.setBottomEnabled(
+    (
+      rig.getTopEnabled() /* ||
+      rig.getHandEnabled(0) ||
+      rig.getHandEnabled(1) */
+    ) &&
+    rig.velocity.length() < 0.001,
+  );
+}
 
 class RigManager {
   constructor(scene) {
@@ -160,57 +207,8 @@ class RigManager {
       const session = renderer.xr.getSession();
       const localPlayer = metaversefile.useLocalPlayer();
       
-      const _setTransforms = (player, rig) => {
-        // let currentPosition, currentQuaternion;
-        if (!session) {
-          rig.inputs.hmd.position.copy(localPlayer.position);
-          rig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
-          rig.inputs.leftGamepad.position.copy(localPlayer.leftHand.position);
-          rig.inputs.leftGamepad.quaternion.copy(localPlayer.leftHand.quaternion);
-          rig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
-          rig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
-          
-          // currentPosition = rig.inputs.hmd.position;
-          // currentQuaternion = rig.inputs.hmd.quaternion;
-        } /* else {
-          currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-          currentQuaternion = rig.inputs.hmd.quaternion;
-        } */
-      };
-      _setTransforms(localPlayer, this.localRig);
-      
-      const _setIkModes = (player, rig) => {
-        const aimAction = player.getAction('aim');
-        const aimComponent = (() => {
-          for (const action of player.getActionsState()) {
-            if (action.type === 'wear') {
-              const app = player.appManager.getAppByInstanceId(action.instanceId);
-              for (const {key, value} of app.components) {
-                if (key === 'aim') {
-                  return value;
-                }
-              }
-            }
-          }
-          return null;
-        })();
-        for (let i = 0; i < 2; i++) {
-          rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
-        }
-        rig.setTopEnabled(
-          (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
-        );
-        rig.setBottomEnabled(
-          (
-            rig.getTopEnabled() /* ||
-            rig.getHandEnabled(0) ||
-            rig.getHandEnabled(1) */
-          ) &&
-          rig.velocity.length() < 0.001,
-        );
-      };
-      _setIkModes(localPlayer, this.localRig);
-
+      applyPlayerTransformsToAvatar(localPlayer, session, this.localRig);
+      applyPlayerModesToAvatar(localPlayer, session, this.localRig);
       applyPlayerActionsToAvatar(localPlayer, this.localRig);
       applyPlayerChatToAvatar(localPlayer, this.localRig);
 
