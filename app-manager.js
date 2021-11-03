@@ -83,7 +83,7 @@ class AppManager extends EventTarget {
               // console.log('accept migration add', this.prefix, instanceId);
             } else {
               const trackedApp = this.getOrCreateTrackedApp(instanceId);
-              // console.log('detected add app', instanceId, trackedApp.toJSON());
+              // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
               this.dispatchEvent(new MessageEvent('trackedappadd', {
                 data: {
                   trackedApp,
@@ -102,6 +102,8 @@ class AppManager extends EventTarget {
             const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
             
             if (peerOwnerAppManager) {
+              // console.log('detected migrate app 1', instanceId, trackedApp.toJSON(), appManagers.length);
+              
               const e = new MessageEvent('trackedappmigrate', {
                 data: {
                   // instanceId,
@@ -362,6 +364,7 @@ class AppManager extends EventTarget {
     scale,
     components,
   ) {
+    // console.log('add tracked app internal', instanceId, contentId);
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set('instanceId', instanceId);
     trackedApp.set('contentId', contentId);
@@ -403,6 +406,7 @@ class AppManager extends EventTarget {
     }
   }
   removeTrackedAppInternal(removeInstanceId) {
+    // console.log('remove tracked app internal', removeInstanceId);
     const {state} = this;
     const apps = state.getArray(this.prefix);
     const appsJson = apps.toJSON();
