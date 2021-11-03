@@ -11,7 +11,7 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {actionsMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {actionsMapName, avatarMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {getState, setState} from './state.js';
@@ -59,10 +59,10 @@ class Player extends THREE.Object3D {
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
     };
     
-    const actions = this.getActions();
+    const actions = this.getActionsState();
     let lastActions = [];
-    const observe = () => {
-      const nextActions = Array.from(this.getActions());
+    const observeActionsFn = () => {
+      const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
         if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
           this.dispatchEvent({
@@ -84,8 +84,11 @@ class Player extends THREE.Object3D {
       // console.log('actions changed');
       lastActions = nextActions;
     };
-    actions.observe(observe);
-    actions.unobserve = actions.unobserve.bind(actions, observe);
+    actions.observe(observeActionsFn);
+  
+    this.cleanup = () => {
+      actions.unobserve(observeActionsFn);
+    };
   }
   static controlActionTypes = [
     'jump',
