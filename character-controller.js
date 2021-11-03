@@ -89,7 +89,6 @@ class Player extends THREE.Object3D {
     actions.observe(observeActionsFn);
     
     const avatar = this.getAvatarState();
-    let lastAvatarContentId = '';
     let lastAvatarInstanceId = '';
     let lastAvatarApp = null;
     let observeAvatarEpoch = 0;
