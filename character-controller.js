@@ -375,6 +375,9 @@ class LocalPlayer extends Player {
       physicsManager.velocity.set(0, 0, 0);
     };
   })()
+  destroy() {
+    this.cleanup();
+  }
 }
 class RemotePlayer extends Player {
   constructor(opts) {
