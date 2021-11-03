@@ -122,10 +122,6 @@ class RigManager {
     this.scene = scene;
 
     this.localRig = null;
-    
-    this.lastPosition = new THREE.Vector3();
-    this.smoothVelocity = new THREE.Vector3();
-
     this.peerRigs = new Map();
   }
 
@@ -165,7 +161,7 @@ class RigManager {
       const localPlayer = metaversefile.useLocalPlayer();
       
       const _setTransforms = (player, rig) => {
-        let currentPosition, currentQuaternion;
+        // let currentPosition, currentQuaternion;
         if (!session) {
           rig.inputs.hmd.position.copy(localPlayer.position);
           rig.inputs.hmd.quaternion.copy(localPlayer.quaternion);
@@ -174,25 +170,12 @@ class RigManager {
           rig.inputs.rightGamepad.position.copy(localPlayer.rightHand.position);
           rig.inputs.rightGamepad.quaternion.copy(localPlayer.rightHand.quaternion);
           
-          currentPosition = rig.inputs.hmd.position;
-          currentQuaternion = rig.inputs.hmd.quaternion;
-        } else {
+          // currentPosition = rig.inputs.hmd.position;
+          // currentQuaternion = rig.inputs.hmd.quaternion;
+        } /* else {
           currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
           currentQuaternion = rig.inputs.hmd.quaternion;
-        }
-        const positionDiff = localVector2.copy(this.lastPosition)
-          .sub(currentPosition)
-          .multiplyScalar(0.1/timeDiffS);
-        localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y += Math.PI;
-        localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-        positionDiff.applyEuler(localEuler2);
-        this.smoothVelocity.lerp(positionDiff, 0.5);
-        this.lastPosition.copy(currentPosition);
-        rig.direction.copy(positionDiff).normalize();
-        rig.velocity.copy(this.smoothVelocity);
+        } */
       };
       _setTransforms(localPlayer, this.localRig);
       
@@ -223,7 +206,7 @@ class RigManager {
             rig.getHandEnabled(0) ||
             rig.getHandEnabled(1) */
           ) &&
-          this.smoothVelocity.length() < 0.001,
+          this.localRig.velocity.length() < 0.001,
         );
       };
       _setIkModes(localPlayer, this.localRig);
