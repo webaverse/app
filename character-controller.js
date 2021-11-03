@@ -40,6 +40,7 @@ class Player extends THREE.Object3D {
     this.appManager = new AppManager({
       prefix,
       state,
+      autoSceneManagement: false,
     });
 
     this.leftHand = new PlayerHand();
