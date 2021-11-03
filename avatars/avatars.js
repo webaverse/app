@@ -1189,8 +1189,8 @@ class Avatar {
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
       
-      // leftToe: _getOffset(modelBones.Left_toe),
-      // rightToe: _getOffset(modelBones.Right_toe),
+      leftToe: _getOffset(modelBones.Left_toe),
+      rightToe: _getOffset(modelBones.Right_toe),
     });
 
     this.height = eyePosition.clone()
@@ -1337,8 +1337,8 @@ class Avatar {
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
-      // Left_toe: this.outputs.leftToe,
-      // Right_toe: this.outputs.rightToe,
+      Left_toe: this.outputs.leftToe,
+      Right_toe: this.outputs.rightToe,
 	  };
 
     this.emotes = [];
@@ -1748,9 +1748,8 @@ class Avatar {
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
-      
-      // Left_toe,
-      // Right_toe,
+      Left_toe,
+      Right_toe,
 	  };
 	  // this.modelBones = modelBones;
     /* for (const k in modelBones) {
