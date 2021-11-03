@@ -130,7 +130,7 @@ function ChatMessages() {
     const update = () => {
       const newMessageGroups = [];
       
-      const localPlayerChatMessages = Array.from(localPlayer.getActions()).filter(action => action.type === 'chat');
+      const localPlayerChatMessages = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'chat');
       if (localPlayerChatMessages.length > 0) {
         const localPlayerMessageGroup = {
           player: localPlayer,

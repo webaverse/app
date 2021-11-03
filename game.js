@@ -326,7 +326,7 @@ const _click = () => {
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = useLocalPlayer();
-  const wearApps = Array.from(localPlayer.getActions())
+  const wearApps = Array.from(localPlayer.getActionsState())
     .filter(action => action.type === 'wear')
     .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
@@ -1534,7 +1534,7 @@ const gameManager = {
     const localPlayer = useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
     
-    const wearActions = Array.from(localPlayer.getActions()).filter(action => action.type === 'wear');
+    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
       const app = metaversefileApi.getAppByInstanceId(instanceId);

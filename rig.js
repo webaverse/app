@@ -155,7 +155,7 @@ class RigManager {
       const _setIkModes = () => {
         const aimAction = localPlayer.getAction('aim');
         const aimComponent = (() => {
-          for (const action of localPlayer.getActions()) {
+          for (const action of localPlayer.getActionsState()) {
             if (action.type === 'wear') {
               const app = metaversefile.getAppByInstanceId(action.instanceId);
               for (const {key, value} of app.components) {
@@ -187,7 +187,7 @@ class RigManager {
       applyPlayerActionsToAvatar(localPlayer, this.localRig);
       
       const _applyChatModifiers = () => {
-        const localPlayerChatActions = Array.from(localPlayer.getActions()).filter(action => action.type === 'chat');
+        const localPlayerChatActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'chat');
         const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
         const _applyChatEmote = message => {
           const localPlayerEmotion = message?.emotion;
