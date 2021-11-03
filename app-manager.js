@@ -99,33 +99,22 @@ class AppManager extends EventTarget {
             
             const app = this.getAppByInstanceId(instanceId);
             let migrated = false;
-            for (const appManager of appManagers) {
-              if (appManager !== this && appManager.state === this.state) {
-                const trackedPeerApp = appManager.getTrackedApp(instanceId);
-                if (trackedPeerApp) {
-                  /* console.log('detected migrate', {
-                    instanceId,
-                    trackedApp,
-                    app,
-                    sourceAppManager: this.prefix,
-                    destinationAppManager: appManager.prefix,
-                  }); */
-                  
-                  const e = new MessageEvent('trackedappmigrate', {
-                    data: {
-                      instanceId,
-                      trackedApp,
-                      app,
-                      sourceAppManager: this,
-                      destinationAppManager: appManager,
-                    },
-                  });
-                  this.dispatchEvent(e);
-                  appManager.dispatchEvent(e);
-                  migrated = true;
-                  break;
-                }
-              }
+            const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
+            
+            if (peerOwnerAppManager) {
+              const e = new MessageEvent('trackedappmigrate', {
+                data: {
+                  // instanceId,
+                  // trackedApp,
+                  app,
+                  sourceAppManager: this,
+                  destinationAppManager: peerOwnerAppManager,
+                },
+              });
+              this.dispatchEvent(e);
+              peerOwnerAppManager.dispatchEvent(e);
+              migrated = true;
+              break;
             }
             
             // console.log('detected remove app 2', instanceId, trackedApp.toJSON(), appManagers.length);
@@ -287,8 +276,8 @@ class AppManager extends EventTarget {
     });
     this.addEventListener('trackedappmigrate', async e => {
       const {
-        instanceId,
-        trackedApp,
+        // instanceId,
+        // trackedApp,
         app,
         sourceAppManager,
         destinationAppManager,
