@@ -2,6 +2,8 @@
 this file binds logical characters (local player, remote players, npcs) to metaversefile (vrm) avatars.
 */
 
+throw new Error('dead code');
+
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
