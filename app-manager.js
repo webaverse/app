@@ -326,18 +326,16 @@ class AppManager extends EventTarget {
     return state.getMap(this.prefix + '.' + instanceId);
   }
   getTrackedApp(instanceId) {
-    const {state} = this;
-    const apps = state.getArray(this.prefix);
+    const apps = this.state.getArray(this.prefix);
     for (const app of apps) {
       if (app === instanceId) {
-        return state.getMap(this.prefix + '.' + instanceId);
+        return this.state.getMap(this.prefix + '.' + instanceId);
       }
     }
     return null;
   }
   hasTrackedApp(instanceId) {
-    const {state} = this;
-    const apps = state.getArray(this.prefix);
+    const apps = this.state.getArray(this.prefix);
     for (const app of apps) {
       if (app === instanceId) {
         return true;
