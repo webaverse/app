@@ -380,12 +380,11 @@ class LocalPlayer extends Player {
       wear: true,
     });
     
-    console.log('wear app 1', app.instanceId, world.appManager.hasTrackedApp(app.instanceId));
     if (world.appManager.hasTrackedApp(app.instanceId)) {
       world.appManager.transplantApp(app, this.appManager);
     } else {
       // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
-      debugger;
+      // debugger;
     }
     
     const physicsObjects = app.getPhysicsObjects();
@@ -405,8 +404,6 @@ class LocalPlayer extends Player {
       app,
       wear: true,
     });
-    
-    console.log('wear app 2', app.instanceId, world.appManager.hasTrackedApp(app.instanceId));
   }
   unwear(app) {
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
