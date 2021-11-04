@@ -511,7 +511,7 @@ const physxWorker = (() => {
     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
     index += maxNumUpdates*4;
     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*7;
+    index += maxNumUpdates*3;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
