@@ -21,7 +21,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "https://webaverse.github.io/street/"
     },
     {
       "position": [
@@ -29,7 +29,7 @@
         30,
         -30
       ],
-      "start_url": "https://webaverse.github.io/floating-island/index.js"
+      "start_url": "https://webaverse.github.io/floating-island/"
     },
     {
       "position": [
@@ -37,7 +37,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox/index.js"
+      "start_url": "https://webaverse.github.io/skybox/"
     },
     {
       "position": [
@@ -45,7 +45,7 @@
         0,
         -2
       ],
-      "start_url": "https://avaer.github.io/mirror/index.js"
+      "start_url": "https://webaverse.github.io/mirror/"
     },
     {
       "position": [
@@ -208,6 +208,11 @@
       "position": [-2, 1, 1],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/sword/"
+    },
+    {
+      "position": [-2, 1, 2],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/helm/"
     }
   ]
 }

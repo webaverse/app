@@ -7,7 +7,9 @@
     "start": "forever start index.js",
     "dev": "node index.js",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "setup:test": "cd test && npm i",
+    "test": "npm run start && cd test && npm run test"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",

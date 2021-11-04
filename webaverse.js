@@ -1,63 +1,38 @@
 /*
-this file bootraps the entire webaverse application.
+this file bootraps the webaverse engine.
 it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-// import {loginManager} from './login.js';
-// import runtime from './runtime.js';
-import {parseQuery, downloadFile} from './util.js';
-import {rigManager} from './rig.js';
-// import {rigAuxManager} from './rig-aux.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
 import * as blockchain from './blockchain.js';
-// import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
-// import controlsManager from './controls-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import activateManager from './activate-manager.js';
-// import dropManager from './drop-manager.js';
-// import npcManager from './npc-manager.js';
 import equipmentRender from './equipment-render.js';
-// import {bindInterface as inventoryBindInterface} from './inventory.js';
-// import fx from './fx.js';
-// import {getExt} from './util.js';
-// import {storageHost, tokensHost} from './constants.js';
-// import './procgen.js';
 import * as characterController from './character-controller.js';
+import * as postProcessing from './post-processing.js';
+import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
-  orthographicScene,
-  avatarScene,
-  camera,
-  orthographicCamera,
-  // avatarCamera,
-  dolly,
-  // orbitControls,
-  // renderer2,
   sceneHighPriority,
   sceneLowPriority,
+  // rootScene,
+  camera,
+  dolly,
   bindCanvas,
+  getComposer,
 } from './renderer.js';
-// import {mithrilInit} from './mithril-ui/index.js'
-// import TransformGizmo from './TransformGizmo.js';
-// import WSRTC from 'wsrtc/wsrtc.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-/* const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
-const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
-const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)); */
+// const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+// const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -108,9 +83,6 @@ export default class Webaverse extends EventTarget {
       // WSRTC.waitForReady(),
       metaverseModules.waitForLoad(),
     ])
-      /* .then(() => {
-        runtime.injectDependencies(physx, physicsManager, world);
-      }); */
     this.contentLoaded = false;
   }
   
@@ -139,7 +111,6 @@ export default class Webaverse extends EventTarget {
   }
   bindInput() {
     ioManager.bindInput();
-    world.bindInput();
   }
   bindInterface() {
     ioManager.bindInterface();
@@ -147,6 +118,8 @@ export default class Webaverse extends EventTarget {
   }
   bindCanvas(c) {
     bindCanvas(c);
+    
+    postProcessing.bindCanvas();
   }
   bindPreviewCanvas(previewCanvas) {
     equipmentRender.bindPreviewCanvas(previewCanvas);
@@ -195,18 +168,11 @@ export default class Webaverse extends EventTarget {
     }
   }
   
-  injectRigInput() {
+  /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
-    if (rigManager.localRigMatrixEnabled) {
-      localMatrix.copy(rigManager.localRigMatrix);
-    } else {
-      localMatrix.copy(camera.matrixWorld);
-    }
-    localMatrix
-      .decompose(localVector, localQuaternion, localVector2);
-
+    const localPlayer = metaversefileApi.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     if (session) {
@@ -264,41 +230,26 @@ export default class Webaverse extends EventTarget {
       } else {
         rightGamepadEnabled = false;
       }
+    } else {
+      localMatrix.copy(localPlayer.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
     }
 
-    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    const handOffsetScale = localPlayer ? localPlayer.avatar.height / 1.5 : 1;
     if (!leftGamepadPosition) {
-      // if (!physicsManager.getGlideState()) {
-        leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        leftGamepadQuaternion = localQuaternion.toArray();
-      /* } else {
-        leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-          .premultiply(leftHandGlideQuaternion)
-          .toArray();
-      } */
+      leftGamepadPosition = localVector2.copy(localVector)
+        .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        .toArray();
+      leftGamepadQuaternion = localQuaternion.toArray();
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
       leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
-      // if (!physicsManager.getGlideState()) {
-        rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        rightGamepadQuaternion = localQuaternion.toArray();
-      /* } else {
-        rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
-          .toArray();
-        rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
-          .premultiply(rightHandGlideQuaternion)
-          .toArray();
-      } */
+      rightGamepadPosition = localVector2.copy(localVector)
+        .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        .toArray();
+      rightGamepadQuaternion = localQuaternion.toArray();
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
       rightGamepadEnabled = false;
@@ -309,59 +260,19 @@ export default class Webaverse extends EventTarget {
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
-  }
+  } */
   
   render(timestamp, timeDiff) {
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     frameEvent.data.lastTimestamp = timestamp;
-
-    // high priority render
-    sceneHighPriority.add(world.lights);
-    const renderer = getRenderer();
-    renderer.clear();
-    renderer.render(sceneHighPriority, camera);
-
-    // main render
-    scene.add(world.lights);
-    if (rigManager.localRig) {
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-    }
-    renderer.render(scene, camera);
-
-    // orthographic render
-    orthographicScene.add(world.lights);
-    renderer.render(orthographicScene, orthographicCamera);
-    
-    // low priority render
-    sceneLowPriority.add(world.lights);
-    renderer.render(sceneLowPriority, camera);
     
     // equipment panel render
     equipmentRender.previewScene.add(world.lights);
     equipmentRender.render();
-    
-    // decapitate avatar if needed
-    if (rigManager.localRig) {
-      rigManager.localRig.model.visible = true;
-      avatarScene.add(rigManager.localRig.model);
-      const decapitated = /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession());
-      if (decapitated) {
-        rigManager.localRig.decapitate();
-        // rigManager.localRig.aux.decapitate();
-      } else {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-      avatarScene.add(world.lights);
-      renderer.render(avatarScene, camera);
-      if (decapitated) {
-        rigManager.localRig.undecapitate();
-        // rigManager.localRig.aux.undecapitate();
-      }
-    }
+
+    getComposer().render();
   }
   
   startLoop() {
@@ -372,34 +283,35 @@ export default class Webaverse extends EventTarget {
     
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {      
-      timestamp = timestamp || performance.now();
+      timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
-
-      // const now = Date.now();
       
       world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
+      // this.injectRigInput();
+      
+      cameraManager.update(timeDiffCapped);
+      
       // universe.update();
       if (this.contentLoaded) {
-        // if (controlsManager.isPossessed()) {
-          physicsManager.update(timeDiffCapped);
-        // }
+        physicsManager.update(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
       
       characterController.update(timeDiffCapped);
 
-      this.injectRigInput();
-
       transformControls.update();
-      game.update(timestamp);
+      game.update(timestamp, timeDiffCapped);
       
-      rigManager.update();
-
+      // rigManager.update(timestamp, timeDiffCapped);
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.update(timestamp, timeDiffCapped);
+      
       world.appManager.tick(timestamp, frame);
+
       hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();

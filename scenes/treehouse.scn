@@ -16,6 +16,38 @@
       }
     },
     {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[255, 255, 255], 0.01]
+        },
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
+        },
+        "dof": {
+          "focus": 3.0,
+          "aperture": 0.00002,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.2,
+          "radius": 0.5,
+          "threshold": 0.8
+        }
+      }
+    },
+    {
       "position": [
         0,
         0,
