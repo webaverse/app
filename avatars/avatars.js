@@ -2170,7 +2170,7 @@ class Avatar {
     );
     return localEuler.y;
   }
-	update(now, timeDiff) {
+	update(now, timeDiff, simulationFactor = 1) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
@@ -2741,7 +2741,7 @@ class Avatar {
     this.modelBones.Hips.updateMatrixWorld();
 
     if (this.springBoneManager) {
-      this.springBoneManager.lateUpdate(timeDiff);
+      this.springBoneManager.lateUpdate(timeDiff * simulationFactor);
     }
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
