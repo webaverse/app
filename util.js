@@ -627,13 +627,11 @@ async function pullUserObject(loginToken) {
   return result;
 }
 
-export const handleDiscordLogin = async discordUrl => {
-  if (!discordUrl) {
+export const handleDiscordLogin = async (code, id) => {
+  if (!code || !id) {
     return;
   }
   try{
-    const urlSearchParams = new URLSearchParams(new URL(discordUrl).search);
-    const {id, code} = Object.fromEntries(urlSearchParams.entries());
     let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}`, {
       method: 'POST',
     });
