@@ -208,21 +208,32 @@ class Player extends THREE.Object3D {
             });
           };
           
-          // add next app from player app manager
-          const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
-          // console.log('add next avatar local', nextAvatarApp);
-          if (nextAvatarApp) {
-            _setNextAvatarApp(nextAvatarApp);
-          } else {
-            // add next app from world app manager
-            const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
-            // console.log('add next avatar world', nextAvatarApp);
+          if (instanceId) {
+            // add next app from player app manager
+            const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
+            // console.log('add next avatar local', nextAvatarApp);
             if (nextAvatarApp) {
-              world.appManager.transplantApp(nextAvatarApp, this.appManager);
               _setNextAvatarApp(nextAvatarApp);
             } else {
-              console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
+              // add next app from world app manager
+              const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
+              // console.log('add next avatar world', nextAvatarApp);
+              if (nextAvatarApp) {
+                world.appManager.transplantApp(nextAvatarApp, this.appManager);
+                _setNextAvatarApp(nextAvatarApp);
+              } else {
+                // add next app from currently loading apps
+                const addPromise = this.appManager.pendingAddPromises.get(instanceId);
+                if (addPromise) {
+                  const nextAvatarApp = await addPromise;
+                  _setNextAvatarApp(nextAvatarApp);
+                } else {
+                  console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
+                }
+              }
             }
+          } else {
+            _setNextAvatarApp(null);
           }
         }
       };
