@@ -540,23 +540,25 @@ class AppManager extends EventTarget {
     this.setPushingLocalUpdates(true);
     
     for (const app of this.apps) {
-      app.updateMatrixWorld();
-      if (!app.matrix.equals(app.lastMatrix)) {
-        app.matrix.decompose(localVector, localQuaternion, localVector2);
-        this.setTrackedAppTransform(app.instanceId, localVector, localQuaternion, localVector2);
-        
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsObject.position.copy(app.position);
-          physicsObject.quaternion.copy(app.quaternion);
-          physicsObject.scale.copy(app.scale);
-          physicsObject.updateMatrixWorld();
+      if (this.hasTrackedApp(app.instanceId)) {
+        app.updateMatrixWorld();
+        if (!app.matrix.equals(app.lastMatrix)) {
+          app.matrix.decompose(localVector, localQuaternion, localVector2);
+          this.setTrackedAppTransform(app.instanceId, localVector, localQuaternion, localVector2);
           
-          physicsManager.pushUpdate(physicsObject);
-          physicsObject.needsUpdate = false;
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsObject.position.copy(app.position);
+            physicsObject.quaternion.copy(app.quaternion);
+            physicsObject.scale.copy(app.scale);
+            physicsObject.updateMatrixWorld();
+            
+            physicsManager.pushUpdate(physicsObject);
+            physicsObject.needsUpdate = false;
+          }
+          
+          app.lastMatrix.copy(app.matrix);
         }
-        
-        app.lastMatrix.copy(app.matrix);
       }
     }
 
