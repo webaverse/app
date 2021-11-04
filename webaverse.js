@@ -61,16 +61,13 @@ const sessionOpts = {
   ],
 };
 
-const frameEvent = (() => {
-  const now = Date.now();
-  return new MessageEvent('frame', {
-    data: {
-      now,
-      timeDiff: 0,
-      lastTimestamp: now,
-    },
-  });
-})();
+const frameEvent = new MessageEvent('frame', {
+  data: {
+    now: 0,
+    timeDiff: 0,
+    // lastTimestamp: 0,
+  },
+});
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -266,7 +263,7 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
-    frameEvent.data.lastTimestamp = timestamp;
+    // frameEvent.data.lastTimestamp = timestamp;
     
     // equipment panel render
     equipmentRender.previewScene.add(world.lights);
