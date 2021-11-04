@@ -46,6 +46,7 @@ class AppManager extends EventTarget {
     this.autoSceneManagement = autoSceneManagement;
     // this.stateBlindMode = false;
     this.unbindStateFn = null;
+    this.trackedAppUnobserveMap = new Map();
     
     this.bindState(state);
     this.bindEvents();
@@ -143,7 +144,7 @@ class AppManager extends EventTarget {
                 this.dispatchEvent(new MessageEvent('trackedappremove', {
                   data: {
                     instanceId,
-                    trackedApp,
+                    // trackedApp,
                     app,
                   },
                 }));
@@ -179,12 +180,19 @@ class AppManager extends EventTarget {
       // }
     };
     trackedApp.observe(_observe);
-    trackedApp.unobserveBinding = trackedApp.unobserve.bind(trackedApp, _observe);
+    
+    const instanceId = trackedApp.get('instanceId');
+    this.trackedAppUnobserveMap.set(instanceId, trackedApp.unobserve.bind(trackedApp, _observe));
   }
-  unbindTrackedApp(trackedApp) {
-    // console.log('unbind tracked app', this.prefix, trackedApp.get('instanceId'));
-    trackedApp.unobserveBinding();
-    trackedApp.unobserveBinding = null;
+  unbindTrackedApp(instanceId) {
+    const fn = this.trackedAppUnobserveMap.get(instanceId);
+    
+    if (fn) {
+      this.trackedAppUnobserveMap.delete(instanceId);
+      fn();
+    } else {
+      console.warn('tracked app was not bound:', instanceId);
+    }
   }
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
@@ -284,9 +292,9 @@ class AppManager extends EventTarget {
       }
     });
     this.addEventListener('trackedappremove', async e => {
-      const {instanceId, trackedApp, app} = e.data;
+      const {instanceId, app} = e.data;
       
-      this.unbindTrackedApp(trackedApp);
+      this.unbindTrackedApp(instanceId);
       
       this.removeApp(app);
       app.destroy();
@@ -534,11 +542,11 @@ class AppManager extends EventTarget {
     // dstAppManager.setBlindStateMode(true);
     
     if (srcAppManager.state === dstAppManager.state) {
-      const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
-      this.unbindTrackedApp(srcTrackedApp);
+      this.unbindTrackedApp(instanceId);
       
       let dstTrackedApp = null;
       srcAppManager.state.transact(() => {
+        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
         const contentId = srcTrackedApp.get('contentId');
         const position = srcTrackedApp.get('position');
         const quaternion = srcTrackedApp.get('quaternion');
