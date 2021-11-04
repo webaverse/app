@@ -155,14 +155,27 @@ export function applyPlayerToAvatar(player, session, rig) {
   applyPlayerChatToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
-  await newApp.setSkinning(true);
-  
-  // unwear old rig
+  let result;
+  const promises = [];
   if (oldAvatar) {
-    await oldAvatar[appSymbol].setSkinning(false);
+    promises.push((async () => {
+      await oldAvatar[appSymbol].setSkinning(false);
+    })());
   }
-  if (!newApp[avatarSymbol]) {
-    newApp[avatarSymbol] = makeAvatar(newApp);
+  if (newApp) {
+    promises.push((async () => {
+      await newApp.setSkinning(true);
+      
+      // unwear old rig
+      
+      if (!newApp[avatarSymbol]) {
+        newApp[avatarSymbol] = makeAvatar(newApp);
+      }
+      result = newApp[avatarSymbol];
+    })());
+  } else {
+    result = null;
   }
-  return newApp[avatarSymbol];
+  await Promise.all(promises);
+  return result;
 }
