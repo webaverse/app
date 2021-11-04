@@ -8,7 +8,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
-import {getState, setState} from './state.js';
+// import {getState, setState} from './state.js';
 import {makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
 import {worldMapName} from './constants.js';
@@ -18,7 +18,7 @@ export const world = {};
 
 const appManager = new AppManager({
   prefix: worldMapName,
-  state: getState(),
+  state: null,
 });
 world.appManager = appManager;
 
