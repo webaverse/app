@@ -480,6 +480,17 @@ function update(timeDiff) {
   localPlayer.actionInterpolants.jump.update(timeDiff);
   localPlayer.actionInterpolants.dance.update(timeDiff);
   localPlayer.actionInterpolants.throw.update(timeDiff);
+
+
+  if(localPlayer.appManager.apps[0]) // Pushing updates to physicsManager
+    {
+     const avCaps = localPlayer.appManager.apps[0].getPhysicsObjects();
+     for(const physicsObject of avCaps)
+      {     
+        physicsManager.pushUpdate(physicsObject);
+        physicsObject.needsUpdate = false;
+      }
+    }
 }
 
 export {

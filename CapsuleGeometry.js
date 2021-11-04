@@ -60,9 +60,9 @@ class CapsuleGeometry extends THREE.BufferGeometry {
     // build geometry
 
     this.setIndex( indices );
-    this.addAttribute( 'position', vertices );
-    this.addAttribute( 'normal', normals );
-    this.addAttribute( 'uv', uvs );
+    this.setAttribute( 'position', vertices );
+    this.setAttribute( 'normal', normals );
+    this.setAttribute( 'uv', uvs );
 
     // helper functions
 

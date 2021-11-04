@@ -542,6 +542,7 @@ class AppManager extends EventTarget {
     this.setPushingLocalUpdates(true);
     
     for (const app of this.apps) {
+      //console.log(this.apps);
       app.updateMatrixWorld();
       if (!app.matrix.equals(app.lastMatrix)) {
         app.matrix.decompose(localVector, localQuaternion, localVector2);

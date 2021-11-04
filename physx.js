@@ -511,7 +511,9 @@ const physxWorker = (() => {
     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
     index += maxNumUpdates*4;
     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*7;
+    index += maxNumUpdates*3;
+    const velocities = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+    index += maxNumUpdates*3;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
@@ -519,6 +521,7 @@ const physxWorker = (() => {
       update.position.toArray(positions, i*3);
       update.quaternion.toArray(quaternions, i*4);
       update.scale.toArray(scales, i*3);
+      update.velocity.toArray(velocities, i*3);
     }
 
     const numNewUpdates = moduleInstance._simulatePhysics(
@@ -528,7 +531,8 @@ const physxWorker = (() => {
       quaternions.byteOffset,
       scales.byteOffset,
       updates.length,
-      elapsedTime
+      elapsedTime,
+      velocities.byteOffset
     );
     
     const newUpdates = Array(numNewUpdates);
@@ -547,6 +551,75 @@ const physxWorker = (() => {
     if (physics) {
       p.toArray(scratchStack.f32, 0);
       localVector.set(0, 0, -1)
+        .applyQuaternion(q)
+        .toArray(scratchStack.f32, 3);
+      // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.set(0, 0, 0).toArray(scratchStack.f32, 6);
+      localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 9);
+
+      const originOffset = scratchStack.f32.byteOffset;
+      const directionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+      const meshPositionOffset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
+      const meshQuaternionOffset = scratchStack.f32.byteOffset + 9 * Float32Array.BYTES_PER_ELEMENT;
+
+      const hitOffset = scratchStack.f32.byteOffset + 13 * Float32Array.BYTES_PER_ELEMENT;
+      const pointOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+      const normalOffset = scratchStack.f32.byteOffset + 17 * Float32Array.BYTES_PER_ELEMENT;
+      const distanceOffset = scratchStack.f32.byteOffset + 20 * Float32Array.BYTES_PER_ELEMENT;
+      const objectIdOffset = scratchStack.u32.byteOffset + 21 * Float32Array.BYTES_PER_ELEMENT;
+      const faceIndexOffset = scratchStack.u32.byteOffset + 22 * Float32Array.BYTES_PER_ELEMENT;
+      const positionOffset = scratchStack.u32.byteOffset + 23 * Float32Array.BYTES_PER_ELEMENT;
+      const quaternionOffset = scratchStack.u32.byteOffset + 26 * Float32Array.BYTES_PER_ELEMENT;
+
+      /* const raycastArgs = {
+        origin: allocator.alloc(Float32Array, 3),
+        direction: allocator.alloc(Float32Array, 3),
+        meshPosition: allocator.alloc(Float32Array, 3),
+        meshQuaternion: allocator.alloc(Float32Array, 4),
+        hit: allocator.alloc(Uint32Array, 1),
+        point: allocator.alloc(Float32Array, 3),
+        normal: allocator.alloc(Float32Array, 3),
+        distance: allocator.alloc(Float32Array, 1),
+        meshId: allocator.alloc(Uint32Array, 1),
+        faceIndex: allocator.alloc(Uint32Array, 1),
+      }; */
+
+      moduleInstance._raycastPhysics(
+        physics,
+        originOffset,
+        directionOffset,
+        meshPositionOffset,
+        meshQuaternionOffset,
+        hitOffset,
+        pointOffset,
+        normalOffset,
+        distanceOffset,
+        objectIdOffset,
+        faceIndexOffset,
+        positionOffset,
+        quaternionOffset,
+      );
+      const objectId = scratchStack.u32[21];
+      const faceIndex = scratchStack.u32[22];
+      const objectPosition = scratchStack.f32.slice(23, 26);
+      const objectQuaternion = scratchStack.f32.slice(26, 30);
+
+      return scratchStack.u32[13] ? {
+        point: scratchStack.f32.slice(14, 17),
+        normal: scratchStack.f32.slice(17, 20),
+        distance: scratchStack.f32[20],
+        meshId: scratchStack.u32[21],
+        objectId,
+        faceIndex,
+        objectPosition,
+        objectQuaternion,
+      } : null;
+    }
+  };
+  w.groundRaycastPhysics = (physics, p, q) => {
+    if (physics) {
+      p.toArray(scratchStack.f32, 0);
+      localVector.set(0, -1, 0) // Raycast down vector
         .applyQuaternion(q)
         .toArray(scratchStack.f32, 3);
       // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -927,7 +1000,7 @@ const physxWorker = (() => {
     position.toArray(p);
     quaternion.toArray(q);
     
-    moduleInstance._addCapsuleGeometryPhysics(
+    moduleInstance._addCapsuleGeometry(
       physics,
       p.byteOffset,
       q.byteOffset,
