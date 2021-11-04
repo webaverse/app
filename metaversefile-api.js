@@ -442,6 +442,9 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
+  useScene() {
+    return scene;
+  },
   useWorld() {
     return {
       /* addObject() {
