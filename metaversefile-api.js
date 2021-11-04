@@ -665,7 +665,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('activate', fn);
+        app.removeEventListener('activate', fn);
       });
     } else {
       throw new Error('useActivate cannot be called outside of render()');
@@ -678,7 +678,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('wearupdate', fn);
+        app.removeEventListener('wearupdate', fn);
       });
     } else {
       throw new Error('useWear cannot be called outside of render()');
@@ -691,7 +691,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('use', fn);
+        app.removeEventListener('use', fn);
       });
     } else {
       throw new Error('useUse cannot be called outside of render()');
