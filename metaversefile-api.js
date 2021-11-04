@@ -121,6 +121,9 @@ class App extends THREE.Object3D {
       totalHp: 100,
     });
   }
+  willDieFrom(damage) {
+    return false;
+  }
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
