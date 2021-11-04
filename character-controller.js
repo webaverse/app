@@ -369,6 +369,74 @@ class Player extends THREE.Object3D {
   setMicMediaStream(mediaStream, options) {
     this.avatar.setMicrophoneMediaStream(mediaStream, options);
   }
+  new() {
+    const self = this;
+    this.state.transact(function tx() {
+      const actions = self.getActionsState();
+      while (actions.length > 0) {
+        actions.delete(actions.length - 1);
+      }
+      
+      const avatar = self.getAvatarState();
+      avatar.delete('instanceId');
+      
+      const apps = self.getAppsState();
+      const appsJson = apps.toJSON();
+      while (apps.length > 0) {
+        apps.delete(apps.length - 1);
+      }
+      for (const instanceId of appsJson) {
+        const appMap = self.state.get(self.prefix + '.' + instanceId);
+        const appJson = appMap.toJSON();
+        for (const k in appJson) {
+          appMap.delete(k);
+        }
+      }
+    });
+  }
+  save() {
+    const actions = this.getActionsState();
+    const avatar = this.getAvatarState();
+    const apps = this.getAppsState();
+    return JSON.stringify({
+      // actions: actions.toJSON(),
+      avatar: avatar.toJSON(),
+      apps: Array.from(apps).map(instanceId => {
+        return this.state.getMap(this.prefix + '.' + instanceId).toJSON();
+      }),
+    });
+  }
+  load(s) {
+    const j = JSON.parse(s);
+    // console.log('load', j);
+    const self = this;
+    this.state.transact(function tx() {
+      const actions = self.getActionsState();
+      while (actions.length > 0) {
+        actions.delete(actions.length - 1);
+      }
+      
+      const avatar = self.getAvatarState();
+      if (j?.avatar?.instanceId) {
+        avatar.set('instanceId', j.avatar.instanceId);
+      }
+      
+      const apps = self.getAppsState();
+      if (Array.isArray(j?.apps)) {
+        for (const app of j.apps) {
+          const {
+            instanceId,
+          } = app;
+          const appMap = self.state.get(self.prefix + '.' + instanceId);
+          for (const k in app) {
+            const v = app[k];
+            appMap.set(k, v);
+          }
+          apps.push([instanceId]);
+        }
+      }
+    });
+  }
   update(timestamp, timeDiff) {
     if (this.avatar) {
       const renderer = getRenderer();
