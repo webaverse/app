@@ -188,7 +188,7 @@ class Player extends THREE.Object3D {
               this.appManager.transplantApp(lastAvatarApp, oldPeerOwnerAppManager);
             } else {
               // console.log('remove last app', lastAvatarApp);
-              this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
+              // this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
             }
             lastAvatarApp = null;
           }
@@ -391,7 +391,13 @@ class LocalPlayer extends Player {
     const self = this;
     this.state.transact(function tx() {
       const avatar = self.getAvatarState();
+      const oldInstanceId = avatar.get('instanceId');
+      
       avatar.set('instanceId', app.instanceId);
+
+      if (oldInstanceId) {
+        self.appManager.removeTrackedAppInternal(oldInstanceId);
+      }
     });
   }
   wear(app) {
