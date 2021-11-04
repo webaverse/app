@@ -15,7 +15,7 @@ import {actionsMapName, avatarMapName, crouchMaxTime, activateMaxTime, useMaxTim
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {getState, setState} from './state.js';
-import {applyPlayerToAvatar, switchAvatar} from './avatar-binding.js';
+import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
