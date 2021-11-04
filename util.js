@@ -632,9 +632,10 @@ export const handleDiscordLogin = async (code, id) => {
     return;
   }
   try{
-    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}`, {
-      method: 'POST',
-    });
+    const res = await fetch(`https://login.exokit.org/?discordcode=${code}&discordid=${id}`, {method: 'POST'});
+    // let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}`, {
+    //   method: 'POST',
+    // });
     res = await res.json();
     if (!res.error) {
       return await pullUserObject(res);
