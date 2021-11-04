@@ -26,7 +26,7 @@ import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
-import {getState} from './state.js';
+// import {getState} from './state.js';
 import {makeId, getRandomString} from './util.js';
 import {rarityColors} from './constants.js';
 
@@ -250,7 +250,7 @@ const defaultComponents = {
 };
 const localPlayer = new LocalPlayer({
   prefix: 'player.' + makeId(5),
-  state: getState(),
+  state: null,
 });
 const remotePlayers = new Map();
 
@@ -441,6 +441,9 @@ metaversefile.setApi({
     } else {
       throw new Error('useApp cannot be called outside of render()');
     }
+  },
+  useScene() {
+    return scene;
   },
   useWorld() {
     return {

@@ -47,6 +47,7 @@ export const worldUrl = 'worlds.webaverse.com';
 export const worldMapName = 'world';
 export const actionsMapName = 'actions';
 export const avatarMapName = 'avatar';
+export const playersMapName = 'players';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;

@@ -8,7 +8,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
-import {getState, setState} from './state.js';
+// import {getState, setState} from './state.js';
 import {makeId} from './util.js';
 import metaversefileApi from './metaversefile-api.js';
 import {worldMapName} from './constants.js';
@@ -18,7 +18,7 @@ export const world = {};
 
 const appManager = new AppManager({
   prefix: worldMapName,
-  state: getState(),
+  state: null,
 });
 world.appManager = appManager;
 
@@ -69,21 +69,45 @@ world.disableMic = () => {
   }
 };
 
+world.connectState = state => {
+  world.appManager.unbindState();
+  world.appManager.clear();
+  world.appManager.bindState(state);
+  
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.bindState(state);
+  
+  // note: here we should load up the apps in the state since it won't happen automatically.
+  // until we implement that, only fresh state is supported...
+};
 world.isConnected = () => !!wsrtc;
-world.connectRoom = async (worldURL) => {
+world.connectRoom = async worldURL => {
   await WSRTC.waitForReady();
   
-  // clear the world
-  world.clear();
+  world.appManager.unbindState();
+  world.appManager.clear();
 
-  wsrtc = new WSRTC(worldURL.replace(/^http(s?)/, 'ws$1'));
-  world.setState(wsrtc.room.state);
-  if (mediaStream) {
-    wsrtc.enableMic(mediaStream);
-  }
+  const u = formatWorldUrl(worldURL);
+  wsrtc = new WSRTC(u);
+  const open = e => {
+    wsrtc.removeEventListener('open', open);
+    
+    world.appManager.bindState(wsrtc.state);
+    
+    const init = e => {
+      wsrtc.removeEventListener('init', init);
+      
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.bindState(wsrtc.state);
+      if (mediaStream) {
+        wsrtc.enableMic(mediaStream);
+      }
+    };
+    wsrtc.addEventListener('init', init);
+  };
+  wsrtc.addEventListener('open', open);
 
-  const sendUpdate = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+  /* const sendUpdate = () => {
     const rig = localPlayer.avatar;
     if (rig) {
       const {hmd, leftGamepad, rightGamepad} = rig.inputs;
@@ -150,20 +174,22 @@ world.connectRoom = async (worldURL) => {
         avatarUrl: rig.app.contentId,
       });
     }
-  };
+  }; */
 
-  const name = makeId(5);
-  let interval, intervalMetadata;
+  // const name = makeId(5);
+  // let interval, intervalMetadata;
   wsrtc.addEventListener('open', async e => {
     console.log('Channel Open!');
 
-    interval = setInterval(sendUpdate, 10);
-    intervalMetadata = setInterval(sendMetadataUpdate, 1000);
+    // interval = setInterval(sendUpdate, 10);
+    // intervalMetadata = setInterval(sendMetadataUpdate, 1000);
     // wsrtc.enableMic();
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
-    const peerRigIds = rigManager.peerRigs.keys();
+    console.log('Channel Close!');
+
+    /* const peerRigIds = rigManager.peerRigs.keys();
     for (const peerRigId of peerRigIds) {
       rigManager.removePeerRig(peerRigId);
     }
@@ -172,10 +198,10 @@ world.connectRoom = async (worldURL) => {
     }
     if (intervalMetadata) {
       clearInterval(intervalMetadata);
-    }
+    } */
   }, {once: true});
 
-  wsrtc.addEventListener('join', async e => {
+  /* wsrtc.addEventListener('join', async e => {
     const player = e.data;
   
     player.audioNode.connect(WSRTC.getAudioContext().destination);
@@ -225,7 +251,7 @@ world.connectRoom = async (worldURL) => {
     player.pose.addEventListener('update', e => {
       rigManager.setPeerAvatarPose(player);
     });
-  });
+  }); */
 
   wsrtc.close = (close => function() {
     close.apply(this, arguments);
@@ -240,14 +266,13 @@ world.disconnectRoom = () => {
     wsrtc.close();
     wsrtc = null;
 
-    world.clear();
-    world.newState();
+    // world.clear();
+    // world.newState();
   }
-  return wsrtc;
 };
-world.clear = () => {
+/* world.clear = () => {
   appManager.clear();
-};
+}; */
 
 appManager.addEventListener('appadd', e => {
   const app = e.data;

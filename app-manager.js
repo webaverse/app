@@ -28,21 +28,27 @@ const localFrameOpts = {
 
 const appManagers = [];
 class AppManager extends EventTarget {
-  constructor({prefix = worldMapName, state = new Y.Doc(), apps = [], autoSceneManagement = true} = {}) {
+  constructor({
+    prefix = worldMapName,
+    state = new Y.Doc(),
+    apps = [],
+    autoSceneManagement = true,
+  } = {}) {
     super();
     
     this.prefix = prefix;
-    this.state = state;
+    this.state = null;
     this.apps = apps;
-    
-    this.bindState(this.state);
-    this.bindEvents();
     
     this.pendingAddPromise = null;
     this.pushingLocalUpdates = false;
     this.lastTimestamp = performance.now();
     this.autoSceneManagement = autoSceneManagement;
     // this.stateBlindMode = false;
+    this.unbindStateFn = null;
+    
+    this.bindState(state);
+    this.bindEvents();
   
     appManagers.push(this);
   }
@@ -68,83 +74,92 @@ class AppManager extends EventTarget {
     }
     return null;
   }
-  bindState(state) {
-    const apps = state.getArray(this.prefix);
-    let lastApps = [];
-    apps.observe(() => {
-      // if (!this.stateBlindMode) {
-        const nextApps = apps.toJSON();
+  unbindState() {
+    const lastState = this.state;
+    if (lastState) {
+      this.unbindStateFn();
+      this.state = null;
+      this.unbindStateFn = null;
+    }
+  }
+  bindState(nextState) {
+    this.unbindState();
+  
+    if (nextState) {
+      const apps = nextState.getArray(this.prefix);
+      let lastApps = apps.toJSON();
+      const observe = () => {
+        // if (!this.stateBlindMode) {
+          const nextApps = apps.toJSON();
 
-        // console.log('next apps', nextApps, lastApps);
+          // console.log('next apps', nextApps, lastApps);
 
-        for (const instanceId of nextApps) {
-          if (!lastApps.includes(instanceId)) {
-            const hadApp = this.apps.some(app => app.instanceId === instanceId);
-            if (hadApp) {
-              // console.log('accept migration add', this.prefix, instanceId);
-            } else {
-              const trackedApp = this.getOrCreateTrackedApp(instanceId);
-              // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
-              this.dispatchEvent(new MessageEvent('trackedappadd', {
-                data: {
-                  trackedApp,
-                },
-              }));
-           }
-          }
-        }
-        for (const instanceId of lastApps) {
-          if (!nextApps.includes(instanceId)) {
-            const trackedApp = state.getMap(this.prefix + '.' + instanceId);
-            // console.log('detected remove app 1', instanceId, trackedApp.toJSON(), appManagers.length);
-            
-            const app = this.getAppByInstanceId(instanceId);
-            let migrated = false;
-            const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
-            
-            if (peerOwnerAppManager) {
-              // console.log('detected migrate app 1', instanceId, trackedApp.toJSON(), appManagers.length);
-              
-              const e = new MessageEvent('trackedappmigrate', {
-                data: {
-                  app,
-                  sourceAppManager: this,
-                  destinationAppManager: peerOwnerAppManager,
-                },
-              });
-              this.dispatchEvent(e);
-              peerOwnerAppManager.dispatchEvent(e);
-              migrated = true;
-              break;
-            }
-            
-            // console.log('detected remove app 2', instanceId, trackedApp.toJSON(), appManagers.length);
-            
-            if (!migrated) {
-              // console.log('detected remove app 3', instanceId, trackedApp.toJSON(), appManagers.length);
-              
-              this.dispatchEvent(new MessageEvent('trackedappremove', {
-                data: {
-                  instanceId,
-                  trackedApp,
-                  app,
-                },
-              }));
+          for (const instanceId of nextApps) {
+            if (!lastApps.includes(instanceId)) {
+              const hadApp = this.apps.some(app => app.instanceId === instanceId);
+              if (hadApp) {
+                // console.log('accept migration add', this.prefix, instanceId);
+              } else {
+                const trackedApp = this.getOrCreateTrackedApp(instanceId);
+                // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
+                this.dispatchEvent(new MessageEvent('trackedappadd', {
+                  data: {
+                    trackedApp,
+                  },
+                }));
+             }
             }
           }
-        }
+          for (const instanceId of lastApps) {
+            if (!nextApps.includes(instanceId)) {
+              const trackedApp = nextState.getMap(this.prefix + '.' + instanceId);
+              // console.log('detected remove app 1', instanceId, trackedApp.toJSON(), appManagers.length);
+              
+              const app = this.getAppByInstanceId(instanceId);
+              let migrated = false;
+              const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
+              
+              if (peerOwnerAppManager) {
+                // console.log('detected migrate app 1', instanceId, trackedApp.toJSON(), appManagers.length);
+                
+                const e = new MessageEvent('trackedappmigrate', {
+                  data: {
+                    app,
+                    sourceAppManager: this,
+                    destinationAppManager: peerOwnerAppManager,
+                  },
+                });
+                this.dispatchEvent(e);
+                peerOwnerAppManager.dispatchEvent(e);
+                migrated = true;
+                break;
+              }
+              
+              // console.log('detected remove app 2', instanceId, trackedApp.toJSON(), appManagers.length);
+              
+              if (!migrated) {
+                // console.log('detected remove app 3', instanceId, trackedApp.toJSON(), appManagers.length);
+                
+                this.dispatchEvent(new MessageEvent('trackedappremove', {
+                  data: {
+                    instanceId,
+                    trackedApp,
+                    app,
+                  },
+                }));
+              }
+            }
+          }
 
-        lastApps = nextApps;
-      // }
-    });
-
-    const resize = e => {
-      this.resize(e);
-    };
-    window.addEventListener('resize', resize);
-    this.cleanup = () => {
-      window.removeEventListener('resize', resize);
-    };
+          lastApps = nextApps;
+        // }
+      };
+      apps.observe(observe);
+      this.unbindStateFn = () => {
+        apps.unobserve(observe);
+      };
+    }
+    this.state = nextState;
   }
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', this.prefix, trackedApp.get('instanceId'));
@@ -298,6 +313,14 @@ class AppManager extends EventTarget {
         }
       }
     });
+    
+    const resize = e => {
+      this.resize(e);
+    };
+    window.addEventListener('resize', resize);
+    this.cleanup = () => {
+      window.removeEventListener('resize', resize);
+    };
   }
   getApps() {
     return this.apps;
@@ -349,12 +372,16 @@ class AppManager extends EventTarget {
     return false;
   }
   clear() {
-    const apps = this.apps.slice();
-    for (const app of apps) {
-      this.removeApp(app);
-      app.destroy();
+    if (!this.state) {
+      const apps = this.apps.slice();
+      for (const app of apps) {
+        this.removeApp(app);
+        app.destroy();
+      }
+      this.dispatchEvent(new MessageEvent('clear'));
+    } else {
+      throw new Error('cannot clear world while it is bound');
     }
-    this.dispatchEvent(new MessageEvent('clear'));
   }
   addTrackedAppInternal(
     instanceId,
