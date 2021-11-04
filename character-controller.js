@@ -87,6 +87,11 @@ class Player extends THREE.Object3D {
     const oldActions = this.state ? this.getActionsArray() : [];
     const oldAvatar = this.state ? this.getAvatarState() : new Y.Map();
     // const oldPlayers = this.state ? this.getPlayersState() : [];
+    const oldApps = this.state ? this.getAppsArray().map(instanceId =>
+      this.state
+        .getMap(this.prefix + '.' + instanceId)
+        .toJSON()
+    ) : [];
     
     // unbind
     this.unbindState();
@@ -116,7 +121,16 @@ class Player extends THREE.Object3D {
         const players = self.getPlayersState();
         players.push([self.prefix]);
         
-        // XXX copy over out apps from app manager as well
+        const apps = self.getAppsState();
+        for (const oldApp of oldApps) {
+          const {instanceId} = oldApp;
+          const newApp = self.state.getMap(self.prefix + '.' + instanceId);
+          for (const k in oldApp) {
+            const v = oldApp[k];
+            newApp.set(k, v);
+          }
+          apps.push([instanceId]);
+        }
       });
     }
     
@@ -228,6 +242,12 @@ class Player extends THREE.Object3D {
   }
   getAvatarState() {
     return this.state.getMap(this.prefix + '.' + avatarMapName);
+  }
+  getAppsState() {
+    return this.state.getArray(this.prefix);
+  }
+  getAppsArray() {
+    return this.state ? Array.from(this.getAppsState()) : [];
   }
   getPlayersState() {
     return this.state.getArray(playersMapName);
