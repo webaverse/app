@@ -95,7 +95,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         realmId,
         twitter: arrivingFromTwitter,
       } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
-      if(code && id) {
+      if(code) {
         const {address, error} = await handleDiscordLogin(code, id);
         if(address) {
           console.log('address', address)
@@ -149,7 +149,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                   >MetaMask</span>
                 </a>
                 <a className={styles.discord} 
-                target="_blank"
                 href="https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fstaging.webaverse.com%2Flogin&response_type=code&scope=identify"
                 // onClick={discordLogin}
                 >
