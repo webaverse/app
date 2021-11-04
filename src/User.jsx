@@ -58,6 +58,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           const {address, profile} = await ceramicApi.login();
           // console.log('login', {address, profile});
           setAddress(address);
+          localStorage.setItem('loginToken', address);
+
           userRef.setIsComponentVisible(false);
         } catch (err) {
           console.warn(err);
@@ -76,7 +78,14 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   } 
   
   useEffect(async () => {
-    if(!address) {
+
+    const storedLoginToken = localStorage.getItem("loginToken");
+
+    if(storedLoginToken) {  
+      setAddress(storedLoginToken);
+    }
+
+    else {
       const {
         error,
         error_description,
@@ -91,6 +100,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         if(address) {
           console.log('address', address)
           setAddress(address);
+          localStorage.setItem('loginToken', address);
         }
         else {
           setLoginError(String(error).toLocaleUpperCase());
