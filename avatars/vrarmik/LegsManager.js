@@ -59,6 +59,7 @@ class Leg {
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
     this.lowerLeg.add(this.foot);
+    this.lowerLeg.add(this.toe);
 
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
