@@ -59,7 +59,7 @@ const enterWorld = async worldSpec => {
       }
     } else {
       const p = (async () => {
-        const roomUrl = getWorldsHost() +  room;
+        const roomUrl = getWorldsHost() + room;
         await world.connectRoom(roomUrl);
       })();
       promises.push(p);
