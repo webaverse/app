@@ -3,6 +3,7 @@ this file contains the multiplayer code.
 */
 
 import * as THREE from 'three';
+import * as Y from 'yjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
@@ -40,12 +41,15 @@ const enterWorld = async worldSpec => {
   physicsManager.setPhysicsEnabled(false);
 
   const _doLoad = async () => {
-    world.clear();
+    // world.clear();
 
     const promises = [];
 
     let {src, room} = worldSpec;
     if (!room) {
+      const state = new Y.Doc();
+      world.connectState(state);
+      
       if (src === undefined) {
         promises.push(metaversefile.load('./scenes/' + sceneNames[0]));
       } else if (src === '') {
