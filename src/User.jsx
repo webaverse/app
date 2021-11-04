@@ -74,6 +74,38 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     setLoginButtons(false);
     discordRef.setIsComponentVisible(true);
   } 
+  
+  useEffect(async () => {
+    if(!address) {
+      const {
+        error,
+        error_description,
+        code,
+        id,
+        play,
+        realmId,
+        twitter: arrivingFromTwitter,
+      } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
+      if(code && id) {
+        const {address, error} = await handleDiscordLogin(code, id);
+        if(address) {
+          console.log('address', address)
+          setAddress(address);
+        }
+        else {
+          setLoginError(String(error).toLocaleUpperCase());
+        }
+
+        // debugger;
+      }
+
+
+      // handleDiscordLogin(code, id)
+      // console.log(code,id);
+      // debugger;
+    }
+  }, [address, setAddress]);
+
 
 
   return (
@@ -153,5 +185,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     </div>
   );
 };
+
+
 
 export default User;
