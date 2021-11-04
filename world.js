@@ -269,7 +269,6 @@ world.disconnectRoom = () => {
     // world.clear();
     // world.newState();
   }
-  return wsrtc;
 };
 /* world.clear = () => {
   appManager.clear();
