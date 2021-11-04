@@ -171,6 +171,9 @@ class Player extends THREE.Object3D {
   getActionsState() {
     return this.state.getArray(this.prefix + '.' + actionsMapName);
   }
+  getActionsArray() {
+    return Array.from(this.getActionsState());
+  }
   getAvatarState() {
     return this.state.getMap(this.prefix + '.' + avatarMapName);
   }
