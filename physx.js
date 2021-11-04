@@ -511,7 +511,7 @@ const physxWorker = (() => {
     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
     index += maxNumUpdates*4;
     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*7;
+    index += maxNumUpdates*3;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
@@ -870,9 +870,9 @@ const physxWorker = (() => {
 
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator();
-    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024);
+    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2);
     const numPositions = allocator.alloc(Uint32Array, 1);
-    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024);
+    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024 * 2);
     const numIndices = allocator.alloc(Uint32Array, 1);
 
     const ok = moduleInstance._getGeometryPhysics(

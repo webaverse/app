@@ -126,8 +126,8 @@ export function makePromise() {
 let nextMeshId = 0;
 export const getNextMeshId = () => ++nextMeshId;
 
-export function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
+export function clone(o) {
+  return JSON.parse(JSON.stringify(o));
 }
 
 export class WaitQueue {
@@ -657,4 +657,8 @@ export function angleDifference(angle1, angle2) {
   let a = angle2 - angle1;
   a = mod(a + Math.PI, Math.PI*2) - Math.PI;
   return a;
+}
+
+export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
+  return Math.pow(dampingPer60Hz, timeDiff / 60);
 }

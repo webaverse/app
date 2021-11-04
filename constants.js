@@ -1,6 +1,7 @@
 export const baseUnit = 4;
 export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
+export const defaultRendererUrl = 'https://render.exokit.org/'
 
 export const rarityColors = {
   common: [0xDCDCDC, 0x373737],
@@ -43,8 +44,18 @@ export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
 
+export const worldMapName = 'world';
+export const actionsMapName = 'actions';
+export const avatarMapName = 'avatar';
+
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
 
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
+export const useMaxTime = 750;
+export const minFov = 60;
+export const maxFov = 120;
+export const groundFriction = 0.28;
+export const airFriction = groundFriction;
+export const flyFriction = 0.5;

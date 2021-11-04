@@ -1,11 +1,9 @@
 import * as THREE from 'three';
 import physx from './physx.js';
 import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
-// import dropManager from './drop-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3();
@@ -60,6 +58,7 @@ const makeHitTracker = ({
   totalHp = 100,
 } = {}) => {
   const jitterObject = new THREE.Object3D();
+  jitterObject.name = 'hitTracker';
   let hitTime = -1;
   jitterObject.hp = totalHp;
   jitterObject.totalHp = totalHp;
