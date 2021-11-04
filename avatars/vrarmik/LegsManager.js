@@ -59,7 +59,7 @@ class Leg {
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
     this.lowerLeg.add(this.foot);
-    this.lowerLeg.add(this.toe);
+    this.foot.add(this.toe);
 
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
@@ -150,9 +150,6 @@ class Leg {
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
 
-
-      this.toe.quaternion.copy(footRotation).multiply(downHalfRotation).premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
-      Helpers.updateMatrixMatrixWorld(this.toe);
     /* } else {
       this.foot.quaternion.slerp(downQuarterRotation, 0.1);
     } */
