@@ -9,6 +9,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
+import * as Y from 'yjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
@@ -250,7 +251,7 @@ const defaultComponents = {
 };
 const localPlayer = new LocalPlayer({
   prefix: 'player.' + makeId(5),
-  state: null,
+  state: new Y.Doc(),
 });
 const remotePlayers = new Map();
 
