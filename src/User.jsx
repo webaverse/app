@@ -148,7 +148,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                   <span className={styles.metamask_text}
                   >MetaMask</span>
                 </a>
-                <a className={styles.discord} onClick={discordLogin}>
+                <a className={styles.discord} 
+                target="_blank"
+                href="https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fstaging.webaverse.com%2Flogin&response_type=code&scope=identify"
+                // onClick={discordLogin}
+                >
                   <img src="./images/discord.png" width="30px" alt="" />
                   <span className={styles.discord_text}>Discord</span>
                 </a></> : ''
