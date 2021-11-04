@@ -6,15 +6,13 @@ import * as THREE from 'three';
 import * as Y from 'yjs';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
-// import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {actionsMapName, avatarMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {actionsMapName, avatarMapName, playersMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
-import {getState, setState} from './state.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone} from './util.js';
 
@@ -33,14 +31,17 @@ class PlayerHand extends THREE.Object3D {
   }
 }
 class Player extends THREE.Object3D {
-  constructor({prefix = 'player.' + makeId(5), state = new Y.Doc()} = {}) {
+  constructor({
+    prefix = 'player.' + makeId(5),
+    state = new Y.Doc(),
+  } = {}) {
     super();
 
     this.prefix = prefix;
-    this.state = state;
+    this.state = null;
     this.appManager = new AppManager({
       prefix,
-      state,
+      state: null,
       autoSceneManagement: false,
     });
 
@@ -62,105 +63,10 @@ class Player extends THREE.Object3D {
     };
     
     this.avatarEpoch = 0;
-    
-    const actions = this.getActionsState();
-    let lastActions = [];
-    const observeActionsFn = () => {
-      const nextActions = Array.from(this.getActionsState());
-      for (const nextAction of nextActions) {
-        if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
-          this.dispatchEvent({
-            type: 'actionadd',
-            action: nextAction,
-          });
-          // console.log('add action', nextAction);
-        }
-      }
-      for (const lastAction of lastActions) {
-        if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
-          this.dispatchEvent({
-            type: 'actionremove',
-            action: lastAction,
-          });
-          // console.log('remove action', lastAction);
-        }
-      }
-      // console.log('actions changed');
-      lastActions = nextActions;
-    };
-    actions.observe(observeActionsFn);
-    
-    const avatar = this.getAvatarState();
-    let lastAvatarInstanceId = '';
-    let lastAvatarApp = null;
-    let observeAvatarEpoch = 0;
-    const observeAvatarFn = async () => {
-      const localEpoch = ++observeAvatarEpoch;
-      
-      // we are in an observer and we want to perform a state transaction as a result
-      // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-      await Promise.resolve();
-      if (observeAvatarEpoch !== localEpoch) return;
-      
-      const avatar = this.getAvatarState();
-      const instanceId = avatar.get('instanceId') ?? '';
-      if (lastAvatarInstanceId !== instanceId) {
-        lastAvatarInstanceId = instanceId;
-        
-        // remove last app
-        if (lastAvatarApp) {
-          const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(lastAvatarApp.instanceId);
-          if (oldPeerOwnerAppManager) {
-            // console.log('transplant last app');
-            this.appManager.transplantApp(lastAvatarApp, oldPeerOwnerAppManager);
-          } else {
-            // console.log('remove last app', lastAvatarApp);
-            this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
-          }
-          lastAvatarApp = null;
-        }
-        
-        const _setNextAvatarApp = app => {
-          // console.log('set next avatar app', app);
-          (async () => {
-            const nextAvatar = await switchAvatar(this.avatar, app);
-            if (observeAvatarEpoch !== localEpoch) return;
-            this.avatar = nextAvatar;
-          })();
-          lastAvatarApp = app;
-          
-          this.dispatchEvent({
-            type: 'avatarupdate',
-            app,
-          });
-        };
-        
-        // add next app from player app manager
-        const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
-        // console.log('add next avatar local', nextAvatarApp);
-        if (nextAvatarApp) {
-          _setNextAvatarApp(nextAvatarApp);
-        } else {
-          // add next app from world app manager
-          const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
-          // console.log('add next avatar world', nextAvatarApp);
-          if (nextAvatarApp) {
-            world.appManager.transplantApp(nextAvatarApp, this.appManager);
-            _setNextAvatarApp(nextAvatarApp);
-          } else {
-            console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
-          }
-        }
-      }
-    };
-    avatar.observe(observeAvatarFn);
-  
-    this.cleanup = () => {
-      actions.unobserve(observeActionsFn);
-      avatar.unobserve(observeAvatarFn);
-    };
-    
     this.avatar = null;
+    this.unbindStateFn = null;
+    
+    this.bindState(state);
   }
   static controlActionTypes = [
     'jump',
@@ -168,71 +74,232 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
+  unbindState() {
+    const lastState = this.state;
+    if (lastState) {
+      this.unbindStateFn();
+      this.state = null;
+      this.unbindStateFn = null;
+    }
+  }
+  bindState(nextState) {
+    // latch old state
+    const oldActions = this.state ? this.getActionsArray() : [];
+    const oldAvatar = this.state ? this.getAvatarState() : new Y.Map();
+    // const oldPlayers = this.state ? this.getPlayersState() : [];
+    
+    // unbind
+    this.unbindState();
+    this.appManager.unbindState();
+    
+    // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
+    
+    // blindly add to new state
+    this.state = nextState;
+    if (this.state) {
+      const self = this;
+      this.state.transact(function tx() {
+        const actions = self.getActionsState();
+        for (const oldAction of oldActions) {
+          actions.push([oldAction]);
+        }
+        
+        const avatar = self.getAvatarState();
+        const instanceId = oldAvatar.get('instanceId');
+        if (instanceId !== undefined) {
+          avatar.set('instanceId', instanceId);
+        } /* else {
+          console.warn('undefined avatar instance id when binding');
+          debugger;
+        } */
+        
+        const players = self.getPlayersState();
+        players.push([self.prefix]);
+        
+        // XXX copy over out apps from app manager as well
+      });
+    }
+    
+    this.appManager.bindState(this.state);
+    if (this.state) {
+      const actions = this.getActionsState();
+      let lastActions = actions.toJSON();
+      const observeActionsFn = () => {
+        const nextActions = Array.from(this.getActionsState());
+        for (const nextAction of nextActions) {
+          if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
+            this.dispatchEvent({
+              type: 'actionadd',
+              action: nextAction,
+            });
+            // console.log('add action', nextAction);
+          }
+        }
+        for (const lastAction of lastActions) {
+          if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
+            this.dispatchEvent({
+              type: 'actionremove',
+              action: lastAction,
+            });
+            // console.log('remove action', lastAction);
+          }
+        }
+        // console.log('actions changed');
+        lastActions = nextActions;
+      };
+      actions.observe(observeActionsFn);
+      
+      const avatar = this.getAvatarState();
+      let lastAvatarInstanceId = '';
+      let lastAvatarApp = null;
+      let observeAvatarEpoch = 0;
+      const observeAvatarFn = async () => {
+        const localEpoch = ++observeAvatarEpoch;
+        
+        // we are in an observer and we want to perform a state transaction as a result
+        // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
+        await Promise.resolve();
+        if (observeAvatarEpoch !== localEpoch) return;
+        
+        const avatar = this.getAvatarState();
+        const instanceId = avatar.get('instanceId') ?? '';
+        if (lastAvatarInstanceId !== instanceId) {
+          lastAvatarInstanceId = instanceId;
+          
+          // remove last app
+          if (lastAvatarApp) {
+            const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(lastAvatarApp.instanceId);
+            if (oldPeerOwnerAppManager) {
+              // console.log('transplant last app');
+              this.appManager.transplantApp(lastAvatarApp, oldPeerOwnerAppManager);
+            } else {
+              // console.log('remove last app', lastAvatarApp);
+              this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
+            }
+            lastAvatarApp = null;
+          }
+          
+          const _setNextAvatarApp = app => {
+            // console.log('set next avatar app', app);
+            (async () => {
+              const nextAvatar = await switchAvatar(this.avatar, app);
+              if (observeAvatarEpoch !== localEpoch) return;
+              this.avatar = nextAvatar;
+            })();
+            lastAvatarApp = app;
+            
+            this.dispatchEvent({
+              type: 'avatarupdate',
+              app,
+            });
+          };
+          
+          // add next app from player app manager
+          const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
+          // console.log('add next avatar local', nextAvatarApp);
+          if (nextAvatarApp) {
+            _setNextAvatarApp(nextAvatarApp);
+          } else {
+            // add next app from world app manager
+            const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
+            // console.log('add next avatar world', nextAvatarApp);
+            if (nextAvatarApp) {
+              world.appManager.transplantApp(nextAvatarApp, this.appManager);
+              _setNextAvatarApp(nextAvatarApp);
+            } else {
+              console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
+            }
+          }
+        }
+      };
+      avatar.observe(observeAvatarFn);
+    
+      this.unbindStateFn = () => {
+        actions.unobserve(observeActionsFn);
+        avatar.unobserve(observeAvatarFn);
+      };
+    }
+  }
   getActionsState() {
     return this.state.getArray(this.prefix + '.' + actionsMapName);
   }
   getActionsArray() {
-    return Array.from(this.getActionsState());
+    return this.state ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
     return this.state.getMap(this.prefix + '.' + avatarMapName);
   }
+  getPlayersState() {
+    return this.state.getArray(playersMapName);
+  }
   findAction(fn) {
-    const actions = this.getActionsState();
-    for (const action of actions) {
-      if (fn(action)) {
-        return action;
+    if (this.state) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (fn(action)) {
+          return action;
+        }
       }
     }
     return null;
   }
   findActionIndex(fn) {
-    const actions = this.getActionsState();
-    let i = 0;
-    for (const action of actions) {
-      if (fn(action)) {
-        return i;
+    if (this.state) {
+      const actions = this.getActionsState();
+      let i = 0;
+      for (const action of actions) {
+        if (fn(action)) {
+          return i;
+        }
+        i++
       }
-      i++
     }
     return -1;
   }
   getAction(type) {
-    const actions = this.getActionsState();
-    for (const action of actions) {
-      if (action.type === type) {
-        return action;
+    if (this.state) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (action.type === type) {
+          return action;
+        }
       }
     }
     return null;
   }
   getActionIndex(type) {
-    const actions = this.getActionsState();
-    let i = 0;
-    for (const action of actions) {
-      if (action.type === type) {
-        return i;
+    if (this.state) {
+      const actions = this.getActionsState();
+      let i = 0;
+      for (const action of actions) {
+        if (action.type === type) {
+          return i;
+        }
+        i++;
       }
-      i++;
     }
     return -1;
   }
   indexOfAction(action) {
-    const actions = this.getActionsState();
-    let i = 0;
-    for (const a of actions) {
-      if (a === action) {
-        return i;
+    if (this.state) {
+      const actions = this.getActionsState();
+      let i = 0;
+      for (const a of actions) {
+        if (a === action) {
+          return i;
+        }
+        i++;
       }
-      i++;
     }
     return -1;
   }
   hasAction(type) {
-    const actions = this.getActionsState();
-    for (const action of actions) {
-      if (action.type === type) {
-        return true;
+    if (this.state) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (action.type === type) {
+          return true;
+        }
       }
     }
     return false;
