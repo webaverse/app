@@ -40,7 +40,7 @@ class AppManager extends EventTarget {
     this.state = null;
     this.apps = apps;
     
-    this.pendingAddPromise = null;
+    this.pendingAddPromises = new Map();
     this.pushingLocalUpdates = false;
     this.lastTimestamp = performance.now();
     this.autoSceneManagement = autoSceneManagement;
@@ -202,7 +202,8 @@ class AppManager extends EventTarget {
       const components = JSON.parse(componentsString);
       
       const p = makePromise();
-      this.pendingAddPromise = p;
+      p.instanceId = instanceId;
+      this.pendingAddPromises.set(instanceId, p);
 
       let live = true;
       
@@ -212,6 +213,7 @@ class AppManager extends EventTarget {
       };
       const cleanup = () => {
         this.removeEventListener('clear', clear);
+        this.pendingAddPromises.delete(instanceId);
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
@@ -431,11 +433,9 @@ class AppManager extends EventTarget {
         components,
       );
     });
-    if (this.pendingAddPromise) {
-      const result = this.pendingAddPromise;
-      result.instanceId = instanceId;
-      this.pendingAddPromise = null;
-      return result;
+    const p = this.pendingAddPromises.get(instanceId);
+    if (p) {
+      return p;
     } else {
       throw new Error('no pending world add object promise');
     }
