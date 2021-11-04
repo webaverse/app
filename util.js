@@ -628,7 +628,7 @@ async function pullUserObject(loginToken) {
 }
 
 export const handleDiscordLogin = async (code, id) => {
-  if (!code || !id) {
+  if (!code) {
     return;
   }
   try{
