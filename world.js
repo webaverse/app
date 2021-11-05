@@ -19,10 +19,13 @@ export const world = {};
 const appManager = new AppManager({
   prefix: worldMapName,
   state: null,
+  autoSceneManagement: false,
 });
 world.appManager = appManager;
 
+
 world.lights = new THREE.Object3D();
+scene.add(world.lights);
 
 // multiplayer
 let wsrtc = null;
