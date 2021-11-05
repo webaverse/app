@@ -285,11 +285,9 @@ world.disconnectRoom = () => {
 /* world.clear = () => {
   appManager.clear();
 }; */
-
-world.save = () => {
+/* world.save = () => {
   return world.appManager.state.toJSON();
-};
-window.world = world;
+}; */
 
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
