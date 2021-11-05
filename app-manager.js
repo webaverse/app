@@ -142,7 +142,7 @@ class AppManager extends EventTarget {
     }
     this.appsArray = nextAppsArray;
   }
-  loadApps() {
+  syncApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i);
       this.dispatchEvent(new MessageEvent('trackedappadd', {
