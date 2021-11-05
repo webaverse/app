@@ -94,9 +94,9 @@ function makeId(length) {
     const j = JSON.parse(s);
     const {objects} = j;
     
-    const worldPrefix = 'world';
+    const appsMapName = 'apps';
     const result = {
-      [worldPrefix]: [],
+      [appsMapName]: [],
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
@@ -112,8 +112,7 @@ function makeId(length) {
         scale,
         components: JSON.stringify([]),
       };
-      result[worldPrefix].push(instanceId);
-      result[worldPrefix + '.' + instanceId] = appObject;
+      result[appsMapName].push(appObject);
     }
     return result;
   })();
