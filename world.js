@@ -3,15 +3,18 @@ this file contains the singleplayer code.
 */
 
 import * as THREE from 'three';
+import * as Y from 'yjs';
 import WSRTC from 'wsrtc/wsrtc.js';
 
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
-import {makeId} from './util.js';
+// import {makeId} from './util.js';
+import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from './metaversefile-api.js';
 import {worldMapName} from './constants.js';
+import {playersManager} from './players-manager.js';
 
 // world
 export const world = {};
@@ -77,6 +80,8 @@ world.connectState = state => {
   world.appManager.clear();
   world.appManager.bindState(state);
   
+  playersManager.bindState(state);
+  
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.bindState(state);
   
@@ -84,24 +89,28 @@ world.connectState = state => {
   // until we implement that, only fresh state is supported...
 };
 world.isConnected = () => !!wsrtc;
-world.connectRoom = async worldURL => {
-  await WSRTC.waitForReady();
+world.connectRoom = async u => {
+  // await WSRTC.waitForReady();
   
   world.appManager.unbindState();
   world.appManager.clear();
 
-  const u = formatWorldUrl(worldURL);
-  wsrtc = new WSRTC(u);
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const state = new Y.Doc();
+  wsrtc = new WSRTC(u, {
+    localPlayer,
+    crdtState: state,
+  });
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
-    world.appManager.bindState(wsrtc.state);
+    world.appManager.bindState(state);
+    playersManager.bindState(state);
     
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      localPlayer.bindState(wsrtc.state);
+      localPlayer.bindState(state);
       if (mediaStream) {
         wsrtc.enableMic(mediaStream);
       }
@@ -277,57 +286,98 @@ world.disconnectRoom = () => {
   appManager.clear();
 }; */
 
+world.save = () => {
+  return world.appManager.state.toJSON();
+};
+window.world = world;
+
+const _getBindSceneForRenderPriority = renderPriority => {
+  switch (renderPriority) {
+    case 'high': {
+      return sceneHighPriority;
+    }
+    case 'low': {
+      return sceneLowPriority;
+    }
+    default: {
+      return scene;
+    }
+  }
+};
+const _bindHitTracker = app => {
+  const bindScene = _getBindSceneForRenderPriority(app.getComponent('renderPriority'));
+  
+  const hitTracker = hpManager.makeHitTracker();
+  bindScene.add(hitTracker);
+  hitTracker.add(app);
+  app.hitTracker = hitTracker;
+
+  const frame = e => {
+    const {timeDiff} = e.data;
+    hitTracker.update(timeDiff);
+  };
+  world.appManager.addEventListener('frame', frame);
+  const die = () => {
+    world.appManager.removeTrackedApp(app.instanceId);
+  };
+  app.addEventListener('die', die); 
+  
+  const cleanup = () => {
+    // console.log('cleanup hit trakcer parent', hitTracker.parent, app.parent);
+    bindScene.remove(hitTracker);
+    world.appManager.removeEventListener('frame', frame);
+    app.removeEventListener('die', die);
+  };
+  
+  app.hit = (_hit => function(damage, opts = {}) {
+    const result = hitTracker.hit(damage);
+    const {hit, died} = result;
+    if (hit) {
+      const {collisionId} = opts;
+      if (collisionId) {
+        hpManager.triggerDamageAnimation(collisionId);
+      }
+      
+      app.dispatchEvent({
+        type: 'hit',
+        // position: cylinderMesh.position,
+        // quaternion: cylinderMesh.quaternion,
+        hp: hitTracker.hp,
+        totalHp: hitTracker.totalHp,
+      });
+    }
+    if (died) {
+      app.dispatchEvent({
+        type: 'die',
+        // position: cylinderMesh.position,
+        // quaternion: cylinderMesh.quaternion,
+      });
+    }
+    return result;
+  })(app.hit);
+  app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
+  app.unbindHitTracker = () => {
+    cleanup();
+    delete app.hitTracker;
+    delete app.hit;
+    delete app.willDieFrom;
+  };
+};
 appManager.addEventListener('appadd', e => {
   const app = e.data;
-
-  const _bindHitTracker = () => {
-    const hitTracker = hpManager.makeHitTracker();
-    app.parent.add(hitTracker);
-    hitTracker.add(app);
-    app.hitTracker = hitTracker;
-
-    const frame = e => {
-      const {timeDiff} = e.data;
-      hitTracker.update(timeDiff);
-    };
-    world.appManager.addEventListener('frame', frame);
-    const die = () => {
-      metaversefileApi.removeApp(app);
-      app.destroy();
-    };
-    app.addEventListener('die', die);
-    app.addEventListener('destroy', () => {
-      hitTracker.parent.remove(hitTracker);
-      world.appManager.removeEventListener('frame', frame);
-      world.appManager.removeEventListener('die', die);
-    });
-    app.hit = (_hit => function(damage, opts = {}) {
-      const result = hitTracker.hit(damage);
-      const {hit, died} = result;
-      if (hit) {
-        const {collisionId} = opts;
-        if (collisionId) {
-          hpManager.triggerDamageAnimation(collisionId);
-        }
-        
-        app.dispatchEvent({
-          type: 'hit',
-          // position: cylinderMesh.position,
-          // quaternion: cylinderMesh.quaternion,
-          hp: hitTracker.hp,
-          totalHp: hitTracker.totalHp,
-        });
-      }
-      if (died) {
-        app.dispatchEvent({
-          type: 'die',
-          // position: cylinderMesh.position,
-          // quaternion: cylinderMesh.quaternion,
-        });
-      }
-      return result;
-    })(app.hit);
-    app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
-  };
-  _bindHitTracker();
+  _bindHitTracker(app);
+});
+appManager.addEventListener('trackedappmigrate', async e => {
+  const {app, sourceAppManager, destinationAppManager} = e.data;
+  if (this === sourceAppManager) {
+    app.unbindHitTracker();
+    app.unbindHitTracker = null;
+  } else if (this === destinationAppManager) {
+    _bindHitTracker(app);
+  }
+});
+appManager.addEventListener('appremove', async e => {
+  const app = e.data;
+  app.unbindHitTracker();
+  app.unbindHitTracker = null;
 });
