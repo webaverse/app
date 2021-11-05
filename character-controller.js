@@ -44,6 +44,14 @@ class Player extends THREE.Object3D {
       state: null,
       autoSceneManagement: false,
     });
+    this.appManager.addEventListener('appadd', e => {
+      const app = e.data;
+      scene.add(app);
+    });
+    this.appManager.addEventListener('appremove', e => {
+      const app = e.data;
+      app.parent && app.parent.remove(app);
+    });
 
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
