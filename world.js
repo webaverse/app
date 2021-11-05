@@ -102,13 +102,13 @@ world.connectRoom = async u => {
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
-    world.appManager.bindState(state);
-    playersManager.bindState(state);
+    world.appManager.bindState(state.getArray(appsMapName));
+    playersManager.bindState(state.getArray(playersMapName));
     
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
-      localPlayer.bindState(state);
+      localPlayer.bindState(state.getArray(playersMapName));
       if (mediaStream) {
         wsrtc.enableMic(mediaStream);
       }
