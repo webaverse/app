@@ -39,7 +39,7 @@ class PlayersManager {
           const playerId = playerMap.get('playerId');
           
           if (playerId !== localPlayer.playerId) {
-            console.log('add player', playerId, this.playersArray.toJSON());
+            // console.log('add player', playerId, this.playersArray.toJSON());
             
             const remotePlayer = new RemotePlayer({
               playerId,
@@ -48,13 +48,14 @@ class PlayersManager {
             this.remotePlayers.set(playerId, remotePlayer);
           }
         }
+        // console.log('players observe', added, deleted);
         for (const item of deleted.values()) {
-          console.log('player remove 1', item);
+          // console.log('player remove 1', item);
           const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
-          console.log('player remove 2', playerId, localPlayer.playerId);
+          // console.log('player remove 2', playerId, localPlayer.playerId);
 
           if (playerId !== localPlayer.playerId) {
-            console.log('remove player', playerId);
+            // console.log('remove player', playerId);
             
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);

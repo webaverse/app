@@ -20,6 +20,8 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localArray3 = [0, 0, 0];
+const localArray4 = [0, 0, 0, 0];
 
 function makeCancelFn() {
   let live = true;
@@ -85,7 +87,7 @@ class Player extends THREE.Object3D {
     this.avatarEpoch = 0;
     this.avatar = null;
     this.syncAvatarCancelFn = null;
-    this.unbindStateFn = null;
+    this.unbindFns = [];
     
     this.bindState(playersArray);
   }
@@ -100,20 +102,78 @@ class Player extends THREE.Object3D {
   }
   unbindState() {
     if (this.isBound()) {
-      this.unbindStateFn();
       this.playersArray = null;
-      this.unbindStateFn = null;
+      this.playerMap = null;
+
+      for (const unbindFn of this.unbindFns) {
+        unbindFn();
+      }
+      this.unbindFns.length = 0;
     }
   }
-  copyState() {
+  detachState() {
     throw new Error('called abstract method');
   }
-  pasteState(oldState) {
+  attachState(oldState) {
     throw new Error('called abstract method');
+  }
+  bindCommonObservers() {
+    const actions = this.getActionsState();
+    let lastActions = actions.toJSON();
+    const observeActionsFn = () => {
+      const nextActions = Array.from(this.getActionsState());
+      for (const nextAction of nextActions) {
+        if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
+          this.dispatchEvent({
+            type: 'actionadd',
+            action: nextAction,
+          });
+          // console.log('add action', nextAction);
+        }
+      }
+      for (const lastAction of lastActions) {
+        if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
+          this.dispatchEvent({
+            type: 'actionremove',
+            action: lastAction,
+          });
+          // console.log('remove action', lastAction);
+        }
+      }
+      // console.log('actions changed');
+      lastActions = nextActions;
+    };
+    actions.observe(observeActionsFn);
+    this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
+    
+    const avatar = this.getAvatarState();
+    let lastAvatarInstanceId = '';
+    const observeAvatarFn = async () => {
+      // we are in an observer and we want to perform a state transaction as a result
+      // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
+      await Promise.resolve();
+      
+      const instanceId = this.getAvatarInstanceId();
+      if (lastAvatarInstanceId !== instanceId) {
+        lastAvatarInstanceId = instanceId;
+        
+        this.syncAvatar();
+      }
+    };
+    avatar.observe(observeAvatarFn);
+    this.unbindFns.push(avatar.unobserve.bind(avatar, observeAvatarFn));
+    
+    const _cancelSyncAvatar = () => {
+      if (this.syncAvatarCancelFn) {
+        this.syncAvatarCancelFn();
+        this.syncAvatarCancelFn = null;
+      }
+    };
+    this.unbindFns.push(_cancelSyncAvatar);
   }
   bindState(nextPlayersArray) {
     // latch old state
-    const oldState = this.copyState();
+    const oldState = this.detachState();
     
     // unbind
     this.unbindState();
@@ -124,55 +184,8 @@ class Player extends THREE.Object3D {
     // blindly add to new state
     this.playersArray = nextPlayersArray;
     if (this.playersArray) {
-      this.pasteState(oldState);
-
-      const actions = this.getActionsState();
-      let lastActions = actions.toJSON();
-      const observeActionsFn = () => {
-        const nextActions = Array.from(this.getActionsState());
-        for (const nextAction of nextActions) {
-          if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
-            this.dispatchEvent({
-              type: 'actionadd',
-              action: nextAction,
-            });
-            // console.log('add action', nextAction);
-          }
-        }
-        for (const lastAction of lastActions) {
-          if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
-            this.dispatchEvent({
-              type: 'actionremove',
-              action: lastAction,
-            });
-            // console.log('remove action', lastAction);
-          }
-        }
-        // console.log('actions changed');
-        lastActions = nextActions;
-      };
-      actions.observe(observeActionsFn);
-      
-      const avatar = this.getAvatarState();
-      let lastAvatarInstanceId = '';
-      const observeAvatarFn = async () => {
-        // we are in an observer and we want to perform a state transaction as a result
-        // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-        await Promise.resolve();
-        
-        const instanceId = this.getAvatarInstanceId();
-        if (lastAvatarInstanceId !== instanceId) {
-          lastAvatarInstanceId = instanceId;
-          
-          this.syncAvatar();
-        }
-      };
-      avatar.observe(observeAvatarFn);
-    
-      this.unbindStateFn = () => {
-        actions.unobserve(observeActionsFn);
-        avatar.unobserve(observeAvatarFn);
-      };
+      this.attachState(oldState);
+      this.bindCommonObservers();
     }
   }
   getAvatarInstanceId() {
@@ -242,6 +255,8 @@ class Player extends THREE.Object3D {
     } else {
       _setNextAvatarApp(null);
     }
+    
+    this.syncAvatarCancelFn = null;
   }
   getActionsState() {
     let actionsArray = this.playerMap.get(actionsMapName);
@@ -452,7 +467,10 @@ class Player extends THREE.Object3D {
     }
   }
   destroy() {
-    this.cleanup();
+    this.unbindState();
+    this.appManager.unbindState();
+
+    // this.switchAvatar(this.avatar, null);
     this.appManager.destroy();
   }
 }
@@ -483,7 +501,7 @@ class LocalPlayer extends Player {
       }
     });
   }
-  copyState() {
+  detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
     const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
     const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
@@ -493,7 +511,7 @@ class LocalPlayer extends Player {
       oldApps,
     };
   }
-  pasteState(oldState) {
+  attachState(oldState) {
     const {
       oldActions,
       oldAvatar,
@@ -504,6 +522,8 @@ class LocalPlayer extends Player {
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Y.Map();
       self.playerMap.set('playerId', self.playerId);
+      self.playerMap.set('position', self.position.toArray(localArray3));
+      self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
       
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
@@ -666,6 +686,12 @@ class LocalPlayer extends Player {
       relation: 'head',
     }); */
   }
+  pushPlayerUpdates() {
+    this.playersArray.doc.transact(() => {
+      this.playerMap.set('position', this.position.toArray(localArray3));
+      this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
+    }, 'push');
+  }
   teleportTo = (() => {
     // const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -708,10 +734,10 @@ class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
   }
-  copyState() {
+  detachState() {
     return null;
   }
-  pasteState(oldState) {
+  attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i);
@@ -725,6 +751,13 @@ class RemotePlayer extends Player {
     } else {
       console.warn('binding to nonexistent player object', playerId, this.playersArray.toJSON());
     }
+    
+    const observePlayerFn = e => {
+      this.position.fromArray(this.playerMap.get('position'));
+      this.quaternion.fromArray(this.playerMap.get('quaternion'));
+    };
+    this.playerMap.observe(observePlayerFn);
+    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
     
     this.appManager.bindState(this.getAppsState());
     this.appManager.syncApps();

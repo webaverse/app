@@ -37,7 +37,7 @@ class AppManager extends EventTarget {
     this.apps = [];
     
     this.pendingAddPromises = new Map();
-    this.pushingLocalUpdates = false;
+    // this.pushingLocalUpdates = false;
     this.unbindStateFn = null;
     this.trackedAppUnobserveMap = new Map();
     
@@ -52,9 +52,9 @@ class AppManager extends EventTarget {
     localData.timeDiff = timeDiff;
     this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
-  setPushingLocalUpdates(pushingLocalUpdates) {
+  /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
-  }
+  } */
   getPeerOwnerAppManager(instanceId) {
     for (const appManager of appManagers) {
       if (appManager !== this && appManager.appsArray.doc === this.appsArray.doc && appManager.hasTrackedApp(instanceId)) {
@@ -154,8 +154,8 @@ class AppManager extends EventTarget {
   }
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
-    const _observe = e => {
-      if (!this.pushingLocalUpdates) {
+    const _observe = (e, origin) => {
+      if (origin !== 'push') {
         if (e.keysChanged.has('position')) {
           app.position.fromArray(trackedApp.get('position'));
         }
@@ -426,14 +426,11 @@ class AppManager extends EventTarget {
       self.removeTrackedAppInternal(removeInstanceId);
     });
   }
-  setTrackedAppTransform(instanceId, p, q, s) {
-    const self = this;
-    this.appsArray.doc.transact(function tx() {
-      const trackedApp = self.getTrackedApp(instanceId);
-      trackedApp.set('position', p.toArray());
-      trackedApp.set('quaternion', q.toArray());
-      trackedApp.set('scale', s.toArray());
-    });
+  setTrackedAppTransformInternal(instanceId, p, q, s) {
+    const trackedApp = this.getTrackedApp(instanceId);
+    trackedApp.set('position', p.toArray());
+    trackedApp.set('quaternion', q.toArray());
+    trackedApp.set('scale', s.toArray());
   }
   addApp(app) {
     this.apps.push(app);
@@ -518,41 +515,49 @@ class AppManager extends EventTarget {
     return this.apps.includes(app);
   }
   pushAppUpdates() {
-    this.setPushingLocalUpdates(true);
+    // this.setPushingLocalUpdates(true);
     
-    for (const app of this.apps) {
-      if (this.hasTrackedApp(app.instanceId)) {
-        app.updateMatrixWorld();
-        if (!app.matrix.equals(app.lastMatrix)) {
-          app.matrix.decompose(localVector, localQuaternion, localVector2);
-          this.setTrackedAppTransform(app.instanceId, localVector, localQuaternion, localVector2);
-          
-          const physicsObjects = app.getPhysicsObjects();
-          for (const physicsObject of physicsObjects) {
-            physicsObject.position.copy(app.position);
-            physicsObject.quaternion.copy(app.quaternion);
-            physicsObject.scale.copy(app.scale);
-            physicsObject.updateMatrixWorld();
-            
-            physicsManager.pushUpdate(physicsObject);
-            physicsObject.needsUpdate = false;
+    if (this.appsArray) {
+      this.appsArray.doc.transact(() => { 
+        for (const app of this.apps) {
+          if (this.hasTrackedApp(app.instanceId)) {
+            app.updateMatrixWorld();
+            if (!app.matrix.equals(app.lastMatrix)) {
+              app.matrix.decompose(localVector, localQuaternion, localVector2);
+              this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
+              
+              const physicsObjects = app.getPhysicsObjects();
+              for (const physicsObject of physicsObjects) {
+                physicsObject.position.copy(app.position);
+                physicsObject.quaternion.copy(app.quaternion);
+                physicsObject.scale.copy(app.scale);
+                physicsObject.updateMatrixWorld();
+                
+                physicsManager.pushUpdate(physicsObject);
+                physicsObject.needsUpdate = false;
+              }
+              
+              app.lastMatrix.copy(app.matrix);
+            }
           }
-          
-          app.lastMatrix.copy(app.matrix);
         }
-      }
+      }, 'push');
     }
 
-    this.setPushingLocalUpdates(false);
+    // this.setPushingLocalUpdates(false);
   }
   destroy() {
-    const index = appManagers.indexOf(this);
-    if (index !== -1) {
-      this.cleanup();
+    if (!this.isBound()) {
+      this.clear();
       
-      appManagers.splice(index, 1);
-    } else {
-      throw new Error('double destroy of app manager');
+      const index = appManagers.indexOf(this);
+      if (index !== -1) {
+        this.clear();
+        
+        appManagers.splice(index, 1);
+      } else {
+        throw new Error('double destroy of app manager');
+      }
     }
   }
 }
