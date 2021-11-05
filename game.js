@@ -1130,6 +1130,10 @@ const _pushAppUpdates = () => {
     remotePlayer.appManager.pushAppUpdates();
   }
 };
+const _pushPlayerUpdates = () => {
+  const localPlayer = useLocalPlayer();
+  localPlayer.pushPlayerUpdates();
+};
 
 const rotationSnap = Math.PI/6;
 
@@ -1709,5 +1713,6 @@ const gameManager = {
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
+  pushPlayerUpdates: _pushPlayerUpdates,
 };
 export default gameManager;
