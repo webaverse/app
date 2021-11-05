@@ -269,6 +269,8 @@ class AppManager extends EventTarget {
           console.warn('failed to load object', {contentId});
         }
         
+        this.bindTrackedApp(trackedApp, app);
+        
         this.addApp(app);
 
         /* const _bindRender = () => {
@@ -279,12 +281,6 @@ class AppManager extends EventTarget {
           }
         };
         _bindRender(); */
-
-        this.bindTrackedApp(trackedApp, app);
-
-        this.dispatchEvent(new MessageEvent('appadd', {
-          data: app,
-        }));
 
         p.accept(app);
       } catch (err) {
@@ -300,10 +296,6 @@ class AppManager extends EventTarget {
       
       this.removeApp(app);
       app.destroy();
-
-      this.dispatchEvent(new MessageEvent('appremove', {
-        data: app,
-      }));
     });
     this.addEventListener('trackedappmigrate', async e => {
       const {
@@ -500,6 +492,10 @@ class AppManager extends EventTarget {
         }
       }
     }
+    
+    this.dispatchEvent(new MessageEvent('appadd', {
+      data: app,
+    }));
   }
   removeApp(app) {
     const index = this.apps.indexOf(app);
@@ -510,6 +506,10 @@ class AppManager extends EventTarget {
       if (this.autoSceneManagement) {
         app.parent.remove(app);
       }
+      
+      this.dispatchEvent(new MessageEvent('appremove', {
+        data: app,
+      }));
     }
   }
   resize(e) {
