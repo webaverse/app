@@ -39,8 +39,8 @@ class Player extends THREE.Object3D {
 
     this.playerId = playerId;
     this.playersArray = null;
-
     this.playerMap = null;
+
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -92,11 +92,15 @@ class Player extends THREE.Object3D {
       this.unbindStateFn = null;
     }
   }
+  copyState() {
+    throw new Error('called abstract method');
+  }
+  pasteState(oldState) {
+    throw new Error('called abstract method');
+  }
   bindState(nextPlayersArray) {
     // latch old state
-    const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
-    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
-    const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
+    const oldState = this.copyState();
     
     // unbind
     this.unbindState();
@@ -107,39 +111,8 @@ class Player extends THREE.Object3D {
     // blindly add to new state
     this.playersArray = nextPlayersArray;
     if (this.playersArray) {
-      const self = this;
-      this.playersArray.doc.transact(function tx() {
-        self.playerMap = new Y.Map();
-        self.playerMap.set('playerId', self.playerId);
-        
-        const actions = self.getActionsState();
-        for (const oldAction of oldActions) {
-          actions.push([oldAction]);
-        }
-        
-        const avatar = self.getAvatarState();
-        const {instanceId} = oldAvatar;
-        if (instanceId !== undefined) {
-          avatar.set('instanceId', instanceId);
-        }
-        
-        const apps = self.getAppsState();
-        for (const oldApp of oldApps) {
-          const mapApp = new Y.Map();
-          for (const k in oldApp) {
-            const v = oldApp[k];
-            mapApp.set(k, v);
-          }
-          apps.push([mapApp]);
-        }
-        
-        self.playersArray.push([self.playerMap]);
-      });
-    }
-    
-    const newAppsState = this.getAppsState();
-    this.appManager.bindState(newAppsState);
-    if (this.playersArray) {
+      this.pasteState(oldState);
+
       const actions = this.getActionsState();
       let lastActions = actions.toJSON();
       const observeActionsFn = () => {
@@ -477,6 +450,54 @@ class LocalPlayer extends Player {
       }
     });
   }
+  copyState() {
+    const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
+    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
+    const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
+    return {
+      oldActions,
+      oldAvatar,
+      oldApps,
+    };
+  }
+  pasteState(oldState) {
+    const {
+      oldActions,
+      oldAvatar,
+      oldApps,
+    } = oldState;
+    
+    const self = this;
+    this.playersArray.doc.transact(function tx() {
+      self.playerMap = new Y.Map();
+      self.playerMap.set('playerId', self.playerId);
+      
+      const actions = self.getActionsState();
+      for (const oldAction of oldActions) {
+        actions.push([oldAction]);
+      }
+      
+      const avatar = self.getAvatarState();
+      const {instanceId} = oldAvatar;
+      if (instanceId !== undefined) {
+        avatar.set('instanceId', instanceId);
+      }
+      
+      const apps = self.getAppsState();
+      for (const oldApp of oldApps) {
+        const mapApp = new Y.Map();
+        for (const k in oldApp) {
+          const v = oldApp[k];
+          mapApp.set(k, v);
+        }
+        apps.push([mapApp]);
+      }
+      
+      self.playersArray.push([self.playerMap]);
+    });
+    
+    this.appManager.bindState(this.getAppsState());
+  }
   wear(app) {
     app.dispatchEvent({
       type: 'wearupdate',
@@ -653,6 +674,27 @@ class LocalPlayer extends Player {
 class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
+  }
+  copyState() {
+    return null;
+  }
+  pasteState(oldState) {
+    let index = -1;
+    for (let i = 0; i < this.playersArray.length; i++) {
+      const player = this.playersArray.get(i);
+      if (player.get('playerId') === this.playerId) {
+        index = i;
+        break;
+      }
+    }
+    if (index !== -1) {
+      this.playerMap = this.playersArray.get(index);
+    } else {
+      console.warn('binding to nonexistent player object', playerId, this.playersArray.toJSON());
+    }
+    
+    this.appManager.bindState(this.getAppsState());
+    this.appManager.loadApps();
   }
 }
 
