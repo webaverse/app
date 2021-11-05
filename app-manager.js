@@ -53,15 +53,7 @@ class AppManager extends EventTarget {
   
     appManagers.push(this);
   }
-  /* pretick(timestamp, frame) {
-    localData.timestamp = timestamp;
-    localData.frame = frame;
-    localData.timeDiff = timestamp - this.lastTimestamp;
-    this.lastTimestamp = timestamp;
-    this.dispatchEvent(new MessageEvent('preframe', localFrameOpts));
-  } */
   tick(timestamp, timeDiff, frame) {
-    // this.timeDiff(new MessageEvent('startframe', localFrameOpts));
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timeDiff;
