@@ -6,9 +6,9 @@ import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
 import metaversefileApi from './metaversefile-api.js';
 
-const localVector = new THREE.Vector3();
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
+// const localVector = new THREE.Vector3();
+// const localMatrix = new THREE.Matrix4();
+// const localMatrix2 = new THREE.Matrix4();
 
 const _makeDamagePhysicsMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
