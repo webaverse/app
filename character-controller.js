@@ -21,6 +21,18 @@ const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+function makeCancelFn() {
+  let live = true;
+  return {
+    isLive() {
+      return live;
+    },
+    cancel() {
+      live = false;
+    },
+  };
+}
+
 class PlayerHand extends THREE.Object3D {
   constructor() {
     super();
@@ -72,6 +84,7 @@ class Player extends THREE.Object3D {
     
     this.avatarEpoch = 0;
     this.avatar = null;
+    this.syncAvatarCancelFn = null;
     this.unbindStateFn = null;
     
     this.bindState(playersArray);
@@ -142,76 +155,16 @@ class Player extends THREE.Object3D {
       
       const avatar = this.getAvatarState();
       let lastAvatarInstanceId = '';
-      let lastAvatarApp = null;
-      let observeAvatarEpoch = 0;
       const observeAvatarFn = async () => {
-        const localEpoch = ++observeAvatarEpoch;
-        
         // we are in an observer and we want to perform a state transaction as a result
         // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
         await Promise.resolve();
-        if (observeAvatarEpoch !== localEpoch) return;
         
-        const avatar = this.getAvatarState();
-        const instanceId = avatar.get('instanceId') ?? '';
+        const instanceId = this.getAvatarInstanceId();
         if (lastAvatarInstanceId !== instanceId) {
           lastAvatarInstanceId = instanceId;
           
-          // remove last app
-          if (lastAvatarApp) {
-            const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(lastAvatarApp.instanceId);
-            if (oldPeerOwnerAppManager) {
-              // console.log('transplant last app');
-              this.appManager.transplantApp(lastAvatarApp, oldPeerOwnerAppManager);
-            } else {
-              // console.log('remove last app', lastAvatarApp);
-              // this.appManager.removeTrackedApp(lastAvatarApp.instanceId);
-            }
-            lastAvatarApp = null;
-          }
-          
-          const _setNextAvatarApp = app => {
-            // console.log('set next avatar app', app);
-            (async () => {
-              const nextAvatar = await switchAvatar(this.avatar, app);
-              if (observeAvatarEpoch !== localEpoch) return;
-              this.avatar = nextAvatar;
-            })();
-            lastAvatarApp = app;
-            
-            this.dispatchEvent({
-              type: 'avatarupdate',
-              app,
-            });
-          };
-          
-          if (instanceId) {
-            // add next app from player app manager
-            const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
-            // console.log('add next avatar local', nextAvatarApp);
-            if (nextAvatarApp) {
-              _setNextAvatarApp(nextAvatarApp);
-            } else {
-              // add next app from world app manager
-              const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
-              // console.log('add next avatar world', nextAvatarApp);
-              if (nextAvatarApp) {
-                world.appManager.transplantApp(nextAvatarApp, this.appManager);
-                _setNextAvatarApp(nextAvatarApp);
-              } else {
-                // add next app from currently loading apps
-                const addPromise = this.appManager.pendingAddPromises.get(instanceId);
-                if (addPromise) {
-                  const nextAvatarApp = await addPromise;
-                  _setNextAvatarApp(nextAvatarApp);
-                } else {
-                  console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
-                }
-              }
-            }
-          } else {
-            _setNextAvatarApp(null);
-          }
+          this.syncAvatar();
         }
       };
       avatar.observe(observeAvatarFn);
@@ -220,6 +173,74 @@ class Player extends THREE.Object3D {
         actions.unobserve(observeActionsFn);
         avatar.unobserve(observeAvatarFn);
       };
+    }
+  }
+  getAvatarInstanceId() {
+    return this.getAvatarState().get('instanceId') ?? '';
+  }
+  async syncAvatar() {
+    if (this.syncAvatarCancelFn) {
+      this.syncAvatarCancelFn.cancel();
+      this.syncAvatarCancelFn = null;
+    }
+    const cancelFn = makeCancelFn();
+    this.syncAvatarCancelFn = cancelFn;
+    
+    const instanceId = this.getAvatarInstanceId();
+    
+    // remove last app
+    if (this.avatar) {
+      const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(this.avatar.app.instanceId);
+      if (oldPeerOwnerAppManager) {
+        // console.log('transplant last app');
+        this.appManager.transplantApp(this.avatar.app, oldPeerOwnerAppManager);
+      } else {
+        // console.log('remove last app', this.avatar.app);
+        // this.appManager.removeTrackedApp(this.avatar.app.instanceId);
+      }
+    }
+    
+    const _setNextAvatarApp = app => {
+      // console.log('set next avatar app', app);
+      (async () => {
+        const nextAvatar = await switchAvatar(this.avatar, app);
+        if (!cancelFn.isLive()) return;
+        this.avatar = nextAvatar;
+      })();
+      
+      this.dispatchEvent({
+        type: 'avatarupdate',
+        app,
+      });
+    };
+    
+    if (instanceId) {
+      // add next app from player app manager
+      const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
+      // console.log('add next avatar local', nextAvatarApp);
+      if (nextAvatarApp) {
+        _setNextAvatarApp(nextAvatarApp);
+      } else {
+        // add next app from world app manager
+        const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
+        // console.log('add next avatar world', nextAvatarApp);
+        if (nextAvatarApp) {
+          world.appManager.transplantApp(nextAvatarApp, this.appManager);
+          _setNextAvatarApp(nextAvatarApp);
+        } else {
+          // add next app from currently loading apps
+          const addPromise = this.appManager.pendingAddPromises.get(instanceId);
+          if (addPromise) {
+            const nextAvatarApp = await addPromise;
+            if (!cancelFn.isLive()) return;
+            _setNextAvatarApp(nextAvatarApp);
+          } else {
+            console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
+          }
+        }
+      }
+    } else {
+      _setNextAvatarApp(null);
     }
   }
   getActionsState() {
@@ -410,6 +431,18 @@ class Player extends THREE.Object3D {
   }
   update(timestamp, timeDiff) {
     if (this.avatar) {
+      const _updateActionInterpolants = () => {
+        this.actionInterpolants.crouch.update(timeDiff);
+        this.actionInterpolants.activate.update(timeDiff);
+        this.actionInterpolants.use.update(timeDiff);
+        this.actionInterpolants.narutoRun.update(timeDiff);
+        this.actionInterpolants.fly.update(timeDiff);
+        this.actionInterpolants.jump.update(timeDiff);
+        this.actionInterpolants.dance.update(timeDiff);
+        this.actionInterpolants.throw.update(timeDiff);
+      };
+      _updateActionInterpolants();
+      
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
       applyPlayerToAvatar(this, session, this.avatar);
@@ -694,7 +727,9 @@ class RemotePlayer extends Player {
     }
     
     this.appManager.bindState(this.getAppsState());
-    this.appManager.loadApps();
+    this.appManager.syncApps();
+    
+    this.syncAvatar();
   }
 }
 
@@ -705,16 +740,8 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-function update(timeDiff) {
-  const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.actionInterpolants.crouch.update(timeDiff);
-  localPlayer.actionInterpolants.activate.update(timeDiff);
-  localPlayer.actionInterpolants.use.update(timeDiff);
-  localPlayer.actionInterpolants.narutoRun.update(timeDiff);
-  localPlayer.actionInterpolants.fly.update(timeDiff);
-  localPlayer.actionInterpolants.jump.update(timeDiff);
-  localPlayer.actionInterpolants.dance.update(timeDiff);
-  localPlayer.actionInterpolants.throw.update(timeDiff);
+function update(timestamp, timeDiff) {
+  metaversefile.useLocalPlayer().update(timestamp, timeDiff);
 }
 
 export {

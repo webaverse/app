@@ -16,8 +16,9 @@ import game from './game.js';
 import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
+import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
-import metaversefileApi from './metaversefile-api.js';
+// import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
@@ -298,15 +299,12 @@ export default class Webaverse extends EventTarget {
         physicsManager.update(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
-      
-      characterController.update(timeDiffCapped);
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      // rigManager.update(timestamp, timeDiffCapped);
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      localPlayer.update(timestamp, timeDiffCapped);
+      characterController.update(timestamp, timeDiffCapped);
+      playersManager.update(timestamp, timeDiffCapped);
       
       world.appManager.tick(timestamp, timeDiffCapped, frame);
 
