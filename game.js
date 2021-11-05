@@ -1624,8 +1624,9 @@ const gameManager = {
   getMouseDomHoverObject() {
     return mouseDomHoverObject;
   },
-  getMouseDomHoverPhysicsId() {
-    return mouseDomHoverPhysicsId;
+  setMouseDomHoverObject(o, physicsId) {
+    mouseDomHoverObject = o;
+    mouseDomHoverPhysicsId = physicsId;
   },
   getMouseDomEquipmentHoverObject(o, physicsId) {
     return mouseDomEquipmentHoverObject;
