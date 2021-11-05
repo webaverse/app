@@ -2091,7 +2091,7 @@ class Avatar {
     this.shoulderTransforms.head.position.copy(setups.head);
     this.shoulderTransforms.eyes.position.copy(setups.eyes);
 
-    this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
+    if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
     this.shoulderTransforms.leftArm.lowerArm.position.copy(setups.leftLowerArm);
     this.shoulderTransforms.leftArm.hand.position.copy(setups.leftHand);
@@ -2111,7 +2111,7 @@ class Avatar {
     if (setups.leftLittleFinger2) this.shoulderTransforms.leftArm.littleFinger2.position.copy(setups.leftLittleFinger2);
     if (setups.leftLittleFinger1) this.shoulderTransforms.leftArm.littleFinger1.position.copy(setups.leftLittleFinger1);
 
-    this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
+    if (setups.rightShoulder) this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
     this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
     this.shoulderTransforms.rightArm.lowerArm.position.copy(setups.rightLowerArm);
     this.shoulderTransforms.rightArm.hand.position.copy(setups.rightHand);
