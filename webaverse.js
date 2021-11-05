@@ -4,6 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
+// import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
