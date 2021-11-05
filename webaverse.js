@@ -286,7 +286,7 @@ export default class Webaverse extends EventTarget {
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
       
-      world.appManager.pretick(timestamp, frame);
+      // world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
@@ -308,7 +308,7 @@ export default class Webaverse extends EventTarget {
       const localPlayer = metaversefileApi.useLocalPlayer();
       localPlayer.update(timestamp, timeDiffCapped);
       
-      world.appManager.tick(timestamp, frame);
+      world.appManager.tick(timestamp, timeDiffCapped, frame);
 
       hpManager.update(timestamp, timeDiffCapped);
 
