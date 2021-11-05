@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
+import {playersMapName, maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -619,4 +619,8 @@ export function angleDifference(angle1, angle2) {
 
 export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
   return Math.pow(dampingPer60Hz, timeDiff / 60);
+}
+
+export function getPlayerPrefix(playerId) {
+  return playersMapName + '.' + playerId;
 }

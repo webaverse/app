@@ -4,7 +4,7 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Y from 'yjs';
-import {getRenderer, camera, dolly} from './renderer.js';
+import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
@@ -14,7 +14,7 @@ import {actionsMapName, avatarMapName, playersMapName, crouchMaxTime, activateMa
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {makeId, clone} from './util.js';
+import {makeId, clone, getPlayerPrefix} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -32,7 +32,7 @@ class PlayerHand extends THREE.Object3D {
 }
 class Player extends THREE.Object3D {
   constructor({
-    prefix = 'player.' + makeId(5),
+    prefix = getPlayerPrefix(makeId(5)),
     state = new Y.Doc(),
   } = {}) {
     super();
@@ -74,6 +74,12 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
+  get playerId() {
+    return this.prefix.slice(playersMapName.length + 1); // playersMapName + '.'
+  }
+  set playerId(playerId) {
+    // nothing
+  }
   unbindState() {
     const lastState = this.state;
     if (lastState) {
@@ -104,6 +110,9 @@ class Player extends THREE.Object3D {
     if (this.state) {
       const self = this;
       this.state.transact(function tx() {
+        const players = self.getPlayersState();
+        players.push([self.playerId]);
+        
         const actions = self.getActionsState();
         for (const oldAction of oldActions) {
           actions.push([oldAction]);
@@ -117,9 +126,6 @@ class Player extends THREE.Object3D {
           console.warn('undefined avatar instance id when binding');
           debugger;
         } */
-        
-        const players = self.getPlayersState();
-        players.push([self.prefix]);
         
         const apps = self.getAppsState();
         for (const oldApp of oldApps) {
