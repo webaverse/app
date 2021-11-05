@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
-import { world } from "./world.js";
 
 class EquipmentRender {
   constructor() {
@@ -13,6 +12,14 @@ class EquipmentRender {
 
   initializeScene() {
     this.previewScene = new THREE.Scene();
+    
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+    this.previewScene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+    directionalLight.position.set(1, 2, 3);
+    this.previewScene.add(directionalLight);
+    
     this.previewCamera = new THREE.PerspectiveCamera(
       10,
       window.innerWidth / window.innerHeight,

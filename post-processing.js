@@ -192,12 +192,12 @@ const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
 webaverseRenderPass.onBeforeRender = () => {
   // ensure lights attached
-  scene.add(world.lights);
+  // scene.add(world.lights);
   
   // decapitate avatar if needed
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
-    scene.add(localPlayer.avatar.model);
+    // scene.add(localPlayer.avatar.model);
     
     const decapitated = _isDecapitated();
     if (decapitated) {
