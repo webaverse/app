@@ -28,7 +28,7 @@ import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
-import {makeId, getRandomString} from './util.js';
+import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -250,7 +250,7 @@ const defaultComponents = {
   },
 };
 const localPlayer = new LocalPlayer({
-  prefix: 'player.' + makeId(5),
+  prefix: getPlayerPrefix(makeId(5)),
   state: new Y.Doc(),
 });
 const remotePlayers = new Map();
