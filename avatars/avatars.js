@@ -1190,8 +1190,8 @@ class Avatar {
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
       
-      // leftToe: _getOffset(modelBones.Left_toe),
-      // rightToe: _getOffset(modelBones.Right_toe),
+      leftToe: _getOffset(modelBones.Left_toe),
+      rightToe: _getOffset(modelBones.Right_toe),
     });
 
     this.height = eyePosition.clone()
@@ -1247,9 +1247,11 @@ class Avatar {
       leftUpperLeg: this.legsManager.leftLeg.upperLeg,
       leftLowerLeg: this.legsManager.leftLeg.lowerLeg,
       leftFoot: this.legsManager.leftLeg.foot,
+      leftToe: this.legsManager.leftLeg.toe,
       rightUpperLeg: this.legsManager.rightLeg.upperLeg,
       rightLowerLeg: this.legsManager.rightLeg.lowerLeg,
       rightFoot: this.legsManager.rightLeg.foot,
+      rightToe: this.legsManager.rightLeg.toe,
       leftThumb2: this.shoulderTransforms.rightArm.thumb2,
       leftThumb1: this.shoulderTransforms.rightArm.thumb1,
       leftThumb0: this.shoulderTransforms.rightArm.thumb0,
@@ -1280,8 +1282,6 @@ class Avatar {
       rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
       rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-      // leftToe: this.legsManager.leftToe,
-      // rightToe: this.legsManager.rightToe,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -1338,8 +1338,8 @@ class Avatar {
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
-      // Left_toe: this.outputs.leftToe,
-      // Right_toe: this.outputs.rightToe,
+      Left_toe: this.outputs.leftToe,
+      Right_toe: this.outputs.rightToe,
 	  };
 
     this.emotes = [];
@@ -1491,12 +1491,12 @@ class Avatar {
       new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false),
       new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false),
       new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false),
-      // new AnimationMapping('mixamorigRightToeBase.quaternion', null, false),
+      new AnimationMapping('mixamorigRightToeBase.quaternion', this.outputs.leftToe.quaternion, false),
 
       new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false),
       new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false),
       new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
-      // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
+      new AnimationMapping('mixamorigLeftToeBase.quaternion', this.outputs.rightToe.quaternion, false),
     ];
 
     // shared state
@@ -1750,9 +1750,8 @@ class Avatar {
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
-      
-      // Left_toe,
-      // Right_toe,
+      Left_toe,
+      Right_toe,
 	  };
 	  // this.modelBones = modelBones;
     /* for (const k in modelBones) {
@@ -2059,8 +2058,8 @@ class Avatar {
     rightLowerLeg: 'Left_knee',
     rightFoot: 'Left_ankle',
 
-    // leftToe: 'Left_toe',
-    // rightToe: Right_toe',
+    leftToe: 'Left_toe',
+    rightToe: 'Right_toe'
   }
   getEyePosition = (() => {
     const localVector = new THREE.Vector3();

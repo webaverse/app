@@ -54,9 +54,12 @@ class Leg {
     this.foot.endTransform = new THREE.Object3D();
     this.foot.startHmdFloorTransform = new THREE.Object3D();
 
+    this.toe = new THREE.Object3D();
+
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
     this.lowerLeg.add(this.foot);
+    this.foot.add(this.toe);
 
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
@@ -146,6 +149,7 @@ class Leg {
         .multiply(downHalfRotation)
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
+
     /* } else {
       this.foot.quaternion.slerp(downQuarterRotation, 0.1);
     } */
