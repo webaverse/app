@@ -29,24 +29,19 @@ const localFrameOpts = {
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    prefix = worldMapName,
-    state = new Y.Doc(),
-    apps = [],
-    // autoSceneManagement = true,
+    appsArray = new Y.Doc().getArray(worldMapName),
   } = {}) {
     super();
     
-    this.prefix = prefix;
-    this.state = null;
-    this.apps = apps;
+    this.appsArray = null;
+    this.apps = [];
     
     this.pendingAddPromises = new Map();
     this.pushingLocalUpdates = false;
-    // this.autoSceneManagement = autoSceneManagement;
     this.unbindStateFn = null;
     this.trackedAppUnobserveMap = new Map();
     
-    this.bindState(state);
+    this.bindState(appsArray);
     this.bindEvents();
   
     appManagers.push(this);
@@ -62,25 +57,26 @@ class AppManager extends EventTarget {
   }
   getPeerOwnerAppManager(instanceId) {
     for (const appManager of appManagers) {
-      if (appManager !== this && appManager.state === this.state && appManager.hasTrackedApp(instanceId)) {
+      if (appManager !== this && appManager.appsArray.doc === this.appsArray.doc && appManager.hasTrackedApp(instanceId)) {
         return appManager;
       }
     }
     return null;
   }
+  isBound() {
+    return !!this.appsArray;
+  }
   unbindState() {
-    const lastState = this.state;
-    if (lastState) {
+    if (this.isBound()) {
       this.unbindStateFn();
-      this.state = null;
+      this.appsArray = null;
       this.unbindStateFn = null;
     }
   }
-  bindState(nextState) {
+  bindState(nextAppsArray) {
     this.unbindState();
   
-    if (nextState) {
-      const apps = nextState.getArray(this.prefix);
+    if (nextAppsArray) {
       const observe = e => {
         const {added, deleted, delta, keys} = e.changes;
         
@@ -90,7 +86,7 @@ class AppManager extends EventTarget {
           
           const hadApp = this.apps.some(app => app.instanceId === instanceId);
           if (hadApp) {
-            // console.log('accept migration add', this.prefix, instanceId);
+            // console.log('accept migration add', instanceId);
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
@@ -138,84 +134,28 @@ class AppManager extends EventTarget {
             }));
           }
         }
-        
-        /* // if (!this.stateBlindMode) {
-          const nextApps = apps.toJSON();
-
-          // console.log('next apps', nextApps, lastApps);
-
-          for (const instanceId of nextApps) {
-            if (!lastApps.includes(instanceId)) {
-              
-            }
-          }
-          for (const instanceId of lastApps) {
-            if (!nextApps.includes(instanceId)) {
-              const trackedApp = nextState.getMap(this.prefix + '.' + instanceId);
-              // console.log('detected remove app 1', instanceId, trackedApp.toJSON(), appManagers.length);
-              
-              const app = this.getAppByInstanceId(instanceId);
-              let migrated = false;
-              const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
-              
-              if (peerOwnerAppManager) {
-                // console.log('detected migrate app 1', instanceId, trackedApp.toJSON(), appManagers.length);
-                
-                const e = new MessageEvent('trackedappmigrate', {
-                  data: {
-                    app,
-                    sourceAppManager: this,
-                    destinationAppManager: peerOwnerAppManager,
-                  },
-                });
-                this.dispatchEvent(e);
-                peerOwnerAppManager.dispatchEvent(e);
-                migrated = true;
-                break;
-              }
-              
-              // console.log('detected remove app 2', instanceId, trackedApp.toJSON(), appManagers.length);
-              
-              if (!migrated) {
-                // console.log('detected remove app 3', instanceId, trackedApp.toJSON(), appManagers.length);
-                
-                this.dispatchEvent(new MessageEvent('trackedappremove', {
-                  data: {
-                    instanceId,
-                    // trackedApp,
-                    app,
-                  },
-                }));
-              }
-            }
-          }
-
-          lastApps = nextApps; */
-        // }
       };
-      apps.observe(observe);
+      nextAppsArray.observe(observe);
       this.unbindStateFn = () => {
-        apps.unobserve(observe);
+        nextAppsArray.unobserve(observe);
       };
     }
-    this.state = nextState;
+    this.appsArray = nextAppsArray;
   }
   bindTrackedApp(trackedApp, app) {
-    // console.log('bind tracked app', this.prefix, trackedApp.get('instanceId'));
+    // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = e => {
-      // if (!this.stateBlindMode) {
-        if (!this.pushingLocalUpdates) {
-          if (e.keysChanged.has('position')) {
-            app.position.fromArray(trackedApp.get('position'));
-          }
-          if (e.keysChanged.has('quaternion')) {
-            app.quaternion.fromArray(trackedApp.get('quaternion'));
-          }
-          if (e.keysChanged.has('scale')) {
-            app.scale.fromArray(trackedApp.get('scale'));
-          }
+      if (!this.pushingLocalUpdates) {
+        if (e.keysChanged.has('position')) {
+          app.position.fromArray(trackedApp.get('position'));
         }
-      // }
+        if (e.keysChanged.has('quaternion')) {
+          app.quaternion.fromArray(trackedApp.get('quaternion'));
+        }
+        if (e.keysChanged.has('scale')) {
+          app.scale.fromArray(trackedApp.get('scale'));
+        }
+      }
     };
     trackedApp.observe(_observe);
     
@@ -311,15 +251,6 @@ class AppManager extends EventTarget {
         
         this.addApp(app);
 
-        /* const _bindRender = () => {
-          // unFrustumCull(app);
-
-          if (app.renderOrder === -Infinity) {
-            sceneHighPriority.add(app);
-          }
-        };
-        _bindRender(); */
-
         p.accept(app);
       } catch (err) {
         p.reject(err);
@@ -377,22 +308,18 @@ class AppManager extends EventTarget {
     return null;
   }
   getOrCreateTrackedApp(instanceId) {
-    const {state} = this;
-    const apps = state.getArray(this.prefix);
-
-    for (const app of apps) {
+    for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
         return app;
       }
     }
     
     const appMap = new Y.Map();
-    apps.push([appMap]);
+    this.appsArray.push([appMap]);
     return appMap;
   }
   getTrackedApp(instanceId) {
-    const apps = this.state.getArray(this.prefix);
-    for (const app of apps) {
+    for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
         return app;
       }
@@ -400,8 +327,7 @@ class AppManager extends EventTarget {
     return null;
   }
   hasTrackedApp(instanceId) {
-    const apps = this.state.getArray(this.prefix);
-    for (const app of apps) {
+    for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
         return true;
       }
@@ -409,7 +335,7 @@ class AppManager extends EventTarget {
     return false;
   }
   clear() {
-    if (!this.state) {
+    if (!this.isBound()) {
       const apps = this.apps.slice();
       for (const app of apps) {
         this.removeApp(app);
@@ -436,8 +362,6 @@ class AppManager extends EventTarget {
     trackedApp.set('quaternion', quaternion);
     trackedApp.set('scale', scale);
     trackedApp.set('components', JSON.stringify(components));
-    // const originalJson = trackedApp.toJSON();
-    // trackedApp.set('originalJson', JSON.stringify(originalJson));
     return trackedApp;
   }
   addTrackedApp(
@@ -448,9 +372,8 @@ class AppManager extends EventTarget {
     components = [],
   ) {
     const self = this;
-    const {state} = this;
     const instanceId = getRandomString();
-    state.transact(function tx() {
+    this.appsArray.doc.transact(function tx() {
       self.addTrackedAppInternal(
         instanceId,
         contentId,
@@ -468,9 +391,8 @@ class AppManager extends EventTarget {
     }
   }
   getTrackedAppIndex(instanceId) {
-    const apps = this.state.getArray(this.prefix);
-    for (let i = 0; i < apps.length; i++) {
-      const app = apps.get(i);
+    for (let i = 0; i < this.appsArray.length; i++) {
+      const app = this.appsArray.get(i);
       if (app.get('instanceId') === instanceId) {
         return i;
       }
@@ -482,23 +404,22 @@ class AppManager extends EventTarget {
     
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
-      const apps = this.state.getArray(this.prefix);
-      apps.delete(removeIndex, 1);
+      this.appsArray.delete(removeIndex, 1);
     } else {
       console.warn('invalid remove instance id', {removeInstanceId, appsJson});
+      debugger;
     }
   }
   removeTrackedApp(removeInstanceId) {
     const self = this;
-    this.state.transact(function tx() {
+    this.appsArray.doc.transact(function tx() {
       self.removeTrackedAppInternal(removeInstanceId);
     });
   }
   setTrackedAppTransform(instanceId, p, q, s) {
-    const {state} = this;
     const self = this;
-    state.transact(function tx() {
-      const trackedApp = state.getMap(self.prefix + '.' + instanceId);
+    this.appsArray.doc.transact(function tx() {
+      const trackedApp = self.getTrackedApp(instanceId);
       trackedApp.set('position', p.toArray());
       trackedApp.set('quaternion', q.toArray());
       trackedApp.set('scale', s.toArray());
@@ -506,24 +427,6 @@ class AppManager extends EventTarget {
   }
   addApp(app) {
     this.apps.push(app);
-    
-    /* if (this.autoSceneManagement) {
-      const renderPriority = app.getComponent('renderPriority');
-      switch (renderPriority) {
-        case 'high': {
-          sceneHighPriority.add(app);
-          break;
-        }
-        case 'low': {
-          sceneLowPriority.add(app);
-          break;
-        }
-        default: {
-          scene.add(app);
-          break;
-        }
-      }
-    } */
     
     this.dispatchEvent(new MessageEvent('appadd', {
       data: app,
@@ -534,10 +437,6 @@ class AppManager extends EventTarget {
     // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId), new Error().stack);
     if (index !== -1) {
       this.apps.splice(index, 1);
-      
-      if (this.autoSceneManagement) {
-        app.parent.remove(app);
-      }
       
       this.dispatchEvent(new MessageEvent('appremove', {
         data: app,
@@ -573,11 +472,11 @@ class AppManager extends EventTarget {
     // srcAppManager.setBlindStateMode(true);
     // dstAppManager.setBlindStateMode(true);
     
-    if (srcAppManager.state === dstAppManager.state) {
+    if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
       this.unbindTrackedApp(instanceId);
       
       let dstTrackedApp = null;
-      srcAppManager.state.transact(() => {
+      srcAppManager.appsArray.doc.transact(() => {
         const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
         const contentId = srcTrackedApp.get('contentId');
         const position = srcTrackedApp.get('position');

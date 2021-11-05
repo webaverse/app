@@ -13,16 +13,14 @@ import {AppManager} from './app-manager.js';
 // import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from './metaversefile-api.js';
-import {worldMapName} from './constants.js';
+import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 
 // world
 export const world = {};
 
 const appManager = new AppManager({
-  prefix: worldMapName,
-  state: null,
-  autoSceneManagement: false,
+  appsMap: null,
 });
 world.appManager = appManager;
 
@@ -78,12 +76,12 @@ world.disableMic = () => {
 world.connectState = state => {
   world.appManager.unbindState();
   world.appManager.clear();
-  world.appManager.bindState(state);
+  world.appManager.bindState(state.getArray(appsMapName));
   
-  playersManager.bindState(state);
+  playersManager.bindState(state.getArray(playersMapName));
   
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.bindState(state);
+  localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
   // until we implement that, only fresh state is supported...
