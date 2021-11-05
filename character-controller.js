@@ -10,7 +10,7 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {actionsMapName, avatarMapName, playersMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {actionsMapName, avatarMapName, appsMapName, playersMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
 import {AppManager} from './app-manager.js';
 import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
@@ -32,17 +32,17 @@ class PlayerHand extends THREE.Object3D {
 }
 class Player extends THREE.Object3D {
   constructor({
-    prefix = getPlayerPrefix(makeId(5)),
-    state = new Y.Doc(),
+    playerId = makeId(5),
+    playersArray = new Y.Doc().getArray(playersMapName),
   } = {}) {
     super();
 
-    this.prefix = prefix;
-    this.state = null;
+    this.playerId = playerId;
+    this.playersArray = null;
+
+    this.playerMap = null;
     this.appManager = new AppManager({
-      prefix,
-      state: null,
-      autoSceneManagement: false,
+      appsMap: null,
     });
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
@@ -74,7 +74,7 @@ class Player extends THREE.Object3D {
     this.avatar = null;
     this.unbindStateFn = null;
     
-    this.bindState(state);
+    this.bindState(playersArray);
   }
   static controlActionTypes = [
     'jump',
@@ -82,26 +82,21 @@ class Player extends THREE.Object3D {
     'fly',
     'sit',
   ]
-  get playerId() {
-    return this.prefix.slice(playersMapName.length + 1); // playersMapName + '.'
-  }
-  set playerId(playerId) {
-    // nothing
+  isBound() {
+    return !!this.playersArray;
   }
   unbindState() {
-    const lastState = this.state;
-    if (lastState) {
+    if (this.isBound()) {
       this.unbindStateFn();
-      this.state = null;
+      this.playersArray = null;
       this.unbindStateFn = null;
     }
   }
-  bindState(nextState) {
+  bindState(nextPlayersArray) {
     // latch old state
-    const oldActions = this.state ? this.getActionsArray() : [];
-    const oldAvatar = this.state ? this.getAvatarState() : new Y.Map();
-    // const oldPlayers = this.state ? this.getPlayersState() : [];
-    const oldApps = this.state ? this.getAppsState().toJSON() : [];
+    const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
+    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
+    const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
     
     // unbind
     this.unbindState();
@@ -110,12 +105,12 @@ class Player extends THREE.Object3D {
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
     
     // blindly add to new state
-    this.state = nextState;
-    if (this.state) {
+    this.playersArray = nextPlayersArray;
+    if (this.playersArray) {
       const self = this;
-      this.state.transact(function tx() {
-        const players = self.getPlayersState();
-        players.push([self.playerId]);
+      this.playersArray.doc.transact(function tx() {
+        self.playerMap = new Y.Map();
+        self.playerMap.set('playerId', self.playerId);
         
         const actions = self.getActionsState();
         for (const oldAction of oldActions) {
@@ -123,13 +118,10 @@ class Player extends THREE.Object3D {
         }
         
         const avatar = self.getAvatarState();
-        const instanceId = oldAvatar.get('instanceId');
+        const {instanceId} = oldAvatar;
         if (instanceId !== undefined) {
           avatar.set('instanceId', instanceId);
-        } /* else {
-          console.warn('undefined avatar instance id when binding');
-          debugger;
-        } */
+        }
         
         const apps = self.getAppsState();
         for (const oldApp of oldApps) {
@@ -140,11 +132,14 @@ class Player extends THREE.Object3D {
           }
           apps.push([mapApp]);
         }
+        
+        self.playersArray.push([self.playerMap]);
       });
     }
     
-    this.appManager.bindState(this.state);
-    if (this.state) {
+    const newAppsState = this.getAppsState();
+    this.appManager.bindState(newAppsState);
+    if (this.playersArray) {
       const actions = this.getActionsState();
       let lastActions = actions.toJSON();
       const observeActionsFn = () => {
@@ -255,25 +250,37 @@ class Player extends THREE.Object3D {
     }
   }
   getActionsState() {
-    return this.state.getArray(this.prefix + '.' + actionsMapName);
+    let actionsArray = this.playerMap.get(actionsMapName);
+    if (!actionsArray) {
+      actionsArray = new Y.Array();
+      this.playerMap.set(actionsMapName, actionsArray);
+    }
+    return actionsArray;
   }
   getActionsArray() {
-    return this.state ? Array.from(this.getActionsState()) : [];
+    return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
-    return this.state.getMap(this.prefix + '.' + avatarMapName);
+    let avatarMap = this.playerMap.get(avatarMapName);
+    if (!avatarMap) {
+      avatarMap = new Y.Map();
+      this.playerMap.set(avatarMapName, avatarMap);
+    }
+    return avatarMap;
   }
   getAppsState() {
-    return this.state.getArray(this.prefix);
+    let appsArray = this.playerMap.get(appsMapName);
+    if (!appsArray) {
+      appsArray = new Y.Array();
+      this.playerMap.set(appsMapName, appsArray);
+    }
+    return appsArray;
   }
   getAppsArray() {
-    return this.state ? Array.from(this.getAppsState()) : [];
-  }
-  getPlayersState() {
-    return this.state.getArray(playersMapName);
+    return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   findAction(fn) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       for (const action of actions) {
         if (fn(action)) {
@@ -284,7 +291,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   findActionIndex(fn) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       let i = 0;
       for (const action of actions) {
@@ -297,7 +304,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   getAction(type) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       for (const action of actions) {
         if (action.type === type) {
@@ -308,7 +315,7 @@ class Player extends THREE.Object3D {
     return null;
   }
   getActionIndex(type) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       let i = 0;
       for (const action of actions) {
@@ -321,7 +328,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   indexOfAction(action) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       let i = 0;
       for (const a of actions) {
@@ -334,7 +341,7 @@ class Player extends THREE.Object3D {
     return -1;
   }
   hasAction(type) {
-    if (this.state) {
+    if (this.isBound()) {
       const actions = this.getActionsState();
       for (const action of actions) {
         if (action.type === type) {
@@ -380,7 +387,7 @@ class Player extends THREE.Object3D {
   }
   new() {
     const self = this;
-    this.state.transact(function tx() {
+    this.playersArray.doc.transact(function tx() {
       const actions = self.getActionsState();
       while (actions.length > 0) {
         actions.delete(actions.length - 1);
@@ -390,16 +397,8 @@ class Player extends THREE.Object3D {
       avatar.delete('instanceId');
       
       const apps = self.getAppsState();
-      const appsJson = apps.toJSON();
       while (apps.length > 0) {
         apps.delete(apps.length - 1);
-      }
-      for (const instanceId of appsJson) {
-        const appMap = self.state.get(self.prefix + '.' + instanceId);
-        const appJson = appMap.toJSON();
-        for (const k in appJson) {
-          appMap.delete(k);
-        }
       }
     });
   }
@@ -410,16 +409,14 @@ class Player extends THREE.Object3D {
     return JSON.stringify({
       // actions: actions.toJSON(),
       avatar: avatar.toJSON(),
-      apps: Array.from(apps).map(instanceId => {
-        return this.state.getMap(this.prefix + '.' + instanceId).toJSON();
-      }),
+      apps: apps.toJSON(),
     });
   }
   load(s) {
     const j = JSON.parse(s);
     // console.log('load', j);
     const self = this;
-    this.state.transact(function tx() {
+    this.playersArray.doc.transact(function tx() {
       const actions = self.getActionsState();
       while (actions.length > 0) {
         actions.delete(actions.length - 1);
@@ -433,15 +430,7 @@ class Player extends THREE.Object3D {
       const apps = self.getAppsState();
       if (Array.isArray(j?.apps)) {
         for (const app of j.apps) {
-          const {
-            instanceId,
-          } = app;
-          const appMap = self.state.get(self.prefix + '.' + instanceId);
-          for (const k in app) {
-            const v = app[k];
-            appMap.set(k, v);
-          }
-          apps.push([instanceId]);
+          apps.push([app]);
         }
       }
     });
@@ -477,7 +466,7 @@ class LocalPlayer extends Player {
   }
   setAvatarApp(app) {
     const self = this;
-    this.state.transact(function tx() {
+    this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
       const oldInstanceId = avatar.get('instanceId');
       
