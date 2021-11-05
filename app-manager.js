@@ -42,7 +42,7 @@ class AppManager extends EventTarget {
     
     this.pendingAddPromises = new Map();
     this.pushingLocalUpdates = false;
-    this.lastTimestamp = performance.now();
+    // this.lastTimestamp = performance.now();
     this.autoSceneManagement = autoSceneManagement;
     // this.stateBlindMode = false;
     this.unbindStateFn = null;
@@ -53,15 +53,18 @@ class AppManager extends EventTarget {
   
     appManagers.push(this);
   }
-  pretick(timestamp, frame) {
+  /* pretick(timestamp, frame) {
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timestamp - this.lastTimestamp;
     this.lastTimestamp = timestamp;
     this.dispatchEvent(new MessageEvent('preframe', localFrameOpts));
-  }
-  tick(timestamp, frame) {
-    // this.dispatchEvent(new MessageEvent('startframe', localFrameOpts));
+  } */
+  tick(timestamp, timeDiff, frame) {
+    // this.timeDiff(new MessageEvent('startframe', localFrameOpts));
+    localData.timestamp = timestamp;
+    localData.frame = frame;
+    localData.timeDiff = timeDiff;
     this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
   }
   setPushingLocalUpdates(pushingLocalUpdates) {
