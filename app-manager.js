@@ -259,9 +259,9 @@ class AppManager extends EventTarget {
         // Add Error placeholder
         const errorPH = this.getErrorPlaceholder();
         if (app) {
-            errorPH.position.fromArray(app.position);
-            errorPH.quaternion.fromArray(app.quaternion);
-            errorPH.scale.fromArray(app.scale);
+          errorPH.position.fromArray(app.position);
+          errorPH.quaternion.fromArray(app.quaternion);
+          errorPH.scale.fromArray(app.scale);
         }
         this.addApp(errorPH);
 
