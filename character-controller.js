@@ -44,11 +44,11 @@ class Player extends THREE.Object3D {
       state: null,
       autoSceneManagement: false,
     });
-    this.appManager.addEventListener('appadd', async e => {
+    this.appManager.addEventListener('appadd', e => {
       const app = e.data;
       scene.add(app);
     });
-    this.appManager.addEventListener('appremove', async e => {
+    this.appManager.addEventListener('appremove', e => {
       const app = e.data;
       app.parent && app.parent.remove(app);
     });
