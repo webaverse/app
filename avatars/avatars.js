@@ -13,7 +13,8 @@ import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime} from '../constants.js';
+import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {FixedTimeStep} from '../interpolants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1079,6 +1080,10 @@ class Avatar {
     this.eyeTargetEnabled = false;
 
     this.springBoneManager = null;
+    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+      const timeDiffS = timeDiff / 1000;
+      this.springBoneManager.lateUpdate(timeDiffS);
+    }, avatarInterpolationFrameRate);
     let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
@@ -2174,6 +2179,7 @@ class Avatar {
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+    const timeDiffS = timeDiff / 1000;
 
     const _updatePosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -2181,7 +2187,7 @@ class Avatar {
       
       const positionDiff = localVector.copy(this.lastPosition)
         .sub(currentPosition)
-        .divideScalar(timeDiff)
+        .divideScalar(timeDiffS)
         .multiplyScalar(0.1);
       localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
       localEuler.x = 0;
@@ -2676,7 +2682,7 @@ class Avatar {
 
       if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
         if (this.trackMouseAmount < 1) {
-          this.trackMouseAmount += timeDiff*3;
+          this.trackMouseAmount += timeDiffS*3;
         } else {
           this.trackMouseAmount = 1;
         }
@@ -2724,7 +2730,7 @@ class Avatar {
         if (this.trackMouseAmount <= 0) {
           this.trackMouseAmount = 0;
         } else {
-          this.trackMouseAmount -= timeDiff*3;
+          this.trackMouseAmount -= timeDiffS*3;
         }
       }
     }
@@ -2740,7 +2746,7 @@ class Avatar {
     this.modelBones.Hips.updateMatrixWorld();
 
     if (this.springBoneManager) {
-      this.springBoneManager.lateUpdate(timeDiff * simulationFactor);
+      this.springBoneTimeStep.update(timeDiff);
     }
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();

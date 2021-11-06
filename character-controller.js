@@ -10,9 +10,20 @@ import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import metaversefile from './metaversefile-api.js';
-import {actionsMapName, avatarMapName, appsMapName, playersMapName, crouchMaxTime, activateMaxTime, useMaxTime} from './constants.js';
+import {
+  actionsMapName,
+  avatarMapName,
+  appsMapName,
+  playersMapName,
+  crouchMaxTime,
+  activateMaxTime,
+  useMaxTime,
+  avatarInterpolationFrameRate,
+  avatarInterpolationTimeDelay,
+  avatarInterpolationNumFrames,
+} from './constants.js';
 import {AppManager} from './app-manager.js';
-import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant} from './interpolants.js';
+import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, getPlayerPrefix} from './util.js';
 
@@ -73,6 +84,16 @@ class Player extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
+    
+    this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
+    this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
+    this.positionTimeStep = new FixedTimeStep(timeDiff => {
+      this.positionInterpolant.snapshot(timeDiff);
+    }, avatarInterpolationFrameRate);
+    this.quaternionTimeStep = new FixedTimeStep(timeDiff => {
+      this.quaternionInterpolant.snapshot(timeDiff);
+    }, avatarInterpolationFrameRate);
+    
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
@@ -190,6 +211,12 @@ class Player extends THREE.Object3D {
   }
   getAvatarInstanceId() {
     return this.getAvatarState().get('instanceId') ?? '';
+  }
+  getPosition() {
+    return this.playerMap.get('position') ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.playerMap.get('quaternion') ?? [0, 0, 0, 1];
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -446,6 +473,12 @@ class Player extends THREE.Object3D {
   }
   update(timestamp, timeDiff) {
     if (this.avatar) {
+      this.positionTimeStep.update(timeDiff);
+      this.quaternionTimeStep.update(timeDiff);
+      
+      this.positionInterpolant.update(timeDiff);
+      this.quaternionInterpolant.update(timeDiff);
+      
       const _updateActionInterpolants = () => {
         this.actionInterpolants.crouch.update(timeDiff);
         this.actionInterpolants.activate.update(timeDiff);
@@ -462,8 +495,7 @@ class Player extends THREE.Object3D {
       const session = renderer.xr.getSession();
       applyPlayerToAvatar(this, session, this.avatar);
 
-      const timeDiffS = timeDiff / 1000;
-      this.avatar.update(timestamp, timeDiffS);
+      this.avatar.update(timestamp, timeDiff);
     }
   }
   destroy() {
@@ -764,6 +796,16 @@ class RemotePlayer extends Player {
     
     this.syncAvatar();
   }
+  
+  /* update(timestamp, timeDiff) {
+    this.positionTimeStep.update(timeDiff);
+    this.quaternionTimeStep.update(timeDiff);
+    
+    this.positionInterpolant.update(timeDiff);
+    this.quaternionInterpolant.update(timeDiff);
+    
+    super.update(timestamp, timeDiff);
+  } */
 }
 
 function getPlayerCrouchFactor(player) {
