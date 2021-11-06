@@ -5,21 +5,14 @@ const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
-  // let currentPosition, currentQuaternion;
   if (!session) {
-    rig.inputs.hmd.position.copy(player.position);
-    rig.inputs.hmd.quaternion.copy(player.quaternion);
+    rig.inputs.hmd.position.copy(player.positionInterpolant.value);
+    rig.inputs.hmd.quaternion.copy(player.quaternionInterpolant.value);
     rig.inputs.leftGamepad.position.copy(player.leftHand.position);
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
-    
-    // currentPosition = rig.inputs.hmd.position;
-    // currentQuaternion = rig.inputs.hmd.quaternion;
-  } /* else {
-    currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-    currentQuaternion = rig.inputs.hmd.quaternion;
-  } */
+  }
 }
 export function applyPlayerModesToAvatar(player, session, rig) {
   const aimAction = player.getAction('aim');
