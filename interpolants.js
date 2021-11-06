@@ -1,4 +1,7 @@
-export class Interpolant {
+import * as THREE from 'three';
+import {mod} from './util.js';
+
+export class ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     this.fn = fn;
     this.value = minValue;
@@ -16,7 +19,7 @@ export class Interpolant {
   }
 }
 
-export class BiActionInterpolant extends Interpolant {
+export class BiActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
   }
@@ -26,7 +29,7 @@ export class BiActionInterpolant extends Interpolant {
   }
 }
 
-export class UniActionInterpolant extends Interpolant {
+export class UniActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
   }
@@ -40,7 +43,7 @@ export class UniActionInterpolant extends Interpolant {
   }
 }
 
-export class InfiniteActionInterpolant extends Interpolant {
+export class InfiniteActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue) {
     super(fn, minValue);
   }
