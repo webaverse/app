@@ -14,6 +14,7 @@ import metaversefileApi from './metaversefile-api.js';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction} from './constants.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 
 // const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
@@ -196,21 +197,23 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, ccdEnabled) => {
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, ccdEnabled);
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
   
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
+  const physicsObject = _makePhysicsObject(physicsId);
   const physicsMesh = new THREE.Mesh(
-    new THREE.CapsuleGeometry(radius, radius, halfHeight*2)
+    new CapsuleGeometry(radius, radius, halfHeight*2)
   );
   physicsMesh.visible = false;
   // physicsMesh.position.copy(position);
   // physicsMesh.quaternion.copy(quaternion);
   // physicsMesh.scale.copy(size);
+  //physicsObject.position.copy(position);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   physicsObjects[physicsId] = physicsObject;
+  physicsObject.velocity = new THREE.Vector3(0,0,0);
   return physicsObject;
 };
 
@@ -333,6 +336,37 @@ physicsManager.enableGeometryQueries = physicsObject => {
 physicsManager.removeGeometry = physicsObject => {
   physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
+physicsManager.setVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+
+  physicsUpdates.push({
+    id: physicsObject.physicsId,
+    position: localVector,
+    quaternion: localQuaternion,
+    scale: localVector2,
+  });
+
+  const newTransform = physicsManager.getTransforms(physicsUpdates);
+  physicsUpdates.length = 0;
+
+  for (const updateOut of newTransform)
+    {
+      const {id, position, quaternion, scale} = updateOut; 
+      physicsObject.position.copy(position);
+      physicsObject.position.add(new THREE.Vector3(0, 1.15, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
+      //phyObj.quaternion.copy(quaternion);
+      //physicsObject.scale.copy(scale);
+      physicsObject.updateMatrixWorld();
+      //physicsObject.needsUpdate = false;
+    }
+};
+physicsManager.setTransform = (physicsObject, position, quaternion, scale) => {
+  physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, position, quaternion, scale);
+};
+physicsManager.getTransforms = physicsObjects => {
+  const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
+  return objs;
+};
 
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
@@ -349,29 +383,16 @@ physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 }; */
 physicsManager.simulatePhysics = timeDiff => {
   const t = timeDiff/1000;
-  // console.log('simulate', timeDiff, t);
-  const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-  physicsUpdates.length = 0;
-  for (const updateOut of updatesOut) {
-    const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = physicsObjects[id];
-    physicsObject.position.copy(position);
-    physicsObject.quaternion.copy(quaternion);
-    // physicsObject.scale.copy(scale);
-    physicsObject.updateMatrixWorld();
+
+  physx.physxWorker.simulatePhysics(physx.physics, t);
+
+  const localPlayer = metaversefileApi.useLocalPlayer();
+
+  if(localPlayer.avatar)
+  {
+    const phyObj = localPlayer.avatar.app.physicsObjects[0];
+    physicsManager.setVelocity(phyObj, physicsManager.velocity.clone());
   }
-};
-
-physicsManager.pushUpdate = physicsObject => {
-  const {physicsId, physicsMesh} = physicsObject;
-  physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-  physicsUpdates.push({
-    id: physicsId,
-    position: localVector.clone(),
-    quaternion: localQuaternion.clone(),
-    scale: localVector2.clone(),
-  });
 };
 
 physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
@@ -448,26 +469,41 @@ physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {
   physicsManager.physicsEnabled = physicsEnabled;
 };
-const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiffS) => {
-  if (physicsManager.physicsEnabled) {
+const _applyAvatarPhysics = (avatarWorldObject, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiffS) => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (physicsManager.physicsEnabled && localPlayer.avatar) {
+
     // apply offset
-    camera.position.add(physicsManager.offset);
+    const physicsObject = localPlayer.avatar.app.getPhysicsObjects()
+    physicsManager.disableGeometryQueries(physicsObject[0]);
+    avatarWorldObject.position.add(physicsManager.offset);
     physicsManager.offset.setScalar(0);
 
-    // capsule physics
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (!localPlayer.hasAction('sit')) {
-      applyVelocity(camera.position, physicsManager.velocity, timeDiffS);
+    
 
-      camera.updateMatrixWorld();
-      camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    // capsule physics
+    if (!localPlayer.hasAction('sit')) {
+
+      //applyVelocity(camera.position, physicsManager.velocity, timeDiffS);
+
+      avatarWorldObject.updateMatrixWorld();
+      avatarWorldObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      //localVector.copy(physicsObject[0].position);
 
       localVector4.copy(avatarOffset);
       if (cameraBasedOffset) {
         localVector4.applyQuaternion(localQuaternion);
       }
+
+      const offset = physicsManager.getAvatarCameraOffset();
+        avatarWorldObject.position.copy(physicsObject[0].position)
+        .sub(
+          localVector3.copy(offset)
+          .applyQuaternion(avatarWorldObject.quaternion)
+        );
+
       localVector.add(localVector4);
-      const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
+      const collision = _collideCapsule(physicsObject[0].position, localQuaternion2.set(0, 0, 0, 1));
       
       // avatar facing direction
       if (velocityAvatarDirection) {
@@ -499,17 +535,19 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       };
       const _ensureNoJumpAction = () => {
         localPlayer.removeAction('jump');
+        //physicsManager.setVelocity(physicsObject[0], new THREE.Vector3(0, 100, 0));
       };
       if (collision) {
         const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
         localVector4
           .fromArray(collision.direction)
           .add(localVector5.set(0, -crouchOffset, 0));
-        camera.position.add(localVector4)
-        localVector.add(localVector4);
+        //avatarWorldObject.position.add(localVector4)
+        //localVector.add(localVector4);
         
         if (collision.grounded) {
           physicsManager.velocity.y = 0;
+          //physicsManager.setVelocity(physicsObject[0], physicsManager.velocity);
           _ensureNoJumpAction();
         } else if (!jumpAction) {
           _ensureJumpAction();
@@ -518,45 +556,48 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         _ensureJumpAction();
       }
     } else {
-      physicsManager.velocity.y = 0;
+      // physicsManager.velocity.y = 0;
 
-      const sitAction = localPlayer.getAction('sit');
+      // const sitAction = localPlayer.getAction('sit');
 
-      const objInstanceId = sitAction.controllingId;
-      const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-      const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
+      // const objInstanceId = sitAction.controllingId;
+      // const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
+      // const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
-      const sitComponent = controlledApp.getComponent('sit');
-      const {sitOffset = [0, 0, 0], damping} = sitComponent;
+      // const sitComponent = controlledApp.getComponent('sit');
+      // const {sitOffset = [0, 0, 0], damping} = sitComponent;
 
-      physicsManager.setSitOffset(sitOffset);
+      // physicsManager.setSitOffset(sitOffset);
 
-      applyVelocity(controlledApp.position, physicsManager.velocity, timeDiffS);
-      if (physicsManager.velocity.lengthSq() > 0) {
-        controlledApp.quaternion
-          .setFromUnitVectors(
-            localVector4.set(0, 0, -1),
-            localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
-          )
-          .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
-      }
-      controlledApp.updateMatrixWorld();
+      // applyVelocity(controlledApp.position, physicsManager.velocity, timeDiffS);
+      // if (physicsManager.velocity.lengthSq() > 0) {
+      //   controlledApp.quaternion
+      //     .setFromUnitVectors(
+      //       localVector4.set(0, 0, -1),
+      //       localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
+      //     )
+      //     .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+      // }
+      // controlledApp.updateMatrixWorld();
 
-      localMatrix.copy(sitPos.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
+      // localMatrix.copy(sitPos.matrixWorld)
+      //   .decompose(localVector, localQuaternion, localVector2);
       
-      localVector.add(_sitOffset);
-      localVector.y += 1;
-      localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+      // localVector.add(_sitOffset);
+      // localVector.y += 1;
+      // localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       
-      const offset = physicsManager.getAvatarCameraOffset();
-      camera.position.copy(localVector)
-        .sub(
-          localVector3.copy(offset)
-            .applyQuaternion(camera.quaternion)
-        );
+      // const offset = physicsManager.getAvatarCameraOffset();
+      // camera.position.copy(localVector)
+      //   .sub(
+      //     localVector3.copy(offset)
+      //       .applyQuaternion(camera.quaternion)
+      //   );
     }
-    localMatrix.compose(localVector, localQuaternion, localVector2);
+
+    //localVector.add(physicsObject[0].position);
+    //camera.position.add(physicsObject[0].position);
+    localMatrix.compose(physicsObject[0].position, localQuaternion, localVector2);
 
     // apply to player
     if (updateRig) {
@@ -567,6 +608,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     localPlayer.matrix
       .decompose(localPlayer.position, localPlayer.quaternion, localPlayer.scale);
     localPlayer.matrixWorld.copy(localPlayer.matrix);
+
+    //physicsManager.setVelocity(physicsObject[0], physicsManager.velocity);
+
+
 
     
     if (localPlayer.avatar) {

@@ -20,6 +20,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localQuaternion = new THREE.Quaternion();
 
 class PlayerHand extends THREE.Object3D {
   constructor() {
@@ -570,6 +571,10 @@ function update(timeDiff) {
   localPlayer.actionInterpolants.jump.update(timeDiff);
   localPlayer.actionInterpolants.dance.update(timeDiff);
   localPlayer.actionInterpolants.throw.update(timeDiff);
+
+  
+
+  
 }
 
 export {

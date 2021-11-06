@@ -585,7 +585,7 @@ class AppManager extends EventTarget {
             physicsObject.scale.copy(app.scale);
             physicsObject.updateMatrixWorld();
             
-            physicsManager.pushUpdate(physicsObject);
+            //physicsManager.pushUpdate(physicsObject); Will do it differently
             physicsObject.needsUpdate = false;
           }
           
