@@ -348,7 +348,7 @@ physicsManager.simulatePhysics = timeDiff => {
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = metaversefileApi.getAppByPhysicsId(id).getPhysicsObject();
+    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
     // physicsObject.scale.copy(scale);

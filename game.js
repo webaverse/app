@@ -770,7 +770,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       highlightedPhysicsObject.updateMatrixWorld();
 
-      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getAppByPhysicsId(physicsId).getPhysicsObject();
+      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if(physicsObject)
       {
         const {physicsMesh} = physicsObject;
@@ -797,7 +797,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (h && !gameManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getAppByPhysicsId(physicsId).getPhysicsObject();
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
@@ -821,7 +821,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (o) {
       const physicsId = mouseSelectedPhysicsId;
 
-      const physicsObject = metaversefileApi.getAppByPhysicsId(physicsId).getPhysicsObject();
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
@@ -861,7 +861,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getAppByPhysicsId(physicsId).getPhysicsObject();
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomHoverPhysicsMesh.geometry = physicsMesh.geometry;
@@ -884,7 +884,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomEquipmentHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomEquipmentHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getAppByPhysicsId(physicsId).getPhysicsObject();
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomEquipmentHoverPhysicsMesh.geometry = physicsMesh.geometry;

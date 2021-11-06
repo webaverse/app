@@ -317,6 +317,14 @@ class AppManager extends EventTarget {
     }
     return null;
   }
+  getPhysicsObjectByPhysicsId(physicsId) {
+    for (const app of this.apps) {
+      if (app.getPhysicsObjects && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
+        return app.getPhysicsObjects().find(o => o.physicsId === physicsId);
+      }
+    }
+    return null;
+  }
   getOrCreateTrackedApp(instanceId) {
     for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
