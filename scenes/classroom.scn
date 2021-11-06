@@ -1,17 +1,10 @@
 {
   "objects": [
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/classroom/"
-    },
-    {
+      "components":[{"key":"resolution", "value":[3840,2160]}],
       "position": [1, 2, -4.5],
       "quaternion": [0, 0, 0, 1],
-      "scale": [3, 3, 3],
+      "scale": [10, 10, 10],
       "start_url": "https://https-vrchat-com.proxy.webaverse.com/"
     }
   ]
