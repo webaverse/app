@@ -591,6 +591,7 @@ const cylinderMesh = (() => {
 let lastDraggingRight = false;
 let dragRightSpec = null;
 let fovFactor = 0;
+let lastActivated = false;
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
@@ -1040,13 +1041,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateUses = () => {
     const localPlayer = useLocalPlayer();
     const v = localPlayer.actionInterpolants.activate.getNormalized();
+    const currentActivated = v >= 1;
     
-    if (v >= 1) {
+    if (currentActivated && !lastActivated) {
       if (grabUseMesh.target) {
         grabUseMesh.target.activate();
       }
       localPlayer.removeAction('activate');
     }
+    lastActivated = currentActivated;
   };
   _updateUses();
   
