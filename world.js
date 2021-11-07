@@ -31,7 +31,7 @@ scene.add(world.lights);
 // multiplayer
 let wsrtc = null;
 
-// The extra Pose buffers we send along
+/* // The extra Pose buffers we send along
 const extra = {
   leftGamepadPosition: new Float32Array(3),
   leftGamepadQuaternion: new Float32Array(4),
@@ -43,7 +43,7 @@ const extra = {
   direction: new Float32Array(3),
   velocity: new Float32Array(3),
   states: new Float32Array(15),
-};
+}; */
 
 let mediaStream = null;
 world.micEnabled = () => !!mediaStream;
