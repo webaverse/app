@@ -55,35 +55,9 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class Player extends THREE.Object3D {
-  constructor({
-    playerId = makeId(5),
-    playersArray = new Y.Doc().getArray(playersMapName),
-  } = {}) {
+class InterpolatedPlayer extends THREE.Object3D {
+  constructor() {
     super();
-
-    this.playerId = playerId;
-    this.playersArray = null;
-    this.playerMap = null;
-
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
-    this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
-    });
-    this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
-    });
-
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
-    this.hands = [
-      this.leftHand,
-      this.rightHand,
-    ];
     
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
@@ -132,6 +106,78 @@ class Player extends THREE.Object3D {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
+  }
+  updateInterpolation(timeDiff) {
+    this.positionTimeStep.update(timeDiff);
+    this.quaternionTimeStep.update(timeDiff);
+    
+    this.positionInterpolant.update(timeDiff);
+    this.quaternionInterpolant.update(timeDiff);
+    
+    for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
+      actionInterpolantTimeStep.update(timeDiff);
+    }
+    for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+      actionBinaryInterpolant.update(timeDiff);
+    }
+    for (const actionInterpolant of this.actionInterpolantsArray) {
+      actionInterpolant.update(timeDiff);
+    }
+  }
+}
+class UninterpolatedPlayer extends THREE.Object3D {
+  constructor() {
+    super();
+    
+    this.actionInterpolants = {
+      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
+      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
+      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
+      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
+      throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
+    };
+
+    this.avatarBinding = {
+      position: this.position,
+      quaternion: this.quaternion,
+    };
+  }
+  updateInterpolation(timeDiff) {
+    // nothing
+  }
+}
+class Player extends UninterpolatedPlayer {
+  constructor({
+    playerId = makeId(5),
+    playersArray = new Y.Doc().getArray(playersMapName),
+  } = {}) {
+    super();
+
+    this.playerId = playerId;
+    this.playersArray = null;
+    this.playerMap = null;
+
+    this.appManager = new AppManager({
+      appsMap: null,
+    });
+    this.appManager.addEventListener('appadd', e => {
+      const app = e.data;
+      scene.add(app);
+    });
+    this.appManager.addEventListener('appremove', e => {
+      const app = e.data;
+      app.parent && app.parent.remove(app);
+    });
+
+    this.leftHand = new PlayerHand();
+    this.rightHand = new PlayerHand();
+    this.hands = [
+      this.leftHand,
+      this.rightHand,
+    ];
     
     this.avatarEpoch = 0;
     this.avatar = null;
@@ -501,21 +547,7 @@ class Player extends THREE.Object3D {
   }
   update(timestamp, timeDiff) {
     if (this.avatar) {
-      this.positionTimeStep.update(timeDiff);
-      this.quaternionTimeStep.update(timeDiff);
-      
-      this.positionInterpolant.update(timeDiff);
-      this.quaternionInterpolant.update(timeDiff);
-      
-      for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
-        actionInterpolantTimeStep.update(timeDiff);
-      }
-      for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-        actionBinaryInterpolant.update(timeDiff);
-      }
-      for (const actionInterpolant of this.actionInterpolantsArray) {
-        actionInterpolant.update(timeDiff);
-      }
+      this.updateInterpolation(timeDiff);
       
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
