@@ -27,7 +27,7 @@ const localObject = new THREE.Object3D();
 
 let currentWorld = null;
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
-  ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/';
+  ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/scenes/';
 const enterWorld = async worldSpec => {
   world.disconnectRoom();
   
