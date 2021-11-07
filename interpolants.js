@@ -56,32 +56,33 @@ export class InfiniteActionInterpolant extends ScalarInterpolant {
   }
 }
 
-const _makeSnapshots = (Constructor, numFrames) => {
+const _makeSnapshots = (constructor, numFrames) => {
   const result = Array(numFrames);
   for (let i = 0; i < numFrames; i++) {
     result[i] = {
-      startValue: new Constructor(),
-      // endValue: new Constructor(),
+      startValue: constructor(),
+      // endValue: constructor(),
       startTime: 0,
       endTime: 0,
     };
   }
   return result;
 };
-export class VectorInterpolant {
-  constructor(fn, timeDelay, numFrames, Constructor, lerpFnName) {
+export class SnapshotInterpolant {
+  constructor(fn, timeDelay, numFrames, constructor, readFn, seekFn) {
     this.fn = fn;
     this.timeDelay = timeDelay;
     this.numFrames = numFrames;
-    this.lerpFnName = lerpFnName;
+    this.readFn = readFn;
+    this.seekFn = seekFn;
     
     this.readTime = 0;
     this.writeTime = 0;
 
-    this.snapshots = _makeSnapshots(Constructor, numFrames);
+    this.snapshots = _makeSnapshots(constructor, numFrames);
     this.snapshotWriteIndex = 0;
 
-    this.value = new Constructor();
+    this.value = constructor();
   }
   update(timeDiff) {
     this.readTime += timeDiff;
@@ -93,12 +94,12 @@ export class VectorInterpolant {
     for (let i = -(this.numFrames - 1); i < 0; i++) {
       const index = this.snapshotWriteIndex + i;
       const snapshot = this.snapshots[mod(index, this.numFrames)];
-      if (snapshot.startTime >= t && t < snapshot.endTime) {
+      if (snapshot.startTime >= t && t <= snapshot.endTime) {
         const f = (t - snapshot.startTime) / (snapshot.endTime - snapshot.startTime);
         const {startValue} = snapshot;
         const nextSnapshot = this.snapshots[mod(index + 1, this.numFrames)];
         const {startValue: endValue} = nextSnapshot;
-        this.value.copy(startValue)[this.lerpFnName](endValue, f);
+        this.value = this.seekFn(this.value, startValue, endValue, f);
         return;
       }
     }
@@ -108,24 +109,54 @@ export class VectorInterpolant {
     const value = this.fn();
     // console.log('got value', value.join(','), timeDiff);
     const writeSnapshot = this.snapshots[this.snapshotWriteIndex];
-    writeSnapshot.startValue.fromArray(value);
+    writeSnapshot.startValue = this.readFn(writeSnapshot.startValue, value);
     writeSnapshot.startTime = this.writeTime;
     writeSnapshot.endTime = this.writeTime + timeDiff;
     
     this.snapshotWriteIndex = mod(this.snapshotWriteIndex + 1, this.numFrames);
     this.writeTime += timeDiff;
   }
-}
-
-export class PositionInterpolant extends VectorInterpolant {
-  constructor(fn, timeDelay, numFrames) {
-    super(fn, timeDelay, numFrames, THREE.Vector3, 'lerp');
+  get() {
+    return this.value;
   }
 }
 
-export class QuaternionInterpolant extends VectorInterpolant {
+export class BinaryInterpolant extends SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames) {
-    super(fn, timeDelay, numFrames, THREE.Quaternion, 'slerp');
+    super(fn, timeDelay, numFrames, () => false, (target, value) => {
+      // console.log('read value', value);
+      return value;
+    }, (target, src, dst, f) => {
+      // console.log('seek', target, src, dst, f);
+      return src;
+    });
+  }
+  /* snapshot(timeDiff) {
+    debugger;
+  } */
+}
+
+export class PositionInterpolant extends SnapshotInterpolant {
+  constructor(fn, timeDelay, numFrames) {
+    super(fn, timeDelay, numFrames, () => new THREE.Vector3(), (target, value) => {
+      target.fromArray(value);
+      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+        debugger;
+      }
+      return target;
+    }, (target, src, dst, f) => {
+      target.copy(src).lerp(dst, f);
+      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+        debugger;
+      }
+      return target;
+    });
+  }
+}
+
+export class QuaternionInterpolant extends SnapshotInterpolant {
+  constructor(fn, timeDelay, numFrames) {
+    super(fn, timeDelay, numFrames, () => new THREE.Quaternion(), (target, value) => target.fromArray(value), (target, src, dst, f) => target.copy(src).slerp(dst, f));
   }
 }
 
