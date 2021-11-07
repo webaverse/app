@@ -41,7 +41,7 @@ const update = (timestamp, timeDiff) => {
 
 const triggerDamageAnimation = collisionId => {
   const timestamp = performance.now();
-  const physicsObject = physicsManager.getPhysicsObject(collisionId);
+  const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
   const {physicsMesh} = physicsObject;
   damagePhysicsMesh.geometry = physicsMesh.geometry;
   damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
