@@ -6,8 +6,8 @@ const avatarSymbol = 'avatar'; // Symbol('avatar');
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
-    rig.inputs.hmd.position.copy(player.positionInterpolant.value);
-    rig.inputs.hmd.quaternion.copy(player.quaternionInterpolant.get());
+    rig.inputs.hmd.position.copy(player.avatarBinding.position);
+    rig.inputs.hmd.quaternion.copy(player.avatarBinding.quaternion);
     rig.inputs.leftGamepad.position.copy(player.leftHand.position);
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
