@@ -318,11 +318,12 @@ class AppManager extends EventTarget {
     return null;
   }
   getPhysicsObjectByPhysicsId(physicsId) {
-    var obj;
     for (const app of this.apps) {
-      const found = app.getPhysicsObjects().some(o => { return o.physicsId === physicsId ? (obj = o, true) : false; });
-      if(app.getPhysicsObjects && found) {
-        return obj;
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        if (physicsObject.physicsId === physicsId) {
+          return physicsObject;
+        }
       }
     }
     return null;
