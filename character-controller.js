@@ -128,6 +128,11 @@ class Player extends THREE.Object3D {
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
     
+    this.avatarBinding = {
+      position: this.positionInterpolant.get(),
+      quaternion: this.quaternionInterpolant.get(),
+    };
+    
     this.avatarEpoch = 0;
     this.avatar = null;
     this.syncAvatarCancelFn = null;
