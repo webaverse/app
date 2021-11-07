@@ -99,9 +99,6 @@ class App extends THREE.Object3D {
   getPhysicsObjects() {
     return this.physicsObjects;
   }
-  getPhysicsObject() {
-    return this.physicsObjects[0];
-  }
   activate() {
     this.dispatchEvent({
       type: 'activate',
