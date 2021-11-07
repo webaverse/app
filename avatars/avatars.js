@@ -40,13 +40,13 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
       get() {
         localVector.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
         const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(physicsManager.velocity.y)*0.5, 0), 4), 2);
-        return initialStiffnessForce * (0.05 + 0.1*f);
+        return initialStiffnessForce * (0.1 + 0.1*f);
       },
       set(v) {},
     });
     Object.defineProperty(bone, 'dragForce', {
       get() {
-        return initialDragForce * 0.75;
+        return initialDragForce * 0.7;
       },
       set(v) {},
     });
