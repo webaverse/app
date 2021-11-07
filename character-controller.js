@@ -23,7 +23,7 @@ import {
   avatarInterpolationNumFrames,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
-import {BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
+import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, getPlayerPrefix} from './util.js';
 
@@ -94,16 +94,39 @@ class Player extends THREE.Object3D {
       this.quaternionInterpolant.snapshot(timeDiff);
     }, avatarInterpolationFrameRate);
     
-    this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
-      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
-      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
-      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
-      throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
+    this.actionBinaryInterpolants = {
+      crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
     };
+    this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
+    this.actionBinaryTimeSteps = {
+      crouch: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.crouch.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      activate: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.activate.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      use: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.use.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      narutoRun: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.narutoRun.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      fly: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fly.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      jump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.jump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      dance: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.dance.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      throw: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.throw.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+    };
+    this.actionBinaryTimeStepsArray = Object.keys(this.actionBinaryTimeSteps).map(k => this.actionBinaryTimeSteps[k]);
+    this.actionInterpolants = {
+      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
+      activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
+      use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
+      narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
+      fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
+      jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
+      dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
+      throw: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0),
+    };
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
     
     this.avatarEpoch = 0;
     this.avatar = null;
@@ -479,17 +502,15 @@ class Player extends THREE.Object3D {
       this.positionInterpolant.update(timeDiff);
       this.quaternionInterpolant.update(timeDiff);
       
-      const _updateActionInterpolants = () => {
-        this.actionInterpolants.crouch.update(timeDiff);
-        this.actionInterpolants.activate.update(timeDiff);
-        this.actionInterpolants.use.update(timeDiff);
-        this.actionInterpolants.narutoRun.update(timeDiff);
-        this.actionInterpolants.fly.update(timeDiff);
-        this.actionInterpolants.jump.update(timeDiff);
-        this.actionInterpolants.dance.update(timeDiff);
-        this.actionInterpolants.throw.update(timeDiff);
-      };
-      _updateActionInterpolants();
+      for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
+        actionInterpolantTimeStep.update(timeDiff);
+      }
+      for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+        actionBinaryInterpolant.update(timeDiff);
+      }
+      for (const actionInterpolant of this.actionInterpolantsArray) {
+        actionInterpolant.update(timeDiff);
+      }
       
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
