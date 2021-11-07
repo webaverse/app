@@ -786,6 +786,13 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
+  getPhysicsObjectByPhysicsId() {
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+       remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+  },
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');

@@ -173,7 +173,7 @@ physicsManager.setCrouchState = newCrouchState => {
   crouchTime = 0;
 }; */
 
-const physicsObjects = {};
+// const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
@@ -210,7 +210,6 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, c
   // physicsMesh.scale.copy(size);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -228,7 +227,6 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   // physicsMesh.scale.copy(size);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.addGeometry = mesh => {
@@ -261,7 +259,6 @@ physicsManager.addGeometry = mesh => {
   physicsMesh.scale.set(1, 1, 1);
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.cookGeometry = mesh => physx.physxWorker.cookGeometryPhysics(physx.physics, mesh);
@@ -274,7 +271,6 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -300,7 +296,6 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.scale.set(1, 1, 1);
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.cookConvexGeometry = mesh => physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh);
@@ -313,7 +308,6 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -335,7 +329,7 @@ physicsManager.removeGeometry = physicsObject => {
 };
 
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
-physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
+// physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 /* physicsManager.pushPhysicsUpdate = physicsId => {
   const physicsObject = physicsObjects[physicsId];
   // physicsObject.updateMatrixWorld();
@@ -354,7 +348,7 @@ physicsManager.simulatePhysics = timeDiff => {
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = physicsObjects[id];
+    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
     // physicsObject.scale.copy(scale);
