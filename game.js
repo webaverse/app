@@ -771,8 +771,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       highlightedPhysicsObject.updateMatrixWorld();
 
       const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-      if(physicsObject)
-      {
+      if(physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
         // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
