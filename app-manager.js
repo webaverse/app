@@ -532,7 +532,8 @@ class AppManager extends EventTarget {
       this.appsArray.doc.transact(() => { 
         for (const app of this.apps) {
           if (this.hasTrackedApp(app.instanceId)) {
-            app.updateMatrixWorld();
+            // app.updateMatrixWorld();
+            
             if (!app.matrix.equals(app.lastMatrix)) {
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
