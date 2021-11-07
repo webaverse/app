@@ -741,6 +741,9 @@ class LocalPlayer extends Player {
   }
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
+      if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+        debugger;
+      }
       this.playerMap.set('position', this.position.toArray(localArray3));
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
