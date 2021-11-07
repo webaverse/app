@@ -624,3 +624,17 @@ export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
 export function getPlayerPrefix(playerId) {
   return playersMapName + '.' + playerId;
 }
+
+export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
+  const center = boundingBox.getCenter(localVector);
+  const size = boundingBox.getSize(localVector2);
+
+  const maxSize = Math.max( size.x, size.y, size.z );
+  const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
+
+  camera.position.z = distance;
+  // camera.lookAt(center);
+  camera.updateMatrixWorld();
+}
