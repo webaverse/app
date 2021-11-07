@@ -95,7 +95,8 @@ export class SnapshotInterpolant {
       const index = this.snapshotWriteIndex + i;
       const snapshot = this.snapshots[mod(index, this.numFrames)];
       if (snapshot.startTime >= t && t <= snapshot.endTime) {
-        const f = (t - snapshot.startTime) / (snapshot.endTime - snapshot.startTime);
+        const duration = snapshot.endTime - snapshot.startTime;
+        const f = (duration > 0 && duration < Infinity) ? ((t - snapshot.startTime) / duration) : 0;
         const {startValue} = snapshot;
         const nextSnapshot = this.snapshots[mod(index + 1, this.numFrames)];
         const {startValue: endValue} = nextSnapshot;
