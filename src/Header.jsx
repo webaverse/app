@@ -44,7 +44,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
   const multiplayerOpen = open === 'multiplayer';
   
   const refreshRooms = async () => {
-    const res = await fetch(universe.getWorldsHost() + '@worlds/');
+    const res = await fetch(universe.getWorldsHost());
     if (res.ok) {
       const rooms = await res.json();
       setRooms(rooms);
@@ -121,11 +121,11 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
             e.stopPropagation();
 
             const roomName = _makeName();
-            console.log('got room name 0', {roomName}, universe.getWorldsHost() + '@worlds/' + roomName);
+            console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
             const data = Y.encodeStateAsUpdate(world.getState(true));
-            // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
-            console.log('post', universe.getWorldsHost() + '@worlds/' + roomName);
-            const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
+            // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
+            console.log('post', universe.getWorldsHost() + roomName);
+            const res = await fetch(universe.getWorldsHost() + roomName, {
               method: 'POST',
               body: data,
             });
@@ -167,7 +167,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
                 e.preventDefault();
                 e.stopPropagation();
 
-                const res = await fetch(universe.getWorldsHost() + '@worlds/' + room.name, {
+                const res = await fetch(universe.getWorldsHost() + room.name, {
                   method: 'DELETE'
                 });
                 // console.log('got click 0');
