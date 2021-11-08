@@ -1,3 +1,12 @@
+.loginBtn {
+  transform: skew(-20deg) translate(-10px, -10px);
+  background: rgb(0, 168, 252);
+  color: rgb(0, 0, 0);
+  padding: 0.5em;
+  width: 8em;
+  text-align: center;
+  cursor: pointer;
+}
 .logoutBtn {
   position: absolute;
   right: 0;
@@ -143,6 +152,13 @@ body {
   display: flex;
   width: 400px;
   height: 100vh;
+  overflow: hidden;
+}
+.header .tab .panelsLogin {
+  position: fixed;
+  display: flex;
+  /* width: 400px;
+  height: 100vh; */
   overflow: hidden;
 }
 .header .tab .panels .panel {

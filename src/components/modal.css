@@ -68,7 +68,7 @@ body {
   align-items: center;
 }
 .modal {
-  width: 600px;
+  width: 300px;
   background: rgb(0 0 0 / 100%);
   border: 1px solid #000;
   transition: 1.1s ease-out;
@@ -79,8 +79,10 @@ body {
   visibility: visible;
   /* color: black; */
   position: absolute;
-  top: 50vh;
-  left: 50%;
+  /* top: 50vh;
+  left: 50%; */
+  top: 150px;
+  right: -150px;
   transform: translate(-50%, -50%);
 }
 .modal.off {
@@ -109,7 +111,7 @@ body {
 } */
 .modal .content {
   cursor: auto;
-  padding: 1rem;
+  padding-top: 1rem;
 }
 /* .modal .actions {
   border-top: 1px solid #ccc;
