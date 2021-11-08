@@ -31,7 +31,6 @@ function useComponentVisible(initialIsVisible, fn) {
 
   return {ref, isComponentVisible, setIsComponentVisible};
 }
-
 const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
   const [show, setShow] = useState(false);
@@ -169,28 +168,16 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
               
                 <Modal onClose={ showModal } show={show}>
                   <div style={{display: 'flex'}}>
-                    {/* <h2 style={{color: '#e1aad9'}}>Webaverse Logo</h2> */}
-                    {/* <img src="https://webaverse.com/webaverse.png" alt="" width="80px"/>
-                    <p style={{marginLeft: '20px', color: '#fff', fontSize: '24px'}}>Webaverse</p> */}
                   </div>
-                  <div style={{width: '100%', display: 'flex', marginTop: '10px'}}>
-                    <div style={{width: '40%'}}>
-                    <div className={styles.specialBtnDiv2}>
-                      <div className={styles.specialBtnDiv}>
-                        <button className={styles.specialBtn} onClick={ metaMaskLogin }>MetaMask</button>
-                      </div>              
+                  <div style={{width: '100%', margin: '10px', textAlign: '-webkit-center'}}>
+                    <div className={styles.loginBtn} onClick={ metaMaskLogin }>
+                      MetaMask
                     </div>
-                    <div style={{marginTop: '10px'}} className={styles.specialBtnDiv2}>
-                      <div className={styles.specialBtnDiv}>
-                        <a href={discordAuthUrl}>
-                        <button className={styles.specialBtn}>Discord</button>
-                        </a>
-                      </div>              
-                    </div>
-                    </div>
-                    <div style={{width: '60%', marginLeft: '40px', color: '#fff'}}>
-                      Log in and experience our immersive 3D universe.
-                    </div>
+                    <a href={discordAuthUrl}>
+                      <div className={styles.loginBtn} style={{marginTop: '20px'}}>
+                        Discord
+                      </div>
+                    </a>
                   </div>
                 </Modal>
                 
