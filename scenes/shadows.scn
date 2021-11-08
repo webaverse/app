@@ -8,6 +8,13 @@
       }
     },
     {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
       "type": "application/rendersettings",
       "content": {
         "fog": {
