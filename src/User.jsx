@@ -155,10 +155,10 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                 <Modal onClose={ showModal } show={show}>
                   <div style={{display: 'flex'}}>
                     {/* <h2 style={{color: '#e1aad9'}}>Webaverse Logo</h2> */}
-                    <img src="https://webaverse.com/webaverse.png" alt="" width="80px"/>
-                    <p style={{marginLeft: '20px', color: '#fff', fontSize: '24px'}}>Webaverse</p>
+                    {/* <img src="https://webaverse.com/webaverse.png" alt="" width="80px"/>
+                    <p style={{marginLeft: '20px', color: '#fff', fontSize: '24px'}}>Webaverse</p> */}
                   </div>
-                  <div style={{width: '100%', display: 'flex', marginTop: '30px'}}>
+                  <div style={{width: '100%', display: 'flex', marginTop: '10px'}}>
                     <div style={{width: '40%'}}>
                     <div className={styles.specialBtnDiv2}>
                       <div className={styles.specialBtnDiv}>
