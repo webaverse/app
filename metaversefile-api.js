@@ -7,6 +7,7 @@ metaversfile can load many file types, including javascript.
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Y from 'yjs';
@@ -829,6 +830,9 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
+  },
+  useTextInternal() {
+    return Text;
   },
   useGradientMapsInternal() {
     return gradientMaps;
