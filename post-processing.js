@@ -24,7 +24,7 @@ import {
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';

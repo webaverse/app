@@ -14,7 +14,7 @@ import physicsManager from './physics-manager.js';
 import {parseQuery, parseCoord} from './util.js';
 // import {arrowGeometry, arrowMaterial} from './shaders.js';
 // import {landHost, worldUrl} from './constants.js';
-import metaversefile from './metaversefile-api.js';
+import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
 
 /* const localVector = new THREE.Vector3();

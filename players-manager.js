@@ -3,7 +3,7 @@
 import {RemotePlayer} from './character-controller.js';
 import {getPlayerPrefix} from './util.js';
 import {playersMapName} from './constants.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 
 class PlayersManager {
   constructor() {
