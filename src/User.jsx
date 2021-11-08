@@ -4,9 +4,10 @@ import classnames from 'classnames';
 import styles from './Header.module.css';
 import * as ceramicApi from '../ceramic.js';
 // import styles from './User.module.css';
-import {storageHost, accountsHost, tokensHost, loginEndpoint} from '../constants';
+import {storageHost, accountsHost, tokensHost, loginEndpoint, discordAuthUrl} from '../constants';
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
+import Modal from "./components/modal";
 
 let userObject;
 
@@ -32,6 +33,14 @@ function useComponentVisible(initialIsVisible, fn) {
 }
 
 const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+
+  const [show, setShow] = useState(false);
+
+  const showModal = async e => {
+    e.preventDefault();
+    setShow(!show);
+  } 
+
   const discordRef = useComponentVisible(false);
   const metaMaskRef = useComponentVisible(false);
   const emailRef = useComponentVisible(false);
@@ -135,7 +144,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           }
         }}>
         <img src="images/soul.png" className={styles.icon} />
-        <div className={styles.name}>{loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
+        <div className={styles.name} onClick={e => { showModal(e); }}>{loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
         </div>
       </div>
       {
@@ -143,20 +152,35 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           ? <div className={styles.login_options}>
             {
               loginButtons ? <>
-                <a className={styles.metamask} onClick={ metaMaskLogin }>
-                  <img src="./images/metamask.png" width="30px" alt="" />
-                  <span className={styles.metamask_text}
-                  >MetaMask</span>
-                </a>
-                <a className={styles.discord} 
-                href="https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fstaging.webaverse.com%2Flogin&response_type=code&scope=identify"
-                // onClick={discordLogin}
-                >
-                  <img src="./images/discord.png" width="30px" alt="" />
-                  <span className={styles.discord_text}>Discord</span>
-                </a></> : ''
+                <Modal onClose={ showModal } show={show}>
+                  <div style={{display: 'flex'}}>
+                    {/* <h2 style={{color: '#e1aad9'}}>Webaverse Logo</h2> */}
+                    <img src="https://webaverse.com/webaverse.png" alt="" width="80px"/>
+                    <p style={{marginLeft: '20px', color: '#d70060', fontSize: '24px'}}>Webaverse</p>
+                  </div>
+                  <div style={{width: '100%', display: 'flex', marginTop: '30px'}}>
+                    <div style={{width: '40%'}}>
+                    <div className={styles.specialBtnDiv2}>
+                      <div className={styles.specialBtnDiv}>
+                        <button className={styles.specialBtn} onClick={ metaMaskLogin }>MetaMask</button>
+                      </div>              
+                    </div>
+                    <div style={{marginTop: '10px'}} className={styles.specialBtnDiv2}>
+                      <div className={styles.specialBtnDiv}>
+                        <a href={discordAuthUrl}>
+                        <button className={styles.specialBtn}>Discord</button>
+                        </a>
+                      </div>              
+                    </div>
+                    </div>
+                    <div style={{width: '60%', marginLeft: '40px', color: '#e1aad9'}}>
+                      Log in and experience our emmersive 3D universe.
+                    </div>
+                  </div>
+                </Modal>
+                </> : ''
             }
-            {
+            {/* {
               discordRef.isComponentVisible
                 ? <div className={styles.location}>
                   <div className={styles['input-wrap']}>
@@ -181,7 +205,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                                   else
                                     setLoginError(String(error).toLocaleUpperCase());
                                 }
-                              }
+                               }
                             } />
                           <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
                         </div>
@@ -190,7 +214,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                     </div>
                   </div>
                 </div> : ''
-            }
+            } */}
 
           </div>
           : <div></div>}

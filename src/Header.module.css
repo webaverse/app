@@ -1,3 +1,58 @@
+.specialBtnDiv {
+  /* min-width: 200px; */
+  /* border: 1px solid red; */
+  background-color: #777777;
+  padding: 5px;
+  clip-path: polygon(
+    0% 10px,                 /* top left */
+    10px 0%,                 /* top left */
+    100% 0%,    /* top right */
+    100% 10px,               /* top right */
+    100% calc(100% - 10px),  /* bottom right */
+    calc(100% - 10px) 100%,  /* bottom right */
+    10px 100%,               /* bottom left */
+    0 100%      /* bottom left */
+  );
+}
+
+.specialBtnDiv2 {
+  min-width: 200px;
+  /* border: 1px solid red; */
+  background-color: #9c27b0;
+  padding: 2px;
+  clip-path: polygon(
+    0% 10px,                 /* top left */
+    10px 0%,                 /* top left */
+    100% 0%,    /* top right */
+    100% 10px,               /* top right */
+    100% calc(100% - 10px),  /* bottom right */
+    calc(100% - 10px) 100%,  /* bottom right */
+    10px 100%,               /* bottom left */
+    0 100%      /* bottom left */
+  );
+}
+
+.specialBtn {
+  width: -webkit-fill-available;
+
+   font-size: 24px;
+  clip-path: polygon(
+    0% 10px,                 /* top left */
+    10px 0%,                 /* top left */
+    100% 0%,    /* top right */
+    100% 10px,               /* top right */
+    100% calc(100% - 10px),  /* bottom right */
+    calc(100% - 10px) 100%,  /* bottom right */
+    10px 100%,               /* bottom left */
+    0 100%      /* bottom left */
+  );
+   background-image: linear-gradient(#d98ddf, #eec2e2, #af4db6);
+   color: #572c75;
+  border: #572c75;
+  padding: 8px;
+  /* position:relative; */
+}
+
 body {
   --header-height: 50px;
 }
