@@ -18,7 +18,7 @@
 .specialBtnDiv2 {
   min-width: 200px;
   /* border: 1px solid red; */
-  background-color: #9c27b0;
+  background-color: #ac0159;
   padding: 2px;
   clip-path: polygon(
     0% 10px,                 /* top left */
@@ -46,9 +46,9 @@
     10px 100%,               /* bottom left */
     0 100%      /* bottom left */
   );
-   background-image: linear-gradient(#d98ddf, #eec2e2, #af4db6);
-   color: #572c75;
-  border: #572c75;
+   background-image: linear-gradient(#f77aaf, #c32052, #ac0159);
+   color: #fff;
+  border: #ac0159;
   padding: 8px;
   /* position:relative; */
 }

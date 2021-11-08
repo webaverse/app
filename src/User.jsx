@@ -173,7 +173,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                       </div>              
                     </div>
                     </div>
-                    <div style={{width: '60%', marginLeft: '40px', color: '#e1aad9'}}>
+                    <div style={{width: '60%', marginLeft: '40px', color: '#ac0159'}}>
                       Log in and experience our emmersive 3D universe.
                     </div>
                   </div>
