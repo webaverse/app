@@ -156,7 +156,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                   <div style={{display: 'flex'}}>
                     {/* <h2 style={{color: '#e1aad9'}}>Webaverse Logo</h2> */}
                     <img src="https://webaverse.com/webaverse.png" alt="" width="80px"/>
-                    <p style={{marginLeft: '20px', color: '#d70060', fontSize: '24px'}}>Webaverse</p>
+                    <p style={{marginLeft: '20px', color: '#fff', fontSize: '24px'}}>Webaverse</p>
                   </div>
                   <div style={{width: '100%', display: 'flex', marginTop: '30px'}}>
                     <div style={{width: '40%'}}>
@@ -173,7 +173,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                       </div>              
                     </div>
                     </div>
-                    <div style={{width: '60%', marginLeft: '40px', color: '#ac0159'}}>
+                    <div style={{width: '60%', marginLeft: '40px', color: '#fff'}}>
                       Log in and experience our emmersive 3D universe.
                     </div>
                   </div>
