@@ -30,6 +30,7 @@ import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
+import JSON6 from 'json-6';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -836,6 +837,9 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useJSON6Internal() {
+    return JSON6;
   },
   useGradientMapsInternal() {
     return gradientMaps;
