@@ -40,12 +40,20 @@
       }
     },
     {
+      "type": "application/text",
+      "content": {
+        "text": "S.L.Y",
+        "font": "./fonts/Bangers-Regular.ttf",
+        "fontSize": 1,
+        "anchorX": "left",
+        "anchorY": "middle",
+        "color": [255, 255, 255]
+      },
       "position": [
         0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+        2,
+        4
+      ]
     },
     {
       "position": [
