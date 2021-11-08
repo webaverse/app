@@ -68,6 +68,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           // console.log('login', {address, profile});
           setAddress(address);
           localStorage.setItem('loginToken', address);
+          setShow(false);
 
           userRef.setIsComponentVisible(false);
         } catch (err) {
@@ -110,6 +111,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           console.log('address', address)
           setAddress(address);
           localStorage.setItem('loginToken', address);
+          setShow(false);
         }
         else {
           setLoginError(String(error).toLocaleUpperCase());
@@ -144,14 +146,27 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           }
         }}>
         <img src="images/soul.png" className={styles.icon} />
-        <div className={styles.name} onClick={e => { showModal(e); }}>{loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
+        <div className={styles.name} onClick={e => { showModal(e); }}>
+          {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}  
+
         </div>
       </div>
+      { address ?
+        <div className={styles.logoutBtn}
+        onClick={e => {
+         localStorage.removeItem("loginToken");
+         setAddress(null)
+
+        }}
+        >Logout</div>
+       : ''
+      }
       {
         userRef.isComponentVisible
           ? <div className={styles.login_options}>
             {
               loginButtons ? <>
+              
                 <Modal onClose={ showModal } show={show}>
                   <div style={{display: 'flex'}}>
                     {/* <h2 style={{color: '#e1aad9'}}>Webaverse Logo</h2> */}
@@ -174,10 +189,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                     </div>
                     </div>
                     <div style={{width: '60%', marginLeft: '40px', color: '#fff'}}>
-                      Log in and experience our emmersive 3D universe.
+                      Log in and experience our immersive 3D universe.
                     </div>
                   </div>
                 </Modal>
+                
                 </> : ''
             }
             {/* {

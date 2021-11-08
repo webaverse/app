@@ -1,7 +1,22 @@
+.logoutBtn {
+  position: absolute;
+  right: 0;
+  background: black;
+  color: white;
+  padding: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: #ef5350;
+  color: white;
+}
+
 .specialBtnDiv {
   /* min-width: 200px; */
   /* border: 1px solid red; */
-  background-color: #777777;
+  background-color: #000;
   padding: 5px;
   clip-path: polygon(
     0% 10px,                 /* top left */
@@ -33,9 +48,10 @@
 }
 
 .specialBtn {
+  cursor: pointer;
   width: -webkit-fill-available;
 
-   font-size: 24px;
+   font-size: 20px;
   clip-path: polygon(
     0% 10px,                 /* top left */
     10px 0%,                 /* top left */
@@ -46,7 +62,8 @@
     10px 100%,               /* bottom left */
     0 100%      /* bottom left */
   );
-   background-image: linear-gradient(#f77aaf, #c32052, #ac0159);
+  background: #ac0159;
+   /* background-image: linear-gradient(#f77aaf, #c32052, #ac0159); */
    color: #fff;
   border: #ac0159;
   padding: 8px;
