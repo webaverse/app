@@ -455,6 +455,9 @@ metaversefile.setApi({
       removeObject() {
         return world.appManager.removeObject.apply(world.appManager, arguments);
       }, */
+      getApps() {
+        return world.appManager.apps;
+      },
       getLights() {
         return world.lights;
       },
