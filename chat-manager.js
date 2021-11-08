@@ -1,5 +1,5 @@
 import {makeId} from './util.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 const {useLocalPlayer} = metaversefileApi;
 
 const _getEmotion = text => {

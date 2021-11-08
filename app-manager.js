@@ -9,7 +9,7 @@ import * as Y from 'yjs';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
-import metaversefile from './metaversefile-api.js';
+import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {worldMapName} from './constants.js';
 

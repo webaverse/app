@@ -10,7 +10,7 @@ import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction} from './constants.js';

@@ -4,7 +4,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 
 // const localVector = new THREE.Vector3();
 // const localMatrix = new THREE.Matrix4();

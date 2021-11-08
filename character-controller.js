@@ -9,7 +9,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import metaversefile from './metaversefile-api.js';
+import metaversefile from 'metaversefile';
 import {
   actionsMapName,
   avatarMapName,

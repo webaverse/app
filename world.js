@@ -12,7 +12,7 @@ import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 

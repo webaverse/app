@@ -18,7 +18,6 @@ import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
-// import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
