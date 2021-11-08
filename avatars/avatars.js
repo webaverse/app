@@ -1421,8 +1421,8 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = -1;
-
-    // this.lastTimestamp = Date.now();
+    
+    this.now = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -2174,11 +2174,12 @@ class Avatar {
     );
     return localEuler.y;
   }
-	update(now, timeDiff, simulationFactor = 1) {
+	update(timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+    const {now} = this;
     const timeDiffS = timeDiff / 1000;
 
     const _updatePosition = () => {
@@ -2899,6 +2900,8 @@ class Avatar {
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     } */
+    
+    this.now += timeDiff;
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {

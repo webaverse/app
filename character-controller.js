@@ -459,7 +459,7 @@ class Player extends THREE.Object3D {
       const session = renderer.xr.getSession();
       applyPlayerToAvatar(this, session, this.avatar);
 
-      this.avatar.update(timestamp, timeDiff);
+      this.avatar.update(timeDiff);
     }
   }
   destroy() {
