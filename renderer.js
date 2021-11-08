@@ -24,7 +24,7 @@ function bindCanvas(c) {
     antialias: true,
     alpha: true,
     // preserveDrawingBuffer: false,
-    // logarithmicDepthBuffer: true,
+    logarithmicDepthBuffer: true,
   });
 
   const rect = renderer.domElement.getBoundingClientRect();
@@ -96,7 +96,6 @@ const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.in
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
-
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
