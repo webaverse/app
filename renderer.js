@@ -23,7 +23,7 @@ function bindCanvas(c) {
     context,
     antialias: true,
     alpha: true,
-    // preserveDrawingBuffer: false,
+    rendererExtensionFragDepth: true,
     logarithmicDepthBuffer: true,
   });
 
