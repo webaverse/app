@@ -43,7 +43,7 @@ export const aiHost = `https://ai.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
-export const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`
+export const discordClientId = '684141574808272937';
 
 export const worldMapName = 'world';
 export const actionsMapName = 'actions';

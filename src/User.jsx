@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import styles from './Header.module.css';
 import * as ceramicApi from '../ceramic.js';
 // import styles from './User.module.css';
-import {storageHost, accountsHost, tokensHost, loginEndpoint, discordAuthUrl} from '../constants';
+import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId} from '../constants';
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
@@ -163,7 +163,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                       <span>MetaMask</span>
                       </div>
                      </div>
-                    <a href={discordAuthUrl}>
+                    <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
                       <div className={styles.loginBtn} style={{marginTop: '10px'}}>
                       <div className={styles.loginBtnText}>
                       <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
