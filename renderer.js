@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
-let canvas = null, context = null, renderer = null, composer = null, renderTarget = null;
+let canvas = null, context = null, renderer = null, composer = null;
 
 function bindCanvas(c) {
   // initialize renderer
@@ -75,7 +75,6 @@ function getComposer() {
   return composer;
 }
 
-renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
 const scene = new THREE.Object3D();
 scene.name = 'scene';
@@ -132,6 +131,11 @@ window.addEventListener('resize', e => {
     
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;
+    }
+
+    const composer = getComposer();
+    if (composer) {
+      composer.setSize(rect.width, rect.height);
     }
   }
 });
