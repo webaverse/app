@@ -169,13 +169,21 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                 <Modal onClose={ showModal } show={show}>
                   <div style={{display: 'flex'}}>
                   </div>
-                  <div style={{width: '100%', margin: '10px', textAlign: '-webkit-center'}}>
+                  <div style={{width: '100%', margin: '10px 0', textAlign: '-webkit-center'}}>
                     <div className={styles.loginBtn} onClick={ metaMaskLogin }>
-                      MetaMask
-                    </div>
+                      <div className={styles.loginBtnText}>
+                      <img style={{verticalAlign: 'middle', margin: '0 10px'}} src="images/metamask.png" alt="metamask" width="28px"/>
+                      <span>MetaMask</span>
+                      </div>
+                     </div>
                     <a href={discordAuthUrl}>
-                      <div className={styles.loginBtn} style={{marginTop: '20px'}}>
-                        Discord
+                      <div className={styles.loginBtn} style={{marginTop: '10px'}}>
+                      {/* <span className={styles.loginBtnText}>
+                      <img src="" alt="discord" width="24px"/>Discord</span> */}
+                      <div className={styles.loginBtnText}>
+                      <img style={{verticalAlign: 'middle', margin: '0 10px'}} src="images/discord-dark.png" alt="discord" width="28px"/>
+                      <span>Discord</span>
+                      </div>
                       </div>
                     </a>
                   </div>

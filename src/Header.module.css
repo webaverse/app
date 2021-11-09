@@ -1,10 +1,14 @@
+.loginBtnText {
+  display: inline-block;
+  transform: skewX(20deg);
+}
 .loginBtn {
-  transform: skew(-20deg) translate(-10px, -10px);
+  transform: skewX(-20deg);
   background: rgb(0, 168, 252);
   color: rgb(0, 0, 0);
   padding: 0.5em;
-  width: 8em;
-  text-align: center;
+  width: 10em;
+  text-align: left;
   cursor: pointer;
 }
 .logoutBtn {
