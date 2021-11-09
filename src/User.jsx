@@ -9,8 +9,6 @@ import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
 
-let userObject;
-
 function useComponentVisible(initialIsVisible, fn) {
   const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible);
   const ref = useRef(null);
@@ -93,7 +91,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     if(storedLoginToken) {  
       setAddress(storedLoginToken);
     }
-
     else {
       const {
         error,
@@ -115,14 +112,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         else {
           setLoginError(String(error).toLocaleUpperCase());
         }
-
-        // debugger;
       }
-
-
-      // handleDiscordLogin(code, id)
-      // console.log(code,id);
-      // debugger;
     }
   }, [address, setAddress]);
 
@@ -165,30 +155,24 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           ? <div className={styles.login_options}>
             {
               loginButtons ? <>
-              
                 <Modal onClose={ showModal } show={show}>
-                  <div style={{display: 'flex'}}>
-                  </div>
-                  <div style={{width: '100%', margin: '10px 0', textAlign: '-webkit-center'}}>
+                  <div className={styles.loginDiv}>
                     <div className={styles.loginBtn} onClick={ metaMaskLogin }>
                       <div className={styles.loginBtnText}>
-                      <img style={{verticalAlign: 'middle', margin: '0 10px'}} src="images/metamask.png" alt="metamask" width="28px"/>
+                      <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
                       <span>MetaMask</span>
                       </div>
                      </div>
                     <a href={discordAuthUrl}>
                       <div className={styles.loginBtn} style={{marginTop: '10px'}}>
-                      {/* <span className={styles.loginBtnText}>
-                      <img src="" alt="discord" width="24px"/>Discord</span> */}
                       <div className={styles.loginBtnText}>
-                      <img style={{verticalAlign: 'middle', margin: '0 10px'}} src="images/discord-dark.png" alt="discord" width="28px"/>
+                      <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
                       <span>Discord</span>
                       </div>
                       </div>
                     </a>
                   </div>
                 </Modal>
-                
                 </> : ''
             }
             {/* {
