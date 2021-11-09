@@ -118,11 +118,13 @@ window.addEventListener('resize', e => {
     }
 
     const containerElement = getContainerElement();
-    const rect = containerElement.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
+    let {width, height} = containerElement.getBoundingClientRect();
+    const pixelRatio = window.devicePixelRatio;
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(pixelRatio);
     // renderer2.setSize(window.innerWidth, window.innerHeight);
 
-    const aspect = rect.width / rect.height;
+    const aspect = width / height;
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
 
@@ -135,7 +137,8 @@ window.addEventListener('resize', e => {
 
     const composer = getComposer();
     if (composer) {
-      composer.setSize(rect.width, rect.height);
+      composer.setSize(width, height);
+      composer.setPixelRatio(pixelRatio);
     }
   }
 });
