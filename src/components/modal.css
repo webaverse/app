@@ -1,62 +1,3 @@
-
-.specialBtnDiv {
-    /* min-width: 200px; */
-    /* border: 1px solid red; */
-    background-color: #000;
-    padding: 5px;
-    clip-path: polygon(
-      0% 10px,                 /* top left */
-      10px 0%,                 /* top left */
-      100% 0%,    /* top right */
-      100% 10px,               /* top right */
-      100% calc(100% - 10px),  /* bottom right */
-      calc(100% - 10px) 100%,  /* bottom right */
-      10px 100%,               /* bottom left */
-      0 100%      /* bottom left */
-    );
-  }
-  
-  .specialBtnDiv2 {
-    width: 100px;
-    /* border: 1px solid red; */
-    background-color: #ac0159;
-    padding: 2px;
-    clip-path: polygon(
-      0% 10px,                 /* top left */
-      10px 0%,                 /* top left */
-      100% 0%,    /* top right */
-      100% 10px,               /* top right */
-      100% calc(100% - 10px),  /* bottom right */
-      calc(100% - 10px) 100%,  /* bottom right */
-      10px 100%,               /* bottom left */
-      0 100%      /* bottom left */
-    );
-  }
-  
-  .specialBtn {
-    cursor: pointer;
-    width: -webkit-fill-available;
-  
-     font-size: 14px;
-    clip-path: polygon(
-      0% 10px,                 /* top left */
-      10px 0%,                 /* top left */
-      100% 0%,    /* top right */
-      100% 10px,               /* top right */
-      100% calc(100% - 10px),  /* bottom right */
-      calc(100% - 10px) 100%,  /* bottom right */
-      10px 100%,               /* bottom left */
-      0 100%      /* bottom left */
-    );
-    background: #ac0159;
-    /* background-image: linear-gradient(#f77aaf, #c32052, #ac0159); */
-     color: #fff;
-    border: #ac0159;
-    padding: 8px;
-    /* position:relative; */
-  }
-
-  
 html,
 body {
   height: 100%;
@@ -77,10 +18,7 @@ body {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
-  /* color: black; */
   position: absolute;
-  /* top: 50vh;
-  left: 50%; */
   top: 150px;
   right: -110px;
   transform: translate(-50%, -50%);
@@ -104,28 +42,12 @@ body {
     offset-path: none;
   }
 }
-/* .modal h2 {
-  border-bottom: 1px solid #ccc;
-  padding: 1rem;
-  margin: 0;
-} */
+
 .modal .content {
   cursor: auto;
   padding: 0.5em;
 }
-/* .modal .actions {
-  border-top: 1px solid #ccc;
-  background: #eee;
-  padding: 0.5rem 1rem;
-}
-.modal .actions button {
-  border: 0;
-  background: #78f89f;
-  border-radius: 5px;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  line-height: 1;
-} */
+
 #centered-toggle-button {
   position: absolute;
 }

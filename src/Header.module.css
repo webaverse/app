@@ -1,7 +1,19 @@
+.loginDiv {
+  width: 100%;
+  margin: 10px 0;
+  text-align: -webkit-center;
+}
+
 .loginBtnText {
   display: inline-block;
   transform: skewX(20deg);
 }
+
+.loginBtnImg {
+  vertical-align: middle;
+  margin: 0 10px;
+}
+
 .loginBtn {
   transform: skewX(-20deg);
   background: rgb(0, 168, 252);
@@ -11,6 +23,7 @@
   text-align: left;
   cursor: pointer;
 }
+
 .logoutBtn {
   position: absolute;
   right: 0;
@@ -24,63 +37,6 @@
 .logoutBtn:hover {
   background: #ef5350;
   color: white;
-}
-
-.specialBtnDiv {
-  /* min-width: 200px; */
-  /* border: 1px solid red; */
-  background-color: #000;
-  padding: 5px;
-  clip-path: polygon(
-    0% 10px,                 /* top left */
-    10px 0%,                 /* top left */
-    100% 0%,    /* top right */
-    100% 10px,               /* top right */
-    100% calc(100% - 10px),  /* bottom right */
-    calc(100% - 10px) 100%,  /* bottom right */
-    10px 100%,               /* bottom left */
-    0 100%      /* bottom left */
-  );
-}
-
-.specialBtnDiv2 {
-  min-width: 200px;
-  /* border: 1px solid red; */
-  background-color: #ac0159;
-  padding: 2px;
-  clip-path: polygon(
-    0% 10px,                 /* top left */
-    10px 0%,                 /* top left */
-    100% 0%,    /* top right */
-    100% 10px,               /* top right */
-    100% calc(100% - 10px),  /* bottom right */
-    calc(100% - 10px) 100%,  /* bottom right */
-    10px 100%,               /* bottom left */
-    0 100%      /* bottom left */
-  );
-}
-
-.specialBtn {
-  cursor: pointer;
-  width: -webkit-fill-available;
-
-   font-size: 20px;
-  clip-path: polygon(
-    0% 10px,                 /* top left */
-    10px 0%,                 /* top left */
-    100% 0%,    /* top right */
-    100% 10px,               /* top right */
-    100% calc(100% - 10px),  /* bottom right */
-    calc(100% - 10px) 100%,  /* bottom right */
-    10px 100%,               /* bottom left */
-    0 100%      /* bottom left */
-  );
-  background: #ac0159;
-   /* background-image: linear-gradient(#f77aaf, #c32052, #ac0159); */
-   color: #fff;
-  border: #ac0159;
-  padding: 8px;
-  /* position:relative; */
 }
 
 body {

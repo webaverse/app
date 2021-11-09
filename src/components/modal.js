@@ -14,12 +14,6 @@ export default class Modal extends React.Component {
       <div className="modal" id="modal">
         {/* <h2>Modal Window</h2> */}
         <div className="content">{this.props.children}
-        
-        {/* <div className="specialBtnDiv2" style={{marginTop: '50px'}}>
-            <div className="specialBtnDiv">
-            <button className="specialBtn" onClick={this.onClose}>Close</button>
-            </div>              
-        </div> */}
 
         {/* <div className="actions">
           <button className="toggle-button" onClick={this.onClose}>
