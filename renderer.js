@@ -118,7 +118,7 @@ window.addEventListener('resize', e => {
     }
 
     const containerElement = getContainerElement();
-    let {width, height} = containerElement.getBoundingClientRect();
+    const {width, height} = containerElement.getBoundingClientRect();
     const pixelRatio = window.devicePixelRatio;
     renderer.setSize(width, height);
     renderer.setPixelRatio(pixelRatio);
