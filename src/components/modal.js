@@ -1,6 +1,5 @@
 import React from "react";
 import "./modal.css";
-import PropTypes from "prop-types";
 
 export default class Modal extends React.Component {
   onClose = e => {
@@ -25,7 +24,3 @@ export default class Modal extends React.Component {
     );
   }
 }
-Modal.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  show: PropTypes.bool.isRequired
-};
