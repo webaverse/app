@@ -7,8 +7,10 @@ metaversfile can load many file types, including javascript.
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
+import * as Y from 'yjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
@@ -26,8 +28,9 @@ import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
-import {getState} from './state.js';
-import {makeId, getRandomString} from './util.js';
+// import {getState} from './state.js';
+import {makeId, getRandomString, getPlayerPrefix} from './util.js';
+import JSON6 from 'json-6';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -120,6 +123,9 @@ class App extends THREE.Object3D {
       hp: 100,
       totalHp: 100,
     });
+  }
+  willDieFrom(damage) {
+    return false;
   }
   destroy() {
     this.dispatchEvent({
@@ -246,8 +252,8 @@ const defaultComponents = {
   },
 };
 const localPlayer = new LocalPlayer({
-  prefix: 'player.' + makeId(5),
-  state: getState(),
+  prefix: getPlayerPrefix(makeId(5)),
+  state: new Y.Doc(),
 });
 const remotePlayers = new Map();
 
@@ -439,6 +445,9 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
+  useScene() {
+    return scene;
+  },
   useWorld() {
     return {
       /* addObject() {
@@ -447,6 +456,9 @@ metaversefile.setApi({
       removeObject() {
         return world.appManager.removeObject.apply(world.appManager, arguments);
       }, */
+      getApps() {
+        return world.appManager.apps;
+      },
       getLights() {
         return world.lights;
       },
@@ -662,7 +674,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('activate', fn);
+        app.removeEventListener('activate', fn);
       });
     } else {
       throw new Error('useActivate cannot be called outside of render()');
@@ -675,7 +687,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('wearupdate', fn);
+        app.removeEventListener('wearupdate', fn);
       });
     } else {
       throw new Error('useWear cannot be called outside of render()');
@@ -688,7 +700,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('use', fn);
+        app.removeEventListener('use', fn);
       });
     } else {
       throw new Error('useUse cannot be called outside of render()');
@@ -779,6 +791,13 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
+  getPhysicsObjectByPhysicsId() {
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+       remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+  },
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
@@ -815,6 +834,12 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
+  },
+  useTextInternal() {
+    return Text;
+  },
+  useJSON6Internal() {
+    return JSON6;
   },
   useGradientMapsInternal() {
     return gradientMaps;

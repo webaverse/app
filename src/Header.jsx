@@ -44,7 +44,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
   const multiplayerOpen = open === 'multiplayer';
   
   const refreshRooms = async () => {
-    const res = await fetch(universe.getWorldsHost() + '@worlds/');
+    const res = await fetch(universe.getWorldsHost());
     if (res.ok) {
       const rooms = await res.json();
       setRooms(rooms);
@@ -121,11 +121,11 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
             e.stopPropagation();
 
             const roomName = _makeName();
-            console.log('got room name 0', {roomName}, universe.getWorldsHost() + '@worlds/' + roomName);
+            console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
             const data = Y.encodeStateAsUpdate(world.getState(true));
-            // console.log('post data', universe.getWorldsHost() + '@worlds/' + roomName, world.getState(true).toJSON(), data);
-            console.log('post', universe.getWorldsHost() + '@worlds/' + roomName);
-            const res = await fetch(universe.getWorldsHost() + '@worlds/' + roomName, {
+            // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
+            console.log('post', universe.getWorldsHost() + roomName);
+            const res = await fetch(universe.getWorldsHost() + roomName, {
               method: 'POST',
               body: data,
             });
@@ -167,7 +167,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
                 e.preventDefault();
                 e.stopPropagation();
 
-                const res = await fetch(universe.getWorldsHost() + '@worlds/' + room.name, {
+                const res = await fetch(universe.getWorldsHost() + room.name, {
                   method: 'DELETE'
                 });
                 // console.log('got click 0');
@@ -249,7 +249,7 @@ export default function Header({
   app,
 }) {
   
-  const _getWearActions = () => Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+  const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
   
 	// console.log('index 2');
   const previewCanvasRef = useRef();
@@ -279,15 +279,15 @@ export default function Header({
   let [sx, setSx] = useState(1);
   let [sy, setSy] = useState(1);
   let [sz, setSz] = useState(1);
-  px = {value: px, onChange: e => {const v = e.target.value; selectedApp.position.x = v; setPx(v);}};
-  py = {value: py, onChange: e => {const v = e.target.value; selectedApp.position.y = v; setPy(v);}};
-  pz = {value: pz, onChange: e => {const v = e.target.value; selectedApp.position.z = v; setPz(v);}};
-  rx = {value: rx, onChange: e => {const v = e.target.value; selectedApp.rotation.x = v; setRx(v);}};
-  ry = {value: ry, onChange: e => {const v = e.target.value; selectedApp.rotation.y = v; setRy(v);}};
-  rz = {value: rz, onChange: e => {const v = e.target.value; selectedApp.rotation.z = v; setRz(v);}};
-  sx = {value: sx, onChange: e => {const v = e.target.value; selectedApp.scale.x = v; setSx(v);}};
-  sy = {value: sy, onChange: e => {const v = e.target.value; selectedApp.scale.y = v; setSy(v);}};
-  sz = {value: sz, onChange: e => {const v = e.target.value; selectedApp.scale.z = v; setSz(v);}};
+  px = {value: px, onChange: e => {const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx(v);}};
+  py = {value: py, onChange: e => {const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy(v);}};
+  pz = {value: pz, onChange: e => {const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz(v);}};
+  rx = {value: rx, onChange: e => {const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx(v);}};
+  ry = {value: ry, onChange: e => {const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy(v);}};
+  rz = {value: rz, onChange: e => {const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz(v);}};
+  sx = {value: sx, onChange: e => {const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx(v);}};
+  sy = {value: sy, onChange: e => {const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy(v);}};
+  sz = {value: sz, onChange: e => {const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz(v);}};
   
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';

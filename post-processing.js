@@ -24,7 +24,7 @@ import {
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
@@ -192,12 +192,12 @@ const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
 webaverseRenderPass.onBeforeRender = () => {
   // ensure lights attached
-  scene.add(world.lights);
+  // scene.add(world.lights);
   
   // decapitate avatar if needed
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
-    scene.add(localPlayer.avatar.model);
+    // scene.add(localPlayer.avatar.model);
     
     const decapitated = _isDecapitated();
     if (decapitated) {
