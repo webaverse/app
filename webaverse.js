@@ -295,6 +295,7 @@ export default class Webaverse extends EventTarget {
       // universe.update();
       if (this.contentLoaded) {
         physicsManager.update(timeDiffCapped);
+        physicsManager.physicsPreStep(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
       

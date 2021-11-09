@@ -584,12 +584,12 @@ metaversefile.setApi({
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
-        physicsObject.scale.copy(app.scale);
+        //physicsObject.scale.copy(app.scale);
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
-        physicsMesh.scale.copy(baseScale);
+        //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
         physicsObject.updateMatrixWorld();
         
@@ -842,6 +842,13 @@ export default () => {
     return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
+  },
+  getPhysicsObjectByPhysicsId() {
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+       remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
   useInternals() {
     if (!iframeContainer) {

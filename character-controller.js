@@ -66,6 +66,8 @@ class Player extends THREE.Object3D {
     this.avatarEpoch = 0;
     this.avatar = null;
     this.unbindStateFn = null;
+
+    this.velocity = new THREE.Vector3(0,0,0);
     
     this.bindState(state);
   }

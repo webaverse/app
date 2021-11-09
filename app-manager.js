@@ -336,6 +336,16 @@ class AppManager extends EventTarget {
     }
     return null;
   }
+  getPhysicsObjectByPhysicsId(physicsId) {
+    var obj;
+    for (const app of this.apps) {
+      const found = app.getPhysicsObjects().some(o => { return o.physicsId === physicsId ? (obj = o, true) : false; });
+      if(app.getPhysicsObjects && found) {
+        return obj;
+      }
+    }
+    return null;
+  }
   getOrCreateTrackedApp(instanceId) {
     const {state} = this;
     const apps = state.getArray(this.prefix);
@@ -585,7 +595,8 @@ class AppManager extends EventTarget {
             physicsObject.scale.copy(app.scale);
             physicsObject.updateMatrixWorld();
             
-            //physicsManager.pushUpdate(physicsObject); Will do it differently
+            //physicsManager.pushUpdate(physicsObject);
+            physicsManager.setTransform(physicsObject); // Similar functionality to pushUpdate(). 
             physicsObject.needsUpdate = false;
           }
           

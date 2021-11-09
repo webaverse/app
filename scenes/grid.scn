@@ -16,14 +16,7 @@
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
-    },
+    
     {
       "position": [
         4,
