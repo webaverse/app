@@ -5,21 +5,14 @@ const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
-  // let currentPosition, currentQuaternion;
   if (!session) {
-    rig.inputs.hmd.position.copy(player.position);
-    rig.inputs.hmd.quaternion.copy(player.quaternion);
+    rig.inputs.hmd.position.copy(player.avatarBinding.position);
+    rig.inputs.hmd.quaternion.copy(player.avatarBinding.quaternion);
     rig.inputs.leftGamepad.position.copy(player.leftHand.position);
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
-    
-    // currentPosition = rig.inputs.hmd.position;
-    // currentQuaternion = rig.inputs.hmd.quaternion;
-  } /* else {
-    currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-    currentQuaternion = rig.inputs.hmd.quaternion;
-  } */
+  }
 }
 export function applyPlayerModesToAvatar(player, session, rig) {
   const aimAction = player.getAction('aim');
@@ -155,14 +148,27 @@ export function applyPlayerToAvatar(player, session, rig) {
   applyPlayerChatToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
-  await newApp.setSkinning(true);
-  
-  // unwear old rig
+  let result;
+  const promises = [];
   if (oldAvatar) {
-    await oldAvatar[appSymbol].setSkinning(false);
+    promises.push((async () => {
+      await oldAvatar[appSymbol].setSkinning(false);
+    })());
   }
-  if (!newApp[avatarSymbol]) {
-    newApp[avatarSymbol] = makeAvatar(newApp);
+  if (newApp) {
+    promises.push((async () => {
+      await newApp.setSkinning(true);
+      
+      // unwear old rig
+      
+      if (!newApp[avatarSymbol]) {
+        newApp[avatarSymbol] = makeAvatar(newApp);
+      }
+      result = newApp[avatarSymbol];
+    })());
+  } else {
+    result = null;
   }
-  return newApp[avatarSymbol];
+  await Promise.all(promises);
+  return result;
 }
