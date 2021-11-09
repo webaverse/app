@@ -1,4 +1,4 @@
-import metaversefile from './metaversefile-api.js';
+import metaversefile from 'metaversefile';
 
 const moduleUrls = {
   button: `./metaverse_modules/button/`,

@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import {tokensHost, storageHost, accountsHost} from './constants.js';
-import { loginEndpoint } from './constants.js';
 import { getAddressFromMnemonic } from './blockchain.js';
+import {playersMapName, maxGrabDistance, tokensHost, storageHost, tokensHost, accountsHost, loginEndpoint} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -659,4 +658,22 @@ export function angleDifference(angle1, angle2) {
 
 export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
   return Math.pow(dampingPer60Hz, timeDiff / 60);
+}
+
+export function getPlayerPrefix(playerId) {
+  return playersMapName + '.' + playerId;
+}
+
+export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
+  const center = boundingBox.getCenter(localVector);
+  const size = boundingBox.getSize(localVector2);
+
+  const maxSize = Math.max( size.x, size.y, size.z );
+  const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
+
+  camera.position.z = distance;
+  // camera.lookAt(center);
+  camera.updateMatrixWorld();
 }

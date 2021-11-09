@@ -13,7 +13,8 @@ import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime} from '../constants.js';
+import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {FixedTimeStep} from '../interpolants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -39,13 +40,13 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
       get() {
         localVector.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
         const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(physicsManager.velocity.y)*0.5, 0), 4), 2);
-        return initialStiffnessForce * (0.05 + 0.1*f);
+        return initialStiffnessForce * (0.1 + 0.1*f);
       },
       set(v) {},
     });
     Object.defineProperty(bone, 'dragForce', {
       get() {
-        return initialDragForce * 0.75;
+        return initialDragForce * 0.7;
       },
       set(v) {},
     });
@@ -1079,6 +1080,10 @@ class Avatar {
     this.eyeTargetEnabled = false;
 
     this.springBoneManager = null;
+    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+      const timeDiffS = timeDiff / 1000;
+      this.springBoneManager.lateUpdate(timeDiffS);
+    }, avatarInterpolationFrameRate);
     let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
@@ -1190,8 +1195,8 @@ class Avatar {
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
       
-      // leftToe: _getOffset(modelBones.Left_toe),
-      // rightToe: _getOffset(modelBones.Right_toe),
+      leftToe: _getOffset(modelBones.Left_toe),
+      rightToe: _getOffset(modelBones.Right_toe),
     });
 
     this.height = eyePosition.clone()
@@ -1247,9 +1252,11 @@ class Avatar {
       leftUpperLeg: this.legsManager.leftLeg.upperLeg,
       leftLowerLeg: this.legsManager.leftLeg.lowerLeg,
       leftFoot: this.legsManager.leftLeg.foot,
+      leftToe: this.legsManager.leftLeg.toe,
       rightUpperLeg: this.legsManager.rightLeg.upperLeg,
       rightLowerLeg: this.legsManager.rightLeg.lowerLeg,
       rightFoot: this.legsManager.rightLeg.foot,
+      rightToe: this.legsManager.rightLeg.toe,
       leftThumb2: this.shoulderTransforms.rightArm.thumb2,
       leftThumb1: this.shoulderTransforms.rightArm.thumb1,
       leftThumb0: this.shoulderTransforms.rightArm.thumb0,
@@ -1280,8 +1287,6 @@ class Avatar {
       rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
       rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-      // leftToe: this.legsManager.leftToe,
-      // rightToe: this.legsManager.rightToe,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -1338,8 +1343,8 @@ class Avatar {
 	    Right_leg: this.outputs.leftUpperLeg,
 	    Right_knee: this.outputs.leftLowerLeg,
 	    Right_ankle: this.outputs.leftFoot,
-      // Left_toe: this.outputs.leftToe,
-      // Right_toe: this.outputs.rightToe,
+      Left_toe: this.outputs.leftToe,
+      Right_toe: this.outputs.rightToe,
 	  };
 
     this.emotes = [];
@@ -1416,8 +1421,8 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = -1;
-
-    // this.lastTimestamp = Date.now();
+    
+    this.now = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1491,12 +1496,12 @@ class Avatar {
       new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false),
       new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false),
       new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false),
-      // new AnimationMapping('mixamorigRightToeBase.quaternion', null, false),
+      new AnimationMapping('mixamorigRightToeBase.quaternion', this.outputs.leftToe.quaternion, false),
 
       new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false),
       new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false),
       new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
-      // new AnimationMapping('mixamorigLeftToeBase.quaternion', null, false),
+      new AnimationMapping('mixamorigLeftToeBase.quaternion', this.outputs.rightToe.quaternion, false),
     ];
 
     // shared state
@@ -1750,9 +1755,8 @@ class Avatar {
 	    Right_leg,
 	    Right_knee,
 	    Right_ankle,
-      
-      // Left_toe,
-      // Right_toe,
+      Left_toe,
+      Right_toe,
 	  };
 	  // this.modelBones = modelBones;
     /* for (const k in modelBones) {
@@ -2059,8 +2063,8 @@ class Avatar {
     rightLowerLeg: 'Left_knee',
     rightFoot: 'Left_ankle',
 
-    // leftToe: 'Left_toe',
-    // rightToe: Right_toe',
+    leftToe: 'Left_toe',
+    rightToe: 'Right_toe'
   }
   getEyePosition = (() => {
     const localVector = new THREE.Vector3();
@@ -2091,7 +2095,7 @@ class Avatar {
     this.shoulderTransforms.head.position.copy(setups.head);
     this.shoulderTransforms.eyes.position.copy(setups.eyes);
 
-    this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
+    if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
     this.shoulderTransforms.leftArm.lowerArm.position.copy(setups.leftLowerArm);
     this.shoulderTransforms.leftArm.hand.position.copy(setups.leftHand);
@@ -2111,7 +2115,7 @@ class Avatar {
     if (setups.leftLittleFinger2) this.shoulderTransforms.leftArm.littleFinger2.position.copy(setups.leftLittleFinger2);
     if (setups.leftLittleFinger1) this.shoulderTransforms.leftArm.littleFinger1.position.copy(setups.leftLittleFinger1);
 
-    this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
+    if (setups.rightShoulder) this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
     this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
     this.shoulderTransforms.rightArm.lowerArm.position.copy(setups.rightLowerArm);
     this.shoulderTransforms.rightArm.hand.position.copy(setups.rightHand);
@@ -2170,11 +2174,13 @@ class Avatar {
     );
     return localEuler.y;
   }
-	update(now, timeDiff) {
+	update(timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+    const {now} = this;
+    const timeDiffS = timeDiff / 1000;
 
     const _updatePosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -2182,7 +2188,7 @@ class Avatar {
       
       const positionDiff = localVector.copy(this.lastPosition)
         .sub(currentPosition)
-        .divideScalar(timeDiff)
+        .divideScalar(timeDiffS)
         .multiplyScalar(0.1);
       localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
       localEuler.x = 0;
@@ -2677,7 +2683,7 @@ class Avatar {
 
       if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
         if (this.trackMouseAmount < 1) {
-          this.trackMouseAmount += timeDiff*3;
+          this.trackMouseAmount += timeDiffS*3;
         } else {
           this.trackMouseAmount = 1;
         }
@@ -2725,7 +2731,7 @@ class Avatar {
         if (this.trackMouseAmount <= 0) {
           this.trackMouseAmount = 0;
         } else {
-          this.trackMouseAmount -= timeDiff*3;
+          this.trackMouseAmount -= timeDiffS*3;
         }
       }
     }
@@ -2741,7 +2747,7 @@ class Avatar {
     this.modelBones.Hips.updateMatrixWorld();
 
     if (this.springBoneManager) {
-      this.springBoneManager.lateUpdate(timeDiff);
+      this.springBoneTimeStep.update(timeDiff);
     }
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
@@ -2894,6 +2900,8 @@ class Avatar {
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     } */
+    
+    this.now += timeDiff;
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
