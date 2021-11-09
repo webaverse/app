@@ -189,7 +189,6 @@ const defaultComponents = {
         // if (grounded) {
           app.rotation.y += angularVelocity.y * timeDiff;
         // }
-        app.updateMatrixWorld();
         
         glowMesh.visible = !animation;
         if (!animation) {
@@ -247,6 +246,8 @@ const defaultComponents = {
             app.destroy();
           }
         }
+        
+        app.updateMatrixWorld();
       });
     }
   },
