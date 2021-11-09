@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import { getExt, makePromise, parseQuery } from './util.js';
+import {getExt, makePromise, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
-import App from './webaverse';
+// import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
-import {defaultRendererUrl} from './constants.js'
+import {fitCameraToBox} from './util.js';
+// import {defaultRendererUrl} from './constants.js'
 
 const defaultWidth = 512;
 const defaultHeight = 512;
-const cameraPosition = new THREE.Vector3(0, 1, -2);
+const cameraPosition = new THREE.Vector3(0, 1, 2);
 const cameraTarget = new THREE.Vector3(0, 0, 0);
 const FPS = 60;
 
@@ -38,8 +39,8 @@ const _makeRenderer = (width, height) => {
   scene.add(cubeMesh); */
 
   const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
-  camera.position.copy(cameraPosition);
-  camera.lookAt(cameraTarget);
+  // camera.position.copy(cameraPosition);
+  // camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
   // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
@@ -62,7 +63,7 @@ const _makeRenderer = (width, height) => {
   return {renderer, scene, camera};
 };
 
-const _makeUiRenderer = () => {
+/* const _makeUiRenderer = () => {
   const uiSize = 2048;
   const uiWorldSize = 0.2;
   const loadPromise = Promise.all([
@@ -88,14 +89,7 @@ const _makeUiRenderer = () => {
   let renderIds = 0;
   return {
     async render(htmlString, width, height) {
-      const [iframe/*, interfaceHtml */] = await loadPromise;
-
-      /* if (renderIds > 0) {
-        iframe.contentWindow.postMessage({
-          method: 'cancel',
-          id: renderIds,
-        }, '*');
-      } */
+      const [iframe] = await loadPromise;
 
       const start = Date.now();
       const mc = new MessageChannel();
@@ -127,8 +121,8 @@ const _makeUiRenderer = () => {
       return result;
     },
   };
-};
-const _makeIconString = (hash, ext, w, h) => {
+}; */
+/* const _makeIconString = (hash, ext, w, h) => {
   const icon = {
     'gltf': icons.vrCardboard,
     'glb': icons.vrCardboard,
@@ -197,7 +191,6 @@ const _makeIconString = (hash, ext, w, h) => {
     position: absolute;
     bottom: 0;
     right: 0;
-    /* padding: ${w/30}px; */
     background-color: #000;
     color: #FFF;
     font-size: ${w/5}px;
@@ -211,13 +204,54 @@ const _makeIconString = (hash, ext, w, h) => {
     <div class=label>${ext.toUpperCase()}</div>
   </div>
   `;
+}; */
+
+const dataUrlRegex = /^data:([^;,]+)(?:;(charset=utf-8|base64))?,([\s\S]*)$/;
+const _getType = id => {
+  id = id.replace(/^\/@proxy\//, '');
+
+  const o = new URL(id);
+  console.log('get type', o);
+  let match;
+  if (o.href && (match = o.href.match(dataUrlRegex))) {
+    const type = match[1] || '';
+    if (type === 'text/javascript') {
+      type = 'application/javascript';
+    }
+    let extension;
+    let match2;
+    if (match2 = type.match(/^application\/(light|rendersettings|group)$/)) {
+      extension = match2[1];
+    } else {
+      extension = mimeTypes.extension(type);
+    }
+    // console.log('got data extension', {type, extension});
+    return extension || '';
+  } else if (o.hash && (match = o.hash.match(/^#type=(.+)$/))) {
+    return match[1] || '';
+  } else if (o.query && o.query.type) {
+    return o.query.type;
+  } else if (match = o.pathname.match(/\.([^\.\/]+)$/)) {
+    return match[1] || '';
+  } else {
+    return '';
+  }
 };
 
 (async () => {
+  await Avatar.waitForLoad();
+
+  const animations = metaversefileApi.useAvatarAnimations();
+  // const walkAnimation = animations.find(a => a.name === 'walking.fbx');
+  // const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
+  // const runAnimationDuration = runAnimation.duration * 1.5;
+  const idleAnimation = animations.find(a => a.name === 'idle.fbx');
+  const idleAnimationDuration = idleAnimation.duration;
+
   // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let {url, hash, ext, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
+  let {url, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
   width = parseInt(width, 10);
   if (isNaN(width)) {
     width = defaultWidth;
@@ -226,219 +260,77 @@ const _makeIconString = (hash, ext, w, h) => {
   if (isNaN(height)) {
     height = defaultHeight;
   }
+  
+  let o;
+  try {
+    const app = await metaversefileApi.load(url);
+    if (app.appType === 'vrm') {
+      await app.setSkinning(true);
+      const avatar = new Avatar(app.skinnedVrm, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        debug: false,
+      });
+      app.avatar = avatar;
+    }
+    o = app;
+  } catch (err) {
+    console.warn(err);
+  }
+
+  const ext = o ? o.appType : '';
   const isVrm = ext === 'vrm';
   const isImage = ['png', 'jpg'].includes(ext);
   const isVideo = type === 'webm';
 
-  try {
-    const _loadGltf = async () => {
-      let o;
-      try {
-        o = await metaversefileApi.load(url);
-      } catch (err) {
-        console.warn(err);
-      } /* finally {
-        URL.revokeObjectURL(u);
-      } */
-      console.log('loaded GLTF', o);
-      return o;
-    };
-    const _loadVrm = async () => {
-      let o;
-      try {
-        o = await metaversefileApi.load(url);
-      } catch (err) {
-        console.warn(err);
-      } /* finally {
-        URL.revokeObjectURL(u);
-      } */
-      return o;
-    };
-    const _loadVox = async () => {
-      let o;
-      try {
-        o = await metaversefileApi.load(url);
-      } catch (err) {
-        console.warn(err);
-      } /* finally {
-        URL.revokeObjectURL(u);
-      } */
-      return o;
-    };
-    const _loadImage = async () => {
-      let o;
-      try {
-        o = await metaversefileApi.load(url);
-        //o.scene = o.children[0];
-      } catch (err) {
-        console.warn(err);
-      } /* finally {
-        URL.revokeObjectURL(u);
-      } */
-      return o;
-    };
+  const _initializeAnimation = () => {
+    if (ext === 'vrm') {
+      o.avatar.setTopEnabled(false);
+      o.avatar.setHandEnabled(0, false);
+      o.avatar.setHandEnabled(1, false);
+      o.avatar.setBottomEnabled(false);
+      o.avatar.inputs.hmd.position.y = o.avatar.height;
+      o.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+      o.avatar.inputs.hmd.updateMatrixWorld();
+      o.avatar.update(1000);
+    }
+  };
+  const _animate = timeDiff => {
+    if (ext === 'vrm') {
+      o.avatar.update(timeDiff);
+    }
+  };
+  const _lookAt = (camera, boundingBox) => {
+    const center = boundingBox.getCenter(new THREE.Vector3());
+    const size = boundingBox.getSize(new THREE.Vector3());
+    
+    if (ext === 'vrm') {
+      camera.position.x = center.x;
+      camera.position.y = center.y;
+    } else {
+      camera.position.x = center.x/2;
+      camera.position.y = center.y/2;
+    }
+    camera.position.z = size.z / 2;
+    fitCameraToBox(camera, boundingBox);
+  };
 
+  try {
     if (type === 'png' || type === 'jpg' || type === 'jpeg') {
       const canvas = await (async () => {
-        const _renderDefaultCanvas = async () => {
-          const uiRenderer = _makeUiRenderer();
-
-          const htmlString = _makeIconString(hash, ext, width, height);
-          const result = await uiRenderer.render(htmlString, width, height);
-          const {data, anchors} = result;
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(data, 0, 0);
-          return canvas;
-        };
-
         if (['glb', 'vrm', 'vox'].includes(ext)) {
           const {renderer, scene, camera} = _makeRenderer(width, height);
 
-          let o;
-          try {
-            switch (ext) {
-              case 'glb': {
-                o = await _loadGltf();
-                break;
-              }
-              case 'vrm': {
-                o = await _loadVrm();
-                let waitPromise;
-                await o.setSkinning(true);
-                if (waitPromise) {
-                  await waitPromise;
-                }
-                o.scene = o.skinnedVrm.scene;
-          
-                const rig = new Avatar(o, {
-                  fingers: true,
-                  hair: true,
-                  visemes: true,
-                  debug: false,
-                });
-                rig.model.isVrm = true;
-                /* rig.aux = oldRig.aux;
-                rig.aux.rig = rig; */
-          
-                o = o.scene;
-                o.rig = rig;
-                break;
-              }
-              case 'vox': {
-                o = await _loadVox();
-                break;
-              }
-            }
-          } catch (err) {
-            console.warn(err);
-          }
           if (o) {
             scene.add(o);
 
             const boundingBox = new THREE.Box3().setFromObject(o);
-            const center = boundingBox.getCenter(new THREE.Vector3());
-            const size = boundingBox.getSize(new THREE.Vector3());
 
-            camera.position.x = 0;
-            camera.position.y = center.y;
-            camera.position.z = center.z - Math.max(
-              size.y/2/Math.tan(Math.PI * camera.fov/360),
-              Math.abs(size.x)/2,
-              Math.abs(size.z)/2
-            ) * 1.2;
-            camera.lookAt(center);
-            camera.updateMatrixWorld();
-
-            if (ext === 'vrm') {
-              const _getTailBones = skeleton => {
-                const result = [];
-                const _recurse = bones => {
-                  for (let i = 0; i < bones.length; i++) {
-                    const bone = bones[i];
-                    if (bone.children.length === 0) {
-                      if (!result.includes(bone)) {
-                        result.push(bone);
-                      }
-                    } else {
-                      _recurse(bone.children);
-                    }
-                  }
-                };
-                _recurse(skeleton.bones);
-                return result;
-              };
-              const _findFurthestParentBone = (bone, pred) => {
-                let result = null;
-                for (; bone; bone = bone.parent) {
-                  if (pred(bone)) {
-                    result = bone;
-                  }
-                }
-                return result;
-              };
-              const _countCharacters = (name, regex) => {
-                let result = 0;
-                for (let i = 0; i < name.length; i++) {
-                  if (regex.test(name[i])) {
-                    result++;
-                  }
-                }
-                return result;
-              };
-              const _findEye = (tailBones, left) => {
-                const regexp = left ? /l/i : /r/i;
-                const eyeBones = tailBones.map(tailBone => {
-                  const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
-                  if (eyeBone) {
-                    return eyeBone;
-                  } else {
-                    return null;
-                  }
-                }).filter(spec => spec).sort((a, b) => {
-                  const aName = a.name.replace(/shoulder/gi, '');
-                  const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-                  const bName = b.name.replace(/shoulder/gi, '');
-                  const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-                  if (!left) {
-                    return aLeftBalance - bLeftBalance;
-                  } else {
-                    return bLeftBalance - aLeftBalance;
-                  }
-                });
-                const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
-                if (eyeBone) {
-                  return eyeBone;
-                } else {
-                  return null;
-                }
-              };
-
-              const skinnedMeshes = [];
-              o.traverse(o => {
-                if (o.isSkinnedMesh) {
-                  skinnedMeshes.push(o);
-                }
-              });
-              skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-              const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-              const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-              const tailBones = _getTailBones(skeleton);
-              const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
-              if (eyes[0] && eyes[1]) {
-                const center = eyes[0].getWorldPosition(new THREE.Vector3())
-                  .add(eyes[1].getWorldPosition(new THREE.Vector3()))
-                  .divideScalar(2);
-                camera.position.copy(center)
-                  .add(new THREE.Vector3(0, 0, 0.3));
-                camera.quaternion.identity();
-                camera.fov = 60;
-                camera.updateProjectionMatrix();
-              }
-              console.log('got eyes', eyes);
-            }
+            _initializeAnimation();
+            _lookAt(camera, boundingBox);
+            
+            renderer.compile(scene, camera);
 
             if (type === 'jpg' || type === 'jpeg') {
               renderer.setClearColor(0xFFFFFF, 1);
@@ -446,7 +338,7 @@ const _makeIconString = (hash, ext, w, h) => {
             renderer.render(scene, camera);
             return renderer.domElement;
           } else {
-            return await _renderDefaultCanvas();
+            return null;
           }
         } else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
           const img = await new Promise((accept, reject) => {
@@ -483,7 +375,7 @@ const _makeIconString = (hash, ext, w, h) => {
           }
           return canvas;
         } else {
-          return await _renderDefaultCanvas();
+          return null;
         }
       })();
 
@@ -505,7 +397,6 @@ const _makeIconString = (hash, ext, w, h) => {
 
       // console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
 
-
       if (dst) {
         fetch(dst, {
           method: 'POST',
@@ -523,18 +414,6 @@ const _makeIconString = (hash, ext, w, h) => {
     } else if (type === 'gif' && ext !== 'gif') {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
-      const o = await (async () => {
-        switch (ext) {
-          case 'glb':
-            return await _loadGltf();
-          case 'vrm':
-            return await _loadVrm();
-          case 'vox':
-            return await _loadVox();
-          default:
-            return null;
-        }
-      })();
       scene.add(o);
 
       const boundingBox = new THREE.Box3().setFromObject(o);
@@ -608,27 +487,16 @@ const _makeIconString = (hash, ext, w, h) => {
     } else if (type === 'webm') {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
-      const o = await (async () => {
-        switch (ext) {
-          case 'glb':
-            return await _loadGltf();
-          case 'vrm':
-            return await _loadVrm();
-          case 'vox':
-            return await _loadVox();
-          case 'png':
-          case 'jpg':
-            return await _loadImage();
-          default:
-            return null;
-        }
-      })();
       scene.add(o);
+      o.updateMatrixWorld();
 
       if (o) {
         const boundingBox = new THREE.Box3().setFromObject(o);
         const center = boundingBox.getCenter(new THREE.Vector3());
         const size = boundingBox.getSize(new THREE.Vector3());
+
+        _initializeAnimation();
+        _lookAt(camera, boundingBox);
 
         renderer.setClearColor(0xFFFFFF, 1);
 
@@ -644,33 +512,38 @@ const _makeIconString = (hash, ext, w, h) => {
           frames.push(writeCanvas);
         };
         if (isVrm && isVideo) {
-          o.rig.setTopEnabled(false);
-          o.rig.setHandEnabled(0, false);
-          o.rig.setHandEnabled(1, false);
-          o.rig.setBottomEnabled(false);
-          o.rig.inputs.hmd.position.y = o.rig.height;
-
-          let now = 0;
-          const timeDiff = 1/FPS;
+          /* const timeDiff = 1/FPS;
           for (let i = 0; i < 100; i++) {
-            o.rig.update(now, timeDiff);
-            now += timeDiff * 1000;
+            o.avatar.update(timeDiff);
 
-            camera.position.set(0, o.rig.height/2, -1.5);
-            camera.lookAt(center);
-            camera.updateMatrixWorld();
+            _lookAt(camera, boundingBox);
+
             renderer.render(scene, camera);
 
             _pushFrame();
+          } */
+          
+          let now = 0;
+          const timeDiff = 1000/FPS;
+          while (now < idleAnimationDuration*1000) {
+            o.avatar.update(timeDiff);
+
+            _lookAt(camera, boundingBox);
+
+            renderer.render(scene, camera);
+
+            _pushFrame();
+            
+            now += timeDiff;
           }
         } else if (isImage && isVideo) {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
-            o.position.y = Math.sin(i + Math.PI/2) * 0.05;
+            // o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
                 new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
-              )
-            camera.position.copy(center)
+              );
+            /* camera.position.copy(center)
               .add(
                 new THREE.Vector3(
                   0,
@@ -679,20 +552,27 @@ const _makeIconString = (hash, ext, w, h) => {
                 )
               );
             camera.lookAt(center);
-            camera.updateMatrixWorld();
+            camera.updateMatrixWorld(); */
+            _lookAt(camera, boundingBox);
             renderer.render(scene, camera);
 
             _pushFrame();
           }
         } else {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
-            camera.position.copy(center)
+            // o.position.copy(center).multiplyScalar(-1);
+            o.quaternion
+              .setFromAxisAngle(new THREE.Vector3(0, 1, 0), i);
+
+            /* camera.position.copy(center)
               .add(
                 new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
                   .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
               );
             camera.lookAt(center);
-            camera.updateMatrixWorld();
+            camera.updateMatrixWorld(); */
+            _lookAt(camera, boundingBox);
+            // console.log(camera.position.toArray(), camera.quaternion.toArray());
             renderer.render(scene, camera);
 
             _pushFrame();
