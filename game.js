@@ -591,6 +591,7 @@ const cylinderMesh = (() => {
 let lastDraggingRight = false;
 let dragRightSpec = null;
 let fovFactor = 0;
+let lastActivated = false;
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
@@ -770,19 +771,21 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       highlightedPhysicsObject.updateMatrixWorld();
 
-      const physicsObject = /*window.lolPhysicsObject ||*/ physicsManager.getPhysicsObject(physicsId);
-      const {physicsMesh} = physicsObject;
-      highlightPhysicsMesh.geometry = physicsMesh.geometry;
-      // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
-      highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-        .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-      // highlightPhysicsMesh.updateMatrixWorld();
-      // window.highlightPhysicsMesh = highlightPhysicsMesh;
-      highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
-      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
-      highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
-      highlightPhysicsMesh.visible = true;
+      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      if(physicsObject) {
+        const {physicsMesh} = physicsObject;
+        highlightPhysicsMesh.geometry = physicsMesh.geometry;
+        // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
+        highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+          .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
+        // highlightPhysicsMesh.updateMatrixWorld();
+        // window.highlightPhysicsMesh = highlightPhysicsMesh;
+        highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
+        highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+        highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
+        highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+        highlightPhysicsMesh.visible = true;
+      }
     }
   };
   _updatePhysicsHighlight();
@@ -794,17 +797,19 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (h && !gameManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
 
-      const physicsObject = physicsManager.getPhysicsObject(physicsId);
-      const {physicsMesh} = physicsObject;
-      mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
-      localMatrix2.copy(physicsMesh.matrixWorld)
-        // .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
-        .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
-      mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
-      mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -mouseHighlightPhysicsMesh.position.distanceTo(camera.position)
-      mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
-      mouseHighlightPhysicsMesh.visible = true;
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      if (physicsObject) {
+        const {physicsMesh} = physicsObject;
+        mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
+        localMatrix2.copy(physicsMesh.matrixWorld)
+          // .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
+          .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
+        mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
+        mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+        mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -mouseHighlightPhysicsMesh.position.distanceTo(camera.position)
+        mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
+        mouseHighlightPhysicsMesh.visible = true;
+      }
     }
   };
   _updateMouseHighlight();
@@ -816,7 +821,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (o) {
       const physicsId = mouseSelectedPhysicsId;
 
-      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
@@ -856,7 +861,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomHoverPhysicsId;
 
-      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomHoverPhysicsMesh.geometry = physicsMesh.geometry;
@@ -879,7 +884,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomEquipmentHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomEquipmentHoverPhysicsId;
 
-      const physicsObject = physicsManager.getPhysicsObject(physicsId);
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomEquipmentHoverPhysicsMesh.geometry = physicsMesh.geometry;
@@ -1036,13 +1041,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateUses = () => {
     const localPlayer = useLocalPlayer();
     const v = localPlayer.actionInterpolants.activate.getNormalized();
+    const currentActivated = v >= 1;
     
-    if (v >= 1) {
+    if (currentActivated && !lastActivated) {
       if (grabUseMesh.target) {
         grabUseMesh.target.activate();
       }
       localPlayer.removeAction('activate');
     }
+    lastActivated = currentActivated;
   };
   _updateUses();
   
@@ -1129,6 +1136,10 @@ const _pushAppUpdates = () => {
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
+};
+const _pushPlayerUpdates = () => {
+  const localPlayer = useLocalPlayer();
+  localPlayer.pushPlayerUpdates();
 };
 
 const rotationSnap = Math.PI/6;
@@ -1624,8 +1635,9 @@ const gameManager = {
   getMouseDomHoverObject() {
     return mouseDomHoverObject;
   },
-  getMouseDomHoverPhysicsId() {
-    return mouseDomHoverPhysicsId;
+  setMouseDomHoverObject(o, physicsId) {
+    mouseDomHoverObject = o;
+    mouseDomHoverPhysicsId = physicsId;
   },
   getMouseDomEquipmentHoverObject(o, physicsId) {
     return mouseDomEquipmentHoverObject;
@@ -1708,5 +1720,6 @@ const gameManager = {
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
+  pushPlayerUpdates: _pushPlayerUpdates,
 };
 export default gameManager;
