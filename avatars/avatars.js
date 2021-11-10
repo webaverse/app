@@ -627,6 +627,7 @@ class Avatar {
     this.flipY = flipY;
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
+    this.faceTracking = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -2145,6 +2146,59 @@ class Avatar {
       }
     }
 
+    if (this.faceTracking) {
+      /* const q = new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt(
+          new THREE.Vector3(),
+          this.faceTracking.head.clone,
+          new THREE.Vector3(0, 1, 0)
+        )
+      ); */
+      const q = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(
+          -this.faceTracking.head.x,
+          this.faceTracking.head.y,
+          -this.faceTracking.head.z,
+          'YXZ'
+        )
+      )/* .premultiply(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
+      ) */;
+      // console.log('got z', this.faceTracking.head.z);
+      this.modelBoneOutputs.Head.quaternion.premultiply(q);
+      
+      const {pupils} = this.faceTracking;
+      // window.pupils = pupils;
+      const [lPupil, rPupil] = pupils;
+      // const pupil = [(lPupil[0] + rPupil[0]) * 0.5, (lPupil[1] + rPupil[1]) * 0.5];
+      // const pupil = lPupil[2] >= rPupil[2] ? lPupil : rPupil;
+      const xFactor = 2.5;
+      const yFactor = 2.5;
+      const yOffset = -0.2;
+      this.modelBoneOutputs.Eye_L.quaternion.setFromEuler(
+        new THREE.Euler(
+         -Math.min(Math.max(lPupil[1] * yFactor + yOffset, -Math.PI/2), Math.PI/2),
+         Math.min(Math.max(lPupil[0] * xFactor, -Math.PI/2), Math.PI/2),
+         0,
+         'YXZ',
+        )
+      );
+      // console.log('got', lPupil[0], lPupil[1]);
+      this.modelBoneOutputs.Eye_R.quaternion.setFromEuler(
+        new THREE.Euler(
+         -Math.min(Math.max(rPupil[1] * yFactor + yOffset, -Math.PI/2), Math.PI/2),
+         Math.min(Math.max(rPupil[0] * xFactor, -Math.PI/2), Math.PI/2),
+         0,
+         'YXZ',
+        )
+      );
+      // console.log('got', lPupil[0], lPupil[1], lPupil[2], rPupil[0], rPupil[1], rPupil[2]);
+      // this.modelBoneOutputs.Eye_R.quaternion.copy(this.modelBoneOutputs.Eye_L.quaternion);
+    } /* else {
+      this.modelBoneOutputs.Eye_L.quaternion.identity();
+      this.modelBoneOutputs.Eye_R.quaternion.identity();
+    } */
+
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
       this.modelBoneOutputs,
@@ -2215,6 +2269,32 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = 0;
             }
+          } else if (this.faceTracking) {
+            const {eyes, vowels} = this.faceTracking;
+            if (blinkLeftIndex !== -1) {
+              // console.log('got left blink', blinkLeftIndex, eyes[0]);
+              morphTargetInfluences[blinkLeftIndex] = eyes[0];
+            }
+            if (blinkRightIndex !== -1) {
+              morphTargetInfluences[blinkRightIndex] = eyes[1];
+            }
+            
+            const [a, e, i, o, u] = vowels;
+            if (aIndex !== -1) {
+              morphTargetInfluences[aIndex] = a;
+            }
+            if (eIndex !== -1) {
+              morphTargetInfluences[eIndex] = e;
+            }
+            if (iIndex !== -1) {
+              morphTargetInfluences[iIndex] = i;
+            }
+            if (oIndex !== -1) {
+              morphTargetInfluences[oIndex] = o;
+            }
+            if (uIndex !== -1) {
+              morphTargetInfluences[uIndex] = u;
+            }
           } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
             const now2 = now / 1000 * 2;
@@ -2278,11 +2358,13 @@ class Avatar {
           }
 
           // blink
-          if (blinkLeftIndex !== -1) {
-            morphTargetInfluences[blinkLeftIndex] = blinkValue;
-          }
-          if (blinkRightIndex !== -1) {
-            morphTargetInfluences[blinkRightIndex] = blinkValue;
+          if (!this.faceTracking) {
+            if (blinkLeftIndex !== -1) {
+              morphTargetInfluences[blinkLeftIndex] = blinkValue;
+            }
+            if (blinkRightIndex !== -1) {
+              morphTargetInfluences[blinkRightIndex] = blinkValue;
+            }
           }
         }
       }
