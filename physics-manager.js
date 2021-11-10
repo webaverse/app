@@ -559,8 +559,9 @@ const _applyPhysics = (physicsObject, camera, avatarOffset, cameraBasedOffset, v
 
         if (collision) {
           const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
+          const temp = new THREE.Vector3().fromArray(collision.direction);
           localVector4
-            .fromArray(collision.direction)
+            .set(0, 0, 0)
             .add(localVector5.set(0, -crouchOffset, 0));
           physicsObject.position.add(localVector4)
 
