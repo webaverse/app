@@ -375,16 +375,16 @@ physicsManager.physicsPreStep = timeDiff => {
 
   if(localPlayer.avatar)
   {
-    const phyObj = localPlayer.avatar.app.physicsObjects[0];
-    if(phyObj) {
-      physicsManager.setVelocity(phyObj, physicsManager.velocity.clone(), t);
-      physicsManager.physicsPostStep(phyObj, t); // Apply new transforms to physicsObject
+    const phyObj = localPlayer.avatar.app.getPhysicsObjects();
+    if(phyObj[0]) {
+      physicsManager.setVelocity(phyObj[0], physicsManager.velocity.clone(), t);
+      physicsManager.physicsPostStep(phyObj[0], t); // Apply new transforms to physicsObject
     }
   }
 }
 
-physicsManager.physicsPostStep = (physicsObject, timeDiff) => {
-  const t = timeDiff/1000;
+physicsManager.physicsPostStep = physicsObject => {
+  //const t = timeDiff/1000;
   const localPlayer = metaversefileApi.useLocalPlayer();
 
   physicsUpdates.push({
@@ -410,13 +410,13 @@ physicsManager.physicsPostStep = (physicsObject, timeDiff) => {
       phyObj.needsUpdate = false;
 
       const localPlayer = metaversefileApi.useLocalPlayer();
-      if (phyObj === localPlayer.avatar.app.physicsObjects[0])
+      if (localPlayer.avatar.app.getPhysicsObjects().some(o => o.physicsId === phyObj.physicsId))
       {
         const avatarWorldObject = _getAvatarWorldObject(localObject);
         const avatarCameraOffset = _getAvatarCameraOffset();
 
         const {cameraBasedOffset, velocityAvatarDirection, updateRig} = _getSelectedTool(); // Get camera & avatar state
-        _applyPhysics(phyObj, camera, avatarCameraOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, t); // update character controller
+        _applyPhysics(phyObj, camera, avatarCameraOffset, cameraBasedOffset, velocityAvatarDirection, updateRig); // update character controller
 
       }
     }
@@ -497,7 +497,7 @@ physicsManager.setPhysicsEnabled = physicsEnabled => {
   physicsManager.physicsEnabled = physicsEnabled;
 };
 
-const _applyPhysics = (physicsObject, camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+const _applyPhysics = (physicsObject, camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig) => {
 
       const localPlayer = metaversefileApi.useLocalPlayer();
 
