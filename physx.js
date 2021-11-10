@@ -949,6 +949,28 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   }
+  w.addSphereGeometryPhysics = (physics, position, quaternion, radius, id, physicsMaterial, ccdEnabled) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    const q = allocator.alloc(Float32Array, 4);
+    const mat = allocator.alloc(Float32Array, 3);
+
+    position.toArray(p);
+    quaternion.toArray(q);
+    physicsMaterial.toArray(mat);
+    console.log(physicsMaterial);
+    
+    moduleInstance._addSphereGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      radius,
+      id,
+      mat.byteOffset,
+      +ccdEnabled,
+    );
+    allocator.freeAll();
+  };
   w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, id, physicsMaterial, ccdEnabled) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);

@@ -197,6 +197,27 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
+physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMaterial, ccdEnabled) => {
+  const physicsId = getNextPhysicsId();
+  physx.physxWorker.addSphereGeometryPhysics(physx.physics, position, quaternion, radius, physicsId, physicsMaterial, ccdEnabled);
+  
+  const physicsObject = _makePhysicsObject(physicsId);
+  const physicsMesh = new THREE.Mesh(
+    new THREE.SphereGeometry( radius, 32, 16 )
+  );
+  physicsMesh.visible = false;
+  // physicsMesh.position.copy(position);
+  // physicsMesh.quaternion.copy(quaternion);
+  // physicsMesh.scale.copy(size);
+  //physicsObject.position.copy(position);
+  physicsObject.add(physicsMesh);
+  physicsObject.physicsMesh = physicsMesh;
+  physicsObjects[physicsId] = physicsObject;
+  physicsObject.velocity = new THREE.Vector3(0,0,0);
+  //physicsManager.disablePhysicsObject(physicsObject);
+  return physicsObject;
+};
+
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
@@ -401,10 +422,8 @@ physicsManager.physicsPostStep = physicsObject => {
     {
       const {id, position, quaternion, scale} = updateOut; 
       const phyObj = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-      const offset = getAvatarHeight() - 0.3;
       phyObj.position.copy(position);
-      phyObj.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
-      //phyObj.quaternion.copy(quaternion);
+      phyObj.quaternion.copy(quaternion);
       //physicsObject.scale.copy(scale);
       phyObj.updateMatrixWorld();
       phyObj.needsUpdate = false;
@@ -414,6 +433,9 @@ physicsManager.physicsPostStep = physicsObject => {
       {
         const avatarWorldObject = _getAvatarWorldObject(localObject);
         const avatarCameraOffset = _getAvatarCameraOffset();
+
+        const offset = getAvatarHeight() - 0.3;
+        phyObj.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
 
         const {cameraBasedOffset, velocityAvatarDirection, updateRig} = _getSelectedTool(); // Get camera & avatar state
         _applyPhysics(phyObj, camera, avatarCameraOffset, cameraBasedOffset, velocityAvatarDirection, updateRig); // update character controller

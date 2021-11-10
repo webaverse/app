@@ -572,16 +572,45 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
-        app.updateMatrixWorld();
-        localMatrix
-          .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
-          .premultiply(app.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
-        position = localVector;
-        quaternion = localQuaternion;
+        // app.updateMatrixWorld();
+        // localMatrix
+        //   .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
+        //   .premultiply(app.matrixWorld)
+        //   .decompose(localVector, localQuaternion, localVector2);
+        // position = localVector;
+        // quaternion = localQuaternion;
         //size = localVector2;
         
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
+        //physicsObject.position.copy(app.position);
+        //physicsObject.quaternion.copy(app.quaternion);
+        //physicsObject.scale.copy(app.scale);
+        
+        const {physicsMesh} = physicsObject;
+        physicsMesh.position.copy(basePosition);
+        physicsMesh.quaternion.copy(baseQuaternion);
+        //physicsMesh.scale.copy(baseScale);
+        // app.add(physicsObject);
+        physicsObject.updateMatrixWorld();
+        
+        app.physicsObjects.push(physicsObject);
+        // physicsManager.pushUpdate(app, physicsObject);
+        return physicsObject;
+      })(physics.addCapsuleGeometry);
+      physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
+        const basePosition = position;
+        const baseQuaternion = quaternion;
+        const baseScale = new THREE.Vector3(radius, radius, radius)
+        // app.updateMatrixWorld();
+        // localMatrix
+        //   .compose(position, quaternion, new THREE.Vector3(1, 1, 1))
+        //   .premultiply(app.matrixWorld)
+        //   .decompose(localVector, localQuaternion, localVector2);
+        // position = localVector;
+        // quaternion = localQuaternion;
+        //size = localVector2;
+        
+        const physicsObject = addSphereGeometry.call(this, position, quaternion, radius, physicsMaterial, ccdEnabled);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
@@ -596,7 +625,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
-      })(physics.addCapsuleGeometry);
+      })(physics.addSphereGeometry);
       /*physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) {
         const basePosition = position;
         const baseQuaternion = quaternion;
