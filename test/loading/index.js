@@ -2,6 +2,7 @@
 const puppeteer = require('puppeteer-extra');
 const {performance} = require('perf_hooks');
 const scenes = require('../../scenes/scenes.json');
+const axios = require('axios');
 
 const ignoreErrors=  [
   /** Internal ThreeJS error sometimes gets caught in the extendTexture */
@@ -21,6 +22,23 @@ class LoadTester {
   timeOfSecondLastRequest = 0;
   lastCheckedAt = 0;
   lastActivityAt = 0;
+
+  WEBHOOK_URL="https://discord.com/api/webhooks/908078345193930762/m7yVzm8QoTbjhNGJ9NXmOEJTeYSSY1wvX4GlypqLhaxK8MLKnOGiNw7BqXtKRX2z9pu0";
+
+  addStatErr(stat) {
+    if (!this.statsErr) {
+      this.statsErr = [];
+    }
+    var data;
+    var match = /\n/.exec(stat.toString());
+    if (match) {
+      data = `++++ ${this.scene_name} ++++ [ERROR] ++++ File has thrown error \n ${stat} ++++ ${this.scene_name} ++++ [ERROR] ++++ END ERROR`;
+    }
+    else {
+      data = `++++ ${this.scene_name} ++++ [ERROR] ++++ \n ${stat}`;
+    }
+    this.statsErr.push(data);
+  }
 
   async addStat(type, stat) {
     if (!this.stats) {
@@ -74,7 +92,6 @@ class LoadTester {
     });
   }
   
-
   waitForNetworkIdle = ()=>{
     self.timeOfSecondLastRequest = 0;
     self.timeOfLastRequest = 0;
@@ -126,8 +143,6 @@ class LoadTester {
     this.requestPromises = [];
   }
 
-
-
   waitForRequests = (page, ignoreList) => {
     return;
     page.on('request', request => {
@@ -147,33 +162,6 @@ class LoadTester {
   
   MochaIntercept(){
 
-  }
-
-  PromiseIntercept(value){
-    let reportError = false;
-    try{
-    }catch(e){
-      console.warn(e);
-    }finally{
-      try{
-        self.stats.errors.push(value);
-      }catch(e){
-        console.warn(e);
-      }
-    }
-    for (const error of ignoreErrors) {
-      if(typeof value !== 'string'){
-        value = JSON.stringify(value);
-      }
-      if(value.includes(error)){
-        reportError = true;
-      }
-    }
-
-    if(reportError){
-      self.MochaIntercept();
-    }
-    
   }
 
   async init() {
@@ -204,15 +192,13 @@ class LoadTester {
       .on('console', message => {
         if (message.type().substr(0, 3).toUpperCase() === 'ERR') {
           this.addStat('ERROR', 'Page-Error: ' + message.text());
+          this.addStatErr(message.text())
         }
       })
       .on('requestfailed', request => {
         this.addStat('NETWORK', `Request-Error: ${request.failure().errorText} ${request.url()}`);
+        this.addStatErr(`${request.failure().errorText} ${request.url()}`)
       });
-
-    await this.setupRequestInterception();
-
-    await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
 
       await this.page.evaluateOnNewDocument(() => {
         Error.stackTraceLimit = 1000;
@@ -224,19 +210,12 @@ class LoadTester {
               if(typeof onFailure === 'function'){
                 originalOnFailure = onFailure;
                 return customFailureCaller;
-              }else if(typeof originalOnFailure === 'function'){
-                PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
-                return originalOnFailure(onFailure);
-              }else if(typeof onFailure === 'object'){
-                PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
-                return onFailure;
               }
               return originalOnFailure || onFailure;
           }
       
 
           const customFailureCaller = (e) =>{
-            PromiseIntercept(e);
             originalOnFailure(e);
           }
 
@@ -255,30 +234,22 @@ class LoadTester {
       })
   }
 
-  async setupRequestInterception(){
-    await this.page.setRequestInterception(true);
-    this.page.on('request',this.requestListener);
-    this.page.on('requestfailed', this.requestFailedListener);
-    this.page.on('requestfinished', this.requestFinishedListener);
-  }
-
   async testScene(sceneUrl) {
     const t0 = performance.now();
     try{
       await this.page.goto(sceneUrl,{
-        waitUntil: 'domcontentloaded',
+        waitUntil: 'networkidle0'
       });
-
-      await this.waitForNetworkIdle();
-
+      // await this.waitForNetworkIdle();
       await this.waitForLoadToComplete();
-      
       const t1 = performance.now();
       this.addStat('PERFORMANCE', `Scene Loaded in ${Number(t1 - t0).toFixed(0) / 1000}s`);
 
     }catch(e){
       const t1 = performance.now();
       this.addStat('PERFORMANCE', `Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`);
+      this.addStatErr(`Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`)
+
       /** Signa the Mocha Intercept */
       this.MochaIntercept();
     }
@@ -286,6 +257,7 @@ class LoadTester {
 
   async test() {
     for (const scene of scenes) {
+      this.scene_name = scene;
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
       this.scenes.push(this.stats);
@@ -296,9 +268,14 @@ class LoadTester {
       };
     }
 
-    try{
+    for(let err of this.statsErr) {
+      await axios.post(this.WEBHOOK_URL, { content: err })
+    }
+
+    try {
       this.finish();      
-    }catch(e){
+    }
+    catch(e){
       console.warn(e);
       //finish may throw error;
     }
