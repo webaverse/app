@@ -251,8 +251,8 @@ const _applyDamping = timeDiffS => {
   }
 };
 const _getAvatarWorldObject = o => {
-  const renderer = getRenderer();
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  // const renderer = getRenderer();
+  // const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   o.matrix.copy(camera.matrixWorld)
     .decompose(o.position, o.quaternion, o.scale);
   return o;
