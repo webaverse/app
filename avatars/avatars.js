@@ -9,12 +9,13 @@ import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 // import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
-import physicsManager from '../physics-manager.js';
+// import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -26,7 +27,7 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
+// const localMatrix2 = new THREE.Matrix4();
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -36,10 +37,11 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     const initialStiffnessForce = bone.stiffnessForce;
     // const initialGravityPower = bone.gravityPower;
     
+    const localPlayer = metaversefile.useLocalPlayer();
     Object.defineProperty(bone, 'stiffnessForce', {
       get() {
-        localVector.set(physicsManager.velocity.x, 0, physicsManager.velocity.z);
-        const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(physicsManager.velocity.y)*0.5, 0), 4), 2);
+        localVector.set(localPlayer.velocity.x, 0, localPlayer.velocity.z);
+        const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(localPlayer.velocity.y)*0.5, 0), 4), 2);
         return initialStiffnessForce * (0.1 + 0.1*f);
       },
       set(v) {},
