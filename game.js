@@ -1448,6 +1448,13 @@ const gameManager = {
       localPlayer.removeAction('narutoRun');
     }
   },
+  toggleDebug(debugMode) {
+    if(debugMode) {
+      document.getElementById('statsBox').style.display = 'none';
+    } else {
+      document.getElementById('statsBox').style.display = 'block';
+    }
+  },
   isFlying() {
     return useLocalPlayer().hasAction('fly');
   },
