@@ -82,6 +82,9 @@ const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 
 const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
+const x180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
+const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
 const cubicBezier = easing(0, 1, 0, 1);
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -628,6 +631,8 @@ class Avatar {
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
     this.faceTracking = null;
+    this.poseTracking = null;
+    this.handTracking = [null, null];
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -991,6 +996,64 @@ class Avatar {
       Left_toe: this.outputs.leftToe,
       Right_toe: this.outputs.rightToe,
 	  };
+    this.modelBoneOutputsByVrm = {
+      leftEye: this.outputs.eyel,
+      rightEye: this.outputs.eyer,
+      head: this.outputs.head,
+      neck: this.outputs.neck,
+      upperChest: this.outputs.neck,
+      chest: this.outputs.chest,
+      hips: this.outputs.hips,
+      spine: this.outputs.spine,
+      leftShoulder: this.outputs.leftShoulder,
+      leftHand: this.outputs.leftHand,
+      leftWrist: this.outputs.leftHand,
+      leftThumbDistal: this.outputs.leftThumb2,
+      leftThumbIntermediate: this.outputs.leftThumb1,
+      leftThumbProximal: this.outputs.leftThumb0,
+      leftIndexDistal: this.outputs.leftIndexFinger3,
+      leftIndexIntermediate: this.outputs.leftIndexFinger2,
+      leftIndexProximal: this.outputs.leftIndexFinger1,
+      leftMiddleDistal: this.outputs.leftMiddleFinger3,
+      leftMiddleIntermediate: this.outputs.leftMiddleFinger2,
+      leftMiddleProximal: this.outputs.leftMiddleFinger1,
+      leftRingDistal: this.outputs.leftRingFinger3,
+      leftRingIntermediate: this.outputs.leftRingFinger2,
+      leftRingProximal: this.outputs.leftRingFinger1,
+      leftLittleDistal: this.outputs.leftLittleFinger3,
+      leftLittleIntermediate: this.outputs.leftLittleFinger2,
+      leftLittleProximal: this.outputs.leftLittleFinger1,
+      leftLowerArm: this.outputs.leftLowerArm,
+      leftUpperArm: this.outputs.leftUpperArm,
+      rightShoulder: this.outputs.rightShoulder,
+      rightHand: this.outputs.rightHand,
+      rightWrist: this.outputs.rightHand,
+      rightThumbDistal: this.outputs.rightThumb2,
+      rightThumbIntermediate: this.outputs.rightThumb1,
+      rightThumbProximal: this.outputs.rightThumb0,
+      rightIndexDistal: this.outputs.rightIndexFinger3,
+      rightIndexIntermediate: this.outputs.rightIndexFinger2,
+      rightIndexProximal: this.outputs.rightIndexFinger1,
+      rightMiddleDistal: this.outputs.rightMiddleFinger3,
+      rightMiddleIntermediate: this.outputs.rightMiddleFinger2,
+      rightMiddleProximal: this.outputs.rightMiddleFinger1,
+      rightRingDistal: this.outputs.rightRingFinger3,
+      rightRingIntermediate: this.outputs.rightRingFinger2,
+      rightRingProximal: this.outputs.rightRingFinger1,
+      rightLittleDistal: this.outputs.rightLittleFinger3,
+      rightLittleIntermediate: this.outputs.rightLittleFinger2,
+      rightLittleProximal: this.outputs.rightLittleFinger1,
+      rightLowerArm: this.outputs.rightLowerArm,
+      rightUpperArm: this.outputs.rightUpperArm,
+      leftFoot: this.outputs.leftFoot,
+      leftLowerLeg: this.outputs.leftLowerLeg,
+      leftUpperLeg: this.outputs.leftUpperLeg,
+      rightFoot: this.outputs.rightFoot,
+      rightLowerLeg: this.outputs.rightLowerLeg,
+      rightUpperLeg: this.outputs.rightUpperLeg,
+      leftToe: this.outputs.leftToe,
+      rightToe: this.outputs.rightToe,
+    };
 
     this.emotes = [];
     if (this.options.visemes) {
@@ -2146,6 +2209,76 @@ class Avatar {
       }
     }
 
+    const _lowercase = s => s.slice(0, 1).toLowerCase() + s.slice(1);
+    if (this.poseTracking) {
+      for (const k in this.poseTracking) {
+        if (!['Hips'].includes(k)) {
+          // if (!/hand/i.test(k)) {
+            const v = this.poseTracking[k];
+            localEuler.set(-v.x, -v.y, v.z, 'YXZ');
+            
+            if (/hand/i.test(k)) {
+              // localEuler.y += Math.PI*0.5 * (/left/i.test(k) ? 1 : -1);
+              // localEuler.z += Math.PI/4 * (/left/i.test(k) ? 1 : -1);
+            }
+            
+            let k2 = k;
+            /* if (/left/i.test(k)) {
+              k2 = k2.replace(/left/gi, 'Right');
+            } else if (/right/i.test(k)) {
+              k2 = k2.replace(/right/gi, 'Left');
+            } */
+            
+            const k3 = _lowercase(k2);
+            // console.log('got k', k, k2, k3);
+            // if (!/hand/i.test(k)) {
+              this.modelBoneOutputsByVrm[k3].quaternion
+                .setFromEuler(localEuler)
+                // .multiply(y180Quaternion);
+            // }
+            if (/hand/i.test(k)) {
+              this.modelBoneOutputsByVrm[k3].quaternion
+                .premultiply(/left/i.test(k) ? leftRotation : rightRotation);
+            }
+          }
+        // }
+      }
+      // this.modelBoneOutputs.Hips.quaternion.identity().premultiply(y180Quaternion);
+    }
+    for (let i = 0; i < 2; i++) {
+      const hand = this.handTracking[i];
+      if (hand) {
+        for (const k in hand) {
+          if (!/wrist/i.test(k)) {
+            const v = hand[k];
+            localEuler.set(v.x, v.y, -v.z, 'YXZ');
+            
+            let k2 = k;
+            /* if (/left/i.test(k)) {
+              k2 = k2.replace(/left/gi, 'Right');
+            } else if (/right/i.test(k)) {
+              k2 = k2.replace(/right/gi, 'Left');
+            } */
+            
+            const k3 = _lowercase(k2);
+            this.modelBoneOutputsByVrm[k3].quaternion
+              .setFromEuler(localEuler)
+              
+            if (/wrist/i.test(k)) {
+              this.modelBoneOutputsByVrm[k3].quaternion
+                // .premultiply(x180Quaternion)
+                // .premultiply(/left/i.test(k) ? leftRotation : rightRotation)
+                // .multiply(/left/i.test(k) ? rightRotation : leftRotation)
+                // .multiply(rightRotation)
+                // .premultiply(y180Quaternion)
+                // .multiply(y180Quaternion)
+                // .multiply(this.modelBoneOutputsByVrm[k3].initialQuaternion);
+            }
+          }
+        }
+      }
+    }
+
     if (this.faceTracking) {
       /* const q = new THREE.Quaternion().setFromRotationMatrix(
         new THREE.Matrix4().lookAt(
@@ -2157,8 +2290,8 @@ class Avatar {
       const q = new THREE.Quaternion().setFromEuler(
         new THREE.Euler(
           -this.faceTracking.head.x,
-          this.faceTracking.head.y,
-          -this.faceTracking.head.z,
+          -this.faceTracking.head.y,
+          this.faceTracking.head.z,
           'YXZ'
         )
       )/* .premultiply(
@@ -2172,9 +2305,9 @@ class Avatar {
       const [lPupil, rPupil] = pupils;
       // const pupil = [(lPupil[0] + rPupil[0]) * 0.5, (lPupil[1] + rPupil[1]) * 0.5];
       // const pupil = lPupil[2] >= rPupil[2] ? lPupil : rPupil;
-      const xFactor = 2.5;
-      const yFactor = 2.5;
-      const yOffset = -0.2;
+      const xFactor = 1;
+      const yFactor = 1;
+      const yOffset = -0.1;
       this.modelBoneOutputs.Eye_L.quaternion.setFromEuler(
         new THREE.Euler(
          -Math.min(Math.max(lPupil[1] * yFactor + yOffset, -Math.PI/2), Math.PI/2),
