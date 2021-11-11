@@ -229,10 +229,7 @@ const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
-    const isFlying = localPlayer.hasAction('fly');
-    if (isFlying) {
-      physicsManager.velocity.multiplyScalar(0.9);
-    } else {
+    if (!localPlayer.hasAction('fly')) {
       localVector.copy(gravity)
         .multiplyScalar(timeDiff);
       physicsManager.velocity.add(localVector);
@@ -243,7 +240,10 @@ const _applyDamping = timeDiffS => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    if (!localPlayer.hasAction('fly') && !localPlayer.hasAction('jump') /*!jumpState || gliding*/) {
+    if (localPlayer.hasAction('fly')) {
+      const factor = getVelocityDampingFactor(0.8, timeDiffS * 1000);
+      physicsManager.velocity.multiplyScalar(factor);
+    } else if (!localPlayer.hasAction('jump') /*!jumpState || gliding*/) {
       const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
       physicsManager.velocity.x *= factor;
       physicsManager.velocity.z *= factor;
@@ -433,7 +433,7 @@ const _updatePhysics = timeDiff => {
     .decompose(avatarWorldObject.position, avatarWorldObject.quaternion, avatarWorldObject.scale);
   const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
 
-  if (renderer.xr.getSession()) {
+  if (session) {
     _applyGravity(timeDiffS);
     _applyDamping(timeDiffS);
 
