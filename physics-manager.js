@@ -257,7 +257,6 @@ const _getAvatarWorldObject = o => {
     .decompose(o.position, o.quaternion, o.scale);
   return o;
 };
-physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
 const getAvatarHeight = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
