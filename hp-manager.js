@@ -1,16 +1,14 @@
 import * as THREE from 'three';
 import physx from './physx.js';
 import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
-// import dropManager from './drop-manager.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 
-const localVector = new THREE.Vector3();
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
+// const localVector = new THREE.Vector3();
+// const localMatrix = new THREE.Matrix4();
+// const localMatrix2 = new THREE.Matrix4();
 
 const _makeDamagePhysicsMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
@@ -43,7 +41,7 @@ const update = (timestamp, timeDiff) => {
 
 const triggerDamageAnimation = collisionId => {
   const timestamp = performance.now();
-  const physicsObject = physicsManager.getPhysicsObject(collisionId);
+  const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
   const {physicsMesh} = physicsObject;
   damagePhysicsMesh.geometry = physicsMesh.geometry;
   damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);

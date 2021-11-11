@@ -7,18 +7,18 @@ metaversfile can load many file types, including javascript.
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
+import * as Y from 'yjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
-import {rigManager} from './rig.js';
 import {world} from './world.js';
 import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
-// import cameraManager from './camera-manager.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
@@ -28,8 +28,9 @@ import {moduleUrls, modules} from './metaverse-modules.js';
 import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
-import {getState} from './state.js';
-import {makeId, getRandomString} from './util.js';
+// import {getState} from './state.js';
+import {makeId, getRandomString, getPlayerPrefix} from './util.js';
+import JSON6 from 'json-6';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -123,6 +124,9 @@ class App extends THREE.Object3D {
       totalHp: 100,
     });
   }
+  willDieFrom(damage) {
+    return false;
+  }
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -185,11 +189,10 @@ const defaultComponents = {
         // if (grounded) {
           app.rotation.y += angularVelocity.y * timeDiff;
         // }
-        app.updateMatrixWorld();
         
         glowMesh.visible = !animation;
         if (!animation) {
-          rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector);
+          localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
           localVector.y = 0;
           const distance = localVector.distanceTo(app.position);
           if (distance < 1) {
@@ -214,20 +217,20 @@ const defaultComponents = {
           if (timeFactor < 1) {
             if (timeFactor < tailTimeFactorCutoff) {
               const f = cubicBezier(timeFactor);
-              rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                 .add(localVector2.set(0, headOffset, 0));
               app.position.copy(animation.startPosition).lerp(localVector, f);
             } else {
               {
                 const f = cubicBezier(tailTimeFactorCutoff);
-                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, headOffset, 0));
                 app.position.copy(animation.startPosition).lerp(localVector, f);
               }
               {
                 const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
                 const f = cubicBezier2(tailTimeFactor);
-                rigManager.localRig.modelBoneOutputs.Head.getWorldPosition(localVector)
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, bodyOffset, 0));
                 app.position.lerp(localVector, f);
                 app.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
@@ -243,13 +246,15 @@ const defaultComponents = {
             app.destroy();
           }
         }
+        
+        app.updateMatrixWorld();
       });
     }
   },
 };
 const localPlayer = new LocalPlayer({
-  prefix: 'player.' + makeId(5),
-  state: getState(),
+  prefix: getPlayerPrefix(makeId(5)),
+  state: new Y.Doc(),
 });
 const remotePlayers = new Map();
 
@@ -441,6 +446,9 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
+  useScene() {
+    return scene;
+  },
   useWorld() {
     return {
       /* addObject() {
@@ -449,6 +457,9 @@ metaversefile.setApi({
       removeObject() {
         return world.appManager.removeObject.apply(world.appManager, arguments);
       }, */
+      getApps() {
+        return world.appManager.apps;
+      },
       getLights() {
         return world.lights;
       },
@@ -481,9 +492,9 @@ metaversefile.setApi({
     recursion++;
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
-      if (rigManager.localRig) {
-        wasDecapitated = rigManager.localRig.decapitated;
-        rigManager.localRig.undecapitate();
+      if (localPlayer.avatar) {
+        wasDecapitated = localPlayer.avatar.decapitated;
+        localPlayer.avatar.undecapitate();
       }
     }
   },
@@ -491,9 +502,9 @@ metaversefile.setApi({
     recursion--;
     if (recursion === 0) {
       // console.log('was decap', wasDecapitated);
-      if (rigManager.localRig && wasDecapitated) {
-        rigManager.localRig.decapitate();
-        rigManager.localRig.skeleton.update();
+      if (localPlayer.avatar && wasDecapitated) {
+        localPlayer.avatar.decapitate();
+        localPlayer.avatar.skeleton.update();
       }
     }
   },
@@ -664,7 +675,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('activate', fn);
+        app.removeEventListener('activate', fn);
       });
     } else {
       throw new Error('useActivate cannot be called outside of render()');
@@ -677,7 +688,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('wearupdate', fn);
+        app.removeEventListener('wearupdate', fn);
       });
     } else {
       throw new Error('useWear cannot be called outside of render()');
@@ -690,7 +701,7 @@ metaversefile.setApi({
         fn(e);
       });
       app.addEventListener('destroy', () => {
-        window.removeEventListener('use', fn);
+        app.removeEventListener('use', fn);
       });
     } else {
       throw new Error('useUse cannot be called outside of render()');
@@ -781,6 +792,13 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
+  getPhysicsObjectByPhysicsId() {
+    const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+       remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+  },
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
@@ -812,11 +830,17 @@ export default () => {
       iframeContainer,
     };
   },
-  useRigManagerInternal() {
+  /* useRigManagerInternal() {
     return rigManager;
-  },
+  }, */
   useAvatarInternal() {
     return Avatar;
+  },
+  useTextInternal() {
+    return Text;
+  },
+  useJSON6Internal() {
+    return JSON6;
   },
   useGradientMapsInternal() {
     return gradientMaps;

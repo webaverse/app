@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
-let canvas = null, context = null, renderer = null, composer = null, renderTarget = null;
+let canvas = null, context = null, renderer = null, composer = null;
 
 function bindCanvas(c) {
   // initialize renderer
@@ -23,8 +23,8 @@ function bindCanvas(c) {
     context,
     antialias: true,
     alpha: true,
-    // preserveDrawingBuffer: false,
-    // logarithmicDepthBuffer: true,
+    rendererExtensionFragDepth: true,
+    logarithmicDepthBuffer: true,
   });
 
   const rect = renderer.domElement.getBoundingClientRect();
@@ -75,7 +75,6 @@ function getComposer() {
   return composer;
 }
 
-renderTarget = new THREE.WebGLRenderTarget(window.innerWidth * window.devicePixelRatio,window.innerHeight * window.devicePixelRatio);
 
 const scene = new THREE.Object3D();
 scene.name = 'scene';
@@ -96,7 +95,6 @@ const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.in
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
-
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
@@ -120,11 +118,13 @@ window.addEventListener('resize', e => {
     }
 
     const containerElement = getContainerElement();
-    const rect = containerElement.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
+    const {width, height} = containerElement.getBoundingClientRect();
+    const pixelRatio = window.devicePixelRatio;
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(pixelRatio);
     // renderer2.setSize(window.innerWidth, window.innerHeight);
 
-    const aspect = rect.width / rect.height;
+    const aspect = width / height;
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
 
@@ -133,6 +133,12 @@ window.addEventListener('resize', e => {
     
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;
+    }
+
+    const composer = getComposer();
+    if (composer) {
+      composer.setSize(width, height);
+      composer.setPixelRatio(pixelRatio);
     }
   }
 });

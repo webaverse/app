@@ -1,14 +1,9 @@
 import * as THREE from 'three';
 import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
-// import controlsManager from './controls-manager.js';
-import physicsManager from './physics-manager.js';
-import {rigManager} from './rig.js';
 import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
-const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const birdsEyeHeight = 10;
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);

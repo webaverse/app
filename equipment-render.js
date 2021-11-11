@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
-import { world } from "./world.js";
 
 class EquipmentRender {
   constructor() {
@@ -13,6 +12,14 @@ class EquipmentRender {
 
   initializeScene() {
     this.previewScene = new THREE.Scene();
+    
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+    this.previewScene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+    directionalLight.position.set(1, 2, 3);
+    this.previewScene.add(directionalLight);
+    
     this.previewCamera = new THREE.PerspectiveCamera(
       10,
       window.innerWidth / window.innerHeight,
@@ -55,24 +62,27 @@ class EquipmentRender {
     this.previewRenderer.xr.enabled = true;
 
     let avatar = null;
-    world.appManager.addEventListener('avatarupdate', (e) => {
+    const localPlayer = metaversefile.useLocalPlayer();
+    localPlayer.addEventListener('avatarupdate', e => {
       if (avatar) {
         avatar.parent.remove(avatar);
         avatar = null;
       }
       
-      const newAvatar = e.data.app.clone();
+      if (e.app) {
+        const newAvatar = e.app.clone();
 
-      newAvatar.position.set(0, 0, 0);
-      newAvatar.rotation.set(0, 0, 0);
-      newAvatar.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+        newAvatar.position.set(0, 0, 0);
+        newAvatar.rotation.set(0, 0, 0);
+        newAvatar.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-      // this.previewScene.clear();
-      this.previewScene.add(newAvatar);
-      
-      newAvatar.instanceId = metaversefile.getNextInstanceId();
-      
-      avatar = newAvatar;
+        // this.previewScene.clear();
+        this.previewScene.add(newAvatar);
+        
+        newAvatar.instanceId = metaversefile.getNextInstanceId();
+        
+        avatar = newAvatar;
+      }
     });
   }
 

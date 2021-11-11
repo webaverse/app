@@ -1,6 +1,21 @@
 {
   "objects": [
     {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [10, 20, 30]
+      }
+    },
+    {
       "position": [
         0,
         0,
@@ -9,6 +24,7 @@
       "start_url": "https://webaverse.github.io/classroom/"
     },
     {
+      "components":[{"key":"resolution", "value":[1920,1080]}],
       "position": [1, 2, -4.5],
       "quaternion": [0, 0, 0, 1],
       "scale": [3, 3, 3],

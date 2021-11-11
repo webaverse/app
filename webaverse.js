@@ -4,7 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-import {rigManager} from './rig.js';
+// import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -16,8 +16,8 @@ import game from './game.js';
 import hpManager from './hp-manager.js';
 import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
+import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
-// import metaversefileApi from './metaversefile-api.js';
 import {
   getRenderer,
   scene,
@@ -62,16 +62,13 @@ const sessionOpts = {
   ],
 };
 
-const frameEvent = (() => {
-  const now = Date.now();
-  return new MessageEvent('frame', {
-    data: {
-      now,
-      timeDiff: 0,
-      lastTimestamp: now,
-    },
-  });
-})();
+const frameEvent = new MessageEvent('frame', {
+  data: {
+    now: 0,
+    timeDiff: 0,
+    // lastTimestamp: 0,
+  },
+});
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -236,7 +233,7 @@ export default class Webaverse extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
     }
 
-    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    const handOffsetScale = localPlayer ? localPlayer.avatar.height / 1.5 : 1;
     if (!leftGamepadPosition) {
       leftGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
@@ -267,10 +264,10 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
-    frameEvent.data.lastTimestamp = timestamp;
+    // frameEvent.data.lastTimestamp = timestamp;
     
     // equipment panel render
-    equipmentRender.previewScene.add(world.lights);
+    // equipmentRender.previewScene.add(world.lights);
     equipmentRender.render();
 
     getComposer().render();
@@ -289,7 +286,7 @@ export default class Webaverse extends EventTarget {
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
       
-      world.appManager.pretick(timestamp, frame);
+      // world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
@@ -301,20 +298,21 @@ export default class Webaverse extends EventTarget {
         physicsManager.update(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
-      
-      characterController.update(timeDiffCapped);
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      rigManager.update(timestamp, timeDiffCapped);
+      characterController.update(timestamp, timeDiffCapped);
+      playersManager.update(timestamp, timeDiffCapped);
+      
+      world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-      world.appManager.tick(timestamp, frame);
       hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();
       
       game.pushAppUpdates();
+      game.pushPlayerUpdates();
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;

@@ -11,7 +11,6 @@ import {world} from '../world.js';
 import {chatManager} from '../chat-manager.js';
 import {world2canvas} from './ThreeUtils.js';
 import metaversefile from 'metaversefile';
-import {rigManager} from '../rig.js';
 import ioManager from '../io-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -130,7 +129,7 @@ function ChatMessages() {
     const update = () => {
       const newMessageGroups = [];
       
-      const localPlayerChatMessages = Array.from(localPlayer.getActions()).filter(action => action.type === 'chat');
+      const localPlayerChatMessages = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'chat');
       if (localPlayerChatMessages.length > 0) {
         const localPlayerMessageGroup = {
           player: localPlayer,

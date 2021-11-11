@@ -3,7 +3,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const fs = require('fs');
-const util = require('util');
+// const util = require('util');
 const express = require('express');
 const vite = require('vite');
 const wsrtc = require('wsrtc/wsrtc-server.js');
@@ -24,6 +24,15 @@ const certs = {
   key: _tryReadFile('./certs/privkey.pem'),
   cert: _tryReadFile('./certs/fullchain.pem'),
 };
+
+function makeId(length) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 
 (async () => {
   const app = express();
@@ -80,7 +89,40 @@ const certs = {
       return http.createServer();
     }
   })();
-  wsrtc.bindServer(wsServer);
+  const initialRoomState = (() => {
+    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const j = JSON.parse(s);
+    const {objects} = j;
+    
+    const appsMapName = 'apps';
+    const result = {
+      [appsMapName]: [],
+    };
+    for (const object of objects) {
+      let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+      const instanceId = makeId(5);
+      if (!start_url && type && content) {
+        start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;
+      }
+      const appObject = {
+        instanceId,
+        contentId: start_url,
+        position,
+        quaternion,
+        scale,
+        components: JSON.stringify([]),
+      };
+      result[appsMapName].push(appObject);
+    }
+    return result;
+  })();
+  const initialRoomNames = [
+    'Erithor',
+  ];
+  wsrtc.bindServer(wsServer, {
+    initialRoomState,
+    initialRoomNames,
+  });
   const port2 = port + 1;
   await new Promise((accept, reject) => {
     wsServer.listen(port2, '0.0.0.0', () => {

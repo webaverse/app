@@ -19,6 +19,13 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender = null;
     this.onAfterRender = null;
   }
+  setSize( width, height ) {
+    
+    if (this.internalRenderPass) {
+      this.internalRenderPass.setSize(width,height);
+    }
+
+	}
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     this.onBeforeRender && this.onBeforeRender();
     
