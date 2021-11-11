@@ -1,11 +1,15 @@
 import * as THREE from 'three';
 import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
 import * as notifications from './notifications.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+let cameraOffsetZ = cameraOffset.z;
+const raycaster = new THREE.Raycaster();
+
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
@@ -181,7 +185,7 @@ const cameraManager = {
       camera.updateMatrixWorld();
       
       cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-      
+
 
       // physicsManager.unlockControls();
     /* } else {
@@ -193,20 +197,81 @@ const cameraManager = {
     } */
   },
   update(timeDiff) {
-    const zDiff = Math.abs(cameraOffset.z - cameraOffsetTargetZ);
+
+    function lerpNum(value1, value2, amount) {
+      amount = amount < 0 ? 0 : amount;
+      amount = amount > 1 ? 1 : amount;
+      return value1 + (value2 - value1) * amount;
+    }
+
+    // Check for collision with level
+
+    let newVal = cameraOffsetTargetZ;
+    let hasIntersection = false;
+
+    const localPlayer = metaversefile.useLocalPlayer();
+
+    let intersects = null;
+
+    let direction = new THREE.Vector3();
+
+    let cornerPoints = [];
+    // Top left
+    cornerPoints[0] = new THREE.Vector3( -1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[0].unproject( camera );
+
+    // Bottom left
+    cornerPoints[1] = new THREE.Vector3( -1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[1].unproject( camera );
+
+    // Top right
+    cornerPoints[2] = new THREE.Vector3( 1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[2].unproject( camera );
+
+    // Bottom right
+    cornerPoints[3] = new THREE.Vector3( 1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[3].unproject( camera );
+
+    raycaster.near = 0.1;
+    raycaster.far = Math.abs(cameraOffsetTargetZ) * 1.2;
+    // Raycast from all camera corners
+    for(let i=0;i<4;i++) {
+      direction.subVectors(cornerPoints[i], localPlayer.position).normalize();
+
+      
+      raycaster.set(localPlayer.position, direction);
+      intersects = raycaster.intersectObjects(camera.parent.parent.children);
+
+      for ( let i = 0; i < intersects.length; i ++ ) {
+        if (intersects[i].distance > 0.05) { // TODO: Hair sometimes intrsects with ray
+          if (intersects[i].distance <= -1 * newVal) {
+            if (newVal < (-1 * (intersects[i].distance))) {
+              newVal = (-1 * (intersects[i].distance));
+              hasIntersection = true;
+            }
+          }
+        }
+      }
+    }
+    
+    
+    cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
+
+    if (hasIntersection)
+    {
+      cameraOffsetZ = newVal;
+    }
+
+    const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
     if (zDiff === 0) {
       // nothing
-    } else if (zDiff > 0.000001) {
-      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      cameraOffset.z = cameraOffset.z * 0.8 + 0.2 * cameraOffsetTargetZ;
-      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld();
     } else {
       camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      cameraOffset.z = cameraOffsetTargetZ;
+      cameraOffset.z = cameraOffsetZ;
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
     }
+
   },
   // switchCamera,
   // selectTool,
