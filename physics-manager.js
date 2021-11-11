@@ -4,18 +4,14 @@ it contains code for character capsules and world simulation.
 */
 
 import * as THREE from 'three';
-// import {CapsuleGeometry} from './CapsuleGeometry.js';
-import uiManager from './ui-manager.js';
+// import uiManager from './ui-manager.js';
 import {getRenderer, camera, dolly} from './renderer.js';
 import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
-// import {makeAnimalFactory} from './animal.js';
-import {rigManager} from './rig.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import metaversefileApi from './metaversefile-api.js';
+import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
-// import {world} from './world.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction} from './constants.js';
 
@@ -177,7 +173,7 @@ physicsManager.setCrouchState = newCrouchState => {
   crouchTime = 0;
 }; */
 
-const physicsObjects = {};
+// const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
@@ -214,7 +210,6 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, c
   // physicsMesh.scale.copy(size);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -232,7 +227,6 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   // physicsMesh.scale.copy(size);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.addGeometry = mesh => {
@@ -265,7 +259,6 @@ physicsManager.addGeometry = mesh => {
   physicsMesh.scale.set(1, 1, 1);
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.cookGeometry = mesh => physx.physxWorker.cookGeometryPhysics(physx.physics, mesh);
@@ -278,7 +271,6 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -304,7 +296,6 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.scale.set(1, 1, 1);
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 physicsManager.cookConvexGeometry = mesh => physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh);
@@ -317,7 +308,6 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
   return physicsObject;
 };
 
@@ -339,7 +329,7 @@ physicsManager.removeGeometry = physicsObject => {
 };
 
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
-physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
+// physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 /* physicsManager.pushPhysicsUpdate = physicsId => {
   const physicsObject = physicsObjects[physicsId];
   // physicsObject.updateMatrixWorld();
@@ -358,7 +348,7 @@ physicsManager.simulatePhysics = timeDiff => {
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = physicsObjects[id];
+    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
     // physicsObject.scale.copy(scale);
@@ -386,8 +376,8 @@ physicsManager.animals = animals; */
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
-  if (rigManager.localRig) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (localPlayer.avatar) {
     const isFlying = localPlayer.hasAction('fly');
     if (isFlying) {
       physicsManager.velocity.multiplyScalar(0.9);
@@ -399,7 +389,8 @@ const _applyGravity = timeDiff => {
   }
 };
 const _applyDamping = timeDiffS => {
-  if (rigManager.localRig) {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (localPlayer.avatar) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('fly') && !localPlayer.hasAction('jump') /*!jumpState || gliding*/) {
       const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
@@ -424,7 +415,10 @@ const _getAvatarWorldObject = o => {
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 
-const getAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 0;
+const getAvatarHeight = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  return localPlayer.avatar ? localPlayer.avatar.height : 0;
+};
 physicsManager.getAvatarHeight = getAvatarHeight;
 
 const _getAvatarCapsule = v => {
@@ -568,12 +562,12 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       .decompose(localPlayer.position, localPlayer.quaternion, localPlayer.scale);
     localPlayer.matrixWorld.copy(localPlayer.matrix);
 
-    if (rigManager.localRig) {
+    
+    if (localPlayer.avatar) {
       if (localPlayer.hasAction('jump')) {
-       rigManager.localRig.setFloorHeight(-0xFFFFFF);
-
+       localPlayer.avatar.setFloorHeight(-0xFFFFFF);
       } else {
-        rigManager.localRig.setFloorHeight(localVector.y - getAvatarHeight());
+        localPlayer.avatar.setFloorHeight(localVector.y - getAvatarHeight());
       }
     }
   }

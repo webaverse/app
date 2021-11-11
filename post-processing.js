@@ -20,10 +20,11 @@ import {
   rootScene,
   camera,
 } from './renderer.js';
-import {rigManager} from './rig.js';
+// import {rigManager} from './rig.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
+import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
@@ -188,31 +189,31 @@ function makeEncodingPass() {
 }
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => /* controlsManager.isPossessed() && */ (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
+const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
 webaverseRenderPass.onBeforeRender = () => {
   // ensure lights attached
-  scene.add(world.lights);
+  // scene.add(world.lights);
   
   // decapitate avatar if needed
-  const decapitated = _isDecapitated();
-  if (rigManager.localRig) {
-    scene.add(rigManager.localRig.model);
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (localPlayer.avatar) {
+    // scene.add(localPlayer.avatar.model);
+    
+    const decapitated = _isDecapitated();
     if (decapitated) {
-      rigManager.localRig.decapitate();
-      // rigManager.localRig.aux.decapitate();
+      localPlayer.avatar.decapitate();
     } else {
-      rigManager.localRig.undecapitate();
-      // rigManager.localRig.aux.undecapitate();
+      localPlayer.avatar.undecapitate();
     }
   }
 };
 webaverseRenderPass.onAfterRender = () => {
   // undecapitate
-  if (rigManager.localRig) {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (localPlayer.avatar) {
     const decapitated = _isDecapitated();
     if (decapitated) {
-      rigManager.localRig.undecapitate();
-      // rigManager.localRig.aux.undecapitate();
+      localPlayer.avatar.undecapitate();
     }
   }
 };
