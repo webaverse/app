@@ -15,6 +15,7 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
+import {startCamera} from '../face-tracking.js';
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
@@ -91,6 +92,13 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
             setMultiplayerConnected(false); */
             setOpen(null);
           }
+        }}>
+          <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
+            <img src="images/wifi.svg" />
+          </button>
+        </div>
+        <div className={styles['button-wrap']} onClick={e => {
+          startCamera();
         }}>
           <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
             <img src="images/wifi.svg" />
