@@ -1641,8 +1641,8 @@ class Avatar {
 	  let Right_ankle = boneMap.rightFoot;
 	  let Right_knee = boneMap.rightLowerLeg;
 	  let Right_leg = boneMap.rightUpperLeg;
-    let Left_toe = boneMap.leftToe;
-    let Right_toe = boneMap.rightToe;
+    let Left_toe = boneMap.leftToes;
+    let Right_toe = boneMap.rightToes;
 
     if (!Hips) {
       Eye_L = _findEye(tailBones, true);
