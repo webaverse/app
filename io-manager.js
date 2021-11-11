@@ -533,7 +533,7 @@ ioManager.keydown = e => {
       game.setContextMenu(false);
       break;
     }
-    case 72: {
+    case 72: { // H
       game.toggleDebug(ioManager.debugMode);
       ioManager.debugMode = !ioManager.debugMode;
       break;
