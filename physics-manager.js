@@ -250,13 +250,6 @@ const _applyDamping = timeDiffS => {
     }
   }
 };
-const _getAvatarWorldObject = o => {
-  // const renderer = getRenderer();
-  // const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-  o.matrix.copy(camera.matrixWorld)
-    .decompose(o.position, o.quaternion, o.scale);
-  return o;
-};
 
 const getAvatarHeight = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -272,15 +265,6 @@ const _getAvatarCapsule = v => {
   return v;
 };
 physicsManager.getAvatarCapsule = _getAvatarCapsule;
-const _getAvatarCameraOffset = () => {
-  const renderer = getRenderer();
-  if (renderer.xr.getSession()) {
-    return zeroVector;
-  } else {
-    return cameraManager.getCameraOffset();
-  }
-};
-physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
 physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {
   physicsManager.physicsEnabled = physicsEnabled;
@@ -441,11 +425,14 @@ const _copyPQS = (dst, src) => {
 const _updatePhysics = timeDiff => {
   const timeDiffS = timeDiff / 1000;
   const localPlayer = metaversefileApi.useLocalPlayer();
-
-  const avatarWorldObject = _getAvatarWorldObject(localObject);
-  const avatarCameraOffset = _getAvatarCameraOffset();
-
   const renderer = getRenderer();
+  const session = renderer.xr.getSession();
+
+  const avatarWorldObject = localObject;
+  avatarWorldObject.matrix.copy(camera.matrixWorld)
+    .decompose(avatarWorldObject.position, avatarWorldObject.quaternion, avatarWorldObject.scale);
+  const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
+
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiffS);
     _applyDamping(timeDiffS);
