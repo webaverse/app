@@ -1572,7 +1572,8 @@ const gameManager = {
   },
   jump() {
     this.ensureJump();
-    physicsManager.velocity.y += 5;
+    const localPlayer = useLocalPlayer();
+    localPlayer.characterPhysics.velocity.y += 5;
   },
   isMovingBackward() {
     return physicsManager.direction.z > 0 && this.isAiming();
