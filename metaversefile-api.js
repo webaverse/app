@@ -256,6 +256,8 @@ const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
   state: new Y.Doc(),
 });
+localPlayer.position.y = 1.5;
+localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
