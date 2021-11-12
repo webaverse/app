@@ -251,7 +251,7 @@ const _getType = id => {
   // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let {url, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
+  let {url, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
   width = parseInt(width, 10);
   if (isNaN(width)) {
     width = defaultWidth;
