@@ -405,9 +405,9 @@ const _updatePhysics = timeDiff => {
     .decompose(avatarWorldObject.position, avatarWorldObject.quaternion, avatarWorldObject.scale);
   const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
 
-  if (session) {
-    localPlayer.updatePhysics(timeDiffS);
+  localPlayer.updatePhysics(timeDiffS);
 
+  if (session) {
     if (ioManager.currentWalked || localPlayer.hasAction('jump')) {
       const originalPosition = avatarWorldObject.position.clone();
 
@@ -422,22 +422,18 @@ const _updatePhysics = timeDiff => {
   } else {
     const selectedTool = cameraManager.getMode();
     if (selectedTool === 'firstperson') {
-      localPlayer.updatePhysics(timeDiffS);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld();
     } else if (localPlayer.hasAction('aim') && !localPlayer.hasAction('narutoRun')) {
-      localPlayer.updatePhysics(timeDiffS);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld();
     } else if (selectedTool === 'isometric') {
-      localPlayer.updatePhysics(timeDiffS);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld();
     /* } else if (selectedTool === 'birdseye') {
-      localPlayer.updatePhysics(timeDiffS);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld(); */
