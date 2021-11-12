@@ -1576,7 +1576,7 @@ const gameManager = {
     localPlayer.characterPhysics.velocity.y += 5;
   },
   isMovingBackward() {
-    return physicsManager.direction.z > 0 && this.isAiming();
+    return useLocalPlayer().characterPhysics.direction.z > 0 && this.isAiming();
   },
   isAiming() {
     return useLocalPlayer().hasAction('aim');
