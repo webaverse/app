@@ -44,7 +44,7 @@ class LoadTester {
   waitForServerBoot = ()=>{
     let retries = 5;
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
+    let _fetch = false;
     return new Promise((resolve,reject)=>{
 
       let outInterval = setInterval(async () => {
@@ -55,12 +55,26 @@ class LoadTester {
                 clearInterval(outInterval);
                 return reject();  
               }
-
-              const res = await fetch(self.config.host);
+              if(!_fetch)
+                const res = await fetch(self.config.host);
               if(res.ok){
-                console.log('Webaverse is running tests. Sit tight! :)');
-                clearInterval(outInterval);
-                return resolve();  
+                _fetch = true;
+                retries = 120; // wait for 120 seconds
+                await this.page.goto(this.config.host,{
+                  waitUntil: 'domcontentloaded',
+                });
+
+              }
+
+              if(_fetch){
+                let __THREE__ =  await this.page.evaluate(()=>{
+                  return window.__THREE__;                 
+                });
+                if(__THREE__ === '123'){
+                  console.log('Webaverse is running tests. Sit tight! :)');
+                  clearInterval(outInterval);
+                  return resolve();  
+                }
               }
 
           
@@ -72,6 +86,8 @@ class LoadTester {
         }
       }, 1000);
     });
+
+
   }
   
 
@@ -177,7 +193,6 @@ class LoadTester {
   }
 
   async init() {
-    await this.waitForServerBoot();
     this.browser = await puppeteer.launch({
       headless: true, // change to false for debug
       defaultViewport: null,
@@ -197,6 +212,7 @@ class LoadTester {
     });
 
     this.page = await this.browser.newPage();
+    await this.waitForServerBoot();
 
     await this.page.setDefaultNavigationTimeout(60000);
 
