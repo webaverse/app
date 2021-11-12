@@ -583,6 +583,7 @@ const _gameInit = () => {
     await grabUseMesh.addModule(m);
   })();
   grabUseMesh.target = null;
+  sceneLowPriority.add(grabUseMesh);
 };
 Promise.resolve()
   .then(_gameInit);
