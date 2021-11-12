@@ -33,7 +33,7 @@ class CharacterPhysics {
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
   }
-  applyWasd(keysDirection, timeDiff) {
+  applyWasd(keysDirection) {
     this.velocity.add(keysDirection);
   }
   applyGravity(timeDiffS) {
