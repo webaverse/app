@@ -453,7 +453,7 @@ class Player extends THREE.Object3D {
       }
     });
   }
-  update(timestamp, timeDiff) {
+  updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       this.updateInterpolation(timeDiff);
       
@@ -890,8 +890,8 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-function update(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().update(timestamp, timeDiff);
+function updateAvatar(timestamp, timeDiff) {
+  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
 function updatePhysics(timeDiff) {
   metaversefile.useLocalPlayer().updatePhysics(timeDiff);
@@ -901,6 +901,6 @@ export {
   LocalPlayer,
   RemotePlayer,
   getPlayerCrouchFactor,
-  update,
+  updateAvatar,
   updatePhysics,
 };
