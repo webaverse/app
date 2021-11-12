@@ -227,8 +227,8 @@ class CharacterPhysics {
         this.velocity.y = 0;
       }
     } else {
-      const selectedTool = cameraManager.getMode();
-      if (selectedTool === 'firstperson') {
+      const cameraMode = cameraManager.getMode();
+      if (cameraMode === 'firstperson') {
         this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
         copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
@@ -236,16 +236,16 @@ class CharacterPhysics {
         this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
         copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (selectedTool === 'isometric') {
+      } else if (cameraMode === 'isometric') {
         this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
         copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-        /* } else if (selectedTool === 'birdseye') {
+        /* } else if (cameraMode === 'birdseye') {
         this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
         copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld(); */
       } else {
-        throw new Error('invalid camera mode: ' + selectedTool);
+        throw new Error('invalid camera mode: ' + cameraMode);
       }
     }
   }
