@@ -35,7 +35,7 @@ const enterWorld = async worldSpec => {
   localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
     relation: 'float',
   });
-  localPlayer.velocity.set(0, 0, 0);
+  localPlayer.resetPhysics();
 
   physicsManager.setPhysicsEnabled(true);
   physicsManager.update(0);
@@ -71,8 +71,8 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
-  
-  localPlayer.velocity.set(0, 0, 0);
+
+  localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
   physicsManager.update(0);
 

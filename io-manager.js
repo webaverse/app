@@ -236,15 +236,15 @@ const _updateIo = timeDiff => {
       const speed = game.getSpeed();
       direction.normalize().multiplyScalar(speed * timeDiff);
 
-      localPlayer.velocity.add(direction);
+      localPlayer.characterPhysics.velocity.add(direction);
 
       if (isFlying) {
         const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-        localPlayer.velocity.multiplyScalar(factor);
+        localPlayer.characterPhysics.velocity.multiplyScalar(factor);
       } else if (game.isJumping()) {
         const factor = getVelocityDampingFactor(airFriction, timeDiff);
-        localPlayer.velocity.x *= factor;
-        localPlayer.velocity.z *= factor;
+        localPlayer.characterPhysics.velocity.x *= factor;
+        localPlayer.characterPhysics.velocity.z *= factor;
       }
     }
   } /* else {

@@ -24,9 +24,10 @@ import {
   groundFriction,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
+import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {makeId, clone, getVelocityDampingFactor} from './util.js';
+import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -572,7 +573,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.velocity = new THREE.Vector3();
+    this.characterPhysics = new CharacterPhysics(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -791,30 +792,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  applyGravity(timeDiffS) {
-    if (this.avatar) {
-      if (!this.hasAction('fly')) {
-        localVector.copy(physicsManager.getGravity())
-          .multiplyScalar(timeDiffS);
-        this.velocity.add(localVector);
-      }
-    }
+  updatePhysics(timeDiffS) {
+    this.characterPhysics.update(timeDiffS);
   }
-  applyDamping(timeDiffS) {
-    if (this.avatar) {
-      if (this.hasAction('fly')) {
-        const factor = getVelocityDampingFactor(0.8, timeDiffS * 1000);
-        this.velocity.multiplyScalar(factor);
-      } else if (!this.hasAction('jump') /*!jumpState || gliding*/) {
-        const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
-        this.velocity.x *= factor;
-        this.velocity.z *= factor;
-      }
-    }
-  }
-  updatePhysics(timeDiff) {
-    this.applyGravity(timeDiff);
-    this.applyDamping(timeDiff);
+  resetPhysics() {
+    this.characterPhysics.reset();
   }
   teleportTo = (() => {
     // const localVector = new THREE.Vector3();
@@ -850,7 +832,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         camera.updateMatrixWorld();
       }
 
-      this.velocity.set(0, 0, 0);
+      this.resetPhysics();
     };
   })()
 }

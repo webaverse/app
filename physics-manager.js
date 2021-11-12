@@ -252,7 +252,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     // capsule physics
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('sit')) {
-      applyVelocity(camera.position, localPlayer.velocity, timeDiffS);
+      applyVelocity(camera.position, localPlayer.characterPhysics.velocity, timeDiffS);
 
       camera.updateMatrixWorld();
       camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -266,7 +266,11 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       
       // avatar facing direction
       if (velocityAvatarDirection) {
-        const horizontalVelocity = localVector5.set(localPlayer.velocity.x, 0, localPlayer.velocity.z);
+        const horizontalVelocity = localVector5.set(
+          localPlayer.characterPhysics.velocity.x,
+          0,
+          localPlayer.characterPhysics.velocity.z
+        );
         if (horizontalVelocity.lengthSq() > 0.001) {
           localQuaternion.setFromRotationMatrix(
             localMatrix.lookAt(
@@ -304,16 +308,16 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
         localVector.add(localVector4);
         
         if (collision.grounded) {
-          localPlayer.velocity.y = 0;
+          localPlayer.characterPhysics.velocity.y = 0;
           _ensureNoJumpAction();
         } else if (!jumpAction) {
           _ensureJumpAction();
         }
-      } else if (!jumpAction && localPlayer.velocity.y < -4) {
+      } else if (!jumpAction && localPlayer.characterPhysics.velocity.y < -4) {
         _ensureJumpAction();
       }
     } else {
-      localPlayer.velocity.y = 0;
+      localPlayer.characterPhysics.velocity.y = 0;
 
       const sitAction = localPlayer.getAction('sit');
 
@@ -326,12 +330,12 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
       physicsManager.setSitOffset(sitOffset);
 
-      applyVelocity(controlledApp.position, localPlayer.velocity, timeDiffS);
-      if (localPlayer.velocity.lengthSq() > 0) {
+      applyVelocity(controlledApp.position, localPlayer.characterPhysics.velocity, timeDiffS);
+      if (localPlayer.characterPhysics.velocity.lengthSq() > 0) {
         controlledApp.quaternion
           .setFromUnitVectors(
             localVector4.set(0, 0, -1),
-            localVector5.set(localPlayer.velocity.x, 0, localPlayer.velocity.z).normalize()
+            localVector5.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z).normalize()
           )
           .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
