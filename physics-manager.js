@@ -417,7 +417,7 @@ const _updatePhysics = timeDiff => {
         avatarWorldObject.position.clone().sub(originalPosition)
       );
     } else {
-      physicsManager.velocity.y = 0;
+      localPlayer.characterPhysics.velocity.y = 0;
     }
   } else {
     const selectedTool = cameraManager.getMode();
