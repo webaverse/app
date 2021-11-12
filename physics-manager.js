@@ -408,7 +408,7 @@ const _updatePhysics = timeDiff => {
   if (session) {
     localPlayer.updatePhysics(timeDiffS);
 
-    if (ioManager.currentWalked || localPlayer.actions.some(action => action.type === 'jump')) {
+    if (ioManager.currentWalked || localPlayer.hasAction('jump')) {
       const originalPosition = avatarWorldObject.position.clone();
 
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiffS);
