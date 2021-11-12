@@ -3,7 +3,7 @@ import {getExt, makePromise, parseQuery} from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
-// import App from './webaverse';
+import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
 import {fitCameraToBox} from './util.js';
 // import {defaultRendererUrl} from './constants.js'
@@ -278,7 +278,7 @@ const _getType = id => {
   } catch (err) {
     console.warn(err);
   }
-
+  let type = 'webm'
   const ext = o ? o.appType : '';
   const isVrm = ext === 'vrm';
   const isImage = ['png', 'jpg'].includes(ext);
@@ -494,6 +494,20 @@ const _getType = id => {
         const boundingBox = new THREE.Box3().setFromObject(o);
         const center = boundingBox.getCenter(new THREE.Vector3());
         const size = boundingBox.getSize(new THREE.Vector3());
+        function nextEvent(target, name) {
+          return new Promise(resolve => {
+            target.addEventListener(name, resolve, { once: true });
+          });
+        }
+
+        const worker = new Worker("./node_modules/webm-wasm/dist/webm-worker.js",{
+          type:'module'
+        });
+        worker.postMessage("./webm-wasm.wasm");
+        //worker.postMessage({ timebaseDen: FPS, width, height, bitrate:5000000});
+
+        await nextEvent(worker, "message");
+
 
         _initializeAnimation();
         _lookAt(camera, boundingBox);
@@ -508,6 +522,8 @@ const _getType = id => {
           // draw
           const writeCtx = writeCanvas.getContext('2d');
           writeCtx.drawImage(renderer.domElement, 0, 0);
+          let _bufferData = writeCtx.getImageData(0,0,width,height).data.buffer
+          worker.postMessage(_bufferData, [_bufferData]);
 
           frames.push(writeCanvas);
         };
@@ -583,46 +599,31 @@ const _getType = id => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(0);
-        const track = stream.getVideoTracks()[0];
-        const recordedChunks = [];
-
-        const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm; codecs=vp9',
-          videoBitsPerSecond: 5000000,
-        });
-
-        mediaRecorder.ondataavailable = event => {
-          // console.log('got data', event.data);
-          if (event.data.size > 0) {
-            recordedChunks.push(event.data);
-            // console.log(recordedChunks);
-            // download();
-          } else {
-            // ...
-          }
-        };
-        const p = _makePromise();
-        mediaRecorder.onstop = () => {
-          // console.log('stop');
-          p.accept();
-        };
-        mediaRecorder.start();
+        // const stream = canvas.captureStream(0);
+        // const track = stream.getVideoTracks()[0];
+        let i=0;
+        // const gradient = ctx.createLinearGradient(
+        //   (1 / 4) * width,
+        //   0,
+        //   (3 / 4) * width,
+        //   0
+        // );
+        // gradient.addColorStop(0, "#000");
+        // gradient.addColorStop(1, "#fff");
         for (const frame of frames) {
           ctx.drawImage(frame, 0, 0);
-          track.requestFrame();
-          await new Promise((accept, reject) => {
-            setTimeout(accept, 1000/FPS);
-          });
+          // ctx.fillStyle = `hsl(${(i * 360) / FPS}, 100%, 50%)`;
+          // ctx.fillRect(0, 0, width, height);
+          // ctx.fillStyle = gradient;
+          // ctx.fillRect((1 / 4) * width, (1 / 4) * height, width / 2, height / 2);
+          i++
         }
-        mediaRecorder.stop();
 
-        await p;
-
-        const blob = new Blob(recordedChunks, {
-          type: 'video/webm',
-        });
-
+        worker.postMessage(null);
+        const webm = (await nextEvent(worker, "message")).data;
+        const blob = new Blob([webm], { type: 'video/webm; codecs=vp9',
+      });
+      
         console.log('got video blob', blob);
 
         const video = document.createElement('video');
