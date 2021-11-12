@@ -228,24 +228,35 @@ class CharacterPhysics {
       }
     } else {
       const cameraMode = cameraManager.getMode();
-      if (cameraMode === 'firstperson') {
-        this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
-        copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-      } else if (this.player.hasAction('aim') && !this.player.hasAction('narutoRun')) {
-        this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
-        copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-      } else if (cameraMode === 'isometric') {
-        this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
-        copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
-        /* } else if (cameraMode === 'birdseye') {
-        this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
-        copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld(); */
-      } else {
-        throw new Error('invalid camera mode: ' + cameraMode);
+      switch (cameraMode) {
+        case 'firstperson': {
+          this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
+          copyPQS(camera, avatarWorldObject);
+          camera.updateMatrixWorld();
+          break;
+        }
+        case 'isometric': {
+          if (this.player.hasAction('aim') && !this.player.hasAction('narutoRun')) {
+            this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
+            copyPQS(camera, avatarWorldObject);
+            camera.updateMatrixWorld();
+          } else {
+            this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
+            copyPQS(camera, avatarWorldObject);
+            camera.updateMatrixWorld();
+          }
+          break;
+        }
+        case 'birdseye': {
+          this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
+          copyPQS(camera, avatarWorldObject);
+          camera.updateMatrixWorld();
+          break;
+        }
+        default: {
+          throw new Error('invalid camera mode: ' + cameraMode);
+          break;
+        }
       }
     }
   }
