@@ -90,8 +90,6 @@ class CharacterPhysics {
                 upVector
               )
             );
-          } else {
-            localQuaternion.copy(camera.quaternion);
           }
         } else {
           localQuaternion.copy(camera.quaternion);
