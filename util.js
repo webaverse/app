@@ -638,3 +638,7 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   // camera.lookAt(center);
   camera.updateMatrixWorld();
 }
+
+export function applyVelocity(position, velocity, timeDiffS) {
+  position.add(localVector.copy(velocity).multiplyScalar(timeDiffS));
+}
