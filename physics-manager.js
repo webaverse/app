@@ -193,11 +193,11 @@ physicsManager.pushUpdate = physicsObject => {
 
 physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 
-const getAvatarHeight = () => {
+/* const getAvatarHeight = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   return localPlayer.avatar ? localPlayer.avatar.height : 0;
 };
-physicsManager.getAvatarHeight = getAvatarHeight;
+physicsManager.getAvatarHeight = getAvatarHeight; */
 
 physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {

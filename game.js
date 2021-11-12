@@ -604,7 +604,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localMatrix.copy(localPlayer.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
 
-      const handOffsetScale = localPlayer.avatar ? localPlayer.avatar.height / 1.5 : 1;
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+      const handOffsetScale = localPlayer.avatar ? avatarHeight / 1.5 : 1;
       {
         const leftGamepadPosition = localVector2.copy(localVector)
           .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
@@ -713,8 +714,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
     grabUseMesh.visible = false;
     if (!gameManager.editMode) {
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
       localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, physicsManager.getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
+        .add(localVector2.set(0, avatarHeight * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
         
       const radius = 1;
       const halfHeight = 0.1;
@@ -915,7 +917,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
             localQuaternion,
             localVector2
           );
-          localVector.y -= physicsManager.getAvatarHeight() / 2;
+          const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+          localVector.y -= avatarHeight / 2;
           const distanceSpecs = apps.map(object => {
             let distance = object.position.distanceTo(localVector);
             if (distance > 30) {
@@ -981,7 +984,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localQuaternion,
           localVector2
         );
-        localVector.y -= physicsManager.getAvatarHeight() / 2;
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+        localVector.y -= avatarHeight / 2;
         const distanceSpecs = apps.map(object => {
           let distance = object.position.distanceTo(localVector);
           if (distance > 3) {
