@@ -575,19 +575,14 @@ const cylinderMesh = (() => {
 
 let grabUseMesh = null;
 const _gameInit = () => {
-  const grabUseMesh = (() => {
-    const app = metaversefileApi.createApp();
-    (async () => {
-      await metaverseModules.waitForLoad();
-      const {modules} = metaversefileApi.useDefaultModules();
-      const m = modules['button'];
-      await app.addModule(m);
-    })();
-    app.target = null;
-    return app;
+  grabUseMesh = metaversefileApi.createApp();
+  (async () => {
+    await metaverseModules.waitForLoad();
+    const {modules} = metaversefileApi.useDefaultModules();
+    const m = modules['button'];
+    await grabUseMesh.addModule(m);
   })();
-  grabUseMesh.visible = false;
-  sceneLowPriority.add(grabUseMesh);
+  grabUseMesh.target = null;
 };
 Promise.resolve()
   .then(_gameInit);
