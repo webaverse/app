@@ -46,18 +46,6 @@ class CharacterPhysics {
       }
     }
   }
-  applyDamping(timeDiffS) {
-    if (this.player.avatar) {
-      if (this.player.hasAction('fly')) {
-        const factor = getVelocityDampingFactor(0.8, timeDiffS * 1000);
-        this.velocity.multiplyScalar(factor);
-      } else if (!this.player.hasAction('jump') /*!jumpState || gliding*/ ) {
-        const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
-        this.velocity.x *= factor;
-        this.velocity.z *= factor;
-      }
-    }
-  }
   getAvatarCapsule(v) {
     const avatarHeight = physicsManager.getAvatarHeight();
     v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
@@ -210,17 +198,26 @@ class CharacterPhysics {
       }
     }
   }
-  applyAvatarPhysics(timeDiffS) {
+  /* dampen the velocity to make physical sense for the current avatar state */
+  applyDamping(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
     if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      this.velocity.multiplyScalar(factor);
-    } else if (this.player.hasAction('jump')) {
-    const factor = getVelocityDampingFactor(airFriction, timeDiff);
+      const factor1 = getVelocityDampingFactor(0.8, timeDiffS * 1000);
+      this.velocity.multiplyScalar(factor1);
+
+      const factor2 = getVelocityDampingFactor(flyFriction, timeDiff);
+      this.velocity.multiplyScalar(factor2);
+    } else if (!this.player.hasAction('jump')) {
+      const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
+      this.velocity.x *= factor;
+      this.velocity.z *= factor;
+    } else {
+      const factor = getVelocityDampingFactor(airFriction, timeDiff);
       this.velocity.x *= factor;
       this.velocity.z *= factor;
     }
-
+  }
+  applyAvatarPhysics(timeDiffS) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     const avatarWorldObject = localObject;
