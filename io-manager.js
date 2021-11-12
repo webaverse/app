@@ -50,6 +50,7 @@ ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
+ioManager.debugMode = false;
 ioManager.keys = {
   up: false,
   down: false,
@@ -213,7 +214,7 @@ const _updateIo = timeDiff => {
       lastNonzeroDirectionVector.copy(direction);
     }
     
-    physicsManager.direction.copy(direction);
+    localPlayer.characterPhysics.direction.copy(direction);
     
     const isFlying = game.isFlying();
     if (isFlying) {
@@ -235,15 +236,15 @@ const _updateIo = timeDiff => {
       const speed = game.getSpeed();
       direction.normalize().multiplyScalar(speed * timeDiff);
 
-      physicsManager.velocity.add(direction);
+      localPlayer.characterPhysics.velocity.add(direction);
 
       if (isFlying) {
         const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-        physicsManager.velocity.multiplyScalar(factor);
+        localPlayer.characterPhysics.velocity.multiplyScalar(factor);
       } else if (game.isJumping()) {
         const factor = getVelocityDampingFactor(airFriction, timeDiff);
-        physicsManager.velocity.x *= factor;
-        physicsManager.velocity.z *= factor;
+        localPlayer.characterPhysics.velocity.x *= factor;
+        localPlayer.characterPhysics.velocity.z *= factor;
       }
     }
   } /* else {
@@ -530,6 +531,11 @@ ioManager.keydown = e => {
     }
     case 27: { // esc
       game.setContextMenu(false);
+      break;
+    }
+    case 72: { // H
+      game.toggleDebug(ioManager.debugMode);
+      ioManager.debugMode = !ioManager.debugMode;
       break;
     }
   }

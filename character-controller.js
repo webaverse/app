@@ -17,15 +17,17 @@ import {
   playersMapName,
   crouchMaxTime,
   activateMaxTime,
-  useMaxTime,
+  // useMaxTime,
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
+  groundFriction,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
+import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {makeId, clone, getPlayerPrefix} from './util.js';
+import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -570,6 +572,8 @@ class UninterpolatedPlayer extends Player {
 class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
+
+    this.characterPhysics = new CharacterPhysics(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -788,6 +792,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
+  updatePhysics(timeDiffS) {
+    this.characterPhysics.update(timeDiffS);
+  }
+  resetPhysics() {
+    this.characterPhysics.reset();
+  }
   teleportTo = (() => {
     // const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -822,7 +832,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         camera.updateMatrixWorld();
       }
 
-      physicsManager.velocity.set(0, 0, 0);
+      this.resetPhysics();
     };
   })()
 }
