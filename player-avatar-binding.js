@@ -14,6 +14,11 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
   }
 }
+/* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
+  if (!session) {
+    rig.velocity.copy(player.characterPhysics.velocity);
+  }
+} */
 export function applyPlayerModesToAvatar(player, session, rig) {
   const aimAction = player.getAction('aim');
   const aimComponent = (() => {
@@ -143,6 +148,7 @@ export function applyPlayerChatToAvatar(player, rig) {
 }
 export function applyPlayerToAvatar(player, session, rig) {
   applyPlayerTransformsToAvatar(player, session, rig);
+  // applyPlayerMetaTransformsToAvatar(player, session, rig);
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerChatToAvatar(player, rig);
