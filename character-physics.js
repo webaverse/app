@@ -202,13 +202,10 @@ class CharacterPhysics {
   applyDamping(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
     if (this.player.hasAction('fly')) {
-      const factor1 = getVelocityDampingFactor(0.8, timeDiffS * 1000);
-      this.velocity.multiplyScalar(factor1);
-
-      const factor2 = getVelocityDampingFactor(flyFriction, timeDiff);
-      this.velocity.multiplyScalar(factor2);
+      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+      this.velocity.multiplyScalar(factor);
     } else if (!this.player.hasAction('jump')) {
-      const factor = getVelocityDampingFactor(groundFriction, timeDiffS * 1000);
+      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       this.velocity.x *= factor;
       this.velocity.z *= factor;
     } else {
