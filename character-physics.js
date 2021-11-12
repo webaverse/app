@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
+import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity, copyPQS} from './util.js';
@@ -34,15 +35,6 @@ class CharacterPhysics {
   }
   applyWasd(keysDirection, timeDiff) {
     this.velocity.add(keysDirection);
-
-    if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      this.velocity.multiplyScalar(factor);
-    } else if (this.player.hasAction('jump')) {
-      const factor = getVelocityDampingFactor(airFriction, timeDiff);
-      this.velocity.x *= factor;
-      this.velocity.z *= factor;
-    }
   }
   applyGravity(timeDiffS) {
     if (this.player.avatar) {
@@ -218,6 +210,18 @@ class CharacterPhysics {
     }
   }
   applyAvatarPhysics(timeDiffS) {
+    const timeDiff = timeDiffS * 1000;
+    if (!ioManager.keysDirection.equals(zeroVector)) {
+      if (this.player.hasAction('fly')) {
+        const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+        this.velocity.multiplyScalar(factor);
+      } else if (this.player.hasAction('jump')) {
+        const factor = getVelocityDampingFactor(airFriction, timeDiff);
+        this.velocity.x *= factor;
+        this.velocity.z *= factor;
+      }
+    }
+    
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     const avatarWorldObject = localObject;
