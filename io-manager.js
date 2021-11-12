@@ -101,6 +101,9 @@ const _updateVertical = direction => {
   }
 };
 
+const keysDirection = new THREE.Vector3();
+ioManager.keysDirection = keysDirection;
+
 const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
 ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
 const _updateIo = timeDiff => {
@@ -200,31 +203,29 @@ const _updateIo = timeDiff => {
       }
     }
   } else /* if (controlsManager.isPossessed()) */ {
-    const direction = localVector.set(0, 0, 0);
+    keysDirection.set(0, 0, 0);
     
     const localPlayer = metaversefile.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     
-    _updateHorizontal(direction);
-    if (direction.equals(zeroVector)) {
+    _updateHorizontal(keysDirection);
+    if (keysDirection.equals(zeroVector)) {
       if (narutoRunAction) {
-        direction.copy(lastNonzeroDirectionVector);
+        keysDirection.copy(lastNonzeroDirectionVector);
       }
     } else {
-      lastNonzeroDirectionVector.copy(direction);
+      lastNonzeroDirectionVector.copy(keysDirection);
     }
-    
-    localPlayer.characterPhysics.direction.copy(direction);
     
     const isFlying = game.isFlying();
     if (isFlying) {
-      direction.applyQuaternion(camera.quaternion);
-      _updateVertical(direction);
+      keysDirection.applyQuaternion(camera.quaternion);
+      _updateVertical(keysDirection);
     } else {  
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
-      direction.applyEuler(cameraEuler);
+      keysDirection.applyEuler(cameraEuler);
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
         game.toggleCrouch();
@@ -232,11 +233,11 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (direction.length() > 0) {
+    if (keysDirection.length() > 0) {
       const speed = game.getSpeed();
-      direction.normalize().multiplyScalar(speed * timeDiff);
+      keysDirection.normalize().multiplyScalar(speed * timeDiff);
 
-      localPlayer.characterPhysics.velocity.add(direction);
+      localPlayer.characterPhysics.velocity.add(keysDirection);
 
       if (isFlying) {
         const factor = getVelocityDampingFactor(flyFriction, timeDiff);
