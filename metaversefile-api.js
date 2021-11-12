@@ -572,6 +572,7 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
+
         // app.updateMatrixWorld();
         // localMatrix
         //   .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
@@ -594,6 +595,7 @@ metaversefile.setApi({
         physicsObject.updateMatrixWorld();
         
         app.physicsObjects.push(physicsObject);
+
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addCapsuleGeometry);

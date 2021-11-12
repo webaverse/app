@@ -431,7 +431,7 @@ physicsManager.physicsPostStep = physicsObject => {
         const avatarWorldObject = _getAvatarWorldObject(localObject);
         const avatarCameraOffset = _getAvatarCameraOffset();
 
-        const offset = getAvatarHeight() - 0.3;
+        const offset = getAvatarHeight() - 0.296;
         phyObj.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
 
         const {cameraBasedOffset, velocityAvatarDirection, updateRig} = _getSelectedTool(); // Get camera & avatar state
