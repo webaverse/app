@@ -1,13 +1,11 @@
 import * as THREE from 'three';
-import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
+import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
-/* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
 const requestPointerLock = async () => {
   for (const options of [
@@ -52,7 +50,6 @@ const requestPointerLock = async () => {
           accept();
         }
       });
-      // physicsManager.unlockControls();
       break;
     } catch (err) {
       console.warn(err);
@@ -60,106 +57,17 @@ const requestPointerLock = async () => {
     }
   }
 };
-
-/* const cameraModes = [
-  'firstperson',
-  'thirdperson',
-  'isometric',
-  'birdseye',
-];
-let selectedTool = cameraModes[0];
-const switchCamera = e => {
-  const index = cameraModes.indexOf(selectedTool);
-  let nextIndex;
-  if (!e.shiftKey) {
-    nextIndex = (index + 1) % cameraModes.length;
-  } else {
-    nextIndex = index - 1;
-    if (nextIndex <= 0) {
-      nextIndex = cameraModes.length - 1;
-    }
-  }
-  if (index === 0 || nextIndex === 0) {
-    nextIndex = 1;
-  }
-
-  const newSelectedTool = cameraModes[nextIndex];
-  selectTool(newSelectedTool);
-}; */
-// const cameraButton = document.getElementById('key-c');
-// cameraButton.addEventListener('click', switchCamera);
-/* const selectTool = newSelectedTool => {
-  const oldSelectedTool = selectedTool;
-  selectedTool = newSelectedTool;
-
-  if (selectedTool !== oldSelectedTool) {
-    switch (oldSelectedTool) {
-      case 'thirdperson': {
-        camera.position.add(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'isometric': {
-        camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'birdseye': {
-        camera.position.y += -birdsEyeHeight + getAvatarHeight();
-        camera.updateMatrixWorld();
-        break;
-      }
-    }
-
-    switch (selectedTool) {
-      case 'camera': {
-        physicsManager.velocity.set(0, 0, 0);
-        break;
-      }
-      case 'firstperson': {
-        camera.rotation.x = 0;
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'thirdperson': {
-        camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'isometric': {
-        camera.rotation.x = -Math.PI / 6;
-        camera.quaternion.setFromEuler(camera.rotation);
-        camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'birdseye': {
-        camera.rotation.x = -Math.PI / 2;
-        camera.quaternion.setFromEuler(camera.rotation);
-        camera.position.y -= -birdsEyeHeight + getAvatarHeight();
-        camera.updateMatrixWorld();
-        break;
-      }
-    }
-  }
-}; */
 const focusCamera = position => {
   camera.lookAt(position);
   camera.updateMatrixWorld();
 };
 
 const cameraManager = {
-  /* birdsEyeHeight,
-  thirdPersonCameraOffset,
-  isometricCameraOffset, */
   wasActivated() {
     return wasActivated;
   },
   focusCamera,
   requestPointerLock,
-  /* getTool() {
-    return selectedTool;
-  }, */
   getMode() {
     const f = -cameraOffset.z;
     if (f < 0.5) {
@@ -174,23 +82,12 @@ const cameraManager = {
   handleWheelEvent(e) {
     e.preventDefault();
   
-    // if (controlsManager.isPossessed()) {
-      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      
-      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld();
-      
-      cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-      
-
-      // physicsManager.unlockControls();
-    /* } else {
-      camera.position.add(
-        localVector.set(0, 0, e.deltaY * 0.01)
-          .applyQuaternion(camera.quaternion)
-      );
-      camera.updateMatrixWorld();
-    } */
+    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    
+    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+    
+    cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   },
   update(timeDiff) {
     const zDiff = Math.abs(cameraOffset.z - cameraOffsetTargetZ);
@@ -208,7 +105,5 @@ const cameraManager = {
       camera.updateMatrixWorld();
     }
   },
-  // switchCamera,
-  // selectTool,
 };
 export default cameraManager;
