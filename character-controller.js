@@ -792,7 +792,8 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(timeDiffS) {
+  updatePhysics(timeDiff) {
+    const timeDiffS = timeDiff / 1000;
     this.characterPhysics.update(timeDiffS);
   }
   resetPhysics() {
@@ -892,10 +893,14 @@ function getPlayerCrouchFactor(player) {
 function update(timestamp, timeDiff) {
   metaversefile.useLocalPlayer().update(timestamp, timeDiff);
 }
+function updatePhysics(timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
+}
 
 export {
   LocalPlayer,
   RemotePlayer,
   getPlayerCrouchFactor,
   update,
+  updatePhysics,
 };

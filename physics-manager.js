@@ -207,11 +207,4 @@ physicsManager.setPhysicsEnabled = physicsEnabled => {
 const gravity = new THREE.Vector3(0, -9.8, 0);
 physicsManager.getGravity = () => gravity;
 
-const _updatePhysics = timeDiff => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const timeDiffS = timeDiff/1000;
-  localPlayer.updatePhysics(timeDiffS);
-};
-physicsManager.update = _updatePhysics;
-
 export default physicsManager;
