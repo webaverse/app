@@ -28,27 +28,6 @@ const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
 
-let sitTarget = null;
-const getSitTarget = () => sitTarget;
-physicsManager.getSitTarget = getSitTarget;
-const setSitTarget = newSitTarget => {
-  sitTarget = newSitTarget;
-};
-physicsManager.setSitTarget = setSitTarget;
-let _sitOffset = new THREE.Vector3();
-const setSitOffset = newSitOffset => {
-  _sitOffset.fromArray(newSitOffset);
-};
-physicsManager.setSitOffset = setSitOffset;
-
-let sitController = null;
-const getSitController = () => sitController;
-physicsManager.getSitController = getSitController;
-const setSitController = newSitController => {
-  sitController = newSitController;
-};
-physicsManager.setSitController = setSitController;
-
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
