@@ -204,12 +204,12 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       this.velocity.multiplyScalar(factor);
-    } else if (!this.player.hasAction('jump')) {
-      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      this.velocity.x *= factor;
-      this.velocity.z *= factor;
-    } else {
+    /* } else if (this.player.hasAction('jump')) {
       const factor = getVelocityDampingFactor(airFriction, timeDiff);
+      this.velocity.x *= factor;
+      this.velocity.z *= factor; */
+    } else {
+      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       this.velocity.x *= factor;
       this.velocity.z *= factor;
     }
