@@ -231,13 +231,6 @@ const getAvatarHeight = () => {
 };
 physicsManager.getAvatarHeight = getAvatarHeight;
 
-const _getAvatarCapsule = v => {
-  const avatarHeight = getAvatarHeight();
-  v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
-  v.radius = 0.3/1.6 * avatarHeight;
-  v.halfHeight = Math.max(avatarHeight * 0.5 - v.radius, 0);
-  return v;
-};
 physicsManager.getAvatarCapsule = _getAvatarCapsule;
 physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {
@@ -376,6 +369,13 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       }
     }
   }
+};
+const _getAvatarCapsule = v => {
+  const avatarHeight = getAvatarHeight();
+  v.set(0, -avatarHeight * 0.5, 0); // XXX use the proper crouch height
+  v.radius = 0.3/1.6 * avatarHeight;
+  v.halfHeight = Math.max(avatarHeight * 0.5 - v.radius, 0);
+  return v;
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
