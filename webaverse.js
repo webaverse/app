@@ -324,7 +324,6 @@ export default class Webaverse extends EventTarget {
       
       game.pushAppUpdates();
       game.pushPlayerUpdates();
-     
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
