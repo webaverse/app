@@ -29,7 +29,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
-    
+
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
   }
@@ -37,12 +37,12 @@ class CharacterPhysics {
     this.velocity.add(keysDirection);
 
     if (this.player.hasAction('fly')) {
-    const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-    this.velocity.multiplyScalar(factor);
+      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+      this.velocity.multiplyScalar(factor);
     } else if (this.player.hasAction('jump')) {
-    const factor = getVelocityDampingFactor(airFriction, timeDiff);
-    this.velocity.x *= factor;
-    this.velocity.z *= factor;
+      const factor = getVelocityDampingFactor(airFriction, timeDiff);
+      this.velocity.x *= factor;
+      this.velocity.z *= factor;
     }
   }
   applyGravity(timeDiffS) {
@@ -168,7 +168,7 @@ class CharacterPhysics {
         const sitComponent = controlledApp.getComponent('sit');
         const {
           sitOffset = [0, 0, 0],
-          damping,
+            damping,
         } = sitComponent;
         this.sitOffset.fromArray(sitOffset);
 
