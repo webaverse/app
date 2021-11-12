@@ -525,109 +525,38 @@ const buildMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
     varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
 
+
     ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
+   
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
+      vec3 newPosition = position + normal * vec3(0.000075,0.000075,0.000075);
+      
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
       vPos = position;
       vNormal = normal;
 
-      ${THREE.ShaderChunk.logdepthbuf_vertex}
     }
   `,
   fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
+    
     uniform vec3 uColor;
     uniform float uTime;
-    uniform vec3 sunDirection;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
 
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
+
     varying vec3 vPos;
     varying vec3 vNormal;
 
@@ -640,23 +569,17 @@ const buildMaterial = new THREE.ShaderMaterial({
         pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
         pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
       ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
     }
 
     vec3 getTriPlanarBlend(vec3 _wNorm){
       // in wNorm is the world-space normal of the fragment
       vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
       blending = normalize(blending);
       return blending;
     }
 
     void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
+   
       vec3 diffuseColor2 = uColor;
       float normalRepeat = 1.0;
 
@@ -665,11 +588,6 @@ const buildMaterial = new THREE.ShaderMaterial({
       float yaxis = edgeFactor(vPos.xz * normalRepeat);
       float zaxis = edgeFactor(vPos.xy * normalRepeat);
       float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-      // vec2 worldUv = vWorldUv;
-      // worldUv = mod(worldUv, 1.0);
-      // float f = edgeFactor();
-      // float f = max(normalTex.x, normalTex.y, normalTex.z);
 
       if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
         f = 1.0;
@@ -714,20 +632,9 @@ const highlightMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
+
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -736,32 +643,11 @@ const highlightMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
+      vec3 newPosition = position + normal * vec3(0.000075,0.000075,0.000075);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
 
       vec3 vert_tang;
       vec3 vert_bitang;
@@ -798,25 +684,11 @@ const highlightMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
     uniform vec3 uColor;
     uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
 
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -837,7 +709,7 @@ const highlightMaterial = new THREE.ShaderMaterial({
     vec3 getTriPlanarBlend(vec3 _wNorm){
       // in wNorm is the world-space normal of the fragment
       vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
+      // blending = normalize(max(blending, 0.00001));
       // float b = (blending.x + blending.y + blending.z);
       // blending /= vec3(b, b, b);
       // return min(min(blending.x, blending.y), blending.z);
@@ -846,8 +718,6 @@ const highlightMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = uColor;
@@ -888,19 +758,8 @@ const selectMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
     varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
@@ -910,32 +769,12 @@ const selectMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
+      vec3 newPosition = position + normal * vec3(0.000075,0.000075,0.000075);
+        
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
 
       vec3 vert_tang;
       vec3 vert_bitang;
@@ -971,26 +810,11 @@ const selectMaterial = new THREE.ShaderMaterial({
   fragmentShader: `\
     precision highp float;
     precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
     uniform vec3 uColor;
     uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
 
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1011,17 +835,11 @@ const selectMaterial = new THREE.ShaderMaterial({
     vec3 getTriPlanarBlend(vec3 _wNorm){
       // in wNorm is the world-space normal of the fragment
       vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
       blending = normalize(blending);
       return blending;
     }
 
     void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = uColor;
@@ -1061,20 +879,8 @@ const hoverMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1083,32 +889,12 @@ const hoverMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
+      vec3 newPosition = position + normal * vec3(0.000075,0.000075,0.000075);
+        
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
 
       vec3 vert_tang;
       vec3 vert_bitang;
@@ -1145,25 +931,11 @@ const hoverMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
     uniform vec3 uColor;
     uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
 
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1193,8 +965,6 @@ const hoverMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = uColor;
@@ -1234,20 +1004,8 @@ const hoverEquipmentMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1257,32 +1015,12 @@ const hoverEquipmentMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
+      vec3 newPosition = position + normal * vec3(0.0005,0.0005,0.0005);
+        
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
 
       vec3 vert_tang;
       vec3 vert_bitang;
@@ -1319,25 +1057,12 @@ const hoverEquipmentMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
     uniform vec3 uColor;
     uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
+
 
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1351,24 +1076,16 @@ const hoverEquipmentMaterial = new THREE.ShaderMaterial({
         pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
         pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
       ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
     }
 
     vec3 getTriPlanarBlend(vec3 _wNorm){
       // in wNorm is the world-space normal of the fragment
       vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
       blending = normalize(blending);
       return blending;
     }
 
     void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
       vec3 c = uColor;
@@ -1399,20 +1116,8 @@ const damageMaterial = new THREE.ShaderMaterial({
     precision highp float;
     precision highp int;
 
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
     varying vec3 vViewPosition;
     varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
     varying vec2 vWorldUv;
     varying vec3 vPos;
     varying vec3 vNormal;
@@ -1421,32 +1126,12 @@ const damageMaterial = new THREE.ShaderMaterial({
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
+      vec3 newPosition = position + normal * vec3(0.000075,0.000075,0.000075);
+        
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
 
       vec3 vert_tang;
       vec3 vert_bitang;
