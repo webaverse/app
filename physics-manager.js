@@ -384,10 +384,7 @@ physicsManager.getPhysicsObject = physicsId => physicsObjects[physicsId];
 }; */
 physicsManager.simulatePhysics = timeDiff => {
   const t = timeDiff/1000;
-
-  const localPlayer = metaversefileApi.useLocalPlayer();
   physx.physxWorker.simulatePhysics(physx.physics, t);
-
 };
 
 physicsManager.physicsPreStep = timeDiff => {
@@ -526,13 +523,12 @@ const _applyPhysics = (physicsObject, camera, avatarOffset, cameraBasedOffset, v
       if(physicsObject === localPlayer.avatar.app.physicsObjects[0]) {
 
         physicsManager.enablePhysicsObject(physicsObject);
+        physicsManager.disableGeometryQueries(physicsObject);
         const localPlayer = metaversefileApi.useLocalPlayer();
         const avatarWorldObject = _getAvatarWorldObject(localObject);
 
         camera.updateMatrixWorld();
         camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        //localVector.copy(physicsObject[0].position);
-        physicsManager.disableGeometryQueries(physicsObject);
 
          localVector4.copy(avatarOffset);
          if (cameraBasedOffset) {
@@ -580,25 +576,25 @@ const _applyPhysics = (physicsObject, camera, avatarOffset, cameraBasedOffset, v
         const collision = _collideCapsule(physicsObject.position, localQuaternion2.set(0, 0, 0, 1));
 
         if (collision) {
-          const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
-          const temp = new THREE.Vector3().fromArray(collision.direction);
-          localVector4
-            .set(0, 0, 0)
-            .add(localVector5.set(0, -crouchOffset, 0));
-          physicsObject.position.add(localVector4)
+          // const crouchOffset = getAvatarHeight() * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5;
+          // const temp = new THREE.Vector3().fromArray(collision.direction);
+          // localVector4
+          //   .set(0, 0, 0)
+          //   .add(localVector5.set(0, -crouchOffset, 0));
+          // physicsObject.position.add(localVector4)
 
           if (collision.grounded) {
             physicsManager.velocity.y = 0;
             _ensureNoJumpAction();
-        } else if (!jumpAction) {
+          } else if (!jumpAction) {
+            _ensureJumpAction();
+          }
+           else if (!jumpAction && physicsManager.velocity.y < -4) {
+            _ensureJumpAction();
+          }
+        } else if (!jumpAction && physicsManager.velocity.y < -6) {
           _ensureJumpAction();
         }
-         else if (!jumpAction && physicsManager.velocity.y < -4) {
-          _ensureJumpAction();
-        }
-      } else if (!jumpAction && physicsManager.velocity.y < -6) {
-          _ensureJumpAction();
-      }
 
         localMatrix.compose(physicsObject.position, localQuaternion, localVector2);
         
