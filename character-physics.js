@@ -229,8 +229,12 @@ class CharacterPhysics {
         }
       }
     }
+  }
+  /* offset the camera back from the avatar */
+  updateCamera(timeDiffS) {
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
 
-    // offset the camera back from the avatar
     const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
     const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
     const crouchOffset = avatarHeight * (1 - getPlayerCrouchFactor(this.player)) * 0.5;
@@ -246,6 +250,7 @@ class CharacterPhysics {
     this.applyGravity(timeDiffS);
     this.applyDamping(timeDiffS);
     this.applyAvatarPhysics(timeDiffS);
+    this.updateCamera(timeDiffS);
   }
   reset() {
     this.velocity.set(0, 0, 0);
