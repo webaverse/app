@@ -8,7 +8,7 @@ import physicsManager from './physics-manager.js';
 import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
-import {applyVelocity, copyPQS} from './util.js';
+import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -21,7 +21,6 @@ const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-const localObject = new THREE.Object3D();
 
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -62,9 +61,6 @@ class CharacterPhysics {
     };
   })()
   applyAvatarPhysicsDetail(
-    camera,
-    avatarOffset,
-    cameraBasedOffset,
     velocityAvatarDirection,
     updateRig,
     timeDiffS,
@@ -72,16 +68,11 @@ class CharacterPhysics {
     if (physicsManager.physicsEnabled) {
       // capsule physics
       if (!this.player.hasAction('sit')) {
-        applyVelocity(camera.position, this.velocity, timeDiffS);
+        applyVelocity(this.player.position, this.velocity, timeDiffS);
 
-        camera.updateMatrixWorld();
-        camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        this.player.updateMatrixWorld();
+        this.player.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-        localVector4.copy(avatarOffset);
-        if (cameraBasedOffset) {
-          localVector4.applyQuaternion(localQuaternion);
-        }
-        localVector.add(localVector4);
         const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
 
         // avatar facing direction
@@ -100,8 +91,10 @@ class CharacterPhysics {
               )
             );
           } else {
-            this.player.matrixWorld.decompose(localVector4, localQuaternion, localVector5);
+            localQuaternion.copy(camera.quaternion);
           }
+        } else {
+          localQuaternion.copy(camera.quaternion);
         }
 
         const jumpAction = this.player.getAction('jump');
@@ -148,7 +141,7 @@ class CharacterPhysics {
         const sitComponent = controlledApp.getComponent('sit');
         const {
           sitOffset = [0, 0, 0],
-            damping,
+          // damping,
         } = sitComponent;
         this.sitOffset.fromArray(sitOffset);
 
@@ -169,12 +162,6 @@ class CharacterPhysics {
         localVector.add(this.sitOffset);
         localVector.y += 1;
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
-
-        camera.position.copy(localVector)
-          .sub(
-            localVector3.copy(avatarOffset)
-            .applyQuaternion(camera.quaternion)
-          );
       }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
@@ -187,7 +174,6 @@ class CharacterPhysics {
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
-
 
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
@@ -204,10 +190,6 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       this.velocity.multiplyScalar(factor);
-    /* } else if (this.player.hasAction('jump')) {
-      const factor = getVelocityDampingFactor(airFriction, timeDiff);
-      this.velocity.x *= factor;
-      this.velocity.z *= factor; */
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       this.velocity.x *= factor;
@@ -217,20 +199,16 @@ class CharacterPhysics {
   applyAvatarPhysics(timeDiffS) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    const avatarWorldObject = localObject;
-    avatarWorldObject.matrix.copy(camera.matrixWorld)
-      .decompose(avatarWorldObject.position, avatarWorldObject.quaternion, avatarWorldObject.scale);
-    const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
 
     if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
-        const originalPosition = avatarWorldObject.position.clone();
+        // const originalPosition = avatarWorldObject.position.clone();
 
-        this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiffS);
+        this.applyAvatarPhysicsDetail(false, false, timeDiffS);
 
-        dolly.position.add(
+        /* dolly.position.add(
           avatarWorldObject.position.clone().sub(originalPosition)
-        );
+        ); */
       } else {
         this.velocity.y = 0;
       }
@@ -238,35 +216,35 @@ class CharacterPhysics {
       const cameraMode = cameraManager.getMode();
       switch (cameraMode) {
         case 'firstperson': {
-          this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
-          copyPQS(camera, avatarWorldObject);
-          camera.updateMatrixWorld();
+          this.applyAvatarPhysicsDetail(false, true, timeDiffS);
           break;
         }
         case 'isometric': {
           if (this.player.hasAction('aim') && !this.player.hasAction('narutoRun')) {
-            this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiffS);
-            copyPQS(camera, avatarWorldObject);
-            camera.updateMatrixWorld();
+            this.applyAvatarPhysicsDetail(false, true, timeDiffS);
           } else {
-            this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiffS);
-            copyPQS(camera, avatarWorldObject);
-            camera.updateMatrixWorld();
+            this.applyAvatarPhysicsDetail(true, true, timeDiffS);
           }
           break;
         }
         case 'birdseye': {
-          this.applyAvatarPhysicsDetail(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiffS);
-          copyPQS(camera, avatarWorldObject);
-          camera.updateMatrixWorld();
+          this.applyAvatarPhysicsDetail(true, true, timeDiffS);
           break;
         }
         default: {
           throw new Error('invalid camera mode: ' + cameraMode);
-          break;
         }
       }
     }
+
+    // offset the camera back from the avatar
+    const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
+    camera.position.copy(this.player.position)
+      .sub(
+        localVector.copy(avatarCameraOffset)
+          .applyQuaternion(camera.quaternion)
+      );
+    camera.updateMatrixWorld();
   }
   update(timeDiffS) {
     this.applyGravity(timeDiffS);
