@@ -33,6 +33,7 @@ class CharacterPhysics {
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
   }
+  /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     this.velocity.add(keysDirection);
   }
