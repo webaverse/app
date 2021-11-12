@@ -74,22 +74,25 @@ class LoadTester {
                 clearInterval(outInterval);
                 return reject();  
               }
-              if(!_fetch)
+              if(!_fetch) {
                 const res = await fetch(self.config.host);
-              if(res.ok){
-                _fetch = true;
-                retries = 120; // wait for 120 seconds
-                await this.page.goto(this.config.host,{
-                  waitUntil: 'domcontentloaded',
-                });
+                if(res.ok){
+                  _fetch = true;
+                  retries = 120; // wait for 120 seconds
+                  console.log('fetch completed')
+                  await this.page.goto(this.config.host,{
+                    waitUntil: 'domcontentloaded',
+                  });
 
+                }
               }
 
               if(_fetch){
                 let __THREE__ =  await this.page.evaluate(()=>{
                   return window.__THREE__;                 
                 });
-                if(__THREE__ === '123'){
+                console.log('__THREE__', __THREE__);
+                if(__THREE__ === '133'){
                   console.log('Webaverse is running tests. Sit tight! :)');
                   clearInterval(outInterval);
                   return resolve();  
@@ -183,27 +186,29 @@ class LoadTester {
 
   async init() {
     this.browser = await puppeteer.launch({
-      headless: true, // change to false for debug
+      headless: false, // change to false for debug
       defaultViewport: null,
       ignoreHTTPSErrors: true, 
       dumpio: false,
       args: [		
-      '--disable-gpu',
+      // '--disable-gpu',
       '--enable-webgl',
-      '--no-sandbox',
-      '--enable-precise-memory-info',
-      '--enable-begin-frame-control',
-      '--enable-surface-synchronization',
-      '--run-all-compositor-stages-before-draw',
-      '--disable-threaded-animation',
-      '--disable-threaded-scrolling',
-      '--disable-checker-imaging'],
+      '--use-cmd-decoder=passthrough'
+      // '--no-sandbox',
+      // '--enable-precise-memory-info',
+      // '--enable-begin-frame-control',
+      // '--enable-surface-synchronization',
+      // '--run-all-compositor-stages-before-draw',
+      // '--disable-threaded-animation',
+      // '--disable-threaded-scrolling',
+      // '--disable-checker-imaging'
+    ],
     });
 
     this.page = await this.browser.newPage();
     await this.waitForServerBoot();
 
-    await this.page.setDefaultNavigationTimeout(60000);
+    await this.page.setDefaultNavigationTimeout(300000);
 
     this.page
       .on('console', message => {
@@ -283,6 +288,7 @@ class LoadTester {
         network: [],
         performance: [],
       };
+      console.log(this.statsErr);
     }
 
     for(let err of this.statsErr) {
