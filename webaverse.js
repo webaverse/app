@@ -299,24 +299,21 @@ export default class Webaverse extends EventTarget {
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
-      
-      // world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
       
       cameraManager.update(timeDiffCapped);
       
-      // universe.update();
       if (this.contentLoaded) {
-        physicsManager.update(timeDiffCapped);
+        characterController.updatePhysics(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      characterController.update(timestamp, timeDiffCapped);
+      characterController.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
       
       world.appManager.tick(timestamp, timeDiffCapped, frame);
@@ -327,7 +324,6 @@ export default class Webaverse extends EventTarget {
       
       game.pushAppUpdates();
       game.pushPlayerUpdates();
-     
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;

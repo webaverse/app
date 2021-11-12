@@ -1568,7 +1568,7 @@ const gameManager = {
     localPlayer.characterPhysics.velocity.y += 5;
   },
   isMovingBackward() {
-    return metaversefileApi.useLocalPlayer().characterPhysics.direction.z > 0 && this.isAiming();
+    return ioManager.keysDirection.z > 0 && this.isAiming();
   },
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');

@@ -453,7 +453,7 @@ class Player extends THREE.Object3D {
       }
     });
   }
-  update(timestamp, timeDiff) {
+  updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       this.updateInterpolation(timeDiff);
       
@@ -792,7 +792,8 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(timeDiffS) {
+  updatePhysics(timeDiff) {
+    const timeDiffS = timeDiff / 1000;
     this.characterPhysics.update(timeDiffS);
   }
   resetPhysics() {
@@ -870,16 +871,6 @@ class RemotePlayer extends InterpolatedPlayer {
     
     this.syncAvatar();
   }
-  
-  /* update(timestamp, timeDiff) {
-    this.positionTimeStep.update(timeDiff);
-    this.quaternionTimeStep.update(timeDiff);
-    
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
-    
-    super.update(timestamp, timeDiff);
-  } */
 }
 
 function getPlayerCrouchFactor(player) {
@@ -889,13 +880,17 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-function update(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().update(timestamp, timeDiff);
+function updateAvatar(timestamp, timeDiff) {
+  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
+}
+function updatePhysics(timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
 }
 
 export {
   LocalPlayer,
   RemotePlayer,
   getPlayerCrouchFactor,
-  update,
+  updateAvatar,
+  updatePhysics,
 };
