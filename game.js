@@ -806,8 +806,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.value = -mouseHighlightPhysicsMesh.position.distanceTo(camera.position)
-        mouseHighlightPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
         mouseHighlightPhysicsMesh.visible = true;
       }
     }
@@ -845,8 +843,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
           mouseSelectPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
           mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
           
-          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.value = -mouseSelectPhysicsMesh.position.distanceTo(camera.position);
-          mouseSelectPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
         }
       } /* else {
         console.warn('no physics transform for object', o, physicsId, physicsTransform);
@@ -870,8 +866,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .decompose(mouseDomHoverPhysicsMesh.position, mouseDomHoverPhysicsMesh.quaternion, mouseDomHoverPhysicsMesh.scale);
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        mouseDomHoverPhysicsMesh.material.uniforms.distanceOffset.value = -mouseDomHoverPhysicsMesh.position.distanceTo(camera.position)
-        mouseDomHoverPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
         mouseDomHoverPhysicsMesh.visible = true;
       }
     }
@@ -893,8 +887,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .decompose(mouseDomEquipmentHoverPhysicsMesh.position, mouseDomEquipmentHoverPhysicsMesh.quaternion, mouseDomEquipmentHoverPhysicsMesh.scale);
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.distanceOffset.value = -mouseDomEquipmentHoverPhysicsMesh.position.distanceTo(camera.position)
-        mouseDomEquipmentHoverPhysicsMesh.material.uniforms.distanceOffset.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
       }
     }
