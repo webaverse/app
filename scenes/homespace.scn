@@ -1,0 +1,88 @@
+{
+  "objects": [
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "background": {
+          "color": [0, 0, 0]
+        },
+        "fog": {
+          "fogType": "exp",
+          "args": [[6.3, 4.35, 9.7], 0.001]
+        },
+        "dof": {
+          "focus": 3.0,
+          "aperture": 0.00002,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.25,
+          "radius": 0.5,
+          "threshold": 0.8
+        }
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[46, 113, 4], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      },
+      "position": [6,10,0]
+    },
+	  {
+      "position": [0,0,0],
+      "start_url": "https://webaverse.github.io/night-skybox/"
+    },
+    {
+      "position": [0,0,-8],
+      "quaternion": [0,0.7071,0,0.7071],
+      "start_url": "https://webaverse.github.io/homespace_new/homespace.glb"
+    },
+    {
+	  "components":[{"key":"physics", "value":false}],
+      "position": [0,0,-8],
+      "quaternion": [0,0.7071,0,0.7071],
+      "start_url": "https://webaverse.github.io/homespace_new/grass.glb"
+    },
+    {
+      "position": [4.1,-0.5,-4.1],
+      "quaternion": [0,0,0,0],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/plant-particle/"
+    },
+	  {
+      "position": [-5.5,-0.5,-6.6],
+      "quaternion": [0,0,0,0],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/plant-particle/"
+    },
+	  {
+      "position": [0,4,0],
+      "quaternion": [0,0,0,0],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/firefly/"
+    },    
+    {
+      "position": [-2,-0.2,-8],
+      "quaternion": [0,0.7071,0,0.7071],
+      "start_url": "https://webaverse.github.io/fox/"
+    }
+  ]
+}
