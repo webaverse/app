@@ -30,7 +30,6 @@ class CharacterPhysics {
     this.player = player;
     
     this.velocity = new THREE.Vector3();
-    this.direction = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
   }
   applyGravity(timeDiffS) {
