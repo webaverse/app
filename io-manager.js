@@ -214,7 +214,7 @@ const _updateIo = timeDiff => {
       lastNonzeroDirectionVector.copy(direction);
     }
     
-    physicsManager.direction.copy(direction);
+    localPlayer.characterPhysics.direction.copy(direction);
     
     const isFlying = game.isFlying();
     if (isFlying) {

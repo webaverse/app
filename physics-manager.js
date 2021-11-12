@@ -28,16 +28,6 @@ const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
 
-// const velocity = new THREE.Vector3();
-// physicsManager.velocity = velocity;
-
-const direction = new THREE.Vector3(0, 0, -1);
-physicsManager.direction = direction;
-
-// used for hookshot-style navigation
-const offset = new THREE.Vector3();
-physicsManager.offset = offset;
-
 let sitTarget = null;
 const getSitTarget = () => sitTarget;
 physicsManager.getSitTarget = getSitTarget;

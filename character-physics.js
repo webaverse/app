@@ -10,6 +10,7 @@ import {groundFriction} from './constants.js';
 import {applyVelocity, copyPQS} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
+import metaversefileApi from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -27,7 +28,10 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
+    
     this.velocity = new THREE.Vector3();
+    this.direction = new THREE.Vector3();
+    this.sitOffset = new THREE.Vector3();
   }
   applyGravity(timeDiffS) {
     if (this.player.avatar) {
@@ -74,10 +78,6 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (physicsManager.physicsEnabled) {
-      // apply offset
-      camera.position.add(physicsManager.offset);
-      physicsManager.offset.setScalar(0);
-
       // capsule physics
       if (!this.player.hasAction('sit')) {
         applyVelocity(camera.position, this.velocity, timeDiffS);
@@ -155,10 +155,10 @@ class CharacterPhysics {
 
         const sitComponent = controlledApp.getComponent('sit');
         const {
-          sitOffset = [0, 0, 0], damping
+          sitOffset = [0, 0, 0],
+          damping,
         } = sitComponent;
-
-        physicsManager.setSitOffset(sitOffset);
+        this.sitOffset.fromArray(sitOffset);
 
         applyVelocity(controlledApp.position, this.velocity, timeDiffS);
         if (this.velocity.lengthSq() > 0) {
@@ -174,14 +174,13 @@ class CharacterPhysics {
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
 
-        localVector.add(_sitOffset);
+        localVector.add(this.sitOffset);
         localVector.y += 1;
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
 
-        const offset = physicsManager.getAvatarCameraOffset();
         camera.position.copy(localVector)
           .sub(
-            localVector3.copy(offset)
+            localVector3.copy(avatarOffset)
             .applyQuaternion(camera.quaternion)
           );
       }
