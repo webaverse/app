@@ -299,17 +299,14 @@ export default class Webaverse extends EventTarget {
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
-      
-      // world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
       
       cameraManager.update(timeDiffCapped);
       
-      // universe.update();
       if (this.contentLoaded) {
-        physicsManager.update(timeDiffCapped);
+        characterController.updatePhysics(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
