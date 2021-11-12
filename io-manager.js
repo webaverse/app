@@ -202,26 +202,24 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-  } else /* if (controlsManager.isPossessed()) */ {
+  } else {
     keysDirection.set(0, 0, 0);
     
     const localPlayer = metaversefile.useLocalPlayer();
-    const narutoRunAction = localPlayer.getAction('narutoRun');
     
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
-      if (narutoRunAction) {
+      if (localPlayer.hasAction('narutoRun')) {
         keysDirection.copy(lastNonzeroDirectionVector);
       }
     } else {
       lastNonzeroDirectionVector.copy(keysDirection);
     }
     
-    const isFlying = game.isFlying();
-    if (isFlying) {
+    if (localPlayer.hasAction('fly')) {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
-    } else {  
+    } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
@@ -234,32 +232,13 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0) {
-      const speed = game.getSpeed();
-      keysDirection.normalize().multiplyScalar(speed * timeDiff);
-
-      localPlayer.characterPhysics.velocity.add(keysDirection);
-
-      if (isFlying) {
-        const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-        localPlayer.characterPhysics.velocity.multiplyScalar(factor);
-      } else if (game.isJumping()) {
-        const factor = getVelocityDampingFactor(airFriction, timeDiff);
-        localPlayer.characterPhysics.velocity.x *= factor;
-        localPlayer.characterPhysics.velocity.z *= factor;
-      }
+      localPlayer.characterPhysics.applyWasd(
+        keysDirection.normalize()
+          .multiplyScalar(game.getSpeed() * timeDiff),
+        timeDiff
+      );
     }
-  } /* else {
-    const direction = localVector.set(0, 0, 0);
-    _updateHorizontal(direction);
-    direction.applyQuaternion(camera.quaternion);
-    _updateVertical(direction);
-    direction
-      .normalize()
-      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-    
-    camera.position.add(direction);
-    camera.updateMatrixWorld();
-  } */
+  }
 };
 ioManager.update = _updateIo;
 

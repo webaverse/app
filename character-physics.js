@@ -6,7 +6,7 @@ import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 import {getVelocityDampingFactor} from './util.js';
-import {groundFriction} from './constants.js';
+import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity, copyPQS} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
@@ -31,6 +31,18 @@ class CharacterPhysics {
     
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
+  }
+  applyWasd(keysDirection, timeDiff) {
+    this.velocity.add(keysDirection);
+
+    if (this.player.hasAction('fly')) {
+      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+      this.velocity.multiplyScalar(factor);
+    } else if (this.player.hasAction('jump')) {
+      const factor = getVelocityDampingFactor(airFriction, timeDiff);
+      this.velocity.x *= factor;
+      this.velocity.z *= factor;
+    }
   }
   applyGravity(timeDiffS) {
     if (this.player.avatar) {
