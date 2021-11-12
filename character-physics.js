@@ -220,10 +220,10 @@ class CharacterPhysics {
           }
           break;
         }
-        case 'birdseye': {
+        /* case 'birdseye': {
           this.applyAvatarPhysicsDetail(true, true, timeDiffS);
           break;
-        }
+        } */
         default: {
           throw new Error('invalid camera mode: ' + cameraMode);
         }
