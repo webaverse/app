@@ -11,7 +11,7 @@ import ioManager from './io-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
-// import {getVelocityDampingFactor} from './util.js';
+import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -385,13 +385,6 @@ const _collideCapsule = (() => {
     return physx.physxWorker.collidePhysics(physx.physics, localVector.radius, localVector.halfHeight, localVector, q, 4);
   };
 })();
-const applyVelocity = (() => {
-  const localVector = new THREE.Vector3();
-  return (position, velocity, timeDiffS) => {
-    position.add(localVector.copy(velocity).multiplyScalar(timeDiffS));
-  };
-})();
-physicsManager.applyVelocity = applyVelocity;
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 physicsManager.getGravity = () => gravity;
