@@ -871,16 +871,6 @@ class RemotePlayer extends InterpolatedPlayer {
     
     this.syncAvatar();
   }
-  
-  /* update(timestamp, timeDiff) {
-    this.positionTimeStep.update(timeDiff);
-    this.quaternionTimeStep.update(timeDiff);
-    
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
-    
-    super.update(timestamp, timeDiff);
-  } */
 }
 
 function getPlayerCrouchFactor(player) {
