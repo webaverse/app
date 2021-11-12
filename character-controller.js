@@ -695,8 +695,9 @@ class LocalPlayer extends UninterpolatedPlayer {
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
+        const avatarHeight = this.avatar ? this.avatar.height : 0;
         app.position.copy(this.position)
-          .add(localVector.set(0, -physicsManager.getAvatarHeight() + 0.5, -0.5).applyQuaternion(this.quaternion));
+          .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
         app.updateMatrixWorld();
@@ -813,22 +814,23 @@ class LocalPlayer extends UninterpolatedPlayer {
       const renderer = getRenderer();
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
 
+      const avatarHeight = this.avatar ? this.avatar.height : 0;
       if (renderer.xr.getSession()) {
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
-        
+          
         dolly.matrix
           .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
+          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
         dolly.updateMatrixWorld();
       } else {
         camera.position.copy(position)
           .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-        camera.position.y += relation === 'floor' ? physicsManager.getAvatarHeight() : 0;
+        camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
         camera.updateMatrixWorld();
       }
