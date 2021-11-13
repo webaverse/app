@@ -1598,6 +1598,7 @@ class Avatar {
         }
       }
     }
+    modelBones.Root.updateMatrixWorld();
   }
   static modelBoneRenames = {
     spine: 'Spine',
