@@ -1,0 +1,51 @@
+
+name: Mocha Tests
+'on':
+  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  test:
+    #if: " contains(github.event.head_commit.message, '[run test]')"
+    name: 'Node.js v${{ matrix.node }}'
+    runs-on: ubuntu-latest
+    #environment: Test
+    strategy:
+      matrix:
+        node:
+          - 16
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '${{ matrix.node }}'
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - name: 'Cache node_modules'
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-v${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-v${{ matrix.node }}-
+      - name: APT Update
+        run: sudo apt update -y
+      - name: Install Dependencies
+        run: sudo npm install -y
+      - name: Pre-Build
+        run: |
+              # Install apt-transport-https
+              # Use apt to install the Chrome dependencies
+              sudo apt-get install -y apt-transport-https && sudo apt-get install xvfb && sudo apt-get install -y libxcursor1 && sudo apt-get install -y libgtk-3-dev && sudo apt-get install -y libxss1 && sudo apt-get install -y libasound2 && sudo apt-get install -y libnspr4 && sudo apt-get install -y libnss3 && sudo apt-get install -y libx11-xcb1
+      - name: Change to Tests Module
+        run: npm run setup:test
+      - name: Run Tests
+        run: |
+              cd test
+              npm run test
+              echo "Exited with '$?'"
+
