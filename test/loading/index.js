@@ -25,8 +25,8 @@ class LoadTester {
   lastCheckedAt = 0;
   lastActivityAt = 0;
 
-  WEBHOOK_URL="https://discord.com/api/webhooks/908078345193930762/m7yVzm8QoTbjhNGJ9NXmOEJTeYSSY1wvX4GlypqLhaxK8MLKnOGiNw7BqXtKRX2z9pu0"
-
+  WEBHOOK_URL="https://discord.com/api/webhooks/909208222433439756/MU8z7kgWC194WGZAMoIgZSbuiwgcSEGBLXIeucG8ngddjvBOEWW010CETvcU68LG07OO";
+  
   addStatErr(type, stat) {
     if (!this.statsErr) {
       this.statsErr = [];
