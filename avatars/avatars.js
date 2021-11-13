@@ -762,6 +762,8 @@ class AnimationMapping {
     this.quaternion = quaternion;
     this.isTop = isTop;
     this.isPosition = isPosition;
+    
+    this.lerpFn = _getLerpFn(isPosition);
   }
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
@@ -2001,8 +2003,7 @@ class Avatar {
       }
       this.lastBackwardFactor = mirrorFactor;
 
-      const _getHorizontalBlend = (k, isPosition, target) => {
-        const lerpFn = _getLerpFn(isPosition);
+      const _getHorizontalBlend = (k, lerpFn, target) => {
         _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
         _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
         
@@ -2112,10 +2113,10 @@ class Avatar {
             quaternionKey: k,
             quaternion: dst,
             isTop,
-            isPosition,
+            lerpFn,
           } = spec;
           
-          _getHorizontalBlend(k, isPosition, dst);
+          _getHorizontalBlend(k, lerpFn, dst);
         };
         if (this.useTime >= 0) {
           return spec => {
@@ -2149,7 +2150,7 @@ class Avatar {
           quaternionKey: k,
           quaternion: dst,
           isTop,
-          isPosition,
+          lerpFn,
         } = spec;
         
         if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
@@ -2158,7 +2159,7 @@ class Avatar {
           const src2 = floatAnimation.interpolants[k];
           const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
-          _getLerpFn(isPosition)
+          lerpFn
             .call(
               dst,
               localQuaternion.fromArray(v2),
@@ -2177,7 +2178,7 @@ class Avatar {
         applyFn(spec);
         _blendFly(spec);
         
-        if (isPosition) { // ignore all position except y
+        if (isPosition) { // ignore all animation position except y
           dst.x = 0;
           dst.z = 0;
         }
