@@ -45,7 +45,6 @@ jobs:
         run: npm run setup:test
       - name: Run Tests
         run: |
-              npm run start
               cd test
               npm run test
               echo "Exited with '$?'"
