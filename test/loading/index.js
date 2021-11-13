@@ -78,6 +78,7 @@ class LoadTester {
                   _fetch = true;
                   retries = 120; // wait for 120 seconds
                   console.log('fetch completed')
+                  await this.page.setDefaultNavigationTimeout(0);
                   await this.page.goto(this.config.host,{
                     waitUntil: 'domcontentloaded',
                   });
@@ -87,7 +88,9 @@ class LoadTester {
 
               if(_fetch){
                 try {
+                  console.log('waiting for __THREE__')
                   let __THREE__ = await this.page.evaluate(()=>{
+                    console.log('__THREE__', __THREE__);
                     return window.__THREE__;                 
                   });
                   if(__THREE__ === '133'){
@@ -270,6 +273,7 @@ class LoadTester {
 
   async test() {
     for (const scene of scenes) {
+      console.log(`testing ${scene}`);
       this.scene_name = scene;
       const sceneUrl = `${this.config.host}?src=${this.config.host}/scenes/${scene}`;
       await this.testScene(sceneUrl);
