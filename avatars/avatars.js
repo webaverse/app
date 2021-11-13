@@ -1559,12 +1559,9 @@ class Avatar {
 	    }
 	  });
     skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-    // this.skinnedMeshes = skinnedMeshes;
 
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-    // this.skeleton = skeleton;
-    // console.log('got skeleton', skinnedMeshes, skeleton, _exportSkeleton(skeleton));
     const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
     const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
     if (poseSkeleton) {
@@ -1595,7 +1592,6 @@ class Avatar {
     };
 
 	  const tailBones = _getTailBones(skeleton);
-    // const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
 
     let Eye_L = boneMap.leftEye;
 	  let Eye_R = boneMap.rightEye;
@@ -2384,72 +2380,7 @@ class Avatar {
         
         target.copy(localQuaternion)
           .slerp(localQuaternion2, crouchFactor);
-
-        /* const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
-        const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
-        const totalDistance = distance1 + distance2;
-        // let factor1 = 1 - distance1/totalDistance;
-        let distanceFactor = 1 - distance2/totalDistance;
-        
-        const t1 = (now/1000) % selectedAnimations[0].duration;
-        const src1 = selectedAnimations[0].interpolants[k];
-        const v1 = src1.evaluate(t1);
-
-        const t2 = (now/1000) % selectedAnimations[1].duration;
-        const src2 = selectedAnimations[1].interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        target.fromArray(v1);
-        if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
-          target.slerp(localQuaternion.fromArray(v2), distanceFactor);
-        } */
       };
-
-      /* const standKey = this.crouchState ? 'stand' : 'crouch';
-      const otherStandKey = standKey === 'stand' ? 'crouch' : 'stand';
-      const _selectAnimations = (v, standKey) => {
-        const selectedAnimations = animations.slice().sort((a, b) => {
-          const targetPosition1 = animationsSelectMap[standKey][a.name] || infinityUpVector;
-          const distance1 = targetPosition1.distanceTo(v);
-
-          const targetPosition2 = animationsSelectMap[standKey][b.name] || infinityUpVector;
-          const distance2 = targetPosition2.distanceTo(v);
-
-          return distance1 - distance2;
-        }).slice(0, 2);
-        if (selectedAnimations[1].isIdle) {
-          selectedAnimations[1] = selectedAnimations[0];
-        }
-        if (selectedAnimations.some(a => a.isBackward)) {
-          if (selectedAnimations.some(a => a.isLeft)) {
-            if (selectedAnimations.some(a => a.isRunning)) {
-              selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-            } else if (selectedAnimations.some(a => a.isCrouch)) {
-              selectedAnimations[0] = animations.find(a => a.isRight && a.isCrouch && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
-            } else {
-              selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-            }
-          } else if (selectedAnimations.some(a => a.isRight)) {
-            if (selectedAnimations.some(a => a.isRunning)) {
-              selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-            } else if (selectedAnimations.some(a => a.isCrouch)) {
-              selectedAnimations[0] = animations.find(a => a.isLeft && a.isCrouch && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && a.isCrouch);
-            } else {
-              selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
-              selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-            }
-          }
-        }
-        return selectedAnimations;
-      };
-      const selectedAnimations = _selectAnimations(this.velocity, standKey);
-      const selectedOtherAnimations = _selectAnimations(this.velocity, otherStandKey); */
-
       const _getApplyFn = () => {
         if (this.jumpState) {
           return spec => {

@@ -149,7 +149,6 @@ class Leg {
         .multiply(downHalfRotation)
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
-
     /* } else {
       this.foot.quaternion.slerp(downQuarterRotation, 0.1);
     } */
