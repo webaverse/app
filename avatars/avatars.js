@@ -909,12 +909,20 @@ const _importSkeleton = s => {
 }; */
 
 class AnimationMapping {
-  constructor(quaternionKey, quaternion, isTop) {
+  constructor(quaternionKey, quaternion, isTop, isPosition) {
     this.quaternionKey = quaternionKey;
     this.quaternion = quaternion;
     this.isTop = isTop;
+    this.isPosition = isPosition;
   }
 }
+function lerpY(v, alpha) {
+  this.x = 0;
+  this.y += (v.y - this.y) * alpha;
+  this.x = 0;
+  return this;
+}
+const _getLerpFn = isPosition => isPosition ? lerpY : THREE.Quaternion.prototype.slerp;
 
 class Avatar {
 	constructor(object, options = {}) {
@@ -1452,63 +1460,63 @@ class Avatar {
     } */
 
     this.animationMappings = [
-      new AnimationMapping('mixamorigHips.position', this.outputs.hips.position, false),
-      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false),
-      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false),
-      new AnimationMapping('mixamorigSpine1.quaternion', this.outputs.chest.quaternion, false),
-      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.upperChest.quaternion, false),
-      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false),
-      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false),
+      new AnimationMapping('mixamorigHips.position', this.outputs.hips.position, false, true),
+      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false, false),
+      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false, false),
+      new AnimationMapping('mixamorigSpine1.quaternion', this.outputs.chest.quaternion, false, false),
+      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.upperChest.quaternion, false, false),
+      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false, false),
+      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false, false),
 
-      new AnimationMapping('mixamorigLeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true),
-      new AnimationMapping('mixamorigLeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true),
-      new AnimationMapping('mixamorigLeftForeArm.quaternion', this.outputs.rightLowerArm.quaternion, true),
-      new AnimationMapping('mixamorigLeftHand.quaternion', this.outputs.rightHand.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandMiddle1.quaternion', this.outputs.leftMiddleFinger1.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandMiddle2.quaternion', this.outputs.leftMiddleFinger2.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandMiddle3.quaternion', this.outputs.leftMiddleFinger3.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandThumb1.quaternion', this.outputs.leftThumb0.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandThumb2.quaternion', this.outputs.leftThumb1.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandThumb3.quaternion', this.outputs.leftThumb2.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandIndex1.quaternion', this.outputs.leftIndexFinger1.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandIndex2.quaternion', this.outputs.leftIndexFinger2.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandIndex3.quaternion', this.outputs.leftIndexFinger3.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandRing1.quaternion', this.outputs.leftRingFinger1.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandRing2.quaternion', this.outputs.leftRingFinger2.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandRing3.quaternion', this.outputs.leftRingFinger3.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandPinky1.quaternion', this.outputs.leftLittleFinger1.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandPinky2.quaternion', this.outputs.leftLittleFinger2.quaternion, true),
-      new AnimationMapping('mixamorigLeftHandPinky3.quaternion', this.outputs.leftLittleFinger3.quaternion, true),
+      new AnimationMapping('mixamorigLeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftForeArm.quaternion', this.outputs.rightLowerArm.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHand.quaternion', this.outputs.rightHand.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandMiddle1.quaternion', this.outputs.leftMiddleFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandMiddle2.quaternion', this.outputs.leftMiddleFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandMiddle3.quaternion', this.outputs.leftMiddleFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandThumb1.quaternion', this.outputs.leftThumb0.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandThumb2.quaternion', this.outputs.leftThumb1.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandThumb3.quaternion', this.outputs.leftThumb2.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandIndex1.quaternion', this.outputs.leftIndexFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandIndex2.quaternion', this.outputs.leftIndexFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandIndex3.quaternion', this.outputs.leftIndexFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandRing1.quaternion', this.outputs.leftRingFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandRing2.quaternion', this.outputs.leftRingFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandRing3.quaternion', this.outputs.leftRingFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandPinky1.quaternion', this.outputs.leftLittleFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandPinky2.quaternion', this.outputs.leftLittleFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigLeftHandPinky3.quaternion', this.outputs.leftLittleFinger3.quaternion, true, false),
 
-      new AnimationMapping('mixamorigRightShoulder.quaternion', this.outputs.leftShoulder.quaternion, true),
-      new AnimationMapping('mixamorigRightArm.quaternion', this.outputs.leftUpperArm.quaternion, true),
-      new AnimationMapping('mixamorigRightForeArm.quaternion', this.outputs.leftLowerArm.quaternion, true),
-      new AnimationMapping('mixamorigRightHand.quaternion', this.outputs.leftHand.quaternion, true),
-      new AnimationMapping('mixamorigRightHandMiddle1.quaternion', this.outputs.rightMiddleFinger1.quaternion, true),
-      new AnimationMapping('mixamorigRightHandMiddle2.quaternion', this.outputs.rightMiddleFinger2.quaternion, true),
-      new AnimationMapping('mixamorigRightHandMiddle3.quaternion', this.outputs.rightMiddleFinger3.quaternion, true),
-      new AnimationMapping('mixamorigRightHandThumb1.quaternion', this.outputs.rightThumb0.quaternion, true),
-      new AnimationMapping('mixamorigRightHandThumb2.quaternion', this.outputs.rightThumb1.quaternion, true),
-      new AnimationMapping('mixamorigRightHandThumb3.quaternion', this.outputs.rightThumb2.quaternion, true),
-      new AnimationMapping('mixamorigRightHandIndex1.quaternion', this.outputs.rightIndexFinger1.quaternion, true),
-      new AnimationMapping('mixamorigRightHandIndex2.quaternion', this.outputs.rightIndexFinger2.quaternion, true),
-      new AnimationMapping('mixamorigRightHandIndex3.quaternion', this.outputs.rightIndexFinger3.quaternion, true),
-      new AnimationMapping('mixamorigRightHandRing1.quaternion', this.outputs.rightRingFinger1.quaternion, true),
-      new AnimationMapping('mixamorigRightHandRing2.quaternion', this.outputs.rightRingFinger2.quaternion, true),
-      new AnimationMapping('mixamorigRightHandRing3.quaternion', this.outputs.rightRingFinger3.quaternion, true),
-      new AnimationMapping('mixamorigRightHandPinky1.quaternion', this.outputs.rightLittleFinger1.quaternion, true),
-      new AnimationMapping('mixamorigRightHandPinky2.quaternion', this.outputs.rightLittleFinger2.quaternion, true),
-      new AnimationMapping('mixamorigRightHandPinky3.quaternion', this.outputs.rightLittleFinger3.quaternion, true),
+      new AnimationMapping('mixamorigRightShoulder.quaternion', this.outputs.leftShoulder.quaternion, true, false),
+      new AnimationMapping('mixamorigRightArm.quaternion', this.outputs.leftUpperArm.quaternion, true, false),
+      new AnimationMapping('mixamorigRightForeArm.quaternion', this.outputs.leftLowerArm.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHand.quaternion', this.outputs.leftHand.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandMiddle1.quaternion', this.outputs.rightMiddleFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandMiddle2.quaternion', this.outputs.rightMiddleFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandMiddle3.quaternion', this.outputs.rightMiddleFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandThumb1.quaternion', this.outputs.rightThumb0.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandThumb2.quaternion', this.outputs.rightThumb1.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandThumb3.quaternion', this.outputs.rightThumb2.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandIndex1.quaternion', this.outputs.rightIndexFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandIndex2.quaternion', this.outputs.rightIndexFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandIndex3.quaternion', this.outputs.rightIndexFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandRing1.quaternion', this.outputs.rightRingFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandRing2.quaternion', this.outputs.rightRingFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandRing3.quaternion', this.outputs.rightRingFinger3.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandPinky1.quaternion', this.outputs.rightLittleFinger1.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandPinky2.quaternion', this.outputs.rightLittleFinger2.quaternion, true, false),
+      new AnimationMapping('mixamorigRightHandPinky3.quaternion', this.outputs.rightLittleFinger3.quaternion, true, false),
 
-      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false),
-      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false),
-      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false),
-      new AnimationMapping('mixamorigRightToeBase.quaternion', this.outputs.leftToe.quaternion, false),
+      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false, false),
+      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false, false),
+      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false, false),
+      new AnimationMapping('mixamorigRightToeBase.quaternion', this.outputs.leftToe.quaternion, false, false),
 
-      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false),
-      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false),
-      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false),
-      new AnimationMapping('mixamorigLeftToeBase.quaternion', this.outputs.rightToe.quaternion, false),
+      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false, false),
+      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false, false),
+      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false, false),
+      new AnimationMapping('mixamorigLeftToeBase.quaternion', this.outputs.rightToe.quaternion, false, false),
     ];
 
     // shared state
@@ -2279,7 +2287,7 @@ class Avatar {
         }
       };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
-      const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, target) => {
+      const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
         // normal horizontal blend
         {
           const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
@@ -2290,8 +2298,12 @@ class Avatar {
           const src2 = horizontalAnimationAngles[1].animation.interpolants[k];
           const v2 = src2.evaluate(t2);
           
-          localQuaternion3.fromArray(v2)
-            .slerp(localQuaternion4.fromArray(v1), angleFactor);
+          lerpFn
+            .call(
+              localQuaternion3.fromArray(v2),
+              localQuaternion4.fromArray(v1),
+              angleFactor
+            );
         }
           
         // mirror horizontal blend
@@ -2303,23 +2315,35 @@ class Avatar {
           const t2 = timeSeconds % horizontalAnimationAnglesMirror[1].animation.duration;
           const src2 = horizontalAnimationAnglesMirror[1].animation.interpolants[k];
           const v2 = src2.evaluate(t2);
-          
-          localQuaternion4.fromArray(v2)
-            .slerp(localQuaternion5.fromArray(v1), angleFactor);
+
+          lerpFn
+            .call(
+              localQuaternion4.fromArray(v2),
+              localQuaternion5.fromArray(v1),
+              angleFactor
+            );
         }
 
         // blend mirrors together
-        localQuaternion5.copy(localQuaternion3)
-          .slerp(localQuaternion4, mirrorFactor);
+        lerpFn
+          .call(
+            localQuaternion5.copy(localQuaternion3),
+            localQuaternion4,
+            mirrorFactor
+          );
 
         // blend mirrors with idle
         {
           const t3 = timeSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
-          
-          target.fromArray(v3)
-            .slerp(localQuaternion5, speedFactor);
+
+          lerpFn
+            .call(
+              target.fromArray(v3),
+              localQuaternion5,
+              speedFactor
+            );
         }
       };
       
@@ -2374,12 +2398,17 @@ class Avatar {
       }
       this.lastBackwardFactor = mirrorFactor;
 
-      const _getHorizontalBlend = (k, target) => {
-        _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, localQuaternion);
-        _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, localQuaternion2);
+      const _getHorizontalBlend = (k, isPosition, target) => {
+        const lerpFn = _getLerpFn(isPosition);
+        _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
+        _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
         
-        target.copy(localQuaternion)
-          .slerp(localQuaternion2, crouchFactor);
+        lerpFn
+          .call(
+            target.copy(localQuaternion),
+            localQuaternion2,
+            crouchFactor
+          );
       };
       const _getApplyFn = () => {
         if (this.jumpState) {
@@ -2480,9 +2509,10 @@ class Avatar {
             quaternionKey: k,
             quaternion: dst,
             isTop,
+            isPosition,
           } = spec;
           
-          _getHorizontalBlend(k, dst);
+          _getHorizontalBlend(k, isPosition, dst);
         };
         if (this.useTime >= 0) {
           return spec => {
@@ -2516,6 +2546,7 @@ class Avatar {
           quaternionKey: k,
           quaternion: dst,
           isTop,
+          isPosition,
         } = spec;
         
         if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
@@ -2524,12 +2555,29 @@ class Avatar {
           const src2 = floatAnimation.interpolants[k];
           const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
-          dst.slerp(localQuaternion.fromArray(v2), f);
+          _getLerpFn(isPosition)
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f
+            );
         }
       };
       for (const spec of this.animationMappings) {
+        const {
+          quaternionKey: k,
+          quaternion: dst,
+          isTop,
+          isPosition,
+        } = spec;
+        
         applyFn(spec);
         _blendFly(spec);
+        if (isPosition) { // XXX hack to scale the position based on the root
+          dst.x *= 0.01;
+          dst.y *= 0.01;
+          dst.z *= 0.01;
+        }
       }
     };
     _applyAnimation();
