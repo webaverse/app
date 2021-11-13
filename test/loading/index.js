@@ -310,7 +310,11 @@ class LoadTester {
     }
 
     for(let err of statsErrNew) {
-      await axios.post(this.WEBHOOK_URL, { content: err })
+      try {
+        await axios.post(this.WEBHOOK_URL, { content: err })
+      }
+      catch(e) {
+      }
     }
 
     try {
