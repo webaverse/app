@@ -2099,6 +2099,7 @@ class Avatar {
     }
   })()
   initializeBonePositions(setups) {
+    this.shoulderTransforms.hips.position.copy(setups.hips);
     this.shoulderTransforms.spine.position.copy(setups.spine);
     this.shoulderTransforms.chest.position.copy(setups.chest);
     if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
