@@ -60,7 +60,7 @@ describe('Running Pupeeteer', function() {
       require('child_process').exec('git rev-parse HEAD', function(err, stdout) {
         console.log('Last commit hash on this branch is:', stdout);
       });
-      
+
       await setTestCase();
 
       process.chdir('..');
@@ -77,7 +77,7 @@ describe('Running Pupeeteer', function() {
       });
 
       testProcess.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
+        assert.equal(error,false);
       });
 
       testProcess.on('exit', (code) => {
