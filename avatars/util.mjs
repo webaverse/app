@@ -45,7 +45,8 @@ export const getEyePosition = (() => {
 })();
 export const getHeight = (() => {
   const localVector = new THREE.Vector3();
-  return function(modelBones) {
+  return function(object) {
+    const modelBones = getModelBones(object);
     return getEyePosition(modelBones)
       .sub(modelBones.Root.getWorldPosition(localVector))
       .y;
