@@ -916,13 +916,7 @@ class AnimationMapping {
     this.isPosition = isPosition;
   }
 }
-function lerpY(v, alpha) {
-  this.x = 0;
-  this.y += (v.y - this.y) * alpha;
-  this.x = 0;
-  return this;
-}
-const _getLerpFn = isPosition => isPosition ? lerpY : THREE.Quaternion.prototype.slerp;
+const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
 class Avatar {
 	constructor(object, options = {}) {
@@ -2574,9 +2568,10 @@ class Avatar {
         applyFn(spec);
         _blendFly(spec);
         if (isPosition) { // XXX hack to scale the position based on the root
-          dst.x *= 0.01;
+          // console.log('got', dst.x, dst.y, dst.z);
+          dst.x *= 0;
           dst.y *= 0.01;
-          dst.z *= 0.01;
+          dst.z *= 0;
         }
       }
     };
