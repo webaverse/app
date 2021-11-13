@@ -87,8 +87,8 @@ export const getTailBones = object => {
   return result;
 };
 export const getModelBones = object => {
-  const skeleton = getSkeleton(object);
   const boneMap = makeBoneMap(object);
+  
   const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
   const _findChest = skeleton => skeleton.bones.find(bone => /chest/i.test(bone.name));
   const _findHead = tailBones => {
@@ -296,6 +296,9 @@ export const getModelBones = object => {
   let Right_toe = boneMap.rightToes;
 
   if (!Hips) {
+    const skeleton = getSkeleton(object);
+    const tailBones = getTailBones(object);
+    
     Eye_L = _findEye(tailBones, true);
     Eye_R = _findEye(tailBones, false);
     Head = _findHead(tailBones);
