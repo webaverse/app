@@ -86,13 +86,17 @@ class LoadTester {
               }
 
               if(_fetch){
-                let __THREE__ =  await this.page.evaluate(()=>{
-                  return window.__THREE__;                 
-                });
-                if(__THREE__ === '133'){
-                  console.log('Webaverse is running tests. Sit tight! :)');
-                  clearInterval(outInterval);
-                  return resolve();  
+                try {
+                  let __THREE__ = await this.page.evaluate(()=>{
+                    return window.__THREE__;                 
+                  });
+                  if(__THREE__ === '133'){
+                    console.log('Webaverse is running tests. Sit tight! :)');
+                    clearInterval(outInterval);
+                    return resolve();  
+                  }
+                }
+                catch(e) {
                 }
               }
         }catch(e){
