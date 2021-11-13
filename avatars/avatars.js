@@ -1204,7 +1204,7 @@ class Avatar {
       upperChest: _getOffset(modelBones.UpperChest),
       neck: _getOffset(modelBones.Neck),
       head: _getOffset(modelBones.Head),
-      eyes: eyePosition.clone().sub(modelBones.Head.getWorldPosition(new THREE.Vector3())),
+      eyes: _getOffset(modelBones.Head), // yes, head
 
       leftShoulder: _getOffset(modelBones.Right_shoulder),
       leftUpperArm: _getOffset(modelBones.Right_arm),
