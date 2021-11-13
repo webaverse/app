@@ -28,17 +28,17 @@ class LoadTester {
   // WEBHOOK_URL="https://discord.com/api/webhooks/908401493009391687/ZSmNJyB5ED9gPiNt0oBIDpAfSdBZJFSUhDFcP_0Q2vrfs-Mozh55uAlEJlvP1ngjlgjR"
   WEBHOOK_URL="https://discord.com/api/webhooks/908078345193930762/m7yVzm8QoTbjhNGJ9NXmOEJTeYSSY1wvX4GlypqLhaxK8MLKnOGiNw7BqXtKRX2z9pu0"
 
-  addStatErr(stat) {
+  addStatErr(type, stat) {
     if (!this.statsErr) {
       this.statsErr = [];
     }
     var data;
     var match = /\n/.exec(stat.toString());
     if (match) {
-      data = `++++ **${this.scene_name}** ++++ [ERROR] ++++ File has thrown error \n ${stat} ++++ **${this.scene_name}** ++++ [ERROR] ++++ END ERROR`;
+      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error \n ${stat} ++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
     }
     else {
-      data = `++++ **${this.scene_name}** ++++ [ERROR] ++++ \n ${stat}`;
+      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ \n ${stat}`;
     }
     this.statsErr.push(data);
   }
@@ -92,15 +92,12 @@ class LoadTester {
                 let __THREE__ =  await this.page.evaluate(()=>{
                   return window.__THREE__;                 
                 });
-                console.log('__THREE__', __THREE__);
                 if(__THREE__ === '133'){
                   console.log('Webaverse is running tests. Sit tight! :)');
                   clearInterval(outInterval);
                   return resolve();  
                 }
               }
-
-          
         }catch(e){
           console.warn(e);
 
@@ -196,40 +193,12 @@ class LoadTester {
     }
   }
 
-  PromiseIntercept(value){
-    let reportError = false;
-    try{
-    }catch(e){
-      console.warn(e);
-    }finally{
-      try{
-        self.stats.errors.push(value);
-      }catch(e){
-        console.warn(e);
-      }
-    }
-    for (const error of ignoreErrors) {
-      if(typeof value !== 'string'){
-        value = JSON.stringify(value);
-      }
-      if(value.includes(error)){
-        reportError = true;
-      }
-    }
-
-    if(reportError){
-      self.MochaIntercept();
-    }
-    
-  }
-  
   async init() {
     this.browser = await puppeteer.launch({
       headless: false, // change to false for debug
       defaultViewport: null,
       ignoreHTTPSErrors: true, 
       dumpio: false,
-      devtools: true,
       args: [		
       // '--disable-gpu',
       '--enable-webgl',
@@ -254,64 +223,30 @@ class LoadTester {
       .on('console', message => {
         if (message.type().substr(0, 3).toUpperCase() === 'ERR') {
           this.addStat('ERROR', 'Page-Error: ' + message.text());
-          this.addStatErr(message.text())
+          this.addStatErr('ERROR', message.text())
+        }
+        else if (message.type().substr(0, 3).toUpperCase() === 'WAR') {
+          console.log(message)
+          debugger;
+          // console.log(`${message.text()} ${message._stackTraceLocations[0].url}`)
+          this.addStatErr('WARNING', `${message.text()} ${message._stackTraceLocations[0].url}`)
+
+          // console.log(`${message.stackTraceLocations()} ${message.text()}`)
+          // this.addStat('ERROR', 'Page-Error: ' + message.text());
+          // this.addStatErr(message.text())
         }
       })
       .on('requestfailed', request => {
         this.addStat('NETWORK', `Request-Error: ${request.failure().errorText} ${request.url()}`);
-        this.addStatErr(`${request.failure().errorText} ${request.url()}`)
+        this.addStatErr('ERROR', `${request.failure().errorText} ${request.url()}`)
       });
 
-      
       await this.page.exposeFunction('SceneLoadedSuccessfully', this.sceneSuccess);
-      await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
 
       await this.page.evaluateOnNewDocument(() => {
         Error.stackTraceLimit = 1000;
-        ((Promise) => {
-
-            let originalOnFailure;
-
-            const customFailure = (onFailure)=>{
-                if(typeof onFailure === 'function'){
-                  originalOnFailure = onFailure;
-                  return customFailureCaller;
-                }else if(typeof originalOnFailure === 'function'){
-                  PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
-                  debugger;
-                  return originalOnFailure(onFailure);
-                }else if(typeof onFailure === 'object'){
-                  PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
-                  debugger;
-                  return onFailure;
-                }
-                return originalOnFailure || onFailure;
-            }
-        
-
-            const customFailureCaller = (e) =>{
-              PromiseIntercept(e);
-              debugger;
-              originalOnFailure(e);
-            }
-
-            var originalThen = Promise.prototype.then;
-            Promise.prototype.then = function(onFulfilled, onFailure) {
-              return originalThen.call(this, function(value) {
-                if(onFulfilled){
-                    return onFulfilled(value);   
-                }
-                if(onFailure){
-                  originalOnFailure = onFailure;
-                }
-              }, customFailure);
-            };
-        })(this.Promise)
-        
         window.addEventListener("cEvent", SceneLoadedSuccessfully, false);
       })
-
-
   }
 
   async testScene(sceneUrl) {
@@ -328,7 +263,7 @@ class LoadTester {
     }catch(e){
       const t1 = performance.now();
       this.addStat('PERFORMANCE', `Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`);
-      this.addStatErr(`Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`)
+      this.addStatErr('ERROR', `Failed to load scene at ${sceneUrl} in ${Number(t1 - t0).toFixed(0) / 1000}s`)
 
       /** Signa the Mocha Intercept */
       this.MochaIntercept();
