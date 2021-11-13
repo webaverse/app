@@ -11,6 +11,8 @@ const ignoreErrors=  [
 
 let self;
 
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 class LoadTester {
 
   ignoreList = [
@@ -33,10 +35,10 @@ class LoadTester {
     var data;
     var match = /\n/.exec(stat.toString());
     if (match) {
-      data = `++++ ${this.scene_name} ++++ [ERROR] ++++ File has thrown error \n ${stat} ++++ ${this.scene_name} ++++ [ERROR] ++++ END ERROR`;
+      data = `++++ **${this.scene_name}** ++++ [ERROR] ++++ File has thrown error \n ${stat} ++++ **${this.scene_name}** ++++ [ERROR] ++++ END ERROR`;
     }
     else {
-      data = `++++ ${this.scene_name} ++++ [ERROR] ++++ \n ${stat}`;
+      data = `++++ **${this.scene_name}** ++++ [ERROR] ++++ \n ${stat}`;
     }
     this.statsErr.push(data);
   }
@@ -62,7 +64,6 @@ class LoadTester {
 
   waitForServerBoot = ()=>{
     let retries = 5;
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     let _fetch = false;
     return new Promise((resolve,reject)=>{
 
@@ -155,12 +156,14 @@ class LoadTester {
     request.continue();
   };
 
-  async waitForLoadToComplete() {
-    if (this.requestPromises.length === 0) {
-      return;
-    }
-    await Promise.all(this.requestPromises);
-    this.requestPromises = [];
+  waitForLoadToComplete() {
+    return new Promise((resolve, reject) => {
+      self.resolve = resolve;
+      const currTimeout = setTimeout(()=>{
+        reject();
+      }, 120 * 1000);
+      self.currTimeout = currTimeout;
+    })
   }
 
   waitForRequests = (page, ignoreList) => {
@@ -184,12 +187,49 @@ class LoadTester {
 
   }
 
+  sceneSuccess() {
+    if(self.resolve) {
+      self.resolve();
+    }
+    if(self.currTimeout) {
+      clearTimeout(self.currTimeout);
+    }
+  }
+
+  PromiseIntercept(value){
+    let reportError = false;
+    try{
+    }catch(e){
+      console.warn(e);
+    }finally{
+      try{
+        self.stats.errors.push(value);
+      }catch(e){
+        console.warn(e);
+      }
+    }
+    for (const error of ignoreErrors) {
+      if(typeof value !== 'string'){
+        value = JSON.stringify(value);
+      }
+      if(value.includes(error)){
+        reportError = true;
+      }
+    }
+
+    if(reportError){
+      self.MochaIntercept();
+    }
+    
+  }
+  
   async init() {
     this.browser = await puppeteer.launch({
       headless: false, // change to false for debug
       defaultViewport: null,
       ignoreHTTPSErrors: true, 
       dumpio: false,
+      devtools: true,
       args: [		
       // '--disable-gpu',
       '--enable-webgl',
@@ -208,7 +248,7 @@ class LoadTester {
     this.page = await this.browser.newPage();
     await this.waitForServerBoot();
 
-    await this.page.setDefaultNavigationTimeout(300000);
+    await this.page.setDefaultNavigationTimeout(500000);
 
     this.page
       .on('console', message => {
@@ -222,45 +262,63 @@ class LoadTester {
         this.addStatErr(`${request.failure().errorText} ${request.url()}`)
       });
 
+      
+      await this.page.exposeFunction('SceneLoadedSuccessfully', this.sceneSuccess);
+      await this.page.exposeFunction('PromiseIntercept', this.PromiseIntercept);
+
       await this.page.evaluateOnNewDocument(() => {
         Error.stackTraceLimit = 1000;
         ((Promise) => {
 
-          let originalOnFailure;
+            let originalOnFailure;
 
-          const customFailure = (onFailure)=>{
-              if(typeof onFailure === 'function'){
-                originalOnFailure = onFailure;
-                return customFailureCaller;
-              }
-              return originalOnFailure || onFailure;
-          }
-      
+            const customFailure = (onFailure)=>{
+                if(typeof onFailure === 'function'){
+                  originalOnFailure = onFailure;
+                  return customFailureCaller;
+                }else if(typeof originalOnFailure === 'function'){
+                  PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
+                  debugger;
+                  return originalOnFailure(onFailure);
+                }else if(typeof onFailure === 'object'){
+                  PromiseIntercept(JSON.stringify(onFailure, Object.getOwnPropertyNames(onFailure)));
+                  debugger;
+                  return onFailure;
+                }
+                return originalOnFailure || onFailure;
+            }
+        
 
-          const customFailureCaller = (e) =>{
-            originalOnFailure(e);
-          }
+            const customFailureCaller = (e) =>{
+              PromiseIntercept(e);
+              debugger;
+              originalOnFailure(e);
+            }
 
-          var originalThen = Promise.prototype.then;
-          Promise.prototype.then = function(onFulfilled, onFailure) {
-             return originalThen.call(this, function(value) {
-              if(onFulfilled){
-                  return onFulfilled(value);   
-              }
-              if(onFailure){
-                originalOnFailure = onFailure;
-              }
-             }, customFailure);
-          };
-      })(this.Promise)
+            var originalThen = Promise.prototype.then;
+            Promise.prototype.then = function(onFulfilled, onFailure) {
+              return originalThen.call(this, function(value) {
+                if(onFulfilled){
+                    return onFulfilled(value);   
+                }
+                if(onFailure){
+                  originalOnFailure = onFailure;
+                }
+              }, customFailure);
+            };
+        })(this.Promise)
+        
+        window.addEventListener("cEvent", SceneLoadedSuccessfully, false);
       })
+
+
   }
 
   async testScene(sceneUrl) {
     const t0 = performance.now();
     try{
       await this.page.goto(sceneUrl,{
-        waitUntil: 'networkidle0'
+        waitUntil: 'domcontentloaded'
       });
       // await this.waitForNetworkIdle();
       await this.waitForLoadToComplete();
@@ -288,10 +346,32 @@ class LoadTester {
         network: [],
         performance: [],
       };
-      console.log(this.statsErr);
     }
 
-    for(let err of this.statsErr) {
+    var statsErrNew = [];
+    try {
+      for(let err of this.statsErr) {
+        if(err.includes("net::ERR_ABORTED")) {
+          const strCopy = err.split('net::ERR_ABORTED ');
+          if(!strCopy[1].includes('blob'))
+          {
+            const res = await fetch(strCopy[1]);
+            if(res.status != 200) {
+              statsErrNew.push(err);
+            }
+          }
+        }
+        else {
+          statsErrNew.push(err);
+        }
+      }  
+    }
+
+    catch (error) {
+      console.log(error)
+    }
+
+    for(let err of statsErrNew) {
       await axios.post(this.WEBHOOK_URL, { content: err })
     }
 
