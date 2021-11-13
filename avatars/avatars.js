@@ -939,7 +939,9 @@ class Avatar {
       upperChest: _getOffset(modelBones.UpperChest),
       neck: _getOffset(modelBones.Neck),
       head: _getOffset(modelBones.Head),
-      eyes: _getOffset(modelBones.Head), // yes, head
+      // eyes: _getOffset(modelBones.Head), // yes, head
+      eyel: _getOffset(modelBones.Eye_L),
+      eyer: _getOffset(modelBones.Eye_R),
 
       leftShoulder: _getOffset(modelBones.Right_shoulder),
       leftUpperArm: _getOffset(modelBones.Right_arm),
@@ -1025,7 +1027,7 @@ class Avatar {
     this.sdkInputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
 		this.outputs = {
-			eyes: this.shoulderTransforms.eyes,
+			// eyes: this.shoulderTransforms.eyes,
       eyel: this.shoulderTransforms.eyel,
       eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
@@ -1573,9 +1575,7 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
 
-      // if (/thumb|finger/i.test(k)) {
-        modelBone.position.copy(modelBoneOutput.position);
-      // }
+      modelBone.position.copy(modelBoneOutput.position);
       modelBone.quaternion.multiplyQuaternions(
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
