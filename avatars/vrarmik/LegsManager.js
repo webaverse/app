@@ -87,7 +87,7 @@ class Leg {
     this.legLength = this.upperLegLength + this.lowerLegLength;
 
     Helpers.getWorldPosition(this.upperLeg, this.eyesToUpperLegOffset)
-  	  .sub(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.eyes, localVector));
+  	  .sub(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.head, localVector));
 
     // this.Reset();
   }
