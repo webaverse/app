@@ -32,14 +32,30 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
         o = await new Promise((accept, reject) => {
             fbxLoader.load(u, accept, function progress() { }, reject);
         })
-        o = o.animations[0];
-        o.name = name;
-        animations.push(o);
+        const animation = o.animations[0];
+        animation.name = name;
+        
+        for (const track of animation.tracks) {
+          if (/\.position/.test(track.name)) {
+            const values2 = new track.values.constructor(track.values.length);
+            const valueSize = track.getValueSize();
+            const numValues = track.values.length / valueSize;
+            const positionScaleFactor = 0.01;
+            for (let i = 0; i < numValues; i++) {
+                const index = i;
+                for (let j = 0; j < valueSize; j++) {
+                  values2[index * valueSize + j] = track.values[index * valueSize + j] * positionScaleFactor;
+                }
+            }
+            track.values = values2;
+          }
+        }
+        
+        animations.push(animation);
     }
     const _reverseAnimation = animation => {
         animation = animation.clone();
-        const { tracks } = animation;
-        for (const track of tracks) {
+        for (const track of animation.tracks) {
             track.times.reverse();
             for (let i = 0; i < track.times.length; i++) {
                 track.times[i] = animation.duration - track.times[i];
