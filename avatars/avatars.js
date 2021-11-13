@@ -1055,7 +1055,7 @@ class Avatar {
       this.debugMeshes = null;
     } */
 
-    modelBones.Head.traverse(o => {
+    modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
     });
