@@ -299,6 +299,7 @@ class LoadTester {
           statsErrNew.push(err);
         }
       }  
+      console.log(statsErrNew);
     }
 
     catch (error) {
