@@ -1239,7 +1239,8 @@ class Avatar {
       eyel: this.shoulderTransforms.eyel,
       eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
-      hips: this.legsManager.hips,
+      hips: this.shoulderTransforms.hips,
+      root: this.shoulderTransforms.root,
       spine: this.shoulderTransforms.spine,
       chest: this.shoulderTransforms.chest,
       upperChest: this.shoulderTransforms.upperChest,
@@ -1292,6 +1293,8 @@ class Avatar {
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
 		};
 		this.modelBoneOutputs = {
+      Root: this.outputs.root,
+
 	    Hips: this.outputs.hips,
 	    Spine: this.outputs.spine,
 	    Chest: this.outputs.chest,
@@ -1577,6 +1580,7 @@ class Avatar {
         console.warn('missing bone:', boneSpec.name);
       }
     }
+    boneMap.root = boneMap.hips?.parent;
 
     const _getOptional = o => o || new THREE.Bone();
     const _ensureParent = (o, parent) => {
@@ -1599,6 +1603,7 @@ class Avatar {
 	  let UpperChest = boneMap.upperChest;
 	  let Chest = boneMap.chest || boneMap.neck?.parent;
 	  let Hips = boneMap.hips;
+    let Root = boneMap.root;
 	  let Spine = boneMap.spine;
 	  let Left_shoulder = boneMap.leftShoulder;
 	  let Left_wrist = boneMap.leftHand;
@@ -1656,6 +1661,7 @@ class Avatar {
       //Chest = UpperChest.parent;
       Chest = _findChest(skeleton);
       Hips = _findHips(skeleton);
+      Root = Hips?.parent;
       Spine = _findSpine(Chest, Hips);
       Left_shoulder = _findShoulder(tailBones, true);
       Left_wrist = _findHand(Left_shoulder);
@@ -1704,6 +1710,8 @@ class Avatar {
     }
 
     const modelBones = {
+      Root,
+  
 	    Hips,
 	    Spine,
 	    Chest,
@@ -1960,7 +1968,7 @@ class Avatar {
       .premultiply(ql2.clone().invert());
 	  model.updateMatrixWorld(true);
     
-    modelBones.Hips.traverse(bone => {
+    modelBones.Root.traverse(bone => {
       if (bone.isBone) {
         bone.initialQuaternion = bone.quaternion.clone();
       }
@@ -2141,12 +2149,14 @@ class Avatar {
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
     this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
+    this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
 
     this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
+    this.legsManager.rightLeg.toe.position.copy(setups.leftToe);
 
-    this.shoulderTransforms.hips.updateMatrixWorld();
+    this.shoulderTransforms.root.updateMatrixWorld();
   }
   setHandEnabled(i, enabled) {
     this.shoulderTransforms.handsEnabled[i] = enabled;
@@ -2650,14 +2660,14 @@ class Avatar {
       }
     }
     if (!this.getBottomEnabled()) {
-      this.outputs.hips.position.copy(this.inputs.hmd.position)
-        .add(this.eyeToHipsOffset);
+      this.outputs.root.position.copy(this.inputs.hmd.position);
+      this.outputs.root.position.y -= this.height;
 
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
-      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+      this.outputs.root.quaternion.setFromEuler(localEuler);
     }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.outputs.hips.updateMatrixWorld();
@@ -2719,10 +2729,10 @@ class Avatar {
         );
 
         localQuaternion3.copy(globalQuaternion)// .setFromEuler(localEuler)
-        .premultiply(
-          this.modelBoneOutputs.Hips.getWorldQuaternion(localQuaternion4)
-            .invert()
-        )
+          .premultiply(
+            this.modelBoneOutputs.Hips.getWorldQuaternion(localQuaternion4)
+              .invert()
+          )
 
         this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
