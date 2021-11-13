@@ -12,9 +12,22 @@ export const getSkinnedMeshes = object => {
   return skinnedMeshes;
 };
 export const getSkeleton = object => {
-  const skinnedMeshes = getSkinnedMeshes(object);
-  const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-  const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+  let skeleton = null;
+  
+  if (!skeleton) {
+    const skinnedMeshes = getSkinnedMeshes(object);
+    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+    skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+  }
+  if (!skeleton) {
+    skeleton = {
+      bones: object.scene.children,
+    };
+    /* const skinnedMeshes = getSkinnedMeshes(object);
+    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+    skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton; */
+  }
+  
   /* const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
   const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
   if (poseSkeleton) {
@@ -88,7 +101,57 @@ export const getTailBones = object => {
 };
 export const getModelBones = object => {
   const boneMap = makeBoneMap(object);
-  
+
+  const _countCharacters = (name, regex) => {
+    let result = 0;
+    for (let i = 0; i < name.length; i++) {
+      if (regex.test(name[i])) {
+        result++;
+      }
+    }
+    return result;
+  };
+  const _findClosestParentBone = (bone, pred) => {
+    for (; bone?.isBone; bone = bone.parent) {
+      if (pred(bone)) {
+        return bone;
+      }
+    }
+    return null;
+  };
+  const _findFurthestParentBone = (bone, pred) => {
+    let result = null;
+    for (; bone?.isBone; bone = bone.parent) {
+      if (pred(bone)) {
+        result = bone;
+      }
+    }
+    return result;
+  };
+  const _distanceToParentBone = (bone, parentBone) => {
+    for (let i = 0; bone; bone = bone.parent, i++) {
+      if (bone === parentBone) {
+        return i;
+      }
+    }
+    return Infinity;
+  };
+  const _findClosestChildBone = (bone, pred) => {
+    const _recurse = bone => {
+      if (pred(bone)) {
+        return bone;
+      } else {
+        for (let i = 0; i < bone.children.length; i++) {
+          const result = _recurse(bone.children[i]);
+          if (result) {
+            return result;
+          }
+        }
+        return null;
+      }
+    }
+    return _recurse(bone);
+  };
   const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
   const _findChest = skeleton => skeleton.bones.find(bone => /chest/i.test(bone.name));
   const _findHead = tailBones => {
