@@ -7,6 +7,7 @@ class ShoulderTransforms {
   constructor(rig) {
     this.chest = new THREE.Object3D();
     this.upperChest = new THREE.Object3D();
+    this.root = new THREE.Object3D();
     this.hips = new THREE.Object3D();
     this.spine = new THREE.Object3D();
     this.neck = new THREE.Object3D();
@@ -15,6 +16,7 @@ class ShoulderTransforms {
     this.eyel = new THREE.Object3D();
     this.eyer = new THREE.Object3D();
 
+    this.root.add(this.hips);
     this.hips.add(this.spine);
     this.spine.add(this.chest);
     this.chest.add(this.upperChest);
