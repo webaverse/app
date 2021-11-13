@@ -14,6 +14,7 @@ if (process.argv.length < 4) {
     process.exit();
 }
 
+const modelScaleFactor = 0.01;
 
 const baker = async (uriPath = "", animationFileNames, outFile) => {
     let animations = [];
@@ -46,11 +47,10 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
             const values2 = new track.values.constructor(track.values.length);
             const valueSize = track.getValueSize();
             const numValues = track.values.length / valueSize;
-            const positionScaleFactor = 0.01;
             for (let i = 0; i < numValues; i++) {
                 const index = i;
                 for (let j = 0; j < valueSize; j++) {
-                  values2[index * valueSize + j] = track.values[index * valueSize + j] * positionScaleFactor;
+                  values2[index * valueSize + j] = track.values[index * valueSize + j] * modelScaleFactor;
                 }
             }
             track.values = values2;
