@@ -201,7 +201,6 @@ class LoadTester {
       args: [		
       '--disable-gpu',
       '--enable-webgl',
-      '--use-cmd-decoder=passthrough',
       '--no-sandbox',
       '--enable-precise-memory-info',
       '--enable-begin-frame-control',
