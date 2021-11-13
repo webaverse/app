@@ -191,7 +191,7 @@ physicsManager.pushUpdate = physicsObject => {
   });
 };
 
-physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
+// physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 
 /* const getAvatarHeight = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
