@@ -177,13 +177,15 @@ class ShoulderPoser {
     const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
     const spinePosition = chestPosition.sub(localVector2.copy(this.shoulder.chest.position).applyQuaternion(hmdXYRotation));
     const hipsPosition = spinePosition.sub(localVector2.copy(this.shoulder.spine.position).applyQuaternion(hmdXYRotation));
+    const rootPosition = hipsPosition.sub(localVector2.copy(this.shoulder.hips.position).applyQuaternion(hmdXYRotation));
 
-    this.shoulder.hips.position.copy(hipsPosition);
+    this.shoulder.root.position.copy(rootPosition);
     if (this.rig.legsManager.enabled) {
-	    this.shoulder.hips.quaternion.copy(hmdXYRotation);
+	    this.shoulder.root.quaternion.copy(hmdXYRotation);
 	  }
-    Helpers.updateMatrix(this.shoulder.hips);
-    this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
+    Helpers.updateMatrix(this.shoulder.root);
+    this.shoulder.root.matrixWorld.copy(this.shoulder.root.matrix);
+    Helpers.updateMatrixWorld(this.shoulder.hips);
     Helpers.updateMatrixWorld(this.shoulder.spine);
     Helpers.updateMatrixWorld(this.shoulder.chest);
     Helpers.updateMatrixWorld(this.shoulder.upperChest);
