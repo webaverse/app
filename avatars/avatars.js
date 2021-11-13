@@ -656,49 +656,7 @@ const srcCubeGeometries = {};
   mesh.attributes = attributes;
   return mesh;
 }; */
-
-const _findClosestParentBone = (bone, pred) => {
-  for (; bone?.isBone; bone = bone.parent) {
-    if (pred(bone)) {
-      return bone;
-    }
-  }
-  return null;
-};
-const _findFurthestParentBone = (bone, pred) => {
-  let result = null;
-  for (; bone?.isBone; bone = bone.parent) {
-    if (pred(bone)) {
-      result = bone;
-    }
-  }
-  return result;
-};
-const _distanceToParentBone = (bone, parentBone) => {
-  for (let i = 0; bone; bone = bone.parent, i++) {
-    if (bone === parentBone) {
-      return i;
-    }
-  }
-  return Infinity;
-};
-const _findClosestChildBone = (bone, pred) => {
-  const _recurse = bone => {
-    if (pred(bone)) {
-      return bone;
-    } else {
-      for (let i = 0; i < bone.children.length; i++) {
-        const result = _recurse(bone.children[i]);
-        if (result) {
-          return result;
-        }
-      }
-      return null;
-    }
-  }
-  return _recurse(bone);
-};
-const _traverseChild = (bone, distance) => {
+/* const _traverseChild = (bone, distance) => {
   if (distance <= 0) {
     return bone;
   } else {
@@ -711,16 +669,7 @@ const _traverseChild = (bone, distance) => {
     }
     return null;
   }
-};
-const _countCharacters = (name, regex) => {
-  let result = 0;
-  for (let i = 0; i < name.length; i++) {
-    if (regex.test(name[i])) {
-      result++;
-    }
-  }
-  return result;
-};
+}; */
 const _findArmature = bone => {
   for (;; bone = bone.parent) {
     if (!bone.isBone) {
