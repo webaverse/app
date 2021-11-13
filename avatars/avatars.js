@@ -2573,12 +2573,10 @@ class Avatar {
         
         applyFn(spec);
         _blendFly(spec);
-        if (isPosition) { // XXX hack to scale the position based on the root
-          // console.log('got', dst.x, dst.y, dst.z);
+        
+        if (isPosition) { // ignore all position except y
           dst.x = 0;
-          // dst.y *= 0.01;
           dst.z = 0;
-          // window.avatar = this;
         }
       }
     };
