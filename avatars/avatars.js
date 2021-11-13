@@ -1810,7 +1810,7 @@ class Avatar {
       }
     }
 
-	  const armature = _findArmature(Hips);
+	  const armature = _findArmature(Root);
 
     // const eyeDirection = getEyePosition(this.modelBones).sub(Head.getWorldPosition(new Vector3()));
     const leftArmDirection = Left_wrist.getWorldPosition(new THREE.Vector3()).sub(Head.getWorldPosition(new THREE.Vector3()));
