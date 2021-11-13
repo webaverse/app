@@ -38,7 +38,7 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
             }, function progress() { }, reject);
         });
         const height = getHeight(o);
-        // console.log('got height', o);
+        // console.log('got height', height);
         const animation = o.animations[0];
         animation.name = name;
         
