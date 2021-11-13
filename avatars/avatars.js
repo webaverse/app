@@ -2138,7 +2138,7 @@ class Avatar {
             dst.y *= this.height;
           } else {
             // force height in the jump case to overide the animation
-            dst.y = this.height * 0.6;
+            dst.y = this.height * 0.5;
           }
           dst.z = 0;
         }
