@@ -1664,7 +1664,9 @@ class Avatar {
     if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
-    this.shoulderTransforms.eyes.position.copy(setups.eyes);
+    // this.shoulderTransforms.eyes.position.copy(setups.eyes);
+    this.shoulderTransforms.eyel.position.copy(setups.eyel);
+    this.shoulderTransforms.eyer.position.copy(setups.eyer);
 
     if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
