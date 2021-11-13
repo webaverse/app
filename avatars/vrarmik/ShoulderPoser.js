@@ -229,7 +229,8 @@ class ShoulderPoser {
       .premultiply(Helpers.getWorldQuaternion(this.shoulder.head.parent, localQuaternion3).invert());
     Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
-    Helpers.updateMatrixWorld(this.shoulder.eyes);
+    Helpers.updateMatrixWorld(this.shoulder.eyel);
+    Helpers.updateMatrixWorld(this.shoulder.eyer);
   }
 
   /* rotateLeftShoulder(shoulderRotation)
