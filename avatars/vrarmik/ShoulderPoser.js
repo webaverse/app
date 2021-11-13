@@ -135,7 +135,7 @@ class ShoulderPoser {
       const hmdFlatRotation = localQuaternion2.setFromEuler(hmdEuler);
 
       const headPosition = localVector.copy(this.vrTransforms.head.position)
-        .add(localVector2.copy(this.shoulder.eyes.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
+        .add(localVector2.copy(this.shoulder.head.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const neckPosition = headPosition.add(localVector2.copy(this.shoulder.head.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const chestPosition = neckPosition.add(localVector2.copy(this.shoulder.neck.position).multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 		  const spinePosition = chestPosition.add(localVector2.copy(this.shoulder.transform.position).multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
@@ -171,19 +171,21 @@ class ShoulderPoser {
     } */
 
     const headPosition = localVector.copy(this.vrTransforms.head.position)
-      .sub(localVector2.copy(this.shoulder.eyes.position).applyQuaternion(hmdRotation));
+      .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const neckPosition = headPosition.sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const upperChestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
     const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
     const spinePosition = chestPosition.sub(localVector2.copy(this.shoulder.chest.position).applyQuaternion(hmdXYRotation));
     const hipsPosition = spinePosition.sub(localVector2.copy(this.shoulder.spine.position).applyQuaternion(hmdXYRotation));
+    const rootPosition = hipsPosition.sub(localVector2.copy(this.shoulder.hips.position).applyQuaternion(hmdXYRotation));
 
-    this.shoulder.hips.position.copy(hipsPosition);
+    this.shoulder.root.position.copy(rootPosition);
     if (this.rig.legsManager.enabled) {
-	    this.shoulder.hips.quaternion.copy(hmdXYRotation);
+	    this.shoulder.root.quaternion.copy(hmdXYRotation);
 	  }
-    Helpers.updateMatrix(this.shoulder.hips);
-    this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
+    Helpers.updateMatrix(this.shoulder.root);
+    this.shoulder.root.matrixWorld.copy(this.shoulder.root.matrix);
+    Helpers.updateMatrixWorld(this.shoulder.hips);
     Helpers.updateMatrixWorld(this.shoulder.spine);
     Helpers.updateMatrixWorld(this.shoulder.chest);
     Helpers.updateMatrixWorld(this.shoulder.upperChest);
@@ -205,7 +207,7 @@ class ShoulderPoser {
       this.shoulder.head.quaternion.setFromEuler(hmdUpEuler);
       Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
-      Helpers.updateMatrixWorld(this.shoulder.eyes);
+      Helpers.updateMatrixWorld(this.shoulder.head);
 		} */
 
   updateNeck() {
@@ -229,7 +231,8 @@ class ShoulderPoser {
       .premultiply(Helpers.getWorldQuaternion(this.shoulder.head.parent, localQuaternion3).invert());
     Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
-    Helpers.updateMatrixWorld(this.shoulder.eyes);
+    Helpers.updateMatrixWorld(this.shoulder.eyel);
+    Helpers.updateMatrixWorld(this.shoulder.eyer);
   }
 
   /* rotateLeftShoulder(shoulderRotation)

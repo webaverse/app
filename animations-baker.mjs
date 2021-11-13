@@ -2,6 +2,7 @@ import * as CBOR from 'borc';
 import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import {getHeight} from './avatars/util.mjs';
 import * as THREE from 'three';
 import fs from 'fs';
 import express from 'express';
@@ -13,33 +14,69 @@ if (process.argv.length < 4) {
     process.exit();
 }
 
+const idleAnimationName = 'idle.fbx';
+const reversibleAnimationNames = [
+  `left strafe walking.fbx`,
+  `left strafe.fbx`,
+  `right strafe walking.fbx`,
+  `right strafe.fbx`,
+  `Sneaking Forward.fbx`,
+  `Crouched Sneaking Left.fbx`,
+  `Crouched Sneaking Right.fbx`,
+];
 
 const baker = async (uriPath = "", animationFileNames, outFile) => {
     let animations = [];
-    const reversibleAnimationNames = [
-        `left strafe walking.fbx`,
-        `left strafe.fbx`,
-        `right strafe walking.fbx`,
-        `right strafe.fbx`,
-        `Sneaking Forward.fbx`,
-        `Crouched Sneaking Left.fbx`,
-        `Crouched Sneaking Right.fbx`,
-        ];
+    
     const fbxLoader = new FBXLoader();
+    const height = await (async () => {
+      let o;
+      const u = uriPath + idleAnimationName;
+      o = await new Promise((accept, reject) => {
+          fbxLoader.load(u, o => {
+            o.scene = o;
+            accept(o);
+          }, function progress() { }, reject);
+      });
+      // console.log('got height', height);
+      // const animation = o.animations[0];
+      return getHeight(o);
+    })();
+    console.log('got height', height);
+    
     for (const name of animationFileNames) {
         const u = uriPath + name;
         let o;
         o = await new Promise((accept, reject) => {
-            fbxLoader.load(u, accept, function progress() { }, reject);
-        })
-        o = o.animations[0];
-        o.name = name;
-        animations.push(o);
+            fbxLoader.load(u, o => {
+              o.scene = o;
+              accept(o);
+            }, function progress() { }, reject);
+        });
+        // console.log('got height', height);
+        const animation = o.animations[0];
+        animation.name = name;
+        
+        for (const track of animation.tracks) {
+          if (/\.position/.test(track.name)) {
+            const values2 = new track.values.constructor(track.values.length);
+            const valueSize = track.getValueSize();
+            const numValues = track.values.length / valueSize;
+            for (let i = 0; i < numValues; i++) {
+                const index = i;
+                for (let j = 0; j < valueSize; j++) {
+                  values2[index * valueSize + j] = track.values[index * valueSize + j] / height;
+                }
+            }
+            track.values = values2;
+          }
+        }
+        
+        animations.push(animation);
     }
     const _reverseAnimation = animation => {
         animation = animation.clone();
-        const { tracks } = animation;
-        for (const track of tracks) {
+        for (const track of animation.tracks) {
             track.times.reverse();
             for (let i = 0; i < track.times.length; i++) {
                 track.times[i] = animation.duration - track.times[i];
