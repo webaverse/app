@@ -1990,9 +1990,9 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
 
-      if (/hips|thumb|finger/i.test(k)) {
+      // if (/thumb|finger/i.test(k)) {
         modelBone.position.copy(modelBoneOutput.position);
-      }
+      // }
       modelBone.quaternion.multiplyQuaternions(
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
