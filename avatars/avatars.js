@@ -2133,8 +2133,10 @@ class Avatar {
         // ignore all animation position except y
         if (isPosition) {
           dst.x = 0;
-          // animations position is height-relative
-          dst.y *= this.height;
+          // animations position is height-relative, except when jumping
+          if (!this.jumpState) {
+            dst.y *= this.height;
+          }
           dst.z = 0;
         }
       }
