@@ -2129,8 +2129,11 @@ class Avatar {
         applyFn(spec);
         _blendFly(spec);
         
-        if (isPosition) { // ignore all animation position except y
+        // ignore all animation position except y
+        if (isPosition) {
           dst.x = 0;
+          // animations position is height-relative
+          dst.y *= this.height;
           dst.z = 0;
         }
       }
