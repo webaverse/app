@@ -69,6 +69,7 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
     }, */
   },
   vertexShader: `\
+    ${THREE.ShaderChunk.common}
     precision highp float;
     precision highp int;
 
@@ -77,19 +78,20 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
     // varying vec3 vPosition;
     // varying vec3 vNormal;
     varying vec2 vUv;
-
+    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       
       vUv = uv;
+
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
     }
   `,
   fragmentShader: `\
+    ${THREE.ShaderChunk.common}
     precision highp float;
     precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
 
     uniform vec3 uColor;
     uniform float uTime;
@@ -101,6 +103,7 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
     const float glowDistance = 0.2;
     const float glowIntensity = 0.3;
 
+    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
     void main() {
       vec3 c;
       float angle = mod((atan(vUv.x, vUv.y))/(PI*2.), 1.);
@@ -114,6 +117,8 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
         c = vec3(0.2);
       }
       gl_FragColor = vec4(c, 1.);
+
+      ${THREE.ShaderChunk.logdepthbuf_fragment}
     }
   `,
   transparent: true,
