@@ -31,15 +31,23 @@ class LoadTester {
     if (!this.statsErr) {
       this.statsErr = [];
     }
-    var data;
-    var match = /\n/.exec(stat.toString());
-    if (match) {
-      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error\n${stat}\n++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
+    if(type == 'HASH') {
+      this.statsErr.push(`========================== \nCommit Hash: ${stat}\n=========================== `);
     }
-    else {
-      data = `++++ **${this.scene_name}** ++++ [${type}] ++++\n${stat}`;
+    else if(type == 'ERROR' || type == 'WARNING')
+    {
+      var data;
+      var match = /\n/.exec(stat.toString());
+      if (match) {
+        data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error\n${stat}\n++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
+      }
+      else {
+        data = `++++ **${this.scene_name}** ++++ [${type}] ++++\n${stat}`;
+      }
+      this.statsErr.push(data);
+      self.MochaIntercept();
     }
-    this.statsErr.push(data);
+
   }
 
   async addStat(type, stat) {
