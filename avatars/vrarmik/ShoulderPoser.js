@@ -135,7 +135,7 @@ class ShoulderPoser {
       const hmdFlatRotation = localQuaternion2.setFromEuler(hmdEuler);
 
       const headPosition = localVector.copy(this.vrTransforms.head.position)
-        .add(localVector2.copy(this.shoulder.eyes.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
+        .add(localVector2.copy(this.shoulder.head.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const neckPosition = headPosition.add(localVector2.copy(this.shoulder.head.position).multiplyScalar(-1).applyQuaternion(hmdRotation));
 		  const chestPosition = neckPosition.add(localVector2.copy(this.shoulder.neck.position).multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
 		  const spinePosition = chestPosition.add(localVector2.copy(this.shoulder.transform.position).multiplyScalar(-1).applyQuaternion(hmdFlatRotation));
@@ -171,7 +171,7 @@ class ShoulderPoser {
     } */
 
     const headPosition = localVector.copy(this.vrTransforms.head.position)
-      .sub(localVector2.copy(this.shoulder.eyes.position).applyQuaternion(hmdRotation));
+      .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const neckPosition = headPosition.sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const upperChestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
     const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
@@ -205,7 +205,7 @@ class ShoulderPoser {
       this.shoulder.head.quaternion.setFromEuler(hmdUpEuler);
       Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
-      Helpers.updateMatrixWorld(this.shoulder.eyes);
+      Helpers.updateMatrixWorld(this.shoulder.head);
 		} */
 
   updateNeck() {
