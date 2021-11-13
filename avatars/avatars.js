@@ -66,10 +66,74 @@ const _makeSimplexes = numSimplexes => {
 };
 const simplexes = _makeSimplexes(5);
 
-// import {FBXLoader} from '../FBXLoader.js';
-// import {downloadFile} from '../util.js';
+const getSkinnedMeshes = object => {
+  const model = object.scene;
+  const skinnedMeshes = [];
+  model.traverse(o => {
+    if (o.isSkinnedMesh) {
+      skinnedMeshes.push(o);
+    }
+  });
+  skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+  return skinnedMeshes;
+};
+const getSkeleton = object => {
+  const skinnedMeshes = getSkinnedMeshes(object);
+  const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+  const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+  /* const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
+  const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
+  if (poseSkeleton) {
+    copySkeleton(poseSkeleton, skeleton);
+    poseSkeletonSkinnedMesh.bind(skeleton);
+  } */
+  return skeleton;
+};
+const getEyePosition = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  return function(modelBones) {
+    if (modelBones.Eye_L && modelBones.Eye_R) {
+      return modelBones.Eye_L.getWorldPosition(localVector)
+        .add(modelBones.Eye_R.getWorldPosition(localVector2))
+        .divideScalar(2);
+    } else {
+      const neckToHeadDiff = modelBones.Head.getWorldPosition(localVector)
+        .sub(modelBones.Neck.getWorldPosition(localVector2));
+      if (neckToHeadDiff.z < 0) {
+        neckToHeadDiff.z *= -1;
+      }
+      return modelBones.Head.getWorldPosition(localVector)
+        .add(neckToHeadDiff)
+        .divideScalar(2);
+    }
+  }
+})();
+const getAvatarHeight = (() => {
+  const localVector = new THREE.Vector3();
+  return function(modelBones) {
+    return getEyePosition(modelBones)
+      .sub(modelBones.Root.getWorldPosition(localVector))
+      .y;
+  };
+})();
+const makeBoneMap = object => {
+  const result = {};
+  const vrmExtension = object?.parser?.json?.extensions?.VRM;
+  const humanBones = vrmExtension?.humanoid?.humanBones || [];
+  const skeleton = getSkeleton(object);
+  for (const {bone, node} of humanBones) {
+    const boneSpec = object.parser.json.nodes[node];
+    const b = skeleton.bones.find(b => b.userData.name === boneSpec.name);
+    result[bone] = b;
+    if (!b) {
+      console.warn('missing bone:', boneSpec.name);
+    }
+  }
+  result.root = result.hips?.parent;
+  return result;
+};
 
-// const halfPi = Math.PI/2;
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
@@ -996,16 +1060,6 @@ class Avatar {
       o.savedMatrixWorld = o.matrixWorld.clone();
     });
 
-	  const _averagePoint = points => {
-      const result = new THREE.Vector3();
-      for (let i = 0; i < points.length; i++) {
-        result.add(points[i]);
-      }
-      result.divideScalar(points.length);
-      return result;
-	  };
-    const eyePosition = this.getEyePosition();
-
 		this.poseManager = new PoseManager();
 		this.shoulderTransforms = new ShoulderTransforms(this);
 		this.legsManager = new LegsManager(this);
@@ -1205,9 +1259,7 @@ class Avatar {
     });
 
     // height is defined as eyes to root
-    this.height = eyePosition.clone()
-      .sub(modelBones.Root.getWorldPosition(new THREE.Vector3()))
-      .y;
+    this.height = getAvatarHeight(this.modelBones);
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
@@ -1215,6 +1267,7 @@ class Avatar {
     let handWidth = (modelBones.Left_indexFinger1 && modelBones.Left_littleFinger1)? modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3())) : 0;
     this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    const eyePosition = getEyePosition(this.modelBones);
     this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
 
     const _makeInput = () => {
@@ -1550,37 +1603,11 @@ class Avatar {
   }
   static bindAvatar(object) {
     const model = object.scene;
-    const vrmExtension = object?.parser?.json?.extensions?.VRM;
-    const humanBones = vrmExtension?.humanoid?.humanBones || [];
-
     model.updateMatrixWorld(true);
-    const skinnedMeshes = [];
-	  model.traverse(o => {
-	    if (o.isSkinnedMesh) {
-        skinnedMeshes.push(o);
-	    }
-	  });
-    skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-
-    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-    const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-    const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
-    const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
-    if (poseSkeleton) {
-      copySkeleton(poseSkeleton, skeleton);
-      poseSkeletonSkinnedMesh.bind(skeleton);
-    }
     
-    const boneMap = {};
-    for (const {bone, node} of humanBones) {
-      const boneSpec = object.parser.json.nodes[node];
-      const b = skeleton.bones.find(b => b.userData.name === boneSpec.name);
-      boneMap[bone] = b;
-      if (!b) {
-        console.warn('missing bone:', boneSpec.name);
-      }
-    }
-    boneMap.root = boneMap.hips?.parent;
+    const skinnedMeshes = getSkinnedMeshes(object);
+    const skeleton = getSkeleton(object);
+    const boneMap = makeBoneMap(object);
 
     const _getOptional = o => o || new THREE.Bone();
     const _ensureParent = (o, parent) => {
@@ -1785,7 +1812,7 @@ class Avatar {
 
 	  const armature = _findArmature(Hips);
 
-    // const eyeDirection = _getEyePosition().sub(Head.getWorldPosition(new Vector3()));
+    // const eyeDirection = getEyePosition(this.modelBones).sub(Head.getWorldPosition(new Vector3()));
     const leftArmDirection = Left_wrist.getWorldPosition(new THREE.Vector3()).sub(Head.getWorldPosition(new THREE.Vector3()));
 	  const flipZ = leftArmDirection.x < 0;//eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
@@ -2076,27 +2103,6 @@ class Avatar {
     leftToe: 'Left_toe',
     rightToe: 'Right_toe'
   }
-  getEyePosition = (() => {
-    const localVector = new THREE.Vector3();
-    const localVector2 = new THREE.Vector3();
-    return function() {
-      const {modelBones} = this;
-      if (modelBones.Eye_L && modelBones.Eye_R) {
-        return modelBones.Eye_L.getWorldPosition(localVector)
-          .add(modelBones.Eye_R.getWorldPosition(localVector2))
-          .divideScalar(2);
-      } else {
-        const neckToHeadDiff = modelBones.Head.getWorldPosition(localVector)
-          .sub(modelBones.Neck.getWorldPosition(localVector2));
-        if (neckToHeadDiff.z < 0) {
-          neckToHeadDiff.z *= -1;
-        }
-        return modelBones.Head.getWorldPosition(localVector)
-          .add(neckToHeadDiff)
-          .divideScalar(2);
-      }
-    }
-  })()
   initializeBonePositions(setups) {
     this.shoulderTransforms.hips.position.copy(setups.hips);
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -2569,9 +2575,10 @@ class Avatar {
         _blendFly(spec);
         if (isPosition) { // XXX hack to scale the position based on the root
           // console.log('got', dst.x, dst.y, dst.z);
-          dst.x *= 0;
-          dst.y *= 0.01;
-          dst.z *= 0;
+          dst.x = 0;
+          // dst.y *= 0.01;
+          dst.z = 0;
+          // window.avatar = this;
         }
       }
     };
@@ -2653,7 +2660,7 @@ class Avatar {
     this.legsManager.Update();
 
     if (this.eyeTargetEnabled) {
-      const eyePosition = this.getEyePosition();
+      const eyePosition = getEyePosition(this.modelBones);
       this.modelBoneOutputs.Neck.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
@@ -2692,7 +2699,7 @@ class Avatar {
     } 
     else {
       if (this.trackMouseAmount > 0) {
-        const eyePosition = this.getEyePosition();
+        const eyePosition = getEyePosition(this.modelBones);
         this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
