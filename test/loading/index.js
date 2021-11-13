@@ -25,7 +25,6 @@ class LoadTester {
   lastCheckedAt = 0;
   lastActivityAt = 0;
 
-  // WEBHOOK_URL="https://discord.com/api/webhooks/908401493009391687/ZSmNJyB5ED9gPiNt0oBIDpAfSdBZJFSUhDFcP_0Q2vrfs-Mozh55uAlEJlvP1ngjlgjR"
   WEBHOOK_URL="https://discord.com/api/webhooks/908078345193930762/m7yVzm8QoTbjhNGJ9NXmOEJTeYSSY1wvX4GlypqLhaxK8MLKnOGiNw7BqXtKRX2z9pu0"
 
   addStatErr(type, stat) {
@@ -35,10 +34,10 @@ class LoadTester {
     var data;
     var match = /\n/.exec(stat.toString());
     if (match) {
-      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error \n ${stat} ++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
+      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error\n${stat}\n++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
     }
     else {
-      data = `++++ **${this.scene_name}** ++++ [${type}] ++++ \n ${stat}`;
+      data = `++++ **${this.scene_name}** ++++ [${type}] ++++\n${stat}`;
     }
     this.statsErr.push(data);
   }
@@ -69,8 +68,6 @@ class LoadTester {
 
       let outInterval = setInterval(async () => {
         try{
-
-
               if(retries < 0){
                 clearInterval(outInterval);
                 return reject();  
@@ -106,8 +103,6 @@ class LoadTester {
         }
       }, 1000);
     });
-
-
   }
   
   waitForNetworkIdle = ()=>{
@@ -195,22 +190,22 @@ class LoadTester {
 
   async init() {
     this.browser = await puppeteer.launch({
-      headless: false, // change to false for debug
+      headless: true, // change to false for debug
       defaultViewport: null,
       ignoreHTTPSErrors: true, 
       dumpio: false,
       args: [		
-      // '--disable-gpu',
+      '--disable-gpu',
       '--enable-webgl',
-      '--use-cmd-decoder=passthrough'
-      // '--no-sandbox',
-      // '--enable-precise-memory-info',
-      // '--enable-begin-frame-control',
-      // '--enable-surface-synchronization',
-      // '--run-all-compositor-stages-before-draw',
-      // '--disable-threaded-animation',
-      // '--disable-threaded-scrolling',
-      // '--disable-checker-imaging'
+      '--use-cmd-decoder=passthrough',
+      '--no-sandbox',
+      '--enable-precise-memory-info',
+      '--enable-begin-frame-control',
+      '--enable-surface-synchronization',
+      '--run-all-compositor-stages-before-draw',
+      '--disable-threaded-animation',
+      '--disable-threaded-scrolling',
+      '--disable-checker-imaging'
     ],
     });
 
@@ -226,14 +221,14 @@ class LoadTester {
           this.addStatErr('ERROR', message.text())
         }
         else if (message.type().substr(0, 3).toUpperCase() === 'WAR') {
-          console.log(message)
-          debugger;
-          // console.log(`${message.text()} ${message._stackTraceLocations[0].url}`)
-          this.addStatErr('WARNING', `${message.text()} ${message._stackTraceLocations[0].url}`)
-
-          // console.log(`${message.stackTraceLocations()} ${message.text()}`)
-          // this.addStat('ERROR', 'Page-Error: ' + message.text());
-          // this.addStatErr(message.text())
+          if(message._args.length > 0)
+          {
+            for(let arg of message._args) {
+              if(arg._remoteObject.className == 'Error') {
+                this.addStatErr('ERROR', `${arg._remoteObject.className} ${arg._remoteObject.description}`)
+              }            
+            }
+          }
         }
       })
       .on('requestfailed', request => {

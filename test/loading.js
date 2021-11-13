@@ -12,16 +12,18 @@ const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = meta
 export default () => {
     const app = useApp();
 
+    setTimeout(() => {
+      var evt = new CustomEvent("cEvent", {detail: "Any Object Here"});
+      window.dispatchEvent(evt);
+    }, 40 * 1000)
     //Dispatch an event
-    var evt = new CustomEvent("cEvent", {detail: "Any Object Here"});
-    window.dispatchEvent(evt);
     
     return app;
   };`
 
-async function setChayJs() {
+async function setTestCase() {
 
-  var cPath = path.join(__dirname, '..', 'public', 'chootiya.js');
+  var cPath = path.join(__dirname, '..', 'public', 'testCase.js');
   await fs.writeFileSync(cPath, content);
 
   for (const scn of scenes) {
@@ -29,7 +31,7 @@ async function setChayJs() {
     const data2 = fs.readFileSync(scenePath);
 
     var scene = JSON.parse(data2.toString());
-    var check = scene.objects.find(key => key.start_url === 'http://localhost:3000/chootiya.js')
+    var check = scene.objects.find(key => key.start_url === 'http://localhost:3000/testCase.js')
 
     if(!check) {
       var data = {
@@ -38,13 +40,10 @@ async function setChayJs() {
           0,
           -30
         ],
-        "start_url": "http://localhost:3000/chootiya.js"
+        "start_url": "http://localhost:3000/testCase.js"
       };
       scene.objects.push(data);
       fs.writeFileSync(scenePath, JSON.stringify(scene));
-    }
-    else {
-      console.log('exists');
     }
   }
 }
@@ -58,8 +57,11 @@ describe('Running Pupeeteer', function() {
         host: 'http://localhost:3000',
       })
 
-      await setChayJs();
-
+      require('child_process').exec('git rev-parse HEAD', function(err, stdout) {
+        console.log('Last commit hash on this branch is:', stdout);
+      });
+      
+      await setTestCase();
 
       process.chdir('..');
 

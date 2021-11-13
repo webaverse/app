@@ -1,10 +1,13 @@
 import metaversefile from 'metaversefile';
 const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = metaversefile;
 
-export default (e) => {
+export default () => {
     const app = useApp();
-    // alert('hello');
-    throw new Error('error form webachoot');
+
+    setTimeout(() => {
+      var evt = new CustomEvent("cEvent", {detail: "Any Object Here"});
+      window.dispatchEvent(evt);
+    }, 40 * 1000)
     
     return app;
   };
