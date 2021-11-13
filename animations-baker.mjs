@@ -14,20 +14,36 @@ if (process.argv.length < 4) {
     process.exit();
 }
 
-const modelScaleFactor = 0.01;
+const idleAnimationName = 'idle.fbx';
+const reversibleAnimationNames = [
+  `left strafe walking.fbx`,
+  `left strafe.fbx`,
+  `right strafe walking.fbx`,
+  `right strafe.fbx`,
+  `Sneaking Forward.fbx`,
+  `Crouched Sneaking Left.fbx`,
+  `Crouched Sneaking Right.fbx`,
+];
 
 const baker = async (uriPath = "", animationFileNames, outFile) => {
     let animations = [];
-    const reversibleAnimationNames = [
-        `left strafe walking.fbx`,
-        `left strafe.fbx`,
-        `right strafe walking.fbx`,
-        `right strafe.fbx`,
-        `Sneaking Forward.fbx`,
-        `Crouched Sneaking Left.fbx`,
-        `Crouched Sneaking Right.fbx`,
-        ];
+    
     const fbxLoader = new FBXLoader();
+    const height = await (async () => {
+      let o;
+      const u = uriPath + idleAnimationName;
+      o = await new Promise((accept, reject) => {
+          fbxLoader.load(u, o => {
+            o.scene = o;
+            accept(o);
+          }, function progress() { }, reject);
+      });
+      // console.log('got height', height);
+      // const animation = o.animations[0];
+      return getHeight(o);
+    })();
+    console.log('got height', height);
+    
     for (const name of animationFileNames) {
         const u = uriPath + name;
         let o;
@@ -37,7 +53,6 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
               accept(o);
             }, function progress() { }, reject);
         });
-        const height = getHeight(o);
         // console.log('got height', height);
         const animation = o.animations[0];
         animation.name = name;
@@ -50,7 +65,7 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
             for (let i = 0; i < numValues; i++) {
                 const index = i;
                 for (let j = 0; j < valueSize; j++) {
-                  values2[index * valueSize + j] = track.values[index * valueSize + j] * modelScaleFactor;
+                  values2[index * valueSize + j] = track.values[index * valueSize + j] / height;
                 }
             }
             track.values = values2;
