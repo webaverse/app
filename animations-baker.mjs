@@ -2,6 +2,7 @@ import * as CBOR from 'borc';
 import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import {getHeight} from './avatars/util.mjs';
 import * as THREE from 'three';
 import fs from 'fs';
 import express from 'express';
@@ -30,8 +31,13 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
         const u = uriPath + name;
         let o;
         o = await new Promise((accept, reject) => {
-            fbxLoader.load(u, accept, function progress() { }, reject);
-        })
+            fbxLoader.load(u, o => {
+              o.scene = o;
+              accept(o);
+            }, function progress() { }, reject);
+        });
+        const height = getHeight(o);
+        // console.log('got height', o);
         const animation = o.animations[0];
         animation.name = name;
         

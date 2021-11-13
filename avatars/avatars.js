@@ -24,7 +24,7 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
-}  from './util.js';
+}  from './util.mjs';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1045,7 +1045,7 @@ class Avatar {
     });
 
     // height is defined as eyes to root
-    this.height = getHeight(this.modelBones);
+    this.height = getHeight(object);
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
