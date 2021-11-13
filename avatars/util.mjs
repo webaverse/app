@@ -100,8 +100,6 @@ export const getTailBones = object => {
   return result;
 };
 export const getModelBones = object => {
-  const boneMap = makeBoneMap(object);
-
   const _countCharacters = (name, regex) => {
     let result = 0;
     for (let i = 0; i < name.length; i++) {
@@ -302,6 +300,9 @@ export const getModelBones = object => {
     }
     return o.parent;
   };
+  
+  // first, try to get the mapping from the VRM metadata
+  const boneMap = makeBoneMap(object);
   let Eye_L = boneMap.leftEye;
   let Eye_R = boneMap.rightEye;
   let Head = boneMap.head;
@@ -358,7 +359,9 @@ export const getModelBones = object => {
   let Left_toe = boneMap.leftToes;
   let Right_toe = boneMap.rightToes;
 
-  if (!Hips) {
+  // failed to find VRM mapping, massive hack to find bones anyway
+  // this is probably not a VRM, but pretending to be one
+  if (!Root) {
     const skeleton = getSkeleton(object);
     const tailBones = getTailBones(object);
     
