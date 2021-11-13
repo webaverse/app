@@ -59,6 +59,7 @@ describe('Running Pupeeteer', function() {
 
       require('child_process').exec('git rev-parse HEAD', function(err, stdout) {
         console.log('Last commit hash on this branch is:', stdout);
+        appTester.addStatErr('HASH', stdout);
       });
 
       await setTestCase();
