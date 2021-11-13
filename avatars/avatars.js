@@ -1201,9 +1201,9 @@ class Avatar {
       rightToe: _getOffset(modelBones.Right_toe),
     });
 
+    // height is defined as eyes to root
     this.height = eyePosition.clone()
-      .sub(_averagePoint([modelBones.Left_ankle.getWorldPosition(new THREE.Vector3()), modelBones.Right_ankle.getWorldPosition(new THREE.Vector3())]))
-      .add(new THREE.Vector3(0, 0.1, 0))
+      .sub(modelBones.Root.getWorldPosition(new THREE.Vector3()))
       .y;
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
