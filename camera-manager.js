@@ -2,13 +2,19 @@ import * as THREE from 'three';
 import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
 import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
+import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 let cameraOffsetZ = cameraOffset.z;
-const raycaster = new THREE.Raycaster();
+const rayVectorZero = new THREE.Vector3(0,0,0);
+const rayVectorUp = new THREE.Vector3(0,1,0);
+const rayStartPos = new THREE.Vector3(0,0,0);
+const rayDirection = new THREE.Vector3(0,0,0);
+const rayMatrix = new THREE.Matrix4();
+const rayQuaternion = new THREE.Quaternion();
 
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
@@ -204,16 +210,12 @@ const cameraManager = {
       return value1 + (value2 - value1) * amount;
     }
 
-    // Check for collision with level
+    // Check for collision with level physic objects
 
     let newVal = cameraOffsetTargetZ;
     let hasIntersection = false;
 
     const localPlayer = metaversefile.useLocalPlayer();
-
-    let intersects = null;
-
-    let direction = new THREE.Vector3();
 
     let cornerPoints = [];
     // Top left
@@ -232,33 +234,35 @@ const cameraManager = {
     cornerPoints[3] = new THREE.Vector3( 1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
     cornerPoints[3].unproject( camera );
 
-    raycaster.near = 0.1;
-    raycaster.far = Math.abs(cameraOffsetTargetZ) * 1.2;
+
     // Raycast from all camera corners
     for(let i=0;i<4;i++) {
-      direction.subVectors(cornerPoints[i], localPlayer.position).normalize();
 
-      
-      raycaster.set(localPlayer.position, direction);
-      intersects = raycaster.intersectObjects(camera.parent.parent.children);
+      rayDirection.subVectors(localPlayer.position, cornerPoints[i] ).normalize();
 
-      for ( let i = 0; i < intersects.length; i ++ ) {
-        if (intersects[i].distance > 0.05) { // TODO: Hair sometimes intrsects with ray
-          if (intersects[i].distance <= -1 * newVal) {
-            if (newVal < (-1 * (intersects[i].distance))) {
-              newVal = (-1 * (intersects[i].distance));
-              hasIntersection = true;
-            }
+      rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+      rayQuaternion.setFromRotationMatrix(rayMatrix);
+
+      // Slightly move ray start position towards camera (to avoid hair,hat)
+      rayStartPos.copy(localPlayer.position);
+      rayStartPos.add( rayDirection.multiplyScalar(0.1) );
+
+      let collision = physicsManager.raycast(rayStartPos, rayQuaternion);
+      if (collision) {
+        if (collision.distance <= -1 * newVal) {
+          if (newVal < (-1 * (collision.distance-0.15))) {
+            newVal = (-1 * (collision.distance-0.15));
+            hasIntersection = true;
           }
         }
       }
     }
     
-    
+    // Slow zoom out if there is no intersection
     cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
 
-    if (hasIntersection)
-    {
+    // Fast zoom in to the point of intersection
+    if (hasIntersection) {
       cameraOffsetZ = newVal;
     }
 
