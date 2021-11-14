@@ -81,22 +81,6 @@
     },
     {
       "position": [
-        4,
-        0,
-        2
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "/avatars/meebit.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
         -13,
         0,
         0
