@@ -4,13 +4,14 @@ this file contains the multiplayer code.
 
 import * as THREE from 'three';
 import * as Y from 'yjs';
-import {camera} from './renderer.js';
+// import {camera} from './renderer.js';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 // import minimap from './minimap.js';
 // import cameraManager from './camera-manager.js';
 // import physx from './physx.js';
 // import {makeTextMesh} from './vr-ui.js';
+import {initialPosY} from './constants.js';
 import {parseQuery, parseCoord} from './util.js';
 // import {arrowGeometry, arrowMaterial} from './shaders.js';
 // import {landHost, worldUrl} from './constants.js';
@@ -32,12 +33,14 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
   
   const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
+  /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
     relation: 'float',
-  });
+  }); */
+  localPlayer.position.set(0, initialPosY, 0);
+  localPlayer.resetPhysics();
+
   physicsManager.setPhysicsEnabled(true);
-  physicsManager.update(0);
-  physicsManager.velocity.set(0, 0, 0);
+  localPlayer.updatePhysics(0);
   physicsManager.setPhysicsEnabled(false);
 
   const _doLoad = async () => {
@@ -70,9 +73,10 @@ const enterWorld = async worldSpec => {
   await _doLoad().catch(err => {
     console.warn(err);
   });
+
+  localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
-  physicsManager.update(0);
-  physicsManager.velocity.set(0, 0, 0);
+  localPlayer.updatePhysics(0);
 
   currentWorld = worldSpec;
 };

@@ -18,6 +18,7 @@ import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
+import {Stats} from './stats.js';
 import {
   getRenderer,
   scene,
@@ -70,9 +71,17 @@ const frameEvent = new MessageEvent('frame', {
   },
 });
 
+var rendererStats = Stats();
+
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
+
+    rendererStats.domElement.style.position = 'absolute';
+    rendererStats.domElement.style.left = '0px';
+    rendererStats.domElement.style.bottom = '0px';
+    rendererStats.domElement.style.display = 'none';
+    document.body.appendChild( rendererStats.domElement );
 
     this.loadPromise = Promise.all([
       physx.waitForLoad(),
@@ -261,6 +270,7 @@ export default class Webaverse extends EventTarget {
   } */
   
   render(timestamp, timeDiff) {
+    const renderer = getRenderer();
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
@@ -271,6 +281,9 @@ export default class Webaverse extends EventTarget {
     equipmentRender.render();
 
     getComposer().render();
+    if(ioManager.debugMode) {
+      rendererStats.update(renderer);
+    }
   }
   
   startLoop() {
@@ -280,29 +293,27 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
-    const animate = (timestamp, frame) => {      
+
+    const animate = (timestamp, frame) => { 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       lastTimestamp = timestamp;
-      
-      // world.appManager.pretick(timestamp, frame);
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
       
       cameraManager.update(timeDiffCapped);
       
-      // universe.update();
       if (this.contentLoaded) {
-        physicsManager.update(timeDiffCapped);
+        characterController.updatePhysics(timeDiffCapped);
         physicsManager.simulatePhysics(timeDiffCapped);
       }
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      characterController.update(timestamp, timeDiffCapped);
+      characterController.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
       
       world.appManager.tick(timestamp, timeDiffCapped, frame);
@@ -320,8 +331,9 @@ export default class Webaverse extends EventTarget {
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-
+        
       this.render(timestamp, timeDiffCapped);
+
     }
     renderer.setAnimationLoop(animate);
   }

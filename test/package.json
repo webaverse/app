@@ -1,0 +1,19 @@
+{
+  "name": "webaverse-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "loading.js",
+  "scripts": {
+    "test": "mocha . --timeout 0"
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "mocha": "^9.1.3",
+    "mocha-logger": "^1.0.7",
+    "node-fetch": "^3.0.0",
+    "puppeteer": "^10.4.0",
+    "puppeteer-extra": "^3.2.3"
+  },
+  "author": "Muhammad Abeer <abeersaqib@gmail.com>",
+  "license": "ISC"
+}

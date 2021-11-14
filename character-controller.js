@@ -17,15 +17,17 @@ import {
   playersMapName,
   crouchMaxTime,
   activateMaxTime,
-  useMaxTime,
+  // useMaxTime,
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
+  groundFriction,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
+import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {makeId, clone, getPlayerPrefix} from './util.js';
+import {makeId, clone} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -451,7 +453,7 @@ class Player extends THREE.Object3D {
       }
     });
   }
-  update(timestamp, timeDiff) {
+  updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       this.updateInterpolation(timeDiff);
       
@@ -570,6 +572,8 @@ class UninterpolatedPlayer extends Player {
 class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
+
+    this.characterPhysics = new CharacterPhysics(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -691,8 +695,9 @@ class LocalPlayer extends UninterpolatedPlayer {
       
       const wearComponent = app.getComponent('wear');
       if (wearComponent) {
+        const avatarHeight = this.avatar ? this.avatar.height : 0;
         app.position.copy(this.position)
-          .add(localVector.set(0, -physicsManager.getAvatarHeight() + 0.5, -0.5).applyQuaternion(this.quaternion));
+          .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
         app.updateMatrixWorld();
@@ -788,6 +793,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
+  updatePhysics(timeDiff) {
+    const timeDiffS = timeDiff / 1000;
+    this.characterPhysics.update(timeDiffS);
+  }
+  resetPhysics() {
+    this.characterPhysics.reset();
+  }
   teleportTo = (() => {
     // const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -802,27 +814,28 @@ class LocalPlayer extends UninterpolatedPlayer {
       const renderer = getRenderer();
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
 
+      const avatarHeight = this.avatar ? this.avatar.height : 0;
       if (renderer.xr.getSession()) {
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
-        
+          
         dolly.matrix
           .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? physicsManager.getAvatarHeight() : 0, 0))
+          .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
         dolly.updateMatrixWorld();
       } else {
         camera.position.copy(position)
           .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-        camera.position.y += relation === 'floor' ? physicsManager.getAvatarHeight() : 0;
+        camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
         camera.updateMatrixWorld();
       }
 
-      physicsManager.velocity.set(0, 0, 0);
+      this.resetPhysics();
     };
   })()
 }
@@ -860,16 +873,6 @@ class RemotePlayer extends InterpolatedPlayer {
     
     this.syncAvatar();
   }
-  
-  /* update(timestamp, timeDiff) {
-    this.positionTimeStep.update(timeDiff);
-    this.quaternionTimeStep.update(timeDiff);
-    
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
-    
-    super.update(timestamp, timeDiff);
-  } */
 }
 
 function getPlayerCrouchFactor(player) {
@@ -879,13 +882,17 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-function update(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().update(timestamp, timeDiff);
+function updateAvatar(timestamp, timeDiff) {
+  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
+}
+function updatePhysics(timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
 }
 
 export {
   LocalPlayer,
   RemotePlayer,
   getPlayerCrouchFactor,
-  update,
+  updateAvatar,
+  updatePhysics,
 };
