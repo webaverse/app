@@ -8,6 +8,7 @@ const localVector = new THREE.Vector3();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+
 let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
 const rayVectorUp = new THREE.Vector3(0,1,0);
