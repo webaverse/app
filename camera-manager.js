@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera/*, orbitControls*/} from './renderer.js';
+import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
@@ -62,7 +62,6 @@ const requestPointerLock = async () => {
           accept();
         }
       });
-      // physicsManager.unlockControls();
       break;
     } catch (err) {
       console.warn(err);
@@ -70,106 +69,17 @@ const requestPointerLock = async () => {
     }
   }
 };
-
-/* const cameraModes = [
-  'firstperson',
-  'thirdperson',
-  'isometric',
-  'birdseye',
-];
-let selectedTool = cameraModes[0];
-const switchCamera = e => {
-  const index = cameraModes.indexOf(selectedTool);
-  let nextIndex;
-  if (!e.shiftKey) {
-    nextIndex = (index + 1) % cameraModes.length;
-  } else {
-    nextIndex = index - 1;
-    if (nextIndex <= 0) {
-      nextIndex = cameraModes.length - 1;
-    }
-  }
-  if (index === 0 || nextIndex === 0) {
-    nextIndex = 1;
-  }
-
-  const newSelectedTool = cameraModes[nextIndex];
-  selectTool(newSelectedTool);
-}; */
-// const cameraButton = document.getElementById('key-c');
-// cameraButton.addEventListener('click', switchCamera);
-/* const selectTool = newSelectedTool => {
-  const oldSelectedTool = selectedTool;
-  selectedTool = newSelectedTool;
-
-  if (selectedTool !== oldSelectedTool) {
-    switch (oldSelectedTool) {
-      case 'thirdperson': {
-        camera.position.add(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'isometric': {
-        camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'birdseye': {
-        camera.position.y += -birdsEyeHeight + getAvatarHeight();
-        camera.updateMatrixWorld();
-        break;
-      }
-    }
-
-    switch (selectedTool) {
-      case 'camera': {
-        physicsManager.velocity.set(0, 0, 0);
-        break;
-      }
-      case 'firstperson': {
-        camera.rotation.x = 0;
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'thirdperson': {
-        camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'isometric': {
-        camera.rotation.x = -Math.PI / 6;
-        camera.quaternion.setFromEuler(camera.rotation);
-        camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-        camera.updateMatrixWorld();
-        break;
-      }
-      case 'birdseye': {
-        camera.rotation.x = -Math.PI / 2;
-        camera.quaternion.setFromEuler(camera.rotation);
-        camera.position.y -= -birdsEyeHeight + getAvatarHeight();
-        camera.updateMatrixWorld();
-        break;
-      }
-    }
-  }
-}; */
 const focusCamera = position => {
   camera.lookAt(position);
   camera.updateMatrixWorld();
 };
 
 const cameraManager = {
-  /* birdsEyeHeight,
-  thirdPersonCameraOffset,
-  isometricCameraOffset, */
   wasActivated() {
     return wasActivated;
   },
   focusCamera,
   requestPointerLock,
-  /* getTool() {
-    return selectedTool;
-  }, */
   getMode() {
     const f = -cameraOffset.z;
     if (f < 0.5) {
@@ -277,7 +187,5 @@ const cameraManager = {
     }
 
   },
-  // switchCamera,
-  // selectTool,
 };
 export default cameraManager;
