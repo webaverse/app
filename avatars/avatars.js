@@ -1845,7 +1845,7 @@ class Avatar {
       };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
-        // normal horizontal blend
+        // normal horizontal walk/run blend
         {
           const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
           const src1 = horizontalAnimationAngles[0].animation.interpolants[k];
@@ -1863,7 +1863,7 @@ class Avatar {
             );
         }
           
-        // mirror horizontal blend
+        // mirror horizontal blend (backwards walk/run)
         {
           const t1 = timeSeconds % horizontalAnimationAnglesMirror[0].animation.duration;
           const src1 = horizontalAnimationAnglesMirror[0].animation.interpolants[k];
@@ -1881,7 +1881,7 @@ class Avatar {
             );
         }
 
-        // blend mirrors together
+        // blend mirrors together to get a smooth walk
         lerpFn
           .call(
             localQuaternion5.copy(localQuaternion3),
@@ -1889,7 +1889,7 @@ class Avatar {
             mirrorFactor
           );
 
-        // blend mirrors with idle
+        // blend the smooth walk with idle
         {
           const t3 = timeSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
