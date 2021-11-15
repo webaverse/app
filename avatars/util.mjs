@@ -448,9 +448,11 @@ export const getModelBones = object => {
     Left_ankle = _findFoot(tailBones, true);
     Left_knee = Left_ankle.parent;
     Left_leg = Left_knee.parent;
+    Left_toe = Left_ankle.children[0];
     Right_ankle = _findFoot(tailBones, false);
     Right_knee = Right_ankle.parent;
     Right_leg = Right_knee.parent;
+    Right_toe = Right_ankle.children[0];
   }
 
   return {
