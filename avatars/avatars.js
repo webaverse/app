@@ -198,17 +198,11 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
-let animations;
 
-// let walkingAnimations;
-// let walkingBackwardAnimations;
-// let runningAnimations;
-// let runningBackwardAnimations;
+let animations;
+let animationsSkeleton;
 let jumpAnimation;
-// let sittingAnimation;
 let floatAnimation;
-// let rifleAnimation;
-// let hitAnimation;
 let useAnimations;
 let sitAnimations;
 let danceAnimations;
@@ -217,10 +211,33 @@ let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 const loadPromise = (async () => {
-  const res = await fetch('../animations/animations.cbor');
-  const arrayBuffer = await res.arrayBuffer();
-  animations = CBOR.decode(arrayBuffer).animations
-    .map(a => THREE.AnimationClip.parse(a));
+  await Promise.resolve(); // wait for metaversefile to be defined
+  
+  await Promise.all([
+    (async () => {
+      const res = await fetch('../animations/animations.cbor');
+      const arrayBuffer = await res.arrayBuffer();
+      animations = CBOR.decode(arrayBuffer).animations
+        .map(a => THREE.AnimationClip.parse(a));
+    })(),
+    (async () => {
+      const srcUrl = '../animations/animations-skeleton.glb';
+      
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          const {gltfLoader} = metaversefile.useLoaders();
+          gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+        });
+      } catch(err) {
+        console.warn(err);
+      }
+      if (o) {
+        animationsSkeleton = getSkeleton(o);
+        console.log('got animations skeleton', o, animationsSkeleton);
+      }
+    })(),
+  ]);
 
   for (const k in animationsAngleArrays) {
     const as = animationsAngleArrays[k];
