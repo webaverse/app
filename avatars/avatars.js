@@ -234,7 +234,6 @@ const loadPromise = (async () => {
       }
       if (o) {
         animationsSkeleton = getSkeleton(o);
-        console.log('got animations skeleton', o, animationsSkeleton);
       }
     })(),
   ]);
