@@ -733,9 +733,89 @@ class AnimationMapping {
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
+const animationBoneToModelBone = {
+  'mixamorigHips': 'Hips',
+  'mixamorigSpine': 'Spine',
+  'mixamorigSpine1': 'Chest',
+  'mixamorigSpine2': 'UpperChest',
+  'mixamorigNeck': 'Neck',
+  'mixamorigHead': 'Head',
+  'mixamorigLeftShoulder': 'Left_shoulder',
+  'mixamorigLeftArm': 'Left_arm',
+  'mixamorigLeftForeArm': 'Left_elbow',
+  'mixamorigLeftHand': 'Left_wrist',
+  'mixamorigLeftHandMiddle1': 'Left_middleFinger1',
+  'mixamorigLeftHandMiddle2': 'Left_middleFinger2',
+  'mixamorigLeftHandMiddle3': 'Left_middleFinger3',
+  'mixamorigLeftHandThumb1': 'Left_thumb0',
+  'mixamorigLeftHandThumb2': 'Left_thumb1',
+  'mixamorigLeftHandThumb3': 'Left_thumb2',
+  'mixamorigLeftHandIndex1': 'Left_indexFinger1',
+  'mixamorigLeftHandIndex2': 'Left_indexFinger2',
+  'mixamorigLeftHandIndex3': 'Left_indexFinger3',
+  'mixamorigLeftHandRing1': 'Left_ringFinger1',
+  'mixamorigLeftHandRing2': 'Left_ringFinger2',
+  'mixamorigLeftHandRing3': 'Left_ringFinger3',
+  'mixamorigLeftHandPinky1': 'Left_littleFinger1',
+  'mixamorigLeftHandPinky2': 'Left_littleFinger2',
+  'mixamorigLeftHandPinky3': 'Left_littleFinger3',
+  'mixamorigRightShoulder': 'Right_shoulder',
+  'mixamorigRightArm': 'Right_arm',
+  'mixamorigRightForeArm': 'Right_elbow',
+  'mixamorigRightHand': 'Right_wrist',
+  'mixamorigRightHandMiddle1': 'Right_middleFinger1',
+  'mixamorigRightHandMiddle2': 'Right_middleFinger2',
+  'mixamorigRightHandMiddle3': 'Right_middleFinger3',
+  'mixamorigRightHandThumb1': 'Right_thumb0',
+  'mixamorigRightHandThumb2': 'Right_thumb1',
+  'mixamorigRightHandThumb3': 'Right_thumb2',
+  'mixamorigRightHandIndex1': 'Right_indexFinger1',
+  'mixamorigRightHandIndex2': 'Right_indexFinger2',
+  'mixamorigRightHandIndex3': 'Right_indexFinger3',
+  'mixamorigRightHandRing1': 'Right_ringFinger1',
+  'mixamorigRightHandRing2': 'Right_ringFinger2',
+  'mixamorigRightHandRing3': 'Right_ringFinger3',
+  'mixamorigRightHandPinky1': 'Right_littleFinger1',
+  'mixamorigRightHandPinky2': 'Right_littleFinger2',
+  'mixamorigRightHandPinky3': 'Right_littleFinger3',
+  'mixamorigRightUpLeg': 'Right_leg',
+  'mixamorigRightLeg': 'Right_knee',
+  'mixamorigRightFoot': 'Right_ankle',
+  'mixamorigRightToeBase': 'Right_toe',
+  'mixamorigLeftUpLeg': 'Left_leg',
+  'mixamorigLeftLeg': 'Left_knee',
+  'mixamorigLeftFoot': 'Left_ankle',
+  'mixamorigLeftToeBase': 'Left_toe',
+  /*
+  Eye_L,
+  Eye_R,
+  */
+};
 const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
-  // console.log('set skeleton to animation frame', skeleton, animation, frame);
-  // XXX
+  for (const k in animation.interpolants) {
+    const interpolant = animation.interpolants[k];
+    const match = k.match(/^(mixamorig.+)\.(position|quaternion)/);
+    if (match) {
+      const animationBoneName = match[1];
+      const property = match[2];
+      
+      const {sampleValues, valueSize} = interpolant;
+      const modelBoneName = animationBoneToModelBone[animationBoneName];
+      const modelBone = modelBones[modelBoneName];
+      if (!modelBone) {
+        console.warn('could not find model bone', modelBoneName, animationBoneName);
+      }
+      if (property === 'position') {
+        modelBone.position.fromArray(sampleValues, frame * valueSize);
+      } else if (property === 'quaternion') {
+        modelBone.quaternion.fromArray(sampleValues, frame * valueSize);
+      } else {
+        console.warn('unknown property', property, k);
+      }
+    } else {
+      console.warn('non-matching interpolant', k);
+    }
+  }
 };
 const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
   // XXX
