@@ -200,7 +200,7 @@ const animationsIdleArrays = {
 };
 
 let animations;
-let animationsSkeleton;
+let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
 let useAnimations;
@@ -233,7 +233,7 @@ const loadPromise = (async () => {
         console.warn(err);
       }
       if (o) {
-        animationsSkeleton = getSkeleton(o);
+        animationsBaseModel = o;
       }
     })(),
   ]);
@@ -733,27 +733,30 @@ class AnimationMapping {
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
-const _setSkeletonToAnimationFrame = (skeleton, animation, frame) => {
+const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   // console.log('set skeleton to animation frame', skeleton, animation, frame);
   // XXX
 };
-const _setSkeletonWorld = (dstSkeleton, srcSkeleton) => {
+const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
   // XXX
 };
-const _setAnimationFrameToSkeleton = (animation, frame, skeleton) => {
+const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
   // console.log('set animation frame to skeleton', animation, frame, skeleton);
   // XXX
 };
-const _retargetAnimation = (srcAnimation, animationsSkeleton, targetSkeleton) => {
-  // console.log('retarget', srcAnimation, animationsSkeleton, targetSkeleton);
+const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
+  const srcModelBones = getModelBones(srcBaseModel);
+  const dstModelBones = getModelBones(dstBaseModel);
+  
+  console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
   
   const dstAnimation = srcAnimation.clone();
   
   const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
   for (let frame = 0; frame < numFrames; frame++) {
-    _setSkeletonToAnimationFrame(animationsSkeleton, srcAnimation, frame);
-    _setSkeletonWorld(targetSkeleton, animationsSkeleton);
-    _setAnimationFrameToSkeleton(dstAnimation, frame, targetSkeleton);
+    _setSkeletonToAnimationFrame(srcModelBones, srcAnimation, frame);
+    _setSkeletonWorld(dstModelBones, srcModelBones);
+    _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones);
   }
   
   return dstAnimation;
@@ -1399,7 +1402,7 @@ class Avatar {
     
     const retargetedAnimations = animations
       .filter(a => a.name === 'idle.fbx')
-      .map(a => _retargetAnimation(a, animationsSkeleton, skeleton));
+      .map(a => _retargetAnimation(a, animationsBaseModel, object));
     
     const foundModelBones = {};
     for (const k in modelBones) {
