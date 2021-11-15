@@ -71,6 +71,7 @@ const _makeSnapshots = (constructor, numFrames) => {
   }
   return result;
 };
+// snapshot interpolant maintains a ring buffer of previous states and seeks between them to interpolate
 export class SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames, constructor, readFn, seekFn) {
     this.fn = fn;
