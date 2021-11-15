@@ -19,6 +19,7 @@ export class ScalarInterpolant {
   }
 }
 
+// bidirectional linear; goes forward and backward
 export class BiActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
@@ -29,6 +30,7 @@ export class BiActionInterpolant extends ScalarInterpolant {
   }
 }
 
+// unidirectional linear; goes forward and snaps back
 export class UniActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
@@ -43,6 +45,7 @@ export class UniActionInterpolant extends ScalarInterpolant {
   }
 }
 
+// infinite linear; goes forward only
 export class InfiniteActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue) {
     super(fn, minValue);
