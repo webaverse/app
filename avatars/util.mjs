@@ -20,9 +20,36 @@ export const getSkeleton = object => {
     skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
   }
   if (!skeleton) {
-    skeleton = {
-      bones: object.scene.children,
-    };
+    // collect all bones and call that the skeleton
+    const bones = [];
+    object.scene.traverse(o => {
+      if (o.isBone) {
+        bones.push(o);
+      }
+    });
+    if (bones.length === 0) {
+      // collect the subtree and call that the skeleton
+      const dstArmature = new THREE.Object3D();
+      const srcArmature = object.scene.children[0];
+      const _recurse = (dst, src) => {
+        dst.name = src.name;
+        dst.position.copy(src.position);
+        dst.quaternion.copy(src.quaternion);
+        dst.scale.copy(src.scale);
+        dst.matrix.copy(src.matrix);
+        dst.matrixWorld.copy(src.matrixWorld);
+        if (src.children) {
+          for (const srcChild of src.children) {
+            const dstChild = new THREE.Bone();
+            dst.add(dstChild);
+            _recurse(dstChild, srcChild);
+          }
+        }
+      };
+      _recurse(dstArmature, srcArmature);
+    }
+    skeleton = new THREE.Skeleton(bones);
+
     /* const skinnedMeshes = getSkinnedMeshes(object);
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton; */

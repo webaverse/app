@@ -734,6 +734,10 @@ class AnimationMapping {
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
+const _retargetAnimation = (animation, animationsSkeleton, targetSkeleton) => {
+  
+};
+
 class Avatar {
 	constructor(object, options = {}) {
     if (!object) {
@@ -790,6 +794,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
@@ -1371,6 +1376,10 @@ class Avatar {
       }
     } */
     
+    const retargetedAnimations = animations
+      .filter(a => a.name === 'idle.fbx')
+      .map(a => _retargetAnimation(a, animationsSkeleton, skeleton));
+    
     const foundModelBones = {};
     for (const k in modelBones) {
       const v = modelBones[k];
@@ -1585,6 +1594,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      retargetedAnimations,
     };
   }
   static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
