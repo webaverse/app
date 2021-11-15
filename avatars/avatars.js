@@ -733,8 +733,28 @@ class AnimationMapping {
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
-const _retargetAnimation = (animation, animationsSkeleton, targetSkeleton) => {
+const _setSkeletonToAnimationFrame = (skeleton, animation, frame) => {
+  // XXX
+};
+const _setSkeletonWorld = (dstSkeleton, srcSkeleton) => {
+  // XXX
+};
+const _setAnimationFrameToSkeleton = (animation, frame, skeleton) => {
+  // XXX
+};
+const _retargetAnimation = (srcAnimation, animationsSkeleton, targetSkeleton) => {
+  console.log('retarget', srcAnimation, animationsSkeleton, targetSkeleton);
   
+  const dstAnimation = srcAnimation.clone();
+  
+  const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
+  for (let frame = 0; frame < numFrames; frame++) {
+    _setSkeletonToAnimationFrame(animationsSkeleton, srcAnimation, frame);
+    _setSkeletonWorld(targetSkeleton, animationsSkeleton);
+    _setAnimationFrameToSkeleton(dstAnimation, frame, targetSkeleton);
+  }
+  
+  return dstAnimation;
 };
 
 class Avatar {
