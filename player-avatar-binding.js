@@ -1,3 +1,6 @@
+/* utils to bind players to their avatars
+set the avatar state from the player state */
+
 import Avatar from './avatars/avatars.js';
 import {unFrustumCull} from './util.js';
 
