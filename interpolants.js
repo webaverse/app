@@ -165,6 +165,7 @@ export class QuaternionInterpolant extends SnapshotInterpolant {
   }
 }
 
+// allows ticking at a fixed rate regardless of frame rate
 export class FixedTimeStep {
   constructor(fn, frameRate) {
     this.fn = fn;
