@@ -1750,7 +1750,7 @@ class Avatar {
     );
     return localEuler.y;
   }
-	update(timeDiff) {
+  update(timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
