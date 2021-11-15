@@ -183,7 +183,7 @@ export const getModelBones = object => {
     return _recurse(bone);
   };
   const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
-  const _findChest = skeleton => skeleton.bones.find(bone => /chest/i.test(bone.name));
+  const _findChest = skeleton => skeleton.bones.find(bone => /chest|spine1/i.test(bone.name));
   const _findHead = tailBones => {
     const headBones = tailBones.map(tailBone => {
       const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
