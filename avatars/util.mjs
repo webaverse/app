@@ -47,6 +47,11 @@ export const getSkeleton = object => {
         }
       };
       _recurse(dstArmature, srcArmature);
+      dstArmature.traverse(o => {
+        if (o.isBone) {
+          bones.push(o);
+        }
+      });
     }
     skeleton = new THREE.Skeleton(bones);
 

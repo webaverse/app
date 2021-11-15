@@ -734,16 +734,18 @@ class AnimationMapping {
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 
 const _setSkeletonToAnimationFrame = (skeleton, animation, frame) => {
+  // console.log('set skeleton to animation frame', skeleton, animation, frame);
   // XXX
 };
 const _setSkeletonWorld = (dstSkeleton, srcSkeleton) => {
   // XXX
 };
 const _setAnimationFrameToSkeleton = (animation, frame, skeleton) => {
+  // console.log('set animation frame to skeleton', animation, frame, skeleton);
   // XXX
 };
 const _retargetAnimation = (srcAnimation, animationsSkeleton, targetSkeleton) => {
-  console.log('retarget', srcAnimation, animationsSkeleton, targetSkeleton);
+  // console.log('retarget', srcAnimation, animationsSkeleton, targetSkeleton);
   
   const dstAnimation = srcAnimation.clone();
   
