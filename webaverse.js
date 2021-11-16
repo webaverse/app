@@ -297,7 +297,7 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => { 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
+      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); // What is 100?
       lastTimestamp = timestamp;
 
       ioManager.update(timeDiffCapped);
@@ -306,8 +306,9 @@ export default class Webaverse extends EventTarget {
       cameraManager.update(timeDiffCapped);
       
       if (this.contentLoaded) {
+        //physicsManager.physicsPreStep(timeDiffCapped);
+        physicsManager.simulatePhysics(timeDiff); 
         characterController.updatePhysics(timeDiffCapped);
-        physicsManager.simulatePhysics(timeDiffCapped);
       }
 
       transformControls.update();

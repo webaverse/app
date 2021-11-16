@@ -28,6 +28,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
+    this.rb = null;
 
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
@@ -63,14 +64,23 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
+
+      this.rb = this.player.avatar.app.physicsObjects[0];
+
+      if(!this.rb) return;
+
+      physicsManager.disableGeometryQueries(this.rb);
+      physicsManager.enablePhysicsObject(this.rb);
       // capsule physics
       if (!this.player.hasAction('sit')) {
-        applyVelocity(this.player.position, this.velocity, timeDiffS);
+        //applyVelocity(this.player.position, this.velocity, timeDiffS);
 
-        this.player.updateMatrixWorld();
-        this.player.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-        const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
+        this.rb.updateMatrixWorld();
+        this.rb.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localQuaternion.copy(this.player.quaternion);
+
+        const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
 
         // avatar facing direction
         if (velocityAvatarDirection) {
@@ -108,10 +118,10 @@ class CharacterPhysics {
           this.player.removeAction('jump');
         };
         if (collision) {
-          localVector.add(
+          /*localVector.add(
             localVector4
               .fromArray(collision.direction)
-          );
+          );*/
 
           if (collision.grounded) {
             this.velocity.y = 0;
@@ -123,7 +133,8 @@ class CharacterPhysics {
           _ensureJumpAction();
         }
       } else {
-        this.velocity.y = 0;
+        //Outdated vehicle code
+        /*this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
 
@@ -154,7 +165,7 @@ class CharacterPhysics {
 
         localVector.add(this.sitOffset);
         localVector.y += 1;
-        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));*/
       }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
@@ -188,6 +199,42 @@ class CharacterPhysics {
       this.velocity.x *= factor;
       this.velocity.z *= factor;
     }
+  }
+  updateVelocity() {
+    if(this.player.avatar) {
+      if(this.rb) {
+        physicsManager.setVelocity(this.rb, this.velocity /*this.velocity.clone() */);
+      }
+    }
+  }
+  updateTransform() {
+    if(this.rb) {
+      const physicsObjects2 = [];
+      physicsObjects2.push({
+        id: this.rb.physicsId,
+        position: new THREE.Vector3(0,0,0),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(0,0,0),
+      });
+
+      const newTransform = physicsManager.getTransforms(physicsObjects2);
+
+      //console.log(newTransform.length);
+
+      for (const updateOut of newTransform)
+        {
+          const {id, position, quaternion, scale} = updateOut; 
+          if(id === this.rb.physicsId) {
+            this.rb.position.copy(position);
+            const avatarHeight = this.player.avatar ? this.player.avatar.height : 0; 
+            const offset =  avatarHeight - 0.3;
+            this.rb.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
+            this.rb.quaternion.copy(quaternion);
+            this.rb.updateMatrixWorld();
+            this.rb.needsUpdate = false;
+          }
+        }
+      }
   }
   applyAvatarPhysics(timeDiffS) {
     const renderer = getRenderer();
@@ -245,6 +292,10 @@ class CharacterPhysics {
       );
     camera.position.y -= crouchOffset;
     camera.updateMatrixWorld();
+  }
+  updateRigidbody() {
+    this.updateVelocity();
+    this.updateTransform();
   }
   update(timeDiffS) {
     this.applyGravity(timeDiffS);
