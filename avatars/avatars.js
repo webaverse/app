@@ -786,14 +786,14 @@ const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   // modelBones.Root.updateMatrixWorld();
 };
 const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
-  // dstModelBones.Root.updateMatrixWorld();
-  // srcModelBones.Root.updateMatrixWorld();
-  
+  const srcBoneToModelNameMap = new Map();
   for (const k in srcModelBones) {
-    if (k !== 'Root') {
-      const srcModelBone = srcModelBones[k];
-      const dstModelBone = dstModelBones[k];
-      if (k === 'Hips') {
+    srcBoneToModelNameMap.set(srcModelBones[k], k);
+  }
+  
+  const _recurse = (srcModelBone, dstModelBone) => {
+    if (srcModelBone !== srcModelBones.Root) {
+      if (srcModelBone === srcModelBones.Hips) {
         dstModelBone.position.copy(srcModelBone.position);
         dstModelBone.quaternion.copy(srcModelBone.quaternion);
         dstModelBone.scale.copy(srcModelBone.scale);
@@ -808,7 +808,17 @@ const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
         dstModelBone.updateMatrixWorld();
       }
     }
-  }
+    
+    for (let i = 0; i < srcModelBone.children.length; i++) {
+      const srcChild = srcModelBone.children[i];
+      const modelBoneName = srcBoneToModelNameMap.get(srcChild);
+      if (modelBoneName) {
+        const dstChild = dstModelBones[modelBoneName];
+        _recurse(srcChild, dstChild);
+      }
+    }
+  };
+  _recurse(srcModelBones.Root, dstModelBones.Root);
 };
 const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
   for (const track of animation.tracks) {
