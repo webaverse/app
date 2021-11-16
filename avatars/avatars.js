@@ -80,6 +80,7 @@ const simplexes = _makeSimplexes(5);
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
+const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -783,7 +784,7 @@ const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
       console.warn('non-matching track name', track.name);
     }
   }
-  // modelBones.Root.updateMatrixWorld();
+  modelBones.Root.updateMatrixWorld();
 };
 const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
   const srcBoneToModelNameMap = new Map();
@@ -793,20 +794,26 @@ const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
   
   const _recurse = (srcModelBone, dstModelBone) => {
     if (srcModelBone !== srcModelBones.Root) {
-      if (srcModelBone === srcModelBones.Hips) {
+      /* if (srcModelBone === srcModelBones.Hips) {
         dstModelBone.position.copy(srcModelBone.position);
         dstModelBone.quaternion.copy(srcModelBone.quaternion);
         dstModelBone.scale.copy(srcModelBone.scale);
-        dstModelBone.updateMatrixWorld();
-      } else {
+      } else { */
         srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        dstModelBone.matrixWorld.compose(localVector3, localQuaternion, localVector4);
+        
+        localQuaternion.premultiply(downRotation);
+        
+        dstModelBone.matrixWorld.compose(
+          srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
+          localQuaternion,
+          localVector4
+        );
         dstModelBone.matrix.copy(dstModelBone.matrixWorld)
           .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
           .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
-        dstModelBone.updateMatrixWorld();
-      }
+      // }
+      dstModelBone.updateMatrixWorld();
     }
     
     for (let i = 0; i < srcModelBone.children.length; i++) {
