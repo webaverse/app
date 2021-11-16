@@ -29,6 +29,8 @@ import {
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -37,7 +39,7 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -781,15 +783,31 @@ const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
       console.warn('non-matching track name', track.name);
     }
   }
+  // modelBones.Root.updateMatrixWorld();
 };
 const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
-  // XXX remap recursive world quaternion instead of raw copy
-  const boneNames = Object.keys(dstModelBones);
-  for (const boneName of boneNames) {
-    const dstModelBone = dstModelBones[boneName];
-    const srcModelBone = srcModelBones[boneName];
-    dstModelBone.position.copy(srcModelBone.position);
-    dstModelBone.quaternion.copy(srcModelBone.quaternion);
+  // dstModelBones.Root.updateMatrixWorld();
+  // srcModelBones.Root.updateMatrixWorld();
+  
+  for (const k in srcModelBones) {
+    if (k !== 'Root') {
+      const srcModelBone = srcModelBones[k];
+      const dstModelBone = dstModelBones[k];
+      if (k === 'Hips') {
+        dstModelBone.position.copy(srcModelBone.position);
+        dstModelBone.quaternion.copy(srcModelBone.quaternion);
+        dstModelBone.scale.copy(srcModelBone.scale);
+        dstModelBone.updateMatrixWorld();
+      } else {
+        srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+        dstModelBone.matrixWorld.compose(localVector3, localQuaternion, localVector4);
+        dstModelBone.matrix.copy(dstModelBone.matrixWorld)
+          .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
+          .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
+        dstModelBone.updateMatrixWorld();
+      }
+    }
   }
 };
 const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
@@ -819,7 +837,7 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
 };
 const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   const srcModelBones = getModelBones(srcBaseModel);
-  const dstModelBones = cloneModelBones(getModelBones(dstBaseModel));
+  const dstModelBones = getModelBones(dstBaseModel);
   
   // console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
   
@@ -827,9 +845,14 @@ const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   
   const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
   for (let frame = 0; frame < numFrames; frame++) {
-    _setSkeletonToAnimationFrame(srcModelBones, srcAnimation, frame);
-    _setSkeletonWorld(dstModelBones, srcModelBones);
-    _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones);
+    const srcModelBones2 = cloneModelBones(srcModelBones);
+    const dstModelBones2 = cloneModelBones(dstModelBones);
+    srcModelBones2.Root.updateMatrixWorld();
+    dstModelBones2.Root.updateMatrixWorld();
+    
+    _setSkeletonToAnimationFrame(srcModelBones2, srcAnimation, frame);
+    _setSkeletonWorld(dstModelBones2, srcModelBones2);
+    _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones2);
   }
   
   _decorateAnimation(dstAnimation);
