@@ -795,7 +795,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   updatePhysics(timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timeDiffS);
+    this.characterPhysics.updateRigidbody(); // Must be first 
+    this.characterPhysics.update(timeDiffS); // Must be second (otherwise jitter)
   }
   resetPhysics() {
     this.characterPhysics.reset();

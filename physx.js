@@ -498,50 +498,12 @@ const physxWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
-  w.simulatePhysics = (physics, updates, elapsedTime) => {
-    if (updates.length > maxNumUpdates) {
-      throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
-    }
-
-    let index = 0;
-    const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
-    index += maxNumUpdates;
-    const positions = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*3;
-    const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
-    index += maxNumUpdates*4;
-    const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*3;
-
-    for (let i = 0; i < updates.length; i++) {
-      const update = updates[i];
-      ids[i] = update.id;
-      update.position.toArray(positions, i*3);
-      update.quaternion.toArray(quaternions, i*4);
-      update.scale.toArray(scales, i*3);
-    }
-
-    const numNewUpdates = moduleInstance._simulatePhysics(
+  w.simulatePhysics = (physics, elapsedTime) => {
+    
+    moduleInstance._simulatePhysics(
       physics,
-      ids.byteOffset,
-      positions.byteOffset,
-      quaternions.byteOffset,
-      scales.byteOffset,
-      updates.length,
-      elapsedTime
+      elapsedTime,
     );
-    
-    const newUpdates = Array(numNewUpdates);
-    for (let i = 0; i < numNewUpdates; i++) {
-      newUpdates[i] = {
-        id: ids[i],
-        position: new THREE.Vector3().fromArray(positions, i*3),
-        quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
-        scale: new THREE.Vector3().fromArray(scales, i*3),
-      };
-    }
-    
-    return newUpdates;
   };
   w.raycastPhysics = (physics, p, q) => {
     if (physics) {
@@ -919,13 +881,110 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, id, ccdEnabled) => {
+  w.setVelocityPhysics = (physics, id, velocity) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+   
+    moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset);
+    allocator.freeAll();
+  };
+  w.checkGrounded = (physics, id) => {
+    //moduleInstance._checkGrounded(physics, id);
+  };
+  w.setTransformPhysics = (physics, id, position, quaternion, scale) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
-    
+    const s = allocator.alloc(Float32Array, 3);
+
     position.toArray(p);
     quaternion.toArray(q);
+    scale.toArray(s);
+   
+    moduleInstance._setTransformPhysics(physics, id, p.byteOffset, q.byteOffset, s.byteOffset);
+    allocator.freeAll();
+  };
+  w.getTransformPhysics = (physics, updates) => {
+     if (updates.length > maxNumUpdates) {
+       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
+     }
+
+     let index = 0;
+     const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
+     index += maxNumUpdates;
+     const positions = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+     index += maxNumUpdates*3;
+     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
+     index += maxNumUpdates*4;
+     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+     index += maxNumUpdates*3;
+
+     //console.log(updates);
+
+     for (let i = 0; i < updates.length; i++) {
+       const update = updates[i];
+       ids[i] = update.id;
+       update.position.toArray(positions, i*3);
+       update.quaternion.toArray(quaternions, i*4);
+       update.scale.toArray(scales, i*3);
+     }
+
+    const numNewUpdates = moduleInstance._getTransformPhysics(
+       physics,
+       ids.byteOffset,
+       positions.byteOffset,
+       quaternions.byteOffset,
+       scales.byteOffset,
+    );
+    
+     const newUpdates = Array(numNewUpdates);
+     //console.log(numNewUpdates);
+     for (let i = 0; i < numNewUpdates; i++) {
+       newUpdates[i] = {
+         id: ids[i],
+         position: new THREE.Vector3().fromArray(positions, i*3),
+         quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
+         scale: new THREE.Vector3().fromArray(scales, i*3),
+       };
+     }
+
+    // console.log(newUpdates, "new ID");
+    
+    //console.log(newUpdates);
+    return newUpdates;
+  };
+  w.addSphereGeometryPhysics = (physics, position, quaternion, radius, id, physicsMaterial, ccdEnabled) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    const q = allocator.alloc(Float32Array, 4);
+    const mat = allocator.alloc(Float32Array, 3);
+
+    position.toArray(p);
+    quaternion.toArray(q);
+    physicsMaterial.toArray(mat);
+    //console.log(physicsMaterial);
+    
+    moduleInstance._addSphereGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      radius,
+      id,
+      mat.byteOffset,
+      +ccdEnabled,
+    );
+    allocator.freeAll();
+  };
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, id, physicsMaterial, ccdEnabled) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    const q = allocator.alloc(Float32Array, 4);
+    const mat = allocator.alloc(Float32Array, 3);
+
+    position.toArray(p);
+    quaternion.toArray(q);
+    physicsMaterial.toArray(mat);
     
     moduleInstance._addCapsuleGeometryPhysics(
       physics,
@@ -934,6 +993,7 @@ const physxWorker = (() => {
       radius,
       halfHeight,
       id,
+      mat.byteOffset,
       +ccdEnabled,
     );
     allocator.freeAll();

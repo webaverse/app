@@ -13,6 +13,7 @@ import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -22,6 +23,8 @@ const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+
+const localVelocity = new THREE.Vector3();
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -45,17 +48,41 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, ccdEnabled) => {
+physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, ccdEnabled);
+  // physicsMaterial disabled for now (set in wasm)
+  physx.physxWorker.addSphereGeometryPhysics(physx.physics, position, quaternion, radius, physicsId, physicsMaterial, ccdEnabled);
   
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
+  const physicsObject = _makePhysicsObject(physicsId);
   const physicsMesh = new THREE.Mesh(
-    new THREE.CapsuleGeometry(radius, radius, halfHeight*2)
+    new THREE.SphereGeometry( radius, 32, 16 )
+  );
+  physicsMesh.visible = false;
+  // physicsMesh.position.copy(position);
+  // physicsMesh.quaternion.copy(quaternion);
+  // physicsMesh.scale.copy(size);
+  //physicsObject.position.copy(position);
+  physicsObject.add(physicsMesh);
+  physicsObject.physicsMesh = physicsMesh;
+  physicsObjects[physicsId] = physicsObject;
+  physicsObject.velocity = new THREE.Vector3(0,0,0);
+  //physicsManager.disablePhysicsObject(physicsObject);
+  return physicsObject;
+};
+
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
+  const physicsId = getNextPhysicsId();
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
+  
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
+  const physicsMesh = new THREE.Mesh(
+    new CapsuleGeometry(radius, radius, halfHeight*2)
   );
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
+  //console.log(physicsId);
+  physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
   return physicsObject;
 };
 
@@ -162,22 +189,60 @@ physicsManager.enableGeometryQueries = physicsObject => {
 physicsManager.removeGeometry = physicsObject => {
   physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
-
+physicsManager.setVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+};
+physicsManager.setTransform = (physicsObject) => {
+  physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+};
+physicsManager.getTransforms = physicsObjects => {
+  //console.log(physicsObjects, "phyobjssss");
+  const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
+  return objs;
+};
+physicsManager.isGrounded = physicsObject => {
+  return physx.physxWorker.checkGrounded(physx.physics, physicsObject.physicsId);
+}
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.simulatePhysics = timeDiff => {
   const t = timeDiff/1000;
-  // console.log('simulate', timeDiff, t);
-  const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-  physicsUpdates.length = 0;
-  for (const updateOut of updatesOut) {
-    const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-    physicsObject.position.copy(position);
-    physicsObject.quaternion.copy(quaternion);
-    // physicsObject.scale.copy(scale);
-    physicsObject.updateMatrixWorld();
-  }
+  physx.physxWorker.simulatePhysics(physx.physics, t);  
 };
+
+/*physicsManager.updateRigidbodies = physicsObject => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+
+  const physicsObjects2 = [];
+
+  //console.log(physicsObject.physicsId);
+
+  physicsObjects2.push({
+    id: physicsObject.physicsId,
+    position: new THREE.Vector3(0,0,0),
+    quaternion: new THREE.Quaternion(),
+    scale: new THREE.Vector3(0,0,0),
+  });
+
+  const newTransform = physicsManager.getTransforms(physicsObjects2);
+  //console.log(physicsObjects2);
+
+  for (const updateOut of newTransform)
+    {
+      //physicsObjects2.length = 0;
+      const {id, position, quaternion, scale} = updateOut; 
+      const phyObj = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      //console.log(position);
+      phyObj.position.copy(position);
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0; 
+      const offset =  avatarHeight - 0.3;
+      phyObj.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
+      phyObj.quaternion.copy(quaternion);
+      //physicsObject.scale.copy(scale);
+      phyObj.updateMatrixWorld();
+      phyObj.needsUpdate = false;
+      
+    }
+}
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
@@ -189,7 +254,7 @@ physicsManager.pushUpdate = physicsObject => {
     quaternion: localQuaternion.clone(),
     scale: localVector2.clone(),
   });
-};
+};*/
 
 // physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 
