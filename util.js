@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
-import {playersMapName, maxGrabDistance, tokensHost, storageHost, tokensHost, accountsHost, loginEndpoint} from './constants.js';
+import {playersMapName, maxGrabDistance, tokensHost, storageHost, accountsHost, loginEndpoint} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
