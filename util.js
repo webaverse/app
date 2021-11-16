@@ -677,3 +677,14 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   // camera.lookAt(center);
   camera.updateMatrixWorld();
 }
+
+
+export function applyVelocity(position, velocity, timeDiffS) {
+  position.add(localVector.copy(velocity).multiplyScalar(timeDiffS));
+}
+
+export function copyPQS(dst, src) {
+  dst.position.copy(src.position);
+  dst.quaternion.copy(src.quaternion);
+  dst.scale.copy(src.scale);
+}

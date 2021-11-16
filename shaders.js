@@ -506,6 +506,188 @@ const makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial
   `,
   side: THREE.DoubleSide,
 }); */
+const offsetDepthSmall = 0.000075;
+const offsetDepthLarge = 0.00035;
+
+const highlightVertexShader = `
+    ${THREE.ShaderChunk.common}
+    precision highp float;
+    precision highp int;
+    uniform float uVertexOffset;
+    varying vec3 vViewPosition;
+    varying vec2 vUv;
+    varying vec2 vWorldUv;
+    varying vec3 vPos;
+    varying vec3 vNormal;
+
+    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vec3 newPosition = position + normal * vec3( uVertexOffset, uVertexOffset, uVertexOffset );
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
+
+      vViewPosition = -mvPosition.xyz;
+      vUv = uv;
+      vPos = position;
+      vNormal = normal;
+    }
+  `;
+
+const highlightGridFragmentShader = `
+    
+  uniform vec3 uColor;
+  uniform float uTime;
+
+  varying vec3 vViewPosition;
+  varying vec2 vUv;
+
+  varying vec3 vPos;
+  varying vec3 vNormal;
+
+  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
+  float edgeFactor(vec2 uv) {
+    float divisor = 0.5;
+    float power = 0.5;
+    return min(
+      pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
+      pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
+    ) > 0.1 ? 0.0 : 1.0;
+  }
+
+  vec3 getTriPlanarBlend(vec3 _wNorm){
+    // in wNorm is the world-space normal of the fragment
+    vec3 blending = abs( _wNorm );
+    blending = normalize(blending);
+    return blending;
+  }
+
+  void main() {
+
+    vec3 diffuseColor2 = uColor;
+    float normalRepeat = 1.0;
+
+    vec3 blending = getTriPlanarBlend(vNormal);
+    float xaxis = edgeFactor(vPos.yz * normalRepeat);
+    float yaxis = edgeFactor(vPos.xz * normalRepeat);
+    float zaxis = edgeFactor(vPos.xy * normalRepeat);
+    float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
+
+    if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
+      f = 1.0;
+    }
+
+    float d = gl_FragCoord.z/gl_FragCoord.w;
+    vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
+    float f2 = 1. + d/10.0;
+    gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5);
+
+    ${THREE.ShaderChunk.logdepthbuf_fragment}
+  }
+`;
+
+const selectFragmentShader = `\
+  precision highp float;
+  precision highp int;
+
+  uniform vec3 uColor;
+  uniform float uTime;
+
+  varying vec3 vViewPosition;
+  varying vec2 vUv;
+  varying vec2 vWorldUv;
+  varying vec3 vPos;
+  varying vec3 vNormal;
+
+  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
+  float edgeFactor(vec2 uv) {
+    float divisor = 0.5;
+    float power = 0.5;
+    return min(
+      pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
+      pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
+    ) > 0.1 ? 0.0 : 1.0;
+  }
+
+  vec3 getTriPlanarBlend(vec3 _wNorm){
+    // in wNorm is the world-space normal of the fragment
+    vec3 blending = abs( _wNorm );
+    blending = normalize(blending);
+    return blending;
+  }
+
+  void main() {
+    float d = gl_FragCoord.z/gl_FragCoord.w;
+    vec3 c = uColor;
+    float f2 = max(1. - (d)/10.0, 0.);
+    gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
+
+    ${THREE.ShaderChunk.logdepthbuf_fragment}
+  }
+`;
+
+const damageFragmentShader = `\
+  precision highp float;
+  precision highp int;
+
+  uniform float sunIntensity;
+  uniform sampler2D tex;
+  uniform float uTime;
+  uniform vec3 sunDirection;
+  float parallaxScale = 0.3;
+  float parallaxMinLayers = 50.;
+  float parallaxMaxLayers = 50.;
+
+  varying vec3 vViewPosition;
+  varying vec2 vUv;
+  varying vec3 vBarycentric;
+  varying float vAo;
+  varying float vSkyLight;
+  varying float vTorchLight;
+  varying vec3 vSelectColor;
+  varying vec2 vWorldUv;
+  varying vec3 vPos;
+  varying vec3 vNormal;
+
+  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+  float edgeFactor(vec2 uv) {
+    float divisor = 0.5;
+    float power = 0.5;
+    return min(
+      pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
+      pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
+    ) > 0.1 ? 0.0 : 1.0;
+  }
+
+  vec3 getTriPlanarBlend(vec3 _wNorm){
+    // in wNorm is the world-space normal of the fragment
+    vec3 blending = abs( _wNorm );
+    blending = normalize(blending);
+    return blending;
+  }
+
+  void main() {
+    vec3 diffuseColor2 = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+    float normalRepeat = 1.0;
+
+    vec3 blending = getTriPlanarBlend(vNormal);
+    float xaxis = edgeFactor(vPos.yz * normalRepeat);
+    float yaxis = edgeFactor(vPos.xz * normalRepeat);
+    float zaxis = edgeFactor(vPos.xy * normalRepeat);
+    float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
+
+    float d = gl_FragCoord.z/gl_FragCoord.w;
+    vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
+    float f2 = 1. + d/10.0;
+    gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5 * uTime);
+
+    ${THREE.ShaderChunk.logdepthbuf_fragment}
+  }
+`;
 
 const buildMaterial = new THREE.ShaderMaterial({
   uniforms: {
@@ -519,166 +701,16 @@ const buildMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
+    uVertexOffset: {
+      type: 'f',
+      value: offsetDepthSmall,
+    },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    uniform vec3 sunDirection;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      vec3 diffuseColor2 = uColor;
-      float normalRepeat = 1.0;
-
-      vec3 blending = getTriPlanarBlend(vNormal);
-      float xaxis = edgeFactor(vPos.yz * normalRepeat);
-      float yaxis = edgeFactor(vPos.xz * normalRepeat);
-      float zaxis = edgeFactor(vPos.xy * normalRepeat);
-      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-      // vec2 worldUv = vWorldUv;
-      // worldUv = mod(worldUv, 1.0);
-      // float f = edgeFactor();
-      // float f = max(normalTex.x, normalTex.y, normalTex.z);
-
-      if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
-        f = 1.0;
-      }
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
-      float f2 = 1. + d/10.0;
-      gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: highlightGridFragmentShader,
   transparent: true,
-  // depthWrite: false,
   polygonOffset: true,
   polygonOffsetFactor: -1,
-  // polygonOffsetUnits: 1,
 });
 
 const highlightMaterial = new THREE.ShaderMaterial({
@@ -693,151 +725,13 @@ const highlightMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    distanceOffset: {
+    uVertexOffset: {
       type: 'f',
-      value: 0,
-      needsUpdate: true,
+      value: offsetDepthSmall,
     },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = uColor;
-      float f2 = max(1. - (d)/10.0, 0.);
-      gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: selectFragmentShader,
   transparent: true,
   depthWrite: false,
   polygonOffset: true,
@@ -857,151 +751,13 @@ const selectMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    distanceOffset: {
+    uVertexOffset: {
       type: 'f',
-      value: 0,
-      needsUpdate: true,
+      value: offsetDepthSmall,
     },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = uColor;
-      float f2 = max(1. - (d)/100.0, 0.5);
-      gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: selectFragmentShader,
   transparent: true,
   depthWrite: false,
   polygonOffset: true,
@@ -1021,151 +777,13 @@ const hoverMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    distanceOffset: {
+    uVertexOffset: {
       type: 'f',
-      value: 0,
-      needsUpdate: true,
+      value: offsetDepthSmall,
     },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = uColor;
-      float f2 = max(1. - (d)/100.0, 0.5);
-      gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: highlightGridFragmentShader,
   transparent: true,
   depthWrite: false,
   polygonOffset: true,
@@ -1185,151 +803,13 @@ const hoverEquipmentMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    distanceOffset: {
+    uVertexOffset: {
       type: 'f',
-      value: 0,
-      needsUpdate: true,
+      value: offsetDepthLarge,
     },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform vec3 uColor;
-    uniform float uTime;
-    // uniform vec3 sunDirection;
-    uniform float distanceOffset;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = uColor;
-      float f2 = max(1. - (d)/100.0, 0.5);
-      gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: selectFragmentShader,
   transparent: true,
   depthWrite: false,
   polygonOffset: true,
@@ -1344,160 +824,13 @@ const damageMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
+    uVertexOffset: {
+      type: 'f',
+      value: offsetDepthSmall,
+    },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform float uTime;
-    uniform vec3 sunDirection;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      vec3 diffuseColor2 = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-      float normalRepeat = 1.0;
-
-      vec3 blending = getTriPlanarBlend(vNormal);
-      float xaxis = edgeFactor(vPos.yz * normalRepeat);
-      float yaxis = edgeFactor(vPos.xz * normalRepeat);
-      float zaxis = edgeFactor(vPos.xy * normalRepeat);
-      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-      // vec2 worldUv = vWorldUv;
-      // worldUv = mod(worldUv, 1.0);
-      // float f = edgeFactor();
-      // float f = max(normalTex.x, normalTex.y, normalTex.z);
-
-      /* if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
-        f = 1.0;
-      } */
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
-      float f2 = 1. + d/10.0;
-      gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5 * uTime);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: damageFragmentShader,
   transparent: true,
   polygonOffset: true,
   polygonOffsetFactor: -1,
@@ -1511,160 +844,13 @@ const activateMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
+    uVertexOffset: {
+      type: 'f',
+      value: offsetDepthSmall,
+    },
   },
-  vertexShader: `\
-    precision highp float;
-    precision highp int;
-
-    uniform vec4 uSelectRange;
-
-    // attribute vec3 barycentric;
-    attribute float ao;
-    attribute float skyLight;
-    attribute float torchLight;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-
-      vViewPosition = -mvPosition.xyz;
-      vUv = uv;
-      // vBarycentric = barycentric;
-      float vid = float(gl_VertexID);
-      if (mod(vid, 3.) < 0.5) {
-        vBarycentric = vec3(1., 0., 0.);
-      } else if (mod(vid, 3.) < 1.5) {
-        vBarycentric = vec3(0., 1., 0.);
-      } else {
-        vBarycentric = vec3(0., 0., 1.);
-      }
-      vAo = ao/27.0;
-      vSkyLight = skyLight/8.0;
-      vTorchLight = torchLight/8.0;
-
-      vSelectColor = vec3(0.);
-      if (
-        position.x >= uSelectRange.x &&
-        position.z >= uSelectRange.y &&
-        position.x < uSelectRange.z &&
-        position.z < uSelectRange.w
-      ) {
-        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-      }
-
-      vec3 vert_tang;
-      vec3 vert_bitang;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        } else {
-          vert_bitang = vec3(0., 1., 0.);
-          vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-        }
-      } else {
-        vert_tang = vec3(1., 0., 0.);
-        vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
-      }
-      vWorldUv /= 4.0;
-      vec3 vert_norm = normal;
-
-      vec3 t = normalize(normalMatrix * vert_tang);
-      vec3 b = normalize(normalMatrix * vert_bitang);
-      vec3 n = normalize(normalMatrix * vert_norm);
-      mat3 tbn = transpose(mat3(t, b, n));
-
-      vPos = position;
-      vNormal = normal;
-    }
-  `,
-  fragmentShader: `\
-    precision highp float;
-    precision highp int;
-
-    #define PI 3.1415926535897932384626433832795
-
-    uniform float sunIntensity;
-    uniform sampler2D tex;
-    uniform float uTime;
-    uniform vec3 sunDirection;
-    float parallaxScale = 0.3;
-    float parallaxMinLayers = 50.;
-    float parallaxMaxLayers = 50.;
-
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-    varying vec3 vBarycentric;
-    varying float vAo;
-    varying float vSkyLight;
-    varying float vTorchLight;
-    varying vec3 vSelectColor;
-    varying vec2 vWorldUv;
-    varying vec3 vPos;
-    varying vec3 vNormal;
-
-    float edgeFactor(vec2 uv) {
-      float divisor = 0.5;
-      float power = 0.5;
-      return min(
-        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
-      ) > 0.1 ? 0.0 : 1.0;
-      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
-        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
-    }
-
-    vec3 getTriPlanarBlend(vec3 _wNorm){
-      // in wNorm is the world-space normal of the fragment
-      vec3 blending = abs( _wNorm );
-      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-      // float b = (blending.x + blending.y + blending.z);
-      // blending /= vec3(b, b, b);
-      // return min(min(blending.x, blending.y), blending.z);
-      blending = normalize(blending);
-      return blending;
-    }
-
-    void main() {
-      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
-      vec3 diffuseColor2 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
-      float normalRepeat = 1.0;
-
-      vec3 blending = getTriPlanarBlend(vNormal);
-      float xaxis = edgeFactor(vPos.yz * normalRepeat);
-      float yaxis = edgeFactor(vPos.xz * normalRepeat);
-      float zaxis = edgeFactor(vPos.xy * normalRepeat);
-      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-      // vec2 worldUv = vWorldUv;
-      // worldUv = mod(worldUv, 1.0);
-      // float f = edgeFactor();
-      // float f = max(normalTex.x, normalTex.y, normalTex.z);
-
-      if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
-        f = 1.0;
-      }
-
-      float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
-      float f2 = 1. + d/10.0;
-      gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5);
-    }
-  `,
+  vertexShader: highlightVertexShader,
+  fragmentShader: selectFragmentShader,
   transparent: true,
   polygonOffset: true,
   polygonOffsetFactor: -1,
@@ -1694,6 +880,7 @@ const portalMaterial = new THREE.ShaderMaterial({
     },
   },
   vertexShader: `\
+    ${THREE.ShaderChunk.common}
     precision highp float;
     precision highp int;
 
@@ -1725,6 +912,8 @@ const portalMaterial = new THREE.ShaderMaterial({
     varying float vParticle;
     varying float vBar;
     // varying float vUserDelta;
+
+    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
       vec3 p = position;
@@ -1792,6 +981,8 @@ const portalMaterial = new THREE.ShaderMaterial({
       vParticle = particle;
       vBar = bar;
       // vUserDelta = max(abs(modelPosition.x - uUserPosition.x), abs(modelPosition.z - uUserPosition.z));
+
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
     }
   `,
   fragmentShader: `\
@@ -1825,6 +1016,8 @@ const portalMaterial = new THREE.ShaderMaterial({
     varying float vParticle;
     varying float vBar;
     // varying float vUserDelta;
+
+    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
     float edgeFactor(vec2 uv) {
       float divisor = 0.5;
@@ -1886,6 +1079,8 @@ const portalMaterial = new THREE.ShaderMaterial({
         discard;
       }
       gl_FragColor = vec4(c, a);
+
+      ${THREE.ShaderChunk.logdepthbuf_fragment}
     }
   `,
   transparent: true,
@@ -1897,14 +1092,14 @@ const portalMaterial = new THREE.ShaderMaterial({
 /* const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
-  
+
   mat4 rotationMatrix(vec3 axis, float angle)
   {
       axis = normalize(axis);
       float s = sin(angle);
       float c = cos(angle);
       float oc = 1.0 - c;
-      
+
       return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
                   oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
                   oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
@@ -2093,7 +1288,7 @@ const addItem = async (position, quaternion) => {
   const s = 0.1;
   mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)));
   mesh.scale.set(s, s, s);
-  
+
   const itemMesh = (() => {
     const radius = 0.5;
     const segments = 12;
@@ -2197,10 +1392,11 @@ const arrowGeometry = (() => {
     bevelSegments: 1,
   };
   const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1/2));
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1 / 2));
   return geometry;
 })();
 const arrowVsh = `
+  ${THREE.ShaderChunk.common}
   #define PI 3.1415926535897932384626433832795
 
   uniform float uTime;
@@ -2219,22 +1415,28 @@ const arrowVsh = `
   }
 
   varying float vDepth;
+
+  ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * rotationMatrix(vec3(0, 1, 0), -uTime * PI * 2.0) * vec4(position + vec3(0., 1., 0.) * (0.5 + sin(uTime * PI * 2.0)*0.5), 1.);
+    ${THREE.ShaderChunk.logdepthbuf_vertex}
   }
 `;
 const arrowFsh = `
   #define PI 3.1415926535897932384626433832795
-
+  
   // uniform sampler2D uTex;
   uniform vec3 uColor;
   uniform float uTime;
   // varying float vDepth;
   
   vec3 grey = vec3(0.5);
-  
+  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
   void main() {
     gl_FragColor = vec4(mix(grey, uColor, 1.0 - (0.5 + sin(uTime * PI * 2.0)*0.5)), 1.0);
+    ${THREE.ShaderChunk.logdepthbuf_fragment}
   }
 `;
 const arrowMaterial = new THREE.ShaderMaterial({
@@ -2265,6 +1467,8 @@ const glowMaterial = new THREE.ShaderMaterial({
     },
   },
   vertexShader: `\
+    ${THREE.ShaderChunk.common}
+
     precision highp float;
     precision highp int;
     
@@ -2272,6 +1476,7 @@ const glowMaterial = new THREE.ShaderMaterial({
 
     varying vec2 vUv;
     varying vec3 vColor;
+    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -2279,9 +1484,14 @@ const glowMaterial = new THREE.ShaderMaterial({
 
       vUv = uv;
       vColor = color;
+
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
+
     }
   `,
   fragmentShader: `\
+  
+
     precision highp float;
     precision highp int;
 
@@ -2290,8 +1500,12 @@ const glowMaterial = new THREE.ShaderMaterial({
     varying vec2 vUv;
     varying vec3 vColor;
 
+    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
     void main() {
       gl_FragColor = vec4(vColor, 1. - vUv.y);
+
+      ${THREE.ShaderChunk.logdepthbuf_fragment}
     }
   `,
   transparent: true,
@@ -2302,17 +1516,22 @@ const glowMaterial = new THREE.ShaderMaterial({
 
 const copyScenePlaneGeometry = new THREE.PlaneGeometry(2, 2);
 const copySceneVertexShader = `#version 300 es
+${THREE.ShaderChunk.common}
   precision highp float;
-
+  
   in vec3 position;
   in vec2 uv;
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
   out vec2 vUv;
 
+  ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+
   void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    
+    ${THREE.ShaderChunk.logdepthbuf_vertex}
   }
 `;
 const copyScene = (() => {
@@ -2332,14 +1551,17 @@ const copyScene = (() => {
         uniform sampler2D tex;
         in vec2 vUv;
         out vec4 fragColor;
-        
+
+        ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
         void main() {
           fragColor = texture(tex, vUv);
+          ${THREE.ShaderChunk.logdepthbuf_fragment}
         }
       `,
       depthWrite: false,
       depthTest: false,
-    })
+    }),
   );
   const scene = new THREE.Scene();
   scene.add(mesh);

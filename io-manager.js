@@ -50,6 +50,7 @@ ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
+ioManager.debugMode = false;
 ioManager.keys = {
   up: false,
   down: false,
@@ -99,6 +100,9 @@ const _updateVertical = direction => {
     direction.y -= 1;
   }
 };
+
+const keysDirection = new THREE.Vector3();
+ioManager.keysDirection = keysDirection;
 
 const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
 ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
@@ -198,32 +202,28 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-  } else /* if (controlsManager.isPossessed()) */ {
-    const direction = localVector.set(0, 0, 0);
+  } else {
+    keysDirection.set(0, 0, 0);
     
     const localPlayer = metaversefile.useLocalPlayer();
-    const narutoRunAction = localPlayer.getAction('narutoRun');
     
-    _updateHorizontal(direction);
-    if (direction.equals(zeroVector)) {
-      if (narutoRunAction) {
-        direction.copy(lastNonzeroDirectionVector);
+    _updateHorizontal(keysDirection);
+    if (keysDirection.equals(zeroVector)) {
+      if (localPlayer.hasAction('narutoRun')) {
+        keysDirection.copy(lastNonzeroDirectionVector);
       }
     } else {
-      lastNonzeroDirectionVector.copy(direction);
+      lastNonzeroDirectionVector.copy(keysDirection);
     }
     
-    physicsManager.direction.copy(direction);
-    
-    const isFlying = game.isFlying();
-    if (isFlying) {
-      direction.applyQuaternion(camera.quaternion);
-      _updateVertical(direction);
-    } else {  
+    if (localPlayer.hasAction('fly')) {
+      keysDirection.applyQuaternion(camera.quaternion);
+      _updateVertical(keysDirection);
+    } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
-      direction.applyEuler(cameraEuler);
+      keysDirection.applyEuler(cameraEuler);
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
         game.toggleCrouch();
@@ -231,33 +231,14 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (direction.length() > 0) {
-      const speed = game.getSpeed();
-      direction.normalize().multiplyScalar(speed * timeDiff);
-
-      physicsManager.velocity.add(direction);
-
-      if (isFlying) {
-        const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-        physicsManager.velocity.multiplyScalar(factor);
-      } else if (game.isJumping()) {
-        const factor = getVelocityDampingFactor(airFriction, timeDiff);
-        physicsManager.velocity.x *= factor;
-        physicsManager.velocity.z *= factor;
-      }
+    if (keysDirection.length() > 0) {
+      localPlayer.characterPhysics.applyWasd(
+        keysDirection.normalize()
+          .multiplyScalar(game.getSpeed() * timeDiff),
+          timeDiff
+      );
     }
-  } /* else {
-    const direction = localVector.set(0, 0, 0);
-    _updateHorizontal(direction);
-    direction.applyQuaternion(camera.quaternion);
-    _updateVertical(direction);
-    direction
-      .normalize()
-      .multiplyScalar(0.1 * (ioManager.keys.shift ? 3 : 1));
-    
-    camera.position.add(direction);
-    camera.updateMatrixWorld();
-  } */
+  }
 };
 ioManager.update = _updateIo;
 
@@ -530,6 +511,11 @@ ioManager.keydown = e => {
     }
     case 27: { // esc
       game.setContextMenu(false);
+      break;
+    }
+    case 72: { // H
+      game.toggleDebug(ioManager.debugMode);
+      ioManager.debugMode = !ioManager.debugMode;
       break;
     }
   }

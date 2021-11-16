@@ -31,7 +31,7 @@ import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
-import {rarityColors} from './constants.js';
+import {rarityColors, initialPosY} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -189,7 +189,6 @@ const defaultComponents = {
         // if (grounded) {
           app.rotation.y += angularVelocity.y * timeDiff;
         // }
-        app.updateMatrixWorld();
         
         glowMesh.visible = !animation;
         if (!animation) {
@@ -247,6 +246,8 @@ const defaultComponents = {
             app.destroy();
           }
         }
+        
+        app.updateMatrixWorld();
       });
     }
   },
@@ -255,6 +256,8 @@ const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
   state: new Y.Doc(),
 });
+localPlayer.position.y = initialPosY;
+localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {

@@ -9,7 +9,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
-    "test": "npm run start && cd test && npm run test"
+    "test": "cd test && npm run test"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
@@ -34,8 +34,10 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "smile2emoji": "^1.1.6",
+    "stats.js": "^0.17.0",
     "three": "^0.133.1",
     "troika-three-text": "^0.43.1-alpha.0",
+    "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
     "xhr2": "^0.2.1",
     "yjs": "^13.5.16"
