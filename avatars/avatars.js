@@ -24,6 +24,7 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
+  cloneModelBones,
 }  from './util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -757,43 +758,70 @@ const animationBoneToModelBone = {
   */
 };
 const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
-  for (const k in animation.interpolants) {
-    const interpolant = animation.interpolants[k];
-    const match = k.match(/^(mixamorig.+)\.(position|quaternion)/);
+  for (const track of animation.tracks) {
+    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
     if (match) {
       const animationBoneName = match[1];
       const property = match[2];
       
-      const {sampleValues, valueSize} = interpolant;
+      const {values} = track;
       const modelBoneName = animationBoneToModelBone[animationBoneName];
       const modelBone = modelBones[modelBoneName];
       if (!modelBone) {
         console.warn('could not find model bone', modelBoneName, animationBoneName);
       }
       if (property === 'position') {
-        modelBone.position.fromArray(sampleValues, frame * valueSize);
+        modelBone.position.fromArray(values, frame * 3);
       } else if (property === 'quaternion') {
-        modelBone.quaternion.fromArray(sampleValues, frame * valueSize);
+        modelBone.quaternion.fromArray(values, frame * 4);
       } else {
         console.warn('unknown property', property, k);
       }
     } else {
-      console.warn('non-matching interpolant', k);
+      console.warn('non-matching track name', track.name);
     }
   }
 };
 const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
-  // XXX
+  // XXX remap recursive world quaternion instead of raw copy
+  const boneNames = Object.keys(dstModelBones);
+  for (const boneName of boneNames) {
+    const dstModelBone = dstModelBones[boneName];
+    const srcModelBone = srcModelBones[boneName];
+    dstModelBone.position.copy(srcModelBone.position);
+    dstModelBone.quaternion.copy(srcModelBone.quaternion);
+  }
 };
 const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
-  // console.log('set animation frame to skeleton', animation, frame, skeleton);
-  // XXX
+  for (const track of animation.tracks) {
+    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
+    if (match) {
+      const animationBoneName = match[1];
+      const property = match[2];
+      
+      const {values} = track;
+      const modelBoneName = animationBoneToModelBone[animationBoneName];
+      const modelBone = modelBones[modelBoneName];
+      if (!modelBone) {
+        console.warn('could not find model bone', modelBoneName, animationBoneName);
+      }
+      if (property === 'position') {
+        modelBone.position.toArray(values, frame * 3);
+      } else if (property === 'quaternion') {
+        modelBone.quaternion.toArray(values, frame * 4);
+      } else {
+        console.warn('unknown property', property, k);
+      }
+    } else {
+      console.warn('non-matching track name', track.name);
+    }
+  }
 };
 const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   const srcModelBones = getModelBones(srcBaseModel);
-  const dstModelBones = getModelBones(dstBaseModel);
+  const dstModelBones = cloneModelBones(getModelBones(dstBaseModel));
   
-  console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
+  // console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
   
   const dstAnimation = srcAnimation.clone();
   
@@ -803,6 +831,8 @@ const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
     _setSkeletonWorld(dstModelBones, srcModelBones);
     _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones);
   }
+  
+  _decorateAnimation(dstAnimation);
   
   return dstAnimation;
 };
