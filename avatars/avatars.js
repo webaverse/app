@@ -902,6 +902,7 @@ class Avatar {
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
+    this.retargetedAnimations = retargetedAnimations;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
