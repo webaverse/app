@@ -1970,7 +1970,14 @@ class Avatar {
           return Infinity;
         }
       };
-      const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+      const _getIdleAnimation = key => {
+        if (key === 'walk' || key === 'run') {
+          const name = animationsIdleArrays[key].name;
+          return this.retargetedAnimations.find(a => a.name === name);
+        } else {
+          return animationsIdleArrays[key].animation;
+        }
+      };
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
         // normal horizontal walk/run blend
         {
