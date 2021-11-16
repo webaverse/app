@@ -198,6 +198,36 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
+const _decorateAnimation = animation => {
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /^jump/i.test(animation.name);
+  animation.isSitting = /sitting/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
+  animation.isPistol  = /pistol aiming/i.test(animation.name);
+  animation.isRifle  = /rifle aiming/i.test(animation.name);
+  animation.isSlash  = /slash/i.test(animation.name);
+  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isMagic = /magic/i.test(animation.name);
+  animation.isSkateboarding = /skateboarding/i.test(animation.name);
+  animation.isThrow = /throw/i.test(animation.name);
+  animation.isDancing = /dancing/i.test(animation.name);
+  animation.isDrinking = /drinking/i.test(animation.name);
+  animation.isCrouch = /crouch|sneak/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isActivate = /object/i.test(animation.name);
+  animation.isNarutoRun = /naruto run/i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+  });
+};
 
 let animations;
 let animationsBaseModel;
@@ -305,72 +335,7 @@ const loadPromise = (async () => {
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   for (const animation of animations) {
-    /* animation.direction = (() => {
-      switch (animation.name) {
-        case 'Fast Run.fbx':
-        case 'walking.fbx':
-        case 'Sneaking Forward.fbx':
-          return 'forward';
-        case 'running backwards.fbx':
-        case 'walking backwards.fbx':
-          return 'backward';
-        case 'left strafe walking.fbx':
-        case 'left strafe.fbx':
-        case 'left strafe walking reverse.fbx':
-        case 'left strafe reverse.fbx':
-        case 'Crouched Sneaking Left.fbx':
-          return 'left';
-        case 'right strafe walking.fbx':
-        case 'right strafe.fbx':
-        case 'right strafe walking reverse.fbx':
-        case 'right strafe reverse.fbx':
-        case 'Crouched Sneaking Right.fbx':
-          return 'right';
-        case 'jump.fbx':
-          return 'jump';
-        // case 'floating.fbx':
-        case 'treading water.fbx':
-          return 'float';
-        default:
-          return null;
-      }
-    })(); */
-    animation.isIdle = /idle/i.test(animation.name);
-    animation.isJump = /^jump/i.test(animation.name);
-    animation.isSitting = /sitting/i.test(animation.name);
-    // animation.isFalling  = /falling/i.test(animation.name);
-    animation.isFloat  = /treading/i.test(animation.name);
-    animation.isPistol  = /pistol aiming/i.test(animation.name);
-    animation.isRifle  = /rifle aiming/i.test(animation.name);
-    // animation.isHit  = /downward/i.test(animation.name);
-    animation.isSlash  = /slash/i.test(animation.name);
-    // animation.isHit  = /attack/i.test(animation.name);
-    animation.isCombo  = /combo/i.test(animation.name);
-    // animation.isHit = /sword and shield idle/i.test(animation.name);
-    animation.isMagic = /magic/i.test(animation.name);
-    animation.isSkateboarding = /skateboarding/i.test(animation.name);
-    animation.isThrow = /throw/i.test(animation.name);
-    animation.isDancing = /dancing/i.test(animation.name);
-    animation.isDrinking = /drinking/i.test(animation.name);
-    animation.isCrouch = /crouch|sneak/i.test(animation.name);
-    animation.isForward = /forward/i.test(animation.name);
-    animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
-    animation.isLeft = /left/i.test(animation.name);
-    animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-    animation.isActivate = /object/i.test(animation.name);
-    animation.isNarutoRun = /naruto run/i.test(animation.name);
-    animation.isReverse = /reverse/i.test(animation.name);
-    animation.interpolants = {};
-    animation.tracks.forEach(track => {
-      const i = track.createInterpolant();
-      i.name = track.name;
-      animation.interpolants[track.name] = i;
-      return i;
-    });
-    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-    } */
+    _decorateAnimation(animation);
   }
   
   jumpAnimation = animations.find(a => a.isJump);
