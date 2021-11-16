@@ -87,7 +87,7 @@ class Leg {
     this.legLength = this.upperLegLength + this.lowerLegLength;
 
     Helpers.getWorldPosition(this.upperLeg, this.eyesToUpperLegOffset)
-  	  .sub(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.eyes, localVector));
+  	  .sub(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.head, localVector));
 
     // this.Reset();
   }
@@ -149,7 +149,6 @@ class Leg {
         .multiply(downHalfRotation)
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
-
     /* } else {
       this.foot.quaternion.slerp(downQuarterRotation, 0.1);
     } */
