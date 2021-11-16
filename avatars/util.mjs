@@ -516,3 +516,37 @@ export const getModelBones = object => {
     Right_toe,
   };
 };
+
+export const cloneModelBones = modelBones => {
+  const result = {};
+  const nameToDstBoneMap = {};
+  for (const k in modelBones) {
+    const srcBone = modelBones[k];
+    const dstBone = new THREE.Bone();
+    dstBone.name = srcBone.name;
+    dstBone.position.copy(srcBone.position);
+    dstBone.quaternion.copy(srcBone.quaternion);
+    result[k] = dstBone;
+    nameToDstBoneMap[dstBone.name] = dstBone;
+  }
+  modelBones.Root.traverse(srcBone => {
+    if (!nameToDstBoneMap[srcBone.name]) {
+      const dstBone = new THREE.Bone();
+      dstBone.position.copy(srcBone.position);
+      dstBone.quaternion.copy(srcBone.quaternion);
+      nameToDstBoneMap[srcBone.name] = dstBone;
+    }
+  });
+  const _recurse = srcBone => {
+    if (srcBone.children.length > 0) {
+      const dstBone = nameToDstBoneMap[srcBone.name];
+      for (const childSrcBone of srcBone.children) {
+        const childDstBone = nameToDstBoneMap[childSrcBone.name];
+        dstBone.add(childDstBone);
+        _recurse(childSrcBone);
+      }
+    }
+  };
+  _recurse(modelBones.Root);
+  return result;
+};
