@@ -1823,8 +1823,8 @@ class Avatar {
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
-    this.shoulderTransforms.eyel.position.copy(setups.eyel);
-    this.shoulderTransforms.eyer.position.copy(setups.eyer);
+    if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
+    if (setups.eyer) this.shoulderTransforms.eyer.position.copy(setups.eyer);
 
     if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
@@ -1869,12 +1869,12 @@ class Avatar {
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
     this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
-    this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
+    if (setups.leftToe) this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
 
     this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
-    this.legsManager.rightLeg.toe.position.copy(setups.leftToe);
+    if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
 
     this.shoulderTransforms.root.updateMatrixWorld();
   }
