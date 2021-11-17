@@ -551,7 +551,7 @@ export const decorateAnimation = animation => {
 };
 
 // retargeting
-const animationBoneToModelBone = {
+/* const animationBoneToModelBone = {
   'mixamorigHips': 'Hips',
   'mixamorigSpine': 'Spine',
   'mixamorigSpine1': 'Chest',
@@ -727,4 +727,4 @@ export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   decorateAnimation(dstAnimation);
   
   return dstAnimation;
-};
+}; */
