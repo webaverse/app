@@ -26,7 +26,7 @@ import {
   getModelBones,
   cloneModelBones,
   decorateAnimation,
-  retargetAnimation,
+  // retargetAnimation,
 }  from './util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -620,7 +620,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
-      retargetedAnimations,
+      // retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
@@ -629,7 +629,7 @@ class Avatar {
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
-    this.retargetedAnimations = retargetedAnimations;
+    // this.retargetedAnimations = retargetedAnimations;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -1197,9 +1197,9 @@ class Avatar {
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
     
-    const retargetedAnimations = animations
+    /* const retargetedAnimations = animations
       .filter(a => a.name === 'idle.fbx')
-      .map(a => retargetAnimation(a, animationsBaseModel, object));
+      .map(a => retargetAnimation(a, animationsBaseModel, object)); */
     
     const foundModelBones = {};
     for (const k in modelBones) {
@@ -1413,7 +1413,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
-      retargetedAnimations,
+      // retargetedAnimations,
     };
   }
   static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
@@ -1689,14 +1689,15 @@ class Avatar {
           return Infinity;
         }
       };
-      const _getIdleAnimation = key => {
+      const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+      /* const _getIdleAnimation = key => {
         if (key === 'walk' || key === 'run') {
           const name = animationsIdleArrays[key].name;
           return this.retargetedAnimations.find(a => a.name === name);
         } else {
           return animationsIdleArrays[key].animation;
         }
-      };
+      }; */
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
         // normal horizontal walk/run blend
         {
