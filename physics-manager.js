@@ -64,15 +64,15 @@ physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMateria
   //physicsObject.position.copy(position);
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  physicsObjects[physicsId] = physicsObject;
-  physicsObject.velocity = new THREE.Vector3(0,0,0);
+  //physicsObjects[physicsId] = physicsObject;
+  //physicsObject.velocity = new THREE.Vector3(0,0,0);
   //physicsManager.disablePhysicsObject(physicsObject);
   return physicsObject;
 };
 
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, halfHeight, radius, physicsId, physicsMaterial, ccdEnabled);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
   const physicsMesh = new THREE.Mesh(

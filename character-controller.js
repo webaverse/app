@@ -664,6 +664,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
     }
     
     const {instanceId} = app;
@@ -706,6 +707,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
       }
       
       app.dispatchEvent({
@@ -743,7 +745,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
   }
@@ -756,7 +758,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          //physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
