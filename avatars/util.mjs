@@ -487,7 +487,9 @@ export const cloneModelBones = modelBones => {
       dstBone.name = srcBone.name;
       dstBone.position.copy(srcBone.position);
       dstBone.quaternion.copy(srcBone.quaternion);
-      dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      if (srcBone.initialQuaternion) {
+        dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      }
       result[k] = dstBone;
       nameToDstBoneMap[dstBone.name] = dstBone;
     }
@@ -497,7 +499,9 @@ export const cloneModelBones = modelBones => {
       const dstBone = new THREE.Bone();
       dstBone.position.copy(srcBone.position);
       dstBone.quaternion.copy(srcBone.quaternion);
-      dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      if (srcBone.initialQuaternion) {
+        dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      }
       nameToDstBoneMap[srcBone.name] = dstBone;
     }
   });
