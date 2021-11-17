@@ -1511,12 +1511,6 @@ class Avatar {
     const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
-	  // this.modelBones = modelBones;
-    /* for (const k in modelBones) {
-      if (!modelBones[k]) {
-        console.warn('missing bone', k);
-      }
-    } */
     
     const retargetedAnimations = animations
       .filter(a => a.name === 'idle.fbx')
