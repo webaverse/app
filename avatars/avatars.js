@@ -25,6 +25,7 @@ import {
   getTailBones,
   getModelBones,
   cloneModelBones,
+  retargetAnimation,
 }  from './util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -591,183 +592,6 @@ class AnimationMapping {
   }
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
-
-const animationBoneToModelBone = {
-  'mixamorigHips': 'Hips',
-  'mixamorigSpine': 'Spine',
-  'mixamorigSpine1': 'Chest',
-  'mixamorigSpine2': 'UpperChest',
-  'mixamorigNeck': 'Neck',
-  'mixamorigHead': 'Head',
-  'mixamorigLeftShoulder': 'Left_shoulder',
-  'mixamorigLeftArm': 'Left_arm',
-  'mixamorigLeftForeArm': 'Left_elbow',
-  'mixamorigLeftHand': 'Left_wrist',
-  'mixamorigLeftHandMiddle1': 'Left_middleFinger1',
-  'mixamorigLeftHandMiddle2': 'Left_middleFinger2',
-  'mixamorigLeftHandMiddle3': 'Left_middleFinger3',
-  'mixamorigLeftHandThumb1': 'Left_thumb0',
-  'mixamorigLeftHandThumb2': 'Left_thumb1',
-  'mixamorigLeftHandThumb3': 'Left_thumb2',
-  'mixamorigLeftHandIndex1': 'Left_indexFinger1',
-  'mixamorigLeftHandIndex2': 'Left_indexFinger2',
-  'mixamorigLeftHandIndex3': 'Left_indexFinger3',
-  'mixamorigLeftHandRing1': 'Left_ringFinger1',
-  'mixamorigLeftHandRing2': 'Left_ringFinger2',
-  'mixamorigLeftHandRing3': 'Left_ringFinger3',
-  'mixamorigLeftHandPinky1': 'Left_littleFinger1',
-  'mixamorigLeftHandPinky2': 'Left_littleFinger2',
-  'mixamorigLeftHandPinky3': 'Left_littleFinger3',
-  'mixamorigRightShoulder': 'Right_shoulder',
-  'mixamorigRightArm': 'Right_arm',
-  'mixamorigRightForeArm': 'Right_elbow',
-  'mixamorigRightHand': 'Right_wrist',
-  'mixamorigRightHandMiddle1': 'Right_middleFinger1',
-  'mixamorigRightHandMiddle2': 'Right_middleFinger2',
-  'mixamorigRightHandMiddle3': 'Right_middleFinger3',
-  'mixamorigRightHandThumb1': 'Right_thumb0',
-  'mixamorigRightHandThumb2': 'Right_thumb1',
-  'mixamorigRightHandThumb3': 'Right_thumb2',
-  'mixamorigRightHandIndex1': 'Right_indexFinger1',
-  'mixamorigRightHandIndex2': 'Right_indexFinger2',
-  'mixamorigRightHandIndex3': 'Right_indexFinger3',
-  'mixamorigRightHandRing1': 'Right_ringFinger1',
-  'mixamorigRightHandRing2': 'Right_ringFinger2',
-  'mixamorigRightHandRing3': 'Right_ringFinger3',
-  'mixamorigRightHandPinky1': 'Right_littleFinger1',
-  'mixamorigRightHandPinky2': 'Right_littleFinger2',
-  'mixamorigRightHandPinky3': 'Right_littleFinger3',
-  'mixamorigRightUpLeg': 'Right_leg',
-  'mixamorigRightLeg': 'Right_knee',
-  'mixamorigRightFoot': 'Right_ankle',
-  'mixamorigRightToeBase': 'Right_toe',
-  'mixamorigLeftUpLeg': 'Left_leg',
-  'mixamorigLeftLeg': 'Left_knee',
-  'mixamorigLeftFoot': 'Left_ankle',
-  'mixamorigLeftToeBase': 'Left_toe',
-  /*
-  Eye_L,
-  Eye_R,
-  */
-};
-const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
-  for (const track of animation.tracks) {
-    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
-    if (match) {
-      const animationBoneName = match[1];
-      const property = match[2];
-      
-      const {values} = track;
-      const modelBoneName = animationBoneToModelBone[animationBoneName];
-      const modelBone = modelBones[modelBoneName];
-      if (!modelBone) {
-        console.warn('could not find model bone', modelBoneName, animationBoneName);
-      }
-      if (property === 'position') {
-        modelBone.position.fromArray(values, frame * 3);
-      } else if (property === 'quaternion') {
-        modelBone.quaternion.fromArray(values, frame * 4);
-      } else {
-        console.warn('unknown property', property, k);
-      }
-    } else {
-      console.warn('non-matching track name', track.name);
-    }
-  }
-  modelBones.Root.updateMatrixWorld();
-};
-const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
-  const srcBoneToModelNameMap = new Map();
-  for (const k in srcModelBones) {
-    srcBoneToModelNameMap.set(srcModelBones[k], k);
-  }
-  
-  const _recurse = (srcModelBone, dstModelBone) => {
-    if (srcModelBone !== srcModelBones.Root) {
-      /* if (srcModelBone === srcModelBones.Hips) {
-        dstModelBone.position.copy(srcModelBone.position);
-        dstModelBone.quaternion.copy(srcModelBone.quaternion);
-        dstModelBone.scale.copy(srcModelBone.scale);
-      } else { */
-        srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        
-        localQuaternion.premultiply(downRotation);
-        
-        dstModelBone.matrixWorld.compose(
-          srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
-          localQuaternion,
-          localVector4
-        );
-        dstModelBone.matrix.copy(dstModelBone.matrixWorld)
-          .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
-          .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
-      // }
-      dstModelBone.updateMatrixWorld();
-    }
-    
-    for (let i = 0; i < srcModelBone.children.length; i++) {
-      const srcChild = srcModelBone.children[i];
-      const modelBoneName = srcBoneToModelNameMap.get(srcChild);
-      if (modelBoneName) {
-        const dstChild = dstModelBones[modelBoneName];
-        if (dstChild) {
-          _recurse(srcChild, dstChild);
-        }
-      }
-    }
-  };
-  _recurse(srcModelBones.Root, dstModelBones.Root);
-};
-const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
-  for (const track of animation.tracks) {
-    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
-    if (match) {
-      const animationBoneName = match[1];
-      const property = match[2];
-      
-      const {values} = track;
-      const modelBoneName = animationBoneToModelBone[animationBoneName];
-      const modelBone = modelBones[modelBoneName];
-      if (modelBone) {
-        if (property === 'position') {
-          modelBone.position.toArray(values, frame * 3);
-        } else if (property === 'quaternion') {
-          modelBone.quaternion.toArray(values, frame * 4);
-        } else {
-          console.warn('unknown property', property, k);
-        }
-      }
-    } else {
-      console.warn('non-matching track name', track.name);
-    }
-  }
-};
-
-const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
-  const srcModelBones = getModelBones(srcBaseModel);
-  const dstModelBones = getModelBones(dstBaseModel);
-  
-  // console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
-  
-  const dstAnimation = srcAnimation.clone();
-  
-  const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
-  for (let frame = 0; frame < numFrames; frame++) {
-    const srcModelBones2 = cloneModelBones(srcModelBones);
-    const dstModelBones2 = cloneModelBones(dstModelBones);
-    srcModelBones2.Root.updateMatrixWorld();
-    dstModelBones2.Root.updateMatrixWorld();
-    
-    _setSkeletonToAnimationFrame(srcModelBones2, srcAnimation, frame);
-    _setSkeletonWorld(dstModelBones2, srcModelBones2);
-    _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones2);
-  }
-  
-  _decorateAnimation(dstAnimation);
-  
-  return dstAnimation;
-};
 
 class Avatar {
 	constructor(object, options = {}) {
@@ -1404,7 +1228,7 @@ class Avatar {
     
     const retargetedAnimations = animations
       .filter(a => a.name === 'idle.fbx')
-      .map(a => _retargetAnimation(a, animationsBaseModel, object));
+      .map(a => retargetAnimation(a, animationsBaseModel, object));
     
     const foundModelBones = {};
     for (const k in modelBones) {
