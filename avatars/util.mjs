@@ -14,26 +14,22 @@ export const getSkinnedMeshes = object => {
 export const getSkeleton = object => {
   let skeleton = null;
   
+  // regular skeleton
   if (!skeleton) {
     const skinnedMeshes = getSkinnedMeshes(object);
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
   }
+  // failed to find skeleton so assume the whole scene is a skeleton
   if (!skeleton) {
-    skeleton = {
-      bones: object.scene.children,
-    };
-    /* const skinnedMeshes = getSkinnedMeshes(object);
-    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-    skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton; */
+    const bones = [];
+    object.scene.traverse(o => {
+      o.isBone = true;
+      bones.push(o);
+    });
+    skeleton = new THREE.Skeleton(bones);
   }
-  
-  /* const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
-  const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
-  if (poseSkeleton) {
-    copySkeleton(poseSkeleton, skeleton);
-    poseSkeletonSkinnedMesh.bind(skeleton);
-  } */
+
   return skeleton;
 };
 export const getEyePosition = (() => {
@@ -74,9 +70,6 @@ export const makeBoneMap = object => {
     const boneSpec = object.parser.json.nodes[node];
     const b = skeleton.bones.find(b => b.userData.name === boneSpec.name);
     result[bone] = b;
-    if (!b) {
-      console.warn('missing bone:', boneSpec.name);
-    }
   }
   result.root = result.hips?.parent;
   return result;
@@ -151,7 +144,7 @@ export const getModelBones = object => {
     return _recurse(bone);
   };
   const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
-  const _findChest = skeleton => skeleton.bones.find(bone => /chest/i.test(bone.name));
+  const _findChest = skeleton => skeleton.bones.find(bone => /chest|spine1/i.test(bone.name));
   const _findHead = tailBones => {
     const headBones = tailBones.map(tailBone => {
       const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
@@ -370,7 +363,6 @@ export const getModelBones = object => {
     Head = _findHead(tailBones);
     Neck = Head.parent;
     UpperChest = Neck.parent;
-    //Chest = UpperChest.parent;
     Chest = _findChest(skeleton);
     Hips = _findHips(skeleton);
     Root = Hips?.parent;
@@ -416,9 +408,11 @@ export const getModelBones = object => {
     Left_ankle = _findFoot(tailBones, true);
     Left_knee = Left_ankle.parent;
     Left_leg = Left_knee.parent;
+    Left_toe = Left_ankle.children[0];
     Right_ankle = _findFoot(tailBones, false);
     Right_knee = Right_ankle.parent;
     Right_leg = Right_knee.parent;
+    Right_toe = Right_ankle.children[0];
   }
 
   return {
@@ -482,3 +476,255 @@ export const getModelBones = object => {
     Right_toe,
   };
 };
+
+export const cloneModelBones = modelBones => {
+  const result = {};
+  const nameToDstBoneMap = {};
+  for (const k in modelBones) {
+    const srcBone = modelBones[k];
+    if (srcBone) {
+      const dstBone = new THREE.Bone();
+      dstBone.name = srcBone.name;
+      dstBone.position.copy(srcBone.position);
+      dstBone.quaternion.copy(srcBone.quaternion);
+      if (srcBone.initialQuaternion) {
+        dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      }
+      result[k] = dstBone;
+      nameToDstBoneMap[dstBone.name] = dstBone;
+    }
+  }
+  modelBones.Root.traverse(srcBone => {
+    if (!nameToDstBoneMap[srcBone.name]) {
+      const dstBone = new THREE.Bone();
+      dstBone.position.copy(srcBone.position);
+      dstBone.quaternion.copy(srcBone.quaternion);
+      if (srcBone.initialQuaternion) {
+        dstBone.initialQuaternion = srcBone.initialQuaternion.clone();
+      }
+      nameToDstBoneMap[srcBone.name] = dstBone;
+    }
+  });
+  const _recurse = srcBone => {
+    if (srcBone.children.length > 0) {
+      const dstBone = nameToDstBoneMap[srcBone.name];
+      for (const childSrcBone of srcBone.children) {
+        const childDstBone = nameToDstBoneMap[childSrcBone.name];
+        dstBone.add(childDstBone);
+        _recurse(childSrcBone);
+      }
+    }
+  };
+  _recurse(modelBones.Root);
+  return result;
+};
+
+export const decorateAnimation = animation => {
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /^jump/i.test(animation.name);
+  animation.isSitting = /sitting/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
+  animation.isPistol  = /pistol aiming/i.test(animation.name);
+  animation.isRifle  = /rifle aiming/i.test(animation.name);
+  animation.isSlash  = /slash/i.test(animation.name);
+  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isMagic = /magic/i.test(animation.name);
+  animation.isSkateboarding = /skateboarding/i.test(animation.name);
+  animation.isThrow = /throw/i.test(animation.name);
+  animation.isDancing = /dancing/i.test(animation.name);
+  animation.isDrinking = /drinking/i.test(animation.name);
+  animation.isCrouch = /crouch|sneak/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isActivate = /object/i.test(animation.name);
+  animation.isNarutoRun = /naruto run/i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+  });
+};
+
+// retargeting
+/* const animationBoneToModelBone = {
+  'mixamorigHips': 'Hips',
+  'mixamorigSpine': 'Spine',
+  'mixamorigSpine1': 'Chest',
+  'mixamorigSpine2': 'UpperChest',
+  'mixamorigNeck': 'Neck',
+  'mixamorigHead': 'Head',
+  'mixamorigLeftShoulder': 'Left_shoulder',
+  'mixamorigLeftArm': 'Left_arm',
+  'mixamorigLeftForeArm': 'Left_elbow',
+  'mixamorigLeftHand': 'Left_wrist',
+  'mixamorigLeftHandMiddle1': 'Left_middleFinger1',
+  'mixamorigLeftHandMiddle2': 'Left_middleFinger2',
+  'mixamorigLeftHandMiddle3': 'Left_middleFinger3',
+  'mixamorigLeftHandThumb1': 'Left_thumb0',
+  'mixamorigLeftHandThumb2': 'Left_thumb1',
+  'mixamorigLeftHandThumb3': 'Left_thumb2',
+  'mixamorigLeftHandIndex1': 'Left_indexFinger1',
+  'mixamorigLeftHandIndex2': 'Left_indexFinger2',
+  'mixamorigLeftHandIndex3': 'Left_indexFinger3',
+  'mixamorigLeftHandRing1': 'Left_ringFinger1',
+  'mixamorigLeftHandRing2': 'Left_ringFinger2',
+  'mixamorigLeftHandRing3': 'Left_ringFinger3',
+  'mixamorigLeftHandPinky1': 'Left_littleFinger1',
+  'mixamorigLeftHandPinky2': 'Left_littleFinger2',
+  'mixamorigLeftHandPinky3': 'Left_littleFinger3',
+  'mixamorigRightShoulder': 'Right_shoulder',
+  'mixamorigRightArm': 'Right_arm',
+  'mixamorigRightForeArm': 'Right_elbow',
+  'mixamorigRightHand': 'Right_wrist',
+  'mixamorigRightHandMiddle1': 'Right_middleFinger1',
+  'mixamorigRightHandMiddle2': 'Right_middleFinger2',
+  'mixamorigRightHandMiddle3': 'Right_middleFinger3',
+  'mixamorigRightHandThumb1': 'Right_thumb0',
+  'mixamorigRightHandThumb2': 'Right_thumb1',
+  'mixamorigRightHandThumb3': 'Right_thumb2',
+  'mixamorigRightHandIndex1': 'Right_indexFinger1',
+  'mixamorigRightHandIndex2': 'Right_indexFinger2',
+  'mixamorigRightHandIndex3': 'Right_indexFinger3',
+  'mixamorigRightHandRing1': 'Right_ringFinger1',
+  'mixamorigRightHandRing2': 'Right_ringFinger2',
+  'mixamorigRightHandRing3': 'Right_ringFinger3',
+  'mixamorigRightHandPinky1': 'Right_littleFinger1',
+  'mixamorigRightHandPinky2': 'Right_littleFinger2',
+  'mixamorigRightHandPinky3': 'Right_littleFinger3',
+  'mixamorigRightUpLeg': 'Right_leg',
+  'mixamorigRightLeg': 'Right_knee',
+  'mixamorigRightFoot': 'Right_ankle',
+  'mixamorigRightToeBase': 'Right_toe',
+  'mixamorigLeftUpLeg': 'Left_leg',
+  'mixamorigLeftLeg': 'Left_knee',
+  'mixamorigLeftFoot': 'Left_ankle',
+  'mixamorigLeftToeBase': 'Left_toe',
+};
+const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
+  for (const track of animation.tracks) {
+    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
+    if (match) {
+      const animationBoneName = match[1];
+      const property = match[2];
+      
+      const {values} = track;
+      const modelBoneName = animationBoneToModelBone[animationBoneName];
+      const modelBone = modelBones[modelBoneName];
+      if (!modelBone) {
+        console.warn('could not find model bone', modelBoneName, animationBoneName);
+      }
+      if (property === 'position') {
+        modelBone.position.fromArray(values, frame * 3);
+      } else if (property === 'quaternion') {
+        modelBone.quaternion.fromArray(values, frame * 4);
+      } else {
+        console.warn('unknown property', property, k);
+      }
+    } else {
+      console.warn('non-matching track name', track.name);
+    }
+  }
+  modelBones.Root.updateMatrixWorld();
+};
+const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
+const _setSkeletonWorld = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localVector3 = new THREE.Vector3();
+  const localVector4 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localQuaternion2 = new THREE.Quaternion();
+  const localMatrix2 = new THREE.Matrix4();
+
+  return (dstModelBones, srcModelBones) => {
+    const srcBoneToModelNameMap = new Map();
+    for (const k in srcModelBones) {
+      srcBoneToModelNameMap.set(srcModelBones[k], k);
+    }
+    
+    const _recurse = (srcModelBone, dstModelBone) => {
+      if (srcModelBone !== srcModelBones.Root) {
+        srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+        
+        localQuaternion.premultiply(downRotation);
+        
+        dstModelBone.matrixWorld.compose(
+          srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
+          localQuaternion,
+          localVector4
+        );
+        dstModelBone.matrix.copy(dstModelBone.matrixWorld)
+          .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
+          .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
+        dstModelBone.updateMatrixWorld();
+      }
+      
+      for (let i = 0; i < srcModelBone.children.length; i++) {
+        const srcChild = srcModelBone.children[i];
+        const modelBoneName = srcBoneToModelNameMap.get(srcChild);
+        if (modelBoneName) {
+          const dstChild = dstModelBones[modelBoneName];
+          if (dstChild) {
+            _recurse(srcChild, dstChild);
+          }
+        }
+      }
+    };
+    _recurse(srcModelBones.Root, dstModelBones.Root);
+  };
+})();
+const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
+  for (const track of animation.tracks) {
+    const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
+    if (match) {
+      const animationBoneName = match[1];
+      const property = match[2];
+      
+      const {values} = track;
+      const modelBoneName = animationBoneToModelBone[animationBoneName];
+      const modelBone = modelBones[modelBoneName];
+      if (modelBone) {
+        if (property === 'position') {
+          modelBone.position.toArray(values, frame * 3);
+        } else if (property === 'quaternion') {
+          modelBone.quaternion.toArray(values, frame * 4);
+        } else {
+          console.warn('unknown property', property, k);
+        }
+      }
+    } else {
+      console.warn('non-matching track name', track.name);
+    }
+  }
+};
+
+export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
+  const srcModelBones = getModelBones(srcBaseModel);
+  const dstModelBones = getModelBones(dstBaseModel);
+  
+  // console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
+  
+  const dstAnimation = srcAnimation.clone();
+  
+  const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
+  for (let frame = 0; frame < numFrames; frame++) {
+    const srcModelBones2 = cloneModelBones(srcModelBones);
+    const dstModelBones2 = cloneModelBones(dstModelBones);
+    srcModelBones2.Root.updateMatrixWorld();
+    dstModelBones2.Root.updateMatrixWorld();
+    
+    _setSkeletonToAnimationFrame(srcModelBones2, srcAnimation, frame);
+    _setSkeletonWorld(dstModelBones2, srcModelBones2);
+    _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones2);
+  }
+  
+  decorateAnimation(dstAnimation);
+  
+  return dstAnimation;
+}; */
