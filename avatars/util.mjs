@@ -522,12 +522,14 @@ export const cloneModelBones = modelBones => {
   const nameToDstBoneMap = {};
   for (const k in modelBones) {
     const srcBone = modelBones[k];
-    const dstBone = new THREE.Bone();
-    dstBone.name = srcBone.name;
-    dstBone.position.copy(srcBone.position);
-    dstBone.quaternion.copy(srcBone.quaternion);
-    result[k] = dstBone;
-    nameToDstBoneMap[dstBone.name] = dstBone;
+    if (srcBone) {
+      const dstBone = new THREE.Bone();
+      dstBone.name = srcBone.name;
+      dstBone.position.copy(srcBone.position);
+      dstBone.quaternion.copy(srcBone.quaternion);
+      result[k] = dstBone;
+      nameToDstBoneMap[dstBone.name] = dstBone;
+    }
   }
   modelBones.Root.traverse(srcBone => {
     if (!nameToDstBoneMap[srcBone.name]) {
