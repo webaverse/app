@@ -36,9 +36,6 @@ class CharacterPhysics {
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     this.velocity.add(keysDirection);
-    if(this.player.avatar) {
-      console.log(this.player.avatar);
-    }
   }
   applyGravity(timeDiffS) {
     if (this.player) {
