@@ -519,7 +519,38 @@ export const cloneModelBones = modelBones => {
   return result;
 };
 
-// retargeting methods
+export const decorateAnimation = animation => {
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /^jump/i.test(animation.name);
+  animation.isSitting = /sitting/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
+  animation.isPistol  = /pistol aiming/i.test(animation.name);
+  animation.isRifle  = /rifle aiming/i.test(animation.name);
+  animation.isSlash  = /slash/i.test(animation.name);
+  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isMagic = /magic/i.test(animation.name);
+  animation.isSkateboarding = /skateboarding/i.test(animation.name);
+  animation.isThrow = /throw/i.test(animation.name);
+  animation.isDancing = /dancing/i.test(animation.name);
+  animation.isDrinking = /drinking/i.test(animation.name);
+  animation.isCrouch = /crouch|sneak/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isActivate = /object/i.test(animation.name);
+  animation.isNarutoRun = /naruto run/i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+  });
+};
+
+// retargeting
 const animationBoneToModelBone = {
   'mixamorigHips': 'Hips',
   'mixamorigSpine': 'Spine',
@@ -681,37 +712,6 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
       console.warn('non-matching track name', track.name);
     }
   }
-};
-
-export const decorateAnimation = animation => {
-  animation.isIdle = /idle/i.test(animation.name);
-  animation.isJump = /^jump/i.test(animation.name);
-  animation.isSitting = /sitting/i.test(animation.name);
-  animation.isFloat  = /treading/i.test(animation.name);
-  animation.isPistol  = /pistol aiming/i.test(animation.name);
-  animation.isRifle  = /rifle aiming/i.test(animation.name);
-  animation.isSlash  = /slash/i.test(animation.name);
-  animation.isCombo  = /combo/i.test(animation.name);
-  animation.isMagic = /magic/i.test(animation.name);
-  animation.isSkateboarding = /skateboarding/i.test(animation.name);
-  animation.isThrow = /throw/i.test(animation.name);
-  animation.isDancing = /dancing/i.test(animation.name);
-  animation.isDrinking = /drinking/i.test(animation.name);
-  animation.isCrouch = /crouch|sneak/i.test(animation.name);
-  animation.isForward = /forward/i.test(animation.name);
-  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
-  animation.isLeft = /left/i.test(animation.name);
-  animation.isRight = /right/i.test(animation.name);
-  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-  animation.isActivate = /object/i.test(animation.name);
-  animation.isNarutoRun = /naruto run/i.test(animation.name);
-  animation.isReverse = /reverse/i.test(animation.name);
-  animation.interpolants = {};
-  animation.tracks.forEach(track => {
-    const i = track.createInterpolant();
-    i.name = track.name;
-    animation.interpolants[track.name] = i;
-  });
 };
 
 export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
