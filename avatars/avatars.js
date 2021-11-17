@@ -1713,9 +1713,9 @@ class Avatar {
 	  model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
-      if (bone.isBone) {
+      // if (bone.isBone) {
         bone.initialQuaternion = bone.quaternion.clone();
-      }
+      // }
     });
     
     return {
