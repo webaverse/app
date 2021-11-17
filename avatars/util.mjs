@@ -14,11 +14,13 @@ export const getSkinnedMeshes = object => {
 export const getSkeleton = object => {
   let skeleton = null;
   
+  // regular skeleton
   if (!skeleton) {
     const skinnedMeshes = getSkinnedMeshes(object);
     const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
   }
+  // failed to find skeleton so assume the whole scene is a skeleton
   if (!skeleton) {
     const bones = [];
     object.scene.traverse(o => {
@@ -27,6 +29,7 @@ export const getSkeleton = object => {
     });
     skeleton = new THREE.Skeleton(bones);
   }
+
   return skeleton;
 };
 export const getEyePosition = (() => {
