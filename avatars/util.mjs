@@ -604,49 +604,60 @@ const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   }
   modelBones.Root.updateMatrixWorld();
 };
-const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
-  const srcBoneToModelNameMap = new Map();
-  for (const k in srcModelBones) {
-    srcBoneToModelNameMap.set(srcModelBones[k], k);
-  }
-  
-  const _recurse = (srcModelBone, dstModelBone) => {
-    if (srcModelBone !== srcModelBones.Root) {
-      /* if (srcModelBone === srcModelBones.Hips) {
-        dstModelBone.position.copy(srcModelBone.position);
-        dstModelBone.quaternion.copy(srcModelBone.quaternion);
-        dstModelBone.scale.copy(srcModelBone.scale);
-      } else { */
-        srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        
-        localQuaternion.premultiply(downRotation);
-        
-        dstModelBone.matrixWorld.compose(
-          srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
-          localQuaternion,
-          localVector4
-        );
-        dstModelBone.matrix.copy(dstModelBone.matrixWorld)
-          .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
-          .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
-      // }
-      dstModelBone.updateMatrixWorld();
+const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
+const _setSkeletonWorld = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localVector3 = new THREE.Vector3();
+  const localVector4 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localQuaternion2 = new THREE.Quaternion();
+  const localMatrix2 = new THREE.Matrix4();
+
+  return (dstModelBones, srcModelBones) => {
+    const srcBoneToModelNameMap = new Map();
+    for (const k in srcModelBones) {
+      srcBoneToModelNameMap.set(srcModelBones[k], k);
     }
     
-    for (let i = 0; i < srcModelBone.children.length; i++) {
-      const srcChild = srcModelBone.children[i];
-      const modelBoneName = srcBoneToModelNameMap.get(srcChild);
-      if (modelBoneName) {
-        const dstChild = dstModelBones[modelBoneName];
-        if (dstChild) {
-          _recurse(srcChild, dstChild);
+    const _recurse = (srcModelBone, dstModelBone) => {
+      if (srcModelBone !== srcModelBones.Root) {
+        /* if (srcModelBone === srcModelBones.Hips) {
+          dstModelBone.position.copy(srcModelBone.position);
+          dstModelBone.quaternion.copy(srcModelBone.quaternion);
+          dstModelBone.scale.copy(srcModelBone.scale);
+        } else { */
+          srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+          
+          localQuaternion.premultiply(downRotation);
+          
+          dstModelBone.matrixWorld.compose(
+            srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
+            localQuaternion,
+            localVector4
+          );
+          dstModelBone.matrix.copy(dstModelBone.matrixWorld)
+            .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
+            .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
+        // }
+        dstModelBone.updateMatrixWorld();
+      }
+      
+      for (let i = 0; i < srcModelBone.children.length; i++) {
+        const srcChild = srcModelBone.children[i];
+        const modelBoneName = srcBoneToModelNameMap.get(srcChild);
+        if (modelBoneName) {
+          const dstChild = dstModelBones[modelBoneName];
+          if (dstChild) {
+            _recurse(srcChild, dstChild);
+          }
         }
       }
-    }
+    };
+    _recurse(srcModelBones.Root, dstModelBones.Root);
   };
-  _recurse(srcModelBones.Root, dstModelBones.Root);
-};
+})();
 const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
   for (const track of animation.tracks) {
     const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
@@ -672,6 +683,37 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
   }
 };
 
+export const decorateAnimation = animation => {
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /^jump/i.test(animation.name);
+  animation.isSitting = /sitting/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
+  animation.isPistol  = /pistol aiming/i.test(animation.name);
+  animation.isRifle  = /rifle aiming/i.test(animation.name);
+  animation.isSlash  = /slash/i.test(animation.name);
+  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isMagic = /magic/i.test(animation.name);
+  animation.isSkateboarding = /skateboarding/i.test(animation.name);
+  animation.isThrow = /throw/i.test(animation.name);
+  animation.isDancing = /dancing/i.test(animation.name);
+  animation.isDrinking = /drinking/i.test(animation.name);
+  animation.isCrouch = /crouch|sneak/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isActivate = /object/i.test(animation.name);
+  animation.isNarutoRun = /naruto run/i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+  });
+};
+
 export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   const srcModelBones = getModelBones(srcBaseModel);
   const dstModelBones = getModelBones(dstBaseModel);
@@ -692,7 +734,7 @@ export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
     _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones2);
   }
   
-  _decorateAnimation(dstAnimation);
+  decorateAnimation(dstAnimation);
   
   return dstAnimation;
 };
