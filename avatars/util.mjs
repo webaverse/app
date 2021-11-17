@@ -54,18 +54,7 @@ export const getSkeleton = object => {
       });
     }
     skeleton = new THREE.Skeleton(bones);
-
-    /* const skinnedMeshes = getSkinnedMeshes(object);
-    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-    skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton; */
   }
-  
-  /* const poseSkeletonSkinnedMesh = skeleton ? skinnedMeshes.find(o => o.skeleton !== skeleton && o.skeleton.bones.length >= skeleton.bones.length) : null;
-  const poseSkeleton = poseSkeletonSkinnedMesh && poseSkeletonSkinnedMesh.skeleton;
-  if (poseSkeleton) {
-    copySkeleton(poseSkeleton, skeleton);
-    poseSkeletonSkinnedMesh.bind(skeleton);
-  } */
   return skeleton;
 };
 export const getEyePosition = (() => {
@@ -402,7 +391,6 @@ export const getModelBones = object => {
     Head = _findHead(tailBones);
     Neck = Head.parent;
     UpperChest = Neck.parent;
-    //Chest = UpperChest.parent;
     Chest = _findChest(skeleton);
     Hips = _findHips(skeleton);
     Root = Hips?.parent;
