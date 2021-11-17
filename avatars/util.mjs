@@ -414,6 +414,10 @@ export const getModelBones = object => {
     Right_leg = Right_knee.parent;
     Right_toe = Right_ankle.children[0];
   }
+  
+  Root.traverse(bone => {
+    bone.initialQuaternion = bone.quaternion.clone();
+  });
 
   return {
     Root,
