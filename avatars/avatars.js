@@ -839,21 +839,21 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
       const {values} = track;
       const modelBoneName = animationBoneToModelBone[animationBoneName];
       const modelBone = modelBones[modelBoneName];
-      if (!modelBone) {
-        console.warn('could not find model bone', modelBoneName, animationBoneName);
-      }
-      if (property === 'position') {
-        modelBone.position.toArray(values, frame * 3);
-      } else if (property === 'quaternion') {
-        modelBone.quaternion.toArray(values, frame * 4);
-      } else {
-        console.warn('unknown property', property, k);
+      if (modelBone) {
+        if (property === 'position') {
+          modelBone.position.toArray(values, frame * 3);
+        } else if (property === 'quaternion') {
+          modelBone.quaternion.toArray(values, frame * 4);
+        } else {
+          console.warn('unknown property', property, k);
+        }
       }
     } else {
       console.warn('non-matching track name', track.name);
     }
   }
 };
+
 const _retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   const srcModelBones = getModelBones(srcBaseModel);
   const dstModelBones = getModelBones(dstBaseModel);
