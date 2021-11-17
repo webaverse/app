@@ -604,10 +604,6 @@ const animationBoneToModelBone = {
   'mixamorigLeftLeg': 'Left_knee',
   'mixamorigLeftFoot': 'Left_ankle',
   'mixamorigLeftToeBase': 'Left_toe',
-  /*
-  Eye_L,
-  Eye_R,
-  */
 };
 const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   for (const track of animation.tracks) {
@@ -653,25 +649,19 @@ const _setSkeletonWorld = (() => {
     
     const _recurse = (srcModelBone, dstModelBone) => {
       if (srcModelBone !== srcModelBones.Root) {
-        /* if (srcModelBone === srcModelBones.Hips) {
-          dstModelBone.position.copy(srcModelBone.position);
-          dstModelBone.quaternion.copy(srcModelBone.quaternion);
-          dstModelBone.scale.copy(srcModelBone.scale);
-        } else { */
-          srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-          dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-          
-          localQuaternion.premultiply(downRotation);
-          
-          dstModelBone.matrixWorld.compose(
-            srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
-            localQuaternion,
-            localVector4
-          );
-          dstModelBone.matrix.copy(dstModelBone.matrixWorld)
-            .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
-            .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
-        // }
+        srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+        
+        localQuaternion.premultiply(downRotation);
+        
+        dstModelBone.matrixWorld.compose(
+          srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
+          localQuaternion,
+          localVector4
+        );
+        dstModelBone.matrix.copy(dstModelBone.matrixWorld)
+          .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
+          .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
         dstModelBone.updateMatrixWorld();
       }
       
