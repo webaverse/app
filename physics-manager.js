@@ -72,7 +72,7 @@ physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMateria
 
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, halfHeight, radius, physicsId, physicsMaterial, ccdEnabled);
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
   const physicsMesh = new THREE.Mesh(
