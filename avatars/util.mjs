@@ -416,7 +416,9 @@ export const getModelBones = object => {
   }
   
   Root.traverse(bone => {
-    bone.initialQuaternion = bone.quaternion.clone();
+    if (!bone.initialQuaternion) {
+      bone.initialQuaternion = bone.quaternion.clone();
+    }
   });
 
   return {
