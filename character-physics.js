@@ -36,9 +36,12 @@ class CharacterPhysics {
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     this.velocity.add(keysDirection);
+    if(this.player.avatar) {
+      console.log(this.player.avatar);
+    }
   }
   applyGravity(timeDiffS) {
-    if (this.player.avatar) {
+    if (this.player) {
       if (!this.player.hasAction('fly')) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
@@ -55,7 +58,7 @@ class CharacterPhysics {
         .add(localVector2.set(0, -avatarHeight * 0.5, 0));
       const radius = 0.3 / 1.6 * avatarHeight;
       const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
-      return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, q, 4);
+      return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, q, 10);
     };
   })()
   applyAvatarPhysicsDetail(
@@ -80,6 +83,8 @@ class CharacterPhysics {
         this.rb.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         localQuaternion.copy(this.player.quaternion);
 
+        const capsuleOffset = new THREE.Vector3(0, this.player.avatar.height/2, 0);
+        localVector.add(capsuleOffset);
         const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
 
         // avatar facing direction
@@ -134,7 +139,7 @@ class CharacterPhysics {
         }
       } else {
         //Outdated vehicle code
-        /*this.velocity.y = 0;
+        this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
 
@@ -165,8 +170,11 @@ class CharacterPhysics {
 
         localVector.add(this.sitOffset);
         localVector.y += 1;
-        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));*/
+        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
+      //const offsetY = this.player.avatar.height/2 + 0.296;
+      //const capsuleOffset = new THREE.Vector3(0, this.player.avatar.height/2 + 0.1, 0);
+      //localVector.add(capsuleOffset);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
@@ -179,9 +187,14 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
+      /*if(this.debugCapsule) {
+        this.debugCapsule.position.copy(this.rb.position);
+        this.debugCapsule.quaternion.copy(this.rb.quaternion);
+      }*/
+
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
-          this.avatar.setFloorHeight(-0xFFFFFF);
+          this.avatar.setFloorHeight(0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
@@ -203,7 +216,7 @@ class CharacterPhysics {
   updateVelocity() {
     if(this.player.avatar) {
       if(this.rb) {
-        physicsManager.setVelocity(this.rb, this.velocity /*this.velocity.clone() */);
+        physicsManager.setVelocity(this.rb, this.velocity.clone() /*this.velocity.clone() */);
       }
     }
   }
@@ -227,8 +240,8 @@ class CharacterPhysics {
           if(id === this.rb.physicsId) {
             this.rb.position.copy(position);
             const avatarHeight = this.player.avatar ? this.player.avatar.height : 0; 
-            const offset =  avatarHeight - 0.3;
-            this.rb.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
+            const offset = avatarHeight;
+            //this.rb.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
             this.rb.quaternion.copy(quaternion);
             this.rb.updateMatrixWorld();
             this.rb.needsUpdate = false;
