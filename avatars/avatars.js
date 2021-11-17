@@ -1712,6 +1712,12 @@ class Avatar {
       .premultiply(ql2.clone().invert());
 	  model.updateMatrixWorld(true);
     
+    modelBones.Root.traverse(bone => {
+      if (bone.isBone) {
+        bone.initialQuaternion = bone.quaternion.clone();
+      }
+    });
+    
     return {
       skinnedMeshes,
       skeleton,
