@@ -236,9 +236,6 @@ class CharacterPhysics {
           const {id, position, quaternion, scale} = updateOut; 
           if(id === this.rb.physicsId) {
             this.rb.position.copy(position);
-            const avatarHeight = this.player.avatar ? this.player.avatar.height : 0; 
-            const offset = avatarHeight;
-            //this.rb.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
             this.rb.quaternion.copy(quaternion);
             this.rb.updateMatrixWorld();
             this.rb.needsUpdate = false;

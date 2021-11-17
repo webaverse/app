@@ -596,8 +596,8 @@ metaversefile.setApi({
         //size = localVector2;
         
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
-        physicsObject.position.copy(basePosition);
-        physicsObject.quaternion.copy(baseQuaternion);
+        physicsObject.position.copy(app.position);
+        physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
         
         const {physicsMesh} = physicsObject;
@@ -632,6 +632,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
 
         // physicsManager.pushUpdate(app, physicsObject);
+        physicsManager.setTransform(physicsObject);
         return physicsObject;
       })(physics.addCapsuleGeometry);
       physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
@@ -648,8 +649,8 @@ metaversefile.setApi({
         //size = localVector2;
         
         const physicsObject = addSphereGeometry.call(this, position, quaternion, radius, physicsMaterial, ccdEnabled);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
+        //physicsObject.position.copy(app.position);
+        //physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
         
         const {physicsMesh} = physicsObject;
