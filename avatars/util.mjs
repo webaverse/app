@@ -70,9 +70,6 @@ export const makeBoneMap = object => {
     const boneSpec = object.parser.json.nodes[node];
     const b = skeleton.bones.find(b => b.userData.name === boneSpec.name);
     result[bone] = b;
-    if (!b) {
-      console.warn('missing bone:', boneSpec.name);
-    }
   }
   result.root = result.hips?.parent;
   return result;
