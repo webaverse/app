@@ -8,6 +8,9 @@ import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId} f
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
+import { createStore } from '../secure-storage.ts';
+
+const store = createStore();
 
 function useComponentVisible(initialIsVisible, fn) {
   const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible);
@@ -64,7 +67,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           const {address, profile} = await ceramicApi.login();
           // console.log('login', {address, profile});
           setAddress(address);
-          localStorage.setItem('loginToken', address);
+          store.saveKey('login-token', 'webaverse', { loginToken: address })
+
           setShow(false);
 
           userRef.setIsComponentVisible(false);
@@ -86,10 +90,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   
   useEffect(async () => {
 
-    const storedLoginToken = localStorage.getItem("loginToken");
+    let loginTokenStored = store.getPrivateKeyData('login-token', 'webaverse');
+    const loginToken = loginTokenStored ? loginTokenStored.loginToken : null;
 
-    if(storedLoginToken) {  
-      setAddress(storedLoginToken);
+    if(loginToken) {  
+      setAddress(loginToken);
     }
     else {
       const {
@@ -106,7 +111,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         if(address) {
           console.log('address', address)
           setAddress(address);
-          localStorage.setItem('loginToken', address);
+          store.saveKey('login-token', 'webaverse', { loginToken: address })
           setShow(false);
         }
         else {
@@ -143,7 +148,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       { address ?
         <div className={styles.logoutBtn}
         onClick={e => {
-         localStorage.removeItem("loginToken");
+         store.removeKey('login-token');
          setAddress(null)
 
         }}
