@@ -78,7 +78,7 @@ class AppManager extends EventTarget {
   
     if (nextAppsArray) {
       const observe = e => {
-        const {added, deleted, delta, keys} = e.changes;
+        const {added, deleted} = e.changes;
         
         for (const item of added.values()) {
           const appMap = item.content.type;
@@ -156,13 +156,13 @@ class AppManager extends EventTarget {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
       if (origin !== 'push') {
-        if (e.keysChanged.has('position')) {
+        if (e.changes.keys.has('position')) {
           app.position.fromArray(trackedApp.get('position'));
         }
-        if (e.keysChanged.has('quaternion')) {
+        if (e.changes.keys.has('quaternion')) {
           app.quaternion.fromArray(trackedApp.get('quaternion'));
         }
-        if (e.keysChanged.has('scale')) {
+        if (e.changes.keys.has('scale')) {
           app.scale.fromArray(trackedApp.get('scale'));
         }
       }
