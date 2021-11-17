@@ -821,7 +821,9 @@ const _setSkeletonWorld = (dstModelBones, srcModelBones) => {
       const modelBoneName = srcBoneToModelNameMap.get(srcChild);
       if (modelBoneName) {
         const dstChild = dstModelBones[modelBoneName];
-        _recurse(srcChild, dstChild);
+        if (dstChild) {
+          _recurse(srcChild, dstChild);
+        }
       }
     }
   };
