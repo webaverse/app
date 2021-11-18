@@ -632,7 +632,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
 
         // physicsManager.pushUpdate(app, physicsObject);
-        physicsManager.setTransform(physicsObject);
+        //physicsManager.setTransform(physicsObject);
         return physicsObject;
       })(physics.addCapsuleGeometry);
       physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
@@ -708,6 +708,13 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
+      physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
+        disablePhysicsObject.call(this, physicsObject);
+      })(physics.disablePhysicsObject);
+
+      physics.setTransform = (setTransform => function(physicsObject) {
+        setTransform.call(this, physicsObject);
+      })(physics.setTransform);
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;

@@ -1125,10 +1125,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();
+  /*const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.appManager.pushAppUpdates();*/
   
-  const remotePlayers = metaversefileApi.useRemotePlayers();
+  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
