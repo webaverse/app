@@ -121,6 +121,63 @@ const cameraManager = {
       return value1 + (value2 - value1) * amount;
     }
 
+    function checkRayIntersection(origin,dirQuaternion,maxDistance)
+    {
+      let res = false;
+
+      let collision = physicsManager.raycast(origin, dirQuaternion);
+      if (collision) {
+        if (collision.distance <= maxDistance) {
+          res = true;
+        }
+      }
+
+      return res;
+    }
+
+    // Two rays from players position with small offset left and right
+    function checkSmallObjectIntersections(maxDistance)
+    {
+      let intersections = 0;
+
+      const localPlayer = metaversefile.useLocalPlayer();
+
+      let checkPoints = [];
+      
+      const sideways = new THREE.Vector3();
+      
+      // Left
+      checkPoints[0] = localPlayer.position.clone();
+      sideways.set(-1, 0, 0);
+      sideways.applyQuaternion(camera.quaternion);
+      sideways.normalize();
+      checkPoints[0].add(sideways);
+      
+      // Right
+      checkPoints[1] = localPlayer.position.clone();
+      sideways.set(1, 0, 0);
+      sideways.applyQuaternion(camera.quaternion);
+      sideways.normalize();
+      checkPoints[1].add(sideways);
+  
+      for(let i=0;i<checkPoints.length;i++)
+      {
+        rayDirection.subVectors(localPlayer.position,camera.position ).normalize();
+
+        rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+        rayQuaternion.setFromRotationMatrix(rayMatrix);
+  
+        rayStartPos.copy(checkPoints[i]);
+
+        if (checkRayIntersection(rayStartPos,rayQuaternion,maxDistance)) {
+          intersections++;
+        }
+      }
+
+      return intersections;
+    }
+
+
     // Check for collision with level physic objects
 
     let newVal = cameraOffsetTargetZ;
@@ -128,22 +185,32 @@ const cameraManager = {
 
     const localPlayer = metaversefile.useLocalPlayer();
 
+    let z = ( camera.near + camera.far ) / ( camera.near - camera.far );
+
     let cornerPoints = [];
     // Top left
-    cornerPoints[0] = new THREE.Vector3( -1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[0] = new THREE.Vector3( -1, 1, z );
     cornerPoints[0].unproject( camera );
+    cornerPoints[0].valueX = -1;
+    cornerPoints[0].valueY = 1;
 
     // Bottom left
-    cornerPoints[1] = new THREE.Vector3( -1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[1] = new THREE.Vector3( -1, -1, z );
     cornerPoints[1].unproject( camera );
+    cornerPoints[1].valueX = -1;
+    cornerPoints[1].valueY = -1;
 
     // Top right
-    cornerPoints[2] = new THREE.Vector3( 1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[2] = new THREE.Vector3( 1, 1, z );
     cornerPoints[2].unproject( camera );
+    cornerPoints[2].valueX = 1;
+    cornerPoints[2].valueY = 1;
 
     // Bottom right
-    cornerPoints[3] = new THREE.Vector3( 1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far ) );
+    cornerPoints[3] = new THREE.Vector3( 1, -1, z );
     cornerPoints[3].unproject( camera );
+    cornerPoints[3].valueX = 1;
+    cornerPoints[3].valueY = -1;
 
 
     // Raycast from all camera corners
@@ -160,6 +227,7 @@ const cameraManager = {
 
       let collision = physicsManager.raycast(rayStartPos, rayQuaternion);
       if (collision) {
+
         if (collision.distance <= -1 * newVal) {
           if (newVal < (-1 * (collision.distance-0.15))) {
             newVal = (-1 * (collision.distance-0.15));
@@ -167,6 +235,12 @@ const cameraManager = {
           }
         }
       }
+    }
+
+    if (hasIntersection && (checkSmallObjectIntersections(-1*cameraOffsetTargetZ) == 0))
+    {
+      hasIntersection = false;
+      newVal = cameraOffsetTargetZ;
     }
     
     // Slow zoom out if there is no intersection
