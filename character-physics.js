@@ -124,10 +124,14 @@ class CharacterPhysics {
             localVector4
               .fromArray(collision.direction)
           );*/
-
           if (collision.grounded) {
-            this.velocity.y = 0;
-            _ensureNoJumpAction();
+            if(!jumpAction) {
+              this.velocity.y = 0;
+              _ensureNoJumpAction();
+            }
+            else if(jumpAction && this.velocity.y <= 0) {
+              _ensureNoJumpAction();
+            } 
           } else if (!jumpAction) {
             _ensureJumpAction();
           }
@@ -169,9 +173,8 @@ class CharacterPhysics {
         localVector.y += 1;
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
-      //const offsetY = this.player.avatar.height/2 + 0.296;
-      //const capsuleOffset = new THREE.Vector3(0, this.player.avatar.height/2 + 0.1, 0);
-      //localVector.add(capsuleOffset);
+      const feetOffset = new THREE.Vector3(0, 0.05, 0); // Or feet will be in ground, only cosmetical, works for all avatars
+      localVector.add(feetOffset);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
@@ -191,7 +194,7 @@ class CharacterPhysics {
 
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
-          this.avatar.setFloorHeight(0xFFFFFF);
+          this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
@@ -213,7 +216,7 @@ class CharacterPhysics {
   updateVelocity() {
     if(this.player.avatar) {
       if(this.rb) {
-        physicsManager.setVelocity(this.rb, this.velocity.clone() /*this.velocity.clone() */);
+        physicsManager.setVelocity(this.rb, this.velocity.clone());
       }
     }
   }
@@ -226,10 +229,7 @@ class CharacterPhysics {
         quaternion: new THREE.Quaternion(),
         scale: new THREE.Vector3(0,0,0),
       });
-
       const newTransform = physicsManager.getTransforms(physicsObjects2);
-
-      //console.log(newTransform.length);
 
       for (const updateOut of newTransform)
         {

@@ -543,6 +543,12 @@ class AppManager extends EventTarget {
                 physicsObject.position.copy(app.position);
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
+
+                if(app.appType === "vrm") {
+                  //const h = app.avatar ? app.avatar.height : 0;
+                  physicsObject.position.add(new THREE.Vector3(0, 1, 0));
+                }
+
                 physicsObject.updateMatrixWorld();
                 
                 //physicsManager.pushUpdate(physicsObject);

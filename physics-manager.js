@@ -82,6 +82,7 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
   //console.log(physicsId);
+  //physicsObject.position.add(new THREE.Vector3(0, 3, 0));
   physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
   return physicsObject;
 };
