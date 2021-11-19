@@ -12,6 +12,8 @@ import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
 const {useLocalPlayer} = metaversefileApi;
 
+import dropManager from '../drop-manager.js';
+
 const _startApp = async (weba, canvas) => {
   weba.setContentLoaded();
 
