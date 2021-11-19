@@ -18,6 +18,7 @@ import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+import {apiBackend} from '../constants';
 
 const localEuler = new THREE.Euler();
 
@@ -309,6 +310,7 @@ export default function Header({
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
+  const [tokenUris, setTokenUris] = useState(null);
   const [nfts, setNfts] = useState(null);
   const [apps, setApps] = useState(world.appManager.getApps().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
@@ -402,22 +404,25 @@ export default function Header({
     }
   }, [open]);
   useEffect(() => {
-    if (address && !nfts) {
-      setNfts([]);
-      
+    setAddress('0xa6510E349be7786200AC9eDC6443D09FE486Cb40'); // just for testing purposes
+    if (address && !tokenUris) {
+      setTokenUris([]);
       (async () => {
-        const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
-          headers: {
-            'X-API-KEY': `6a7ceb45f3c44c84be65779ad2907046`,
-          },
-        });
-        const j = await res.json();
-        const {assets} = j;
-        setNfts(assets);
-        // console.log('got assets', assets);
+        var tokenUri = [];
+        const res = await fetch(`${apiBackend}/tokenids?address=${address}`);
+        const tokenIds = await res.json();
+        const {Item} = tokenIds;
+        for(let tId of Object.keys(Item)) {
+          const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
+          if(result.status != 404) {
+            var k = await result.json();
+            tokenUri.push(k);
+          }
+        }
+        setTokenUris(tokenUri);
       })();
     }
-  }, [address, nfts]);
+  }, [address, tokenUris]);
   const _loadUrlState = () => {
     const src = _getCurrentSceneSrc();
     setSceneName(src);
@@ -866,23 +871,17 @@ export default function Header({
           e.preventDefault();
           e.stopPropagation();
         }}>
-          {(nfts || []).map((nft, i) => {
-            const {id, asset_contract, name, description} = nft;
-            const image_preview_url = hacks.getNftImage(nft);
-            /* if (!image_preview_url) {
-              console.log('got nft', {nft, hacks, image_preview_url});
-              debugger;
-            } */
-            // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
-            // console.log(nft);
+          {(tokenUris || []).map((tokenUri, i) => {
+            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points} = tokenUri;
+
             return <div className={styles.nft} onDragStart={e => {
-              e.dataTransfer.setData('application/json', JSON.stringify(nft));
+              e.dataTransfer.setData('application/json', JSON.stringify(tokenUri));
             }} draggable key={i}>
-              <img src={image_preview_url} className={styles.preview} />
+              <img src={image} className={styles.preview} />
               <div className={styles.wrap}>
                 <div className={styles.name}>{name}</div>
                 <div className={styles.description}>{description}</div>
-                <div className={styles.tokenid}>{asset_contract.address} / {id}</div>
+                <div className={styles.tokenid}>{external_link}</div>
               </div>
             </div>
           })}
