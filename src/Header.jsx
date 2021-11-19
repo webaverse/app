@@ -404,7 +404,7 @@ export default function Header({
     }
   }, [open]);
   useEffect(() => {
-    setAddress('0xa6510E349be7786200AC9eDC6443D09FE486Cb40'); // just for testing purposes
+    // setAddress('0xa6510E349be7786200AC9eDC6443D09FE486Cb40'); // keeping it just for testing purposes
     if (address && !tokenUris) {
       setTokenUris([]);
       (async () => {
