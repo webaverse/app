@@ -25,6 +25,7 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
+
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -301,12 +302,13 @@ class CharacterPhysics {
     camera.updateMatrixWorld();
   }
   updateRigidbody() {
-    this.updateVelocity();
     this.updateTransform();
+    this.updateVelocity();
   }
   update(timeDiffS) {
     this.applyGravity(timeDiffS);
     this.applyDamping(timeDiffS);
+    this.updateRigidbody();
     this.applyAvatarPhysics(timeDiffS);
     this.updateCamera(timeDiffS);
   }

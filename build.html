@@ -442,6 +442,15 @@ bakeFormEl.addEventListener('submit', async e => {
         moduleInstance._doFree(ptr);
       };
       w.makePhysics = () => moduleInstance._makePhysics();
+      w.simulatePhysics = (physics, elapsedTime) => {
+
+        console.log('simulating');
+    
+        moduleInstance._simulatePhysics(
+          physics,
+          elapsedTime,
+        );
+      };
       /*w.simulatePhysics = (physics, updates, elapsedTime) => {
         const maxNumUpdates = 10;
         let index = 0;
