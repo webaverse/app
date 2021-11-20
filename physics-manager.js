@@ -24,6 +24,8 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
+const localMaterial = new THREE.Vector3();
+
 const localVelocity = new THREE.Vector3();
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -110,9 +112,11 @@ physicsManager.addGeometry = mesh => {
     );
     physicsMesh.updateMatrixWorld();
   }
+
+  localMaterial.set(0,0,0); // staticFriction, dynamicFriction, restitution
   
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId);
+  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId, localMaterial);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);

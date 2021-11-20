@@ -297,7 +297,7 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => { 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 30); // What is 100?
+      const timeDiffCapped = timeDiff;//Math.min(Math.max(timeDiff, 0), 30); // What is 100?
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();

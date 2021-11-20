@@ -610,24 +610,24 @@ metaversefile.setApi({
         physicsObject.updateMatrixWorld();
 
 
-        /*const debugCapsule = new THREE.Mesh(
-          new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshNormalMaterial()
+        const debugCapsule = new THREE.Mesh(
+          new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshStandardMaterial({transparent: true, opacity: 0.9, color: 0xff0000, wireframe: true, wireframeLinewidth: 2})
         );
 
         const localPlayer = metaversefile.useLocalPlayer();
 
-        if(localPlayer.avatar) {
+        /*if(localPlayer.avatar) {
           if(localPlayer.avatar.height) {
             console.log(localPlayer.avatar.height);
           }
-        }
+        }*/
 
         ///
-        app.add(debugCapsule);
+        /*app.add(debugCapsule);
         app.debugCapsule = debugCapsule;
         app.debugCapsule.position.copy(basePosition);
-        app.debugCapsule.quaternion.copy(baseQuaternion);
-        ///*/
+        app.debugCapsule.quaternion.copy(baseQuaternion);*/
+        ///
         
         app.physicsObjects.push(physicsObject);
 

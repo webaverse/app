@@ -30,6 +30,7 @@ class CharacterPhysics {
   constructor(player) {
     this.player = player;
     this.rb = null;
+    this.debugCapsule = null;
 
     this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
@@ -67,6 +68,7 @@ class CharacterPhysics {
     if (this.player.avatar && physicsManager.physicsEnabled) {
 
       this.rb = this.player.avatar.app.physicsObjects[0];
+      //this.debugCapsule = this.player.avatar.app.debugCapsule;;
 
       if(!this.rb) return;
 
@@ -190,7 +192,7 @@ class CharacterPhysics {
 
       /*if(this.debugCapsule) {
         this.debugCapsule.position.copy(this.rb.position);
-        this.debugCapsule.quaternion.copy(this.rb.quaternion);
+        //this.debugCapsule.quaternion.copy(this.rb.quaternion);
       }*/
 
       if (this.avatar) {
@@ -302,8 +304,8 @@ class CharacterPhysics {
     camera.updateMatrixWorld();
   }
   updateRigidbody() {
-    this.updateTransform();
     this.updateVelocity();
+    this.updateTransform();
   }
   update(timeDiffS) {
     this.applyGravity(timeDiffS);
