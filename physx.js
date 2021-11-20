@@ -637,7 +637,7 @@ const physxWorker = (() => {
     } : null;
   };
 
-  w.addGeometryPhysics = (physics, mesh, id) => {
+  w.addGeometryPhysics = (physics, mesh, id, physicsMaterial) => {
     const {geometry} = mesh;
 
     const allocator = new Allocator();
@@ -667,6 +667,8 @@ const physxWorker = (() => {
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer);
     const scaleBuffer = scratchStack.f32.subarray(10, 13);
     mesh.getWorldScale(localVector2).toArray(scaleBuffer);
+    const mat = scratchStack.f32.subarray(13, 16);
+    physicsMaterial.toArray(mat);
 
     moduleInstance._addGeometryPhysics(
       physics,
@@ -676,6 +678,7 @@ const physxWorker = (() => {
       quaternionBuffer.byteOffset,
       scaleBuffer.byteOffset,
       id,
+      mat.byteOffset,
       streamPtr,
     );
   };
