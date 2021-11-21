@@ -77,13 +77,17 @@ Each of these sub-app repositories contain a .metaversefile which essentially le
 Please look at the following example for guidance on building an app to load with this repository<br>
 https://github.com/webaverse/simple-application
 
+Once you are ready to test your sub-app. You will have to set up GitHub Pages on the repository, and set the source as the master/main/copy or branch.
+
+If you make a change on the sub-app repo, you will have to push it and re-run the main application as vite.js caches sub-apps.
+
 # Adding your own features
 Common javascript functionality is used across the application so do not be intimidated by all of the depth and breadth (1000s of lines some files),
 they are all put together in a simple / isolated manner. 
 
 ## How to add a new common shader?
 Really the strategy here should be to create any new shader that will commonly be used across the applicatiuon( not specific to any sub-app, but across all apps) should be added to shaders.js or similarly, a new sub directory could be added with further subcategorisation of files and folders according to types. 
-> Shaders.js <br>
+## <b>Shaders.js <br>
 If you follow along with the example of the buildMaterial on line 186 of Shaders.js. 
 
 ```javascript
@@ -101,13 +105,13 @@ const buildMaterial = new THREE.ShaderMaterial({
 ```
 This is then exported out and imported into game.js, and could be imported elsewhere. Applying this material onto any 3d mesh should have the intended shader effect.
 
-## character-controller.js <br>
+## <b>character-controller.js <br>
 This file contains a number of classes that all inherit from a common base class called Player (which is just an Object3D, which contains all the functionality around the avatar, rig, and player position, rotation along with bones. State is also being synchronised via y.js using interpolation.
 
-## Avatars.js
+## <b>Avatars.js
 Related to the character-controller is avatars.js, which contains fuinctionality around the bones, and using quaternion smooth interpolation to animate between animation clips. You can also see some bone functionality introduced from the VRM package.
 
-You will also have the ability to switch IK-Mode on and off for the upper or bottom half of the body using 
+You will also have the ability to switch IK-Mode on and off for the upper or bottom half of the body by enabling the following
 
 ```javascript
   setTopEnabled(enabled)
