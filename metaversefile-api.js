@@ -413,8 +413,6 @@ const gradientMaps = {
   },
 };
 
-const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-
 const abis = {
   ERC721,
   ERC1155,
