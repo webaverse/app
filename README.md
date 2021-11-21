@@ -64,15 +64,55 @@ npm run dev
 <br>
 
 
-## Loading apps
-The Webaverse can load many types of applications and files. <br>
-Developers can build their own apps and load them into the main application, quite easily <br>
+# Loading sub-apps
+The Webaverse can load many types of sub-apps and files. <br>
+The architecture of this project allows for development of isolated apps, that can then be loaded via the metaversefile loaders <br>
+Developers can build their own sub-apps and load them into the main application, quite easily <br>
 ```bash
 ├───scenes <--- Application can be loaded in via scenes/[NAME].scn
 	├───canyon.scn <-- This contains a kind of scene node graph with each node containing a position, quaternion, scale and startURL
 ```
+Each of these sub-app repositories contain a .metaversefile which essentially lets the application know what the entry point for the sub-app is.
+
 Please look at the following example for guidance on building an app to load with this repository<br>
 https://github.com/webaverse/simple-application
+
+# Adding your own features
+Common javascript functionality is used across the application so do not be intimidated by all of the depth and breadth (1000s of lines some files),
+they are all put together in a simple / isolated manner. 
+
+## How to add a new common shader?
+Really the strategy here should be to create any new shader that will commonly be used across the applicatiuon( not specific to any sub-app, but across all apps) should be added to shaders.js or similarly, a new sub directory could be added with further subcategorisation of files and folders according to types. 
+> Shaders.js <br>
+If you follow along with the example of the buildMaterial on line 186 of Shaders.js. 
+
+```javascript
+const buildMaterial = new THREE.ShaderMaterial({
+  uniforms:{
+    uTime:{
+      type:'f',
+      value:0,
+      needsUpdate:true
+    }
+  },
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader
+});
+```
+This is then exported out and imported into game.js, and could be imported elsewhere. Applying this material onto any 3d mesh should have the intended shader effect.
+
+## character-controller.js <br>
+This file contains a number of classes that all inherit from a common base class called Player (which is just an Object3D, which contains all the functionality around the avatar, rig, and player position, rotation along with bones. State is also being synchronised via y.js using interpolation.
+
+## Avatars.js
+Related to the character-controller is avatars.js, which contains fuinctionality around the bones, and using quaternion smooth interpolation to animate between animation clips. You can also see some bone functionality introduced from the VRM package.
+
+You will also have the ability to switch IK-Mode on and off for the upper or bottom half of the body using 
+
+```javascript
+  setTopEnabled(enabled)
+  setBottomEnabled(enabled)
+```
 
 ## Directory Structure
 
@@ -106,7 +146,8 @@ https://github.com/webaverse/simple-application
 
 ## Submodules
 * [Metaversefile](https://github.com/webaverse/metaversefile/) <br>
-  This is the loader part of the application, it is used to load ANY and MANY file types, each with their own loading strategy. 
+  This is the loader part of the application, it is used to load ANY and MANY file types, each with their own loading strategy. <br>
+  If you want to edit a kind of loader, maybe its specific such as GLTF, you can look at the type/templates and edit glb.js to add your own modification to this loader.
 * [wsrtc](https://github.com/webaverse/wsrtc/) <br>
   WSRTC is a custom websocket based RTC networking protocol. Allowing for P2P communication as well as utilising WS.
 
