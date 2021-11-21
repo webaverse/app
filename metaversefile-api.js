@@ -398,12 +398,18 @@ const _threeTone = _memoize(() => {
 const _fiveTone = _memoize(() => {
   return _loadImageTexture('/textures/fiveTone.jpg');
 });
+const _twentyTone = _memoize(() => {
+  return _loadImageTexture('/textures/twentyTone.png');
+});
 const gradientMaps = {
   get threeTone() {
     return _threeTone();
   },
   get fiveTone() {
     return _fiveTone();
+  },
+  get twentyTone() {
+    return _twentyTone();
   },
 };
 
