@@ -69,9 +69,7 @@ The Webaverse can load many types of applications and files. <br>
 Developers can build their own apps and load them into the main application, quite easily <br>
 ```bash
 ├───scenes <--- Application can be loaded in via scenes/[NAME].scn
-	├───canyon.scn <-- This contains a kind of scene node graph with each object containing a position, quaternion, scale and startURL
-	├───classroom.scn <-- Loads Webaverse.js from Root directory
-
+	├───canyon.scn <-- This contains a kind of scene node graph with each node containing a position, quaternion, scale and startURL
 ```
 Please look at the following example for guidance on building an app to load with this repository<br>
 https://github.com/webaverse/simple-application
