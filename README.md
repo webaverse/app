@@ -1,16 +1,43 @@
-# Webaverse App
+# Webaverse Quick Start Guide
 
-![](https://i.imgur.com/G0lUrEd.jpg)
+## To Use
 
-<div align="center">
-  <a href="https://webaverse.com">Site</a>
-  &mdash;
-  <a href="https://docs.webaverse.com/">Docs</a>
-  &mdash;
-  <a href="https://blog.webaverse.com/">Blog</a>
-  &mdash;
-  <a href="https://twitter.com/webaverse">Twitter</a>
-</div>
+To clone and run this repository you'll need [Git](https://git-scm.com) and Latest Current version of [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
+
+```bash
+# Clone this repository
+git clone --recurse-submodules https://github.com/webaverse/app.git
+# Go into the repository
+cd app/
+# Install dependencies
+npm install
+# Run the app
+npm run dev
+# Navigate to the URL mentioned in the terminal
+
+```
+
+## Development Environment Setup
+
+> Preferred tool for development is [VSCode](https://code.visualstudio.com/download)
+
+
+### Technologies
+
+* [NodeJS](https://nodejs.org/)
+* [ThreeJS](https://threejs.org/)
+* [ViteJS](https://vitejs.dev/)
+* [ReactJS](https://reactjs.org/)
+* [YJS](https://docs.yjs.dev/)
+
+## Features
+
+- Custom file type loaders (GLSL, VRM, VOX, GLTF, WBN)
+- PhysX compiled to WebAssembly for collisions/raycasting
+- Custom avatar IK + WebXR support
+- Character controller w/ animation blend system
+- Multiplayer powered by y.js, mediasoup, and WebRTC
+- IPFS + Geth integration for pulling assets
 
 ## Examples
 
@@ -34,27 +61,70 @@
   <img alt="Builder" target="_blank" src="https://i.imgur.com/ydNfbwD.jpg" height="190" width="32%">
 </a>
 
-
-## Features
-
-- Custom file type loaders (GLSL, VRM, VOX, GLTF, WBN)
-- PhysX compiled to WebAssembly for collisions/raycasting
-- Custom avatar IK + WebXR support
-- Character controller w/ animation blend system
-- Multiplayer powered by y.js, mediasoup, and WebRTC
-- IPFS + Geth integration for pulling assets
+<br>
 
 
-## Local Development
+## Loading apps
+The Webaverse can load many types of applications and files. <br>
+Developers can build their own over time
+Please look at the following example for guidance on building an app to load with this repository<br>
+https://github.com/webaverse/simple-application
+
+## Directory Structure
 
 ```bash
-$ git clone --recurse-submodules https://github.com/webaverse/app.git
-$ cd app/
-$ npm install
-$ node index
+**Root**
+│
+├───src <--- React Application Resides Here
+	├───Main.jsx <-- Rgisters the routes of the React App and Load Dom
+	├───App.jsx <-- Loads Webaverse.js from Root directory
+│
+├─ index.js <-- This starts the vite server that serves the React App
+│
+├─ webaverse.js <-- This is the entry point of the Webaverse
+│
+├─ io-manager.js <-- Controls the input events within the application.
+│
+├─ game.js <-- Manages the scene and brings together components such as renderer and shaders.js
+│
+├─ renderer.js <-- Handles the various scenes, and brings the post-processing stack together
+│
+├─ world.js <-- Controls the functionality of single player
+│
+├─ universe.js <-- Controls the functionality of multiplayer
+│
+├─ shaders.js <-- Common shaders in the application
+│
+├─ character-controller.js <-- Controls all types of players, including local and online
+...
+
 ```
 
+## Submodules
+* [Metaversefile](https://github.com/webaverse/metaversefile/) <br>
+  This is the loader part of the application, it is used to load ANY and MANY file types, each with their own loading strategy. 
+* [wsrtc](https://github.com/webaverse/wsrtc/) <br>
+  WSRTC is a custom websocket based RTC networking protocol. Allowing for P2P communication as well as utilising WS.
 
-## Contributing
+<br>
 
-Contributions are welcome please see [CONTRIBUTING.md](https://github.com/webaverse/docs/blob/master/CONTRIBUTING.md) for additional information.
+### Setup ESLint
+
+* Go to your extensions tab and search for `ESLINT`
+
+	![enter image description here](https://res.cloudinary.com/practicaldev/image/fetch/s--gWL807Xl--/c_limit,f_auto,fl_progressive,q_auto,w_880/https://thepracticaldev.s3.amazonaws.com/i/9rmkgbk7nio6ravjm0rx.PNG)
+
+	```bash
+		npm install eslint -g
+		eslint --init
+	```
+
+## Auto-recompile
+
+The application uses vite to hot reload itself automatically if there is any changes to any file.
+
+
+> Any change inside `packages` folder don't recompile automatically for which we have restart the development server by using `npm run dev`
+
+
+
