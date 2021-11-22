@@ -1,12 +1,12 @@
 /*
-app manager binds y.js data to live running metaversefile apps.
+app manager binds z.js data to live running metaversefile apps.
 you can have as many app managers as you want.
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 
-import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+// import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
@@ -29,7 +29,7 @@ const localFrameOpts = {
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    appsArray = new Y.Doc().getArray(worldMapName),
+    appsArray = new Z.Doc().getArray(worldMapName),
   } = {}) {
     super();
     
@@ -335,7 +335,7 @@ class AppManager extends EventTarget {
       }
     }
     
-    const appMap = new Y.Map();
+    const appMap = new Z.Map();
     this.appsArray.push([appMap]);
     return appMap;
   }

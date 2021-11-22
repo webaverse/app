@@ -5,8 +5,8 @@ import styles from './Header.module.css';
 import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
 import MagicMenu from './MagicMenu.jsx';
-import * as Y from 'yjs';
-import {Color} from './Color.js';
+import * as Z from 'zjs';
+// import {Color} from './Color.js';
 import {world} from '../world.js'
 import game from '../game.js'
 import * as universe from '../universe.js'
@@ -122,7 +122,7 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
 
             const roomName = _makeName();
             console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
-            const data = Y.encodeStateAsUpdate(world.getState(true));
+            const data = Z.encodeStateAsUpdate(world.getState(true));
             // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
             console.log('post', universe.getWorldsHost() + roomName);
             const res = await fetch(universe.getWorldsHost() + roomName, {
