@@ -1,12 +1,10 @@
-const path = require('path');
-const http = require('http');
-const https = require('https');
-const url = require('url');
-const fs = require('fs');
-// const util = require('util');
-const express = require('express');
-const vite = require('vite');
-const wsrtc = require('wsrtc/wsrtc-server.js');
+import http from 'http';
+import https from 'https';
+import url from 'url';
+import fs from 'fs';
+import express from 'express';
+import vite from 'vite';
+import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
 
