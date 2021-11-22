@@ -2,7 +2,7 @@
   "name": "webaverse-app",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "start": "forever start index.js",
     "dev": "node index.js",
@@ -30,6 +30,7 @@
     "key-did-provider-ed25519": "^1.1.0",
     "key-did-resolver": "^1.4.0",
     "metaversefile": "./packages/metaversefile",
+    "zjs": "./packages/zjs",
     "openai-api": "^1.2.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -39,8 +40,7 @@
     "troika-three-text": "^0.43.1-alpha.0",
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
-    "xhr2": "^0.2.1",
-    "yjs": "^13.5.16"
+    "xhr2": "^0.2.1"
   },
   "repository": {
     "type": "git",
