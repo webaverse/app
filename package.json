@@ -2,7 +2,7 @@
   "name": "webaverse-app",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "start": "forever start index.js",
     "dev": "node index.js",
