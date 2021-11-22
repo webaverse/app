@@ -13,6 +13,7 @@ import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
+import DropManager from '../drop-manager.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
@@ -416,6 +417,7 @@ export default function Header({
           const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
           if(result.status != 404) {
             var k = await result.json();
+            k.tokenId = tId;
             tokenUri.push(k);
           }
         }
@@ -874,15 +876,20 @@ export default function Header({
           {(tokenUris || []).map((tokenUri, i) => {
             const {name, description, external_link, fee_recepient, image, seller_fee_basis_points} = tokenUri;
 
-            return <div className={styles.nft} onDragStart={e => {
-              e.dataTransfer.setData('application/json', JSON.stringify(tokenUri));
-            }} draggable key={i}>
+            return <div className={styles.tokenUri} key={i}>
               <img src={image} className={styles.preview} />
               <div className={styles.wrap}>
                 <div className={styles.name}>{name}</div>
                 <div className={styles.description}>{description}</div>
                 <div className={styles.tokenid}>{external_link}</div>
               </div>
+              <button className={styles.tokenUriBtn} onClick={async e => {
+                  DropManager.dropToken();
+                }}>
+                <div className={styles.tokenUriBtnText}>
+                  <span>Drop</span>
+                </div>
+              </button>
             </div>
           })}
         </section>
