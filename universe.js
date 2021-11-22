@@ -3,8 +3,7 @@ this file contains the multiplayer code.
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
-// import {camera} from './renderer.js';
+import * as Z from 'zjs';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {initialPosY} from './constants.js';
@@ -36,7 +35,7 @@ const enterWorld = async worldSpec => {
 
     const {src, room} = worldSpec;
     if (!room) {
-      const state = new Y.Doc();
+      const state = new Z.Doc();
       world.connectState(state);
       
       if (src === undefined) {
