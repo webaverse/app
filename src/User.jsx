@@ -4,13 +4,10 @@ import classnames from 'classnames';
 import styles from './Header.module.css';
 import * as ceramicApi from '../ceramic.js';
 // import styles from './User.module.css';
-import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId} from '../constants';
+import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId, walletHost} from '../constants';
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
-import { createStore } from '../secure-storage.ts';
-
-const store = createStore();
 
 function useComponentVisible(initialIsVisible, fn) {
   const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible);
@@ -47,6 +44,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginButtons, setLoginButtons] = useState(false);
 
+  const [walletData, setWalletData] = useState([]);
   const [discordUrl, setDiscordUrl] = useState('');
   const [loginError, setLoginError] = useState(null);
 
@@ -55,9 +53,120 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     setDiscordUrl('');
   });
 
+  useEffect(() => {
+    if(address && sessionStorage.getItem('temp_token')) {
+      fetchWalletData();
+    }
+  });
+
+  var popUp = null;
+  var iframe = null;
+  var walletMessenger = null;
+
+  const openPopup = async (token) => {
+    popUp = window.open(walletHost, '', "height=800,width=600");
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data == 'received') {
+        sendMessage(token);
+      }
+    }, false);
+  }
+
+  const fetchWalletData = async () => {
+    iframe = window.open(walletHost, 'wallet')
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data == 'received') {
+        getKeys();
+      }
+    }, false);
+  }
+
+  // function for sending data to wallet
+  const sendDataToWallet = async (data) => {
+    walletMessenger = window.open(walletHost, 'walletMessenger')
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data == 'received') {
+        sendData(data);
+      }
+    }, false);
+  }
+
+  const sendData = async (data) => {
+
+    // data format
+    // {'key': 'key-name', 'value': 'any-value'} 
+
+    var message = JSON.stringify({'temp_token': sessionStorage.getItem('temp_token'), 'token': address,
+    'data': data});
+    walletMessenger.postMessage(message, walletHost);
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data.temp_token) {
+        sessionStorage.setItem("temp_token", event.data.temp_token);
+      }
+      window.removeEventListener('message', ()=>{});
+      walletMessenger.close();
+
+    }, false);
+  }
+
+  const getKeys = async () => {
+
+    iframe.postMessage(JSON.stringify({'temp_token': sessionStorage.getItem('temp_token'), 'token': address}), walletHost);
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      setWalletData(event.data.data)
+
+      if(event.data.temp_token) {
+        sessionStorage.setItem("temp_token", event.data.temp_token);
+      }
+      window.removeEventListener('message', ()=>{});
+      iframe.close();
+
+    }, false);
+  }
+
+  const sendMessage = async (token) => {
+
+    popUp.postMessage(JSON.stringify({'token': token}), walletHost);
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      setWalletData(event.data.data);
+
+      if(event.data.temp_token) {
+        sessionStorage.setItem("temp_token", event.data.temp_token);
+      }
+
+      window.removeEventListener('message', ()=>{});
+      popUp.close();
+
+    }, false);
+  }
+
   const metaMaskLogin = async e => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation();    
     if (address) {
       toggleOpen('user');
     } else {
@@ -65,10 +174,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         setLoggingIn(true);
         try {
           const {address, profile} = await ceramicApi.login();
-          // console.log('login', {address, profile});
           setAddress(address);
-          store.saveKey('login-token', 'webaverse', { loginToken: address })
-
+          openPopup(address);
           setShow(false);
 
           userRef.setIsComponentVisible(false);
@@ -90,13 +197,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   
   useEffect(async () => {
 
-    let loginTokenStored = store.getPrivateKeyData('login-token', 'webaverse');
-    const loginToken = loginTokenStored ? loginTokenStored.loginToken : null;
-
-    if(loginToken) {  
-      setAddress(loginToken);
-    }
-    else {
       const {
         error,
         error_description,
@@ -109,22 +209,22 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       if(code) {
         const {address, error} = await handleDiscordLogin(code, id);
         if(address) {
-          console.log('address', address)
           setAddress(address);
-          store.saveKey('login-token', 'webaverse', { loginToken: address })
+          openPopup(address);
           setShow(false);
         }
         else {
           setLoginError(String(error).toLocaleUpperCase());
         }
       }
-    }
   }, [address, setAddress]);
 
 
 
   return (
     <div ref={userRef.ref}>
+       <iframe name="wallet" width="0" height="0"></iframe>
+       <iframe name="walletMessenger" width="0" height="0"></iframe>
       <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
         onClick={async e => {
           e.preventDefault();
@@ -148,9 +248,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       { address ?
         <div className={styles.logoutBtn}
         onClick={e => {
-         store.removeKey('login-token');
+         sessionStorage.removeItem('temp_token');
          setAddress(null)
-
         }}
         >Logout</div>
        : ''
