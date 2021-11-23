@@ -57,7 +57,7 @@ class CharacterPhysics {
         .add(localVector2.set(0, -avatarHeight * 0.5, 0));
       const radius = 0.3 / 1.6 * avatarHeight;
       const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
-      return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, q, 10);
+      return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, q, 12);
     };
   })()
   applyAvatarPhysicsDetail(
@@ -136,7 +136,7 @@ class CharacterPhysics {
               _ensureNoJumpAction();
             } 
           } else if (!jumpAction) {
-            _ensureJumpAction();
+            //_ensureJumpAction();
           }
         } else if (!jumpAction && this.velocity.y < -4) {
           _ensureJumpAction();

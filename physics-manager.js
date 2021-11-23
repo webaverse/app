@@ -113,7 +113,7 @@ physicsManager.addGeometry = mesh => {
     physicsMesh.updateMatrixWorld();
   }
 
-  localMaterial.set(0,0,0); // staticFriction, dynamicFriction, restitution
+  localMaterial.set(0.5,0.5,0); // staticFriction, dynamicFriction, restitution
   
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId, localMaterial);
