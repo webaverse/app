@@ -43,7 +43,8 @@ export const aiHost = `https://ai.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
-export const apiBackend = 'https://api-backend.webaverse.com/';
+// export const apiBackend = 'https://api-backend.webaverse.com/';
+export const apiBackend = 'http://localhost:82';
 
 export const worldMapName = 'world';
 export const actionsMapName = 'actions';
