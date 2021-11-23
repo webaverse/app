@@ -668,8 +668,10 @@ const physxWorker = (() => {
     const scaleBuffer = scratchStack.f32.subarray(10, 13);
     mesh.getWorldScale(localVector2).toArray(scaleBuffer);
     const mat = scratchStack.f32.subarray(13, 16);
-    physicsMaterial.toArray(mat);
-
+    mat[0] = physicsMaterial[0];
+    mat[1] = physicsMaterial[1];
+    mat[2] = physicsMaterial[2];
+    
     moduleInstance._addGeometryPhysics(
       physics,
       dataPtr,
