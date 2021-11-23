@@ -1001,7 +1001,7 @@ class Avatar {
       rightEye: this.outputs.eyer,
       head: this.outputs.head,
       neck: this.outputs.neck,
-      upperChest: this.outputs.neck,
+      upperChest: this.outputs.upperChest,
       chest: this.outputs.chest,
       hips: this.outputs.hips,
       spine: this.outputs.spine,
