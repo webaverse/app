@@ -82,6 +82,8 @@ const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 
 const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
+const smallUpRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.25);
+const smallDownRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.25);
 const x180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
 const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const z180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
@@ -2238,7 +2240,8 @@ class Avatar {
             // }
             if (/hand/i.test(k)) {
               this.modelBoneOutputsByVrm[k3].quaternion
-                .premultiply(/left/i.test(k) ? leftRotation : rightRotation);
+                .premultiply(/left/i.test(k) ? smallUpRotation : smallDownRotation)
+                .premultiply(/left/i.test(k) ? leftRotation : rightRotation)
             }
           }
         // }
