@@ -192,9 +192,8 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
     </div>
   );
 };
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen, setTokenUris}) => {
   const userOpen = open === 'user';
-  
   const [loggingIn, setLoggingIn] = useState(false);
 
   /* (async () => {
@@ -228,8 +227,25 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           setLoggingIn(true);
           try {
             const {address, profile} = await ceramicApi.login();
-            // console.log('login', {address, profile});
             setAddress(address);
+            if (address) {
+              (async () => {
+                var tokenUri = [];
+                var temp_address = '0xa6510E349be7786200AC9eDC6443D09FE486Cb40'; // just for testing purposes
+                const res = await fetch(`${apiBackend}/tokenids?address=${temp_address}`);
+                const tokenIds = await res.json();
+                const {Item} = tokenIds;
+                for(let tId of Object.keys(Item)) {
+                  const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
+                  if(result.status != 404) {
+                    var k = await result.json();
+                    k.tokenId = temp_address;
+                    tokenUri.push(k);
+                  }
+                }
+                setTokenUris(tokenUri);
+              })();
+            }
           } catch(err) {
             console.warn(err);
           } finally {
@@ -307,11 +323,10 @@ export default function Header({
 	// console.log('index 2');
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
-	
+	const [tokenUris, setTokenUris] = useState(false);
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
-  const [tokenUris, setTokenUris] = useState(null);
   const [nfts, setNfts] = useState(null);
   const [apps, setApps] = useState(world.appManager.getApps().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
@@ -404,27 +419,6 @@ export default function Header({
       document.exitPointerLock();
     }
   }, [open]);
-  useEffect(() => {
-    // setAddress('0xa6510E349be7786200AC9eDC6443D09FE486Cb40'); // keeping it just for testing purposes
-    if (address && !tokenUris) {
-      setTokenUris([]);
-      (async () => {
-        var tokenUri = [];
-        const res = await fetch(`${apiBackend}/tokenids?address=${address}`);
-        const tokenIds = await res.json();
-        const {Item} = tokenIds;
-        for(let tId of Object.keys(Item)) {
-          const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
-          if(result.status != 404) {
-            var k = await result.json();
-            k.tokenId = tId;
-            tokenUri.push(k);
-          }
-        }
-        setTokenUris(tokenUri);
-      })();
-    }
-  }, [address, tokenUris]);
   const _loadUrlState = () => {
     const src = _getCurrentSceneSrc();
     setSceneName(src);
@@ -669,6 +663,7 @@ export default function Header({
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
+              setTokenUris={setTokenUris}
             />
           </div>
 				</header>
@@ -874,7 +869,7 @@ export default function Header({
           e.stopPropagation();
         }}>
           {(tokenUris || []).map((tokenUri, i) => {
-            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points} = tokenUri;
+            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points, tokenId} = tokenUri;
 
             return <div className={styles.tokenUri} key={i}>
               <img src={image} className={styles.preview} />
@@ -884,7 +879,7 @@ export default function Header({
                 <div className={styles.tokenid}>{external_link}</div>
               </div>
               <button className={styles.tokenUriBtn} onClick={async e => {
-                  DropManager.dropToken();
+                  DropManager.dropToken(tokenId)
                 }}>
                 <div className={styles.tokenUriBtnText}>
                   <span>Drop</span>

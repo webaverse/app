@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     networks: {
         rinkeby: {
             network_name: "rinkeby",

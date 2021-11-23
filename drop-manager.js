@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
+import blockchain from './integration/web3/app.mjs';
 
 class DropManager extends EventTarget {
   constructor() {
     super();
   }
-  dropToken(contractAddress, tokenId, voucher) {
+  async dropToken(tokenId) {
+    var voucher = await blockchain.drop(tokenId);
+    console.log('voucher', voucher);
     // XXX engine implements this
   }
   claimVoucher(contractAddress, tokenId, voucher) {
