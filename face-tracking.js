@@ -38,8 +38,8 @@ const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vect
 // window.clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
 let canvas = null;
-let overlayCanvas = null;
-let overlayCtx = null;
+// let overlayCanvas = null;
+// let overlayCtx = null;
 let avatar = null;
 let previewScene = null;
 let previewCamera = null;
@@ -785,11 +785,8 @@ const onResults = results => {
     _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
     let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
     let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
-    
-    // window.faceRig = faceRig;
-    // window.lm = facelm;
 
-    const _renderOverlay = () => {
+    /* const _renderOverlay = () => {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       
       const s = 5;
@@ -807,7 +804,7 @@ const onResults = results => {
       // _drawLm(points.eye.right[0], '#00FF00');
       // _drawLm(points.eye.right[1], '#0000FF');
     };
-    // _renderOverlay();
+    _renderOverlay(); */
 
     // console.log('got', faceRig, poseRig);
     if (faceRig) {
@@ -983,11 +980,10 @@ function startCamera() {
       antialias: true,
       // alpha: true,
     });
-    {
+    /* {
       videoEl = document.createElement('video');
       videoEl.width = dimensions.width;
       videoEl.height = dimensions.height;
-      document.body.appendChild(videoEl);
       videoEl.style.cssText = `\
         position: absolute;
         bottom: 0;
@@ -997,18 +993,19 @@ function startCamera() {
         z-index: 100;
         transform: rotateY(180deg);
       `;
-    }
-    {
+      // document.body.appendChild(videoEl);
+    } */
+    /* {
       overlayCanvas = document.createElement('canvas');
       overlayCanvas.width = dimensions.width;
       overlayCanvas.height = dimensions.height;
       overlayCtx = overlayCanvas.getContext('2d');
-      document.body.appendChild(overlayCanvas);
       
-      overlayCanvas.style.cssText = videoEl.style.cssText;
-      overlayCanvas.style.backgroundColor = '#FF000020';
-      document.body.appendChild(overlayCanvas);
-      
+      // overlayCanvas.style.cssText = videoEl.style.cssText;
+      // overlayCanvas.style.backgroundColor = '#FF000020';
+      // document.body.appendChild(overlayCanvas);
+    } */
+    {
       previewCamera = new THREE.PerspectiveCamera(
         60,
         canvas.width / canvas.height,
