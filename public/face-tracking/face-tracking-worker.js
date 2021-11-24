@@ -87,7 +87,7 @@ window.addEventListener('message', e => {
     };
   }
 });
-console.log('worker listening for message 2');
+// console.log('worker listening for message 2');
 
 /* // this hack is needed to make the browser think the iframe is active
 const _fakeRaf = () => {
