@@ -499,6 +499,39 @@ const _solvePoseToAvatar = (() => {
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
+      localTriangle.a.copy(boneBuffers.leftShoulder);
+      localTriangle.b.copy(bodyCenter);
+      localTriangle.c.copy(boneBuffers.rightShoulder);
+      const upperChestDirection = localTriangle.getNormal(localVector8);
+      // hipsDirection.x *= -1;
+      tempAvatar.UpperChest.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          zeroVector,
+          upperChestDirection,
+          localVector9.set(0, 1, 0)
+        )
+      )
+      // .premultiply(slightLeftRotation);
+      // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
+    }
+    /* {
+      localTriangle.a.copy(boneBuffers.leftShoulder);
+      localTriangle.b.copy(bodyCenter);
+      localTriangle.c.copy(boneBuffers.rightShoulder);
+      const shoulderDirection = localTriangle.getNormal(localVector8);
+      // hipsDirection.x *= -1;
+      tempAvatar.Left_shoulder.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          zeroVector,
+          shoulderDirection,
+          localVector9.set(0, 1, 0)
+        )
+      )
+      .premultiply(slightLeftRotation);
+      tempAvatar.Right_shoulder.quaternion.copy(tempAvatar.Left_shoulder.quaternion);
+      // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
+    } */
+    {
       tempAvatar.Left_arm.quaternion.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
         boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize(),
@@ -572,7 +605,9 @@ const _solvePoseToAvatar = (() => {
 
     const modelBoneWhiteliest = [
       tempAvatar.Hips,
+      tempAvatar.UpperChest,
       // tempAvatar.Left_shoulder,
+      // tempAvatar.Right_shoulder,
       tempAvatar.Left_arm,
       tempAvatar.Right_arm,
       tempAvatar.Left_elbow,
