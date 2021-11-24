@@ -10,7 +10,7 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
@@ -254,7 +254,7 @@ const defaultComponents = {
 };
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
-  state: new Y.Doc(),
+  state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
