@@ -72,11 +72,11 @@ window.addEventListener('message', e => {
       const image = e.data.image;
       if (image) {
         // console.time('lol');
-        requestAnimationFrame(async () => {
+        // requestAnimationFrame(async () => {
           await holistic.send({
             image,
           });
-        });
+        // });
       } else {
         postMessage({
           error: 'no image provided',
