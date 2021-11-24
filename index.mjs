@@ -35,6 +35,9 @@ function makeId(length) {
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
     const o = url.parse(req.originalUrl, true);
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
