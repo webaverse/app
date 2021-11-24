@@ -12,8 +12,8 @@ import {world} from './world.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
 
 const dimensions = {
-  width: 640,
-  height: 480,
+  width: 256,
+  height: 256,
 };
 const displayWidth = 640;
 const points = {
