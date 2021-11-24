@@ -6,10 +6,16 @@ class DropManager extends EventTarget {
   constructor() {
     super();
   }
+  async mintToken(tokenURI) {
+    await blockchain.mint(tokenURI);
+  }
   async dropToken(tokenId) {
     var voucher = await blockchain.drop(tokenId);
     console.log('voucher', voucher);
     // XXX engine implements this
+  }
+  async redeemVoucher(voucher) {
+    await blockchain.redeem(voucher);
   }
   claimVoucher(contractAddress, tokenId, voucher) {
     // ui handles this

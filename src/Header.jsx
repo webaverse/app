@@ -231,19 +231,20 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setTokenUris}) =>
             if (address) {
               (async () => {
                 var tokenUri = [];
-                var temp_address = '0xa6510E349be7786200AC9eDC6443D09FE486Cb40'; // just for testing purposes
-                const res = await fetch(`${apiBackend}/tokenids?address=${temp_address}`);
+                const res = await fetch(`${apiBackend}/tokenids?address=${address}`);
                 const tokenIds = await res.json();
                 const {Item} = tokenIds;
-                for(let tId of Object.keys(Item)) {
-                  const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
-                  if(result.status != 404) {
-                    var k = await result.json();
-                    k.tokenId = temp_address;
-                    tokenUri.push(k);
+                if(Item) {
+                  for(let tId of Object.keys(Item)) {
+                    const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
+                    if(result.status != 404) {
+                      var k = await result.json();
+                      k.tokenId = tId;
+                      tokenUri.push(k);
+                    }
                   }
+                  setTokenUris(tokenUri);
                 }
-                setTokenUris(tokenUri);
               })();
             }
           } catch(err) {
@@ -879,6 +880,7 @@ export default function Header({
                 <div className={styles.tokenid}>{external_link}</div>
               </div>
               <button className={styles.tokenUriBtn} onClick={async e => {
+                  e.preventDefault();
                   DropManager.dropToken(tokenId)
                 }}>
                 <div className={styles.tokenUriBtnText}>
