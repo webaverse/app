@@ -26,7 +26,7 @@ class LoadTester {
   lastActivityAt = 0;
 
   WEBHOOK_URL="https://discord.com/api/webhooks/909208222433439756/MU8z7kgWC194WGZAMoIgZSbuiwgcSEGBLXIeucG8ngddjvBOEWW010CETvcU68LG07OO";
-  
+
   addStatErr(type, stat) {
     if (!this.statsErr) {
       this.statsErr = [];
@@ -38,6 +38,7 @@ class LoadTester {
     {
       var data;
       var match = /\n/.exec(stat.toString());
+      if(!this.scene_name) {this.scene_name = ''}
       if (match) {
         data = `++++ **${this.scene_name}** ++++ [${type}] ++++ File has thrown error\n${stat}\n++++ **${this.scene_name}** ++++ [${type}] ++++ END ERROR`;
       }
@@ -69,6 +70,39 @@ class LoadTester {
     }
   }
 
+  async sendToDiscord() {
+    var statsErrNew = [];
+    try {
+      for(let err of this.statsErr) {
+        if(err.includes("net::ERR_ABORTED")) {
+          const strCopy = err.split('net::ERR_ABORTED ');
+          if(!strCopy[1].includes('blob'))
+          {
+            const res = await fetch(strCopy[1]);
+            if(res.status != 200) {
+              statsErrNew.push(err);
+            }
+          }
+        }
+        else {
+          statsErrNew.push(err);
+        }
+      }  
+      console.log(statsErrNew);
+    }
+    catch (error) {
+      console.log(error)
+    }
+
+    for(let err of statsErrNew) {
+      try {
+        await axios.post(this.WEBHOOK_URL, { content: err })
+      }
+      catch(e) {
+      }
+    }
+  }
+
   waitForServerBoot = ()=>{
     let retries = 5;
     let _fetch = false;
@@ -78,6 +112,7 @@ class LoadTester {
         try{
               if(retries < 0){
                 clearInterval(outInterval);
+                this.sendToDiscord();
                 return reject();  
               }
               if(!_fetch) {
@@ -293,37 +328,7 @@ class LoadTester {
       };
     }
 
-    var statsErrNew = [];
-    try {
-      for(let err of this.statsErr) {
-        if(err.includes("net::ERR_ABORTED")) {
-          const strCopy = err.split('net::ERR_ABORTED ');
-          if(!strCopy[1].includes('blob'))
-          {
-            const res = await fetch(strCopy[1]);
-            if(res.status != 200) {
-              statsErrNew.push(err);
-            }
-          }
-        }
-        else {
-          statsErrNew.push(err);
-        }
-      }  
-      console.log(statsErrNew);
-    }
-
-    catch (error) {
-      console.log(error)
-    }
-
-    for(let err of statsErrNew) {
-      try {
-        await axios.post(this.WEBHOOK_URL, { content: err })
-      }
-      catch(e) {
-      }
-    }
+    this.sendToDiscord();
 
     try {
       this.finish();      
