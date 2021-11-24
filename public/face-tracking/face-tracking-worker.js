@@ -1,6 +1,6 @@
 import '/face-tracking/holistic/holistic.js';
 // window.Holistic = Holistic;
-console.log('worker listening for message 0');
+// console.log('worker listening for message 0');
 
 // document.body.style.backgroundColor = '#0F0';
 
@@ -59,7 +59,7 @@ holistic.onResults(results => {
   lol: 'zol',
 }; */
 
-console.log('worker listening for message 1');
+// console.log('worker listening for message 1');
 let messagePort;
 window.addEventListener('message', e => {
   // console.log('worker got message', e);
