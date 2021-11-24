@@ -607,13 +607,27 @@ class FaceTrackingWorker extends EventTarget {
       position: absolute;
       top: 0;
       left: 0;
-      height: 30;
-      width: 0;
+      border: 0;
+      height: 30px;
+      width: 30px;
+      /* height: 0;
+      width: 0; */
+      z-index: 10;
+      pointer-events: none;
     `;
-    this.iframe.src = 'face-tracking/face-tracking.html';
+    this.iframe.allow = 'cross-origin-isolated';
+    // window.iframe = this.iframe;
+
+    const l = window.location;
+    const port = parseInt(l.port, 10) || (l.protocol === 'https:' ? 443 : 80);
+    const auxPort = port + 3;
+    const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.link')}:${auxPort}/face-tracking/face-tracking.html`;
+    // const targetOrigin = `https://localhost.webaverse.com`;
+    this.iframe.src = u;
+    // console.log('got u', u);
     // window.iframe = this.iframe;
     this.iframe.addEventListener('load', e => {
-      // console.log('posting message 1');
+      // console.log('posting message 1', this.iframe.contentWindow);
       
       this.iframe.contentWindow.postMessage({
         // lol: 'zol',
