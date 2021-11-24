@@ -24,6 +24,8 @@ import easing from './easing.js';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
+import soundManager from './sound-manager.js';
+
 
 const {contractNames} = metaversefileConstants;
 
@@ -1570,6 +1572,7 @@ const gameManager = {
     this.ensureJump();
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.characterPhysics.velocity.y += 5;
+    soundManager.play('jump');
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
