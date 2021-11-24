@@ -923,9 +923,39 @@ const _getImageCapture = async () => {
     },
   }); */
   const imageCapture = new ImageCapture(videoTrack);
+  let frame = null;
+  let framePromise = null;
+  // let animationFrame = null;
+  const _recurse = async () => {
+    framePromise = imageCapture.grabFrame();
+    const newFrame = await framePromise;
+    if (frame) {
+      frame.close();
+    }
+    frame = newFrame;
+    framePromise = null;
+    _recurse();
+  };
+  _recurse();
+  imageCapture.pullFrame = async () => {
+    if (!frame) {
+      await framePromise;
+    }
+    const result = frame;
+    frame = null;
+    return result;
+  };
+  imageCapture.destroy = () => {
+    // cancelAnimationFrame(animationFrame);
+    imageCapture.track.stop();
+  };
   return imageCapture;
 };
 function startCamera() {
+  const stats = new Stats();
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  document.body.appendChild(stats.dom);
+
   if (!faceTrackingWorker) {
     faceTrackingWorker = new FaceTrackingWorker();
   }
@@ -987,8 +1017,6 @@ function startCamera() {
       );
     }
     {
-      let imageCapture = await _getImageCapture();
-
       /* const _waitForFaceTrackerResult = () => new Promise((accept, reject) => {
         const onmessage = e => {
           faceTrackingWorker.addEventListener('message', onmessage);
@@ -1000,43 +1028,34 @@ function startCamera() {
         };
         faceTrackingWorker.addEventListener('message', onmessage);
       }); */
+      let imageCapture = null;
       const _pushFrame = async () => {
-        /* console.log('had ready state before capture',
-          imageCapture.track.readyState,
-          !imageCapture.track.enabled,
-          imageCapture.track.muted,
-        ); */
-        try {
-          if (imageCapture.track.muted) {
-            // console.log('wait for unmute 1');
-            imageCapture.track.stop();
-            imageCapture = await _getImageCapture();
-            /* await new Promise(accept => {
-              imageCapture.track.onunmute = () => {
-                console.log('unmuted');
-                imageCapture.track.onunmute = null;
-                accept();
-              };
-            });
-            console.log('wait for unmute 2'); */
-          } /* else {
-            console.log('no need to wait for unmute');
-          } */
-          const imageBitmap = await imageCapture.grabFrame();
-          // console.log('push frame', imageBitmap);
-          const results = await faceTrackingWorker.processFrame(imageBitmap);
-          // console.log('got results', results);
-          // window.results = results;
-          onResults(results);
-          /* faceTrackingWorker.postMessage({
-            image: imageBitmap,
-          }, [imageBitmap]); */
-          // await _waitForFaceTrackerResult();
-          _pushFrame();
-        } catch(err) {
-          console.warn(err);
-          setTimeout(_pushFrame, 1000);
+        stats.begin();
+
+        if (!imageCapture) {
+          console.log('create image capture');
+          imageCapture = await _getImageCapture();
+          imageCapture.track.addEventListener('mute', e => {
+            imageCapture.destroy();
+            imageCapture = null;
+          });
         }
+        const imageBitmap = await imageCapture.pullFrame();
+        // const imageBitmap = await imageCapture.grabFrame();
+        // console.log('push frame', imageBitmap);
+        // console.log('post frame', imageBitmap.lol);
+        const results = await faceTrackingWorker.processFrame(imageBitmap);
+        // console.log('got results', results);
+        // window.results = results;
+        onResults(results);
+        /* faceTrackingWorker.postMessage({
+          image: imageBitmap,
+        }, [imageBitmap]); */
+        // await _waitForFaceTrackerResult();
+
+        stats.end();
+
+        _pushFrame();
       };
       _pushFrame();
 
