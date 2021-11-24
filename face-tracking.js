@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
 import * as Kalidokit from 'kalidokit/src/index.js';
-import {Holistic} from '@mediapipe/holistic/holistic';
-import {Camera} from '@mediapipe/camera_utils/camera_utils';
+// import {Holistic} from '@mediapipe/holistic/holistic';
+// import {Camera} from '@mediapipe/camera_utils/camera_utils';
 // import '@tensorflow/tfjs-backend-webgl';
 // import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 // import * as poseDetection from '@tensorflow-models/pose-detection';
@@ -42,7 +42,8 @@ let overlayCtx = null;
 let avatar = null;
 let previewScene = null;
 let previewCamera = null;
-let holistic = null;
+// let holistic = null;
+let faceTrackingWorker = null;
 let videoEl = null;
 
 /* async function switchAvatar(oldAvatar, newApp) {
@@ -592,6 +593,86 @@ const _copyAvatar = (srcAvatar, dstModelBones) => {
   }
 };
 
+class FaceTrackingWorker extends EventTarget {
+  constructor() {
+    super();
+
+    this.messageChannel = new MessageChannel();
+    this.messagePort = this.messageChannel.port1;
+
+    this.iframe = document.createElement('iframe');
+    // this.iframe.style.visibility = 'hidden';
+    this.iframe.style.cssText = `\
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 30;
+      width: 0;
+    `;
+    this.iframe.src = 'face-tracking/face-tracking.html';
+    // window.iframe = this.iframe;
+    this.iframe.addEventListener('load', e => {
+      // console.log('posting message 1');
+      
+      this.iframe.contentWindow.postMessage({
+        // lol: 'zol',
+        _webaverse: true,
+        messagePort: this.messageChannel.port2,
+      }, '*', [this.messageChannel.port2]);
+      // console.log('posting message 2');
+
+      this.messagePort.onmessage = e => {
+        // console.log('parent got message', e);
+        
+        this.dispatchEvent(new MessageEvent('result', {
+          data: e.data,
+        }));
+
+        /* const {error, result} = e.data;
+        if (!error) {
+          console.log('got result', result);
+        } else {
+          console.warn('error from child', error);
+        } */
+      };
+
+      /* this.iframe.contentWindow.addEventListener('message', e => {
+        console.log('windw')
+      }); */
+    }, {once: true});
+    document.body.appendChild(this.iframe);
+  }
+  /* postMessage(m, transfers = []) {
+    this.iframe.contentWindow.postMessage(m, '*', transfers);
+  } */
+  pushImage(image) {
+    this.messagePort.postMessage({
+      image,
+    }, [image]);
+    // console.log('image pushed', image);
+  }
+  async processFrame(image) {
+    // console.log('process frame 0');
+    this.pushImage(image);
+
+    // console.log('process frame 1');
+    const result = await new Promise((resolve, reject) => {
+      this.addEventListener('result', e => {
+        if (!e.data.error) {
+          resolve(e.data.result);
+        } else {
+          reject(e.data.error);
+        }
+      }, {once: true});
+    });
+    // console.log('process frame 2');
+    return result;
+  }
+  destroy() {
+    this.iframe.remove();
+  }
+}
+
 const fakeAvatar = _makeFakeAvatar();
 const loadPromise = Promise.all([
   ((async () => {
@@ -625,7 +706,7 @@ const loadPromise = Promise.all([
     }
   })()),
   ((async () => {
-    holistic = new Holistic({locateFile: (file) => {
+    /* holistic = new Holistic({locateFile: (file) => {
       return `/holistic/${file}`;
     }});
     // holistic = new Holistic();
@@ -639,136 +720,7 @@ const loadPromise = Promise.all([
       // minDetectionConfidence: 0.9,
       // minTrackingConfidence: 0.9,
     });
-    holistic.onResults(results => {
-        // console.log('lol', results);
-      
-        // do something with prediction results
-        // landmark names may change depending on TFJS/Mediapipe model version
-        let facelm = results.faceLandmarks;
-        let poselm = results.poseLandmarks;
-        let poselm3D = results.ea;
-        let rightHandlm = results.rightHandLandmarks;
-        let leftHandlm = results.leftHandLandmarks;
-
-        // window.results = results;
-        
-        /* for (const lms of [
-          poselm3D,
-          rightHandlm,
-          leftHandlm
-        ]) {
-          if (lms) {
-            console.log('got lms', lms);
-            for (const lm of lms) {
-              if (typeof lm.z !== 'number') {
-                debugger;
-              }
-              lm.z *= -1;
-            }
-          }
-        } */
-
-        if (facelm) {
-          let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',video:videoEl})
-          // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
-          _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
-          let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
-          let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
-          
-          // window.faceRig = faceRig;
-          // window.lm = facelm;
-
-          const _renderOverlay = () => {
-            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-            
-            const s = 5;
-            const halfS = s/2;
-            const _drawLm = (index, style) => {
-              overlayCtx.fillStyle = style;
-              const point = facelm[index];
-              overlayCtx.fillRect(point.x - halfS, point.y - halfS, s, s);
-            };
-            _drawLm(points.pupil.left[0], '#FF0000');
-            _drawLm(points.eye.left[0], '#00FF00');
-            _drawLm(points.eye.left[1], '#0000FF');
-            
-            // _drawLm(points.pupil.right[0], '#FF0000');
-            // _drawLm(points.eye.right[0], '#00FF00');
-            // _drawLm(points.eye.right[1], '#0000FF');
-          };
-          _renderOverlay();
-
-          // console.log('got', faceRig, poseRig);
-          if (faceRig) {
-            const {eye, head, mouth} = faceRig;
-            const {
-              shape: {A, E, I, O, U},
-            } = mouth;
-            const {degrees} = head;
-            
-            const pupilPos = (lm, side = "left") => {
-              const eyeOuterCorner = new Kalidokit.Vector(lm[points.eye[side][0]]);
-              const eyeInnerCorner = new Kalidokit.Vector(lm[points.eye[side][1]]);
-              const eyeWidth = eyeOuterCorner.distance(eyeInnerCorner, 2);
-              const midPoint = eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
-              const pupil = new Kalidokit.Vector(lm[points.pupil[side][0]]);
-              // console.log('got', pupil.x, midPoint.x, eyeWidth, dx/eyeWidth, eyeInnerCorner.x, eyeOuterCorner.x);
-              const dx = (midPoint.x - pupil.x) / (eyeWidth / 2);
-              //eye center y is slightly above midpoint
-              const dy = (midPoint.y - pupil.y) / (eyeWidth / 2);
-              
-              // console.log('got dx', dx, dy);
-
-              return { x: dx, y: dy };
-            };
-            const lPupil = pupilPos(facelm, 'left');
-            const rPupil = pupilPos(facelm, 'right');
-            const pupil = {
-              x: -(lPupil.x + rPupil.x) * 0.5,
-              y: (lPupil.y + rPupil.y) * 0.5,
-            };
-            
-            avatar.faceTracking = {
-              head: new THREE.Vector3()
-                .copy(head.degrees)
-                .multiplyScalar(Math.PI/180),
-              eyes: [1-eye.r, 1-eye.l],
-              pupils: [
-                [pupil.x, pupil.y],
-                [pupil.x, pupil.y],
-              ],
-              vowels: [A, E, I, O, U],
-            };
-            // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
-          }
-          /* avatar.handTracking = [
-            rightHandRig ? rightHandRig : null,
-            leftHandRig ? leftHandRig : null,
-          ]; */
-          // if (poseRig) {
-            // avatar.inputs.hmd.quaternion.copy(y180Quaternion);
-          // }
-          avatar.poseTracking = fakeAvatar;
-          avatar.handTracking = [
-            leftHandRig,
-            rightHandRig,
-          ];
-          if (leftHandRig) {
-            avatar.setHandEnabled(1, true);
-          }
-          if (rightHandRig) {
-            avatar.setHandEnabled(0, true);
-          }
-          
-          // window.poseRig = poseRig;
-          if (rightHandRig) {
-            window.rightHandRig = rightHandRig;
-          }
-          if (leftHandRig) {
-            window.leftHandRig = leftHandRig;
-          }
-        }
-    });
+    holistic.onResults(onResults); */
     /* model = await faceLandmarksDetection.load(
       faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
       {
@@ -783,7 +735,183 @@ const loadPromise = Promise.all([
 function waitForLoad() {
   return loadPromise;
 }
+const onResults = results => {
+  // console.log('lol', results);
+
+  // do something with prediction results
+  // landmark names may change depending on TFJS/Mediapipe model version
+  let facelm = results.faceLandmarks;
+  // let poselm = results.poseLandmarks;
+  let poselm3D = results.ea;
+  let rightHandlm = results.rightHandLandmarks;
+  let leftHandlm = results.leftHandLandmarks;
+
+  // window.results = results;
+  
+  /* for (const lms of [
+    poselm3D,
+    rightHandlm,
+    leftHandlm
+  ]) {
+    if (lms) {
+      console.log('got lms', lms);
+      for (const lm of lms) {
+        if (typeof lm.z !== 'number') {
+          debugger;
+        }
+        lm.z *= -1;
+      }
+    }
+  } */
+
+  if (facelm) {
+    let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:dimensions})
+    // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
+    _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
+    let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
+    let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
+    
+    // window.faceRig = faceRig;
+    // window.lm = facelm;
+
+    const _renderOverlay = () => {
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      
+      const s = 5;
+      const halfS = s/2;
+      const _drawLm = (index, style) => {
+        overlayCtx.fillStyle = style;
+        const point = facelm[index];
+        overlayCtx.fillRect(point.x - halfS, point.y - halfS, s, s);
+      };
+      _drawLm(points.pupil.left[0], '#FF0000');
+      _drawLm(points.eye.left[0], '#00FF00');
+      _drawLm(points.eye.left[1], '#0000FF');
+      
+      // _drawLm(points.pupil.right[0], '#FF0000');
+      // _drawLm(points.eye.right[0], '#00FF00');
+      // _drawLm(points.eye.right[1], '#0000FF');
+    };
+    // _renderOverlay();
+
+    // console.log('got', faceRig, poseRig);
+    if (faceRig) {
+      const {eye, head, mouth} = faceRig;
+      const {
+        shape: {A, E, I, O, U},
+      } = mouth;
+      // const {degrees} = head;
+      
+      const pupilPos = (lm, side = "left") => {
+        const eyeOuterCorner = new Kalidokit.Vector(lm[points.eye[side][0]]);
+        const eyeInnerCorner = new Kalidokit.Vector(lm[points.eye[side][1]]);
+        const eyeWidth = eyeOuterCorner.distance(eyeInnerCorner, 2);
+        const midPoint = eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
+        const pupil = new Kalidokit.Vector(lm[points.pupil[side][0]]);
+        // console.log('got', pupil.x, midPoint.x, eyeWidth, dx/eyeWidth, eyeInnerCorner.x, eyeOuterCorner.x);
+        const dx = (midPoint.x - pupil.x) / (eyeWidth / 2);
+        //eye center y is slightly above midpoint
+        const dy = (midPoint.y - pupil.y) / (eyeWidth / 2);
+        
+        // console.log('got dx', dx, dy);
+
+        return { x: dx, y: dy };
+      };
+      const lPupil = pupilPos(facelm, 'left');
+      const rPupil = pupilPos(facelm, 'right');
+      const pupil = {
+        x: -(lPupil.x + rPupil.x) * 0.5,
+        y: (lPupil.y + rPupil.y) * 0.5,
+      };
+      
+      avatar.faceTracking = {
+        head: new THREE.Vector3()
+          .copy(head.degrees)
+          .multiplyScalar(Math.PI/180),
+        eyes: [1-eye.r, 1-eye.l],
+        pupils: [
+          [pupil.x, pupil.y],
+          [pupil.x, pupil.y],
+        ],
+        vowels: [A, E, I, O, U],
+      };
+      // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
+    }
+    /* avatar.handTracking = [
+      rightHandRig ? rightHandRig : null,
+      leftHandRig ? leftHandRig : null,
+    ]; */
+    // if (poseRig) {
+      // avatar.inputs.hmd.quaternion.copy(y180Quaternion);
+    // }
+    avatar.poseTracking = fakeAvatar;
+    avatar.handTracking = [
+      leftHandRig,
+      rightHandRig,
+    ];
+    if (leftHandRig) {
+      avatar.setHandEnabled(1, true);
+    }
+    if (rightHandRig) {
+      avatar.setHandEnabled(0, true);
+    }
+    
+    /* // window.poseRig = poseRig;
+    if (rightHandRig) {
+      window.rightHandRig = rightHandRig;
+    }
+    if (leftHandRig) {
+      window.leftHandRig = leftHandRig;
+    } */
+  }
+};
+const _getImageCapture = async () => {
+  const mediaDevices = await navigator.mediaDevices.enumerateDevices();
+  const videoDevice = mediaDevices.find(o => o.kind === 'videoinput' && !/virtual/i.test(o.label));
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      width: {
+        ideal: canvas.width,
+      },
+      height: {
+        ideal: canvas.height,
+      },
+      facingMode: 'user',
+      deviceId: videoDevice.deviceId,
+    },
+  });
+  const videoTrack = stream.getVideoTracks()[0];
+  /* videoTrack.onended = () => {
+    console.log('video stream track ended');
+    debugger;
+  }; */
+  // window.videoTrack = videoTrack;
+  // console.log('original muted', videoTrack.muted);
+  /* videoTrack.onmute = e => {
+    console.log('muted', e);
+    // debugger;
+  };
+  videoTrack.onunmute = e => {
+    console.log('unmuted', e);
+    // debugger;
+  }; */
+  /* Object.defineProperty(videoTrack, 'muted', {
+    set(muted) {
+      console.log('set muted', muted);
+      debugger;
+    },
+    get() {
+      return false;
+    },
+  }); */
+  const imageCapture = new ImageCapture(videoTrack);
+  return imageCapture;
+};
 function startCamera() {
+  if (!faceTrackingWorker) {
+    faceTrackingWorker = new FaceTrackingWorker();
+  }
+
   (async () => {
     {
       canvas = document.createElement('canvas');
@@ -841,7 +969,62 @@ function startCamera() {
       );
     }
     {
-      // use Mediapipe's webcam utils to send video to holistic every frame
+      let imageCapture = await _getImageCapture();
+
+      /* const _waitForFaceTrackerResult = () => new Promise((accept, reject) => {
+        const onmessage = e => {
+          faceTrackingWorker.addEventListener('message', onmessage);
+          if (!e.data.error) {
+            accept(e.data.result);
+          } else {
+            reject(e.data.error);
+          }
+        };
+        faceTrackingWorker.addEventListener('message', onmessage);
+      }); */
+      const _pushFrame = async () => {
+        /* console.log('had ready state before capture',
+          imageCapture.track.readyState,
+          !imageCapture.track.enabled,
+          imageCapture.track.muted,
+        ); */
+        try {
+          if (imageCapture.track.muted) {
+            // console.log('wait for unmute 1');
+            imageCapture.track.stop();
+            imageCapture = await _getImageCapture();
+            /* await new Promise(accept => {
+              imageCapture.track.onunmute = () => {
+                console.log('unmuted');
+                imageCapture.track.onunmute = null;
+                accept();
+              };
+            });
+            console.log('wait for unmute 2'); */
+          } /* else {
+            console.log('no need to wait for unmute');
+          } */
+          const imageBitmap = await imageCapture.grabFrame();
+          // console.log('push frame', imageBitmap);
+          const results = await faceTrackingWorker.processFrame(imageBitmap);
+          // console.log('got results', results);
+          // window.results = results;
+          onResults(results);
+          /* faceTrackingWorker.postMessage({
+            image: imageBitmap,
+          }, [imageBitmap]); */
+          // await _waitForFaceTrackerResult();
+          _pushFrame();
+        } catch(err) {
+          console.warn(err);
+          setTimeout(_pushFrame, 1000);
+        }
+      };
+      _pushFrame();
+
+      // console.log('got stream', videoTrack);
+          
+      /* // use Mediapipe's webcam utils to send video to holistic every frame
       const camera = new Camera(videoEl, {
         onFrame: async () => {
           await holistic.send({image: videoEl});
@@ -849,7 +1032,7 @@ function startCamera() {
           // console.log('send image');
           // await holistic.send({image: videoEl});
           
-          /* if (model && detector && avatar) {
+          if (model && detector && avatar) {
             const [
               faces,
               poses,
@@ -896,12 +1079,12 @@ function startCamera() {
               // const pose = poses[0];
               // let poseRig = Kalidokit.Pose.solve(pose,poselm,{runtime:'tfjs',video:videoEl})
             }
-          } */
+          }
         },
         width: canvas.width,
         height: canvas.height,
       });
-      camera.start();
+      camera.start(); */
     }
     {
       const distance = 0.7;
