@@ -32,6 +32,7 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import game from './game.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -451,6 +452,9 @@ metaversefile.setApi({
     } else {
       throw new Error('useApp cannot be called outside of render()');
     }
+  },
+  getSpeed() {
+    return game.getSpeed();
   },
   useScene() {
     return scene;
