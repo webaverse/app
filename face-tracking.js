@@ -619,9 +619,8 @@ class FaceTrackingWorker extends EventTarget {
     // window.iframe = this.iframe;
 
     const l = window.location;
-    const port = parseInt(l.port, 10) || (l.protocol === 'https:' ? 443 : 80);
-    const auxPort = port + 3;
-    const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.link')}:${auxPort}/face-tracking/face-tracking.html`;
+    const port = parseInt(l.port, 10) || 0;
+    const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.link')}${port ? (':' + port) : ''}/face-tracking/face-tracking.html`;
     // const targetOrigin = `https://localhost.webaverse.com`;
     this.iframe.src = u;
     // console.log('got u', u);
