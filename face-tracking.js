@@ -1124,9 +1124,9 @@ function startCamera() {
       camera.start(); */
     }
     {
-      const distance = 0.7;
+      const distance = 0.6;
       // const h = avatar.height * 0.85;
-      const h = avatar.height;
+      const h = avatar.height * 0.9;
       previewCamera.position.set(0, h, distance);
       // previewCamera.position.set(0, avatar.height, -distance);
       previewCamera.lookAt(new THREE.Vector3(0, h, 0));
