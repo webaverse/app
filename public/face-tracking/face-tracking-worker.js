@@ -72,11 +72,11 @@ window.addEventListener('message', e => {
       const image = e.data.image;
       if (image) {
         // console.time('lol');
-        // requestAnimationFrame(async () => {
+        requestAnimationFrame(async () => {
           await holistic.send({
             image,
           });
-        // });
+        });
       } else {
         postMessage({
           error: 'no image provided',
@@ -89,8 +89,8 @@ window.addEventListener('message', e => {
 });
 console.log('worker listening for message 2');
 
-// this hack is needed to make the browser think the iframe is active
+/* // this hack is needed to make the browser think the iframe is active
 const _fakeRaf = () => {
   requestAnimationFrame(_fakeRaf);
 };
-_fakeRaf();
+_fakeRaf(); */
