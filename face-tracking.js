@@ -886,10 +886,13 @@ const _getImageCapture = async () => {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
       width: {
-        ideal: canvas.width,
+        ideal: dimensions.width,
       },
       height: {
-        ideal: canvas.height,
+        ideal: dimensions.height,
+      },
+      frameRate: {
+        ideal: 30,
       },
       facingMode: 'user',
       deviceId: videoDevice.deviceId,
