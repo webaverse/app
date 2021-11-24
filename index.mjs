@@ -59,11 +59,9 @@ function makeId(length) {
   const isHttps = !!certs.key && !!certs.cert;
   const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3000);
   const wsPort = port + 1;
-  const auxPort = port + 3;
-  
+
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
-  const auxHttpServer = _makeHttpServer();
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
@@ -76,20 +74,13 @@ function makeId(length) {
   });
   app.use(viteServer.middlewares);
   
-  await Promise.all([
-    new Promise((accept, reject) => {
-      httpServer.listen(port, '0.0.0.0', () => {
-        accept();
-      });
-    }),
-    new Promise((accept, reject) => {
-      auxHttpServer.listen(auxPort, '0.0.0.0', () => {
-        accept();
-      });
-    }),
-  ]);
+  await new Promise((accept, reject) => {
+    httpServer.listen(port, '0.0.0.0', () => {
+      accept();
+    });
+    httpServer.on('error', reject);
+  });
   console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
-  console.log(`  > Aux: http${isHttps ? 's' : ''}://localhost:${auxPort}/`);
   
   const wsServer = (() => {
     if (isHttps) {
@@ -136,10 +127,7 @@ function makeId(length) {
     wsServer.listen(wsPort, '0.0.0.0', () => {
       accept();
     });
-    wsServer.on('error', err => {
-      console.warn(err.stack);
-      process.exit(1);
-    });
+    wsServer.on('error', reject);
   });
   console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
 })();
