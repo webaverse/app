@@ -10,12 +10,13 @@ import * as Kalidokit from 'kalidokit/src/index.js';
 import {world} from './world.js';
 // import {fitCameraToBox} from './util.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
+import Stats from 'stats.js';
 
 const dimensions = {
   width: 256,
   height: 256,
 };
-const displayWidth = 640;
+const displayWidth = dimensions.width;
 const points = {
   eye: {
     left: [130, 133, 160, 159, 158, 144, 145, 153],
