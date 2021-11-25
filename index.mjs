@@ -19,8 +19,8 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs/privkey.pem'),
-  cert: _tryReadFile('./certs/fullchain.pem'),
+  key: _tryReadFile('./certs/webaverse-self-signed.key'),
+  cert: _tryReadFile('./certs/webaverse-self-signed.crt'),
 };
 
 function makeId(length) {
