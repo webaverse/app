@@ -22,37 +22,40 @@ const holistic = new Holistic({
 // holistic = new Holistic();
 holistic.setOptions({
   // staticImageMode: true,
-  modelComplexity: 2,
+  modelComplexity: 0,
   // modelComplexity: 1,
-  smoothLandmarks: true,
-  enableSegmentation: true,
-  smoothSegmentation: true,
+  // smoothLandmarks: true,
+  // enableSegmentation: true,
+  // smoothSegmentation: true,
   refineFaceLandmarks: true,
   // minDetectionConfidence: 0.5,
   // minTrackingConfidence: 0.5,
 });
 holistic.onResults(results => {
-  const {
-    faceLandmarks,
-    poseLandmarks,
-    ea,
-    rightHandLandmarks,
-    leftHandLandmarks,
-  } = results;
-
-  // console.timeEnd('lol');
-  
-  // console.log('got results', results);
-  messagePort.postMessage({
-    error: null,
-    result: {
+  // console.log('results');
+  if (!fake) {
+    const {
       faceLandmarks,
       poseLandmarks,
       ea,
       rightHandLandmarks,
       leftHandLandmarks,
-    },
-  });
+    } = results;
+
+    // console.timeEnd('lol');
+    
+    // console.log('got results', results);
+    messagePort.postMessage({
+      error: null,
+      result: {
+        faceLandmarks,
+        poseLandmarks,
+        ea,
+        rightHandLandmarks,
+        leftHandLandmarks,
+      },
+    });
+  }
 });
 /* holistic.g.D = {
   canvas: null,
@@ -61,6 +64,8 @@ holistic.onResults(results => {
 
 // console.log('worker listening for message 1');
 let messagePort;
+let image = null;
+let fake = false;
 window.addEventListener('message', e => {
   // console.log('worker got message', e);
   if (e.data?._webaverse) {
@@ -69,14 +74,19 @@ window.addEventListener('message', e => {
     messagePort.onmessage = async e => {
       // console.time('frame');
       // console.log('message port got message', e);
-      const image = e.data.image;
+      image = e.data.image;
       if (image) {
         // console.time('lol');
-        requestAnimationFrame(async () => {
-          await holistic.send({
-            image,
-          });
-        });
+        // requestAnimationFrame(async () => {
+          // console.time('syncTime');
+          // console.time('asyncTime');
+          // requestAnimationFrame(async () => {
+            await holistic.send({
+              image,
+            });
+            image.close();
+          // });
+        // });
       } else {
         postMessage({
           error: 'no image provided',
@@ -89,8 +99,8 @@ window.addEventListener('message', e => {
 });
 // console.log('worker listening for message 2');
 
-/* // this hack is needed to make the browser think the iframe is active
+// this hack is needed to make the browser think the iframe is active
 const _fakeRaf = () => {
   requestAnimationFrame(_fakeRaf);
 };
-_fakeRaf(); */
+_fakeRaf();
