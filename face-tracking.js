@@ -13,8 +13,8 @@ import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
 import Stats from 'stats.js';
 
 const dimensions = {
-  width: 256,
-  height: 256,
+  width: 640,
+  height: 480,
 };
 const displayWidth = dimensions.width;
 const points = {
