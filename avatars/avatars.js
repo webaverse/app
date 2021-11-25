@@ -1073,19 +1073,14 @@ class Avatar {
           return -1;
         }
       };
-      /* const _getBlendShapeIndexForName = name => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
-        if (Array.isArray(blendShapes)) {
-          const shape = blendShapes.find(blendShape => blendShape.name.toLowerCase() === name);
-          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
-            return shape.binds[0].index;
-          } else {
-            return null;
-          }
+      const _getBlendShapeIndexForName = (skinnedMesh, name) => {
+        const targetNames = skinnedMesh.userData?.targetNames;
+        if (Array.isArray(targetNames)) {
+          return targetNames.findIndex(targetName => targetName.toLowerCase().includes(name));
         } else {
-          return null;
+          return -1;
         }
-      }; */
+      };
       
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
         const {morphTargetDictionary, morphTargetInfluences} = o;
@@ -1102,7 +1097,7 @@ class Avatar {
           const funIndex = _getBlendShapeIndexForPresetName('fun');
           const joyIndex = _getBlendShapeIndexForPresetName('joy');
           const sorrowIndex = _getBlendShapeIndexForPresetName('sorrow');
-          // const surprisedIndex = _getBlendShapeIndexForName('surprised');
+          const surprisedIndex = _getBlendShapeIndexForName(o, 'surprised');
           // const extraIndex = _getBlendShapeIndexForName('extra');
           return [
             morphTargetInfluences,
@@ -1118,7 +1113,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surprisedIndex,
             // extraIndex,
           ];
         } else {
@@ -2379,7 +2374,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surprisedIndex,
             // extraIndex,
           ] = visemeMapping;
           
