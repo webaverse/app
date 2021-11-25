@@ -83,6 +83,68 @@ let videoEl = null;
   fitCameraToBox(camera, boundingBox);
 }; */
 
+const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+const remap = (val, min, max) => {
+  //returns min to max -> 0 to 1
+  return (clamp(val, min, max) - min) / (max - min);
+};
+const eyeLidRatio = (
+  eyeOuterCorner,
+  eyeInnerCorner,
+  eyeOuterUpperLid,
+  eyeMidUpperLid,
+  eyeInnerUpperLid,
+  eyeOuterLowerLid,
+  eyeMidLowerLid,
+  eyeInnerLowerLid
+) => {
+  eyeOuterCorner = new THREE.Vector3().copy(eyeOuterCorner);
+  eyeInnerCorner = new THREE.Vector3().copy(eyeInnerCorner);
+
+  eyeOuterUpperLid = new THREE.Vector3().copy(eyeOuterUpperLid);
+  eyeMidUpperLid = new THREE.Vector3().copy(eyeMidUpperLid);
+  eyeInnerUpperLid = new THREE.Vector3().copy(eyeInnerUpperLid);
+
+  eyeOuterLowerLid = new THREE.Vector3().copy(eyeOuterLowerLid);
+  eyeMidLowerLid = new THREE.Vector3().copy(eyeMidLowerLid);
+  eyeInnerLowerLid = new THREE.Vector3().copy(eyeInnerLowerLid);
+
+  //use 2D Distances instead of 3D for less jitter
+  const eyeWidth = eyeOuterCorner.distanceTo(eyeInnerCorner, 2);
+  const eyeOuterLidDistance = eyeOuterUpperLid.distanceTo(eyeOuterLowerLid, 2);
+  const eyeMidLidDistance = eyeMidUpperLid.distanceTo(eyeMidLowerLid, 2);
+  const eyeInnerLidDistance = eyeInnerUpperLid.distanceTo(eyeInnerLowerLid, 2);
+  const eyeLidAvg = (eyeOuterLidDistance + eyeMidLidDistance + eyeInnerLidDistance) / 3;
+  const ratio = eyeLidAvg / eyeWidth;
+
+  return ratio;
+};
+const getEyeOpen = (lm, side = "left", { high = 0.85, low = 0.55 } = {}) => {
+  let eyePoints = points.eye[side];
+  let eyeDistance = eyeLidRatio(
+      lm[eyePoints[0]],
+      lm[eyePoints[1]],
+      lm[eyePoints[2]],
+      lm[eyePoints[3]],
+      lm[eyePoints[4]],
+      lm[eyePoints[5]],
+      lm[eyePoints[6]],
+      lm[eyePoints[7]]
+  );
+  // human eye width to height ratio is roughly .3
+  let maxRatio = 0.285;
+  // compare ratio against max ratio
+  let ratio = clamp(eyeDistance / maxRatio, 0, 2);
+  return ratio;
+  /* // remap eye open and close ratios to increase sensitivity
+  let eyeOpenRatio = remap(ratio, low, high);
+  return {
+      // remapped ratio
+      norm: eyeOpenRatio,
+      // ummapped ratio
+      raw: ratio,
+  }; */
+};
 const _makeFakeAvatar = () => {
   const Root = new THREE.Object3D();
   const Hips = new THREE.Object3D();
@@ -844,7 +906,7 @@ const onResults = results => {
 
     // console.log('got', faceRig, poseRig);
     if (faceRig) {
-      const {eye, head, mouth} = faceRig;
+      const {/* eye, */head, mouth} = faceRig;
       const {
         shape: {A, E, I, O, U},
       } = mouth;
@@ -872,11 +934,15 @@ const onResults = results => {
         y: (lPupil.y + rPupil.y) * 0.5,
       };
       
+      const eyes = [
+        getEyeOpen(facelm, 'left'),
+        getEyeOpen(facelm, 'right'),
+      ];
       avatar.faceTracking = {
         head: new THREE.Vector3()
           .copy(head.degrees)
           .multiplyScalar(Math.PI/180),
-        eyes: [1-eye.r, 1-eye.l],
+        eyes: [1-eyes[1], 1-eyes[0]],
         pupils: [
           [pupil.x, pupil.y],
           [pupil.x, pupil.y],
