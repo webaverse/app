@@ -1081,7 +1081,7 @@ const _getImageCapture = async () => {
     _recurse();
   };
   _recurse(); */
-  const _recurse = async () => {
+  const _ensureFramePromise = () => {
     if (!framePromise) {
       framePromise = (async () => {
         // console.time('frame');
@@ -1093,10 +1093,14 @@ const _getImageCapture = async () => {
         return frame;
       })();
     }
+  };
+  const _recurse = async () => {
+    _ensureFramePromise();
     requestAnimationFrame(_recurse);
   };
   _recurse();
   imageCapture.pullFrame = async () => {
+    _ensureFramePromise();
     let result = frame;
     if (!result) {
       result = await framePromise;
