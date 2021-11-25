@@ -29,6 +29,7 @@ import {
   // retargetAnimation,
 }  from './util.mjs';
 
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -1763,6 +1764,49 @@ class Avatar {
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
       const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
+
+
+      const soundManager = metaversefile.useSoundManager();
+      //console.log(key);
+      //console.log(currentSpeed);
+      //console.log(idleAnimation.duration);
+      const currAniTime = timeSeconds % idleAnimation.duration;
+      //console.log(currAniTime);
+
+      if (currentSpeed > 0.1) {
+        if (key == 'walk') {
+          if (currAniTime > 0.26 && currAniTime < 0.4)
+            soundManager.playWithId('step1',1);
+          if (currAniTime > 0.76 && currAniTime < 0.9)
+            soundManager.playWithId('step1',2);
+          if (currAniTime > 1.26 && currAniTime < 1.4)
+            soundManager.playWithId('step1',3);
+          if (currAniTime > 1.76 && currAniTime < 1.9)
+            soundManager.playWithId('step1',4);
+          if (currAniTime > 2.26 && currAniTime < 2.5)
+            soundManager.playWithId('step1',5);
+        }
+        if (key == 'run') {
+          if (currAniTime > 0.16 && currAniTime < 0.3)
+            soundManager.playWithId('step1',1);
+          if (currAniTime > 0.43 && currAniTime < 0.45)
+            soundManager.playWithId('step1',2);
+          if (currAniTime > 0.693 && currAniTime < 0.8)
+            soundManager.playWithId('step1',3);
+          if (currAniTime > 0.963 && currAniTime < 1.1)
+            soundManager.playWithId('step1',4);
+          if (currAniTime > 1.226 && currAniTime < 1.3)
+            soundManager.playWithId('step1',5);
+          if (currAniTime > 1.496 && currAniTime < 1.6)
+            soundManager.playWithId('step1',6);
+          if (currAniTime > 1.759 && currAniTime < 1.9)
+            soundManager.playWithId('step1',7);
+          if (currAniTime > 2.029 && currAniTime < 2.1)
+            soundManager.playWithId('step1',8);
+          if (currAniTime > 2.292 && currAniTime < 2.4)
+            soundManager.playWithId('step1',9);
+        }
+      }
       
       // crouch
       const keyOther = _getAnimationKey(

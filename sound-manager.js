@@ -3,9 +3,9 @@ this is the sound manager implementation.
 */
 
 import * as THREE from 'three';
-import ioManager from './io-manager.js';
-import gameManager from './game.js';
-import physx from './physx.js';
+//import ioManager from './io-manager.js';
+//import gameManager from './game.js';
+//import physx from './physx.js';
 import {camera} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 
@@ -28,6 +28,7 @@ class SoundManager {
 
     this.timeNextStep = 0;
     this.sounds = new Map();
+    this.lastIds = new Map();
 
     this.listener = new THREE.AudioListener();
     camera.add( this.listener );
@@ -40,47 +41,17 @@ class SoundManager {
   update(timeDiffS) {
 
     this.localPlayer = metaversefileApi.useLocalPlayer();
-    
-    let timeForNextStep = 450.0;
-    const playerSpeed = gameManager.getSpeed();
-
-    if (playerSpeed > 0.15) {
-      timeForNextStep = 225.0;
+    if (this.localPlayer === undefined) {
+      return;
     }
-    //console.log(playerSpeed);
-    //console.log(timeDiffS);
-
-    /*this.timeNextStep -= timeDiffS;
-    if (this.timeNextStep <= 0){
-      this.timeNextStep = 10.0;
-      this.play('step1');
-    }*/
-
-    //console.log(this.localPlayer.characterPhysics.velocity.length());
-
+    
     const isJumping = this.localPlayer.hasAction('jump');
-    const isFlying = gameManager.isFlying();
+    //const isFlying = gameManager.isFlying();
     
     if (this.lastIsJumping && !isJumping) {
       this.play('jumpEnd');
     }
 
-    const vel = this.localPlayer.characterPhysics.velocity.length();
-
-    //console.log(this.localPlayer.characterPhysics.velocity);
-
-    if (vel > 0.1 && !isJumping && !isFlying) {
-      this.timeNextStep -= timeDiffS;
-      if (this.timeNextStep <= 0){
-        this.timeNextStep = timeForNextStep;
-        if (Math.random() < 0.85) {
-          this.play('step1');
-        }
-        else {
-          this.play('step2');
-        }
-      }    
-    }
 
     this.lastIsJumping = isJumping;
   }
@@ -108,12 +79,19 @@ class SoundManager {
       this.sounds.get(name).play();
     }
   }
+  playWithId(name,id) {
+    const lastId = this.lastIds.get(name);
+    if (lastId === undefined || lastId != id) {
+      this.play(name);
+      this.lastIds.set(name,id);
+    }
+  }  
   loadBasicSounds() {
 
-    this.loadSound('jump','sounds/Jump1.wav');
-    this.loadSound('jumpEnd','sounds/JumpEnd.wav');
-    this.loadSound('step1','sounds/FootstepA.wav',0.15);
-    this.loadSound('step2','sounds/FootstepB.wav',0.15);
+    this.loadSound('jump','sounds/Jump1.ogg');
+    this.loadSound('jumpEnd','sounds/JumpEnd.ogg');
+    this.loadSound('step1','sounds/FootstepA.ogg',0.15);
+    this.loadSound('step2','sounds/FootstepB.ogg',0.15);
   
   }
   loadSound(name,path,volume=1.0,shouldLoop=false,shouldReload=false) {
