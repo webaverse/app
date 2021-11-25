@@ -226,25 +226,16 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setTokenUris}) =>
         if (!loggingIn) {
           setLoggingIn(true);
           try {
-            const {address, profile} = await ceramicApi.login();
-            setAddress(address);
+            // const {address, profile} = await ceramicApi.login();
+            // setAddress(address);
+            setAddress('0xbCC2d6fD76c84Ca240321E87AF74Aa159B155E93');
+            const address = '0xbCC2d6fD76c84Ca240321E87AF74Aa159B155E93'
             if (address) {
               (async () => {
-                var tokenUri = [];
-                const res = await fetch(`${apiBackend}/tokenids?address=${address}`);
-                const tokenIds = await res.json();
-                const {Item} = tokenIds;
-                if(Item) {
-                  for(let tId of Object.keys(Item)) {
-                    const result = await fetch(`${apiBackend}/tokenuri?tokenID=${tId}`);
-                    if(result.status != 404) {
-                      var k = await result.json();
-                      k.tokenId = tId;
-                      tokenUri.push(k);
-                    }
-                  }
-                  setTokenUris(tokenUri);
-                }
+                const res = await fetch(`${apiBackend}/tokens?address=${address}`);
+                const tokenUri = await res.json();
+                console.log(tokenUri, tokenUri);
+                setTokenUris(tokenUri);
               })();
             }
           } catch(err) {
