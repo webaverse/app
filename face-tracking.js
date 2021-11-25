@@ -931,42 +931,67 @@ const _getImageCapture = async () => {
     },
   });
   const videoTrack = stream.getVideoTracks()[0];
-  /* videoTrack.onended = () => {
-    console.log('video stream track ended');
-    debugger;
-  }; */
-  // window.videoTrack = videoTrack;
-  // console.log('original muted', videoTrack.muted);
-  /* videoTrack.onmute = e => {
-    console.log('muted', e);
-    // debugger;
-  };
-  videoTrack.onunmute = e => {
-    console.log('unmuted', e);
-    // debugger;
-  }; */
-  /* Object.defineProperty(videoTrack, 'muted', {
-    set(muted) {
-      console.log('set muted', muted);
-      debugger;
-    },
-    get() {
-      return false;
-    },
-  }); */
+
+  const videoEl = document.createElement('video');
+  videoEl.width = dimensions.width;
+  videoEl.height = dimensions.height;
+  videoEl.style.cssText = `\
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: ${displayWidth}px;
+    height: auto;
+    z-index: 100;
+    transform: rotateY(180deg);
+  `;
+  // document.body.appendChild(videoEl);
+  videoEl.srcObject = stream;
+  videoEl.play();
+
+  const videoCanvas = document.createElement('canvas');
+  videoCanvas.width = dimensions.width;
+  videoCanvas.height = dimensions.height;
+  videoCanvas.style.cssText = `\
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: ${displayWidth}px;
+    height: auto;
+    z-index: 100;
+    transform: rotateY(180deg);
+  `;
+  const videoCanvasCtx = videoCanvas.getContext('2d');
+  document.body.appendChild(videoCanvas);
+
   const imageCapture = new ImageCapture(videoTrack);
   let frame = null;
   let framePromise = null;
   // let animationFrame = null;
-  const _recurse = async () => {
+  /* const _recurse = async () => {
+    console.time('frame');
     framePromise = imageCapture.grabFrame();
     const newFrame = await framePromise;
+    console.timeEnd('frame');
     if (frame) {
       frame.close();
     }
     frame = newFrame;
     framePromise = null;
     _recurse();
+  };
+  _recurse(); */
+  const _recurse = async () => {
+    if (!framePromise) {
+      framePromise = (async () => {
+        // console.time('frame');
+        videoCanvasCtx.drawImage(videoEl, 0, 0, dimensions.width, dimensions.height);
+        frame && frame.close();
+        frame = await createImageBitmap(videoCanvas);
+        // console.timeEnd('frame');
+        framePromise = null;
+      })();
+    }
+    requestAnimationFrame(_recurse);
   };
   _recurse();
   imageCapture.pullFrame = async () => {
