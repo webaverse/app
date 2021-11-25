@@ -35,6 +35,7 @@ const points = {
     right: [473, 474, 475, 476, 477],
     left: [468, 469, 470, 471, 472],
   },
+  mouth: [61, 291, 164, 118, 13, 14, 50, 280, 200],
 };
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.1);
