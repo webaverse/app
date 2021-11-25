@@ -938,10 +938,13 @@ const onResults = results => {
 
     // console.log('got', faceRig, poseRig);
     if (faceRig) {
-      const {/* eye, */head, mouth} = faceRig;
       const {
-        shape: {A, E, I, O, U},
-      } = mouth;
+        /* eye, */
+        head,
+        mouth: {
+          shape: {A, E, I, O, U}
+        }
+      } = faceRig;
       // const {degrees} = head;
       
       const pupilPos = (lm, side = "left") => {
@@ -965,6 +968,52 @@ const onResults = results => {
         x: -(lPupil.x + rPupil.x) * 0.5,
         y: (lPupil.y + rPupil.y) * 0.5,
       };
+      const mouth = (() => {
+        const left = new THREE.Vector3().copy(facelm[points.mouth[0]]);
+        const right = new THREE.Vector3().copy(facelm[points.mouth[1]]);
+        // const top = new THREE.Vector3().copy(facelm[points.mouth[2]]);
+        // const bottom = new THREE.Vector3().copy(facelm[points.mouth[3]]);
+        const centerTop = new THREE.Vector3().copy(facelm[points.mouth[4]]);
+        const centerBottom = new THREE.Vector3().copy(facelm[points.mouth[5]]);
+        const cheekLeftOuter = new THREE.Vector3().copy(facelm[points.mouth[6]]);
+        const cheekRightOuter = new THREE.Vector3().copy(facelm[points.mouth[7]]);
+        const cheekBottom = new THREE.Vector3().copy(facelm[points.mouth[8]]);
+
+        const center = new THREE.Vector3().copy(centerTop).lerp(centerBottom, 0.5);
+
+        const plane = new THREE.Plane().setFromCoplanarPoints(
+          cheekLeftOuter,
+          cheekRightOuter,
+          cheekBottom,
+        );
+
+        const leftPlane = plane.projectPoint(left, new THREE.Vector3());
+        const rightPlane = plane.projectPoint(right, new THREE.Vector3());
+        // const topPlane = plane.projectPoint(top, new THREE.Vector3());
+        // const bottomPlane = plane.projectPoint(bottom, new THREE.Vector3());
+        const centerPlane = plane.projectPoint(center, new THREE.Vector3());
+        const xAxis = rightPlane.clone().sub(leftPlane).normalize();
+        const yAxis = xAxis.clone().cross(plane.normal).normalize();
+        // const yAxis = topPlane.clone().sub(bottomPlane).normalize();
+
+        /* console.log('plane normal',
+          plane.normal.toArray().join(','),
+          xAxis.toArray().join(','),
+          yAxis.toArray().join(',')
+        ); */
+
+        const leftRightLine = new THREE.Line3(leftPlane, rightPlane);
+
+        const centerClosestPoint = leftRightLine.closestPointToPoint(centerPlane, true, new THREE.Vector3());
+        const centerOffset = centerClosestPoint.clone().sub(centerPlane);
+        const centerY = centerOffset.dot(yAxis);
+        if (centerY <= 2) {
+          return -clamp(2 - centerY, 0, 1);
+        } else {
+          return clamp((centerY - 2) / 6, 0, 1);
+        }
+      })();
+      // console.log('got mouth', mouth);
       
       const eyes = [
         getEyeOpen(facelm, 'left'),
@@ -985,6 +1034,7 @@ const onResults = results => {
           [pupil.x, pupil.y],
           [pupil.x, pupil.y],
         ],
+        mouth,
         vowels: [A, E, I, O, U],
       };
       // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
