@@ -10,7 +10,7 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
@@ -254,7 +254,7 @@ const defaultComponents = {
 };
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
-  state: new Y.Doc(),
+  state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
@@ -398,6 +398,9 @@ const _threeTone = _memoize(() => {
 const _fiveTone = _memoize(() => {
   return _loadImageTexture('/textures/fiveTone.jpg');
 });
+const _twentyTone = _memoize(() => {
+  return _loadImageTexture('/textures/twentyTone.png');
+});
 const gradientMaps = {
   get threeTone() {
     return _threeTone();
@@ -405,9 +408,10 @@ const gradientMaps = {
   get fiveTone() {
     return _fiveTone();
   },
+  get twentyTone() {
+    return _twentyTone();
+  },
 };
-
-const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
 const abis = {
   ERC721,

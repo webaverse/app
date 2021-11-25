@@ -1,12 +1,12 @@
 /*
-app manager binds y.js data to live running metaversefile apps.
+app manager binds z.js data to live running metaversefile apps.
 you can have as many app managers as you want.
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 
-import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+// import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
@@ -29,7 +29,7 @@ const localFrameOpts = {
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    appsArray = new Y.Doc().getArray(worldMapName),
+    appsArray = new Z.Doc().getArray(worldMapName),
   } = {}) {
     super();
     
@@ -78,7 +78,7 @@ class AppManager extends EventTarget {
   
     if (nextAppsArray) {
       const observe = e => {
-        const {added, deleted, delta, keys} = e.changes;
+        const {added, deleted} = e.changes;
         
         for (const item of added.values()) {
           const appMap = item.content.type;
@@ -156,13 +156,13 @@ class AppManager extends EventTarget {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
       if (origin !== 'push') {
-        if (e.keysChanged.has('position')) {
+        if (e.changes.keys.has('position')) {
           app.position.fromArray(trackedApp.get('position'));
         }
-        if (e.keysChanged.has('quaternion')) {
+        if (e.changes.keys.has('quaternion')) {
           app.quaternion.fromArray(trackedApp.get('quaternion'));
         }
-        if (e.keysChanged.has('scale')) {
+        if (e.changes.keys.has('scale')) {
           app.scale.fromArray(trackedApp.get('scale'));
         }
       }
@@ -335,7 +335,7 @@ class AppManager extends EventTarget {
       }
     }
     
-    const appMap = new Y.Map();
+    const appMap = new Z.Map();
     this.appsArray.push([appMap]);
     return appMap;
   }

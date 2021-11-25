@@ -1,12 +1,10 @@
-const path = require('path');
-const http = require('http');
-const https = require('https');
-const url = require('url');
-const fs = require('fs');
-// const util = require('util');
-const express = require('express');
-const vite = require('vite');
-const wsrtc = require('wsrtc/wsrtc-server.js');
+import http from 'http';
+import https from 'https';
+import url from 'url';
+import fs from 'fs';
+import express from 'express';
+import vite from 'vite';
+import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
 
@@ -21,8 +19,8 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs/privkey.pem'),
-  cert: _tryReadFile('./certs/fullchain.pem'),
+  key: _tryReadFile('./certs-local/privkey.pem') || _tryReadFile('./certs/privkey.pem'),
+  cert: _tryReadFile('./certs-local/fullchain.pem') || _tryReadFile('./certs/fullchain.pem'),
 };
 
 function makeId(length) {
@@ -37,6 +35,10 @@ function makeId(length) {
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
     const o = url.parse(req.originalUrl, true);
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname

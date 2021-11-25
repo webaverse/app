@@ -24,6 +24,9 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
+  cloneModelBones,
+  decorateAnimation,
+  // retargetAnimation,
 }  from './util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -36,7 +39,6 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -77,6 +79,7 @@ const simplexes = _makeSimplexes(5);
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
+const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -198,17 +201,11 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
-let animations;
 
-// let walkingAnimations;
-// let walkingBackwardAnimations;
-// let runningAnimations;
-// let runningBackwardAnimations;
+let animations;
+let animationsBaseModel;
 let jumpAnimation;
-// let sittingAnimation;
 let floatAnimation;
-// let rifleAnimation;
-// let hitAnimation;
 let useAnimations;
 let sitAnimations;
 let danceAnimations;
@@ -217,10 +214,32 @@ let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 const loadPromise = (async () => {
-  const res = await fetch('../animations/animations.cbor');
-  const arrayBuffer = await res.arrayBuffer();
-  animations = CBOR.decode(arrayBuffer).animations
-    .map(a => THREE.AnimationClip.parse(a));
+  await Promise.resolve(); // wait for metaversefile to be defined
+  
+  await Promise.all([
+    (async () => {
+      const res = await fetch('../animations/animations.cbor');
+      const arrayBuffer = await res.arrayBuffer();
+      animations = CBOR.decode(arrayBuffer).animations
+        .map(a => THREE.AnimationClip.parse(a));
+    })(),
+    (async () => {
+      const srcUrl = '../animations/animations-skeleton.glb';
+      
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          const {gltfLoader} = metaversefile.useLoaders();
+          gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+        });
+      } catch(err) {
+        console.warn(err);
+      }
+      if (o) {
+        animationsBaseModel = o;
+      }
+    })(),
+  ]);
 
   for (const k in animationsAngleArrays) {
     const as = animationsAngleArrays[k];
@@ -289,72 +308,7 @@ const loadPromise = (async () => {
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   for (const animation of animations) {
-    /* animation.direction = (() => {
-      switch (animation.name) {
-        case 'Fast Run.fbx':
-        case 'walking.fbx':
-        case 'Sneaking Forward.fbx':
-          return 'forward';
-        case 'running backwards.fbx':
-        case 'walking backwards.fbx':
-          return 'backward';
-        case 'left strafe walking.fbx':
-        case 'left strafe.fbx':
-        case 'left strafe walking reverse.fbx':
-        case 'left strafe reverse.fbx':
-        case 'Crouched Sneaking Left.fbx':
-          return 'left';
-        case 'right strafe walking.fbx':
-        case 'right strafe.fbx':
-        case 'right strafe walking reverse.fbx':
-        case 'right strafe reverse.fbx':
-        case 'Crouched Sneaking Right.fbx':
-          return 'right';
-        case 'jump.fbx':
-          return 'jump';
-        // case 'floating.fbx':
-        case 'treading water.fbx':
-          return 'float';
-        default:
-          return null;
-      }
-    })(); */
-    animation.isIdle = /idle/i.test(animation.name);
-    animation.isJump = /^jump/i.test(animation.name);
-    animation.isSitting = /sitting/i.test(animation.name);
-    // animation.isFalling  = /falling/i.test(animation.name);
-    animation.isFloat  = /treading/i.test(animation.name);
-    animation.isPistol  = /pistol aiming/i.test(animation.name);
-    animation.isRifle  = /rifle aiming/i.test(animation.name);
-    // animation.isHit  = /downward/i.test(animation.name);
-    animation.isSlash  = /slash/i.test(animation.name);
-    // animation.isHit  = /attack/i.test(animation.name);
-    animation.isCombo  = /combo/i.test(animation.name);
-    // animation.isHit = /sword and shield idle/i.test(animation.name);
-    animation.isMagic = /magic/i.test(animation.name);
-    animation.isSkateboarding = /skateboarding/i.test(animation.name);
-    animation.isThrow = /throw/i.test(animation.name);
-    animation.isDancing = /dancing/i.test(animation.name);
-    animation.isDrinking = /drinking/i.test(animation.name);
-    animation.isCrouch = /crouch|sneak/i.test(animation.name);
-    animation.isForward = /forward/i.test(animation.name);
-    animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
-    animation.isLeft = /left/i.test(animation.name);
-    animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-    animation.isActivate = /object/i.test(animation.name);
-    animation.isNarutoRun = /naruto run/i.test(animation.name);
-    animation.isReverse = /reverse/i.test(animation.name);
-    animation.interpolants = {};
-    animation.tracks.forEach(track => {
-      const i = track.createInterpolant();
-      i.name = track.name;
-      animation.interpolants[track.name] = i;
-      return i;
-    });
-    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-    } */
+    decorateAnimation(animation);
   }
   
   jumpAnimation = animations.find(a => a.isJump);
@@ -401,116 +355,6 @@ const loadPromise = (async () => {
       narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
     });
   }
-
-  /* // bake animations
-  (async () => {
-    animations = [];
-    const fbxLoader = new FBXLoader();
-    const animationFileNames = [
-      `idle.fbx`,
-      `jump.fbx`,
-      `left strafe walking.fbx`,
-      `left strafe.fbx`,
-      // `left turn 90.fbx`,
-      // `left turn.fbx`,
-      `right strafe walking.fbx`,
-      `right strafe.fbx`,
-      // `right turn 90.fbx`,
-      // `right turn.fbx`,
-      `running.fbx`,
-      `walking.fbx`,
-      // `ybot.fbx`,
-      `running backwards.fbx`,
-      `walking backwards.fbx`,
-      // `falling.fbx`,
-      // `falling idle.fbx`,
-      // `falling landing.fbx`,
-      // `floating.fbx`,
-      `treading water.fbx`,
-      `sitting idle.fbx`,
-      `Pistol Aiming Idle.fbx`,
-      `Pistol Idle.fbx`,
-      `Rifle Aiming Idle.fbx`,
-      `Rifle Idle.fbx`,
-      `Standing Torch Idle 01.fbx`,
-      `standing melee attack downward.fbx`,
-      `sword and shield idle (4).fbx`,
-      `sword and shield slash.fbx`,
-      `sword and shield attack (4).fbx`,
-      `One Hand Sword Combo.fbx`,
-      `magic standing idle.fbx`,
-      `Skateboarding.fbx`,
-      `Throw.fbx`,
-      `Hip Hop Dancing.fbx`,
-      `Crouch Idle.fbx`,
-      `Standing To Crouched.fbx`,
-      `Crouched To Standing.fbx`,
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of animationFileNames) {
-      const u = './animations/' + name;
-      let o = await new Promise((accept, reject) => {
-        fbxLoader.load(u, accept, function progress() {}, reject);
-      });
-      o = o.animations[0];
-      o.name = name;
-      animations.push(o);
-    }
-    const _reverseAnimation = animation => {
-      animation = animation.clone();
-      const {tracks} = animation;
-      for (const track of tracks) {
-        track.times.reverse();
-        for (let i = 0; i < track.times.length; i++) {
-          track.times[i] = animation.duration - track.times[i];
-        }
-
-        const values2 = new track.values.constructor(track.values.length);
-        const valueSize = track.getValueSize();
-        const numValues = track.values.length / valueSize;
-        for (let i = 0; i < numValues; i++) {
-          const aIndex = i;
-          const bIndex = numValues - 1 - i;
-          for (let j = 0; j < valueSize; j++) {
-            values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
-          }
-        }
-        track.values = values2;
-      }
-      return animation;
-    };
-    const reversibleAnimationNames = [
-      `left strafe walking.fbx`,
-      `left strafe.fbx`,
-      `right strafe walking.fbx`,
-      `right strafe.fbx`,
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of reversibleAnimationNames) {
-      const animation = animations.find(a => a.name === name);
-      const reverseAnimation = _reverseAnimation(animation);
-      reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
-      animations.push(reverseAnimation);
-    }
-    const animationsJson = animations.map(a => a.toJSON());
-    const animationsString = JSON.stringify(animationsJson);
-    const animationsCborBuffer = CBOR.encode({
-      animations: animationsJson,
-    });
-    console.log('decoding 1', animationsCborBuffer);
-    console.log('decoding 2', CBOR.decode(animationsCborBuffer));
-    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-    console.log('exporting', animations);
-    downloadFile(new Blob([animationsCborBuffer], {
-      type: 'application/cbor',
-    }), 'animations.cbor');
-  })().catch(err => {
-    console.warn(err);
-  }); */
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
@@ -773,6 +617,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      // retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
@@ -781,6 +626,7 @@ class Avatar {
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
+    // this.retargetedAnimations = retargetedAnimations;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -1347,12 +1193,10 @@ class Avatar {
     const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
-	  // this.modelBones = modelBones;
-    /* for (const k in modelBones) {
-      if (!modelBones[k]) {
-        console.warn('missing bone', k);
-      }
-    } */
+    
+    /* const retargetedAnimations = animations
+      .filter(a => a.name === 'idle.fbx')
+      .map(a => retargetAnimation(a, animationsBaseModel, object)); */
     
     const foundModelBones = {};
     for (const k in modelBones) {
@@ -1551,9 +1395,7 @@ class Avatar {
 	  model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
-      if (bone.isBone) {
-        bone.initialQuaternion = bone.quaternion.clone();
-      }
+      bone.initialQuaternion = bone.quaternion.clone();
     });
     
     return {
@@ -1568,6 +1410,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      // retargetedAnimations,
     };
   }
   static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
@@ -1666,8 +1509,8 @@ class Avatar {
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
-    this.shoulderTransforms.eyel.position.copy(setups.eyel);
-    this.shoulderTransforms.eyer.position.copy(setups.eyer);
+    if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
+    if (setups.eyer) this.shoulderTransforms.eyer.position.copy(setups.eyer);
 
     if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
@@ -1712,12 +1555,12 @@ class Avatar {
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
     this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
-    this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
+    if (setups.leftToe) this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
 
     this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
-    this.legsManager.rightLeg.toe.position.copy(setups.leftToe);
+    if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
 
     this.shoulderTransforms.root.updateMatrixWorld();
   }
@@ -1844,6 +1687,14 @@ class Avatar {
         }
       };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+      /* const _getIdleAnimation = key => {
+        if (key === 'walk' || key === 'run') {
+          const name = animationsIdleArrays[key].name;
+          return this.retargetedAnimations.find(a => a.name === name);
+        } else {
+          return animationsIdleArrays[key].animation;
+        }
+      }; */
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
         // normal horizontal walk/run blend
         {

@@ -3,9 +3,9 @@ this file is responisible for maintaining player state that is network-replicate
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -60,7 +60,7 @@ class PlayerHand extends THREE.Object3D {
 class Player extends THREE.Object3D {
   constructor({
     playerId = makeId(5),
-    playersArray = new Y.Doc().getArray(playersMapName),
+    playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
     super();
 
@@ -270,7 +270,7 @@ class Player extends THREE.Object3D {
   getActionsState() {
     let actionsArray = this.playerMap.get(actionsMapName);
     if (!actionsArray) {
-      actionsArray = new Y.Array();
+      actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
     }
     return actionsArray;
@@ -281,7 +281,7 @@ class Player extends THREE.Object3D {
   getAvatarState() {
     let avatarMap = this.playerMap.get(avatarMapName);
     if (!avatarMap) {
-      avatarMap = new Y.Map();
+      avatarMap = new Z.Map();
       this.playerMap.set(avatarMapName, avatarMap);
     }
     return avatarMap;
@@ -289,7 +289,7 @@ class Player extends THREE.Object3D {
   getAppsState() {
     let appsArray = this.playerMap.get(appsMapName);
     if (!appsArray) {
-      appsArray = new Y.Array();
+      appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
     }
     return appsArray;
@@ -599,9 +599,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   detachState() {
-    const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
-    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
-    const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
+    const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
+    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Z.Map()).toJSON();
+    const oldApps = (this.playersArray ? this.getAppsState() : new Z.Array()).toJSON();
     return {
       oldActions,
       oldAvatar,
@@ -617,7 +617,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      self.playerMap = new Y.Map();
+      self.playerMap = new Z.Map();
       self.playerMap.set('playerId', self.playerId);
       self.playerMap.set('position', self.position.toArray(localArray3));
       self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
@@ -635,7 +635,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
-        const mapApp = new Y.Map();
+        const mapApp = new Z.Map();
         for (const k in oldApp) {
           const v = oldApp[k];
           mapApp.set(k, v);
