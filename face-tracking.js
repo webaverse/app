@@ -989,16 +989,17 @@ const _getImageCapture = async () => {
         frame = await createImageBitmap(videoCanvas);
         // console.timeEnd('frame');
         framePromise = null;
+        return frame;
       })();
     }
     requestAnimationFrame(_recurse);
   };
   _recurse();
   imageCapture.pullFrame = async () => {
-    if (!frame) {
-      await framePromise;
+    let result = frame;
+    if (!result) {
+      result = await framePromise;
     }
-    const result = frame;
     frame = null;
     return result;
   };
