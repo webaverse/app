@@ -82,7 +82,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     window.addEventListener("message", (event) => {
       if (event.origin !== walletHost)
         return;
-    
+
       if(event.data == 'received') {
         getKeys();
       }
@@ -107,7 +107,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
     // data format
     // {'key': 'key-name', 'value': 'any-value'} 
-
     var message = JSON.stringify({'temp_token': sessionStorage.getItem('temp_token'), 'token': address,
     'data': data});
     walletMessenger.postMessage(message, walletHost);
@@ -116,9 +115,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       if (event.origin !== walletHost)
         return;
     
-      if(event.data.temp_token) {
-        sessionStorage.setItem("temp_token", event.data.temp_token);
-      }
+      setWalletData(event.data.data);
+
       window.removeEventListener('message', ()=>{});
       walletMessenger.close();
 
@@ -133,11 +131,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       if (event.origin !== walletHost)
         return;
     
-      setWalletData(event.data.data)
+      setWalletData(event.data.data);
 
-      if(event.data.temp_token) {
-        sessionStorage.setItem("temp_token", event.data.temp_token);
-      }
       window.removeEventListener('message', ()=>{});
       iframe.close();
 

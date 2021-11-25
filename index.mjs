@@ -60,7 +60,8 @@ function makeId(length) {
     }
   });
 
-  const isHttps = !!certs.key && !!certs.cert;
+  // const isHttps = !!certs.key && !!certs.cert;
+  const isHttps = false;
   const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3000);
   const httpServer = (() => {
     if (isHttps) {
