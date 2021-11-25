@@ -1009,9 +1009,9 @@ const _getImageCapture = async () => {
   return imageCapture;
 };
 function startCamera() {
-  const stats = new Stats();
-  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-  document.body.appendChild(stats.dom);
+  // const stats = new Stats();
+  // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  // document.body.appendChild(stats.dom);
 
   if (!faceTrackingWorker) {
     faceTrackingWorker = new FaceTrackingWorker();
@@ -1087,7 +1087,7 @@ function startCamera() {
       }); */
       let imageCapture = null;
       const _pushFrame = async () => {
-        stats.begin();
+        // stats.begin();
 
         if (!imageCapture) {
           console.log('create image capture');
@@ -1110,7 +1110,7 @@ function startCamera() {
         }, [imageBitmap]); */
         // await _waitForFaceTrackerResult();
 
-        stats.end();
+        // stats.end();
 
         _pushFrame();
       };
