@@ -226,15 +226,12 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setTokenUris}) =>
         if (!loggingIn) {
           setLoggingIn(true);
           try {
-            // const {address, profile} = await ceramicApi.login();
-            // setAddress(address);
-            setAddress('0xbCC2d6fD76c84Ca240321E87AF74Aa159B155E93');
-            const address = '0xbCC2d6fD76c84Ca240321E87AF74Aa159B155E93'
+            const {address, profile} = await ceramicApi.login();
+            setAddress(address);
             if (address) {
               (async () => {
                 const res = await fetch(`${apiBackend}/tokens?address=${address}`);
                 const tokenUri = await res.json();
-                console.log(tokenUri, tokenUri);
                 setTokenUris(tokenUri);
               })();
             }
@@ -861,7 +858,7 @@ export default function Header({
           e.stopPropagation();
         }}>
           {(tokenUris || []).map((tokenUri, i) => {
-            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points, tokenId} = tokenUri;
+            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points, tokenID} = tokenUri;
 
             return <div className={styles.tokenUri} key={i}>
               <img src={image} className={styles.preview} />
