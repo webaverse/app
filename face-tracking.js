@@ -17,7 +17,11 @@ const dimensions = {
   width: 640,
   height: 480,
 };
-const displayWidth = dimensions.width;
+const _getDisplayWidth = () => {
+  const renderer = getRenderer();
+  const displayWidth = dimensions.width / renderer.getPixelRatio();
+  return displayWidth;
+};
 const points = {
   eye: {
     left: [130, 133, 160, 159, 158, 144, 145, 153],
@@ -1032,7 +1036,8 @@ const _getImageCapture = async () => {
   });
   const videoTrack = stream.getVideoTracks()[0];
 
-  const renderer = getRenderer();
+  const displayWidth = _getDisplayWidth();
+
   const videoEl = document.createElement('video');
   videoEl.width = dimensions.width;
   videoEl.height = dimensions.height;
@@ -1040,7 +1045,7 @@ const _getImageCapture = async () => {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: ${displayWidth / renderer.getPixelRatio()}px;
+    width: ${displayWidth}px;
     height: auto;
     z-index: 100;
     transform: rotateY(180deg);
@@ -1056,7 +1061,7 @@ const _getImageCapture = async () => {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: ${displayWidth / renderer.getPixelRatio()}px;
+    width: ${displayWidth}px;
     height: auto;
     z-index: 100;
     transform: rotateY(180deg);
@@ -1122,6 +1127,8 @@ function startCamera() {
   if (!faceTrackingWorker) {
     faceTrackingWorker = new FaceTrackingWorker();
   }
+
+  const displayWidth = _getDisplayWidth();
 
   (async () => {
     {
