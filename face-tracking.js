@@ -7,6 +7,7 @@ import * as Kalidokit from 'kalidokit/src/index.js';
 // import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 // import * as poseDetection from '@tensorflow-models/pose-detection';
 // import Avatar from './avatars/avatars.js';
+import {getRenderer} from './renderer.js';
 import {world} from './world.js';
 // import {fitCameraToBox} from './util.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
@@ -932,6 +933,7 @@ const _getImageCapture = async () => {
   });
   const videoTrack = stream.getVideoTracks()[0];
 
+  const renderer = getRenderer();
   const videoEl = document.createElement('video');
   videoEl.width = dimensions.width;
   videoEl.height = dimensions.height;
@@ -939,7 +941,7 @@ const _getImageCapture = async () => {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: ${displayWidth}px;
+    width: ${displayWidth / renderer.getPixelRatio()}px;
     height: auto;
     z-index: 100;
     transform: rotateY(180deg);
@@ -955,7 +957,7 @@ const _getImageCapture = async () => {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: ${displayWidth}px;
+    width: ${displayWidth / renderer.getPixelRatio()}px;
     height: auto;
     z-index: 100;
     transform: rotateY(180deg);
