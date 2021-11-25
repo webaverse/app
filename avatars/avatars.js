@@ -2400,7 +2400,7 @@ class Avatar {
               morphTargetInfluences[uIndex] = 0;
             }
           } else if (this.faceTracking) {
-            const {eyes, brows, vowels} = this.faceTracking;
+            const {eyes, brows, mouth, vowels} = this.faceTracking;
             if (blinkLeftIndex !== -1) {
               // console.log('got left blink', blinkLeftIndex, eyes[0]);
               morphTargetInfluences[blinkLeftIndex] = eyes[0];
@@ -2410,7 +2410,7 @@ class Avatar {
             }
 
             const brow = (brows[0] + brows[1]) * 0.5;
-            const vrmExtension = this.object?.parser?.json?.extensions?.VRM;
+            // const vrmExtension = this.object?.parser?.json?.extensions?.VRM;
             // window.vrmExtension = vrmExtension;
             // window.skinnedMeshes = this.skinnedMeshes;
             // window.skinnedMeshesVisemeMappings = this.skinnedMeshesVisemeMappings;
@@ -2419,8 +2419,13 @@ class Avatar {
               morphTargetInfluences[angryIndex] = Math.min(Math.max(brow, 0), 1);
             }
             if (surprisedIndex !== -1) {
-              // console.log('set brow', Math.min(Math.max(-brow, 0), 1));
               morphTargetInfluences[surprisedIndex] = Math.min(Math.max(-brow, 0), 1);
+            }
+            if (funIndex !== -1) {
+              morphTargetInfluences[funIndex] = Math.min(Math.max(mouth, 0), 1);
+            }
+            if (sorrowIndex !== -1) {
+              morphTargetInfluences[sorrowIndex] = Math.min(Math.max(-mouth, 0), 1);
             }
             
             const [a, e, i, o, u] = vowels;
