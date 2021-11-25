@@ -1038,7 +1038,7 @@ function startCamera() {
       canvas,
       // context,
       antialias: true,
-      // alpha: true,
+      alpha: true,
     });
     /* {
       videoEl = document.createElement('video');
