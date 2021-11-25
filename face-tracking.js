@@ -145,6 +145,33 @@ const getEyeOpen = (lm, side = "left", { high = 0.85, low = 0.55 } = {}) => {
       raw: ratio,
   }; */
 };
+const getBrowRaise = (lm, side = "left") => {
+  let browPoints = points.brow[side];
+  let browDistance = eyeLidRatio(
+      lm[browPoints[0]],
+      lm[browPoints[1]],
+      lm[browPoints[2]],
+      lm[browPoints[3]],
+      lm[browPoints[4]],
+      lm[browPoints[5]],
+      lm[browPoints[6]],
+      lm[browPoints[7]]
+  );
+
+  const min = 0.6;
+  const max = 1;
+  const browRaiseRatio = clamp(((browDistance - min) / (max - min)) * 5, 0, 2);
+  // console.log('brow distance', browRaiseRatio);
+  return browRaiseRatio;
+
+  /* let maxBrowRatio = 1.15;
+  let browHigh = 0.125;
+  let browLow = 0.07;
+  let browRatio = browDistance / maxBrowRatio - 1;
+  let browRaiseRatio = (clamp(browRatio, browLow, browHigh) - browLow) / (browHigh - browLow);
+  return browRaiseRatio; */
+};
+
 const _makeFakeAvatar = () => {
   const Root = new THREE.Object3D();
   const Hips = new THREE.Object3D();
@@ -938,11 +965,17 @@ const onResults = results => {
         getEyeOpen(facelm, 'left'),
         getEyeOpen(facelm, 'right'),
       ];
+      const brows = [
+        getBrowRaise(facelm, 'left'),
+        getBrowRaise(facelm, 'right'),
+      ];
+      // window.brows = brows;
       avatar.faceTracking = {
         head: new THREE.Vector3()
           .copy(head.degrees)
           .multiplyScalar(Math.PI/180),
         eyes: [1-eyes[1], 1-eyes[0]],
+        brows: [1-brows[1], 1-brows[0]],
         pupils: [
           [pupil.x, pupil.y],
           [pupil.x, pupil.y],

@@ -2400,13 +2400,27 @@ class Avatar {
               morphTargetInfluences[uIndex] = 0;
             }
           } else if (this.faceTracking) {
-            const {eyes, vowels} = this.faceTracking;
+            const {eyes, brows, vowels} = this.faceTracking;
             if (blinkLeftIndex !== -1) {
               // console.log('got left blink', blinkLeftIndex, eyes[0]);
               morphTargetInfluences[blinkLeftIndex] = eyes[0];
             }
             if (blinkRightIndex !== -1) {
               morphTargetInfluences[blinkRightIndex] = eyes[1];
+            }
+
+            const brow = (brows[0] + brows[1]) * 0.5;
+            const vrmExtension = this.object?.parser?.json?.extensions?.VRM;
+            // window.vrmExtension = vrmExtension;
+            // window.skinnedMeshes = this.skinnedMeshes;
+            // window.skinnedMeshesVisemeMappings = this.skinnedMeshesVisemeMappings;
+            // console.log('got ', brow);
+            if (angryIndex !== -1) {
+              morphTargetInfluences[angryIndex] = Math.min(Math.max(brow, 0), 1);
+            }
+            if (surprisedIndex !== -1) {
+              // console.log('set brow', Math.min(Math.max(-brow, 0), 1));
+              morphTargetInfluences[surprisedIndex] = Math.min(Math.max(-brow, 0), 1);
             }
             
             const [a, e, i, o, u] = vowels;
