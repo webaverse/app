@@ -744,7 +744,8 @@ const loadPromise = Promise.all([
     }
     {
       previewScene = new THREE.Scene();
-        
+      previewScene.autoUpdate = false;
+
       const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
       previewScene.add(ambientLight);
       const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
