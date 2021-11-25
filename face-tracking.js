@@ -963,7 +963,7 @@ const _getImageCapture = async () => {
     transform: rotateY(180deg);
   `;
   const videoCanvasCtx = videoCanvas.getContext('2d');
-  document.body.appendChild(videoCanvas);
+  // document.body.appendChild(videoCanvas);
 
   const imageCapture = new ImageCapture(videoTrack);
   let frame = null;
