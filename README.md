@@ -51,7 +51,7 @@
 $ git clone --recurse-submodules https://github.com/webaverse/app.git
 $ cd app/
 $ npm install
-$ node index
+$ node index.mjs
 ```
 
 
