@@ -19,7 +19,7 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs/privkey.pemy'),
+  key: _tryReadFile('./certs/privkey.pem'),
   cert: _tryReadFile('./certs/fullchain.pem'),
 };
 
