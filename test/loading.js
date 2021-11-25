@@ -23,7 +23,7 @@ export default () => {
 
 async function setTestCase() {
 
-  var cPath = path.join(__dirname, '..', 'public', 'testCase.js');
+  var cPath = path.join(__dirname, '..', 'public', 'testCase.mjs');
   await fs.writeFileSync(cPath, content);
 
   for (const scn of scenes) {
@@ -31,7 +31,7 @@ async function setTestCase() {
     const data2 = fs.readFileSync(scenePath);
 
     var scene = JSON.parse(data2.toString());
-    var check = scene.objects.find(key => key.start_url === 'http://localhost:3000/testCase.js')
+    var check = scene.objects.find(key => key.start_url === 'http://localhost:3000/testCase.mjs')
 
     if(!check) {
       var data = {
@@ -40,7 +40,7 @@ async function setTestCase() {
           0,
           -30
         ],
-        "start_url": "http://localhost:3000/testCase.js"
+        "start_url": "http://localhost:3000/testCase.mjs"
       };
       scene.objects.push(data);
       fs.writeFileSync(scenePath, JSON.stringify(scene));
@@ -66,14 +66,14 @@ describe('Running Pupeeteer', function() {
 
       process.chdir('..');
 
-      const testProcess = spawn('node', ['index.js']);
+      const testProcess = spawn('node', ['index.mjs']);
 
       testProcess.stdout.on('data', (data) => {
         // console.log(`stdout: ${data}`);
       });
 
       testProcess.stderr.on('data', (data) => {
-        // appTester.addStatErr(data)
+        appTester.addStatErr('ERROR', data)
         // console.log(`stderr: ${data}`);
       });
 
