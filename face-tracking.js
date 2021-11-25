@@ -1100,9 +1100,9 @@ const _getImageCapture = async () => {
   };
   _recurse();
   imageCapture.pullFrame = async () => {
-    _ensureFramePromise();
     let result = frame;
     if (!result) {
+      _ensureFramePromise();
       result = await framePromise;
     }
     frame = null;
