@@ -39,7 +39,7 @@ const points = {
 };
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.1);
-const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5);
+// const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5);
 
 // window.clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -1250,11 +1250,11 @@ function startCamera() {
         faceTrackingWorker.addEventListener('message', onmessage);
       }); */
       let imageCapture = null;
-      const _pushFrame = async () => {
+      const _recurseFrame = async () => {
         // stats.begin();
 
         if (!imageCapture) {
-          console.log('create image capture');
+          // console.log('create image capture');
           imageCapture = await _getImageCapture();
           imageCapture.track.addEventListener('mute', e => {
             imageCapture.destroy();
@@ -1276,9 +1276,9 @@ function startCamera() {
 
         // stats.end();
 
-        _pushFrame();
+        _recurseFrame();
       };
-      _pushFrame();
+      _recurseFrame();
 
       // console.log('got stream', videoTrack);
           
