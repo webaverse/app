@@ -51,7 +51,7 @@ let previewScene = null;
 let previewCamera = null;
 // let holistic = null;
 let faceTrackingWorker = null;
-let videoEl = null;
+// let videoEl = null;
 
 /* async function switchAvatar(oldAvatar, newApp) {
   let result;
