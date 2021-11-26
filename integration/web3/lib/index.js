@@ -1,5 +1,5 @@
-import { ClaimableVoucher } from "./ClaimableVoucher.js";
+const { ClaimableVoucher } = require("./ClaimableVoucher");
 
-export default {
+module.exports = {
     ClaimableVoucher,
 };
