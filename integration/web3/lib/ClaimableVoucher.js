@@ -1,5 +1,5 @@
-const ethers = require("ethers");
-const config = require("../config");
+import { ethers } from 'ethers';
+import config from '../config';
 
 // These constants must match the ones used in the smart contract.
 const SIGNING_DOMAIN_NAME = "Webaverse-voucher";
@@ -14,7 +14,7 @@ const SIGNING_DOMAIN_VERSION = "1";
  * @property {ethers.BigNumber | number} expiry the expiry of voucher, hence cannot be calaimed after the due limit
  * @property {ethers.BytesLike} signature an EIP-712 signature of all fields in the NFTVoucher, apart from signature itself.
  */
-class ClaimableVoucher {
+export class ClaimableVoucher {
     /**
      * Create a new LazyMinter targeting a deployed instance of the LazyNFT contract.
      *
@@ -73,7 +73,3 @@ class ClaimableVoucher {
         return this._domain;
     }
 }
-
-module.exports = {
-    ClaimableVoucher,
-};

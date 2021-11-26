@@ -13,11 +13,13 @@ import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
+import DropManager from '../drop-manager.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+import {apiBackend} from '../constants';
 
 const localEuler = new THREE.Euler();
 
@@ -190,9 +192,8 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
     </div>
   );
 };
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen, setTokenUris}) => {
   const userOpen = open === 'user';
-  
   const [loggingIn, setLoggingIn] = useState(false);
 
   /* (async () => {
@@ -226,8 +227,14 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           setLoggingIn(true);
           try {
             const {address, profile} = await ceramicApi.login();
-            // console.log('login', {address, profile});
             setAddress(address);
+            if (address) {
+              (async () => {
+                const res = await fetch(`${apiBackend}/tokens?address=${address}`);
+                const tokenUri = await res.json();
+                setTokenUris(tokenUri);
+              })();
+            }
           } catch(err) {
             console.warn(err);
           } finally {
@@ -305,7 +312,7 @@ export default function Header({
 	// console.log('index 2');
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
-	
+	const [tokenUris, setTokenUris] = useState(false);
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
@@ -401,23 +408,6 @@ export default function Header({
       document.exitPointerLock();
     }
   }, [open]);
-  useEffect(() => {
-    if (address && !nfts) {
-      setNfts([]);
-      
-      (async () => {
-        const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
-          headers: {
-            'X-API-KEY': `6a7ceb45f3c44c84be65779ad2907046`,
-          },
-        });
-        const j = await res.json();
-        const {assets} = j;
-        setNfts(assets);
-        // console.log('got assets', assets);
-      })();
-    }
-  }, [address, nfts]);
   const _loadUrlState = () => {
     const src = _getCurrentSceneSrc();
     setSceneName(src);
@@ -662,6 +652,7 @@ export default function Header({
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
+              setTokenUris={setTokenUris}
             />
           </div>
 				</header>
@@ -866,24 +857,24 @@ export default function Header({
           e.preventDefault();
           e.stopPropagation();
         }}>
-          {(nfts || []).map((nft, i) => {
-            const {id, asset_contract, name, description} = nft;
-            const image_preview_url = hacks.getNftImage(nft);
-            /* if (!image_preview_url) {
-              console.log('got nft', {nft, hacks, image_preview_url});
-              debugger;
-            } */
-            // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
-            // console.log(nft);
-            return <div className={styles.nft} onDragStart={e => {
-              e.dataTransfer.setData('application/json', JSON.stringify(nft));
-            }} draggable key={i}>
-              <img src={image_preview_url} className={styles.preview} />
+          {(tokenUris || []).map((tokenUri, i) => {
+            const {name, description, external_link, fee_recepient, image, seller_fee_basis_points, tokenID} = tokenUri;
+
+            return <div className={styles.tokenUri} key={i}>
+              <img src={image} className={styles.preview} />
               <div className={styles.wrap}>
                 <div className={styles.name}>{name}</div>
                 <div className={styles.description}>{description}</div>
-                <div className={styles.tokenid}>{asset_contract.address} / {id}</div>
+                <div className={styles.tokenid}>{external_link}</div>
               </div>
+              <button className={styles.tokenUriBtn} onClick={async e => {
+                  e.preventDefault();
+                  DropManager.dropToken(tokenId)
+                }}>
+                <div className={styles.tokenUriBtnText}>
+                  <span>Drop</span>
+                </div>
+              </button>
             </div>
           })}
         </section>
