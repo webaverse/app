@@ -576,60 +576,6 @@ body {
   transform: none;
 }
 
-.tokenUriBtnText {
-  display: inline-block;
-  transform: skewX(20deg);
-  }
-  
-.tokenUriBtn {
-border: none;
-text-align: center;
-transform: skewX(-20deg);
-background: rgb(0, 168, 252);
-color: rgb(0, 0, 0);
-cursor: pointer;
-height: 2rem;
-margin-top: 1rem;
-width: 6rem;
-}
-
-.sidebar .tokenUri {
-  display: flex;
-  padding: 20px;
-  flex-direction: column;
-  cursor: pointer;
-}
-
-.sidebar .tokenUri .preview {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-}
-
-.sidebar .tokenUri .wrap {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar .tokenUri .wrap .name,
-.sidebar .tokenUri .wrap .description,
-.sidebar .tokenUri .wrap .tokenid
-{
-  text-align: left;
-}
-
-.sidebar .tokenUri .name {
-  font-size: 20px;
-}
-
-.sidebar .tokenUri .description {
-  font-size: 16px;
-}
-
-.sidebar .tokenUri .tokenid {
-  font-size: 13px;
-}
-
 .sidebar .nft {
   display: flex;
   padding: 20px;
