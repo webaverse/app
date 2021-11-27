@@ -318,6 +318,7 @@ export default function Header({
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
+  const [faceTrackingEnabled, setFaceTrackingEnabled] = useState(false);
   
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
@@ -850,6 +851,7 @@ export default function Header({
               onclick={e => {
                 const newFaceTracking = !ioManager.getFaceTracking();
                 ioManager.setFaceTracking(newFaceTracking);
+                setFaceTrackingEnabled(newFaceTracking);
                 if (newFaceTracking) {
                   _toggleArAvatar();
                 }
@@ -943,7 +945,7 @@ export default function Header({
           })}
         </section>
         <div className={styles['ar-ui']}>
-          <div className={styles.switches}>
+          {faceTrackingEnabled ? <div className={styles.switches}>
             <div className={styles.switch} onClick={e => {
               _toggleArAvatar();
             }}>AVA</div>
@@ -954,9 +956,11 @@ export default function Header({
               _toggleArPose();
             }}>POSE</div>
             <div className={styles.switch} onClick={e => {
-              ioManager.setFaceTracking(false);
+              const newFaceTracking = false;
+              ioManager.setFaceTracking(newFaceTracking);
+              setFaceTrackingEnabled(newFaceTracking);
             }}>EXIT</div>
-          </div>
+          </div> : null}
           <div className={styles.content} ref={arUiContentRef} />
         </div>
       </div>
