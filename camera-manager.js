@@ -197,7 +197,7 @@ const cameraManager = {
 
     // Check collision from player to camera corners
     for(let i=0;i<4;i++) {
-      if ((collisionArray.hit[i] == 1) && (collisionArray.distance[i] <= -1 * newVal)) {
+      if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= -1 * newVal)) {
         if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
           newVal = (-1 * (collisionArray.distance[i]-0.15));
           hasIntersection = true;
@@ -209,19 +209,17 @@ const cameraManager = {
     // Check collision from player pos and small offset to left and righ - to camera center
     let offsetCollisionCount = 0;
     for(let i=4;i<6;i++) {
-      if ((collisionArray.hit[i] == 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
+      if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
         offsetCollisionCount++;
       }
     }
 
     // Discard collision with small objects
-    if (hasIntersection && (offsetCollisionCount == 0))
+    if (hasIntersection && (offsetCollisionCount === 0))
     {
       hasIntersection = false;
       newVal = cameraOffsetTargetZ;
     }
-
-
     
     // Slow zoom out if there is no intersection
     cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);

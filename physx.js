@@ -615,23 +615,26 @@ const physxWorker = (() => {
   w.raycastPhysicsArray = (physics, p, q, n) => {
     if (physics && (n > 0 && n < 1000)) {
 
+      const positions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset, n * 3);
+      const directions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 3 * 4), n * 3);
+      const meshPositions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 6 * 4), n * 3);
+      const meshQuaternions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 9 * 4), n * 4);
 
       // Input parameters
       for(let i=0;i<n;i++) {
         // Position
-        p[i].toArray(scratchStack.f32, (i * 3));
+        p[i].toArray(positions, (i * 3));
 
-        // Quaternion
+        // Directions
         localVector.set(0, 0, -1)
         .applyQuaternion(q[i])
-        .toArray(scratchStack.f32, (n * 3) + (i * 3));
+        .toArray(directions, (i * 3));
 
         // meshPosition
-        localVector.set(0, 0, 0).toArray(scratchStack.f32, (n * 6) + (i * 3));
+        localVector.set(0, 0, 0).toArray(meshPositions, (i * 3));
 
         // meshQuaternion
-        localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, (n * 9) + (i * 4));
-        
+        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternions, (i * 4));
       }
       
       // Output
@@ -678,6 +681,9 @@ const physxWorker = (() => {
         objectPosition: scratchStack.f32.slice(23 * n, 26 * n),
         objectQuaternion: scratchStack.f32.slice(26 * n, 30 * n)
       }
+    }
+    else {
+      throw new Error('raycastPhysicsArray error');
     }
   };  
   w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
