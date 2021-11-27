@@ -900,7 +900,7 @@ class FaceTracker {
       canvas: this.domElement,
       // context,
       antialias: true,
-      alpha: true,
+      // alpha: true,
     });
     /* {
       videoEl = document.createElement('video');
