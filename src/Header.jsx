@@ -15,12 +15,17 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
-import {startCamera} from '../face-tracking.js';
+import {FaceTracker} from '../face-tracking.js';
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
 const localEuler = new THREE.Euler();
+
+let faceTracker = null;
+world.appManager.addEventListener('frame', e => {
+  faceTracker && faceTracker.update(e.data.timeDiff);
+});
 
 // console.log('index 1');
 
@@ -98,7 +103,14 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
           </button>
         </div>
         <div className={styles['button-wrap']} onClick={e => {
-          startCamera();
+          if (!faceTracker) {
+            faceTracker = new FaceTracker();
+            faceTracker.setAvatar('./avatars/scillia.vrm');
+            document.body.appendChild(faceTracker.domElement);
+          } else {
+            faceTracker.destroy();
+            faceTracker = null;
+          }
         }}>
           <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
             <img src="images/wifi.svg" />

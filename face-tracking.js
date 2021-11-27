@@ -11,7 +11,7 @@ import {getRenderer} from './renderer.js';
 import {world} from './world.js';
 // import {fitCameraToBox} from './util.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
-import Stats from 'stats.js';
+// import Stats from 'stats.js';
 
 const dimensions = {
   width: 640,
@@ -42,51 +42,6 @@ const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vec
 // const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5);
 
 // window.clamp = (v, min, max) => Math.min(Math.max(v, min), max);
-
-let canvas = null;
-// let overlayCanvas = null;
-// let overlayCtx = null;
-let avatar = null;
-let previewScene = null;
-let previewCamera = null;
-// let holistic = null;
-let faceTrackingWorker = null;
-// let videoEl = null;
-
-/* async function switchAvatar(oldAvatar, newApp) {
-  let result;
-  const promises = [];
-  if (oldAvatar) {
-    promises.push((async () => {
-      await oldAvatar[appSymbol].setSkinning(false);
-    })());
-  }
-  if (newApp) {
-    promises.push((async () => {
-      await newApp.setSkinning(true);
-
-      // unwear old rig
-
-      if (!newApp[avatarSymbol]) {
-        newApp[avatarSymbol] = makeAvatar(newApp);
-      }
-      result = newApp[avatarSymbol];
-    })());
-  } else {
-    result = null;
-  }
-  await Promise.all(promises);
-  return result;
-} */
-/* const _lookAt = (camera, boundingBox) => {
-  const center = boundingBox.getCenter(new THREE.Vector3());
-  const size = boundingBox.getSize(new THREE.Vector3());
-
-  camera.position.x = center.x;
-  camera.position.y = center.y;
-  camera.position.z = size.z / 2;
-  fitCameraToBox(camera, boundingBox);
-}; */
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 const remap = (val, min, max) => {
@@ -750,7 +705,7 @@ class FaceTrackingWorker extends EventTarget {
 
     const l = window.location;
     const port = parseInt(l.port, 10) || 0;
-    const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.link')}${port ? (':' + port) : ''}/face-tracking/face-tracking.html`;
+    const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.online')}${port ? (':' + port) : ''}/face-tracking/face-tracking.html`;
     // const targetOrigin = `https://localhost.webaverse.com`;
     this.iframe.src = u;
     // console.log('got u', u);
@@ -818,375 +773,130 @@ class FaceTrackingWorker extends EventTarget {
 }
 
 const fakeAvatar = _makeFakeAvatar();
-const loadPromise = Promise.all([
-  ((async () => {
-    {
-      const defaultAvatarUrl = './avatars/scillia.vrm';
-      const avatarApp = await metaversefile.load(defaultAvatarUrl);
-      avatar = await switchAvatar(null, avatarApp);
-      // avatar.inputs.hmd.position.y = avatar.height;
-      
-      avatar.setTopEnabled(true);
-      avatar.setHandEnabled(0, false);
-      avatar.setHandEnabled(1, false);
-      avatar.setBottomEnabled(false);
-      avatar.inputs.hmd.position.y = avatar.height;
-      avatar.inputs.hmd.updateMatrixWorld();
-      // avatar.update(1000);
-
-      _copyAvatar(avatar, fakeAvatar);
-      fakeAvatar.Root.updateMatrixWorld();
-    }
-    {
-      previewScene = new THREE.Scene();
-      previewScene.autoUpdate = false;
-
-      const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
-      previewScene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-      directionalLight.position.set(1, 2, 3);
-      previewScene.add(directionalLight);
-
-      previewScene.add(avatar.model);
-    }
-  })()),
-  ((async () => {
-    /* holistic = new Holistic({locateFile: (file) => {
-      return `/holistic/${file}`;
-    }});
-    // holistic = new Holistic();
-    holistic.setOptions({
-      // staticImageMode: true,
-      modelComplexity: 2,
-      smoothLandmarks: true,
-      enableSegmentation: true,
-      smoothSegmentation: true,
-      refineFaceLandmarks: true,
-      // minDetectionConfidence: 0.9,
-      // minTrackingConfidence: 0.9,
-    });
-    holistic.onResults(onResults); */
-    /* model = await faceLandmarksDetection.load(
-      faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-      {
-        shouldLoadIrisModel: true,
-        scoreThreshold: 0.9,
-        maxFaces: 1,
-      },
-    );
-    detector = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {runtime: 'tfjs'}); */
-  })()),
-]).then(() => {});
-function waitForLoad() {
-  return loadPromise;
-}
-const onResults = results => {
-  // console.log('lol', results);
-
-  // do something with prediction results
-  // landmark names may change depending on TFJS/Mediapipe model version
-  let facelm = results.faceLandmarks;
-  // let poselm = results.poseLandmarks;
-  let poselm3D = results.ea;
-  let rightHandlm = results.rightHandLandmarks;
-  let leftHandlm = results.leftHandLandmarks;
-
-  // window.results = results;
+class VideoCapture {
+  constructor() {
+    this.frame = null;
+    this.framePromise = null;
+    this.imageCapture = null;
+    this.imageCapturePromise = null;
+    this.videoEl = null;
+    this.videoCanvas = null;
+    this.videoCanvasCtx = null;
   
-  /* for (const lms of [
-    poselm3D,
-    rightHandlm,
-    leftHandlm
-  ]) {
-    if (lms) {
-      console.log('got lms', lms);
-      for (const lm of lms) {
-        if (typeof lm.z !== 'number') {
-          debugger;
-        }
-        lm.z *= -1;
-      }
-    }
-  } */
+    this.imageCapturePromise = (async () => {
+      const mediaDevices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevice = mediaDevices.find(o => o.kind === 'videoinput' && !/virtual/i.test(o.label));
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: {
+            ideal: dimensions.width,
+          },
+          height: {
+            ideal: dimensions.height,
+          },
+          frameRate: {
+            ideal: 30,
+          },
+          facingMode: 'user',
+          deviceId: videoDevice.deviceId,
+        },
+      });
+      const videoTrack = stream.getVideoTracks()[0];
 
-  if (facelm) {
-    let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:dimensions})
-    // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
-    _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
-    let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
-    let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
+      const displayWidth = _getDisplayWidth();
 
-    /* const _renderOverlay = () => {
-      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      
-      const s = 5;
-      const halfS = s/2;
-      const _drawLm = (index, style) => {
-        overlayCtx.fillStyle = style;
-        const point = facelm[index];
-        overlayCtx.fillRect(point.x - halfS, point.y - halfS, s, s);
+      this.videoEl = document.createElement('video');
+      this.videoEl.width = dimensions.width;
+      this.videoEl.height = dimensions.height;
+      this.videoEl.style.cssText = `\
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: ${displayWidth}px;
+        height: auto;
+        z-index: 100;
+        transform: rotateY(180deg);
+      `;
+      // document.body.appendChild(this.videoEl);
+      this.videoEl.srcObject = stream;
+      this.videoEl.play();
+
+      this.videoCanvas = document.createElement('canvas');
+      this.videoCanvas.width = dimensions.width;
+      this.videoCanvas.height = dimensions.height;
+      this.videoCanvas.style.cssText = `\
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: ${displayWidth}px;
+        height: auto;
+        z-index: 100;
+        transform: rotateY(180deg);
+      `;
+      this.videoCanvasCtx = this.videoCanvas.getContext('2d');
+      // document.body.appendChild(videoCanvas);
+
+      this.imageCapture = new ImageCapture(videoTrack);
+      this.imageCapture.track.addEventListener('mute', e => {
+        this.imageCapture.destroy();
+        this.imageCapture = null;
+      });
+      this.imageCapturePromise = null;
+
+      const _recurse = async () => {
+        this.ensureFramePromise();
+        requestAnimationFrame(_recurse);
       };
-      _drawLm(points.pupil.left[0], '#FF0000');
-      _drawLm(points.eye.left[0], '#00FF00');
-      _drawLm(points.eye.left[1], '#0000FF');
-      
-      // _drawLm(points.pupil.right[0], '#FF0000');
-      // _drawLm(points.eye.right[0], '#00FF00');
-      // _drawLm(points.eye.right[1], '#0000FF');
-    };
-    _renderOverlay(); */
-
-    // console.log('got', faceRig, poseRig);
-    if (faceRig) {
-      const {
-        /* eye, */
-        head,
-        mouth: {
-          shape: {A, E, I, O, U}
-        }
-      } = faceRig;
-      // const {degrees} = head;
-      
-      const pupilPos = (lm, side = "left") => {
-        const eyeOuterCorner = new Kalidokit.Vector(lm[points.eye[side][0]]);
-        const eyeInnerCorner = new Kalidokit.Vector(lm[points.eye[side][1]]);
-        const eyeWidth = eyeOuterCorner.distance(eyeInnerCorner, 2);
-        const midPoint = eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
-        const pupil = new Kalidokit.Vector(lm[points.pupil[side][0]]);
-        // console.log('got', pupil.x, midPoint.x, eyeWidth, dx/eyeWidth, eyeInnerCorner.x, eyeOuterCorner.x);
-        const dx = (midPoint.x - pupil.x) / (eyeWidth / 2);
-        //eye center y is slightly above midpoint
-        const dy = (midPoint.y - pupil.y) / (eyeWidth / 2);
-        
-        // console.log('got dx', dx, dy);
-
-        return { x: dx, y: dy };
-      };
-      const lPupil = pupilPos(facelm, 'left');
-      const rPupil = pupilPos(facelm, 'right');
-      const pupil = {
-        x: -(lPupil.x + rPupil.x) * 0.5,
-        y: (lPupil.y + rPupil.y) * 0.5,
-      };
-      const mouth = (() => {
-        const left = new THREE.Vector3().copy(facelm[points.mouth[0]]);
-        const right = new THREE.Vector3().copy(facelm[points.mouth[1]]);
-        // const top = new THREE.Vector3().copy(facelm[points.mouth[2]]);
-        // const bottom = new THREE.Vector3().copy(facelm[points.mouth[3]]);
-        const centerTop = new THREE.Vector3().copy(facelm[points.mouth[4]]);
-        const centerBottom = new THREE.Vector3().copy(facelm[points.mouth[5]]);
-        const cheekLeftOuter = new THREE.Vector3().copy(facelm[points.mouth[6]]);
-        const cheekRightOuter = new THREE.Vector3().copy(facelm[points.mouth[7]]);
-        const cheekBottom = new THREE.Vector3().copy(facelm[points.mouth[8]]);
-
-        const center = new THREE.Vector3().copy(centerTop).lerp(centerBottom, 0.5);
-
-        const plane = new THREE.Plane().setFromCoplanarPoints(
-          cheekLeftOuter,
-          cheekRightOuter,
-          cheekBottom,
-        );
-
-        const leftPlane = plane.projectPoint(left, new THREE.Vector3());
-        const rightPlane = plane.projectPoint(right, new THREE.Vector3());
-        // const topPlane = plane.projectPoint(top, new THREE.Vector3());
-        // const bottomPlane = plane.projectPoint(bottom, new THREE.Vector3());
-        const centerPlane = plane.projectPoint(center, new THREE.Vector3());
-        const xAxis = rightPlane.clone().sub(leftPlane).normalize();
-        const yAxis = xAxis.clone().cross(plane.normal).normalize();
-        // const yAxis = topPlane.clone().sub(bottomPlane).normalize();
-
-        /* console.log('plane normal',
-          plane.normal.toArray().join(','),
-          xAxis.toArray().join(','),
-          yAxis.toArray().join(',')
-        ); */
-
-        const leftRightLine = new THREE.Line3(leftPlane, rightPlane);
-
-        const centerClosestPoint = leftRightLine.closestPointToPoint(centerPlane, true, new THREE.Vector3());
-        const centerOffset = centerClosestPoint.clone().sub(centerPlane);
-        const centerY = centerOffset.dot(yAxis);
-        if (centerY <= 2) {
-          return -clamp(2 - centerY, 0, 1);
-        } else {
-          return clamp((centerY - 2) / 6, 0, 1);
-        }
-      })();
-      // console.log('got mouth', mouth);
-      
-      const eyes = [
-        getEyeOpen(facelm, 'left'),
-        getEyeOpen(facelm, 'right'),
-      ];
-      const brows = [
-        getBrowRaise(facelm, 'left'),
-        getBrowRaise(facelm, 'right'),
-      ];
-      // window.brows = brows;
-      avatar.faceTracking = {
-        head: new THREE.Vector3()
-          .copy(head.degrees)
-          .multiplyScalar(Math.PI/180),
-        eyes: [1-eyes[1], 1-eyes[0]],
-        brows: [1-brows[1], 1-brows[0]],
-        pupils: [
-          [pupil.x, pupil.y],
-          [pupil.x, pupil.y],
-        ],
-        mouth,
-        vowels: [A, E, I, O, U],
-      };
-      // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
-    }
-    /* avatar.handTracking = [
-      rightHandRig ? rightHandRig : null,
-      leftHandRig ? leftHandRig : null,
-    ]; */
-    // if (poseRig) {
-      // avatar.inputs.hmd.quaternion.copy(y180Quaternion);
-    // }
-    avatar.poseTracking = fakeAvatar;
-    avatar.handTracking = [
-      leftHandRig,
-      rightHandRig,
-    ];
-    if (leftHandRig) {
-      avatar.setHandEnabled(1, true);
-    }
-    if (rightHandRig) {
-      avatar.setHandEnabled(0, true);
-    }
-    
-    /* // window.poseRig = poseRig;
-    if (rightHandRig) {
-      window.rightHandRig = rightHandRig;
-    }
-    if (leftHandRig) {
-      window.leftHandRig = leftHandRig;
-    } */
+      _recurse();
+    })();
   }
-};
-const _getImageCapture = async () => {
-  const mediaDevices = await navigator.mediaDevices.enumerateDevices();
-  const videoDevice = mediaDevices.find(o => o.kind === 'videoinput' && !/virtual/i.test(o.label));
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      width: {
-        ideal: dimensions.width,
-      },
-      height: {
-        ideal: dimensions.height,
-      },
-      frameRate: {
-        ideal: 30,
-      },
-      facingMode: 'user',
-      deviceId: videoDevice.deviceId,
-    },
-  });
-  const videoTrack = stream.getVideoTracks()[0];
-
-  const displayWidth = _getDisplayWidth();
-
-  const videoEl = document.createElement('video');
-  videoEl.width = dimensions.width;
-  videoEl.height = dimensions.height;
-  videoEl.style.cssText = `\
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: ${displayWidth}px;
-    height: auto;
-    z-index: 100;
-    transform: rotateY(180deg);
-  `;
-  // document.body.appendChild(videoEl);
-  videoEl.srcObject = stream;
-  videoEl.play();
-
-  const videoCanvas = document.createElement('canvas');
-  videoCanvas.width = dimensions.width;
-  videoCanvas.height = dimensions.height;
-  videoCanvas.style.cssText = `\
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: ${displayWidth}px;
-    height: auto;
-    z-index: 100;
-    transform: rotateY(180deg);
-  `;
-  const videoCanvasCtx = videoCanvas.getContext('2d');
-  // document.body.appendChild(videoCanvas);
-
-  const imageCapture = new ImageCapture(videoTrack);
-  let frame = null;
-  let framePromise = null;
-  // let animationFrame = null;
-  /* const _recurse = async () => {
-    console.time('frame');
-    framePromise = imageCapture.grabFrame();
-    const newFrame = await framePromise;
-    console.timeEnd('frame');
-    if (frame) {
-      frame.close();
-    }
-    frame = newFrame;
-    framePromise = null;
-    _recurse();
-  };
-  _recurse(); */
-  const _ensureFramePromise = () => {
-    if (!framePromise) {
-      framePromise = (async () => {
+  ensureFramePromise() {
+    if (!this.framePromise) {
+      this.framePromise = (async () => {
         // console.time('frame');
-        videoCanvasCtx.drawImage(videoEl, 0, 0, dimensions.width, dimensions.height);
-        frame && frame.close();
-        frame = await createImageBitmap(videoCanvas);
+        this.videoCanvasCtx.drawImage(this.videoEl, 0, 0, dimensions.width, dimensions.height);
+        this.frame && this.frame.close();
+        this.frame = await createImageBitmap(this.videoCanvas);
         // console.timeEnd('frame');
-        framePromise = null;
-        return frame;
+        this.framePromise = null;
+        return this.frame;
       })();
     }
-  };
-  const _recurse = async () => {
-    _ensureFramePromise();
-    requestAnimationFrame(_recurse);
-  };
-  _recurse();
-  imageCapture.pullFrame = async () => {
-    let result = frame;
-    if (!result) {
-      _ensureFramePromise();
-      result = await framePromise;
-    }
-    frame = null;
-    return result;
-  };
-  imageCapture.destroy = () => {
-    // cancelAnimationFrame(animationFrame);
-    imageCapture.track.stop();
-  };
-  return imageCapture;
-};
-function startCamera() {
-  // const stats = new Stats();
-  // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-  // document.body.appendChild(stats.dom);
-
-  if (!faceTrackingWorker) {
-    faceTrackingWorker = new FaceTrackingWorker();
   }
+  async pullFrame() {
+    if (this.imageCapturePromise) {
+      await this.imageCapturePromise;
+    }
 
-  const displayWidth = _getDisplayWidth();
+    let result = this.frame;
+    if (!result) {
+      this.ensureFramePromise();
+      result = await this.framePromise;
+    }
+    this.frame = null;
+    return result;
+  }
+  destroy() {
+    this.imageCapture.track.stop();
+  }
+}
+class FaceTracker {
+  constructor() {
+    this.canvas = null;
+    this.avatar = null ;
+    this.previewRenderer = null;
+    this.previewScene = null;
+    this.previewCamera = null;
+    this.faceTrackingWorker = new FaceTrackingWorker();
+    this.videoCapture = new VideoCapture();
+    this.domElement = null;
+    this.live = true;
 
-  (async () => {
+    const displayWidth = _getDisplayWidth();
     {
-      canvas = document.createElement('canvas');
+      const canvas = document.createElement('canvas');
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
-      document.body.appendChild(canvas);
       canvas.style.cssText = `\
         position: absolute;
         bottom: 0;
@@ -1195,11 +905,11 @@ function startCamera() {
         z-index: 100;
         transform: rotateY(180deg);
       `;
-      document.body.appendChild(canvas);
       // window.canvas2 = canvas;
+      this.domElement = canvas;
     }
-    const previewRenderer = new THREE.WebGLRenderer({
-      canvas,
+    this.previewRenderer = new THREE.WebGLRenderer({
+      canvas: this.domElement,
       // context,
       antialias: true,
       alpha: true,
@@ -1230,144 +940,276 @@ function startCamera() {
       // document.body.appendChild(overlayCanvas);
     } */
     {
-      previewCamera = new THREE.PerspectiveCamera(
+      this.previewScene = new THREE.Scene();
+      this.previewScene.autoUpdate = false;
+
+      const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+      this.previewScene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+      directionalLight.position.set(1, 2, 3);
+      this.previewScene.add(directionalLight);
+    }
+    {
+      this.previewCamera = new THREE.PerspectiveCamera(
         60,
-        canvas.width / canvas.height,
+        this.domElement.width / this.domElement.height,
         0.1,
         1000
       );
     }
-    {
-      /* const _waitForFaceTrackerResult = () => new Promise((accept, reject) => {
-        const onmessage = e => {
-          faceTrackingWorker.addEventListener('message', onmessage);
-          if (!e.data.error) {
-            accept(e.data.result);
-          } else {
-            reject(e.data.error);
-          }
-        };
-        faceTrackingWorker.addEventListener('message', onmessage);
-      }); */
-      let imageCapture = null;
-      const _recurseFrame = async () => {
-        // stats.begin();
 
-        if (!imageCapture) {
-          // console.log('create image capture');
-          imageCapture = await _getImageCapture();
-          imageCapture.track.addEventListener('mute', e => {
-            imageCapture.destroy();
-            imageCapture = null;
-          });
-        }
-        const imageBitmap = await imageCapture.pullFrame();
-        // const imageBitmap = await imageCapture.grabFrame();
-        // console.log('push frame', imageBitmap);
-        // console.log('post frame', imageBitmap.lol);
-        const results = await faceTrackingWorker.processFrame(imageBitmap);
-        // console.log('got results', results);
-        // window.results = results;
-        onResults(results);
-        /* faceTrackingWorker.postMessage({
-          image: imageBitmap,
-        }, [imageBitmap]); */
-        // await _waitForFaceTrackerResult();
+    const _recurseFrame = async () => {
+      const imageBitmap = await this.videoCapture.pullFrame();
+      if (!this.live) return;
+      const results = await this.faceTrackingWorker.processFrame(imageBitmap);
+      if (!this.live) return;
+      this.onResults(results);
 
-        // stats.end();
-
-        _recurseFrame();
-      };
       _recurseFrame();
-
-      // console.log('got stream', videoTrack);
-          
-      /* // use Mediapipe's webcam utils to send video to holistic every frame
-      const camera = new Camera(videoEl, {
-        onFrame: async () => {
-          await holistic.send({image: videoEl});
-          
-          // console.log('send image');
-          // await holistic.send({image: videoEl});
-          
-          if (model && detector && avatar) {
-            const [
-              faces,
-              poses,
-            ] = await Promise.all([
-              model.estimateFaces({
-                input: videoEl,
-                // predictIrises: false,
-              }),
-              detector.estimatePoses(videoEl),
-            ]);
-            
-            avatar.faceTracking = null;
-            
-            if (faces.length > 0) {
-              const faceLandmarks = faces[0].mesh;
-              // console.log('got', faces[0].mesh);
-              
-              let faceRig = Kalidokit.Face.solve(faceLandmarks,{runtime:'tfjs',video:videoEl})
-              // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
-              // let rightHandRig = Kalidokit.Hand.solve(rightHandlm,"Right")
-              // let leftHandRig = Kalidokit.Hand.solve(leftHandlm,"Left")
-              
-              // window.faceRig = faceRig;
-              
-              // console.log('got', faceRig, poseRig);
-              if (faceRig) {
-                const {eye, head, mouth} = faceRig;
-                const {
-                  shape: {A, E, I, O, U},
-                } = mouth;
-                const {degrees} = head;
-                avatar.faceTracking = {
-                  head: new THREE.Vector3()
-                    .copy(head.degrees)
-                    .multiplyScalar(Math.PI/180),
-                  eyes: [1-eye.l, 1-eye.r],
-                  pupil: [faceRig.pupil.x, faceRig.pupil.y],
-                  vowels: [A, E, I, O, U],
-                };
-              }
-            }
-            if (poses.length > 0) {
-              window.poses = poses;
-              // const pose = poses[0];
-              // let poseRig = Kalidokit.Pose.solve(pose,poselm,{runtime:'tfjs',video:videoEl})
-            }
-          }
-        },
-        width: canvas.width,
-        height: canvas.height,
-      });
-      camera.start(); */
+    };
+    _recurseFrame();
+  }
+  async setAvatar(u) {
+    if (this.avatar) {
+      this.avatar.parent.remove(avatar);
+      this.avatar = null;
     }
+
+    const avatarApp = await metaversefile.load(u);
+    this.avatar = await switchAvatar(null, avatarApp);
+    // avatar.inputs.hmd.position.y = avatar.height;
+    
+    this.avatar.setTopEnabled(true);
+    this.avatar.setHandEnabled(0, false);
+    this.avatar.setHandEnabled(1, false);
+    this.avatar.setBottomEnabled(false);
+    this.avatar.inputs.hmd.position.y = this.avatar.height;
+    this.avatar.inputs.hmd.updateMatrixWorld();
+    // avatar.update(1000);
+
+    this.previewScene.add(this.avatar.model);
+
     {
       const distance = 0.6;
       // const h = avatar.height * 0.85;
-      const h = avatar.height * 0.9;
-      previewCamera.position.set(0, h, distance);
-      // previewCamera.position.set(0, avatar.height, -distance);
-      previewCamera.lookAt(new THREE.Vector3(0, h, 0));
-      previewCamera.updateMatrixWorld();
+      const h = this.avatar.height * 0.9;
+      this.previewCamera.position.set(0, h, distance);
+      // this.previewCamera.position.set(0, avatar.height, -distance);
+      this.previewCamera.lookAt(new THREE.Vector3(0, h, 0));
+      this.previewCamera.updateMatrixWorld();
+    }
+
+    _copyAvatar(avatar, fakeAvatar);
+    fakeAvatar.Root.updateMatrixWorld();
+  }
+  update(timeDiff) {
+    if (this.avatar) {
+      this.avatar.update(timeDiff);
+    }
+    
+    this.previewRenderer.clear();
+    this.previewRenderer.render(this.previewScene, this.previewCamera);
+  }
+  onResults(results) {
+    if (this.avatar) {
+      // do something with prediction results
+      // landmark names may change depending on TFJS/Mediapipe model version
+      let facelm = results.faceLandmarks;
+      // let poselm = results.poseLandmarks;
+      let poselm3D = results.ea;
+      let rightHandlm = results.rightHandLandmarks;
+      let leftHandlm = results.leftHandLandmarks;
+
+      // window.results = results;
       
-      world.appManager.addEventListener('frame', e => {
-        const {timeDiff} = e.data;
-        
-        if (avatar) {
-          avatar.update(timeDiff);
+      /* for (const lms of [
+        poselm3D,
+        rightHandlm,
+        leftHandlm
+      ]) {
+        if (lms) {
+          console.log('got lms', lms);
+          for (const lm of lms) {
+            if (typeof lm.z !== 'number') {
+              debugger;
+            }
+            lm.z *= -1;
+          }
+        }
+      } */
+
+      if (facelm) {
+        let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:dimensions})
+        // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
+        _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
+        let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
+        let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
+
+        /* const _renderOverlay = () => {
+          overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+          
+          const s = 5;
+          const halfS = s/2;
+          const _drawLm = (index, style) => {
+            overlayCtx.fillStyle = style;
+            const point = facelm[index];
+            overlayCtx.fillRect(point.x - halfS, point.y - halfS, s, s);
+          };
+          _drawLm(points.pupil.left[0], '#FF0000');
+          _drawLm(points.eye.left[0], '#00FF00');
+          _drawLm(points.eye.left[1], '#0000FF');
+          
+          // _drawLm(points.pupil.right[0], '#FF0000');
+          // _drawLm(points.eye.right[0], '#00FF00');
+          // _drawLm(points.eye.right[1], '#0000FF');
+        };
+        _renderOverlay(); */
+
+        // console.log('got', faceRig, poseRig);
+        if (faceRig) {
+          const {
+            /* eye, */
+            head,
+            mouth: {
+              shape: {A, E, I, O, U}
+            }
+          } = faceRig;
+          // const {degrees} = head;
+          
+          const pupilPos = (lm, side = "left") => {
+            const eyeOuterCorner = new Kalidokit.Vector(lm[points.eye[side][0]]);
+            const eyeInnerCorner = new Kalidokit.Vector(lm[points.eye[side][1]]);
+            const eyeWidth = eyeOuterCorner.distance(eyeInnerCorner, 2);
+            const midPoint = eyeOuterCorner.lerp(eyeInnerCorner, 0.5);
+            const pupil = new Kalidokit.Vector(lm[points.pupil[side][0]]);
+            // console.log('got', pupil.x, midPoint.x, eyeWidth, dx/eyeWidth, eyeInnerCorner.x, eyeOuterCorner.x);
+            const dx = (midPoint.x - pupil.x) / (eyeWidth / 2);
+            //eye center y is slightly above midpoint
+            const dy = (midPoint.y - pupil.y) / (eyeWidth / 2);
+            
+            // console.log('got dx', dx, dy);
+
+            return { x: dx, y: dy };
+          };
+          const lPupil = pupilPos(facelm, 'left');
+          const rPupil = pupilPos(facelm, 'right');
+          const pupil = {
+            x: -(lPupil.x + rPupil.x) * 0.5,
+            y: (lPupil.y + rPupil.y) * 0.5,
+          };
+          const mouth = (() => {
+            const left = new THREE.Vector3().copy(facelm[points.mouth[0]]);
+            const right = new THREE.Vector3().copy(facelm[points.mouth[1]]);
+            // const top = new THREE.Vector3().copy(facelm[points.mouth[2]]);
+            // const bottom = new THREE.Vector3().copy(facelm[points.mouth[3]]);
+            const centerTop = new THREE.Vector3().copy(facelm[points.mouth[4]]);
+            const centerBottom = new THREE.Vector3().copy(facelm[points.mouth[5]]);
+            const cheekLeftOuter = new THREE.Vector3().copy(facelm[points.mouth[6]]);
+            const cheekRightOuter = new THREE.Vector3().copy(facelm[points.mouth[7]]);
+            const cheekBottom = new THREE.Vector3().copy(facelm[points.mouth[8]]);
+
+            const center = new THREE.Vector3().copy(centerTop).lerp(centerBottom, 0.5);
+
+            const plane = new THREE.Plane().setFromCoplanarPoints(
+              cheekLeftOuter,
+              cheekRightOuter,
+              cheekBottom,
+            );
+
+            const leftPlane = plane.projectPoint(left, new THREE.Vector3());
+            const rightPlane = plane.projectPoint(right, new THREE.Vector3());
+            // const topPlane = plane.projectPoint(top, new THREE.Vector3());
+            // const bottomPlane = plane.projectPoint(bottom, new THREE.Vector3());
+            const centerPlane = plane.projectPoint(center, new THREE.Vector3());
+            const xAxis = rightPlane.clone().sub(leftPlane).normalize();
+            const yAxis = xAxis.clone().cross(plane.normal).normalize();
+            // const yAxis = topPlane.clone().sub(bottomPlane).normalize();
+
+            /* console.log('plane normal',
+              plane.normal.toArray().join(','),
+              xAxis.toArray().join(','),
+              yAxis.toArray().join(',')
+            ); */
+
+            const leftRightLine = new THREE.Line3(leftPlane, rightPlane);
+
+            const centerClosestPoint = leftRightLine.closestPointToPoint(centerPlane, true, new THREE.Vector3());
+            const centerOffset = centerClosestPoint.clone().sub(centerPlane);
+            const centerY = centerOffset.dot(yAxis);
+            if (centerY <= 2) {
+              return -clamp(2 - centerY, 0, 1);
+            } else {
+              return clamp((centerY - 2) / 6, 0, 1);
+            }
+          })();
+          // console.log('got mouth', mouth);
+          
+          const eyes = [
+            getEyeOpen(facelm, 'left'),
+            getEyeOpen(facelm, 'right'),
+          ];
+          const brows = [
+            getBrowRaise(facelm, 'left'),
+            getBrowRaise(facelm, 'right'),
+          ];
+          // window.brows = brows;
+          this.avatar.faceTracking = {
+            head: new THREE.Vector3()
+              .copy(head.degrees)
+              .multiplyScalar(Math.PI/180),
+            eyes: [1-eyes[1], 1-eyes[0]],
+            brows: [1-brows[1], 1-brows[0]],
+            pupils: [
+              [pupil.x, pupil.y],
+              [pupil.x, pupil.y],
+            ],
+            mouth,
+            vowels: [A, E, I, O, U],
+          };
+          // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
+        }
+        /* avatar.handTracking = [
+          rightHandRig ? rightHandRig : null,
+          leftHandRig ? leftHandRig : null,
+        ]; */
+        // if (poseRig) {
+          // avatar.inputs.hmd.quaternion.copy(y180Quaternion);
+        // }
+        this.avatar.poseTracking = fakeAvatar;
+        this.avatar.handTracking = [
+          leftHandRig,
+          rightHandRig,
+        ];
+        if (leftHandRig) {
+          this.avatar.setHandEnabled(1, true);
+        }
+        if (rightHandRig) {
+          this.avatar.setHandEnabled(0, true);
         }
         
-        previewRenderer.clear();
-        previewRenderer.render(previewScene, previewCamera);
-      });
+        /* // window.poseRig = poseRig;
+        if (rightHandRig) {
+          window.rightHandRig = rightHandRig;
+        }
+        if (leftHandRig) {
+          window.leftHandRig = leftHandRig;
+        } */
+      }
     }
-  })();
+  }
+  destroy() {
+    this.videoCapture.destroy();
+    this.live = false;
+  }
+}
+function startCamera() {
+  const faceTracker = new FaceTracker();
+  world.appManager.addEventListener('frame', e => {
+    faceTracker.update(e.data.timeDiff);
+  });
 }
 
 export {
-  waitForLoad,
   startCamera,
+  FaceTracker,
 };
