@@ -2160,8 +2160,7 @@ class Avatar {
         
         this.lastEyeTargetQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, this.trackMouseAmount);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
-      } 
-      else {
+      } else {
         this.trackMouseAmount = 0;
         this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
@@ -2170,8 +2169,7 @@ class Avatar {
       this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
-    } 
-    else {
+    } else {
       if (this.trackMouseAmount > 0) {
         const eyePosition = getEyePosition(this.modelBones);
         this.modelBoneOutputs.Neck.updateMatrixWorld();
