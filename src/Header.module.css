@@ -709,6 +709,14 @@ body {
   padding: 5px;
   background-color: #111;
   color: #FFF;
+  cursor: pointer;
+  user-select: none;
+}
+.ar-ui .switches .switch:hover {
+  background-color: #1e88e5;
+}
+.ar-ui .switches .switch:active {
+  background-color: #1565c0;
 }
 .ar-ui .content {
   display: flex;

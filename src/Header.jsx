@@ -915,6 +915,11 @@ export default function Header({
           })}
         </section>
         <div className={styles['ar-ui']}>
+          <div className={styles.switches}>
+            <div className={styles.switch}>AVA</div>
+            <div className={styles.switch}>CAM</div>
+            <div className={styles.switch}>POSE</div>
+          </div>
           <div className={styles.content} ref={arUiContentRef} />
         </div>
       </div>
