@@ -8,17 +8,18 @@ import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
 import game from './game.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
+// import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
-import {airFriction, flyFriction} from './constants.js';
+// import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
+import {FaceTracker} from './face-tracking.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -33,6 +34,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 const zeroVector = new THREE.Vector3();
+
+let faceTracker = null;
 
 const ioManager = new EventTarget();
 
@@ -239,6 +242,8 @@ const _updateIo = timeDiff => {
       );
     }
   }
+
+  faceTracker && faceTracker.update(timeDiff);
 };
 ioManager.update = _updateIo;
 
@@ -830,6 +835,17 @@ ioManager.bindInput = () => {
   }, {
     passive: false,
   });
+  ioManager.getFaceTracking = () => !!faceTracker;
+  ioManager.setFaceTracking = enable => {
+    if (enable && !faceTracker) {
+      faceTracker = new FaceTracker();
+      faceTracker.setAvatar('./avatars/scillia.vrm');
+      document.body.appendChild(faceTracker.domElement);
+    } else if (disable && !!faceTracker) {
+      faceTracker.destroy();
+      faceTracker = null;
+    }
+  };
 };
 
 export default ioManager;

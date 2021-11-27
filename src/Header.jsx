@@ -15,17 +15,11 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
-import {FaceTracker} from '../face-tracking.js';
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
 const localEuler = new THREE.Euler();
-
-let faceTracker = null;
-world.appManager.addEventListener('frame', e => {
-  faceTracker && faceTracker.update(e.data.timeDiff);
-});
 
 // console.log('index 1');
 
@@ -822,14 +816,7 @@ export default function Header({
             <Tab
               type="ar"
               onclick={e => {
-                if (!faceTracker) {
-                  faceTracker = new FaceTracker();
-                  faceTracker.setAvatar('./avatars/scillia.vrm');
-                  document.body.appendChild(faceTracker.domElement);
-                } else {
-                  faceTracker.destroy();
-                  faceTracker = null;
-                }
+                ioManager.setFaceTracking(!ioManager.getFaceTracking());
               }}
               bottom
               middle
