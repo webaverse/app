@@ -695,14 +695,26 @@ body {
 }
 
 .ar-ui {
-  display: flex;
   position: absolute;
   bottom: 0;
   right: 0;
-  z-index: 100;
-  transform: rotateY(180deg);
+  z-index: 1;
 }
-.ar-ui .avatar-canvas {
-  width: 300px;
-  height: auto;
+.ar-ui .switches {
+  display: flex;
+}
+.ar-ui .switches .switch {
+  margin-top: 2px;
+  margin-right: 2px;
+  padding: 5px;
+  background-color: #111;
+  color: #FFF;
+}
+.ar-ui .content {
+  display: flex;
+}
+.ar-ui .content .avatar-canvas {
+  width: 640px;
+  height: 480px;
+  transform: rotateY(180deg);
 }

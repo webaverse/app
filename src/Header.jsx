@@ -631,7 +631,7 @@ export default function Header({
       world.appManager.removeEventListener('selectchange', selectchange);
     };
   }, [dragging]);
-  const arUiRef = useRef();
+  const arUiContentRef = useRef();
 
 	return (
     <div className={styles.container} onClick={e => {
@@ -821,8 +821,9 @@ export default function Header({
                 ioManager.setFaceTracking(newFaceTracking);
                 if (newFaceTracking) {
                   const {domElement} = ioManager.getFaceTracker();
-                  domElement.classList.add('avatar-canvas');
-                  arUiRef.current.appendChild(domElement);
+                  // console.log('dom element', domElement, arUiContentRef.current);
+                  domElement.classList.add(styles['avatar-canvas']);
+                  arUiContentRef.current.appendChild(domElement);
                 }
               }}
               bottom
@@ -913,7 +914,8 @@ export default function Header({
             </div>
           })}
         </section>
-        <div className={styles.arUi} ref={arUiRef}>
+        <div className={styles['ar-ui']}>
+          <div className={styles.content} ref={arUiContentRef} />
         </div>
       </div>
     </div>

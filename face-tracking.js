@@ -884,14 +884,14 @@ class FaceTracker {
       const canvas = document.createElement('canvas');
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
-      canvas.style.cssText = `\
+      /* canvas.style.cssText = `\
         position: absolute;
         bottom: 0;
-        right: ${displayWidth}px;
         width: ${displayWidth}px;
+        height: ${displayWidth}px;
         z-index: 100;
         transform: rotateY(180deg);
-      `;
+      `; */
       // window.canvas2 = canvas;
       this.domElement = canvas;
     }
