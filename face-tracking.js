@@ -784,6 +784,19 @@ class VideoCapture {
     this.videoCanvasCtx = null;
 
     this.imageCapturePromise = (async () => {
+      {
+        this.videoCanvas = document.createElement('canvas');
+        this.videoCanvas.width = dimensions.width;
+        this.videoCanvas.height = dimensions.height;
+        // this.videoCanvas.style.cssText = this.videoEl.style.cssText;
+        this.videoCanvasCtx = this.videoCanvas.getContext('2d');
+      }
+      {
+        this.videoEl = document.createElement('video');
+        this.videoEl.width = dimensions.width;
+        this.videoEl.height = dimensions.height;
+      }
+
       const mediaDevices = await navigator.mediaDevices.enumerateDevices();
       const videoDevice = mediaDevices.find(o => o.kind === 'videoinput' && !/virtual/i.test(o.label));
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -802,26 +815,8 @@ class VideoCapture {
         },
       });
       const videoTrack = stream.getVideoTracks()[0];
-
-      const displayWidth = _getDisplayWidth();
-
-      this.videoEl = document.createElement('video');
-      this.videoEl.width = dimensions.width;
-      this.videoEl.height = dimensions.height;
-      /* this.videoEl.style.cssText = `\
-        width: ${displayWidth}px;
-        height: auto;
-      `; */
-      // document.body.appendChild(this.videoEl);
       this.videoEl.srcObject = stream;
       this.videoEl.play();
-
-      this.videoCanvas = document.createElement('canvas');
-      this.videoCanvas.width = dimensions.width;
-      this.videoCanvas.height = dimensions.height;
-      this.videoCanvas.style.cssText = this.videoEl.style.cssText;
-      this.videoCanvasCtx = this.videoCanvas.getContext('2d');
-      // document.body.appendChild(videoCanvas);
 
       this.imageCapture = new ImageCapture(videoTrack);
       this.imageCapture.track.addEventListener('mute', e => {

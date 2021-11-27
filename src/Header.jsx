@@ -633,17 +633,37 @@ export default function Header({
   }, [dragging]);
   const arUiContentRef = useRef();
 
+  /* const _removeArElements = () => {
+    const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
+    for (const el of [domElement, videoCanvas]) {
+      if (!el) {
+        debugger;
+      }
+      el.remove();
+    }
+  }; */
   const _toggleArAvatar = () => {
-    const {domElement} = ioManager.getFaceTracker();
+    const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
+    // _removeArElements();
     if (!domElement.parentElement) {
+      const videoCanvasParent = videoCanvas.parentElement;
+      if (videoCanvasParent) {
+        videoCanvas.remove();
+      }
+
       domElement.classList.add(styles['avatar-canvas']);
       arUiContentRef.current.appendChild(domElement);
+    
+      if (videoCanvasParent) {
+        videoCanvasParent.appendChild(videoCanvas);
+      }
     } else {
       domElement.remove();
     }
   };
   const _toggleArCamera = () => {
-    const {videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
+    const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
+    // _removeArElements();
     if (!videoCanvas.parentElement) {
       videoCanvas.classList.add(styles['camera-canvas']);
       arUiContentRef.current.appendChild(videoCanvas);
