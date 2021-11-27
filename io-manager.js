@@ -843,6 +843,7 @@ ioManager.bindInput = () => {
       document.body.appendChild(faceTracker.domElement);
     } else if (!enable && !!faceTracker) {
       faceTracker.destroy();
+      document.body.removeChild(faceTracker.domElement);
       faceTracker = null;
     }
   };
