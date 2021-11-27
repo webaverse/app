@@ -3,6 +3,8 @@ import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
+import { Vector3 } from 'three';
+import { Quaternion } from 'three';
 
 const localVector = new THREE.Vector3();
 
@@ -14,8 +16,11 @@ const rayVectorZero = new THREE.Vector3(0,0,0);
 const rayVectorUp = new THREE.Vector3(0,1,0);
 const rayStartPos = new THREE.Vector3(0,0,0);
 const rayDirection = new THREE.Vector3(0,0,0);
+const rayOffsetPoint = new THREE.Vector3(0,0,0);
 const rayMatrix = new THREE.Matrix4();
 const rayQuaternion = new THREE.Quaternion();
+const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
+const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
@@ -121,102 +126,10 @@ const cameraManager = {
       return value1 + (value2 - value1) * amount;
     }
 
-    function checkRayIntersection(origin,dirQuaternion,maxDistance)
-    {
-      let res = false;
+    // Raycast from player to camera corner
+    function initCameraRayParams(arrayIndex,originPoint) {
 
-      let collision = physicsManager.raycast(origin, dirQuaternion);
-      if (collision) {
-        if (collision.distance <= maxDistance) {
-          res = true;
-        }
-      }
-
-      return res;
-    }
-
-    // Two rays from players position with small offset left and right
-    function checkSmallObjectIntersections(maxDistance)
-    {
-      let intersections = 0;
-
-      const localPlayer = metaversefile.useLocalPlayer();
-
-      let checkPoints = [];
-      
-      const sideways = new THREE.Vector3();
-      
-      // Left
-      checkPoints[0] = localPlayer.position.clone();
-      sideways.set(-1, 0, 0);
-      sideways.applyQuaternion(camera.quaternion);
-      sideways.normalize();
-      checkPoints[0].add(sideways);
-      
-      // Right
-      checkPoints[1] = localPlayer.position.clone();
-      sideways.set(1, 0, 0);
-      sideways.applyQuaternion(camera.quaternion);
-      sideways.normalize();
-      checkPoints[1].add(sideways);
-  
-      for(let i=0;i<checkPoints.length;i++)
-      {
-        rayDirection.subVectors(localPlayer.position,camera.position ).normalize();
-
-        rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
-        rayQuaternion.setFromRotationMatrix(rayMatrix);
-  
-        rayStartPos.copy(checkPoints[i]);
-
-        if (checkRayIntersection(rayStartPos,rayQuaternion,maxDistance)) {
-          intersections++;
-        }
-      }
-
-      return intersections;
-    }
-
-
-    // Check for collision with level physic objects
-
-    let newVal = cameraOffsetTargetZ;
-    let hasIntersection = false;
-
-    const localPlayer = metaversefile.useLocalPlayer();
-
-    let z = ( camera.near + camera.far ) / ( camera.near - camera.far );
-
-    let cornerPoints = [];
-    // Top left
-    cornerPoints[0] = new THREE.Vector3( -1, 1, z );
-    cornerPoints[0].unproject( camera );
-    cornerPoints[0].valueX = -1;
-    cornerPoints[0].valueY = 1;
-
-    // Bottom left
-    cornerPoints[1] = new THREE.Vector3( -1, -1, z );
-    cornerPoints[1].unproject( camera );
-    cornerPoints[1].valueX = -1;
-    cornerPoints[1].valueY = -1;
-
-    // Top right
-    cornerPoints[2] = new THREE.Vector3( 1, 1, z );
-    cornerPoints[2].unproject( camera );
-    cornerPoints[2].valueX = 1;
-    cornerPoints[2].valueY = 1;
-
-    // Bottom right
-    cornerPoints[3] = new THREE.Vector3( 1, -1, z );
-    cornerPoints[3].unproject( camera );
-    cornerPoints[3].valueX = 1;
-    cornerPoints[3].valueY = -1;
-
-
-    // Raycast from all camera corners
-    for(let i=0;i<4;i++) {
-
-      rayDirection.subVectors(localPlayer.position, cornerPoints[i] ).normalize();
+      rayDirection.subVectors(localPlayer.position, originPoint ).normalize();
 
       rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
       rayQuaternion.setFromRotationMatrix(rayMatrix);
@@ -225,23 +138,90 @@ const cameraManager = {
       rayStartPos.copy(localPlayer.position);
       rayStartPos.add( rayDirection.multiplyScalar(0.1) );
 
-      let collision = physicsManager.raycast(rayStartPos, rayQuaternion);
-      if (collision) {
+      rayOriginArray[arrayIndex].copy(rayStartPos);
+      rayDirectionArray[arrayIndex].copy(rayQuaternion);
 
-        if (collision.distance <= -1 * newVal) {
-          if (newVal < (-1 * (collision.distance-0.15))) {
-            newVal = (-1 * (collision.distance-0.15));
-            hasIntersection = true;
-          }
+    }
+
+    // Raycast from player postition with small offset
+    function initOffsetRayParams(arrayIndex,originPoint) {
+
+      rayDirection.subVectors(localPlayer.position,camera.position ).normalize();
+
+      rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+      rayQuaternion.setFromRotationMatrix(rayMatrix);
+
+      rayOriginArray[arrayIndex].copy(originPoint);
+      rayDirectionArray[arrayIndex].copy(rayQuaternion);
+
+    }
+
+
+    const localPlayer = metaversefile.useLocalPlayer();
+
+    
+
+    let newVal = cameraOffsetTargetZ;
+    let hasIntersection = false;
+
+
+    // Camera - Top left 
+    initCameraRayParams(0,rayStartPos.set(-1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+    // Camera - Bottom left
+    initCameraRayParams(1,rayStartPos.set(-1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+    // Camera - Top right
+    initCameraRayParams(2,rayStartPos.set(1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+    // Camera - Bottom right
+    initCameraRayParams(3,rayStartPos.set(1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+    // Player postition - offset to left
+    rayStartPos.copy(localPlayer.position);
+    rayOffsetPoint.set(-1, 0, 0);
+    rayOffsetPoint.applyQuaternion(camera.quaternion);
+    rayOffsetPoint.normalize();
+    rayStartPos.add(rayOffsetPoint);
+    initOffsetRayParams(4,rayStartPos);
+    
+    // Player postition - offset to right
+    rayStartPos.copy(localPlayer.position);
+    rayOffsetPoint.set(1, 0, 0);
+    rayOffsetPoint.applyQuaternion(camera.quaternion);
+    rayOffsetPoint.normalize();
+    rayStartPos.add(rayOffsetPoint);
+    initOffsetRayParams(5,rayStartPos);
+
+    let collisionArray = physicsManager.raycastArray(rayOriginArray, rayDirectionArray, 6);
+
+    // Check collision from player to camera corners
+    for(let i=0;i<4;i++) {
+      if ((collisionArray.hit[i] == 1) && (collisionArray.distance[i] <= -1 * newVal)) {
+        if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
+          newVal = (-1 * (collisionArray.distance[i]-0.15));
+          hasIntersection = true;
+          //console.log(i + " " + collisionArray.distance[i]+ " " + collisionArray.hit[i]);
         }
       }
     }
 
-    if (hasIntersection && (checkSmallObjectIntersections(-1*cameraOffsetTargetZ) == 0))
+    // Check collision from player pos and small offset to left and righ - to camera center
+    let offsetCollisionCount = 0;
+    for(let i=4;i<6;i++) {
+      if ((collisionArray.hit[i] == 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
+        offsetCollisionCount++;
+      }
+    }
+
+    // Discard collision with small objects
+    if (hasIntersection && (offsetCollisionCount == 0))
     {
       hasIntersection = false;
       newVal = cameraOffsetTargetZ;
     }
+
+
     
     // Slow zoom out if there is no intersection
     cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);

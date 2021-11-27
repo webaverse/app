@@ -612,6 +612,74 @@ const physxWorker = (() => {
       } : null;
     }
   };
+  w.raycastPhysicsArray = (physics, p, q, n) => {
+    if (physics && (n > 0 && n < 1000)) {
+
+
+      // Input parameters
+      for(let i=0;i<n;i++) {
+        // Position
+        p[i].toArray(scratchStack.f32, (i * 3));
+
+        // Quaternion
+        localVector.set(0, 0, -1)
+        .applyQuaternion(q[i])
+        .toArray(scratchStack.f32, (n * 3) + (i * 3));
+
+        // meshPosition
+        localVector.set(0, 0, 0).toArray(scratchStack.f32, (n * 6) + (i * 3));
+
+        // meshQuaternion
+        localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, (n * 9) + (i * 4));
+        
+      }
+      
+      // Output
+      const originOffset = scratchStack.f32.byteOffset;
+      const directionOffset = scratchStack.f32.byteOffset + (3 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const meshPositionOffset = scratchStack.f32.byteOffset + (6 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const meshQuaternionOffset = scratchStack.f32.byteOffset + (9 * Float32Array.BYTES_PER_ELEMENT) * n;
+
+      const hitOffset = scratchStack.f32.byteOffset + (13 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const pointOffset = scratchStack.f32.byteOffset + (14 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const normalOffset = scratchStack.f32.byteOffset + (17 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const distanceOffset = scratchStack.f32.byteOffset + (20 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const objectIdOffset = scratchStack.u32.byteOffset + (21 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const faceIndexOffset = scratchStack.u32.byteOffset + (22 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const positionOffset = scratchStack.u32.byteOffset + (23 * Float32Array.BYTES_PER_ELEMENT) * n;
+      const quaternionOffset = scratchStack.u32.byteOffset + (26 * Float32Array.BYTES_PER_ELEMENT) * n;
+
+      moduleInstance._raycastPhysicsArray(
+        n,
+        physics,
+        originOffset,
+        directionOffset,
+        meshPositionOffset,
+        meshQuaternionOffset,
+        hitOffset,
+        pointOffset,
+        normalOffset,
+        distanceOffset,
+        objectIdOffset,
+        faceIndexOffset,
+        positionOffset,
+        quaternionOffset,
+      );
+
+
+      return {
+        hit: scratchStack.u32.slice(13 * n, 14 * n),
+        distance: scratchStack.f32.slice(20 * n, 21 * n),
+        point: scratchStack.f32.slice(14 * n, 17 * n),
+        normal: scratchStack.f32.slice(17 * n, 20 * n),
+        meshId: scratchStack.u32.slice(21 * n, 22 * n),
+        objectId: scratchStack.u32.slice(21 * n, 22 * n),
+        faceIndex: scratchStack.u32.slice(22 * n, 23 * n),
+        objectPosition: scratchStack.f32.slice(23 * n, 26 * n),
+        objectQuaternion: scratchStack.f32.slice(26 * n, 30 * n)
+      }
+    }
+  };  
   w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
