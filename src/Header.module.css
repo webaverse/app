@@ -704,7 +704,7 @@ body {
   display: flex;
 }
 .ar-ui .switches .switch {
-  margin-top: 2px;
+  margin-bottom: 2px;
   margin-right: 2px;
   padding: 5px;
   background-color: #111;
@@ -715,7 +715,9 @@ body {
 .ar-ui .switches .switch:last-child {
   margin-left: auto;
 }
-.ar-ui .switches .switch:hover {
+.ar-ui .switches .switch:hover,
+.ar-ui .switches .switch.enabled
+{
   background-color: #1e88e5;
 }
 .ar-ui .switches .switch:active {

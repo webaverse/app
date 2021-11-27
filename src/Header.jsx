@@ -319,6 +319,9 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [faceTrackingEnabled, setFaceTrackingEnabled] = useState(false);
+  const [arAvatarEnabled, setArAvatarEnabled] = useState(false);
+  const [arCameraEnabled, setArCameraEnabled] = useState(false);
+  const [arPoseEnabled, setArPoseEnabled] = useState(false);
   
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
@@ -634,6 +637,20 @@ export default function Header({
   }, [dragging]);
   const arUiContentRef = useRef();
 
+  const _isSomeArOpen = () => arAvatarEnabled || arCameraEnabled || arPoseEnabled;
+  useEffect(() => {
+    if (faceTrackingEnabled && !_isSomeArOpen()) {
+      _toggleFaceTracking();
+    }
+  }, [arAvatarEnabled, arCameraEnabled, arPoseEnabled]);
+  const _toggleFaceTracking = () => {
+    const newFaceTracking = !ioManager.getFaceTracking();
+    ioManager.setFaceTracking(newFaceTracking);
+    setFaceTrackingEnabled(newFaceTracking);
+    if (newFaceTracking) {
+      _toggleArAvatar();
+    }
+  };
   const _toggleArAvatar = () => {
     const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
     if (!domElement.parentElement) {
@@ -651,6 +668,8 @@ export default function Header({
     } else {
       domElement.remove();
     }
+
+    setArAvatarEnabled(!!domElement.parentElement);
   };
   const _toggleArCamera = () => {
     const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
@@ -660,9 +679,11 @@ export default function Header({
     } else {
       videoCanvas.remove();
     }
+
+    setArCameraEnabled(!!videoCanvas.parentElement);
   };
   const _toggleArPose = () => {
-    console.log('toggle ar pose');
+    setArPoseEnabled(!arPoseEnabled);
   };
 
 	return (
@@ -849,12 +870,7 @@ export default function Header({
             <Tab
               type="ar"
               onclick={e => {
-                const newFaceTracking = !ioManager.getFaceTracking();
-                ioManager.setFaceTracking(newFaceTracking);
-                setFaceTrackingEnabled(newFaceTracking);
-                if (newFaceTracking) {
-                  _toggleArAvatar();
-                }
+                _toggleFaceTracking();
               }}
               bottom
               middle
@@ -946,19 +962,17 @@ export default function Header({
         </section>
         <div className={styles['ar-ui']}>
           {faceTrackingEnabled ? <div className={styles.switches}>
-            <div className={styles.switch} onClick={e => {
+            <div className={classnames(styles.switch, arAvatarEnabled ? styles.enabled : null)} onClick={e => {
               _toggleArAvatar();
             }}>AVA</div>
-            <div className={styles.switch} onClick={e => {
+            <div className={classnames(styles.switch, arCameraEnabled ? styles.enabled : null)} onClick={e => {
               _toggleArCamera();
             }}>CAM</div>
-            <div className={styles.switch} onClick={e => {
+            <div className={classnames(styles.switch, arPoseEnabled ? styles.enabled : null)} onClick={e => {
               _toggleArPose();
             }}>POSE</div>
             <div className={styles.switch} onClick={e => {
-              const newFaceTracking = false;
-              ioManager.setFaceTracking(newFaceTracking);
-              setFaceTrackingEnabled(newFaceTracking);
+              _toggleFaceTracking();
             }}>EXIT</div>
           </div> : null}
           <div className={styles.content} ref={arUiContentRef} />
