@@ -772,8 +772,10 @@ class FaceTrackingWorker extends EventTarget {
 }
 
 const fakeAvatar = _makeFakeAvatar();
-class VideoCapture {
+class VideoCapture extends EventTarget {
   constructor() {
+    super();
+
     this.frame = null;
     this.framePromise = null;
     this.imageCapture = null;
@@ -833,6 +835,10 @@ class VideoCapture {
         requestAnimationFrame(_recurse);
       };
       _recurse();
+
+      console.log('loaded open');
+
+      this.dispatchEvent(new MessageEvent('open'))
     })();
   }
   ensureFramePromise() {
@@ -867,8 +873,10 @@ class VideoCapture {
     this.videoCanvas.remove();
   }
 }
-class FaceTracker {
+class FaceTracker extends EventTarget {
   constructor() {
+    super();
+
     this.canvas = null;
     this.avatar = null ;
     this.previewRenderer = null;
@@ -878,6 +886,10 @@ class FaceTracker {
     this.videoCapture = new VideoCapture();
     this.domElement = null;
     this.live = true;
+
+    this.videoCapture.addEventListener('open', e => {
+      this.dispatchEvent(new MessageEvent('open'));
+    });
 
     {
       const canvas = document.createElement('canvas');
@@ -1191,14 +1203,14 @@ class FaceTracker {
     this.live = false;
   }
 }
-function startCamera() {
+/* function startCamera() {
   const faceTracker = new FaceTracker();
   world.appManager.addEventListener('frame', e => {
     faceTracker.update(e.data.timeDiff);
   });
-}
+} */
 
 export {
-  startCamera,
+  // startCamera,
   FaceTracker,
 };

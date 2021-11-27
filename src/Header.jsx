@@ -319,6 +319,7 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [faceTrackingEnabled, setFaceTrackingEnabled] = useState(false);
+  const [faceTrackingOpen, setFaceTrackingOpen] = useState(false);
   const [arAvatarEnabled, setArAvatarEnabled] = useState(false);
   const [arCameraEnabled, setArCameraEnabled] = useState(false);
   const [arPoseEnabled, setArPoseEnabled] = useState(false);
@@ -647,8 +648,17 @@ export default function Header({
     const newFaceTracking = !ioManager.getFaceTracking();
     ioManager.setFaceTracking(newFaceTracking);
     setFaceTrackingEnabled(newFaceTracking);
+    setFaceTrackingOpen(false);
+    setArAvatarEnabled(false);
+    setArCameraEnabled(false);
+    setArPoseEnabled(false);
     if (newFaceTracking) {
       _toggleArAvatar();
+      
+      const faceTracker = ioManager.getFaceTracker();
+      faceTracker.addEventListener('open', e => {
+        setFaceTrackingOpen(true);
+      }, {once: true});
     }
   };
   const _toggleArAvatar = () => {
@@ -975,7 +985,10 @@ export default function Header({
               _toggleFaceTracking();
             }}>EXIT</div>
           </div> : null}
-          <div className={styles.content} ref={arUiContentRef} />
+          <div className={classnames(styles['content-placeholder'], faceTrackingEnabled && !faceTrackingOpen ? styles.visible : null)}>
+            <h1>Standby...</h1>
+          </div>
+          <div className={classnames(styles.content, faceTrackingEnabled && faceTrackingOpen ? styles.visible : null)} ref={arUiContentRef} />
         </div>
       </div>
     </div>

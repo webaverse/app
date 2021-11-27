@@ -723,13 +723,34 @@ body {
 .ar-ui .switches .switch:active {
   background-color: #1565c0;
 }
-.ar-ui .content {
+.ar-ui .content,
+.ar-ui .content-placeholder
+{
   display: flex;
+}
+.ar-ui .content:not(.visible),
+.ar-ui .content-placeholder:not(.visible)
+{
+  display: none;
+}
+.ar-ui .content .avatar-canvas,
+.ar-ui .content .camera-canvas,
+.ar-ui .content-placeholder
+{
+  width: 426px;
+  height: 320px;
 }
 .ar-ui .content .avatar-canvas,
 .ar-ui .content .camera-canvas
-{
-  width: 426px;
-  width: 320px;
+{  
   transform: rotateY(180deg);
+}
+.ar-ui .content-placeholder {
+  background-color: #000;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+}
+.ar-ui .content-placeholder h1 {
+  margin: 0;
 }
