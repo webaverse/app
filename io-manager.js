@@ -841,7 +841,7 @@ ioManager.bindInput = () => {
       faceTracker = new FaceTracker();
       faceTracker.setAvatar('./avatars/scillia.vrm');
       document.body.appendChild(faceTracker.domElement);
-    } else if (disable && !!faceTracker) {
+    } else if (!enable && !!faceTracker) {
       faceTracker.destroy();
       faceTracker = null;
     }
