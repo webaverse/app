@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.mjs",
   "scripts": {
-    "start": "forever start index.js",
-    "dev": "node index.js",
+    "start": "forever start index.mjs",
+    "dev": "node index.mjs",
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
