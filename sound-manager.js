@@ -88,10 +88,10 @@ class SoundManager {
   }  
   loadBasicSounds() {
 
-    this.loadSound('jump','sounds/Jump1.ogg');
-    this.loadSound('jumpEnd','sounds/JumpEnd.ogg');
-    this.loadSound('step1','sounds/FootstepA.ogg',0.15);
-    this.loadSound('step2','sounds/FootstepB.ogg',0.15);
+    this.loadSound('jump','sounds/Jump1.mp3');
+    this.loadSound('jumpEnd','sounds/JumpEnd.mp3');
+    this.loadSound('step1','sounds/FootstepA.mp3',0.15);
+    this.loadSound('step2','sounds/FootstepB.mp3',0.15);
   
   }
   loadSound(name,path,volume=1.0,shouldLoop=false,shouldReload=false) {
