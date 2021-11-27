@@ -999,8 +999,8 @@ class FaceTracker {
       this.previewCamera.updateMatrixWorld();
     }
 
-    _copyAvatar(avatar, fakeAvatar);
-    fakeAvatar.Root.updateMatrixWorld();
+    // _copyAvatar(this.avatar, fakeAvatar);
+    // fakeAvatar.Root.updateMatrixWorld();
   }
   update(timeDiff) {
     if (this.avatar) {
