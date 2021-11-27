@@ -633,18 +633,8 @@ export default function Header({
   }, [dragging]);
   const arUiContentRef = useRef();
 
-  /* const _removeArElements = () => {
-    const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
-    for (const el of [domElement, videoCanvas]) {
-      if (!el) {
-        debugger;
-      }
-      el.remove();
-    }
-  }; */
   const _toggleArAvatar = () => {
     const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
-    // _removeArElements();
     if (!domElement.parentElement) {
       const videoCanvasParent = videoCanvas.parentElement;
       if (videoCanvasParent) {
@@ -663,7 +653,6 @@ export default function Header({
   };
   const _toggleArCamera = () => {
     const {domElement, videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
-    // _removeArElements();
     if (!videoCanvas.parentElement) {
       videoCanvas.classList.add(styles['camera-canvas']);
       arUiContentRef.current.appendChild(videoCanvas);
