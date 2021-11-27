@@ -693,3 +693,16 @@ body {
   background-color: #b71c1c;
   transition: none;
 }
+
+.ar-ui {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+  transform: rotateY(180deg);
+}
+.ar-ui .avatar-canvas {
+  width: 300px;
+  height: auto;
+}

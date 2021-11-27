@@ -631,6 +631,7 @@ export default function Header({
       world.appManager.removeEventListener('selectchange', selectchange);
     };
   }, [dragging]);
+  const arUiRef = useRef();
 
 	return (
     <div className={styles.container} onClick={e => {
@@ -816,7 +817,13 @@ export default function Header({
             <Tab
               type="ar"
               onclick={e => {
-                ioManager.setFaceTracking(!ioManager.getFaceTracking());
+                const newFaceTracking = !ioManager.getFaceTracking();
+                ioManager.setFaceTracking(newFaceTracking);
+                if (newFaceTracking) {
+                  const {domElement} = ioManager.getFaceTracker();
+                  domElement.classList.add('avatar-canvas');
+                  arUiRef.current.appendChild(domElement);
+                }
               }}
               bottom
               middle
@@ -906,6 +913,8 @@ export default function Header({
             </div>
           })}
         </section>
+        <div className={styles.arUi} ref={arUiRef}>
+        </div>
       </div>
     </div>
   )

@@ -835,15 +835,14 @@ ioManager.bindInput = () => {
   }, {
     passive: false,
   });
+  ioManager.getFaceTracker = () => faceTracker;
   ioManager.getFaceTracking = () => !!faceTracker;
   ioManager.setFaceTracking = enable => {
     if (enable && !faceTracker) {
       faceTracker = new FaceTracker();
       faceTracker.setAvatar('./avatars/scillia.vrm');
-      document.body.appendChild(faceTracker.domElement);
     } else if (!enable && !!faceTracker) {
       faceTracker.destroy();
-      document.body.removeChild(faceTracker.domElement);
       faceTracker = null;
     }
   };

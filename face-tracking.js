@@ -809,13 +809,8 @@ class VideoCapture {
       this.videoEl.width = dimensions.width;
       this.videoEl.height = dimensions.height;
       this.videoEl.style.cssText = `\
-        position: absolute;
-        bottom: 0;
-        right: 0;
         width: ${displayWidth}px;
         height: auto;
-        z-index: 100;
-        transform: rotateY(180deg);
       `;
       // document.body.appendChild(this.videoEl);
       this.videoEl.srcObject = stream;
@@ -824,15 +819,7 @@ class VideoCapture {
       this.videoCanvas = document.createElement('canvas');
       this.videoCanvas.width = dimensions.width;
       this.videoCanvas.height = dimensions.height;
-      this.videoCanvas.style.cssText = `\
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: ${displayWidth}px;
-        height: auto;
-        z-index: 100;
-        transform: rotateY(180deg);
-      `;
+      this.videoCanvas.style.cssText = this.videoEl.style.cssText;
       this.videoCanvasCtx = this.videoCanvas.getContext('2d');
       // document.body.appendChild(videoCanvas);
 
@@ -1199,6 +1186,7 @@ class FaceTracker {
   }
   destroy() {
     this.videoCapture.destroy();
+    this.domElement.remove();
     this.live = false;
   }
 }
