@@ -808,10 +808,10 @@ class VideoCapture {
       this.videoEl = document.createElement('video');
       this.videoEl.width = dimensions.width;
       this.videoEl.height = dimensions.height;
-      this.videoEl.style.cssText = `\
+      /* this.videoEl.style.cssText = `\
         width: ${displayWidth}px;
         height: auto;
-      `;
+      `; */
       // document.body.appendChild(this.videoEl);
       this.videoEl.srcObject = stream;
       this.videoEl.play();
@@ -865,6 +865,8 @@ class VideoCapture {
   }
   destroy() {
     this.imageCapture.track.stop();
+    this.videoEl.remove();
+    this.videoCanvas.remove();
   }
 }
 class FaceTracker {

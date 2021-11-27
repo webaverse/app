@@ -633,6 +633,28 @@ export default function Header({
   }, [dragging]);
   const arUiContentRef = useRef();
 
+  const _toggleArAvatar = () => {
+    const {domElement} = ioManager.getFaceTracker();
+    if (!domElement.parentElement) {
+      domElement.classList.add(styles['avatar-canvas']);
+      arUiContentRef.current.appendChild(domElement);
+    } else {
+      domElement.remove();
+    }
+  };
+  const _toggleArCamera = () => {
+    const {videoCapture: {videoCanvas}} = ioManager.getFaceTracker();
+    if (!videoCanvas.parentElement) {
+      videoCanvas.classList.add(styles['camera-canvas']);
+      arUiContentRef.current.appendChild(videoCanvas);
+    } else {
+      videoCanvas.remove();
+    }
+  };
+  const _toggleArPose = () => {
+    console.log('toggle ar pose');
+  };
+
 	return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
@@ -820,10 +842,7 @@ export default function Header({
                 const newFaceTracking = !ioManager.getFaceTracking();
                 ioManager.setFaceTracking(newFaceTracking);
                 if (newFaceTracking) {
-                  const {domElement} = ioManager.getFaceTracker();
-                  // console.log('dom element', domElement, arUiContentRef.current);
-                  domElement.classList.add(styles['avatar-canvas']);
-                  arUiContentRef.current.appendChild(domElement);
+                  _toggleArAvatar();
                 }
               }}
               bottom
@@ -916,9 +935,15 @@ export default function Header({
         </section>
         <div className={styles['ar-ui']}>
           <div className={styles.switches}>
-            <div className={styles.switch}>AVA</div>
-            <div className={styles.switch}>CAM</div>
-            <div className={styles.switch}>POSE</div>
+            <div className={styles.switch} onClick={e => {
+              _toggleArAvatar();
+            }}>AVA</div>
+            <div className={styles.switch} onClick={e => {
+              _toggleArCamera();
+            }}>CAM</div>
+            <div className={styles.switch} onClick={e => {
+              _toggleArPose();
+            }}>POSE</div>
           </div>
           <div className={styles.content} ref={arUiContentRef} />
         </div>
