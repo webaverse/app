@@ -953,6 +953,9 @@ export default function Header({
             <div className={styles.switch} onClick={e => {
               _toggleArPose();
             }}>POSE</div>
+            <div className={styles.switch} onClick={e => {
+              ioManager.setFaceTracking(false);
+            }}>EXIT</div>
           </div>
           <div className={styles.content} ref={arUiContentRef} />
         </div>

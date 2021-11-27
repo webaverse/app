@@ -712,6 +712,9 @@ body {
   cursor: pointer;
   user-select: none;
 }
+.ar-ui .switches .switch:last-child {
+  margin-left: auto;
+}
 .ar-ui .switches .switch:hover {
   background-color: #1e88e5;
 }
