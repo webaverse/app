@@ -102,20 +102,6 @@ const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen
             <img src="images/wifi.svg" />
           </button>
         </div>
-        <div className={styles['button-wrap']} onClick={e => {
-          if (!faceTracker) {
-            faceTracker = new FaceTracker();
-            faceTracker.setAvatar('./avatars/scillia.vrm');
-            document.body.appendChild(faceTracker.domElement);
-          } else {
-            faceTracker.destroy();
-            faceTracker = null;
-          }
-        }}>
-          <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
-            <img src="images/wifi.svg" />
-          </button>
-        </div>
         <div className={styles['button-wrap']} onClick={toggleMic}>
           <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
             <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
@@ -262,7 +248,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   );
 };
 
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
+const Tab = ({className, type, left, right, top, bottom, middle, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -281,6 +267,7 @@ const Tab = ({className, type, left, right, top, bottom, disabled, label, panels
       right ? styles.right : null,
       top ? styles.top : null,
       bottom ? styles.bottom : null,
+      middle ? styles.middle : null,
       disabled ? styles.disabled : null,
       open === type ? styles.open : null,
       
@@ -828,6 +815,31 @@ export default function Header({
                   </div>
                 </div> : null),
               ]}
+              open={open}
+              toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
+            />
+            <Tab
+              type="ar"
+              onclick={e => {
+                if (!faceTracker) {
+                  faceTracker = new FaceTracker();
+                  faceTracker.setAvatar('./avatars/scillia.vrm');
+                  document.body.appendChild(faceTracker.domElement);
+                } else {
+                  faceTracker.destroy();
+                  faceTracker = null;
+                }
+              }}
+              bottom
+              middle
+              right
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>現実 AR</span>
+                </div>
+              }
               open={open}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}

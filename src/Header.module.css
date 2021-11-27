@@ -244,6 +244,10 @@ body {
 }
 .header .tab.bottom.left.open .slide .buttons .button {
 }
+.header .tab.bottom.middle.right {
+  top: calc(100vh - 200px);
+  right: 0;
+}
 .header .tab.top.right.open {
   transform: translateX(-400px);
 }

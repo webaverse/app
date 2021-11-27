@@ -782,7 +782,7 @@ class VideoCapture {
     this.videoEl = null;
     this.videoCanvas = null;
     this.videoCanvasCtx = null;
-  
+
     this.imageCapturePromise = (async () => {
       const mediaDevices = await navigator.mediaDevices.enumerateDevices();
       const videoDevice = mediaDevices.find(o => o.kind === 'videoinput' && !/virtual/i.test(o.label));
@@ -979,10 +979,10 @@ class FaceTracker {
     this.avatar = await switchAvatar(null, avatarApp);
     // avatar.inputs.hmd.position.y = avatar.height;
     
-    this.avatar.setTopEnabled(true);
-    this.avatar.setHandEnabled(0, false);
-    this.avatar.setHandEnabled(1, false);
-    this.avatar.setBottomEnabled(false);
+    // this.avatar.setTopEnabled(true);
+    // this.avatar.setHandEnabled(0, false);
+    // this.avatar.setHandEnabled(1, false);
+    // this.avatar.setBottomEnabled(false);
     this.avatar.inputs.hmd.position.y = this.avatar.height;
     this.avatar.inputs.hmd.updateMatrixWorld();
     // avatar.update(1000);
