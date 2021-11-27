@@ -13,14 +13,13 @@ import {world} from './world.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
 // import Stats from 'stats.js';
 
-const dimensions = {
-  width: 640,
-  height: 480,
+const domDimensions = {
+  width: Math.floor(640/1.5),
+  height: Math.floor(480/1.5),
 };
-const _getDisplayWidth = () => {
-  const renderer = getRenderer();
-  const displayWidth = dimensions.width / renderer.getPixelRatio();
-  return displayWidth;
+const internalDimensions = {
+  width: domDimensions.width * window.devicePixelRatio,
+  height: domDimensions.height * window.devicePixelRatio,
 };
 const points = {
   eye: {
@@ -786,15 +785,19 @@ class VideoCapture {
     this.imageCapturePromise = (async () => {
       {
         this.videoCanvas = document.createElement('canvas');
-        this.videoCanvas.width = dimensions.width;
-        this.videoCanvas.height = dimensions.height;
+        this.videoCanvas.width = internalDimensions.width;
+        this.videoCanvas.height = internalDimensions.height;
+        this.videoCanvas.style.width = domDimensions.width + 'px';
+        this.videoCanvas.style.height = domDimensions.height + 'px';
         // this.videoCanvas.style.cssText = this.videoEl.style.cssText;
         this.videoCanvasCtx = this.videoCanvas.getContext('2d');
       }
       {
         this.videoEl = document.createElement('video');
-        this.videoEl.width = dimensions.width;
-        this.videoEl.height = dimensions.height;
+        this.videoEl.width = internalDimensions.width;
+        this.videoEl.height = internalDimensions.height;
+        this.videoEl.style.width = domDimensions.width + 'px';
+        this.videoEl.style.height = domDimensions.height + 'px';
       }
 
       const mediaDevices = await navigator.mediaDevices.enumerateDevices();
@@ -802,10 +805,10 @@ class VideoCapture {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: {
-            ideal: dimensions.width,
+            ideal: internalDimensions.width,
           },
           height: {
-            ideal: dimensions.height,
+            ideal: internalDimensions.height,
           },
           frameRate: {
             ideal: 30,
@@ -836,7 +839,7 @@ class VideoCapture {
     if (!this.framePromise) {
       this.framePromise = (async () => {
         // console.time('frame');
-        this.videoCanvasCtx.drawImage(this.videoEl, 0, 0, dimensions.width, dimensions.height);
+        this.videoCanvasCtx.drawImage(this.videoEl, 0, 0, internalDimensions.width, internalDimensions.height);
         this.frame && this.frame.close();
         this.frame = await createImageBitmap(this.videoCanvas);
         // console.timeEnd('frame');
@@ -876,11 +879,12 @@ class FaceTracker {
     this.domElement = null;
     this.live = true;
 
-    const displayWidth = _getDisplayWidth();
     {
       const canvas = document.createElement('canvas');
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
+      canvas.width = internalDimensions.width;
+      canvas.height = internalDimensions.height;
+      canvas.style.width = domDimensions.width + 'px';
+      canvas.style.height = domDimensions.height + 'px';
       /* canvas.style.cssText = `\
         position: absolute;
         bottom: 0;
@@ -1023,7 +1027,7 @@ class FaceTracker {
       } */
 
       if (facelm) {
-        let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:dimensions})
+        let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:internalDimensions})
         // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
         _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
         let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;

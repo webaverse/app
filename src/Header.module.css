@@ -726,7 +726,5 @@ body {
 }
 .ar-ui .content .avatar-canvas,
 .ar-ui .content .camera-canvas {
-  width: 640px;
-  height: 480px;
   transform: rotateY(180deg);
 }
