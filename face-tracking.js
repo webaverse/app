@@ -963,13 +963,12 @@ class FaceTracker extends EventTarget {
     };
     _recurseFrame();
   }
-  async setAvatar(u) {
+  async setAvatar(avatarApp) {
     if (this.avatar) {
-      this.avatar.parent.remove(avatar);
+      this.previewScene.remove(this.avatar.model);
       this.avatar = null;
     }
 
-    const avatarApp = await metaversefile.load(u);
     this.avatar = await switchAvatar(null, avatarApp);
     // avatar.inputs.hmd.position.y = avatar.height;
     

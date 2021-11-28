@@ -837,15 +837,28 @@ ioManager.bindInput = () => {
   });
   ioManager.getFaceTracker = () => faceTracker;
   ioManager.getFaceTracking = () => !!faceTracker;
+
+  const _syncAvatar = async app => {
+    const avatarClone = await app.clone();
+    await faceTracker.setAvatar(avatarClone);
+  };
+  const localPlayer = metaversefile.useLocalPlayer();
   ioManager.setFaceTracking = enable => {
     if (enable && !faceTracker) {
       faceTracker = new FaceTracker();
-      faceTracker.setAvatar('./avatars/scillia.vrm');
+      
+      if (localPlayer.avatar) {
+        _syncAvatar(localPlayer.avatar.app);
+      }
     } else if (!enable && !!faceTracker) {
       faceTracker.destroy();
       faceTracker = null;
     }
+    localPlayer.addEventListener('avatarchange', e =>{
+      _syncAvatar(e.app);
+    })
   };
+
 };
 
 export default ioManager;
