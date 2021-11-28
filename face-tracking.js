@@ -684,6 +684,7 @@ class FaceTrackingWorker extends EventTarget {
 
     this.messageChannel = new MessageChannel();
     this.messagePort = this.messageChannel.port1;
+    this.open = false;
 
     this.iframe = document.createElement('iframe');
     // this.iframe.style.visibility = 'hidden';
@@ -707,47 +708,30 @@ class FaceTrackingWorker extends EventTarget {
     const u = `${l.protocol}//${l.host.replace(/webaverse\.com$/, 'webaverse.online')}${port ? (':' + port) : ''}/face-tracking/face-tracking.html`;
     // const targetOrigin = `https://localhost.webaverse.com`;
     this.iframe.src = u;
-    // console.log('got u', u);
-    // window.iframe = this.iframe;
     this.iframe.addEventListener('load', e => {
-      // console.log('posting message 1', this.iframe.contentWindow);
-      
       this.iframe.contentWindow.postMessage({
-        // lol: 'zol',
         _webaverse: true,
         messagePort: this.messageChannel.port2,
       }, '*', [this.messageChannel.port2]);
-      // console.log('posting message 2');
 
-      this.messagePort.onmessage = e => {
-        // console.log('parent got message', e);
-        
+      const _handleMessage = e => {
+        if (!this.open) {
+          this.dispatchEvent(new MessageEvent('open'));
+          this.open = true;
+        }
+
         this.dispatchEvent(new MessageEvent('result', {
           data: e.data,
         }));
-
-        /* const {error, result} = e.data;
-        if (!error) {
-          console.log('got result', result);
-        } else {
-          console.warn('error from child', error);
-        } */
       };
-
-      /* this.iframe.contentWindow.addEventListener('message', e => {
-        console.log('windw')
-      }); */
+      this.messagePort.onmessage = _handleMessage;
     }, {once: true});
     document.body.appendChild(this.iframe);
   }
-  /* postMessage(m, transfers = []) {
-    this.iframe.contentWindow.postMessage(m, '*', transfers);
-  } */
   pushImage(image) {
     this.messagePort.postMessage({
       image,
     }, [image]);
-    // console.log('image pushed', image);
   }
   async processFrame(image) {
     // console.log('process frame 0');
@@ -836,9 +820,7 @@ class VideoCapture extends EventTarget {
       };
       _recurse();
 
-      console.log('loaded open');
-
-      this.dispatchEvent(new MessageEvent('open'))
+      this.dispatchEvent(new MessageEvent('open'));
     })();
   }
   ensureFramePromise() {
@@ -887,9 +869,21 @@ class FaceTracker extends EventTarget {
     this.domElement = null;
     this.live = true;
 
-    this.videoCapture.addEventListener('open', e => {
+    (async () => {
+      await Promise.all([
+        new Promise((accept, reject) => {
+          this.faceTrackingWorker.addEventListener('open', e => {
+            accept();
+          });
+        }),
+        new Promise((accept, reject) => {
+          this.videoCapture.addEventListener('open', e => {
+            accept();
+          });
+        }),
+      ]);
       this.dispatchEvent(new MessageEvent('open'));
-    });
+    })();
 
     {
       const canvas = document.createElement('canvas');

@@ -33,7 +33,7 @@ holistic.setOptions({
 });
 holistic.onResults(results => {
   // console.log('results');
-  if (!fake) {
+  // if (!fake) {
     const {
       faceLandmarks,
       poseLandmarks,
@@ -55,7 +55,7 @@ holistic.onResults(results => {
         leftHandLandmarks,
       },
     });
-  }
+  // }
 });
 /* holistic.g.D = {
   canvas: null,
@@ -65,36 +65,37 @@ holistic.onResults(results => {
 // console.log('worker listening for message 1');
 let messagePort;
 let image = null;
-let fake = false;
+// let fake = false;
 window.addEventListener('message', e => {
-  // console.log('worker got message', e);
   if (e.data?._webaverse) {
-    messagePort = e.data.messagePort;
-    // console.log('worker got message', messagePort, e);
-    messagePort.onmessage = async e => {
-      // console.time('frame');
-      // console.log('message port got message', e);
-      image = e.data.image;
-      if (image) {
-        // console.time('lol');
-        // requestAnimationFrame(async () => {
-          // console.time('syncTime');
-          // console.time('asyncTime');
+    if (e.data.messagePort) {
+      messagePort = e.data.messagePort;
+      // console.log('worker got message', messagePort, e);
+
+      messagePort.onmessage = async e => {
+        // console.log('message port got message', e);
+        image = e.data.image;
+        if (image) {
+          // console.time('lol');
           // requestAnimationFrame(async () => {
-            await holistic.send({
-              image,
-            });
-            image.close();
+            // console.time('syncTime');
+            // console.time('asyncTime');
+            // requestAnimationFrame(async () => {
+              await holistic.send({
+                image,
+              });
+              image.close();
+            // });
           // });
-        // });
-      } else {
-        postMessage({
-          error: 'no image provided',
-          result: null,
-        });
-      }
-      // console.timeEnd('frame');
-    };
+        } else {
+          postMessage({
+            error: 'no image provided',
+            result: null,
+          });
+        }
+        // console.timeEnd('frame');
+      };
+    }
   }
 });
 // console.log('worker listening for message 2');
