@@ -60,108 +60,115 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   const openPopup = async (mnemonic) => {
     popUp = window.open(walletHost, '', "height=800,width=600");
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
       if (event.origin !== walletHost)
         return;
     
       if(event.data == 'received') {
         sendMessage(mnemonic);
-      }
-    }, false);
+        window.removeEventListener("message", f, false);
+      }      
+    }
+    window.addEventListener("message", f);
+
   }
 
   const sendMessage = async (mnemonic) => {
 
     popUp.postMessage(JSON.stringify({'p_mnemonic': mnemonic}), walletHost);
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
       if (event.origin !== walletHost)
-        return;
-    
-      if(event.data.mnemonic) {
+      return;
+  
+      if(event.data.mnemonic && event.data.Success) {
         sessionStorage.setItem("mnemonic", event.data.mnemonic);
-        window.removeEventListener('message', ()=>{});
+        window.removeEventListener("message", f, false);
         popUp.close();
-      }
-
-    }, false);
+      }   
+    }
+    window.addEventListener("message", f);
   }
 
   const fetchWalletData = async (mnemonic) => {
     iframe = window.open(walletHost, 'wallet')
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
       if (event.origin !== walletHost)
-        return;
+      return;
 
       if(event.data == 'received') {
         getKeys(mnemonic);
-      }
-    }, true);
+        window.removeEventListener("message", f, false);
+      } 
+    }
+    window.addEventListener("message", f);
   }
 
   const getKeys = async (mnemonic) => {
     iframe.postMessage(JSON.stringify({'mnemonic': mnemonic}), walletHost);
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
+
       if (event.origin !== walletHost)
-        return;
-    
+      return;
+  
       if(event.data.Message == "Password" && popUp == null) {
         openPopup(event.data.mnemonic)
       }
       else if(event.data.data) {
         setWalletData(event.data.data);
+        window.removeEventListener("message", f, false);
+        iframe.close();
       }
-
-      window.removeEventListener('message', ()=>{});
-      iframe.close();
-
-    }, true);
+    }
+    window.addEventListener("message", f);
   }
 
   // function for sending data to wallet
   const sendDataToWallet = async (data) => {
     walletMessenger = window.open(walletHost, 'walletMessenger')
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
       if (event.origin !== walletHost)
         return;
     
       if(event.data == 'received') {
         sendData(data);
+        window.removeEventListener("message", f, false);
       }
-    }, false);
+    }
+    window.addEventListener("message", f);
   }
 
   const sendData = async (data) => {
     var message = JSON.stringify({'mnemonic': sessionStorage.getItem('mnemonic'), 'data': data});
     walletMessenger.postMessage(message, walletHost);
 
-    window.addEventListener("message", (event) => {
+    var f = function(event){
       if (event.origin !== walletHost)
         return;
     
       setWalletData(event.data.data);
-
-      window.removeEventListener('message', ()=>{});
+      window.removeEventListener("message", f, false);
       walletMessenger.close();
-
-    }, false);
+      }
+      window.addEventListener("message", f);
   }
 
   const metaMaskLogin = async e => {
     e.preventDefault();
-    e.stopPropagation();    
+    e.stopPropagation();   
     if (address) {
       toggleOpen('user');
     } else {
       if (!loggingIn) {
         setLoggingIn(true);
         try {
+
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
-          // fetchWalletData(mnemonic);
+          // fetchWalletData(mnemonic); // wallet not yet working with metamask
           setShow(false);
 
           userRef.setIsComponentVisible(false);
