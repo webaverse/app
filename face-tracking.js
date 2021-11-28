@@ -1195,17 +1195,15 @@ class FaceTracker extends EventTarget {
     if (srcAvatar) {
       dstAvatar.faceTracking = srcAvatar.faceTracking;
       dstAvatar.poseTracking = srcAvatar.poseTracking;
-      dstAvatar.handTracking[0] = srcAvatar.handTracking[0];
-      dstAvatar.handTracking[1] = srcAvatar.handTracking[1];
       for (let i = 0; i < 2; i++) {
+        dstAvatar.handTracking[i] = srcAvatar.handTracking[i];
         dstAvatar.setHandEnabled(i, srcAvatar.getHandEnabled(i));
       }
     } else {
       dstAvatar.faceTracking = null;
       dstAvatar.poseTracking = null;
-      dstAvatar.handTracking[0] = null;
-      dstAvatar.handTracking[1] = null;
       for (let i = 0; i < 2; i++) {
+        dstAvatar.handTracking[i] = null;
         dstAvatar.setHandEnabled(i, false);
       }
     }
