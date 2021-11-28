@@ -1214,14 +1214,7 @@ class FaceTracker extends EventTarget {
     this.live = false;
   }
 }
-/* function startCamera() {
-  const faceTracker = new FaceTracker();
-  world.appManager.addEventListener('frame', e => {
-    faceTracker.update(e.data.timeDiff);
-  });
-} */
 
 export {
-  // startCamera,
   FaceTracker,
 };
