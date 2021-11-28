@@ -653,6 +653,12 @@ export default function Header({
     }
   }, [arAvatarEnabled, arCameraEnabled, arPoseEnabled]);
   const _toggleFaceTracking = () => {
+    const faceTracker = ioManager.getFaceTracker();
+    if (arControlAvatar) {
+      faceTracker.setAvatarPose(arControlAvatar, null);
+      arControlAvatar = null;
+    }
+
     const newFaceTracking = !ioManager.getFaceTracking();
     ioManager.setFaceTracking(newFaceTracking);
     setFaceTrackingEnabled(newFaceTracking);
@@ -705,6 +711,8 @@ export default function Header({
       const localPlayer = metaversefile.useLocalPlayer();
       arControlAvatar = localPlayer.avatar;
     } else {
+      const faceTracker = ioManager.getFaceTracker();
+      faceTracker.setAvatarPose(arControlAvatar, null);
       arControlAvatar = null;
     }
 
