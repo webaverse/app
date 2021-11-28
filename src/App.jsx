@@ -1,7 +1,7 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import styles from './App.module.css';
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
@@ -10,7 +10,7 @@ import Footer from './Footer.jsx';
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
+// const {useLocalPlayer} = metaversefileApi;
 
 import dropManager from '../drop-manager.js';
 
