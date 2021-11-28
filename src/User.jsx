@@ -53,17 +53,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     setDiscordUrl('');
   });
 
-  useEffect(() => {
-    if(address && sessionStorage.getItem('temp_token')) {
-      fetchWalletData();
-    }
-  });
-
   var popUp = null;
   var iframe = null;
   var walletMessenger = null;
 
-  const openPopup = async (token) => {
+  const openPopup = async (mnemonic) => {
     popUp = window.open(walletHost, '', "height=800,width=600");
 
     window.addEventListener("message", (event) => {
@@ -71,12 +65,29 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         return;
     
       if(event.data == 'received') {
-        sendMessage(token);
+        sendMessage(mnemonic);
       }
     }, false);
   }
 
-  const fetchWalletData = async () => {
+  const sendMessage = async (mnemonic) => {
+
+    popUp.postMessage(JSON.stringify({'p_mnemonic': mnemonic}), walletHost);
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data.mnemonic) {
+        sessionStorage.setItem("mnemonic", event.data.mnemonic);
+        window.removeEventListener('message', ()=>{});
+        popUp.close();
+      }
+
+    }, false);
+  }
+
+  const fetchWalletData = async (mnemonic) => {
     iframe = window.open(walletHost, 'wallet')
 
     window.addEventListener("message", (event) => {
@@ -84,9 +95,29 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         return;
 
       if(event.data == 'received') {
-        getKeys();
+        getKeys(mnemonic);
       }
-    }, false);
+    }, true);
+  }
+
+  const getKeys = async (mnemonic) => {
+    iframe.postMessage(JSON.stringify({'mnemonic': mnemonic}), walletHost);
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== walletHost)
+        return;
+    
+      if(event.data.Message == "Password" && popUp == null) {
+        openPopup(event.data.mnemonic)
+      }
+      else if(event.data.data) {
+        setWalletData(event.data.data);
+      }
+
+      window.removeEventListener('message', ()=>{});
+      iframe.close();
+
+    }, true);
   }
 
   // function for sending data to wallet
@@ -104,11 +135,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   }
 
   const sendData = async (data) => {
-
-    // data format
-    // {'key': 'key-name', 'value': 'any-value'} 
-    var message = JSON.stringify({'temp_token': sessionStorage.getItem('temp_token'), 'token': address,
-    'data': data});
+    var message = JSON.stringify({'mnemonic': sessionStorage.getItem('mnemonic'), 'data': data});
     walletMessenger.postMessage(message, walletHost);
 
     window.addEventListener("message", (event) => {
@@ -119,42 +146,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
       window.removeEventListener('message', ()=>{});
       walletMessenger.close();
-
-    }, false);
-  }
-
-  const getKeys = async () => {
-
-    iframe.postMessage(JSON.stringify({'temp_token': sessionStorage.getItem('temp_token'), 'token': address}), walletHost);
-
-    window.addEventListener("message", (event) => {
-      if (event.origin !== walletHost)
-        return;
-    
-      setWalletData(event.data.data);
-
-      window.removeEventListener('message', ()=>{});
-      iframe.close();
-
-    }, false);
-  }
-
-  const sendMessage = async (token) => {
-
-    popUp.postMessage(JSON.stringify({'token': token}), walletHost);
-
-    window.addEventListener("message", (event) => {
-      if (event.origin !== walletHost)
-        return;
-    
-      setWalletData(event.data.data);
-
-      if(event.data.temp_token) {
-        sessionStorage.setItem("temp_token", event.data.temp_token);
-      }
-
-      window.removeEventListener('message', ()=>{});
-      popUp.close();
 
     }, false);
   }
@@ -170,7 +161,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         try {
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
-          openPopup(address);
+          // fetchWalletData(mnemonic);
           setShow(false);
 
           userRef.setIsComponentVisible(false);
@@ -202,10 +193,10 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         twitter: arrivingFromTwitter,
       } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
       if(code) {
-        const {address, error} = await handleDiscordLogin(code, id);
+        const {address, error, mnemonic} = await handleDiscordLogin(code, id);
         if(address) {
           setAddress(address);
-          openPopup(address);
+          fetchWalletData(mnemonic);
           setShow(false);
         }
         else {
@@ -213,7 +204,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         }
       }
   }, [address, setAddress]);
-
 
 
   return (
@@ -243,7 +233,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       { address ?
         <div className={styles.logoutBtn}
         onClick={e => {
-         sessionStorage.removeItem('temp_token');
+         sessionStorage.removeItem('mnemonic');
          setAddress(null)
         }}
         >Logout</div>
