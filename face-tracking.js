@@ -1174,12 +1174,12 @@ class FaceTracker extends EventTarget {
         this.avatar.poseTracking = fakeAvatar;
         this.avatar.handTracking[0] = leftHandRig;
         this.avatar.handTracking[1] = rightHandRig;
-        if (leftHandRig) {
+        /* if (leftHandRig) {
           this.avatar.setHandEnabled(1, true);
         }
         if (rightHandRig) {
           this.avatar.setHandEnabled(0, true);
-        }
+        } */
         
         /* // window.poseRig = poseRig;
         if (rightHandRig) {
@@ -1197,14 +1197,14 @@ class FaceTracker extends EventTarget {
       dstAvatar.poseTracking = srcAvatar.poseTracking;
       for (let i = 0; i < 2; i++) {
         dstAvatar.handTracking[i] = srcAvatar.handTracking[i];
-        dstAvatar.setHandEnabled(i, srcAvatar.getHandEnabled(i));
+        // dstAvatar.setHandEnabled(i, srcAvatar.getHandEnabled(i));
       }
     } else {
       dstAvatar.faceTracking = null;
       dstAvatar.poseTracking = null;
       for (let i = 0; i < 2; i++) {
         dstAvatar.handTracking[i] = null;
-        dstAvatar.setHandEnabled(i, false);
+        // dstAvatar.setHandEnabled(i, false);
       }
     }
   }
