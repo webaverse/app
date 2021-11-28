@@ -1161,6 +1161,8 @@ class FaceTracker extends EventTarget {
             vowels: [A, E, I, O, U],
           };
           // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
+        } else {
+          this.avatar.faceTracking = null;
         }
         /* avatar.handTracking = [
           rightHandRig ? rightHandRig : null,
@@ -1189,6 +1191,14 @@ class FaceTracker extends EventTarget {
           window.leftHandRig = leftHandRig;
         } */
       }
+    }
+  }
+  setAvatarPose(avatar) {
+    avatar.faceTracking = this.avatar.faceTracking;
+    avatar.poseTracking = this.avatar.poseTracking;
+    avatar.handTracking = this.avatar.handTracking;
+    for (let i = 0; i < 2; i++) {
+      avatar.setHandEnabled(i, this.avatar.getHandEnabled(i));
     }
   }
   destroy() {

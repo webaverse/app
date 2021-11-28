@@ -18,6 +18,7 @@ import {parseQuery} from '../util.js'
 import * as ceramicApi from '../ceramic.js';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+// import { useFrame } from '@react-three/fiber';
 
 const localEuler = new THREE.Euler();
 
@@ -297,6 +298,7 @@ const NumberInput = ({input}) => {
   }} />
 };
 
+let arControlAvatar = null;
 export default function Header({
   app,
 }) {
@@ -636,6 +638,12 @@ export default function Header({
       world.appManager.removeEventListener('selectchange', selectchange);
     };
   }, [dragging]);
+  world.appManager.addEventListener('frame', () => {
+    const faceTracker = ioManager.getFaceTracker();
+    if (faceTracker && arControlAvatar) {
+      faceTracker.setAvatarPose(arControlAvatar);
+    }
+  });
   const arUiContentRef = useRef();
 
   const _isSomeArOpen = () => arAvatarEnabled || arCameraEnabled || arPoseEnabled;
@@ -693,6 +701,13 @@ export default function Header({
     setArCameraEnabled(!!videoCanvas.parentElement);
   };
   const _toggleArPose = () => {
+    if (!arControlAvatar) {
+      const localPlayer = metaversefile.useLocalPlayer();
+      arControlAvatar = localPlayer.avatar;
+    } else {
+      arControlAvatar = null;
+    }
+
     setArPoseEnabled(!arPoseEnabled);
   };
 
