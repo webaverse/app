@@ -987,7 +987,7 @@ class FaceTracker extends EventTarget {
       const distance = 0.6;
       // const h = avatar.height * 0.85;
       const h = this.avatar.height * 0.9;
-      this.previewCamera.position.set(0, h, distance);
+      this.previewCamera.position.set(0, h, -distance);
       // this.previewCamera.position.set(0, avatar.height, -distance);
       this.previewCamera.lookAt(new THREE.Vector3(0, h, 0));
       this.previewCamera.updateMatrixWorld();

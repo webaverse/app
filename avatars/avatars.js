@@ -2237,7 +2237,9 @@ class Avatar {
       // this.modelBoneOutputs.Hips.quaternion.identity().premultiply(y180Quaternion); */
 
       for (const k in this.poseTracking) {
-        this.modelBoneOutputs[k].quaternion.copy(this.poseTracking[k].quaternion);
+        if (k !== 'Root') {
+          this.modelBoneOutputs[k].quaternion.copy(this.poseTracking[k].quaternion);
+        }
       }
     }
     for (let i = 0; i < 2; i++) {
