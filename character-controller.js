@@ -597,6 +597,10 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
     });
+    this.dispatchEvent({
+      type: 'avatarchange',
+      app,
+    });
   }
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());

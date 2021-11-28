@@ -127,6 +127,9 @@ class App extends THREE.Object3D {
   willDieFrom(damage) {
     return false;
   }
+  async clone() {
+    return await metaversefile.load(this.contentId);
+  }
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
