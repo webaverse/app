@@ -22,7 +22,7 @@ const holistic = new Holistic({
 // holistic = new Holistic();
 holistic.setOptions({
   // staticImageMode: true,
-  modelComplexity: 0,
+  modelComplexity: 1,
   // modelComplexity: 1,
   // smoothLandmarks: true,
   // enableSegmentation: true,
