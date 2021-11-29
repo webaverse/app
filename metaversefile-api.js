@@ -439,7 +439,6 @@ metaversefile.setApi({
     }
   },
   async load(u) {
-    debugger;
     const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
@@ -766,7 +765,6 @@ const {Vector3, Quaternion, Euler, Matrix4, Box3, Object3D, Texture} = THREE;
 const {apps, createApp, createModule, addApp, removeApp, useFrame, useLocalPlayer, getAppByName, getAppsByName, getAppsByType, getAppsByTypes, getAppsByComponent} = metaversefile;
 
 export default () => {
-  debugger;
 `;
     const jsSuffix = '\n};';
     return s => {
