@@ -2186,8 +2186,19 @@ class Avatar {
     if (this.arPose) {
       // update model bones
       for (const k in this.arPose.pose) {
-        if (k !== 'Root') {
-          this.modelBoneOutputs[k].quaternion.copy(this.arPose.pose[k].quaternion);
+        if (
+          k !== 'Root' &&
+          k !== 'Hips' &&
+          k !== 'Left_ankle' &&
+          k !== 'Left_knee' &&
+          k !== 'Left_leg' &&
+          k !== 'Left_toe' &&
+          k !== 'Right_ankle' &&
+          k !== 'Right_knee' &&
+          k !== 'Right_leg' &&
+          k !== 'Right_toe'
+        ) {
+          this.modelBoneOutputs[k].quaternion.premultiply(this.arPose.pose[k].quaternion);
         }
       }
 
