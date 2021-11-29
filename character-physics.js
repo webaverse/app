@@ -22,6 +22,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
+const localOffset = new THREE.Vector3();
+const localOffset2 = new THREE.Vector3();
+
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -29,7 +32,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
-    this.rb = null;
+    this.rigidBody = null;
     this.debugCapsule = null;
 
     this.velocity = new THREE.Vector3();
@@ -41,7 +44,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     if (this.player) {
-      if (!this.player.hasAction('fly')) {
+      if (this.player.hasAction('jump')) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -67,24 +70,24 @@ class CharacterPhysics {
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
 
-      this.rb = this.player.avatar.app.physicsObjects[0];
+      this.rigidBody = this.player.avatar.app.physicsObjects[0];
       //this.debugCapsule = this.player.avatar.app.debugCapsule;;
 
-      if(!this.rb) return;
+      if(!this.rigidBody) return;
 
-      physicsManager.disableGeometryQueries(this.rb);
-      physicsManager.enablePhysicsObject(this.rb);
+      physicsManager.disableGeometryQueries(this.rigidBody);
+      physicsManager.enablePhysicsObject(this.rigidBody);
       // capsule physics
       if (!this.player.hasAction('sit')) {
         //applyVelocity(this.player.position, this.velocity, timeDiffS);
 
 
-        this.rb.updateMatrixWorld();
-        this.rb.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        this.rigidBody.updateMatrixWorld();
+        this.rigidBody.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         localQuaternion.copy(this.player.quaternion);
 
-        const capsuleOffset = new THREE.Vector3(0, this.player.avatar.height/2, 0);
-        localVector.add(capsuleOffset);
+        localOffset.set(0, this.player.avatar.height/2, 0); // Capsule offset
+        localVector.add(localOffset);
         const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
 
         // avatar facing direction
@@ -176,8 +179,8 @@ class CharacterPhysics {
         localVector.y += 1;
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
-      const feetOffset = new THREE.Vector3(0, 0.05, 0); // Or feet will be in ground, only cosmetical, works for all avatars
-      localVector.add(feetOffset);
+      localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
+      localVector.add(localOffset2);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
@@ -191,8 +194,8 @@ class CharacterPhysics {
       this.player.matrixWorld.copy(this.player.matrix);
 
       /*if(this.debugCapsule) {
-        this.debugCapsule.position.copy(this.rb.position);
-        //this.debugCapsule.quaternion.copy(this.rb.quaternion);
+        this.debugCapsule.position.copy(this.rigidBody.position);
+        //this.debugCapsule.quaternion.copy(this.rigidBody.quaternion);
       }*/
 
       if (this.avatar) {
@@ -217,31 +220,40 @@ class CharacterPhysics {
     }
   }
   updateVelocity() {
-    if(this.player.avatar) {
-      if(this.rb) {
-        physicsManager.setVelocity(this.rb, this.velocity.clone());
+    if(this.player.avatar && physicsManager.physicsEnabled) {
+      if(this.rigidBody) {
+        let y = 0;
+        if(this.velocity.y > 0) {
+          y = this.velocity.y;
+        }
+        //localVector.set(this.velocity.x, this.velocity.y, this.velocity.z);
+        let enableGravity = true;
+        if(this.player.hasAction('fly') || this.player.hasAction('jump')) {
+          enableGravity = false;
+        }
+        physicsManager.setVelocity(this.rigidBody, this.velocity, enableGravity);
       }
     }
   }
   updateTransform() {
-    if(this.rb) {
+    if(this.rigidBody && physicsManager.physicsEnabled) {
       const physicsObjects2 = [];
       physicsObjects2.push({
-        id: this.rb.physicsId,
-        position: new THREE.Vector3(0,0,0),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(0,0,0),
+        id: this.rigidBody.physicsId,
+        position: this.rigidBody.position,
+        quaternion: this.rigidBody.quaternion,
+        scale: this.rigidBody.scale,
       });
       const newTransform = physicsManager.getTransforms(physicsObjects2);
 
       for (const updateOut of newTransform)
         {
           const {id, position, quaternion, scale} = updateOut; 
-          if(id === this.rb.physicsId) {
-            this.rb.position.copy(position);
-            this.rb.quaternion.copy(quaternion);
-            this.rb.updateMatrixWorld();
-            this.rb.needsUpdate = false;
+          if(id === this.rigidBody.physicsId) {
+            this.rigidBody.position.copy(position);
+            this.rigidBody.quaternion.copy(quaternion);
+            this.rigidBody.updateMatrixWorld();
+            this.rigidBody.needsUpdate = false;
           }
         }
       }
