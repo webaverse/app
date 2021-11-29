@@ -1146,66 +1146,34 @@ class FaceTracker extends EventTarget {
             getBrowRaise(facelm, 'right'),
           ];
           // window.brows = brows;
-          this.avatar.faceTracking = {
+          this.avatar.arPose = {
             head: new THREE.Vector3()
               .copy(head.degrees)
               .multiplyScalar(Math.PI/180),
-            eyes: [1-eyes[1], 1-eyes[0]],
-            brows: [1-brows[1], 1-brows[0]],
-            pupils: [
-              [pupil.x, pupil.y],
-              [pupil.x, pupil.y],
+            pose: fakeAvatar,
+            hands: [
+              leftHandRig,
+              rightHandRig,
             ],
-            mouth,
-            vowels: [A, E, I, O, U],
+            face: {
+              eyes: [1-eyes[1], 1-eyes[0]],
+              brows: [1-brows[1], 1-brows[0]],
+              pupils: [
+                [pupil.x, pupil.y],
+                [pupil.x, pupil.y],
+              ],
+              mouth,
+              vowels: [A, E, I, O, U],
+            },
           };
-          // console.log('got', faceRig.pupil.x, faceRig.pupil.y);
         } else {
-          this.avatar.faceTracking = null;
+          this.avatar.arPose = null;
         }
-        /* avatar.handTracking = [
-          rightHandRig ? rightHandRig : null,
-          leftHandRig ? leftHandRig : null,
-        ]; */
-        // if (poseRig) {
-          // avatar.inputs.hmd.quaternion.copy(y180Quaternion);
-        // }
-        this.avatar.poseTracking = fakeAvatar;
-        this.avatar.handTracking[0] = leftHandRig;
-        this.avatar.handTracking[1] = rightHandRig;
-        /* if (leftHandRig) {
-          this.avatar.setHandEnabled(1, true);
-        }
-        if (rightHandRig) {
-          this.avatar.setHandEnabled(0, true);
-        } */
-        
-        /* // window.poseRig = poseRig;
-        if (rightHandRig) {
-          window.rightHandRig = rightHandRig;
-        }
-        if (leftHandRig) {
-          window.leftHandRig = leftHandRig;
-        } */
       }
     }
   }
   setAvatarPose(dstAvatar, srcAvatar = this.avatar) {
-    if (srcAvatar) {
-      dstAvatar.faceTracking = srcAvatar.faceTracking;
-      dstAvatar.poseTracking = srcAvatar.poseTracking;
-      for (let i = 0; i < 2; i++) {
-        dstAvatar.handTracking[i] = srcAvatar.handTracking[i];
-        // dstAvatar.setHandEnabled(i, srcAvatar.getHandEnabled(i));
-      }
-    } else {
-      dstAvatar.faceTracking = null;
-      dstAvatar.poseTracking = null;
-      for (let i = 0; i < 2; i++) {
-        dstAvatar.handTracking[i] = null;
-        // dstAvatar.setHandEnabled(i, false);
-      }
-    }
+    dstAvatar.arPose = srcAvatar?.arPose;
   }
   destroy() {
     this.videoCapture.destroy();

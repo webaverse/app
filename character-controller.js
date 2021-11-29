@@ -574,6 +574,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     super(opts);
 
     this.characterPhysics = new CharacterPhysics(this);
+    this.arPose = null;
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;

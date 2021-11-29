@@ -22,7 +22,7 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.velocity.copy(player.characterPhysics.velocity);
   }
 } */
-export function applyPlayerModesToAvatar(player, session, rig) {
+export function applyPlayerModesToAvatar(player, session, avatar) {
   const aimAction = player.getAction('aim');
   const aimComponent = (() => {
     for (const action of player.getActionsState()) {
@@ -37,20 +37,28 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     }
     return null;
   })();
-  for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+  if (!player.arPose) {
+    avatar.arPose = null;
+    for (let i = 0; i < 2; i++) {
+      avatar.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent));
+    }
+    avatar.setTopEnabled(
+      (!!session && (avatar.inputs.leftGamepad.enabled || avatar.inputs.rightGamepad.enabled))
+    );
+    avatar.setBottomEnabled(
+      (
+        avatar.getTopEnabled()
+      ) &&
+      avatar.velocity.length() < 0.001,
+    );
+  } else {
+    avatar.arPose = player.arPose;
+    for (let i = 0; i < 2; i++) {
+      avatar.setHandEnabled(i, true);
+    }
+    avatar.setTopEnabled(true);
+    avatar.setBottomEnabled(true);
   }
-  rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
-  );
-  rig.setBottomEnabled(
-    (
-      rig.getTopEnabled() /* ||
-      rig.getHandEnabled(0) ||
-      rig.getHandEnabled(1) */
-    ) &&
-    rig.velocity.length() < 0.001,
-  );
 }
 export function makeAvatar(app) {
   if (app) {

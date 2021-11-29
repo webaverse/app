@@ -632,9 +632,7 @@ class Avatar {
     this.flipY = flipY;
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
-    this.faceTracking = null;
-    this.poseTracking = null;
-    this.handTracking = [null, null];
+    this.arPose = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -2205,103 +2203,63 @@ class Avatar {
     }
 
     const _lowercase = s => s.slice(0, 1).toLowerCase() + s.slice(1);
-    if (this.poseTracking) {
-      /* for (const k in this.poseTracking) {
-        if (!['Hips'].includes(k)) {
-          // if (!/hand/i.test(k)) {
-            const v = this.poseTracking[k];
-            localEuler.set(-v.x, -v.y, v.z, 'YXZ');
-            
-            if (/hand/i.test(k)) {
-              // localEuler.y += Math.PI*0.5 * (/left/i.test(k) ? 1 : -1);
-              // localEuler.z += Math.PI/4 * (/left/i.test(k) ? 1 : -1);
-            }
-            
-            let k2 = k;
-            
-            const k3 = _lowercase(k2);
-            // console.log('got k', k, k2, k3);
-            // if (!/hand/i.test(k)) {
+    if (this.arPose) {
+      // update model bones
+      for (const k in this.arPose.pose) {
+        if (k !== 'Root') {
+          this.modelBoneOutputs[k].quaternion.copy(this.arPose.pose[k].quaternion);
+        }
+      }
+
+      // update hands
+      for (let i = 0; i < 2; i++) {
+        const hand = this.arPose.hands[i];
+        if (hand) {
+          for (const k in hand) {
+            if (!/wrist/i.test(k)) {
+              const v = hand[k];
+              localEuler.set(v.x, v.y, -v.z, 'YXZ');
+              
+              let k2 = k;
+              /* if (/left/i.test(k)) {
+                k2 = k2.replace(/left/gi, 'Right');
+              } else if (/right/i.test(k)) {
+                k2 = k2.replace(/right/gi, 'Left');
+              } */
+              
+              const k3 = _lowercase(k2);
               this.modelBoneOutputsByVrm[k3].quaternion
                 .setFromEuler(localEuler)
-                // .multiply(y180Quaternion);
-            // }
-            if (/hand/i.test(k)) {
-              this.modelBoneOutputsByVrm[k3].quaternion
-                .premultiply(/left/i.test(k) ? smallUpRotation : smallDownRotation)
-                .premultiply(/left/i.test(k) ? leftRotation : rightRotation)
+                
+              /* if (/wrist/i.test(k)) {
+                this.modelBoneOutputsByVrm[k3].quaternion
+                  // .premultiply(x180Quaternion)
+                  // .premultiply(/left/i.test(k) ? leftRotation : rightRotation)
+                  // .multiply(/left/i.test(k) ? rightRotation : leftRotation)
+                  // .multiply(rightRotation)
+                  // .premultiply(y180Quaternion)
+                  // .multiply(y180Quaternion)
+                  // .multiply(this.modelBoneOutputsByVrm[k3].initialQuaternion);
+              } */
             }
           }
-        // }
-      }
-      // this.modelBoneOutputs.Hips.quaternion.identity().premultiply(y180Quaternion); */
-
-      for (const k in this.poseTracking) {
-        if (k !== 'Root') {
-          this.modelBoneOutputs[k].quaternion.copy(this.poseTracking[k].quaternion);
         }
       }
-    }
-    for (let i = 0; i < 2; i++) {
-      const hand = this.handTracking[i];
-      if (hand) {
-        for (const k in hand) {
-          if (!/wrist/i.test(k)) {
-            const v = hand[k];
-            localEuler.set(v.x, v.y, -v.z, 'YXZ');
-            
-            let k2 = k;
-            /* if (/left/i.test(k)) {
-              k2 = k2.replace(/left/gi, 'Right');
-            } else if (/right/i.test(k)) {
-              k2 = k2.replace(/right/gi, 'Left');
-            } */
-            
-            const k3 = _lowercase(k2);
-            this.modelBoneOutputsByVrm[k3].quaternion
-              .setFromEuler(localEuler)
-              
-            /* if (/wrist/i.test(k)) {
-              this.modelBoneOutputsByVrm[k3].quaternion
-                // .premultiply(x180Quaternion)
-                // .premultiply(/left/i.test(k) ? leftRotation : rightRotation)
-                // .multiply(/left/i.test(k) ? rightRotation : leftRotation)
-                // .multiply(rightRotation)
-                // .premultiply(y180Quaternion)
-                // .multiply(y180Quaternion)
-                // .multiply(this.modelBoneOutputsByVrm[k3].initialQuaternion);
-            } */
-          }
-        }
-      }
-    }
 
-    if (this.faceTracking) {
-      /* const q = new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt(
-          new THREE.Vector3(),
-          this.faceTracking.head.clone,
-          new THREE.Vector3(0, 1, 0)
-        )
-      ); */
+      // update head
       const q = new THREE.Quaternion().setFromEuler(
         new THREE.Euler(
-          -this.faceTracking.head.x,
-          -this.faceTracking.head.y,
-          this.faceTracking.head.z,
+          -this.arPose.head.x,
+          -this.arPose.head.y,
+          this.arPose.head.z,
           'YXZ'
         )
       )/* .premultiply(
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
       ) */;
-      // console.log('got z', this.faceTracking.head.z);
       this.modelBoneOutputs.Head.quaternion.premultiply(q);
       
-      const {pupils} = this.faceTracking;
-      // window.pupils = pupils;
-      const [lPupil, rPupil] = pupils;
-      // const pupil = [(lPupil[0] + rPupil[0]) * 0.5, (lPupil[1] + rPupil[1]) * 0.5];
-      // const pupil = lPupil[2] >= rPupil[2] ? lPupil : rPupil;
+      const [lPupil, rPupil] = this.arPose.face.pupils;
       const xFactor = 1;
       const yFactor = 1;
       const yOffset = -0.1;
@@ -2324,10 +2282,10 @@ class Avatar {
       );
       // console.log('got', lPupil[0], lPupil[1], lPupil[2], rPupil[0], rPupil[1], rPupil[2]);
       // this.modelBoneOutputs.Eye_R.quaternion.copy(this.modelBoneOutputs.Eye_L.quaternion);
-    } /* else {
+    } else {
       this.modelBoneOutputs.Eye_L.quaternion.identity();
       this.modelBoneOutputs.Eye_R.quaternion.identity();
-    } */
+    }
 
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
@@ -2399,8 +2357,8 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = 0;
             }
-          } else if (this.faceTracking) {
-            const {eyes, brows, mouth, vowels} = this.faceTracking;
+          } else if (this.arPose) { // ar speech
+            const {eyes, brows, mouth, vowels} = this.arPose.face;
             if (blinkLeftIndex !== -1) {
               // console.log('got left blink', blinkLeftIndex, eyes[0]);
               morphTargetInfluences[blinkLeftIndex] = eyes[0];
@@ -2507,7 +2465,7 @@ class Avatar {
           }
 
           // blink
-          if (!this.faceTracking) {
+          if (!this.arPose) {
             if (blinkLeftIndex !== -1) {
               morphTargetInfluences[blinkLeftIndex] = blinkValue;
             }

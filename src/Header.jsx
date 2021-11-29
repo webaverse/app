@@ -298,7 +298,7 @@ const NumberInput = ({input}) => {
   }} />
 };
 
-let arControlAvatar = null;
+let arControl = false;
 export default function Header({
   app,
 }) {
@@ -640,8 +640,14 @@ export default function Header({
   }, [dragging]);
   world.appManager.addEventListener('frame', () => {
     const faceTracker = ioManager.getFaceTracker();
-    if (faceTracker && arControlAvatar) {
-      faceTracker.setAvatarPose(arControlAvatar);
+    if (faceTracker) {
+      const localPlayer = metaversefile.useLocalPlayer();
+      if (arControl) {
+        faceTracker.setAvatarPose(localPlayer);
+      } else {
+        faceTracker.setAvatarPose(localPlayer, null);
+      }
+      // console.log('set ar pose', localPlayer.arPose);
     }
   });
   const arUiContentRef = useRef();
@@ -653,11 +659,7 @@ export default function Header({
     }
   }, [arAvatarEnabled, arCameraEnabled, arPoseEnabled]);
   const _toggleFaceTracking = () => {
-    const faceTracker = ioManager.getFaceTracker();
-    if (arControlAvatar) {
-      faceTracker.setAvatarPose(arControlAvatar, null);
-      arControlAvatar = null;
-    }
+    arControl = false;
 
     const newFaceTracking = !ioManager.getFaceTracking();
     ioManager.setFaceTracking(newFaceTracking);
@@ -707,14 +709,7 @@ export default function Header({
     setArCameraEnabled(!!videoCanvas.parentElement);
   };
   const _toggleArPose = () => {
-    if (!arControlAvatar) {
-      const localPlayer = metaversefile.useLocalPlayer();
-      arControlAvatar = localPlayer.avatar;
-    } else {
-      const faceTracker = ioManager.getFaceTracker();
-      faceTracker.setAvatarPose(arControlAvatar, null);
-      arControlAvatar = null;
-    }
+    arControl = !arControl;
 
     setArPoseEnabled(!arPoseEnabled);
   };
