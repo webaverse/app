@@ -4,7 +4,7 @@ this is the sound manager implementation.
 
 import * as THREE from 'three';
 //import ioManager from './io-manager.js';
-//import gameManager from './game.js';
+import gameManager from './game.js';
 //import physx from './physx.js';
 import {camera} from './renderer.js';
 import metaversefileApi from 'metaversefile';
@@ -52,7 +52,6 @@ class SoundManager {
       this.play('jumpEnd');
     }
 
-
     this.lastIsJumping = isJumping;
   }
   setMasterVolume(volume){
@@ -85,7 +84,13 @@ class SoundManager {
       this.play(name);
       this.lastIds.set(name,id);
     }
-  }  
+  }
+  playStepSound(id) {
+    if (gameManager.isFlying() || gameManager.isSitting() || gameManager.isJumping()) {
+      return;
+    }
+    this.playWithId('step1',id);
+  }
   loadBasicSounds() {
 
     this.loadSound('jump','sounds/Jump1.mp3');
