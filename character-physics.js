@@ -25,6 +25,8 @@ const localMatrix = new THREE.Matrix4();
 const localOffset = new THREE.Vector3();
 const localOffset2 = new THREE.Vector3();
 
+const localArray = [];
+
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -237,14 +239,14 @@ class CharacterPhysics {
   }
   updateTransform() {
     if(this.rigidBody && physicsManager.physicsEnabled) {
-      const physicsObjects2 = [];
-      physicsObjects2.push({
+      localArray.push({
         id: this.rigidBody.physicsId,
         position: this.rigidBody.position,
         quaternion: this.rigidBody.quaternion,
         scale: this.rigidBody.scale,
       });
-      const newTransform = physicsManager.getTransforms(physicsObjects2);
+      const newTransform = physicsManager.getTransforms(localArray);
+      localArray.length = 0;
 
       for (const updateOut of newTransform)
         {
