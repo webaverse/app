@@ -886,12 +886,12 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
-  w.setVelocityPhysics = (physics, id, velocity) => {
+  w.setVelocityPhysics = (physics, id, velocity, enableGravity) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
-    moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset);
+    moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, +enableGravity);
     allocator.freeAll();
   };
   w.checkGrounded = (physics, id) => {
