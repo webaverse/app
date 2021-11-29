@@ -1641,7 +1641,7 @@ class Avatar {
   getBottomEnabled() {
     return this.legsManager.enabled;
   }
-  getAngle() {
+  getFacingAngle() {
     localEuler.setFromRotationMatrix(
       localMatrix.lookAt(
         localVector.set(0, 0, 0),
@@ -1683,7 +1683,7 @@ class Avatar {
     const _applyAnimation = () => {
       const runSpeed = 0.75;
       const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-      const angle = this.getAngle();
+      const angle = this.getFacingAngle();
       const timeSeconds = now/1000;
       
       const _getAnimationKey = (crouchState, velocity) => {
