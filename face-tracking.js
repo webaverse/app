@@ -583,8 +583,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Left_arm.quaternion.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize(),
-        localVector9.set(0, 1, 0)
+        boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize()
       )
       // .multiply(avatar.Left_shoulder.initialQuaternion)
       // .premultiply(rollRightRotation)
@@ -595,8 +594,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Right_arm.quaternion.setFromUnitVectors(
         new THREE.Vector3(-1, 0, 0),
-        boneBuffers.rightElbow.clone().sub(boneBuffers.rightShoulder).normalize(),
-        localVector9.set(0, 1, 0)
+        boneBuffers.rightElbow.clone().sub(boneBuffers.rightShoulder).normalize()
       )
       // .multiply(avatar.Left_shoulder.initialQuaternion)
       // .premultiply(rollRightRotation)
@@ -608,8 +606,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Left_elbow.quaternion.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize(),
-        localVector9.set(0, 1, 0)
+        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize()
       )
       // .multiply(avatar.Left_elbow.initialQuaternion)
       // .premultiply(slightLeftRotation);
@@ -618,8 +615,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Right_elbow.quaternion.setFromUnitVectors(
         new THREE.Vector3(-1, 0, 0),
-        boneBuffers.rightHand.clone().sub(boneBuffers.rightElbow).normalize(),
-        localVector9.set(0, 1, 0)
+        boneBuffers.rightHand.clone().sub(boneBuffers.rightElbow).normalize()
       )
       // .multiply(avatar.Left_wrist.initialQuaternion)
       // .premultiply(slightLeftRotation);
