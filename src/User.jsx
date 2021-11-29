@@ -222,7 +222,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   return (
     <div ref={userRef.ref}>
        <iframe name="wallet" width="0" height="0"></iframe>
-       <iframe name="walletMessenger" width="500" height="500"></iframe>
+       <iframe name="walletMessenger" width="0" height="0"></iframe>
       <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
         onClick={async e => {
           e.preventDefault();
