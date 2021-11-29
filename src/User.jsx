@@ -53,71 +53,77 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     setDiscordUrl('');
   });
 
-  var popUp = null;
+  // var popUp = null;
   var iframe = null;
   var walletMessenger = null;
 
-  const openPopup = async (mnemonic) => {
-    popUp = window.open(walletHost, '', "height=800,width=600");
+  // const openPopup = async (mnemonic) => {
+  //   popUp = window.open(walletHost, '', "height=800,width=600");
 
-    var f = function(event){
-      if (event.origin !== walletHost)
-        return;
+  //   var f = function(event){
+  //     if (event.origin !== walletHost)
+  //       return;
     
-      if(event.data == 'received') {
-        sendMessage(mnemonic);
-        window.removeEventListener("message", f, false);
-      }      
-    }
-    window.addEventListener("message", f);
+  //     if(event.data == 'received') {
+  //       sendMessage(mnemonic);
+  //       window.removeEventListener("message", f, false);
+  //     }      
+  //   }
+  //   window.addEventListener("message", f);
 
-  }
+  // }
 
-  const sendMessage = async (mnemonic) => {
+  // const sendMessage = async (mnemonic) => {
 
-    popUp.postMessage(JSON.stringify({'p_mnemonic': mnemonic}), walletHost);
+  //   popUp.postMessage(JSON.stringify({'p_mnemonic': mnemonic}), walletHost);
 
-    var f = function(event){
-      if (event.origin !== walletHost)
-      return;
+  //   var f = function(event){
+  //     if (event.origin !== walletHost)
+  //     return;
   
-      if(event.data.mnemonic && event.data.Success) {
-        sessionStorage.setItem("mnemonic", event.data.mnemonic);
-        window.removeEventListener("message", f, false);
-        popUp.close();
-      }   
-    }
-    window.addEventListener("message", f);
-  }
+  //     if(event.data.mnemonic && event.data.Success) {
+  //       sessionStorage.setItem("mnemonic", event.data.mnemonic);
+  //       window.removeEventListener("message", f, false);
+  //       popUp.close();
+  //     }   
+  //   }
+  //   window.addEventListener("message", f);
+  // }
 
-  const fetchWalletData = async (mnemonic) => {
+  const fetchWalletData = async (key) => {
     iframe = window.open(walletHost, 'wallet')
 
     var f = function(event){
-      if (event.origin !== walletHost)
+      if (`${event.origin}/weba-wallet` !== walletHost)
       return;
 
       if(event.data == 'received') {
-        getKeys(mnemonic);
+        getKeys(key);
         window.removeEventListener("message", f, false);
       } 
     }
     window.addEventListener("message", f);
   }
 
-  const getKeys = async (mnemonic) => {
-    iframe.postMessage(JSON.stringify({'mnemonic': mnemonic}), walletHost);
+  const getKeys = async (key) => {
+    if(key) {
+      iframe.postMessage(JSON.stringify({action: 'getKey', key: key}), walletHost);
+    }
+    else {
+      iframe.postMessage(JSON.stringify({action: 'getAllKeys'}), walletHost);
+    }
 
     var f = function(event){
 
-      if (event.origin !== walletHost)
+      if (`${event.origin}/weba-wallet` !== walletHost)
       return;
   
-      if(event.data.Message == "Password" && popUp == null) {
-        openPopup(event.data.mnemonic)
+      if(event.data.data) {
+        setWalletData(event.data);
+        window.removeEventListener("message", f, false);
+        iframe.close();
       }
-      else if(event.data.data) {
-        setWalletData(event.data.data);
+      else {
         window.removeEventListener("message", f, false);
         iframe.close();
       }
@@ -126,30 +132,30 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   }
 
   // function for sending data to wallet
-  const sendDataToWallet = async (data) => {
+  const sendDataToWallet = async (key, value) => {
+
     walletMessenger = window.open(walletHost, 'walletMessenger')
 
     var f = function(event){
-      if (event.origin !== walletHost)
+      if (`${event.origin}/weba-wallet` !== walletHost)
         return;
-    
+
       if(event.data == 'received') {
-        sendData(data);
+        sendData(key, value);
         window.removeEventListener("message", f, false);
       }
     }
     window.addEventListener("message", f);
   }
 
-  const sendData = async (data) => {
-    var message = JSON.stringify({'mnemonic': sessionStorage.getItem('mnemonic'), 'data': data});
+  const sendData = async (key, value) => {
+    var message = JSON.stringify({'action': 'storeKey', 'key': key, 'value': value});
     walletMessenger.postMessage(message, walletHost);
 
     var f = function(event){
-      if (event.origin !== walletHost)
+      if (`${event.origin}/weba-wallet` !== walletHost)
         return;
-    
-      setWalletData(event.data.data);
+
       window.removeEventListener("message", f, false);
       walletMessenger.close();
       }
@@ -158,7 +164,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
   const metaMaskLogin = async e => {
     e.preventDefault();
-    e.stopPropagation();   
+    e.stopPropagation(); 
     if (address) {
       toggleOpen('user');
     } else {
@@ -168,7 +174,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
-          // fetchWalletData(mnemonic); // wallet not yet working with metamask
+          fetchWalletData();
           setShow(false);
 
           userRef.setIsComponentVisible(false);
@@ -203,7 +209,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         const {address, error, mnemonic} = await handleDiscordLogin(code, id);
         if(address) {
           setAddress(address);
-          fetchWalletData(mnemonic);
+          fetchWalletData();
           setShow(false);
         }
         else {
@@ -216,7 +222,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   return (
     <div ref={userRef.ref}>
        <iframe name="wallet" width="0" height="0"></iframe>
-       <iframe name="walletMessenger" width="0" height="0"></iframe>
+       <iframe name="walletMessenger" width="500" height="500"></iframe>
       <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
         onClick={async e => {
           e.preventDefault();
