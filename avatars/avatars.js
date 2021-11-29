@@ -2066,7 +2066,7 @@ class Avatar {
       this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
       this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
 
-      const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
+      /* const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
       if (modelScaleFactor !== this.lastModelScaleFactor) {
         this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
         this.lastModelScaleFactor = modelScaleFactor;
@@ -2079,7 +2079,7 @@ class Avatar {
               .length();
           });
         });
-      }
+      } */
       
       if (this.options.fingers) {
         const _traverse = (o, fn) => {
