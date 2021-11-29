@@ -547,7 +547,7 @@ class AppManager extends EventTarget {
                 if(app.appType === "vrm") {
                   physicsObject.position.add(new THREE.Vector3(0, 1, 0));
                 }
-                
+
                 physicsObject.updateMatrixWorld();
                 
                 //physicsManager.pushUpdate(physicsObject);
