@@ -83,7 +83,7 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   physicsObject.physicsMesh = physicsMesh;
   //console.log(physicsId);
   //physicsObject.position.add(new THREE.Vector3(0, 3, 0));
-  physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
+  //physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
   return physicsObject;
 };
 
@@ -192,8 +192,8 @@ physicsManager.enableGeometryQueries = physicsObject => {
 physicsManager.removeGeometry = physicsObject => {
   physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
-physicsManager.setVelocity = (physicsObject, velocity) => {
-  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
+  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
 };
 physicsManager.setTransform = (physicsObject) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
@@ -208,8 +208,10 @@ physicsManager.isGrounded = physicsObject => {
 }
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.simulatePhysics = timeDiff => {
-  const t = timeDiff/1000;
-  physx.physxWorker.simulatePhysics(physx.physics, t);  
+  if(physicsManager.physicsEnabled) {
+    const t = timeDiff/1000;
+    physx.physxWorker.simulatePhysics(physx.physics, t);  
+  }
 };
 
 /*physicsManager.updateRigidbodies = physicsObject => {
