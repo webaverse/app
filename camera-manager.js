@@ -22,6 +22,11 @@ const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
+const lastCameraQuaternion = new THREE.Quaternion();
+let lastCameraZ = 0;
+let lastCameraValidZ = 0;
+
+
 /* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
@@ -221,6 +226,20 @@ const cameraManager = {
       newVal = cameraOffsetTargetZ;
     }
     
+    // Remove jitter when there is no movement
+    if (lastCameraQuaternion.equals(camera.quaternion) && lastCameraZ === cameraOffsetTargetZ) {
+      if (lastCameraValidZ < newVal) {
+        lastCameraValidZ = newVal;
+      }
+      if (newVal < lastCameraValidZ)
+        newVal = lastCameraValidZ;
+    }
+    else {
+      lastCameraQuaternion.copy(camera.quaternion);
+      lastCameraZ = cameraOffsetTargetZ;
+      lastCameraValidZ = cameraOffsetTargetZ;
+    }
+
     // Slow zoom out if there is no intersection
     cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
 
