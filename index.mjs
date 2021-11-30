@@ -51,8 +51,7 @@ function makeId(length) {
         req.originalUrl = u;
         next();
       }
-    }
-     else {
+    }else {
       next();
     }
   });
