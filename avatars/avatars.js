@@ -2293,7 +2293,7 @@ class Avatar {
 
       const windParameters = metaversefile.useWorld().getWindParameters();
 
-      if (windParameters.forceFactor != 0) {
+      if (windParameters.forceFactor != 0 && windParameters.direction && windParameters.gravity) {
 
         const now2 = this.now / 1000 * 2;
         var noiseX = (simplexes[0].noise2D(now2, now2));
