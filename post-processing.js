@@ -231,7 +231,7 @@ function setPasses(rendersettings) {
   composer.addPass(webaverseRenderPass);
   
   if (rendersettings) {
-    const {ssao, dof, hdr, bloom, usePostScene} = rendersettings;
+    const {ssao, dof, hdr, bloom, enablePostScene} = rendersettings;
     // console.log('got', ssao, dof, hdr, bloom);
     
     if (ssao) {
@@ -253,7 +253,7 @@ function setPasses(rendersettings) {
       const bloomPass = makeBloomPass(bloom);
       composer.addPass(bloomPass);
     }
-    if(usePostScene) {
+    if(enablePostScene) {
       const postRenderPass = new RenderPass(postScene, camera);
       composer.addPass(postRenderPass);
     }
