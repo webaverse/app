@@ -2207,7 +2207,7 @@ class Avatar {
         const hand = this.arPose.hands[i];
         if (hand) {
           for (const k in hand) {
-            if (!/wrist/i.test(k)) {
+            if (k !== 'Left_wrist' && k !== 'Right_wrist') {
               const v = hand[k];
               localEuler.set(v.x, v.y, -v.z, 'YXZ');
               
