@@ -436,7 +436,7 @@ const _solvePoseToAvatar = (() => {
     rightToe: new THREE.Vector3(),
   };
   // window.boneBuffers = boneBuffers;
-  const debugMeshes = (() => {
+  /* const debugMeshes = (() => {
     const meshes = {};
     const cubeGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.02);
     const cubeRedMaterial = new THREE.MeshPhongMaterial({
@@ -470,7 +470,7 @@ const _solvePoseToAvatar = (() => {
     }
     return meshes;
   })();
-  window.debugMeshes = debugMeshes;
+  window.debugMeshes = debugMeshes; */
 
   return (lm3d, leftHandLm, rightHandLm, avatar) => {
     boneBuffers.leftHip.copy(lm3d[23]);
@@ -502,15 +502,18 @@ const _solvePoseToAvatar = (() => {
       boneBuffers[k].z *= -1;
     }
 
-    for (const k in boneBuffers) {
-      const boneBuffer = boneBuffers[k];
-      const debugMesh = debugMeshes[k];
-      debugMesh.position.copy(boneBuffer)
-      debugMesh.position.y += 1;
-      // debugMesh.quaternion.copy(boneBuffer.quaternion);
-      // debugMesh.scale.copy(boneBuffer.scale);
-      debugMesh.updateMatrixWorld();
-    }
+    /* const _updateDebugMeshes = () => {
+      for (const k in boneBuffers) {
+        const boneBuffer = boneBuffers[k];
+        const debugMesh = debugMeshes[k];
+        debugMesh.position.copy(boneBuffer)
+        debugMesh.position.y += 1;
+        // debugMesh.quaternion.copy(boneBuffer.quaternion);
+        // debugMesh.scale.copy(boneBuffer.scale);
+        debugMesh.updateMatrixWorld();
+      }
+    };
+    _updateDebugMeshes(); */
 
     /* window.lm3d = lm3d;
     window.leftHip = leftHip;
