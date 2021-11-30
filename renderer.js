@@ -84,6 +84,8 @@ const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
+const postScene = new THREE.Scene();
+postScene.name = 'postScene';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
@@ -172,6 +174,7 @@ export {
   getComposer,
   scene,
   rootScene,
+  postScene,
   // avatarScene,
   camera,
   // orthographicCamera,

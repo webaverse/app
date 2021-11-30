@@ -12,7 +12,7 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, rootScene, postScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -455,6 +455,9 @@ metaversefile.setApi({
   useScene() {
     return scene;
   },
+  usePostScene() {
+    return postScene;
+  },
   useWorld() {
     return {
       /* addObject() {
@@ -832,6 +835,7 @@ export default () => {
       renderer,
       scene,
       rootScene,
+      postScene,
       camera,
       sceneHighPriority,
       iframeContainer,
