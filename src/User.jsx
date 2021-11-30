@@ -44,7 +44,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginButtons, setLoginButtons] = useState(false);
 
-  const [walletData, setWalletData] = useState([]);
   const [discordUrl, setDiscordUrl] = useState('');
   const [loginError, setLoginError] = useState(null);
 
@@ -118,8 +117,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       if (`${event.origin}/weba-wallet` !== walletHost)
       return;
   
-      if(event.data.data) {
-        setWalletData(event.data);
+      if(event.data.privateKey) {
+        const address = getAddressFromMnemonic(event.data.privateKey);
+        if(address) {
+          setAddress(address);
+        }
         window.removeEventListener("message", f, false);
         iframe.close();
       }
@@ -174,7 +176,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
-          fetchWalletData();
+          // sendDataToWallet('privateKey', mnemonic)
           setShow(false);
 
           userRef.setIsComponentVisible(false);
@@ -209,12 +211,15 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         const {address, error, mnemonic} = await handleDiscordLogin(code, id);
         if(address) {
           setAddress(address);
-          fetchWalletData();
+          sendDataToWallet('privateKey', mnemonic)
           setShow(false);
         }
         else {
           setLoginError(String(error).toLocaleUpperCase());
         }
+      }
+      else {
+        fetchWalletData('privateKey');
       }
   }, [address, setAddress]);
 
