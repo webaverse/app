@@ -9,26 +9,6 @@ import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
 
-function useComponentVisible(initialIsVisible, fn) {
-  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible);
-  const ref = useRef(null);
-
-  const handleClickOutside = event => {
-    if (ref.current && !ref.current.contains(event.target)) {
-      setIsComponentVisible(false);
-      fn();
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside, true);
-    return () => {
-      document.removeEventListener('click', handleClickOutside, true);
-    };
-  });
-
-  return {ref, isComponentVisible, setIsComponentVisible};
-}
 const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
   const [show, setShow] = useState(false);
@@ -38,24 +18,18 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     setShow(!show);
   } 
 
-  const discordRef = useComponentVisible(false);
-  const metaMaskRef = useComponentVisible(false);
-  const emailRef = useComponentVisible(false);
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginButtons, setLoginButtons] = useState(false);
 
   const [discordUrl, setDiscordUrl] = useState('');
   const [loginError, setLoginError] = useState(null);
 
-  const userRef = useComponentVisible(false, ()=>{
-    setLoginError(false);
-    setDiscordUrl('');
-  });
-
-  // var popUp = null;
   var iframe = null;
   var walletMessenger = null;
 
+  // popup code for getting user's password
+
+  // var popUp = null;
   // const openPopup = async (mnemonic) => {
   //   popUp = window.open(walletHost, '', "height=800,width=600");
 
@@ -176,10 +150,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
-          // sendDataToWallet('privateKey', mnemonic)
           setShow(false);
 
-          userRef.setIsComponentVisible(false);
         } catch (err) {
           console.warn(err);
         } finally {
@@ -193,7 +165,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     e.preventDefault();
     e.stopPropagation();
     setLoginButtons(false);
-    discordRef.setIsComponentVisible(true);
   } 
   
   useEffect(async () => {
@@ -225,7 +196,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
 
   return (
-    <div ref={userRef.ref}>
+    <div>
        <iframe name="wallet" width="0" height="0"></iframe>
        <iframe name="walletMessenger" width="0" height="0"></iframe>
       <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
@@ -234,12 +205,10 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           e.stopPropagation();
           if (address) {
             toggleOpen('user');
-            userRef.setIsComponentVisible(false);
           }else{
-            userRef.setIsComponentVisible(true);
             setLoginButtons(true);
-            discordRef.setIsComponentVisible(false);
-            metaMaskRef.setIsComponentVisible(false);
+            setOpen(null);
+            setOpen('login');
           }
         }}>
         <img src="images/soul.png" className={styles.icon} />
@@ -258,7 +227,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
        : ''
       }
       {
-        userRef.isComponentVisible
+        open == 'login'
           ? <div className={styles.login_options}>
             {
               loginButtons ? <>
@@ -282,42 +251,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
                 </Modal>
                 </> : ''
             }
-            {/* {
-              discordRef.isComponentVisible
-                ? <div className={styles.location}>
-                  <div className={styles['input-wrap']}>
-                    <div className={styles.location}>
-                      <div className={styles.row}>
-                        <div className={styles['button-wrap']}>
-                          <button className={classnames(styles.button, styles.primary)} onClick={handleDiscordLogin}>
-                            <img src="images/webarrow.svg" />
-                          </button>
-                        </div>
-                        <div className={styles['input-wrap']}>
-                          <input type="text" className={styles.input} placeholder="Enter Login Url" value={discordUrl}
-                            onChange={e => setDiscordUrl(e.target.value)}
-                            onKeyPress={
-                              async event => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                if (event.key === 'Enter') {
-                                  const {address, error} = await handleDiscordLogin(discordUrl);
-                                  if(address)
-                                    setAddress(address);
-                                  else
-                                    setLoginError(String(error).toLocaleUpperCase());
-                                }
-                               }
-                            } />
-                          <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div> : ''
-            } */}
-
           </div>
           : <div></div>}
 
