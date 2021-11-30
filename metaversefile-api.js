@@ -469,6 +469,9 @@ metaversefile.setApi({
       getLights() {
         return world.lights;
       },
+      getWindParameters() {
+        return world.windParameters;
+      },
     };
   },
   usePostProcessing() {

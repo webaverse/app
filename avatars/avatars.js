@@ -2289,6 +2289,45 @@ class Avatar {
     };
     this.options.visemes && _updateVisemes();
 
+    const _applyWind = () => {
+
+      const windParameters = metaversefile.useWorld().getWindParameters();
+
+      if (windParameters.forceFactor != 0) {
+
+        const now2 = this.now / 1000 * 2;
+        var noiseX = (simplexes[0].noise2D(now2, now2));
+        var noiseY = (simplexes[1].noise2D(now2, now2));
+        var noiseZ = (simplexes[2].noise2D(now2, now2));
+
+        noiseX = (Math.abs(noiseX) * windParameters.direction.x) + windParameters.gravity.x;
+        noiseY = (Math.abs(noiseY) * windParameters.direction.y) + windParameters.gravity.y;
+        noiseZ = (Math.abs(noiseZ) * windParameters.direction.z) + windParameters.gravity.z;
+
+        for(var i=0;i<this.springBoneManager.springBoneGroupList.length;i++) {
+            for(var j=0;j<this.springBoneManager.springBoneGroupList[i].length;j++) {
+                var item = this.springBoneManager.springBoneGroupList[i][j];
+                item.gravityDir.set(noiseX,noiseY,noiseZ);
+                item.gravityPower = windParameters.forceFactor;
+            }
+        }
+      }
+      else {
+        for(var i=0;i<this.springBoneManager.springBoneGroupList.length;i++) {
+          for(var j=0;j<this.springBoneManager.springBoneGroupList[i].length;j++) {
+              var item = this.springBoneManager.springBoneGroupList[i][j];
+              item.gravityDir.set(0,-1,0);
+              item.gravityPower = 1.0;
+          }
+        }
+      }
+
+    };      
+    _applyWind();
+
+    //console.log(metaversefile.useWorld());
+
+
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center

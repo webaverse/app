@@ -25,6 +25,8 @@ const appManager = new AppManager({
 });
 world.appManager = appManager;
 
+world.windParameters = {};
+
 
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
