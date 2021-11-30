@@ -1,14 +1,15 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
-import * as Kalidokit from 'kalidokit/src/index.js';
+import * as Kalidokit from './kalidokit/src/index.js';
+// import {calcLegs} from './kalidokit/src/PoseSolver/calcLegs.js';
 // import {Holistic} from '@mediapipe/holistic/holistic';
 // import {Camera} from '@mediapipe/camera_utils/camera_utils';
 // import '@tensorflow/tfjs-backend-webgl';
 // import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 // import * as poseDetection from '@tensorflow-models/pose-detection';
 // import Avatar from './avatars/avatars.js';
-import {getRenderer} from './renderer.js';
-import {world} from './world.js';
+// import {getRenderer, scene} from './renderer.js';
+// import {world} from './world.js';
 // import {fitCameraToBox} from './util.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
 // import Stats from 'stats.js';
@@ -39,6 +40,7 @@ const points = {
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.1);
 // const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5);
+// const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 
 // window.clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -381,8 +383,6 @@ const _setSkeletonWorld = (() => {
         // console.log('got hips', localQuaternion.toArray().join(','));
         dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
         
-        // localQuaternion.premultiply(downRotation);
-        
         dstModelBone.matrixWorld.compose(
           srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
           localQuaternion,
@@ -426,7 +426,51 @@ const _solvePoseToAvatar = (() => {
     rightIndex: new THREE.Vector3(),
     leftThumb: new THREE.Vector3(),
     rightThumb: new THREE.Vector3(),
+    leftKnee: new THREE.Vector3(),
+    rightKnee: new THREE.Vector3(),
+    leftAnkle: new THREE.Vector3(),
+    rightAnkle: new THREE.Vector3(),
+    leftHeel: new THREE.Vector3(),
+    rightHeel: new THREE.Vector3(),
+    leftToe: new THREE.Vector3(),
+    rightToe: new THREE.Vector3(),
   };
+  // window.boneBuffers = boneBuffers;
+  const debugMeshes = (() => {
+    const meshes = {};
+    const cubeGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.02);
+    const cubeRedMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff0000,
+    });
+    const cubeBlueMaterial = new THREE.MeshPhongMaterial({
+      color: 0x0000ff,
+    });
+    const cubeGreenMaterial = new THREE.MeshPhongMaterial({
+      color: 0x00FF00,
+    });
+    const cubeWhiteMaterial = new THREE.MeshPhongMaterial({
+      color: 0xFFFFFF,
+    });
+    for (const k in boneBuffers) {
+      let color;
+      if (k === 'rightToe' || k === 'leftToe') {
+        color = cubeRedMaterial;
+      } else if (k === 'rightKnee' || k === 'leftKnee') {
+        color = cubeGreenMaterial;
+      } else if (k === 'leftHip' || k === 'rightHip') {
+        color = cubeWhiteMaterial;
+      } else { 
+        color = cubeBlueMaterial;
+      }
+      const mesh = new THREE.Mesh(cubeGeometry, color);
+      meshes[k] = mesh;
+
+      const {scene} = metaversefile.useInternals();
+      scene.add(mesh);
+    }
+    return meshes;
+  })();
+  window.debugMeshes = debugMeshes;
 
   return (lm3d, leftHandLm, rightHandLm, avatar) => {
     boneBuffers.leftHip.copy(lm3d[23]);
@@ -443,11 +487,29 @@ const _solvePoseToAvatar = (() => {
     boneBuffers.rightIndex.copy(lm3d[20]);
     boneBuffers.leftThumb.copy(lm3d[21]);
     boneBuffers.rightThumb.copy(lm3d[22]);
+    boneBuffers.leftKnee.copy(lm3d[25]);
+    boneBuffers.rightKnee.copy(lm3d[26]);
+    boneBuffers.leftAnkle.copy(lm3d[27]);
+    boneBuffers.rightAnkle.copy(lm3d[28]);
+    boneBuffers.leftHeel.copy(lm3d[29]);
+    boneBuffers.rightHeel.copy(lm3d[30]);
+    boneBuffers.leftToe.copy(lm3d[31]);
+    boneBuffers.rightToe.copy(lm3d[32]);
 
     for (const k in boneBuffers) {
       // boneBuffers[k].x *= -1;
       boneBuffers[k].y *= -1;
       boneBuffers[k].z *= -1;
+    }
+
+    for (const k in boneBuffers) {
+      const boneBuffer = boneBuffers[k];
+      const debugMesh = debugMeshes[k];
+      debugMesh.position.copy(boneBuffer)
+      debugMesh.position.y += 1;
+      // debugMesh.quaternion.copy(boneBuffer.quaternion);
+      // debugMesh.scale.copy(boneBuffer.scale);
+      debugMesh.updateMatrixWorld();
     }
 
     /* window.lm3d = lm3d;
@@ -544,7 +606,7 @@ const _solvePoseToAvatar = (() => {
           localVector9.set(0, 1, 0)
         )
       )
-      .premultiply(slightLeftRotation);
+      // .premultiply(slightLeftRotation);
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
@@ -581,10 +643,11 @@ const _solvePoseToAvatar = (() => {
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     } */
     {
-      tempAvatar.Left_arm.quaternion.setFromUnitVectors(
+      tempAvatar.Left_arm.quaternion.identity()/*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
         boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize()
-      )
+      ) */
+      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.1))
       // .multiply(avatar.Left_shoulder.initialQuaternion)
       // .premultiply(rollRightRotation)
       // .premultiply(slightLeftRotation);
@@ -592,10 +655,11 @@ const _solvePoseToAvatar = (() => {
       // window.lol = [boneBuffers.leftShoulder, boneBuffers.leftElbow];
     }
     {
-      tempAvatar.Right_arm.quaternion.setFromUnitVectors(
+      tempAvatar.Right_arm.quaternion.identity()/*.setFromUnitVectors(
         new THREE.Vector3(-1, 0, 0),
         boneBuffers.rightElbow.clone().sub(boneBuffers.rightShoulder).normalize()
-      )
+      ) */
+      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.1))
       // .multiply(avatar.Left_shoulder.initialQuaternion)
       // .premultiply(rollRightRotation)
       // .premultiply(slightLeftRotation);
@@ -604,49 +668,83 @@ const _solvePoseToAvatar = (() => {
     }
     // window.initialQuaternion = avatar.Left_shoulder.initialQuaternion;
     {
-      tempAvatar.Left_elbow.quaternion.setFromUnitVectors(
+      tempAvatar.Left_elbow.quaternion.identity()/*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
         boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize()
+      ) */
+      .premultiply(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0)
+          .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0))
       )
       // .multiply(avatar.Left_elbow.initialQuaternion)
       // .premultiply(slightLeftRotation);
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
-      tempAvatar.Right_elbow.quaternion.setFromUnitVectors(
+      tempAvatar.Right_elbow.quaternion.identity()/*.setFromUnitVectors(
         new THREE.Vector3(-1, 0, 0),
         boneBuffers.rightHand.clone().sub(boneBuffers.rightElbow).normalize()
+      ) */
+      .premultiply(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0)
+          .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0))
       )
       // .multiply(avatar.Left_wrist.initialQuaternion)
       // .premultiply(slightLeftRotation);
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
-      tempAvatar.Left_wrist.quaternion.setFromRotationMatrix(
+      tempAvatar.Left_wrist.quaternion.identity()/*.setFromRotationMatrix(
         localMatrix.lookAt(
           boneBuffers.leftHand,
           leftMiddle,
           leftWristNormal
         )
-      )
+      ) */
       // .premultiply(slightLeftRotation);
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
     }
     {
-      tempAvatar.Right_wrist.quaternion.setFromRotationMatrix(
+      tempAvatar.Right_wrist.quaternion.identity()/*.setFromRotationMatrix(
         localMatrix.lookAt(
           boneBuffers.rightHand,
           rightMiddle,
           rightWristNormal
         )
-      )
+      ) */
       // .premultiply(slightLeftRotation);
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
     }
-
-    // console.log('normal', leftWristNormal.toArray().join(','));
+    /* {
+      tempAvatar.Left_leg.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          boneBuffers.leftHip,
+          boneBuffers.leftKnee,
+          new THREE.Vector3(0, 0, 1)
+        )
+      )
+    }
+    {
+      tempAvatar.Left_knee.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          boneBuffers.leftKnee,
+          boneBuffers.leftAnkle,
+          new THREE.Vector3(0, 0, 1)
+        )
+      )
+    }
+    {
+      tempAvatar.Left_ankle.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          boneBuffers.leftHeel,
+          boneBuffers.leftToe,
+          new THREE.Vector3(0, 1, 0)
+        )
+      )
+    } */
+    // window.leftLeg = tempAvatar.Left_leg;
 
     const modelBoneWhiteliest = [
       tempAvatar.Hips,
@@ -659,6 +757,9 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Right_elbow,
       tempAvatar.Left_wrist,
       tempAvatar.Right_wrist,
+      // tempAvatar.Left_leg,
+      // tempAvatar.Left_knee,
+      // tempAvatar.Left_ankle,
     ];
     _setSkeletonWorld(avatar, tempAvatar, modelBoneWhiteliest);
   };
@@ -856,7 +957,7 @@ class FaceTracker extends EventTarget {
     super();
 
     this.canvas = null;
-    this.avatar = null ;
+    this.avatar = null;
     this.previewRenderer = null;
     this.previewScene = null;
     this.previewCamera = null;
@@ -974,12 +1075,16 @@ class FaceTracker extends EventTarget {
     // this.avatar.setBottomEnabled(false);
     this.avatar.inputs.hmd.position.y = this.avatar.height;
     this.avatar.inputs.hmd.updateMatrixWorld();
+    this.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+    for (let i = 0; i < 2; i++) {
+      this.avatar.setHandEnabled(i, false);
+    }
     // avatar.update(1000);
 
     this.previewScene.add(this.avatar.model);
 
     {
-      const distance = 0.6;
+      const distance = -1;
       // const h = avatar.height * 0.85;
       const h = this.avatar.height * 0.9;
       this.previewCamera.position.set(0, h, -distance);
@@ -1028,11 +1133,15 @@ class FaceTracker extends EventTarget {
       } */
 
       if (facelm) {
-        let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',imageSize:internalDimensions})
-        // let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoEl})
         _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
+        let faceRig = Kalidokit.Face.solve(facelm, {runtime: 'mediapipe', imageSize: internalDimensions});
+        // let poseRig = Kalidokit.Pose.solve(poselm3D, poselm, {runtime:'mediapipe', imageSize: internalDimensions, enableLegs: true});
+        // window.poselm3D = poselm3D;
         let rightHandRig = rightHandlm ? Kalidokit.Hand.solve(rightHandlm,"Right") : null;
         let leftHandRig = leftHandlm ? Kalidokit.Hand.solve(leftHandlm,"Left") : null;
+        // let legsRig = calcLegs(poselm3D);
+        // window.poseRig = poseRig;
+        // window.legsRig = legsRig;
 
         /* const _renderOverlay = () => {
           overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);

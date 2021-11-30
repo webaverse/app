@@ -54,10 +54,10 @@ export function applyPlayerModesToAvatar(player, session, avatar) {
   } else {
     avatar.arPose = player.arPose;
     for (let i = 0; i < 2; i++) {
-      avatar.setHandEnabled(i, true);
+      avatar.setHandEnabled(i, false);
     }
-    avatar.setTopEnabled(true);
-    avatar.setBottomEnabled(true);
+    avatar.setTopEnabled(false);
+    avatar.setBottomEnabled(false);
   }
 }
 export function makeAvatar(app) {
