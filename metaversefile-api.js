@@ -733,6 +733,7 @@ metaversefile.setApi({
     const app = new App();
     // app.name = name;
     app.type = type;
+    app.contentId = start_url;
     // app.components = components;
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
