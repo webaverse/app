@@ -51,9 +51,6 @@ function makeId(length) {
         req.originalUrl = u;
         next();
       }
-    }else if(/^\/login/.test(o.pathname)){
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
-      res.redirect(req.originalUrl);
     }
      else {
       next();
