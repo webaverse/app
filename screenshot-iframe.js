@@ -15,7 +15,7 @@ export const getScreenshotBlob = async (reqUrl, hash, ext, type, width, height) 
     if(hash) {
         reqUrl = `${storageHost}/ipfs/${hash}`;
     }
-    var ssUrl = `https://app.webaverse.com/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+    var ssUrl = `${window.origin}/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
     window.open(ssUrl, 'screenshotIframe')
 
