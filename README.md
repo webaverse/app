@@ -16,19 +16,19 @@ npm run dev
 # Navigate to the URL mentioned in the terminal
 
 ```
-:::caution Pay Attention
+### Pay Attention
 When cloning App from git, you must include the option **"--recurse-submodules"**. The App repo relies upon and imports other Webaverse repos that are vital to the functioning application.
-:::
+
 
 ---
 
 ## Development Environment Setup
 
-:::note IDEs
+###IDEs
 
 We prefer using [VSCode](https://code.visualstudio.com/download) for development, so the below notes reflect that toolset; however you should be able to adapt this guide to apply to any other IDEs.
 
-:::
+
 
 
 ### Technologies
@@ -83,9 +83,9 @@ The application uses vite to hot reload itself automatically if there are any ch
 ```bash
 npm run dev
 ```
-:::note 
+
 Any changes inside the `packages` folder won't recompile automatically and so will require restarting the entire development server by just running again: `npm run dev`
-:::
+
 
 ---
 
