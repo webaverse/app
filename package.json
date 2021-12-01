@@ -6,6 +6,7 @@
   "scripts": {
     "start": "forever start index.mjs",
     "dev": "node index.mjs",
+    "prod": "sudo $(which node) index.mjs -p",
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
