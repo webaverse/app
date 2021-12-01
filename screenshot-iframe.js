@@ -1,41 +1,69 @@
 import {storageHost} from './constants';
 import url from 'url';
 
-var adr = 'http://localhost:8080/default.htm?year=2017&month=february';
-//Parse the address:
-var q = url.parse(adr, true);
-console.log(q);
+function parseQuery(queryString) {
+    const query = {};
+    const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+    for (let i = 0; i < pairs.length; i++) {
+      const pair = pairs[i].split('=');
+      const k = decodeURIComponent(pair[0]);
+      if (k) {
+        const v = decodeURIComponent(pair[1] || '');
+        query[k] = v;
+      }
+    }
+    return query;
+}
 
-var hash = 'QmfWz3evqUpRgNdX9WsU1h9EtDxVif3GP5q172DR4pqtRp';
-
-let url2 = `${storageHost}/ipfs/${hash}`;
-// console.log(url2);
-
-export const getScreenshotBlob = async (reqUrl, ext, type, width, height) => {
+export const getScreenshotBlob = async (reqUrl, hash, ext, type, width, height) => {
 
     var iframeExists = document.getElementsByName('screenshotIframe');
 
     if(!iframeExists.length) {
         var iframe = document.createElement('iframe');
-        iframe.width = '500px';
-        iframe.height = '500px';
+        iframe.width = '0px';
+        iframe.height = '0px';
         iframe.name = 'screenshotIframe';
         document.body.appendChild(iframe);
     }
 
-    reqUrl = url2;
-    console.log('reqUrl', reqUrl)
-    var ssUrl = `https://localhost:3000/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+    if(hash) {
+        var tempUrl = `https://app.webaverse.com/${hash}.${ext}/preview.${type}`
+    }
+    else {
+        var tempUrl = `https://app.webaverse.com/screenshot.html?url=${reqUrl}&hash=${hash}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+    }
+
+    const u = url.parse(tempUrl, true);
+
+    const spec = (() => {
+        if(!u.search){
+          const match = u.pathname.match(/^\/([^\.]+)\.([^\/]+)\/([^\.]+)\.(.+)$/);
+          if (match) {
+            let hash = match[1];
+            let ext = match[2].toLowerCase();
+            let type = match[4].toLowerCase();
+            let url = `${storageHost}/ipfs/${hash}`;
+            return {
+              url,
+              hash,
+              ext,
+              type
+            }
+          }
+        }
+        else if(u.search){
+            return parseQuery(u.search);
+        }
+        spec = null;
+    })();
+
+    if (spec) {
+        const {url, hash, ext, type, height, width} = spec;
+        var ssUrl = `https://app.webaverse.com/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+    }
 
     window.open(ssUrl, 'screenshotIframe')
-
-    // var adr = 'http://localhost:8080/default.htm?year=2017&month=february';
-    // var q = url.parse(adr, true);
-    // console.log(q);
-
-    // window.open('https://localhost:3000/screenshot.html?url=https://webaverse.github.io/assets/male.vrm&ext=vrm&type=png&width=100&height=100', 'screenshotIframe')
-
-    // http://127.0.0.1/QmfWz3evqUpRgNdX9WsU1h9EtDxVif3GP5q172DR4pqtRp.png/preview.png
 
     return new Promise(function (resolve) {
 
@@ -50,30 +78,3 @@ export const getScreenshotBlob = async (reqUrl, ext, type, width, height) => {
     });
 
 }
-
-// const u = url.parse(req.url, true);
-// const spec = (() => {
-
-//   if(!u.search){
-//       const match = u.pathname.match(/^\/([^\.]+)\.([^\/]+)\/([^\.]+)\.(.+)$/);
-//       if (match) {
-//         let hash = match[1];
-//         let ext = match[2].toLowerCase();
-//         let type = match[4].toLowerCase();
-//         let url = `${storageHost}/ipfs/${hash}`;
-//         let width = match[3]?.match(/(?<=\/)[\w+.-]+.+?(?=x)/)?.[0];
-//         let height = match[3]?.match(/(?<=x)[\w+.-]+/)?.[0];
-//         return {
-//           url,
-//           hash,
-//           ext,
-//           type,
-//           width,
-//           height
-//         }
-//       }
-//   }else if(u.search){
-//     return parseQuery(u.search);
-//   }
-//   return null;
-// })();
