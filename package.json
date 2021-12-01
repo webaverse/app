@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.mjs",
   "scripts": {
-    "start": "forever start index.mjs",
+    "start": "forever start index.mjs -p",
     "dev": "node index.mjs",
     "prod": "sudo $(which node) index.mjs -p",
     "build": "vite build",
