@@ -75,7 +75,8 @@ The App primarily uses the following technologies
 
 * Within VSCode, go to your extensions tab and search for `ESLINT`
 
-	![enter image description here](/img/VSCodeESLintSetup.png)
+![VSCodeESLintSetup](https://user-images.githubusercontent.com/51108458/144331775-2f5363d9-8d3f-4120-bb22-3308047c5605.png)
+
 
 	OR From the command line:
 
