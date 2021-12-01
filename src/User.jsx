@@ -8,7 +8,6 @@ import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId, w
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
-import {getScreenshotBlob} from "../screenshot-iframe";
 
 const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
@@ -169,15 +168,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   } 
   
   useEffect(async () => {
-
-      var url = 'https://webaverse.github.io/assets/male.vrm';
-      var ext = 'vrm';
-      var type = 'png';
-      var width = '100';
-      var height = '100';
-
-      var blob = await getScreenshotBlob(url, ext, type, width, height);
-      console.log('Blob', blob);
 
       const {
         error,
