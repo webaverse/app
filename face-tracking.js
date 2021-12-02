@@ -146,6 +146,10 @@ window.b1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 
 window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+
+window.d = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+
 window.v = new THREE.Vector3(0, 1, 0);
 window.v2 = new THREE.Vector3(0, 0, 1);
 window.v3 = new THREE.Vector3(0, 0, 1)
@@ -745,7 +749,11 @@ const _solvePoseToAvatar = (() => {
             )
           )
         )
-        // .premultiply(fakeQuaternion)
+      if (window.lol1) {
+        tempAvatar.Left_arm.quaternion
+          .premultiply(fakeQuaternion)
+      }
+      tempAvatar.Left_arm.quaternion
         .premultiply(window.p1)
         /*.setFromUnitVectors(
           new THREE.Vector3(1, 0, 0),
@@ -776,10 +784,13 @@ const _solvePoseToAvatar = (() => {
           )
         ) */
         .premultiply(window.a0)
-      // if (window.lol) {
+        .premultiply(window.d)
+      if (window.lol2) {
         tempAvatar.Left_elbow.quaternion
           .premultiply(fakeQuaternion)
-      // }
+      }
+      tempAvatar.Left_elbow.quaternion
+        .premultiply(window.d.clone().invert())
       tempAvatar.Left_elbow.quaternion
         /*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
