@@ -151,8 +151,8 @@ window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
 
-window.d2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
-  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+window.d2 = new THREE.Quaternion()/*.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)) */
 
 window.v = new THREE.Vector3(0, 1, 0);
 window.v2 = new THREE.Vector3(0, 0, 1);
