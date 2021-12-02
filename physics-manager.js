@@ -9,7 +9,7 @@ import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
@@ -172,7 +172,7 @@ physicsManager.simulatePhysics = timeDiff => {
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+    const physicsObject = totumApi.getPhysicsObjectByPhysicsId(id);
     physicsObject.position.copy(position);
     physicsObject.quaternion.copy(quaternion);
     // physicsObject.scale.copy(scale);
@@ -195,7 +195,7 @@ physicsManager.pushUpdate = physicsObject => {
 // physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 
 /* const getAvatarHeight = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   return localPlayer.avatar ? localPlayer.avatar.height : 0;
 };
 physicsManager.getAvatarHeight = getAvatarHeight; */

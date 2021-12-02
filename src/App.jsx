@@ -9,8 +9,8 @@ import Footer from './Footer.jsx';
 
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
-import metaversefileApi from '../metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
+import totumApi from '../totum-api.js';
+const {useLocalPlayer} = totumApi;
 
 import dropManager from '../drop-manager.js';
 
@@ -26,7 +26,7 @@ const _startApp = async (weba, canvas) => {
   await weba.startLoop();
   
   const defaultAvatarUrl = './avatars/citrine.vrm';
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   await localPlayer.setAvatarUrl(defaultAvatarUrl);
 };
 

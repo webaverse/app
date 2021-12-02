@@ -19,7 +19,7 @@ import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
 import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -205,7 +205,7 @@ const _updateIo = timeDiff => {
   } else {
     keysDirection.set(0, 0, 0);
     
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
     
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {

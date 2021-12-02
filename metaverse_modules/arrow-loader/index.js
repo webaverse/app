@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import metaversefile from 'metaversefile';
-const {useApp, useFrame} = metaversefile;
+import totum from 'totum';
+const {useApp, useFrame} = totum;
 
 const size = 0.5;
 const scale = 0.3;

@@ -180,7 +180,7 @@ export default class Webaverse extends EventTarget {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     if (session) {

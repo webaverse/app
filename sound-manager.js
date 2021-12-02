@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import gameManager from './game.js';
 //import physx from './physx.js';
 import {camera} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -40,7 +40,7 @@ class SoundManager {
   }
   update(timeDiffS) {
 
-    this.localPlayer = metaversefileApi.useLocalPlayer();
+    this.localPlayer = totumApi.useLocalPlayer();
     if (this.localPlayer === undefined) {
       return;
     }

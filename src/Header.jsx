@@ -12,7 +12,7 @@ import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
-import metaversefile from '../metaversefile-api.js'
+import totum from '../totum-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import User from './User';
@@ -267,7 +267,7 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   
-  const localPlayer = metaversefile.useLocalPlayer();
+  const localPlayer = totum.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
   let [px, setPx] = useState(0);
@@ -642,7 +642,7 @@ export default function Header({
                         className={styles.equipment}
                         key={i}
                         onMouseEnter={e => {
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          const app = totum.getAppByInstanceId(wearAction.instanceId);
                           game.setMouseHoverObject(null);
                           const physicsId = app.getPhysicsObjects()[0]?.physicsId;
                           game.setMouseDomEquipmentHoverObject(app, physicsId);
@@ -655,8 +655,8 @@ export default function Header({
                         <img src="images/flower.png" className={styles.icon} />
                         <div className={styles.name}>{wearAction.instanceId}</div>
                         <button className={styles.button} onClick={e => {
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          const localPlayer = totum.useLocalPlayer();
+                          const app = totum.getAppByInstanceId(wearAction.instanceId);
                           localPlayer.unwear(app);
                         }}>
                           <img src="images/remove.svg" />
@@ -700,7 +700,7 @@ export default function Header({
                           const physicsId = physicsObject ? physicsObject.physicsId : 0;
                           selectApp(app, physicsId);
                           
-                          const localPlayer = metaversefile.useLocalPlayer();
+                          const localPlayer = totum.useLocalPlayer();
                           localPlayer.lookAt(app.position);
                         }} onMouseEnter={e => {
                           const physicsObjects = app.getPhysicsObjects();

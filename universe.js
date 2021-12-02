@@ -8,7 +8,7 @@ import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {initialPosY} from './constants.js';
 import {parseQuery, parseCoord} from './util.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import sceneNames from './scenes/scenes.json';
 
 let currentWorld = null;
@@ -17,7 +17,7 @@ const getWorldsHost = () => window.location.protocol + '//' + window.location.ho
 const enterWorld = async worldSpec => {
   world.disconnectRoom();
   
-  const localPlayer = metaversefile.useLocalPlayer();
+  const localPlayer = totum.useLocalPlayer();
   /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
     relation: 'float',
   }); */
@@ -39,11 +39,11 @@ const enterWorld = async worldSpec => {
       world.connectState(state);
       
       if (src === undefined) {
-        promises.push(metaversefile.load('./scenes/' + sceneNames[0]));
+        promises.push(totum.load('./scenes/' + sceneNames[0]));
       } else if (src === '') {
         // nothing
       } else {
-        promises.push(metaversefile.load(src));
+        promises.push(totum.load(src));
       }
     } else {
       const p = (async () => {

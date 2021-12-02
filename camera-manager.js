@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import physicsManager from './physics-manager.js';
 import { Vector3 } from 'three';
 import { Quaternion } from 'three';
@@ -162,7 +162,7 @@ const cameraManager = {
     }
 
 
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
 
     
 

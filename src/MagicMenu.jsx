@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
 import {aiHost} from '../constants.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 
 function parseQueryString(queryString) {
   const query = {};
@@ -22,7 +22,7 @@ const openAiKey = (() => {
   return localStorage.getItem('openAiKey') || null;
 })();
 
-// window.metaversefile = metaversefile; // XXX
+// window.totum = totum; // XXX
 const makeAi = prompt => {
   if (openAiKey) {
     const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(openAiKey)}`);
@@ -117,9 +117,9 @@ function MagicMenu({open, setOpen}) {
     ioManager.click(new MouseEvent('click'));
     
     const output = outputTextarea.current.value;
-    const dataUri = metaversefile.createModule(output);
+    const dataUri = totum.createModule(output);
     (async () => {
-      await metaversefile.load(dataUri);
+      await totum.load(dataUri);
     })();
   };
   useEffect(() => {

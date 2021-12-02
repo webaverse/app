@@ -6,11 +6,11 @@ import styles from './Chat.module.css';
 /* import * as Y from 'yjs';
 import {Color} from './Color.js';
 import game from '../game.js'
-import metaversefile from '../metaversefile-api.js' */
+import totum from '../totum-api.js' */
 import {world} from '../world.js';
 import {chatManager} from '../chat-manager.js';
 import {world2canvas} from './ThreeUtils.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import ioManager from '../io-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -125,7 +125,7 @@ function ChatMessages() {
     };
   }, [messageGroups]);
   useEffect(() => {
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
     const update = () => {
       const newMessageGroups = [];
       

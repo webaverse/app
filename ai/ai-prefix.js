@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 const {Vector3, Quaternion, Euler, Matrix4, Box3, Object3D, Texture} = THREE;
-import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent} from 'metaversefile';
+import {useLocalPlayer, createApp, addApp, removeApp, getAppByName, getAppsByType, getAppsByTypes, getAppsByComponent} from 'totum';
 
 /* Command: Add a model from https://example.com/model.glb */
 const m = createApp({
@@ -87,7 +87,7 @@ const chara = getAppsByType('vrm')[0];
 chara.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI/2);
 
 /* Command: make the dragon smoothly follow 2m behind me */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const follower = getAppByName('dragon');
 useFrame(() => {
   const p = useLocalPlayer();
@@ -154,7 +154,7 @@ sun.quaternion.copy(moon.quaternion);
 getAppByName('male').lookAt(getAppByName('emerald').position);
 
 /* Command: Spawn explosions (./explosion.glb) at random positions within 9.2 meters of me every half a second (500ms). */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const r = () => (-0.5+Math.random())*2;
 let lastTimestamp = performance.now();
 useFrame(({timestamp, timeDiff}) => {
@@ -193,7 +193,7 @@ const ethObject = createApp({
 addApp(ethObject);
 
 /* Command: make the island move slowly upward in the scene. also make it 0.3m right every 2.1 seconds */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const island = getAppByName('island');
 let lastTimestamp = performance.now();
 useFrame(({timestamp}) => {
@@ -206,7 +206,7 @@ useFrame(({timestamp}) => {
 `));
 
 /* Command: make a ball model (https://example.com/ball.glb) that moves up and down in the scene in a sine wave */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const ball = createApp({
   name: 'ball',
   start_url: 'https://example.com/ball.glb',
@@ -220,7 +220,7 @@ useFrame(({timestamp}) => {
 `));
 
 /* Command: move the ball away from me each frame */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const b = getAppByName('ball');
 useFrame(({timestamp}) => {
   b.position.add(b.position.clone().sub(useLocalPlayer().position).normalize().multiplyScalar(0.02));
@@ -228,7 +228,7 @@ useFrame(({timestamp}) => {
 `));
 
 /* Command: move the ball each frame: right to left for 0.5s, then left to right for 0.5s */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const ballApp = getAppByName('ball');
 useFrame(({timestamp}) => {
   if ((timestamp % 1000) < 1000/2)) {
@@ -240,7 +240,7 @@ useFrame(({timestamp}) => {
 `));
 
 /* Command: use useFrame to rotate the poster clockwise at 3 rotations per second */
-metaversefile.load(createModule(`\
+totum.load(createModule(`\
 const poster = getAppByName('poster');
 const axis = new Vector3(0, 1, 0);
 useFrame(({timestamp}) => {

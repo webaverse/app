@@ -4,7 +4,7 @@ import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
 import App from './webaverse';
-import metaversefileApi from './metaversefile-api.js';
+import totumApi from './totum-api.js';
 import {fitCameraToBox} from './util.js';
 // import {defaultRendererUrl} from './constants.js'
 import * as WebMWriter from 'webm-writer'
@@ -241,7 +241,7 @@ const _getType = id => {
 (async () => {
   await Avatar.waitForLoad();
 
-  const animations = metaversefileApi.useAvatarAnimations();
+  const animations = totumApi.useAvatarAnimations();
   // const walkAnimation = animations.find(a => a.name === 'walking.fbx');
   // const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
   // const runAnimationDuration = runAnimation.duration * 1.5;
@@ -263,7 +263,7 @@ const _getType = id => {
   
   let o;
   try {
-    const app = await metaversefileApi.load(url);
+    const app = await totumApi.load(url);
     if (app.appType === 'vrm') {
       await app.setSkinning(true);
       const avatar = new Avatar(app.skinnedVrm, {

@@ -21,8 +21,8 @@ import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
-import metaversefileApi from './metaversefile-api.js';
-import metaversefileConstants from 'metaversefile/constants.module.js';
+import totumApi from './totum-api.js';
+import metaversefileConstants from 'totum/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
 
@@ -54,14 +54,14 @@ const cubicBezier = easing(0, 1, 0, 1);
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === targetHand);
   return grabAction;
 };
 const _getGrabbedObject = i => {
   const grabAction = _getGrabAction(i);
   const grabbedObjectInstanceId = grabAction?.instanceId;
-  const result = grabbedObjectInstanceId ? metaversefileApi.getAppByInstanceId(grabbedObjectInstanceId) : null;
+  const result = grabbedObjectInstanceId ? totumApi.getAppByInstanceId(grabbedObjectInstanceId) : null;
   return result;
 };
 
@@ -295,7 +295,7 @@ const _use = () => {
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.ungrab();
     
     world.appManager.removeTrackedApp(grabbedObject.instanceId);
@@ -315,7 +315,7 @@ const _delete = () => {
 };
 const _click = () => {
   if (_getGrabbedObject(0)) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.ungrab();
   } else {
     if (highlightedPhysicsObject) {
@@ -325,10 +325,10 @@ const _click = () => {
 };
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   const wearApps = Array.from(localPlayer.getActionsState())
     .filter(action => action.type === 'wear')
-    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
+    .map(({instanceId}) => totumApi.getAppByInstanceId(instanceId));
   for (const wearApp of wearApps) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
@@ -360,7 +360,7 @@ const _startUse = () => {
   }
 };
 const _endUse = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.removeAction('use');
 };
 const _mousedown = () => {
@@ -529,7 +529,7 @@ const _handleUpload = async (item, transform = null) => {
   console.log('upload complete:', u);
 
   if (!transform) {
-    const {leftHand: {position, quaternion}} = metaversefileApi.useLocalPlayer();
+    const {leftHand: {position, quaternion}} = totumApi.useLocalPlayer();
     const position2 = position.clone()
       .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
     const quaternion2 = quaternion.clone();
@@ -552,7 +552,7 @@ const _upload = () => {
 };
 
 const _grab = object => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.grab(object);
   
   gameManager.gridSnap = 0;
@@ -577,10 +577,10 @@ const cylinderMesh = (() => {
 
 let grabUseMesh = null;
 const _gameInit = () => {
-  grabUseMesh = metaversefileApi.createApp();
+  grabUseMesh = totumApi.createApp();
   (async () => {
     await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
+    const {modules} = totumApi.useDefaultModules();
     const m = modules['button'];
     await grabUseMesh.addModule(m);
   })();
@@ -598,7 +598,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   
   const _updateFakeHands = () => {
     const session = renderer.xr.getSession();
@@ -725,7 +725,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
       if (collision) {
         const physicsId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(physicsId);
+        const object = totumApi.getAppByPhysicsId(physicsId);
         if (object && !_isWear(object)) {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
@@ -751,11 +751,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
         physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
       } */
 
-      const {position, quaternion} = renderer.xr.getSession() ? metaversefileApi.useLocalPlayer().leftHand : camera;
+      const {position, quaternion} = renderer.xr.getSession() ? totumApi.useLocalPlayer().leftHand : camera;
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
-        highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
+        highlightedPhysicsObject = totumApi.getAppByPhysicsId(physicsId);
         highlightedPhysicsId = physicsId;
       }
 
@@ -775,7 +775,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       highlightedPhysicsObject.updateMatrixWorld();
 
-      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = /*window.lolPhysicsObject ||*/ totumApi.getPhysicsObjectByPhysicsId(physicsId);
       if(physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
@@ -801,7 +801,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (h && !gameManager.dragging) {
       const physicsId = mouseHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = totumApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
@@ -823,7 +823,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (o) {
       const physicsId = mouseSelectedPhysicsId;
 
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = totumApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
@@ -861,7 +861,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = totumApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomHoverPhysicsMesh.geometry = physicsMesh.geometry;
@@ -882,7 +882,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (mouseDomEquipmentHoverObject && !mouseSelectedObject) {
       const physicsId = mouseDomEquipmentHoverPhysicsId;
 
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = totumApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseDomEquipmentHoverPhysicsMesh.geometry = physicsMesh.geometry;
@@ -900,7 +900,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _handleTeleport = () => {
     if (localPlayer.avatar) {
       teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        const localPlayer = totumApi.useLocalPlayer();
         localPlayer.teleportTo(position, quaternion);
       });
     }
@@ -1037,7 +1037,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _updateDrags();
   
   const _updateUses = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const v = localPlayer.actionInterpolants.activate.getNormalized();
     const currentActivated = v >= 1;
     
@@ -1052,7 +1052,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _updateUses();
   
   const _updateHits = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
   
     cylinderMesh.position.copy(localPlayer.position)
       .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
@@ -1064,7 +1064,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
       if (collision) {
         const collisionId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
+        const object = totumApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
         if (object) {
           // const worldPosition = object.getWorldPosition(localVector);
           const damage = typeof useAction.damage === 'number' ? useAction.damage : 30;
@@ -1119,7 +1119,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
     const visible = !!document.pointerLockElement &&
-      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || metaversefileApi.useLocalPlayer().hasAction('aim')) &&
+      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || totumApi.useLocalPlayer().hasAction('aim')) &&
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
@@ -1127,16 +1127,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.appManager.pushAppUpdates();
   
-  const remotePlayers = metaversefileApi.useRemotePlayers();
+  const remotePlayers = totumApi.useRemotePlayers();
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
 };
 const _pushPlayerUpdates = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.pushPlayerUpdates();
 };
 
@@ -1144,10 +1144,10 @@ const rotationSnap = Math.PI/6;
 
 const metaverseUi = {
   makeArrowLoader() {
-    const app = metaversefileApi.createApp();
+    const app = totumApi.createApp();
     (async () => {
       await metaverseModules.waitForLoad();
-      const {modules} = metaversefileApi.useDefaultModules();
+      const {modules} = totumApi.useDefaultModules();
       const m = modules['arrowLoader'];
       await app.addModule(m);
     })();
@@ -1214,7 +1214,7 @@ _bindPointerLock();
 /* let lastLocalPlayerPosition;
 let lastLocalPlayerQuaternion;
 const _bindLocalPlayerTeleport = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   lastLocalPlayerPosition = localPlayer.position.clone();
   lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
   world.appManager.addEventListener('preframe', e => {
@@ -1287,7 +1287,7 @@ const gameManager = {
     _mouseup();
   },
   menuAim() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const aimAction = {
         type: 'aim',
@@ -1296,7 +1296,7 @@ const gameManager = {
     }
   },
   menuUnaim() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const aimAction = localPlayer.getAction('aim');
     if (aimAction) {
       localPlayer.removeAction('aim');
@@ -1369,7 +1369,7 @@ const gameManager = {
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
   },
   menuPush(direction) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === 'left');
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
@@ -1404,7 +1404,7 @@ const gameManager = {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const localPlayer = totumApi.useLocalPlayer();
       const action = localPlayer.getAction('dance');
       if (!action) {
         const newAction = {
@@ -1417,7 +1417,7 @@ const gameManager = {
     }
   },
   menuVUp(e) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   },
   menuBDown(e) {
@@ -1429,7 +1429,7 @@ const gameManager = {
     // physicsManager.setThrowState(null);
   },
   menuDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (!narutoRunAction) {
       const newNarutoRunAction = {
@@ -1440,7 +1440,7 @@ const gameManager = {
     }
   },
   menuUnDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
       localPlayer.removeAction('narutoRun');
@@ -1454,10 +1454,10 @@ const gameManager = {
     }
   },
   isFlying() {
-    return metaversefileApi.useLocalPlayer().hasAction('fly');
+    return totumApi.useLocalPlayer().hasAction('fly');
   },
   toggleFly() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
@@ -1470,10 +1470,10 @@ const gameManager = {
     }
   },
   isCrouched() {
-    return metaversefileApi.useLocalPlayer().hasAction('crouch');
+    return totumApi.useLocalPlayer().hasAction('crouch');
   },
   toggleCrouch() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
     if (crouchAction) {
       localPlayer.removeAction('crouch');
@@ -1504,14 +1504,14 @@ const gameManager = {
         this.setMouseSelectedObject(null);
       }
       if (_getGrabbedObject(0)) {
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        const localPlayer = totumApi.useLocalPlayer();
         localPlayer.ungrab();
       } 
     }
   },
   menuUpload: _upload,
   addLocalEmote(index) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     if (localPlayer.avatar) {
       const timestamp = performance.now();
       const startTimestamp = timestamp;
@@ -1544,16 +1544,16 @@ const gameManager = {
     }
   },
   isJumping() {
-    return metaversefileApi.useLocalPlayer().hasAction('jump');
+    return totumApi.useLocalPlayer().hasAction('jump');
   },
   ensureJump() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
     
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
+      const app = totumApi.getAppByInstanceId(instanceId);
       const sitComponent = app.getComponent('sit');
       if (sitComponent) {
         app.unwear();
@@ -1570,7 +1570,7 @@ const gameManager = {
   },
   jump() {
     this.ensureJump();
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.characterPhysics.velocity.y += 5;
     soundManager.play('jump');
   },
@@ -1578,10 +1578,10 @@ const gameManager = {
     return ioManager.keysDirection.z > 0 && this.isAiming();
   },
   isAiming() {
-    return metaversefileApi.useLocalPlayer().hasAction('aim');
+    return totumApi.useLocalPlayer().hasAction('aim');
   },
   isSitting() {
-    return metaversefileApi.useLocalPlayer().hasAction('sit');
+    return totumApi.useLocalPlayer().hasAction('sit');
   },
   getMouseHoverObject() {
     return mouseHoverObject;
@@ -1710,7 +1710,7 @@ const gameManager = {
   },
   menuActivateDown() {
     if (grabUseMesh.visible) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const localPlayer = totumApi.useLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
         const newActivateAction = {
@@ -1722,7 +1722,7 @@ const gameManager = {
     }
   },
   menuActivateUp() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.removeAction('activate');
   },
   update: _gameUpdate,

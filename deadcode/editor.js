@@ -2324,7 +2324,7 @@ const fetchAndCompileBlob = async (file, files) => {
   const p = o.pathname.replace(/^\//, '');
   urlCache[p] = s;
 
-  urlCache['.metaversefile'] = JSON.stringify({
+  urlCache['.totum'] = JSON.stringify({
     start_url: p,
   });
   
@@ -2364,7 +2364,7 @@ const isDirectoryName = fileName => /\/$/.test(fileName);
 const uploadFiles = async files => {
   const fd = new FormData();
   const directoryMap = {};
-  const metaverseFile = files.find(f => f.name === '.metaversefile');
+  const metaverseFile = files.find(f => f.name === '.totum');
   // console.log('got', metaverseFile);
   const metaverseJson = await (async () => {
     const s = await metaverseFile.data.text();
@@ -2494,8 +2494,8 @@ const downloadZip = async () => {
 const collectZip = async () => {
   const zip = new JSZip();
   const files = globalState.get('files');
-  const metaversefile = files.find(file => file.name === '.metaversefile');
-  const metaversefileJson = JSON.parse(metaversefile.doc.getValue());
+  const totum = files.find(file => file.name === '.totum');
+  const metaversefileJson = JSON.parse(totum.doc.getValue());
   const {start_url} = metaversefileJson;
   // console.log('got start url', start_url);
   const startUrlFile = files.find(file => file.name === start_url);
@@ -2558,14 +2558,14 @@ const loadHash = async hash => {
     loadedObject = null;
   }
 
-  const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+  const u = `${storageHost}/ipfs/${hash}/.totum`;
   loadedObject = await world.addObject(u);
   loadedObject.name = loadedObject.contentId.match(/([^\/]*)$/)[1];
 };
 const mintNft = async () => {
   const hash = await uploadHash();
   console.log('upload nft', hash);
-  window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=metaversefile`;
+  window.location.href = `https://webaverse.com/mint?hash=${hash}&ext=totum`;
 };
 
 window.onload = async () => {

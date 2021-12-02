@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Simplex from './simplex-noise.js';
-import metaversefile from 'metaversefile';
-const {useApp, useFrame, useDefaultComponents} = metaversefile;
+import totum from 'totum';
+const {useApp, useFrame, useDefaultComponents} = totum;
 
 const localVector = new THREE.Vector3();
 const simplex = new Simplex('lol');

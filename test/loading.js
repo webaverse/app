@@ -6,8 +6,8 @@ const scenes = require('../scenes/scenes.json');
 const fs = require('fs');
 var path = require('path');
 
-const content = `import metaversefile from 'metaversefile';
-const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = metaversefile;
+const content = `import totum from 'totum';
+const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = totum;
 
 export default () => {
     const app = useApp();

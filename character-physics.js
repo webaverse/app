@@ -11,7 +11,7 @@ import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -128,7 +128,7 @@ class CharacterPhysics {
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;
-        const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
+        const controlledApp = totumApi.getAppByInstanceId(objInstanceId);
         const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
         const sitComponent = controlledApp.getComponent('sit');

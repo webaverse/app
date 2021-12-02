@@ -9,7 +9,7 @@ import {getRenderer, scene, camera, dolly} from './renderer.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import {
   actionsMapName,
   avatarMapName,
@@ -721,7 +721,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   grab(app, hand = 'left') {
     const renderer = getRenderer();
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
     const {position, quaternion} = renderer.xr.getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
@@ -753,7 +753,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
       if (action.type === 'grab') {
-        const app = metaversefile.getAppByInstanceId(action.instanceId);
+        const app = totum.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
           // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
@@ -883,10 +883,10 @@ function getPlayerCrouchFactor(player) {
 };
 
 function updateAvatar(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
+  totum.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
 function updatePhysics(timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
+  totum.useLocalPlayer().updatePhysics(timeDiff);
 }
 
 export {

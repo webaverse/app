@@ -29,8 +29,8 @@ import {ShadertoyRenderer} from './shadertoy.js';
 // import GIF from './gif.js';
 // import * as GifuctJs from './gifuct-js.js';
 import {baseUnit, rarityColors} from './constants.js';
-import metaversefileApi from './metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
+import totumApi from './totum-api.js';
+const {useLocalPlayer} = totumApi;
 
 // import R3FDemo from 'ipfs://Qme9Cb4r1crEPwi4x823yZZAZFM4ZXvhSX9wNdXABA2pYF?.jsx';
 // console.log('got app', R3FDemo({}));
@@ -2124,7 +2124,7 @@ const _loadGeo = async (file, {contentId = null}) => {
 };
 
 /* const typeHandlers = {
-  'metaversefile': _loadMetaversefile,
+  'totum': _loadMetaversefile,
   'rtf.js': _loadRtfjs,
   't.js': _loadTjs,
   'gltf': _loadGltf,
