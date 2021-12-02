@@ -1,10 +1,4 @@
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/51108458/144340717-9fd4fcd3-1b3f-4cb6-9cce-247ab1a5f70d.png" width="450" height="auto"/>
-</div>
-
-
-
-# Webaverse
+# Webaverse client
 
 We are artists, creatives, and coders on a mission: show the world the open metaverse with the sickest creator-driven web3 products.
 The metaverse is an Internet Cinematic Universe: a medium controlled by creators, governed by creators, accessed through free and open tools, and most importantly -- it's fun.
