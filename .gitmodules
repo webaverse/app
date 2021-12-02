@@ -1,6 +1,6 @@
 [submodule "packages/totum"]
 	path = packages/totum
-	url = https://github.com/webaverse/totum.git
+	url = https://github.com/yaserosource/totum.git
 [submodule "packages/wsrtc"]
 	path = packages/wsrtc
 	url = https://github.com/webaverse/wsrtc.git
