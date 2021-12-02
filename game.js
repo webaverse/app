@@ -22,12 +22,12 @@ import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
 import totumApi from './totum-api.js';
-import metaversefileConstants from 'totum/constants.module.js';
+import totumConstants from 'totum/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
 
 
-const {contractNames} = metaversefileConstants;
+const {contractNames} = totumConstants;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
