@@ -5,7 +5,7 @@ import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {activateMaterial} from './shaders.js';
 import {scene} from './app-object.js';
-import metaversefileApi from './metaversefile-api.js';
+import totumApi from './totum-api.js';
 
 const localVector = new THREE.Vector3();
 
@@ -69,7 +69,7 @@ const update = () => {
     }
   }
   
-  const {position, quaternion} = metaversefileApi.useLocalPlayer();
+  const {position, quaternion} = totumApi.useLocalPlayer();
   cylinderMesh.position.copy(position)
     .add(localVector.set(0, 0, -offsetDistance).applyQuaternion(quaternion));
   cylinderMesh.quaternion.copy(quaternion);

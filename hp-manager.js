@@ -4,7 +4,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 
 // const localVector = new THREE.Vector3();
 // const localMatrix = new THREE.Matrix4();
@@ -41,7 +41,7 @@ const update = (timestamp, timeDiff) => {
 
 const triggerDamageAnimation = collisionId => {
   const timestamp = performance.now();
-  const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
+  const physicsObject = totumApi.getPhysicsObjectByPhysicsId(collisionId);
   const {physicsMesh} = physicsObject;
   damagePhysicsMesh.geometry = physicsMesh.geometry;
   damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);

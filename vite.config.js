@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite'
 import reactRefresh from '@vitejs/plugin-react-refresh'
-import metaversefilePlugin from 'metaversefile/plugins/rollup.js'
+import totumPlugin from 'totum/plugins/rollup.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    metaversefilePlugin(),
+    totumPlugin(),
     reactRefresh(),
   ],
   server: {

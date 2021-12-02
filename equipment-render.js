@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import metaversefile from "metaversefile";
+import totum from "totum";
 
 class EquipmentRender {
   constructor() {
@@ -62,7 +62,7 @@ class EquipmentRender {
     this.previewRenderer.xr.enabled = true;
 
     let avatar = null;
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
     localPlayer.addEventListener('avatarupdate', e => {
       if (avatar) {
         avatar.parent.remove(avatar);
@@ -79,7 +79,7 @@ class EquipmentRender {
         // this.previewScene.clear();
         this.previewScene.add(newAvatar);
         
-        newAvatar.instanceId = metaversefile.getNextInstanceId();
+        newAvatar.instanceId = totum.getNextInstanceId();
         
         avatar = newAvatar;
       }

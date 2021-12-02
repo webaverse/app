@@ -13,7 +13,7 @@ import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, postScene, sceneHighPriority, sceneLowPriority} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 
@@ -55,7 +55,7 @@ world.enableMic = async () => {
     wsrtc.enableMic(mediaStream);
   }
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.setMicMediaStream(mediaStream, {
     audioContext: WSRTC.getAudioContext(),
   });
@@ -69,7 +69,7 @@ world.disableMic = () => {
     }
     mediaStream = null;
     
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     localPlayer.setMicMediaStream(null);
   }
 };
@@ -81,7 +81,7 @@ world.connectState = state => {
   
   playersManager.bindState(state.getArray(playersMapName));
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
@@ -94,7 +94,7 @@ world.connectRoom = async u => {
   world.appManager.unbindState();
   world.appManager.clear();
 
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   const state = new Z.Doc();
   wsrtc = new WSRTC(u, {
     localPlayer,
@@ -177,7 +177,7 @@ world.connectRoom = async u => {
     }
   };
   const sendMetadataUpdate = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = totumApi.useLocalPlayer();
     const rig = localPlayer.avatar;
     if (rig) {
       wsrtc.localUser.setMetadata({

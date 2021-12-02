@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
-import metaversefile from 'metaversefile';
-const {useApp, useFrame} = metaversefile;
+import totum from 'totum';
+const {useApp, useFrame} = totum;
 
 const cardPreviewHost = `https://card-preview.exokit.org`;
 // const cubicBezier = easing(0, 1, 0, 1);

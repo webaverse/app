@@ -1,5 +1,5 @@
 /*
-app manager binds z.js data to live running metaversefile apps.
+app manager binds z.js data to live running totum apps.
 you can have as many app managers as you want.
 */
 
@@ -9,7 +9,7 @@ import * as Z from 'zjs';
 // import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import * as metaverseModules from './metaverse-modules.js';
 import {worldMapName} from './constants.js';
 
@@ -223,9 +223,9 @@ class AppManager extends EventTarget {
         p.reject(new Error('app cleared during load: ' + contentId));
       };
       try {
-        const m = await metaversefile.import(contentId);
+        const m = await totum.import(contentId);
         if (!live) return _bailout(null);
-        const app = metaversefile.createApp({
+        const app = totum.createApp({
           name: contentId,
           type: (() => {
             const match = contentId.match(/\.([a-z0-9]+)$/i);
@@ -468,13 +468,13 @@ class AppManager extends EventTarget {
     }
   }
   getErrorPlaceholder() {
-    const app = metaversefile.createApp({
+    const app = totum.createApp({
         name: 'error-placeholder',
       });
     app.contentId = 'error-placeholder';
     (async () => {
       await metaverseModules.waitForLoad();
-      const {modules} = metaversefile.useDefaultModules();
+      const {modules} = totum.useDefaultModules();
       const m = modules['errorPlaceholder'];
       await app.addModule(m);
     })();

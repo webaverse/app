@@ -12,7 +12,7 @@ import game from '../game.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
-import metaversefile from '../metaversefile-api.js'
+import totum from '../totum-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import User from './User';
@@ -74,7 +74,7 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   
-  const localPlayer = metaversefile.useLocalPlayer();
+  const localPlayer = totum.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
   let [px, setPx] = useState(0);
@@ -450,7 +450,7 @@ export default function Header({
                         className={styles.equipment}
                         key={i}
                         onMouseEnter={e => {
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          const app = totum.getAppByInstanceId(wearAction.instanceId);
                           game.setMouseHoverObject(null);
                           const physicsId = app.getPhysicsObjects()[0]?.physicsId;
                           game.setMouseDomEquipmentHoverObject(app, physicsId);
@@ -463,8 +463,8 @@ export default function Header({
                         <img src="images/flower.png" className={styles.icon} />
                         <div className={styles.name}>{wearAction.instanceId}</div>
                         <button className={styles.button} onClick={e => {
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                          const localPlayer = totum.useLocalPlayer();
+                          const app = totum.getAppByInstanceId(wearAction.instanceId);
                           localPlayer.unwear(app);
                         }}>
                           <img src="images/remove.svg" />
@@ -479,16 +479,92 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
-            <Character 
-              open={open}
-              setOpen={setOpen} 
-              toggleOpen={toggleOpen} 
-              panelsRef={panelsRef} 
-              wearActions={wearActions} 
-              previewCanvasRef={previewCanvasRef}
-              game={game}
-            />
-            <World
+            <Tab
+              type="world"
+              top
+              right
+              className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}
+              label={
+                <div className={styles.label}>
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+                  <span className={styles.text}>世 World</span>
+                  <span className={styles.key}>Z</span>
+                </div>
+              }
+              panels={[
+                (<div className={styles.panel} key="left">
+                  <div className={styles['panel-header']}>
+                    <h1>Tokens</h1>
+                  </div>
+                  <div className={styles.objects}>
+                    {apps.map((app, i) => {
+                      return (
+                        <div className={classnames(styles.object, app === selectedApp ? styles.selected : null)} key={i} onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
+                          const physicsObjects = app.getPhysicsObjects();
+                          const physicsObject = physicsObjects[0] || null;
+                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
+                          selectApp(app, physicsId);
+                          
+                          const localPlayer = totum.useLocalPlayer();
+                          localPlayer.lookAt(app.position);
+                        }} onMouseEnter={e => {
+                          const physicsObjects = app.getPhysicsObjects();
+                          const physicsObject = physicsObjects[0] || null;
+                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
+                          
+                          game.setMouseHoverObject(null);
+                          game.setMouseDomHoverObject(app, physicsId);
+                        }} onMouseLeave={e => {
+                          game.setMouseDomHoverObject(null);
+                        }} onMouseMove={e => {
+                          e.stopPropagation();
+                          // game.setMouseSelectedObject(null);
+                        }}>
+                          <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
+                          <img src="images/object.jpg" className={styles.img} />
+                          <div className={styles.wrap}>
+                            <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>),
+                (selectedApp ? <div className={styles.panel} key="right">
+                  <div className={styles['panel-header']}>
+                    <div className={classnames(styles.button, styles.back)} onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      setSelectedApp(null);
+                    }}>
+                      <img src="images/webchevron.svg" className={styles.img} />
+                    </div>
+                    <h1>{_formatContentId(selectedApp.contentId)}</h1>
+                  </div>
+                  <div className={styles['panel-subheader']}>Position</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={px} />
+                    <NumberInput input={py} />
+                    <NumberInput input={pz} />
+                  </div>
+                  <div className={styles['panel-subheader']}>Rotation</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={rx} />
+                    <NumberInput input={ry} />
+                    <NumberInput input={rz} />
+                  </div>
+                  <div className={styles['panel-subheader']}>Scale</div>
+                  <div className={styles.inputs}>
+                    <NumberInput input={sx} />
+                    <NumberInput input={sy} />
+                    <NumberInput input={sz} />
+                  </div>
+                </div> : null),
+              ]}
               open={open}
               setOpen={setOpen} 
               toggleOpen={toggleOpen}

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import metaversefile from "metaversefile";
+import totum from "totum";
 
 class DropManager extends EventTarget {
   constructor() {

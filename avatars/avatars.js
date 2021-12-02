@@ -15,7 +15,7 @@ import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -49,7 +49,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     const initialStiffnessForce = bone.stiffnessForce;
     // const initialGravityPower = bone.gravityPower;
     
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = totum.useLocalPlayer();
     Object.defineProperty(bone, 'stiffnessForce', {
       get() {
         localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z);
@@ -215,7 +215,7 @@ let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 const loadPromise = (async () => {
-  await Promise.resolve(); // wait for metaversefile to be defined
+  await Promise.resolve(); // wait for totum to be defined
   
   await Promise.all([
     (async () => {
@@ -230,7 +230,7 @@ const loadPromise = (async () => {
       let o;
       try {
         o = await new Promise((accept, reject) => {
-          const {gltfLoader} = metaversefile.useLoaders();
+          const {gltfLoader} = totum.useLoaders();
           gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
         });
       } catch(err) {
@@ -1766,7 +1766,7 @@ class Avatar {
       const idleAnimation = _getIdleAnimation(key);
 
 
-      const soundManager = metaversefile.useSoundManager();
+      const soundManager = totum.useSoundManager();
       //console.log(key);
       //console.log(currentSpeed);
       //console.log(idleAnimation.duration);

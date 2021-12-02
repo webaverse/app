@@ -1,4 +1,4 @@
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 
 const moduleUrls = {
   button: `./metaverse_modules/button/`,
@@ -13,7 +13,7 @@ const loadPromise = (async () => {
   const promises = [];
   for (const moduleName in moduleUrls) {
     const moduleUrl = moduleUrls[moduleName];
-    const p = metaversefile.import(moduleUrl)
+    const p = totum.import(moduleUrl)
       .then(m => {
         modules[moduleName] = m;
       });

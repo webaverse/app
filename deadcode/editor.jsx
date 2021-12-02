@@ -12,7 +12,7 @@ const width = 50;
 
 const getDocFromFile = async (blob, name) => {
   let doc;
-  if (/\.(?:html|js|metaversefile|rtf.js|t.js|txt|jsx)$/.test(name)) {
+  if (/\.(?:html|js|totum|rtf.js|t.js|txt|jsx)$/.test(name)) {
     const text = await blob.text();
     doc = new CodeMirror.Doc(text, 'javascript');
   } else {

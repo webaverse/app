@@ -1,5 +1,5 @@
 /*
-this file binds logical characters (local player, remote players, npcs) to metaversefile (vrm) avatars.
+this file binds logical characters (local player, remote players, npcs) to totum (vrm) avatars.
 */
 
 throw new Error('dead code');
@@ -12,7 +12,7 @@ import {unFrustumCull} from './util.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import Avatar from './avatars/avatars.js';
 // import {chatManager} from './chat-manager.js';
-import metaversefile from 'metaversefile';
+import totum from 'totum';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -206,7 +206,7 @@ class RigManager {
 
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
-      const localPlayer = metaversefile.useLocalPlayer();
+      const localPlayer = totum.useLocalPlayer();
       
       applyPlayerTransformsToAvatar(localPlayer, session, this.localRig);
       applyPlayerModesToAvatar(localPlayer, session, this.localRig);

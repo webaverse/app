@@ -1,6 +1,6 @@
 import {makeId} from './util.js';
-import metaversefileApi from 'metaversefile';
-const {useLocalPlayer} = metaversefileApi;
+import totumApi from 'totum';
+const {useLocalPlayer} = totumApi;
 
 const _getEmotion = text => {
   let match;

@@ -26,7 +26,7 @@ import {
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 // import {parseQuery} from './util.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
@@ -197,7 +197,7 @@ webaverseRenderPass.onBeforeRender = () => {
   // scene.add(world.lights);
   
   // decapitate avatar if needed
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   if (localPlayer.avatar) {
     // scene.add(localPlayer.avatar.model);
     
@@ -211,7 +211,7 @@ webaverseRenderPass.onBeforeRender = () => {
 };
 webaverseRenderPass.onAfterRender = () => {
   // undecapitate
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = totumApi.useLocalPlayer();
   if (localPlayer.avatar) {
     const decapitated = _isDecapitated();
     if (decapitated) {

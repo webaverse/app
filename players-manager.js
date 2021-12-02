@@ -5,7 +5,7 @@ player objects load their own avatar and apps using this binding */
 import {RemotePlayer} from './character-controller.js';
 // import {getPlayerPrefix} from './util.js';
 // import {playersMapName} from './constants.js';
-import metaversefileApi from 'metaversefile';
+import totumApi from 'totum';
 
 class PlayersManager {
   constructor() {
@@ -32,7 +32,7 @@ class PlayersManager {
     this.playersArray = nextPlayersArray;
     
     if (this.playersArray) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const localPlayer = totumApi.useLocalPlayer();
       
       const playersObserveFn = e => {
         const {added, deleted, delta, keys} = e.changes;

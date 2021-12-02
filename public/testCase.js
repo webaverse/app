@@ -1,5 +1,5 @@
-import metaversefile from 'metaversefile';
-const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = metaversefile;
+import totum from 'totum';
+const {useApp, usePhysics, useCleanup, useFrame, useActivate, useLoaders} = totum;
 
 export default () => {
     const app = useApp();

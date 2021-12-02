@@ -80,7 +80,7 @@ window.onload = async () => {
   const metaversefileHandler = async ({
     src,
   }) => {
-    console.log('load metaversefile');
+    console.log('load totum');
 
     const container = document.getElementById('container2');
     container2.classList.remove('hidden');
@@ -97,7 +97,7 @@ window.onload = async () => {
     weba.contentLoaded = true;
     weba.startLoop();
     
-    const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+    const u = `${storageHost}/ipfs/${hash}/.totum`;
     const loadedObject = await world.addObject(u);
 
     /* let loadedObject = null;
@@ -107,7 +107,7 @@ window.onload = async () => {
         loadedObject = null;
       }
 
-      const u = `${storageHost}/ipfs/${hash}/.metaversefile`;
+      const u = `${storageHost}/ipfs/${hash}/.totum`;
       const position = new THREE.Vector3();
       const quaternion  = new THREE.Quaternion();
       loadedObject = await world.addObject(u, null, position, quaternion, {
@@ -134,7 +134,7 @@ window.onload = async () => {
     });
   };
   const handlers = {
-    'metaversefile': metaversefileHandler,
+    'totum': metaversefileHandler,
     'png': imageHandler,
     'jpg': imageHandler,
     'gif': imageHandler,
