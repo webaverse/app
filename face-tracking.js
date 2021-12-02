@@ -133,8 +133,7 @@ const getBrowRaise = (lm, side = "left") => {
   return browRaiseRatio; */
 };
 window.THREE = THREE;
-window.p0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
-  .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+window.p0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
 window.p1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0)
 window.p2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
 window.q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
@@ -145,7 +144,10 @@ window.b1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI))
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
 
-  window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+window.d1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+
+window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
 
@@ -742,7 +744,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Left_arm.quaternion.identity()
         .premultiply(window.p0)
-        .premultiply(
+        /* .premultiply(
           new THREE.Quaternion().setFromRotationMatrix(
             new THREE.Matrix4().lookAt(
               new THREE.Vector3(0, 0, 0),
@@ -750,11 +752,14 @@ const _solvePoseToAvatar = (() => {
               new THREE.Vector3(0, 1, 0)
             )
           )
-        )
+        ) */
+        .premultiply(window.d1)
       if (window.lol1) {
         tempAvatar.Left_arm.quaternion
           .premultiply(fakeQuaternion)
       }
+      tempAvatar.Left_arm.quaternion
+        .premultiply(window.d1.clone().invert())
       tempAvatar.Left_arm.quaternion
         .premultiply(window.p1)
         /*.setFromUnitVectors(
