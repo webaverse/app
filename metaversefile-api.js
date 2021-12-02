@@ -12,7 +12,7 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, rootScene, postScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -32,6 +32,7 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import soundManager from './sound-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -458,6 +459,9 @@ metaversefile.setApi({
   useScene() {
     return scene;
   },
+  usePostScene() {
+    return postScene;
+  },
   useWorld() {
     return {
       /* addObject() {
@@ -473,6 +477,9 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  useSoundManager() {
+    return soundManager;
   },
   usePostProcessing() {
     return postProcessing;
@@ -835,6 +842,7 @@ export default () => {
       renderer,
       scene,
       rootScene,
+      postScene,
       camera,
       sceneHighPriority,
       iframeContainer,

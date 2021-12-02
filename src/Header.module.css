@@ -1,3 +1,44 @@
+.loginDiv {
+  width: 100%;
+  margin: 10px 0;
+  text-align: -webkit-center;
+}
+
+.loginBtnText {
+  display: inline-block;
+  transform: skewX(20deg);
+}
+
+.loginBtnImg {
+  vertical-align: middle;
+  margin: 0 10px;
+}
+
+.loginBtn {
+  transform: skewX(-20deg);
+  background: rgb(0, 168, 252);
+  color: rgb(0, 0, 0);
+  padding: 0.5em;
+  width: 10em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  position: absolute;
+  right: 0;
+  background: black;
+  color: white;
+  padding: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: #ef5350;
+  color: white;
+}
+
 body {
   --header-height: 50px;
 }
@@ -71,6 +112,13 @@ body {
   display: flex;
   width: 400px;
   height: 100vh;
+  overflow: hidden;
+}
+.header .tab .panelsLogin {
+  position: fixed;
+  display: flex;
+  /* width: 400px;
+  height: 100vh; */
   overflow: hidden;
 }
 .header .tab .panels .panel {
@@ -753,4 +801,33 @@ body {
 }
 .ar-ui .content-placeholder h1 {
   margin: 0;
+}
+
+.login_options {
+  background: black;
+  color: white;
+  font-size: initial;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metamask {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.discord {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.metamask_text {
+  margin-left: 10px;
+
+}
+
+.discord_text {
+  margin-left: 10px;
 }

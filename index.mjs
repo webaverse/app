@@ -8,6 +8,8 @@ import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
 
+const isProduction = process.argv[2] === '-p';
+
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
 
 const _tryReadFile = p => {
@@ -57,7 +59,7 @@ function makeId(length) {
   });
 
   const isHttps = !!certs.key && !!certs.cert;
-  const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3000);
+  const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
