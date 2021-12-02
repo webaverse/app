@@ -132,7 +132,24 @@ const getBrowRaise = (lm, side = "left") => {
   let browRaiseRatio = (clamp(browRatio, browLow, browHigh) - browLow) / (browHigh - browLow);
   return browRaiseRatio; */
 };
-
+window.THREE = THREE;
+window.p0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
+  .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+window.p1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0)
+window.p2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
+window.q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
+window.q2 = new THREE.Quaternion()
+window.q3 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5)
+window.r2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
+window.r3 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI))
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
+window.v = new THREE.Vector3(0, 1, 0);
+window.v2 = new THREE.Vector3(0, 0, 1);
+window.v3 = new THREE.Vector3(0, 0, 1)
+window.qx = new THREE.Quaternion()//.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const _makeFakeAvatar = () => {
   const Root = new THREE.Object3D();
   const Hips = new THREE.Object3D();
@@ -409,6 +426,7 @@ const _setSkeletonWorld = (() => {
     _recurse(srcModelBones.Root, dstModelBones.Root);
   };
 })();
+// window.THREE = THREE;
 const _solvePoseToAvatar = (() => {
   const tempAvatar = _makeFakeAvatar();
   const boneBuffers = {
@@ -435,7 +453,7 @@ const _solvePoseToAvatar = (() => {
     leftToe: new THREE.Vector3(),
     rightToe: new THREE.Vector3(),
   };
-  // window.boneBuffers = boneBuffers;
+  window.boneBuffers = boneBuffers;
   /* const debugMeshes = (() => {
     const meshes = {};
     const cubeGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.02);
@@ -530,30 +548,49 @@ const _solvePoseToAvatar = (() => {
     const leftMiddle = localVector2.copy(boneBuffers.leftPinky)
       .add(boneBuffers.leftIndex)
       .divideScalar(2);
+    window.leftMiddle = leftMiddle;
     
     const rightMiddle = localVector3.copy(boneBuffers.rightPinky)
       .add(boneBuffers.rightIndex)
       .divideScalar(2);
 
     let leftWristNormal;
+    let leftPointerStart;
+    let leftPointerEnd;
     if (leftHandLm) {
       localTriangle.a.copy(leftHandLm[0]);
       localTriangle.b.copy(leftHandLm[5]);
       localTriangle.c.copy(leftHandLm[17]);
-      [
-        localTriangle.a,
-        localTriangle.b,
-        localTriangle.c,
-      ].forEach(v => {
-        v.x *= -1;
-      });
-      leftWristNormal = localTriangle.getNormal(localVector4);
+      leftPointerStart = new THREE.Vector3().copy(leftHandLm[0]);
+      leftPointerEnd = new THREE.Vector3().copy(leftHandLm[5]);
     } else {
       localTriangle.a.copy(boneBuffers.leftIndex);
       localTriangle.b.copy(boneBuffers.leftPinky);
       localTriangle.c.copy(boneBuffers.leftThumb);
-      leftWristNormal = localTriangle.getNormal(localVector4);
+      leftPointerStart = boneBuffers.leftHand.clone();
+      leftPointerEnd = boneBuffers.leftIndex.clone();
     }
+    [
+      localTriangle.a,
+      localTriangle.b,
+      localTriangle.c,
+    ].forEach(v => {
+      v.x *= -1;
+      v.y *= -1;
+      v.z *= -1;
+    });
+    leftWristNormal = localTriangle.getNormal(localVector4);
+    [
+      leftWristNormal,
+      leftPointerStart,
+      leftPointerEnd,
+    ].forEach(v => {
+      v.x *= -1;
+      v.y *= -1;
+      // v.x *= -1;
+      // v.y *= -1;
+    });
+
     /* window.lol = [
       boneBuffers.leftIndex.toArray().join(', '),
       boneBuffers.leftPinky.toArray().join(', '),
@@ -580,6 +617,55 @@ const _solvePoseToAvatar = (() => {
       localTriangle.c.copy(boneBuffers.rightHand);
       rightWristNormal = localTriangle.getNormal(localVector5);
     }
+
+    const fakeQuaternion = (() => {
+      const now = performance.now();
+      const i = Math.floor(now / 2000) % 3;
+      const y = Math.sin(((now % 2000) / 2000) * (Math.PI*2)) * Math.PI;
+      
+      if (i === 0) {
+        return new THREE.Quaternion().setFromRotationMatrix(
+          new THREE.Matrix4().lookAt(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(1, y, 0),
+            // leftPointerEnd.clone().sub(leftPointerStart).normalize(),
+            new THREE.Vector3(0, 1, 0)
+            // leftWristNormal
+            /* leftPointerStart,
+            leftPointerEnd,
+            window.v3 */
+          )
+        );
+      } else if (i === 1) {
+        return new THREE.Quaternion().setFromRotationMatrix(
+          new THREE.Matrix4().lookAt(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(1, 0, y),
+            // leftPointerEnd.clone().sub(leftPointerStart).normalize(),
+            new THREE.Vector3(0, 1, 0)
+            // leftWristNormal
+            /* leftPointerStart,
+            leftPointerEnd,
+            window.v3 */
+          )
+        );
+      } else if (i === 2) {
+        return new THREE.Quaternion().setFromRotationMatrix(
+          new THREE.Matrix4().lookAt(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(1, 0, 0),
+            // leftPointerEnd.clone().sub(leftPointerStart).normalize(),
+            new THREE.Vector3(0, 1, y)
+            // leftWristNormal
+            /* leftPointerStart,
+            leftPointerEnd,
+            window.v3 */
+          )
+        );
+      } else {
+        debugger;
+      }
+    })();
 
     /* avatar.Root.updateMatrixWorld();
     const q = avatar.Left_arm.getWorldQuaternion(new THREE.Quaternion());
@@ -645,17 +731,25 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Right_shoulder.quaternion.copy(tempAvatar.Left_shoulder.quaternion);
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     } */
+    const y = Math.sin(((performance.now() % 2000) / 2000) * (Math.PI*2)) * Math.PI;
+    // console.log(y);
     {
-      tempAvatar.Left_arm.quaternion.identity()/*.setFromUnitVectors(
-        new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize()
-      ) */
-      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.1))
-      // .multiply(avatar.Left_shoulder.initialQuaternion)
-      // .premultiply(rollRightRotation)
-      // .premultiply(slightLeftRotation);
-      // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
-      // window.lol = [boneBuffers.leftShoulder, boneBuffers.leftElbow];
+      tempAvatar.Left_arm.quaternion.identity()
+        .premultiply(window.p0)
+        .premultiply(
+          fakeQuaternion
+        )/*.setFromUnitVectors(
+          new THREE.Vector3(1, 0, 0),
+          boneBuffers.leftElbow.clone().sub(boneBuffers.leftShoulder).normalize()
+        )*/
+        .premultiply(window.p1)
+        // .premultiply(window.q)
+        // .premultiply(window.qx)
+        // .multiply(avatar.Left_shoulder.initialQuaternion)
+        // .premultiply(rollRightRotation)
+        // .premultiply(slightLeftRotation);
+        // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
+        // window.lol = [boneBuffers.leftShoulder, boneBuffers.leftElbow];
     }
     {
       tempAvatar.Right_arm.quaternion.identity()/*.setFromUnitVectors(
@@ -671,17 +765,27 @@ const _solvePoseToAvatar = (() => {
     }
     // window.initialQuaternion = avatar.Left_shoulder.initialQuaternion;
     {
-      tempAvatar.Left_elbow.quaternion.identity()/*.setFromUnitVectors(
+      tempAvatar.Left_elbow.quaternion.identity()
+        .premultiply(window.q2)
+        // .premultiply(window.p2)
+        .setFromRotationMatrix(
+          localMatrix.lookAt(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(1, 0, 0),
+            window.v2
+          )
+        )/*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize()
-      ) */
-      .premultiply(
-        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0)
-          .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0))
-      )
-      // .multiply(avatar.Left_elbow.initialQuaternion)
-      // .premultiply(slightLeftRotation);
-      // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
+        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize() */
+        // .premultiply(window.p2.clone().invert())
+        .premultiply(window.r2)
+        .premultiply(
+          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0)
+            .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0))
+        )
+        // .multiply(avatar.Left_elbow.initialQuaternion)
+        // .premultiply(slightLeftRotation);
+        // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
       tempAvatar.Right_elbow.quaternion.identity()/*.setFromUnitVectors(
@@ -697,14 +801,27 @@ const _solvePoseToAvatar = (() => {
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     }
     {
-      tempAvatar.Left_wrist.quaternion.identity()/*.setFromRotationMatrix(
-        localMatrix.lookAt(
-          boneBuffers.leftHand,
-          leftMiddle,
-          leftWristNormal
+      tempAvatar.Left_wrist.quaternion.identity()
+        .premultiply(window.q3)
+        .premultiply(
+          new THREE.Quaternion().setFromRotationMatrix(
+            localMatrix.lookAt(
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(1, y, 0),
+              // leftPointerEnd.clone().sub(leftPointerStart).normalize(),
+              window.v3
+              // leftWristNormal
+              /* leftPointerStart,
+              leftPointerEnd,
+              window.v3 */
+            )
+          )
         )
-      ) */
-      // .premultiply(slightLeftRotation);
+        .premultiply(window.r3)
+
+      // console.log('got', leftPointerEnd.clone().sub(leftPointerStart).normalize().toArray().join(','), leftWristNormal.toArray().join(','));
+
+      // .premultiply(slightLeftRotation)
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
       // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
     }
@@ -958,6 +1075,8 @@ class VideoCapture extends EventTarget {
 class FaceTracker extends EventTarget {
   constructor() {
     super();
+
+    window.faceTracker = this;
 
     this.canvas = null;
     this.avatar = null;
