@@ -147,14 +147,14 @@ window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 
 window.d2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
 
+window.b0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
+window.b1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5)
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0))
+window.d3 = new THREE.Quaternion()
+
 // window.p2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
 window.q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 window.q2 = new THREE.Quaternion()
-
-window.b0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
-window.b1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
-  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI))
-  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
 
 window.v = new THREE.Vector3(0, 1, 0);
 window.v2 = new THREE.Vector3(0, 0, 1);
@@ -822,6 +822,11 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Left_wrist.quaternion.identity()
         .premultiply(window.b0)
+        .premultiply(window.d3)
+      if (window.lol3) {
+        tempAvatar.Left_wrist.quaternion
+          .premultiply(fakeQuaternion)
+      }
         // .premultiply(fakeQuaternion)
         /*.premultiply(
           new THREE.Quaternion().setFromRotationMatrix(
@@ -832,6 +837,7 @@ const _solvePoseToAvatar = (() => {
             )
           )
         ) */
+      tempAvatar.Left_wrist.quaternion
         .premultiply(window.b1)
     }
     {
