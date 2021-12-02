@@ -30,7 +30,7 @@
     "json-6": "^1.1.4",
     "key-did-provider-ed25519": "^1.1.0",
     "key-did-resolver": "^1.4.0",
-    "metaversefile": "./packages/metaversefile",
+    "totum": "./packages/totum",
     "zjs": "./packages/zjs",
     "openai-api": "^1.2.6",
     "react": "17.0.2",
