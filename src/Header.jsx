@@ -18,6 +18,12 @@ import {parseQuery} from '../util.js'
 import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
+import { Tab } from './components/tab';
+import { Location } from './components/location';
+import { Character } from './tabs/character';
+import { Claims } from './tabs/claims';
+import { World } from './tabs/world';
+import { XR } from './tabs/xr';
 
 const localEuler = new THREE.Euler();
 
@@ -36,205 +42,6 @@ const _getCurrentRoom = () => {
   const q = parseQuery(window.location.search);
   const {room} = q;
   return room || '';
-};
-
-const Location = ({sceneName, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
-  const [rooms, setRooms] = useState([]);
-  const scenesOpen = open === 'scenes';
-  const multiplayerOpen = open === 'multiplayer';
-  
-  const refreshRooms = async () => {
-    const res = await fetch(universe.getWorldsHost());
-    if (res.ok) {
-      const rooms = await res.json();
-      setRooms(rooms);
-    } else {
-      const text = await res.text();
-      console.warn('failed to fetch', res.status, text);
-    }
-  };
-  useEffect(refreshRooms, []);
-
-  return (
-    <div className={styles.location}>
-      <div className={styles.row}>
-        <div className={styles['button-wrap']} onClick={e => {
-          toggleOpen('scenes');
-        }}>
-          <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
-            <img src="images/webarrow.svg" />
-          </button>
-        </div>
-        <div className={styles['input-wrap']}>
-          <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
-            setSceneName(e.target.value);
-          }} disabled={multiplayerConnected} onKeyDown={e => {
-            // console.log('key down', e);
-            switch (e.which) {
-              case 13: { // enter
-                e.preventDefault();
-                universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
-                break;
-              }
-            }
-          }} onFocus={e => {
-            setOpen(null);
-          }} placeholder="Goto..." />
-          <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
-        </div>
-        <div className={styles['button-wrap']} onClick={e => {
-          if (!multiplayerConnected) {
-            toggleOpen('multiplayer');
-          } else {
-            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
-            /* world.disconnectRoom();
-            setMultiplayerConnected(false); */
-            setOpen(null);
-          }
-        }}>
-          <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
-            <img src="images/wifi.svg" />
-          </button>
-        </div>
-        <div className={styles['button-wrap']} onClick={toggleMic}>
-          <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
-            <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
-            <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
-          </button>
-        </div>
-      </div>
-      {scenesOpen ? <div className={styles.rooms}>
-        {sceneNames.map((sceneName, i) => (
-          <div className={styles.room} onClick={async e => {
-            universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
-            setOpen(null);
-          }} key={i}>
-            <img className={styles.image} src="images/world.jpg" />
-            <div className={styles.name}>{sceneName}</div>
-          </div>
-        ))}
-      </div> : null}
-      {multiplayerOpen ? <div className={styles.rooms}>
-        <div className={styles.create}>
-          <button className={styles.button} onClick={async e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const roomName = _makeName();
-            console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
-            const data = Z.encodeStateAsUpdate(world.getState(true));
-            // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
-            console.log('post', universe.getWorldsHost() + roomName);
-            const res = await fetch(universe.getWorldsHost() + roomName, {
-              method: 'POST',
-              body: data,
-            });
-            console.log('got room name 1', {roomName});
-            if (res.ok) {
-              // const j = await res.json();
-              // console.log('world create result', j);
-
-              refreshRooms();
-              
-              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
-              
-              /* this.parent.sendMessage([
-                MESSAGE.ROOMSTATE,
-                data,
-              ]); */
-            } else {
-              const text = await res.text();
-              console.warn('error creating room', res.status, text);
-            }
-          }}>Create room</button>
-        </div>
-        {rooms.map((room, i) => (
-          <div className={styles.room} onClick={async e => {
-            if (!world.isConnected() /* && useLocalPlayer().avatar */) {
-              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${room.name}`);
-              /* const isConnected = world.isConnected();
-              setMultiplayerConnected(isConnected);
-              if (isConnected) {
-                setRoomName(room.name);
-                setMultiplayerOpen(false);
-              } */
-            }
-          }} key={i}>
-            <img className={styles.image} src="images/world.jpg" />
-            <div className={styles.name}>{room.name}</div>
-            <div className={styles.delete}>
-              <button className={classnames(styles.button, styles.warning)} onClick={async e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const res = await fetch(universe.getWorldsHost() + room.name, {
-                  method: 'DELETE'
-                });
-                // console.log('got click 0');
-                if (res.ok) {
-                  /// console.log('got click 1', rooms.indexOf(room));
-                  refreshRooms();
-                  // const newRooms = rooms.slice().splice(rooms.indexOf(room), 1);
-                  // console.log('set rooms', rooms, newRooms);
-                  // setRooms(newRooms);
-                } else {
-                  // console.log('got click 2');
-                  const text = await res.text();
-                  console.warn('failed to fetch', res.status, text);
-                }
-              }}>Delete</button>
-            </div>
-          </div>
-        ))}
-      </div> : null}
-    </div>
-  );
-};
-
-const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
-  if (!onclick) {
-    onclick = e => {
-      toggleOpen(type);
-    };
-  }
-  
-  const stopPropagation = e => {
-    e.stopPropagation();
-  };
-  
-  return (
-    <div className={classnames(
-      className,
-      styles.tab,
-      left ? styles.left : null,
-      right ? styles.right : null,
-      top ? styles.top : null,
-      bottom ? styles.bottom : null,
-      disabled ? styles.disabled : null,
-      open === type ? styles.open : null,
-      
-    )} onClick={onclick}>
-      {left ? <>
-        {before}
-        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
-          <div className={styles['panels-wrap']}>
-            {panels}
-          </div>
-        </div> : null}
-        {label}
-        {after}
-      </> : <>
-        {before}
-        {label}
-        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
-          <div className={styles['panels-wrap']}>
-            {panels}
-          </div>
-        </div> : null}
-        {after}
-      </>}
-    </div>
-  );
 };
 
 const NumberInput = ({input}) => {
@@ -594,6 +401,7 @@ export default function Header({
               <img src="images/arrow-logo.svg" className={styles.image} />
             </a>
             <Location
+              universe={universe}
               sceneName={sceneName}
               setSceneName={setSceneName}
               roomName={roomName}
@@ -671,139 +479,44 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
-            <Tab
-              type="world"
-              top
-              right
-              className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}
-              label={
-                <div className={styles.label}>
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>世 World</span>
-                  <span className={styles.key}>Z</span>
-                </div>
-              }
-              panels={[
-                (<div className={styles.panel} key="left">
-                  <div className={styles['panel-header']}>
-                    <h1>Tokens</h1>
-                  </div>
-                  <div className={styles.objects}>
-                    {apps.map((app, i) => {
-                      return (
-                        <div className={classnames(styles.object, app === selectedApp ? styles.selected : null)} key={i} onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          
-                          const physicsObjects = app.getPhysicsObjects();
-                          const physicsObject = physicsObjects[0] || null;
-                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
-                          selectApp(app, physicsId);
-                          
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          localPlayer.lookAt(app.position);
-                        }} onMouseEnter={e => {
-                          const physicsObjects = app.getPhysicsObjects();
-                          const physicsObject = physicsObjects[0] || null;
-                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
-                          
-                          game.setMouseHoverObject(null);
-                          game.setMouseDomHoverObject(app, physicsId);
-                        }} onMouseLeave={e => {
-                          game.setMouseDomHoverObject(null);
-                        }} onMouseMove={e => {
-                          e.stopPropagation();
-                          // game.setMouseSelectedObject(null);
-                        }}>
-                          <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                          <img src="images/object.jpg" className={styles.img} />
-                          <div className={styles.wrap}>
-                            <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>),
-                (selectedApp ? <div className={styles.panel} key="right">
-                  <div className={styles['panel-header']}>
-                    <div className={classnames(styles.button, styles.back)} onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      
-                      setSelectedApp(null);
-                    }}>
-                      <img src="images/webchevron.svg" className={styles.img} />
-                    </div>
-                    <h1>{_formatContentId(selectedApp.contentId)}</h1>
-                  </div>
-                  <div className={styles['panel-subheader']}>Position</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={px} />
-                    <NumberInput input={py} />
-                    <NumberInput input={pz} />
-                  </div>
-                  <div className={styles['panel-subheader']}>Rotation</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={rx} />
-                    <NumberInput input={ry} />
-                    <NumberInput input={rz} />
-                  </div>
-                  <div className={styles['panel-subheader']}>Scale</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={sx} />
-                    <NumberInput input={sy} />
-                    <NumberInput input={sz} />
-                  </div>
-                </div> : null),
-              ]}
+            <Character 
+              open={open}
+              setOpen={setOpen} 
+              toggleOpen={toggleOpen} 
+              panelsRef={panelsRef} 
+              wearActions={wearActions} 
+              previewCanvasRef={previewCanvasRef}
+              game={game}
+            />
+            <World
+              open={open}
+              setOpen={setOpen} 
+              toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
+              game={game}
+              apps={apps}
+              selectApp={selectApp}
+              setSelectedApp={setSelectedApp}
+              selectedApp={selectedApp}
+              px={px}
+              py={py}
+              pz={pz}
+              rx={rx}
+              ry={ry}
+              rz={rz}
+              sx={sx}
+              sy={sy}
+              sz={sz}
+            />
+            <XR
+              xrSupported={xrSupported}
+              app={app}
               open={open}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
-            <Tab
-              type="xr"
-              onclick={async e => {
-                if (xrSupported) {
-                  await app.enterXr();
-                }
-              }}
-              bottom
-              right
-              disabled={!xrSupported}
-              label={
-                <div className={styles.label}>
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>仮想現実 VR{xrSupported ? '' : ' (no)'}</span>
-                </div>
-              }
-              open={open}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
-            />
-            <Tab
-              type="claims"
-              bottom
-              left
-              disabled={claims.length === 0}
-              className="skew"
-              label={
-                <div className={styles.label}>
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>品 Claims ({claims.length})</span>
-                </div>
-              }
-              after={
-                <div className={styles['transparent-panel']}>
-                  <div className={styles.buttons}>
-                    <button className={styles.button}>Claim all</button>
-                    <button className={styles.button}>Reject</button>
-                  </div>
-                </div>
-              }
-              before={
-                <div className={styles.slide} />
-              }
+            <Claims
+              claims={claims}
               open={open}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
