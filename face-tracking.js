@@ -139,15 +139,17 @@ window.p1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 
 window.p2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
 window.q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 window.q2 = new THREE.Quaternion()
+
 window.b0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5)
 window.b1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI))
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
-window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+
+  window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
 
-window.d = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+window.d2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 
 window.v = new THREE.Vector3(0, 1, 0);
@@ -784,13 +786,13 @@ const _solvePoseToAvatar = (() => {
           )
         ) */
         .premultiply(window.a0)
-        .premultiply(window.d)
+        .premultiply(window.d2)
       if (window.lol2) {
         tempAvatar.Left_elbow.quaternion
           .premultiply(fakeQuaternion)
       }
       tempAvatar.Left_elbow.quaternion
-        .premultiply(window.d.clone().invert())
+        .premultiply(window.d2.clone().invert())
       tempAvatar.Left_elbow.quaternion
         /*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
@@ -1125,7 +1127,7 @@ class FaceTracker extends EventTarget {
       canvas: this.domElement,
       // context,
       antialias: true,
-      // alpha: true,
+      alpha: true,
     });
     /* {
       videoEl = document.createElement('video');

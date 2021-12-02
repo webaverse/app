@@ -2229,6 +2229,7 @@ class Avatar {
     const _lowercase = s => s.slice(0, 1).toLowerCase() + s.slice(1);
     if (this.arPose) {
       // update model bones
+      window.arPose = this.arPose;
       for (const k in this.arPose.pose) {
         if (
           k !== 'Root' &&
