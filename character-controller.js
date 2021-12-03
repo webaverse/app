@@ -598,6 +598,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
     });
+    console.log('dispatch avatar change');
     this.dispatchEvent({
       type: 'avatarchange',
       app,

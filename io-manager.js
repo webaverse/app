@@ -840,6 +840,7 @@ ioManager.bindInput = () => {
 
   const _syncAvatar = async app => {
     const avatarClone = await app.clone();
+    console.log('face tracker set avatar', avatarClone);
     await faceTracker.setAvatar(avatarClone);
   };
   const localPlayer = metaversefile.useLocalPlayer();
@@ -854,10 +855,14 @@ ioManager.bindInput = () => {
       faceTracker.destroy();
       faceTracker = null;
     }
-    localPlayer.addEventListener('avatarchange', e =>{
-      _syncAvatar(e.app);
-    })
   };
+  console.log('listen for avatar change');
+  localPlayer.addEventListener('avatarchange', e => {
+    console.log('got avatar change', e, !!faceTracker);
+    if (faceTracker) {
+      _syncAvatar(e.app);
+    }
+  })
 
 };
 
