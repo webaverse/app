@@ -403,6 +403,9 @@ export default function Header({
             <Location
               sceneNames={sceneNames}
               universe={universe}
+              world={world}
+              Z={Z}
+              _makeName={_makeName}
               sceneName={sceneName}
               setSceneName={setSceneName}
               roomName={roomName}

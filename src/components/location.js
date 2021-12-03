@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
- 
-export const Location = ({universe, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
+
+export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
-  
+
   const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost());
     if (res.ok) {
@@ -99,9 +99,9 @@ export const Location = ({universe, sceneName, sceneNames, setSceneName, roomNam
               // console.log('world create result', j);
 
               refreshRooms();
-              
+
               universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
-              
+
               /* this.parent.sendMessage([
                 MESSAGE.ROOMSTATE,
                 data,
@@ -132,7 +132,7 @@ export const Location = ({universe, sceneName, sceneNames, setSceneName, roomNam
                 e.stopPropagation();
 
                 const res = await fetch(universe.getWorldsHost() + room.name, {
-                  method: 'DELETE'
+                  method: 'DELETE',
                 });
                 // console.log('got click 0');
                 if (res.ok) {
