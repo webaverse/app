@@ -47,7 +47,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "https://yaserosource.github.io/treehouse/"
     },
     {
       "type": "application/group",
@@ -65,7 +65,7 @@
       "content": {
         "objects": [
           {
-            "start_url": "https://webaverse.github.io/lantern/"
+            "start_url": "https://yaserosource.github.io/lantern/"
           },
           {
             "type": "application/light",
@@ -93,7 +93,7 @@
       "content": {
         "objects": [
           {
-            "start_url": "https://webaverse.github.io/fairy/"
+            "start_url": "https://yaserosource.github.io/fairy/"
           },
           {
             "type": "application/light",
@@ -132,7 +132,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/scissors/"
+      "start_url": "https://yaserosource.github.io/scissors/"
     }
   ]
 }

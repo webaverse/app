@@ -6,7 +6,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox/index.js"
+      "start_url": "https://yaserosource.github.io/skybox/index.js"
     },
     {
       "position": [
@@ -36,7 +36,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "https://yaserosource.github.io/treehouse/"
     },
     {
       "position": [
@@ -50,7 +50,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/ramp/"
+      "start_url": "https://yaserosource.github.io/ramp/"
     },
     {
       "position": [
@@ -64,7 +64,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/fox/"
+      "start_url": "https://yaserosource.github.io/fox/"
     }
   ]
 }

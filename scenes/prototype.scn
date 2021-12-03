@@ -22,7 +22,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "https://yaserosource.github.io/atmospheric-sky/"
     },
     {
       "position": [
@@ -61,7 +61,7 @@
         0
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/proto-sandbox/",
+      "start_url": "https://yaserosource.github.io/proto-sandbox/",
       "dynamic": false
     }
   ]
