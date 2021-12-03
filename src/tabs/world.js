@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
-import metaversefile from '../../metaversefile-api.js';
+import totum from '../../totum-api.js';
 
 const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
 
@@ -37,7 +37,7 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
                   const physicsId = physicsObject ? physicsObject.physicsId : 0;
                   selectApp(app, physicsId);
 
-                  const localPlayer = metaversefile.useLocalPlayer();
+                  const localPlayer = totum.useLocalPlayer();
                   localPlayer.lookAt(app.position);
                 }} onMouseEnter={e => {
                   const physicsObjects = app.getPhysicsObjects();
