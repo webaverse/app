@@ -139,7 +139,7 @@ window.THREE = THREE;
 window.p0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.p1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
-window.d1 = new THREE.Quaternion()
+// window.d1 = new THREE.Quaternion()
 
 // elbow
 window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
@@ -147,20 +147,24 @@ window.a0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.a1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
-window.d2 = new THREE.Quaternion()
+// window.d2 = new THREE.Quaternion()
 
 // hand
-window.b0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
-window.b1 = new THREE.Quaternion()
-window.d3 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
-  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+{
+  const x = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+  window.b0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+    .premultiply(x)
+  window.b1 = new THREE.Quaternion()
+    .premultiply(x.clone().invert())
+}
 
 // right
 // arm
 window.q0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.q1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
-window.e1 = new THREE.Quaternion()
+// window.e1 = new THREE.Quaternion()
 
 // elbow
 window.c0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
@@ -170,6 +174,17 @@ window.c0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 
 window.c1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5)
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
 window.f1 = new THREE.Quaternion()
+
+// hand
+{
+  const x = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5)
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+  window.d0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
+    .premultiply(x)
+  window.d1 = new THREE.Quaternion()
+    .premultiply(x.clone().invert())
+}
 
 const _makeFakeAvatar = () => {
   const Root = new THREE.Object3D();
@@ -766,13 +781,13 @@ const _solvePoseToAvatar = (() => {
             )
           )
         ) */
-        .premultiply(window.d1)
+        // .premultiply(window.d1)
       if (window.lol1) {
         tempAvatar.Left_arm.quaternion
           .premultiply(fakeQuaternion)
       }
-      tempAvatar.Left_arm.quaternion
-        .premultiply(window.d1.clone().invert())
+      // tempAvatar.Left_arm.quaternion
+        // .premultiply(window.d1.clone().invert())
       tempAvatar.Left_arm.quaternion
         .premultiply(window.p1)
         /*.setFromUnitVectors(
@@ -792,13 +807,13 @@ const _solvePoseToAvatar = (() => {
             )
           )
         ) */
-        .premultiply(window.e1)
+        // .premultiply(window.g1)
       if (window.lol1) {
         tempAvatar.Right_arm.quaternion
           .premultiply(fakeQuaternion)
       }
-      tempAvatar.Right_arm.quaternion
-        .premultiply(window.e1.clone().invert())
+      // tempAvatar.Right_arm.quaternion
+        // .premultiply(window.g1.clone().invert())
       tempAvatar.Right_arm.quaternion
         .premultiply(window.q1)
         /*.setFromUnitVectors(
@@ -817,13 +832,13 @@ const _solvePoseToAvatar = (() => {
           )
         ) */
         .premultiply(window.a0)
-        .premultiply(window.d2)
+        // .premultiply(window.d2)
       if (window.lol2) {
         tempAvatar.Left_elbow.quaternion
           .premultiply(fakeQuaternion)
       }
-      tempAvatar.Left_elbow.quaternion
-        .premultiply(window.d2.clone().invert())
+      // tempAvatar.Left_elbow.quaternion
+        // .premultiply(window.d2.clone().invert())
       tempAvatar.Left_elbow.quaternion
         /*.setFromUnitVectors(
         new THREE.Vector3(1, 0, 0),
@@ -857,7 +872,7 @@ const _solvePoseToAvatar = (() => {
     {
       tempAvatar.Left_wrist.quaternion.identity()
         .premultiply(window.b0)
-        .premultiply(window.d3)
+        // .premultiply(window.d3)
       if (window.lol3) {
         tempAvatar.Left_wrist.quaternion
           .premultiply(fakeQuaternion)
@@ -872,22 +887,33 @@ const _solvePoseToAvatar = (() => {
             )
           )
         ) */
-      tempAvatar.Left_wrist.quaternion
-        .premultiply(window.d3.clone().invert())
+      // tempAvatar.Left_wrist.quaternion
+        // .premultiply(window.d3.clone().invert())
       tempAvatar.Left_wrist.quaternion
         .premultiply(window.b1)
     }
     {
-      tempAvatar.Right_wrist.quaternion.identity()/*.setFromRotationMatrix(
-        localMatrix.lookAt(
-          boneBuffers.rightHand,
-          rightMiddle,
-          rightWristNormal
-        )
-      ) */
-      // .premultiply(slightLeftRotation);
-      // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
-      // .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
+      tempAvatar.Right_wrist.quaternion.identity()
+        .premultiply(window.d0)
+        // .premultiply(window.d3)
+      if (window.lol3) {
+        tempAvatar.Right_wrist.quaternion
+          .premultiply(fakeQuaternion)
+      }
+        // .premultiply(fakeQuaternion)
+        /*.premultiply(
+          new THREE.Quaternion().setFromRotationMatrix(
+            localMatrix.lookAt(
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(1, y, 0),
+              new THREE.Vector3(0, 0, 1)
+            )
+          )
+        ) */
+      // tempAvatar.Right_wrist.quaternion
+        // .premultiply(window.d3.clone().invert())
+      tempAvatar.Right_wrist.quaternion
+        .premultiply(window.d1)
     }
     /* {
       tempAvatar.Left_leg.quaternion.setFromRotationMatrix(
