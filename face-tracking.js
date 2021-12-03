@@ -1242,7 +1242,7 @@ class FaceTracker extends EventTarget {
     }
 
     const newAvatar = await switchAvatar(null, avatarApp);;
-    console.log('switch avatar', oldAvatar, newAvatar);
+    console.log('switch avatar', oldAvatar, newAvatar, new Error().stack);
     this.avatar = newAvatar;
     // avatar.inputs.hmd.position.y = avatar.height;
     
