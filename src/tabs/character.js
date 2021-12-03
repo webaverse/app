@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
-import totum from '../../totum-api.js';
+import metaversefile from '../../metaversefile-api.js';
 
 export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef, setOpen, toggleOpen}) => {
   return (
@@ -32,7 +32,7 @@ export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef,
                 className={styles.equipment}
                 key={i}
                 onMouseEnter={e => {
-                  const app = totum.getAppByInstanceId(wearAction.instanceId);
+                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
                   game.setMouseHoverObject(null);
                   const physicsId = app.getPhysicsObjects()[0]?.physicsId;
                   game.setMouseDomEquipmentHoverObject(app, physicsId);
@@ -45,8 +45,8 @@ export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef,
                 <img src="images/flower.png" className={styles.icon} />
                 <div className={styles.name}>{wearAction.instanceId}</div>
                 <button className={styles.button} onClick={e => {
-                  const localPlayer = totum.useLocalPlayer();
-                  const app = totum.getAppByInstanceId(wearAction.instanceId);
+                  const localPlayer = metaversefile.useLocalPlayer();
+                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
                   localPlayer.unwear(app);
                 }}>
                   <img src="images/remove.svg" />

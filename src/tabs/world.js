@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
-import totum from '../../totum-api.js';
+import metaversefile from '../../metaversefile-api.js';
 
 const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
 
