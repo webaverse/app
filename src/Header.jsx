@@ -479,92 +479,16 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
-            <Tab
-              type="world"
-              top
-              right
-              className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}
-              label={
-                <div className={styles.label}>
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>世 World</span>
-                  <span className={styles.key}>Z</span>
-                </div>
-              }
-              panels={[
-                (<div className={styles.panel} key="left">
-                  <div className={styles['panel-header']}>
-                    <h1>Tokens</h1>
-                  </div>
-                  <div className={styles.objects}>
-                    {apps.map((app, i) => {
-                      return (
-                        <div className={classnames(styles.object, app === selectedApp ? styles.selected : null)} key={i} onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          
-                          const physicsObjects = app.getPhysicsObjects();
-                          const physicsObject = physicsObjects[0] || null;
-                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
-                          selectApp(app, physicsId);
-                          
-                          const localPlayer = totum.useLocalPlayer();
-                          localPlayer.lookAt(app.position);
-                        }} onMouseEnter={e => {
-                          const physicsObjects = app.getPhysicsObjects();
-                          const physicsObject = physicsObjects[0] || null;
-                          const physicsId = physicsObject ? physicsObject.physicsId : 0;
-                          
-                          game.setMouseHoverObject(null);
-                          game.setMouseDomHoverObject(app, physicsId);
-                        }} onMouseLeave={e => {
-                          game.setMouseDomHoverObject(null);
-                        }} onMouseMove={e => {
-                          e.stopPropagation();
-                          // game.setMouseSelectedObject(null);
-                        }}>
-                          <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                          <img src="images/object.jpg" className={styles.img} />
-                          <div className={styles.wrap}>
-                            <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>),
-                (selectedApp ? <div className={styles.panel} key="right">
-                  <div className={styles['panel-header']}>
-                    <div className={classnames(styles.button, styles.back)} onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      
-                      setSelectedApp(null);
-                    }}>
-                      <img src="images/webchevron.svg" className={styles.img} />
-                    </div>
-                    <h1>{_formatContentId(selectedApp.contentId)}</h1>
-                  </div>
-                  <div className={styles['panel-subheader']}>Position</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={px} />
-                    <NumberInput input={py} />
-                    <NumberInput input={pz} />
-                  </div>
-                  <div className={styles['panel-subheader']}>Rotation</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={rx} />
-                    <NumberInput input={ry} />
-                    <NumberInput input={rz} />
-                  </div>
-                  <div className={styles['panel-subheader']}>Scale</div>
-                  <div className={styles.inputs}>
-                    <NumberInput input={sx} />
-                    <NumberInput input={sy} />
-                    <NumberInput input={sz} />
-                  </div>
-                </div> : null),
-              ]}
+            <Character 
+              open={open}
+              setOpen={setOpen} 
+              toggleOpen={toggleOpen} 
+              panelsRef={panelsRef} 
+              wearActions={wearActions} 
+              previewCanvasRef={previewCanvasRef}
+              game={game}
+            />
+            <World
               open={open}
               setOpen={setOpen} 
               toggleOpen={toggleOpen}
