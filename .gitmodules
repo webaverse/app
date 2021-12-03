@@ -6,4 +6,4 @@
 	url = https://github.com/webaverse/zjs.git
 [submodule "packages/totum"]
 	path = packages/totum
-	url = https://github.com/yaserosource/totum.git
+	url = https://github.com/webaverse/totum.git
