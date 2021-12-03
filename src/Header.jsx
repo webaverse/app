@@ -401,6 +401,7 @@ export default function Header({
               <img src="images/arrow-logo.svg" className={styles.image} />
             </a>
             <Location
+              sceneNames={sceneNames}
               universe={universe}
               sceneName={sceneName}
               setSceneName={setSceneName}
