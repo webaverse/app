@@ -68,20 +68,10 @@ const _proxyUrl = (req, res, u) => {
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
-        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
-        proxyReq.on('response', proxyRes => {
-          for (const header in proxyRes.headers) {
-            res.setHeader(header, proxyRes.headers[header]);
-          }
-          res.statusCode = proxyRes.statusCode;
-          proxyRes.pipe(res);
-        });
-        proxyReq.on('error', err => {
-          console.error(err);
-          res.statusCode = 500;
-          res.end();
-        });
-        proxyReq.end();
+        res.redirect(u);
+      }else if(/^\/login/.test(o.pathname)){
+        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+        res.redirect(req.originalUrl);
       } else {
         req.originalUrl = u;
         next();
