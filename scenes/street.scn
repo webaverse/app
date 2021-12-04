@@ -163,7 +163,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/stacks/index.js"
+      "start_url": "https://yaserosource.github.io/stacks/index.js"
     },
     {
       "position": [
@@ -192,7 +192,7 @@
     {
       "position": [-1, 1, -1],
       "quaternion": [0, 0, 0, 1],
-      "start_url": "https://webaverse.github.io/arrow-loader/"
+      "start_url": "https://yaserosource.github.io/arrow-loader/"
     },
     {
       "position": [-5, 4, -6],
@@ -202,7 +202,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://avaer.github.io/physicscube/"
+      "start_url": "https://yaserosource.github.io/physicscube/"
     },
     {
       "position": [-2, 1, 1],
