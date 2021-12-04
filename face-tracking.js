@@ -931,9 +931,6 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Left_elbow.quaternion
         .premultiply(window.ax.clone().invert())
       tempAvatar.Left_elbow.quaternion
-        /*.setFromUnitVectors(
-        new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize() */
         .premultiply(window.a1)
     }
     {
@@ -955,9 +952,6 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Right_elbow.quaternion
         .premultiply(window.cx.clone().invert())
       tempAvatar.Right_elbow.quaternion
-        /*.setFromUnitVectors(
-        new THREE.Vector3(1, 0, 0),
-        boneBuffers.leftHand.clone().sub(boneBuffers.leftElbow).normalize() */
         .premultiply(window.c1)
     }
     {
