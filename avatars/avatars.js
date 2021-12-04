@@ -2243,7 +2243,7 @@ class Avatar {
           k !== 'Right_leg' &&
           k !== 'Right_toe'
         ) {
-          this.modelBoneOutputs[k].quaternion.premultiply(this.arPose.pose[k].quaternion);
+          this.modelBoneOutputs[k].quaternion.multiply(this.arPose.pose[k].quaternion);
         }
       }
 
