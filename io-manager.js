@@ -845,6 +845,7 @@ ioManager.bindInput = () => {
   };
   const localPlayer = metaversefile.useLocalPlayer();
   ioManager.setFaceTracking = enable => {
+    console.log('set face tracking', enable, !!faceTracker);
     if (enable && !faceTracker) {
       faceTracker = new FaceTracker();
       

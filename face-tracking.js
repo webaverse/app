@@ -133,7 +133,7 @@ const getBrowRaise = (lm, side = "left") => {
   return browRaiseRatio; */
 };
 window.THREE = THREE;
-window.lol1 = true;
+window.lol3 = true;
 
 // left
 // arm
@@ -187,8 +187,10 @@ window.lol1 = true;
 
 // elbow
 {
-  window.cx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+  window.cx = new THREE.Quaternion()
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
     .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5))
   window.c0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
     .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
     .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
