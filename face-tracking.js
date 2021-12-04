@@ -169,7 +169,7 @@ window.deltaQuaternion4 = new THREE.Quaternion()
     // .premultiply(window.ax)
   window.a1 = new THREE.Quaternion()
     // .premultiply(window.ax.clone().invert())
-    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
+    // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
     // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
   // window.d2 = new THREE.Quaternion()
 }
@@ -901,7 +901,7 @@ const _solvePoseToAvatar = (() => {
 
 
       tempAvatar.Left_elbow.quaternion.identity()
-        .premultiply(tempAvatar.Left_arm.quaternion.clone().invert())
+        // .premultiply(tempAvatar.Left_arm.quaternion.clone().invert())
         .premultiply(window.a0)
         /* .setFromRotationMatrix(
           localMatrix.lookAt(
