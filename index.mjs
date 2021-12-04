@@ -8,6 +8,8 @@ import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
 
+const isProduction = process.argv[2] === '-p';
+
 const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
 
 const _tryReadFile = p => {
@@ -19,8 +21,8 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs/privkey.pem'),
-  cert: _tryReadFile('./certs/fullchain.pem'),
+  key: _tryReadFile('./certs-local/privkey.pem') || _tryReadFile('./certs/privkey.pem'),
+  cert: _tryReadFile('./certs-local/fullchain.pem') || _tryReadFile('./certs/fullchain.pem'),
 };
 
 function makeId(length) {
@@ -57,14 +59,11 @@ function makeId(length) {
   });
 
   const isHttps = !!certs.key && !!certs.cert;
-  const port = parseInt(process.env.PORT, 10) || (isHttps ? 443 : 3000);
-  const httpServer = (() => {
-    if (isHttps) {
-      return https.createServer(certs, app);
-    } else {
-      return http.createServer(app);
-    }
-  })();
+  const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
+  const wsPort = port + 1;
+
+  const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
+  const httpServer = _makeHttpServer();
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
@@ -79,10 +78,11 @@ function makeId(length) {
   
   await new Promise((accept, reject) => {
     httpServer.listen(port, '0.0.0.0', () => {
-      console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
       accept();
     });
+    httpServer.on('error', reject);
   });
+  console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
   
   const wsServer = (() => {
     if (isHttps) {
@@ -125,14 +125,11 @@ function makeId(length) {
     initialRoomState,
     initialRoomNames,
   });
-  const port2 = port + 1;
   await new Promise((accept, reject) => {
-    wsServer.listen(port2, '0.0.0.0', () => {
-      console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${port2}/`)
+    wsServer.listen(wsPort, '0.0.0.0', () => {
+      accept();
     });
-    wsServer.on('error', err => {
-      console.warn(err.stack);
-      process.exit(1);
-    });
+    wsServer.on('error', reject);
   });
+  console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
 })();
