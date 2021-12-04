@@ -787,6 +787,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
         highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
         highlightPhysicsMesh.visible = true;
+        highlightPhysicsMesh.updateMatrixWorld();
       }
     }
   };
@@ -809,6 +810,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseHighlightPhysicsMesh.visible = true;
+        mouseHighlightPhysicsMesh.updateMatrixWorld();
       }
     }
   };
@@ -837,8 +839,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
           // mouseSelectPhysicsMesh.position.set(0, 0, 0);
           // mouseSelectPhysicsMesh.quaternion.identity();
           // mouseSelectPhysicsMesh.scale.set(1, 1, 1);
-          mouseSelectPhysicsMesh.updateMatrixWorld();
           mouseSelectPhysicsMesh.visible = true;
+          mouseSelectPhysicsMesh.updateMatrixWorld();
+
         }
         // update uniforms
         {
@@ -869,6 +872,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomHoverPhysicsMesh.visible = true;
+        mouseDomHoverPhysicsMesh.updateMatrixWorld();
       }
     }
   };
@@ -890,6 +894,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
+        mouseDomEquipmentHoverPhysicsMesh.updatrMatrixWorld();
       }
     }
   };

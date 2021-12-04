@@ -14,9 +14,6 @@ import {SSAOPass} from './SSAOPass.js';
 import {
   getRenderer,
   getComposer,
-  scene,
-  // sceneHighPriority,
-  // sceneLowPriority,
   rootScene,
   camera,
 } from './renderer.js';
