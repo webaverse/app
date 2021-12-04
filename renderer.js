@@ -6,12 +6,14 @@ the purpose of this file is to hold these objects and to make sure they are corr
 import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
-
+import * as SPECTOR from 'spectorjs';
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
 let canvas = null, context = null, renderer = null, composer = null;
-
+var spector = new SPECTOR.Spector();
+spector.displayUI();
+spector.spyCanvases();
 function bindCanvas(c) {
   // initialize renderer
   canvas = c;
