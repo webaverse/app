@@ -894,7 +894,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
-        mouseDomEquipmentHoverPhysicsMesh.updatrMatrixWorld();
+        mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld();
       }
     }
   };

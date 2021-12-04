@@ -6,7 +6,6 @@ you can have as many app managers as you want.
 import * as THREE from 'three';
 import * as Z from 'zjs';
 
-// import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
@@ -537,7 +536,7 @@ class AppManager extends EventTarget {
             if (!app.matrix.equals(app.lastMatrix)) {
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
-              
+              app.updateMatrixWorld();
               const physicsObjects = app.getPhysicsObjects();
               for (const physicsObject of physicsObjects) {
                 physicsObject.position.copy(app.position);
