@@ -227,13 +227,14 @@ class Player extends THREE.Object3D {
       (async () => {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
+        
         this.avatar = nextAvatar;
+
+        this.dispatchEvent({
+          type: 'avatarupdate',
+          app,
+        });
       })();
-      
-      this.dispatchEvent({
-        type: 'avatarupdate',
-        app,
-      });
     };
     
     if (instanceId) {
@@ -598,11 +599,11 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
     });
-    console.log('dispatch avatar change');
+    /* console.log('dispatch avatar change');
     this.dispatchEvent({
       type: 'avatarchange',
       app,
-    });
+    }); */
   }
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
