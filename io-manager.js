@@ -857,9 +857,9 @@ ioManager.bindInput = () => {
       faceTracker = null;
     }
   };
-  console.log('listen for avatar change');
-  localPlayer.addEventListener('avatarchange', e => {
-    console.log('got avatar change', e, !!faceTracker);
+  // console.log('listen for avatar change');
+  localPlayer.addEventListener('avatarupdate', e => {
+    // onsole.log('got avatar change', e, !!faceTracker);
     if (faceTracker) {
       _syncAvatar(e.app);
     }
