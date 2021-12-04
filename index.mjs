@@ -42,7 +42,7 @@ function makeId(length) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
+    if (/^\/(?:@proxy|public|login)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -50,7 +50,7 @@ function makeId(length) {
       if (_isMediaType(o.pathname)) {
         res.redirect(u);
       }else if(/^\/login/.test(o.pathname)){
-        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'');
         res.redirect(req.originalUrl);
       } else {
         req.originalUrl = u;
