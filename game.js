@@ -709,6 +709,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               .multiplyScalar(3)
           );
         grabUseMesh.quaternion.copy(camera.quaternion);
+        grabUseMesh.updateMatrixWorld();
         // grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -730,7 +731,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
-          
+          grabUseMesh.updateMatrixWorld();
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -1063,7 +1064,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
     cylinderMesh.quaternion.copy(localPlayer.quaternion);
     // cylinderMesh.startPosition.copy(localPlayer.position);
-    
+    cylinderMesh.updateMatrixWorld();
     const useAction = localPlayer.getAction('use');
     if (useAction && useAction.animation === 'combo') {
       const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
@@ -1191,7 +1192,7 @@ window.addEventListener('drop', async e => {
   arrowLoader.position.copy(position);
   arrowLoader.quaternion.copy(quaternion);
   scene.add(arrowLoader);
-  
+  arrowLoader.updateMatrixWorld();
   const items = Array.from(e.dataTransfer.items);
   await Promise.all(items.map(async item => {
     await _handleUpload(item, {
