@@ -134,15 +134,17 @@ const getBrowRaise = (lm, side = "left") => {
 };
 window.THREE = THREE;
 window.lol1 = true;
+// window.lol1 = true;
 
 window.deltaQuaternion = new THREE.Quaternion()
-  // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.deltaQuaternion2 = new THREE.Quaternion()
   // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75))
   // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5))
 window.deltaQuaternion3 = new THREE.Quaternion()
   // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.deltaQuaternion4 = new THREE.Quaternion()
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 
 // left
 // arm
@@ -836,8 +838,8 @@ const _solvePoseToAvatar = (() => {
         /* tempAvatar.Left_arm.quaternion
           .premultiply(fakeQuaternion) */
         tempAvatar.Left_arm.quaternion
-          .premultiply(fakeQuaternion)
-          /* .premultiply(
+          // .premultiply(fakeQuaternion)
+          .premultiply(
             new THREE.Quaternion().setFromRotationMatrix(
               new THREE.Matrix4().lookAt(
                 boneBuffers.leftShoulder,
@@ -846,7 +848,7 @@ const _solvePoseToAvatar = (() => {
                   // .applyQuaternion(deltaQuaternion)
               )
             )
-          ) */
+          )
           .premultiply(deltaQuaternion)
       }
       tempAvatar.Left_arm.quaternion
@@ -875,17 +877,17 @@ const _solvePoseToAvatar = (() => {
         /* tempAvatar.Right_arm.quaternion
           .premultiply(fakeQuaternion) */
         tempAvatar.Right_arm.quaternion
-          .premultiply(fakeQuaternion)
-          /* .premultiply(
+          // .premultiply(fakeQuaternion)
+          .premultiply(
             new THREE.Quaternion().setFromRotationMatrix(
               new THREE.Matrix4().lookAt(
-                boneBuffers.leftShoulder,
-                boneBuffers.leftElbow,
+                boneBuffers.rightShoulder,
+                boneBuffers.rightElbow,
                 new THREE.Vector3(0, 1, 0)
                   // .applyQuaternion(deltaQuaternion)
               )
             )
-          ) */
+          )
           .premultiply(deltaQuaternion4)
       }
       tempAvatar.Right_arm.quaternion
