@@ -11,6 +11,7 @@ import * as Kalidokit from './kalidokit/src/index.js';
 // import {getRenderer, scene} from './renderer.js';
 // import {world} from './world.js';
 // import {fitCameraToBox} from './util.js';
+import Avatar from './avatars/avatars.js';
 import {/*makeAvatar, */switchAvatar} from './player-avatar-binding.js';
 // import Stats from 'stats.js';
 
@@ -515,6 +516,24 @@ const _setSkeletonWorld = (() => {
   };
 })();
 // window.THREE = THREE;
+const _copyAvatarBonePositions = (dstModelBones, srcModelBones) => {
+  for (const k in dstModelBones) {
+    dstModelBones[k].position.copy(srcModelBones[k].position);
+  }
+};
+const _setAvatarToIdlePose = dstModelBones => {
+  const animations = Avatar.getAnimations();
+  const animationConfig = Avatar.getAnimationMappingConfig();
+  const idleAnimation = animations.find(animation => animation.name === 'idle.fbx');
+  for (const animationMapping of animationConfig) {
+    const {animationTrackName, boneName, isPosition} = animationMapping;
+    const interpolant = idleAnimation.interpolants[animationTrackName];
+    const {sampleValues} = interpolant;
+    const bone = dstModelBones[boneName];
+    bone[isPosition ? 'position' : 'quaternion'].fromArray(sampleValues, 0);
+  }
+  dstModelBones.Root.updateMatrixWorld();
+};
 const _solvePoseToAvatar = (() => {
   const tempAvatar = _makeFakeAvatar();
   const boneBuffers = {
@@ -710,7 +729,7 @@ const _solvePoseToAvatar = (() => {
       const now = performance.now();
       const i = Math.floor(now / 2000) % 4;
       const y = Math.sin(((now % 2000) / 2000) * (Math.PI*2)) * Math.PI;
-      
+
       if (i === 0 || i === 1) {
         return new THREE.Quaternion().setFromRotationMatrix(
           new THREE.Matrix4().lookAt(
@@ -1359,17 +1378,22 @@ class FaceTracker extends EventTarget {
     _recurseFrame();
   }
   async setAvatar(avatarApp) {
-    const oldAvatar = this.avatar;
+    // const oldAvatar = this.avatar;
     if (this.avatar) {
       this.previewScene.remove(this.avatar.model);
       this.avatar = null;
     }
 
     const newAvatar = await switchAvatar(null, avatarApp);;
-    console.log('switch avatar', oldAvatar, newAvatar, new Error().stack);
+    // console.log('switch avatar', oldAvatar, newAvatar, new Error().stack);
     this.avatar = newAvatar;
     // avatar.inputs.hmd.position.y = avatar.height;
     
+    const idleAvatar = _makeFakeAvatar();
+    _copyAvatarBonePositions(idleAvatar, newAvatar.modelBones);
+    _setAvatarToIdlePose(idleAvatar);
+    // window.idleAvatar = idleAvatar;
+
     // this.avatar.setTopEnabled(true);
     // this.avatar.setHandEnabled(0, false);
     // this.avatar.setHandEnabled(1, false);
