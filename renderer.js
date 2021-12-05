@@ -7,6 +7,9 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
+// XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
+// THREE.Object3D.DefaultMatrixAutoUpdate = false;
+
 let canvas = null, context = null, renderer = null, composer = null;
 
 function bindCanvas(c) {
@@ -84,6 +87,7 @@ const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
+rootScene.autoUpdate = false;
 const postScene = new THREE.Scene();
 postScene.name = 'postScene';
 rootScene.add(sceneHighPriority);

@@ -15,9 +15,6 @@ import {RenderPass} from './RenderPass';
 import {
   getRenderer,
   getComposer,
-  scene,
-  // sceneHighPriority,
-  // sceneLowPriority,
   rootScene,
   postScene,
   camera,

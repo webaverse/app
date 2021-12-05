@@ -1564,6 +1564,7 @@ const copyScene = (() => {
     }),
   );
   const scene = new THREE.Scene();
+  scene.autoUpdate = false;
   scene.add(mesh);
   scene.mesh = mesh;
   return scene;

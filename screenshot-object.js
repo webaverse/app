@@ -9,6 +9,7 @@ export async function screenshotObject(o) {
   console.log('add o', o);
 
   const newScene = new THREE.Scene();
+  newScene.autoUpdate = false;
   {
     const ambientLight = new THREE.AmbientLight(0x808080);
     newScene.add(ambientLight);
@@ -50,6 +51,7 @@ export async function exportObject(o) {
   const dataPromise = makePromise();
   const exporter = new GLTFExporter();
   const exportScene = new THREE.Scene();
+  exportScene.autoUpdate = false;
   exportScene.add(o);
   exporter.parse(exportScene, gltf => {
     dataPromise.accept(gltf);
