@@ -1211,9 +1211,8 @@ class Avatar {
 
     this.animationMappings = animationMappingConfig.map(animationMapping => {
       animationMapping = animationMapping.clone();
-      const isPosition = /\.position$/.test(animationMapping.animationTrackName);
-      animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
-      animationMapping.lerpFn = _getLerpFn(isPosition);
+      animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][animationMapping.isPosition ? 'position' : 'quaternion'];
+      animationMapping.lerpFn = _getLerpFn(animationMapping.isPosition);
       return animationMapping;
     });
 
