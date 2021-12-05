@@ -846,7 +846,7 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Right_shoulder.quaternion.copy(tempAvatar.Left_shoulder.quaternion);
       // console.log('set hips', tempAvatar.Hips.quaternion.toArray().join(','));
     } */
-    const y = Math.sin(((performance.now() % 2000) / 2000) * (Math.PI*2)) * Math.PI;
+    // const y = Math.sin(((performance.now() % 2000) / 2000) * (Math.PI*2)) * Math.PI;
     // console.log(y);
     {
       tempAvatar.Left_arm.quaternion.identity()
