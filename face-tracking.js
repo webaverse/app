@@ -597,7 +597,7 @@ const _solvePoseToAvatar = (() => {
   })();
   window.debugMeshes = debugMeshes; */
 
-  return (lm3d, leftHandLm, rightHandLm, avatar) => {
+  return (lm3d, leftHandLm, rightHandLm, idleAvatar, avatar) => {
     boneBuffers.leftHip.copy(lm3d[23]);
     boneBuffers.rightHip.copy(lm3d[24]);
     boneBuffers.leftShoulder.copy(lm3d[11]);
@@ -1392,7 +1392,7 @@ class FaceTracker extends EventTarget {
     const idleAvatar = _makeFakeAvatar();
     _copyAvatarBonePositions(idleAvatar, newAvatar.modelBones);
     _setAvatarToIdlePose(idleAvatar);
-    // window.idleAvatar = idleAvatar;
+    this.idleAvatar = idleAvatar;
 
     // this.avatar.setTopEnabled(true);
     // this.avatar.setHandEnabled(0, false);
@@ -1458,7 +1458,7 @@ class FaceTracker extends EventTarget {
       } */
 
       if (facelm) {
-        _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, fakeAvatar);
+        _solvePoseToAvatar(poselm3D, leftHandlm, rightHandlm, this.idleAvatar, fakeAvatar);
         let faceRig = Kalidokit.Face.solve(facelm, {runtime: 'mediapipe', imageSize: internalDimensions});
         // let poseRig = Kalidokit.Pose.solve(poselm3D, poselm, {runtime:'mediapipe', imageSize: internalDimensions, enableLegs: true});
         // window.poselm3D = poselm3D;
