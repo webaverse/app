@@ -1063,7 +1063,7 @@ class Avatar {
       head: this.shoulderTransforms.head,
       neck: this.shoulderTransforms.neck,
       upperChest: this.shoulderTransforms.upperChest,
-      chest: this.shoulderTransforms.hips,
+      chest: this.shoulderTransforms.chest,
       hips: this.shoulderTransforms.hips,
       spine: this.shoulderTransforms.spine,
       leftShoulder: this.shoulderTransforms.leftShoulderAnchor,
