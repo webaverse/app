@@ -38,17 +38,17 @@ const points = {
   mouth: [61, 291, 164, 118, 13, 14, 50, 280, 200],
 };
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.1);
+// const slightLeftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.1);
 // const rollRightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5);
 // const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 
 // window.clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
-const remap = (val, min, max) => {
+/* const remap = (val, min, max) => {
   //returns min to max -> 0 to 1
   return (clamp(val, min, max) - min) / (max - min);
-};
+}; */
 const eyeLidRatio = (
   eyeOuterCorner,
   eyeInnerCorner,
