@@ -32,7 +32,7 @@
     "kalidokit": "^1.0.5",
     "key-did-provider-ed25519": "^1.1.0",
     "key-did-resolver": "^1.4.0",
-    "metaversefile": "./packages/metaversefile",
+    "metaversefile": "./packages/totum",
     "openai-api": "^1.2.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
