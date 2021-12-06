@@ -857,7 +857,7 @@ class RemotePlayer extends InterpolatedPlayer {
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index);
     } else {
-      console.warn('binding to nonexistent player object', playerId, this.playersArray.toJSON());
+      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
     const observePlayerFn = e => {
