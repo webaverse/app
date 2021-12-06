@@ -223,6 +223,7 @@ const loadPromise = (async () => {
       const arrayBuffer = await res.arrayBuffer();
       animations = CBOR.decode(arrayBuffer).animations
         .map(a => THREE.AnimationClip.parse(a));
+        console.log(animations)
     })(),
     (async () => {
       const srcUrl = '../animations/animations-skeleton.glb';
@@ -310,6 +311,15 @@ const loadPromise = (async () => {
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   for (const animation of animations) {
     decorateAnimation(animation);
+  }
+
+  //TODO add all jumpAnimations
+
+  jumpAnimationSegments = {
+    chargeJump: animations.find(a => a.isChargeJump),
+    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
+    isFallLoop: animations.find(a => a.isFallLoop),
+    isLanding: animations.find(a => a.isLanding)
   }
   
   jumpAnimation = animations.find(a => a.isJump);
@@ -1870,7 +1880,9 @@ class Avatar {
           );
       };
       const _getApplyFn = () => {
+
         if (this.jumpState) {
+          console.log('JumpState')
           return spec => {
             const {
               animationTrackName: k,

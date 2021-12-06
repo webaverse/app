@@ -542,6 +542,10 @@ export const decorateAnimation = animation => {
   animation.isActivate = /object/i.test(animation.name);
   animation.isNarutoRun = /naruto run/i.test(animation.name);
   animation.isReverse = /reverse/i.test(animation.name);
+  animation.isLanding = /landing/i.test(animation.name);
+  animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);
+  animation.isChargeJump = /charge_jump/i.test(animation.name);
+  animation.isFallLoop = /fall_loop/i.test(animation.name);
   animation.interpolants = {};
   animation.tracks.forEach(track => {
     const i = track.createInterpolant();
