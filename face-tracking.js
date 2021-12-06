@@ -134,12 +134,14 @@ const getBrowRaise = (lm, side = "left") => {
   return browRaiseRatio; */
 };
 window.THREE = THREE;
-// window.lol1 = true;
+window.lol1 = true;
 // window.lol2 = true;
-window.lol3 = true;
+// window.lol3 = true;
 
-window.shiftQuaternion = new THREE.Quaternion()
+window.shiftLeftQuaternion = new THREE.Quaternion()
   .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5));
+window.shiftRightQuaternion = new THREE.Quaternion()
+  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5));
 
 window.deltaQuaternion = new THREE.Quaternion()
   // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
@@ -149,7 +151,7 @@ window.deltaQuaternion2 = new THREE.Quaternion()
 window.deltaQuaternion3 = new THREE.Quaternion()
   // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 window.deltaQuaternion4 = new THREE.Quaternion()
-  .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
+  // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
 
 // left
 // arm
@@ -203,12 +205,16 @@ window.deltaQuaternion4 = new THREE.Quaternion()
 // arm
 {
   window.qx = new THREE.Quaternion()
-    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5))
-  window.q0 = new THREE.Quaternion()
-    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5))
     .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5))
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5))
+    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5))
+  window.q0 = new THREE.Quaternion()
+    // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5))
+    // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5))
   window.q1 = new THREE.Quaternion()
-    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
+    // .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5))
 }
 
 // elbow
@@ -852,7 +858,7 @@ const _solvePoseToAvatar = (() => {
       tempAvatar.Left_arm.quaternion.identity()
 
       tempAvatar.Left_arm.quaternion
-        .premultiply(shiftQuaternion)
+        .premultiply(shiftLeftQuaternion)
 
       tempAvatar.Left_arm.quaternion
         .premultiply(idleAvatar.Left_arm.getWorldQuaternion(new THREE.Quaternion()).invert())
@@ -898,6 +904,15 @@ const _solvePoseToAvatar = (() => {
     }
     {
       tempAvatar.Right_arm.quaternion.identity()
+
+      tempAvatar.Right_arm.quaternion
+        .premultiply(shiftRightQuaternion)
+
+      tempAvatar.Right_arm.quaternion
+        .premultiply(idleAvatar.Right_arm.getWorldQuaternion(new THREE.Quaternion()).invert())
+        // .premultiply(idleAvatar.Left_arm.quaternion.clone().invert())
+
+      tempAvatar.Right_arm.quaternion
         .premultiply(window.q0)
         /* .premultiply(
           new THREE.Quaternion().setFromRotationMatrix(
@@ -913,8 +928,8 @@ const _solvePoseToAvatar = (() => {
         /* tempAvatar.Right_arm.quaternion
           .premultiply(fakeQuaternion) */
         tempAvatar.Right_arm.quaternion
-          // .premultiply(fakeQuaternion)
-          .premultiply(
+          .premultiply(fakeQuaternion)
+          /* .premultiply(
             new THREE.Quaternion().setFromRotationMatrix(
               new THREE.Matrix4().lookAt(
                 boneBuffers.rightShoulder,
@@ -923,7 +938,7 @@ const _solvePoseToAvatar = (() => {
                   // .applyQuaternion(deltaQuaternion)
               )
             )
-          )
+          ) */
           .premultiply(deltaQuaternion4)
       }
       tempAvatar.Right_arm.quaternion
