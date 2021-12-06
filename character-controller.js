@@ -618,6 +618,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
+      self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
       self.playerMap.set('position', self.position.toArray(localArray3));
       self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
@@ -642,8 +643,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         apps.push([mapApp]);
       }
-      
-      self.playersArray.push([self.playerMap]);
     });
     
     this.appManager.bindState(this.getAppsState());
