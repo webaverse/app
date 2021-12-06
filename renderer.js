@@ -133,7 +133,7 @@ window.addEventListener('resize', e => {
     const aspect = width / height;
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
-
+    camera.updateMatrix();
     // avatarCamera.aspect = aspect;
     // avatarCamera.updateProjectionMatrix();
     

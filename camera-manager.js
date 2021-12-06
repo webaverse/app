@@ -82,6 +82,7 @@ const requestPointerLock = async () => {
 };
 const focusCamera = position => {
   camera.lookAt(position);
+  camera.updateMatrix();
   camera.updateMatrixWorld();
 };
 
@@ -109,8 +110,8 @@ const cameraManager = {
       camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrix();
       camera.updateMatrixWorld();
-      
       cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
 
 
@@ -153,7 +154,7 @@ const cameraManager = {
 
       rayDirection.subVectors(localPlayer.position,camera.position ).normalize();
 
-      rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+      rayMatrix.lookAt(rayDirection, rayVectorZero, rayVectorUp);
       rayQuaternion.setFromRotationMatrix(rayMatrix);
 
       rayOriginArray[arrayIndex].copy(originPoint);
@@ -252,10 +253,14 @@ const cameraManager = {
     if (zDiff === 0) {
       // nothing
     } else {
-      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.matrix.makeRotationFromQuaternion(camera.quaternion);
       cameraOffset.z = cameraOffsetZ;
-      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.matrix.setPosition(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion))
+      // camera.matrixAutoUpdate = true;
+      // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
+      camera.updateMatrix();
     }
 
   },

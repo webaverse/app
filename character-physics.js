@@ -245,6 +245,7 @@ class CharacterPhysics {
           .applyQuaternion(camera.quaternion)
       );
     camera.position.y -= crouchOffset;
+    camera.updateMatrix();
     camera.updateMatrixWorld();
   }
   update(timeDiffS) {

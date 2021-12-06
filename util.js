@@ -677,6 +677,7 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   camera.position.z = distance;
   // camera.lookAt(center);
   camera.updateMatrixWorld();
+  camera.updateMatrix();
 }
 
 

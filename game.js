@@ -1117,6 +1117,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       fovFactor = Math.min(Math.max(fovFactor, 0), 1);
 
       camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
+      camera.updateMatrix();
       camera.updateProjectionMatrix();
     }
   };
@@ -1328,7 +1329,7 @@ const gameManager = {
       camera.quaternion.setFromEuler(camera.rotation);
 
       camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-
+      camera.updateMatrix();
       camera.updateMatrixWorld();
     }
   },

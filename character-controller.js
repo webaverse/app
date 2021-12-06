@@ -775,6 +775,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       )
     );
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrix();
     camera.updateMatrixWorld();
     
     /* this.quaternion.setFromRotationMatrix(
@@ -832,6 +833,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
         camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
+        camera.updateMatrix();
         camera.updateMatrixWorld();
       }
 

@@ -269,7 +269,7 @@ var TransformControls = function ( camera, domElement, document ) {
 
 		this.camera.updateMatrixWorld();
 		this.camera.matrixWorld.decompose( cameraPosition, cameraQuaternion, cameraScale );
-
+		this.camera.updateMatrix();
 		eye.copy( cameraPosition ).sub( worldPosition ).normalize();
 
 		Object3D.prototype.updateMatrixWorld.call( this );
