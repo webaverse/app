@@ -80,7 +80,17 @@ class AppManager extends EventTarget {
         const {added, deleted} = e.changes;
         
         for (const item of added.values()) {
-          const appMap = item.content.type;
+          let appMap = item.content.type;
+          if (appMap.constructor === Object) {
+            for (let i = 0; i < this.appsArray.length; i++) {
+              const localAppMap = this.appsArray.get(i, Z.Map); // force to be a map
+              if (localAppMap.binding === item.content.type) {
+                appMap = localAppMap;
+                break;
+              }
+            }
+          }
+
           const instanceId = appMap.get('instanceId');
           
           const hadApp = this.apps.some(app => app.instanceId === instanceId);
