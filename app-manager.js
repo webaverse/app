@@ -338,7 +338,9 @@ class AppManager extends EventTarget {
     return null;
   }
   getOrCreateTrackedApp(instanceId) {
-    for (const app of this.appsArray) {
+    for (let i = 0; this.appsArray.length > i; i++) {
+    // for (const app of this.appsArray) {
+      const app = this.appsArray.get(i, Z.Map);
       if (app.get('instanceId') === instanceId) {
         return app;
       }
