@@ -848,14 +848,14 @@ class RemotePlayer extends InterpolatedPlayer {
   attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i);
+      const player = this.playersArray.get(i, Z.Map);
       if (player.get('playerId') === this.playerId) {
         index = i;
         break;
       }
     }
     if (index !== -1) {
-      this.playerMap = this.playersArray.get(index);
+      this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
