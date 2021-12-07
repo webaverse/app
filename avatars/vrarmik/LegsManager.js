@@ -109,6 +109,8 @@ class Leg {
     :
       Math.abs(upperLegPosition.y - this.foot.stickTransform.position.y)
     ) * this.upperLegLength / this.legLength;
+
+    
     const offsetDistance = hypotenuseDistance > verticalDistance ? Math.sqrt(hypotenuseDistance*hypotenuseDistance - verticalDistance*verticalDistance) : 0;
 
     const lowerLegPosition = localVector4.copy(upperLegPosition).add(footPosition).divideScalar(2)
@@ -141,6 +143,9 @@ class Leg {
       .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion2).invert());
     Helpers.updateMatrixMatrixWorld(this.lowerLeg);
 
+    this.lowerLeg.updateMatrix();
+    this.lowerLeg.updateMatrixWorld();
+
     // this.lowerLeg.position = lowerLegPosition;
 
     // if (this.standing || this.stepping) {
@@ -149,29 +154,11 @@ class Leg {
         .multiply(downHalfRotation)
         .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
-    /* } else {
-      this.foot.quaternion.slerp(downQuarterRotation, 0.1);
-    } */
+      
+      this.foot.updateMatrix();
+      this.foot.updateMatrixWorld();
 	}
 
-  /* Reset() {
-    this.standing = true;
-    this.standFactor = 1;
-    const now = Date.now();
-    this.lastStandTimestamp = now;
-    this.lastJumpTimestamp = now;
-
-    this.stepping = false;
-    this.lastStepTimestamp = now;
-
-    this.balance = 1;
-  } */
-
-	/* getStandFactor() {
-		return 1 - Math.pow(Math.min(Math.max(
-			(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.eyes, localVector).add(this.eyesToUpperLegOffset).y - this.legsManager.poseManager.vrTransforms.floorHeight - this.legLength) / (this.legsManager.rig.height*0.2),
-		0), 1), 0.7);
-	} */
 }
 
 class LegsManager {
@@ -236,6 +223,17 @@ class LegsManager {
   		Helpers.updateMatrixWorld(this.rightLeg.upperLeg);
   		Helpers.updateMatrixWorld(this.rightLeg.lowerLeg);
   		Helpers.updateMatrixWorld(this.rightLeg.foot);
+
+      Helpers.updateMatrixMatrixWorld(this.leftLeg.transform);
+  		Helpers.updateMatrixMatrixWorld(this.leftLeg.upperLeg);
+  		Helpers.updateMatrixMatrixWorld(this.leftLeg.lowerLeg);
+  		Helpers.updateMatrixMatrixWorld(this.leftLeg.foot);
+
+      Helpers.updateMatrixMatrixWorld(this.rightLeg.transform);
+  		Helpers.updateMatrixMatrixWorld(this.rightLeg.upperLeg);
+  		Helpers.updateMatrixMatrixWorld(this.rightLeg.lowerLeg);
+  		Helpers.updateMatrixMatrixWorld(this.rightLeg.foot);
+
 
   		const now = Date.now();
 
@@ -408,10 +406,13 @@ class LegsManager {
   				}
   				velocityVector.multiplyScalar(velocityRestitutionFactor);
   				leg.foot.endTransform.position.add(velocityVector);
+          leg.foot.endTransform.updateMatrix();
+          leg.foot.endTransform.updateMatrixWorld();
   			  // leg.foot.endTransform.quaternion.copy(this.rightLeg.foot.stickTransform.quaternion);
 
   			  leg.foot.startHmdFloorTransform.position.set(this.poseManager.vrTransforms.head.position.x, 0, this.poseManager.vrTransforms.head.position.z);
-
+          leg.foot.startHmdFloorTransform.updateMatrix();
+          leg.foot.startHmdFloorTransform.updateMatrixWorld();
           leg.lastStepTimestamp = now;
           leg.stepping = true;
   			};
@@ -447,7 +448,8 @@ class LegsManager {
         this.leftLeg.foot.stickTransform.position.copy(this.leftLeg.foot.startTransform.position)
           .lerp(this.leftLeg.foot.endTransform.position, this.leftLeg.stepFactor)
           .add(localVector6.set(0, Math.sin(this.leftLeg.stepFactor*Math.PI) * stepHeight * this.rig.height, 0));
-
+          this.leftLeg.foot.stickTransform.updateMatrix();
+          this.leftLeg.foot.stickTransform.updateMatrixWorld();
         if (this.leftLeg.stepFactor >= 1) {
         	this.leftLeg.stepping = false;
         }

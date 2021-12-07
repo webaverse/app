@@ -116,6 +116,7 @@ camera.up.set(0, 0, -1);
     const extentMesh = new THREE.Mesh(geometry, material);
     extentMesh.position.set(extents.min.x, 0, extents.min.z)
     scene.add(extentMesh);
+    extentMesh.updateMatrix();
   }
 
   // fixes a glitch where the first render has black opaque
@@ -351,7 +352,7 @@ camera.up.set(0, 0, -1);
 
       camera.position.copy(cameraPosition);
       camera.lookAt(cameraTarget);
-
+      camera.updateMatrix();
       renderer.setSize(dw, dh);
 
       renderer.clear();

@@ -525,6 +525,8 @@ export const addDefaultLights = (scene, {
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
+  directionalLight.updateMatrix();
+  directionalLight.updateMatrixWorld();
   /* if (shadowMap) {
     const SHADOW_MAP_WIDTH = 1024;
     const SHADOW_MAP_HEIGHT = 1024;
@@ -689,5 +691,5 @@ export function copyPQS(dst, src) {
   dst.position.copy(src.position);
   dst.quaternion.copy(src.quaternion);
   dst.scale.copy(src.scale);
-  dst.updateMatrix();
+  
 }

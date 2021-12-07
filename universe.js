@@ -23,6 +23,7 @@ const enterWorld = async worldSpec => {
   }); */
   localPlayer.position.set(0, initialPosY, 0);
   localPlayer.resetPhysics();
+  localPlayer.updateMatrix();
   localPlayer.updateMatrixWorld();
   physicsManager.setPhysicsEnabled(true);
   localPlayer.updatePhysics(0);

@@ -85,7 +85,8 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
     const {point} = collision;
     o.position.fromArray(point)
       // .add(localVector2.set(0, 0.01, 0));
-
+    o.updateMatrix();
+    o.updateMatrixWorld();
     if (o.position.distanceTo(localVector) > offset) {
       collision = null;
     }
@@ -93,7 +94,7 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   if (!collision) {
     o.position.copy(localVector5);
   }
-
+  
   /* for (const physicsObject of grabbedPhysicsObjects) {
     physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
   } */
@@ -618,6 +619,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
         localPlayer.leftHand.position.copy(leftGamepadPosition);
         localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
+
+        localPlayer.leftHand.updateMatrix();
       }
       {
         const rightGamepadPosition = localVector2.copy(localVector)
@@ -629,6 +632,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
         localPlayer.rightHand.position.copy(rightGamepadPosition);
         localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
+        localPlayer.rightHand.updateMatrix();
       }
       
       if (lastPistolUseStartTime >= 0) {
@@ -689,7 +693,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = localPlayer.hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
+        grabbedObject.updateMatrix();
         grabbedObject.updateMatrixWorld();
 
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
@@ -709,6 +713,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               .multiplyScalar(3)
           );
         grabUseMesh.quaternion.copy(camera.quaternion);
+        grabUseMesh.updateMatrix();
         grabUseMesh.updateMatrixWorld();
         // grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
@@ -731,6 +736,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
+          grabUseMesh.updateMatrix();
           grabUseMesh.updateMatrixWorld();
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
@@ -773,7 +779,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
-
+      highlightedPhysicsObject.updateMatrix();
       highlightedPhysicsObject.updateMatrixWorld();
 
       const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
@@ -997,8 +1003,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localQuaternion,
           localVector2
         );
-        localPlayer.updateMatrix();
-        localPlayer.updateMatrixWorld();
+
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         localVector.y -= avatarHeight / 2;
         const distanceSpecs = apps.map(object => {
@@ -1071,6 +1076,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
     cylinderMesh.quaternion.copy(localPlayer.quaternion);
     // cylinderMesh.startPosition.copy(localPlayer.position);
+    cylinderMesh.updateMatrix();
     cylinderMesh.updateMatrixWorld();
     const useAction = localPlayer.getAction('use');
     if (useAction && useAction.animation === 'combo') {

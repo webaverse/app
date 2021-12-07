@@ -242,8 +242,8 @@ class AppManager extends EventTarget {
         // app.matrix.setRotationFromQuaternion(new Quaternion().fromArray(quaternion))
         app.quaternion.fromArray(quaternion);
         app.scale.fromArray(scale);
-        // app.updateMatrix();
-        // app.updateMatrixWorld();
+        app.updateMatrix();
+
         // app.matrixAutoUpdate=false;
         app.contentId = contentId;
         app.instanceId = instanceId;

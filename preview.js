@@ -292,7 +292,7 @@ window.onload = async () => {
       camera.position.set(0, o.rig.height, -2);
       const target = new THREE.Vector3(0, o.rig.height / 2, 0);
       camera.lookAt(target);
-      
+      camera.updateMatrix();
       o.rig.setTopEnabled(false);
       o.rig.setHandEnabled(0, false);
       o.rig.setHandEnabled(1, false);

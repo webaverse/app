@@ -434,6 +434,7 @@ const _getType = id => {
               .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
           );
         camera.lookAt(center);
+        camera.updateMatrix();
         camera.updateMatrixWorld();
         renderer.render(scene, camera);
 
@@ -488,6 +489,7 @@ const _getType = id => {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
       scene.add(o);
+      o.updateMatrix();
       o.updateMatrixWorld();
 
       if (o) {

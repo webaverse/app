@@ -1195,8 +1195,7 @@ class Avatar {
   }
   static bindAvatar(object) {
     const model = object.scene;
-    model.updateMatrix();
-    model.updateMatrixWorld(true);
+ 
     
     const skinnedMeshes = getSkinnedMeshes(object);
     const skeleton = getSkeleton(object);
@@ -1383,6 +1382,8 @@ class Avatar {
 	  });
     if (flipY) {
       modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
+      modelBones.Hips.updateMatrix();
+      modelBones.Hips.updateMatrixWorld();
     }
 	  if (!flipZ) {
 	    /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
@@ -1393,6 +1394,8 @@ class Avatar {
 		  }); */
 		} else {
 		  modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+      modelBones.Hips.updateMatrix();
+      modelBones.Hips.updateMatrixWorld();
 		}
     modelBones.Right_arm.quaternion.premultiply(qr.clone().invert());
     modelBones.Right_elbow.quaternion
@@ -1407,6 +1410,7 @@ class Avatar {
     
     modelBones.Root.traverse(bone => {
       bone.initialQuaternion = bone.quaternion.clone();
+      bone.updateMatrix();
     });
     
     return {
@@ -1434,7 +1438,8 @@ class Avatar {
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
       );
-
+      modelBone.updateMatrix();
+      modelBone.updateMatrixWorld();
       // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
@@ -1449,6 +1454,8 @@ class Avatar {
       if (bottomEnabled) {
         if (k === 'Left_ankle' || k === 'Right_ankle') {
           modelBone.quaternion.multiply(upRotation);
+          modelBone.updateMatrix();
+          modelBone.updateMatrixWorld();
         }
       }
     }
@@ -1515,8 +1522,14 @@ class Avatar {
   }
   initializeBonePositions(setups) {
     this.shoulderTransforms.hips.position.copy(setups.hips);
+    this.shoulderTransforms.hips.updateMatrix();
+    this.shoulderTransforms.hips.updateMatrixWorld();
     this.shoulderTransforms.spine.position.copy(setups.spine);
+    this.shoulderTransforms.spine.updateMatrix();
+    this.shoulderTransforms.spine.updateMatrixWorld();
     this.shoulderTransforms.chest.position.copy(setups.chest);
+    this.shoulderTransforms.chest.updateMatrix();
+    this.shoulderTransforms.chest.updateMatrixWorld();
     if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
@@ -1568,13 +1581,15 @@ class Avatar {
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
     this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
     if (setups.leftToe) this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
-
+    this.legsManager.leftLeg.upperLeg.updateMatrix();
+    this.legsManager.leftLeg.upperLeg.updateMatrixWorld();
     this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
     if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
     this.shoulderTransforms.root.updateMatrix();
-    this.shoulderTransforms.root.updateMatrixWorld();
+    this.shoulderTransforms.root.updateMatrixWorld(true);
+    this.shoulderTransforms.root.updateWorldMatrix(true, true);
   }
   setHandEnabled(i, enabled) {
     this.shoulderTransforms.handsEnabled[i] = enabled;
@@ -1631,6 +1646,7 @@ class Avatar {
       this.lastPosition.copy(currentPosition);
       this.direction.copy(positionDiff).normalize();
       this.inputs.hmd.updateMatrix();
+      this.inputs.hmd.updateMatrixWorld();
     };
     _updatePosition();
     
@@ -2126,8 +2142,7 @@ class Avatar {
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       this.modelBoneOutputs.Root.updateMatrix();
-      this.modelBoneOutputs.Root.updateMatrixWorld(true);
-      this.modelBoneOutputs.Root.updateWorldMatrix (true);
+      this.modelBoneOutputs.Root.updateMatrixWorld();
     }
 
     this.shoulderTransforms.Update();
@@ -2201,7 +2216,8 @@ class Avatar {
 
         this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
-        
+        this.modelBoneOutputs.Neck.updateMatrix();
+        this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);

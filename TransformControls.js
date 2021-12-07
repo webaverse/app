@@ -248,6 +248,7 @@ var TransformControls = function ( camera, domElement, document ) {
 
 		if ( this.object !== undefined ) {
 
+			this.object.updateMatrix();
 			this.object.updateMatrixWorld();
 
 			if ( this.object.parent === null ) {
@@ -266,12 +267,13 @@ var TransformControls = function ( camera, domElement, document ) {
 			worldQuaternionInv.copy( worldQuaternion ).inverse();
 
 		}
-
+		this.camera.updateMatrix();
 		this.camera.updateMatrixWorld();
 		this.camera.matrixWorld.decompose( cameraPosition, cameraQuaternion, cameraScale );
 		this.camera.updateMatrix();
 		eye.copy( cameraPosition ).sub( worldPosition ).normalize();
-
+		eye.updateMatrix();
+		eye.updateMatrixWorl();
 		Object3D.prototype.updateMatrixWorld.call( this );
 
 	};

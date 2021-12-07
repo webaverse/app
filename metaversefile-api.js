@@ -247,7 +247,7 @@ const defaultComponents = {
             app.destroy();
           }
         }
-        
+        app.updateMatrix();
         app.updateMatrixWorld();
       });
     }
@@ -258,6 +258,7 @@ const localPlayer = new LocalPlayer({
   state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
+localPlayer.updateMatrix();
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 
@@ -563,6 +564,7 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
+        app.updateMatrix();
         app.updateMatrixWorld();
         localMatrix
           .compose(position, quaternion, size)
@@ -582,6 +584,7 @@ metaversefile.setApi({
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
+        physicsObject.updateMatrix();
         physicsObject.updateMatrixWorld();
         
         app.physicsObjects.push(physicsObject);
@@ -596,17 +599,20 @@ metaversefile.setApi({
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
         parentMesh.add(mesh);
+        parentMesh.updateMatrix();
         parentMesh.updateMatrixWorld();
         
         const physicsObject = addGeometry.call(this, mesh);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
+        physicsObject.updateMatrix();
         physicsObject.updateMatrixWorld();
         // window.physicsObject = physicsObject;
         
         if (oldParent) {
           oldParent.add(mesh);
+          physicsObject.updateMatrix();
           mesh.updateMatrixWorld();
         }
         

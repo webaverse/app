@@ -75,7 +75,7 @@ class EquipmentRender {
         newAvatar.position.set(0, 0, 0);
         newAvatar.rotation.set(0, 0, 0);
         newAvatar.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-
+        newAvatar.updateMatrix();
         // this.previewScene.clear();
         this.previewScene.add(newAvatar);
         

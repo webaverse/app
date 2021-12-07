@@ -101,6 +101,8 @@ const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.in
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
+camera.updateMatrix();
+camera.updateMatrixWorld();
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
@@ -109,13 +111,14 @@ const dolly = new THREE.Object3D();
 // fixes a bug: avatar glitching when dropped exactly at an axis
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
-dolly.updateMatrix();
+
 dolly.add(camera);
 // dolly.matrixAutoUpdate = true;
 // camera.matrixAutoUpdate = true;
 // dolly.add(avatarCamera);
 scene.add(dolly);
-
+dolly.updateMatrix();
+dolly.updateMatrixWorld();
 // const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 // scene.add(orthographicCamera);
 
