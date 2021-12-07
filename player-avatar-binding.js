@@ -83,6 +83,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
+  const chargeJump = player.getAction('chargeJump');
+  const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
@@ -104,6 +106,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.throwState = !!throwAction;
   rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
+  rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
+  rig.chargeAnimation = chargeJumpAnimation;
+  rig.chargeJumpState = !!chargeJump;
+
 }
 export function applyPlayerChatToAvatar(player, rig) {
   const localPlayerChatActions = Array.from(player.getActionsState()).filter(action => action.type === 'chat');

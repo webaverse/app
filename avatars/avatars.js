@@ -91,6 +91,7 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
+const defaultchargeJumpAnimation = 'chargeJump';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -214,6 +215,8 @@ let throwAnimations;
 let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
+let jumpAnimationSegments;
+let chargeJump;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -223,7 +226,6 @@ const loadPromise = (async () => {
       const arrayBuffer = await res.arrayBuffer();
       animations = CBOR.decode(arrayBuffer).animations
         .map(a => THREE.AnimationClip.parse(a));
-        console.log(animations)
     })(),
     (async () => {
       const srcUrl = '../animations/animations-skeleton.glb';
@@ -321,7 +323,10 @@ const loadPromise = (async () => {
     isFallLoop: animations.find(a => a.isFallLoop),
     isLanding: animations.find(a => a.isLanding)
   }
-  
+
+  console.log(chargeJump);
+  chargeJump = animations.find(a => a.isChargeJump)
+
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -1190,6 +1195,8 @@ class Avatar {
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
     this.narutoRunState = false;
+    this.chargeJumpState = false;
+    this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
@@ -1882,14 +1889,14 @@ class Avatar {
       const _getApplyFn = () => {
 
         if (this.jumpState) {
-          console.log('JumpState')
           return spec => {
             const {
               animationTrackName: k,
               dst,
               isTop,
             } = spec;
-            
+            // console.log('JumpState', spec)
+
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -1943,6 +1950,8 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
+
+        // TODO Change it here to test
         if (this.danceState) {
           return spec => {
             const {
@@ -1951,9 +1960,49 @@ class Avatar {
               isTop,
             } = spec;
             
+
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+
+         // TODO Change it here to test
+         if (this.chargeJumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+            console.log('CHARGE JUMP ACTIVATED', chargeJump);
+
+            const t2 = (this.chargeJumpTime/1000) ;
+            const src2 = chargeJump.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.jumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+            
+
+            console.log(spec);
+            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
+            const danceAnimation = danceAnimations[0];
+            const src2 = throwAnimation.interpolants[k];
+            const t2 = (this.danceTime/1000) ;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
