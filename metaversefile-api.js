@@ -536,9 +536,9 @@ metaversefile.setApi({
   },
   useRemotePlayer(playerId) {
     let player = remotePlayers.get(playerId);
-    if (!player) {
+    /* if (!player) {
       player = new RemotePlayer();
-    }
+    } */
     return player;
   },
   useRemotePlayers() {
