@@ -82,7 +82,7 @@ class PlayersManager {
   }
   update(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers.values()) {
-      remotePlayer.update(timestamp, timeDiff);
+      remotePlayer.updateAvatar(timestamp, timeDiff);
     }
   }
 }
