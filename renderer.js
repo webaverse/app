@@ -109,7 +109,10 @@ const dolly = new THREE.Object3D();
 // fixes a bug: avatar glitching when dropped exactly at an axis
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
+dolly.updateMatrix();
 dolly.add(camera);
+// dolly.matrixAutoUpdate = true;
+// camera.matrixAutoUpdate = true;
 // dolly.add(avatarCamera);
 scene.add(dolly);
 

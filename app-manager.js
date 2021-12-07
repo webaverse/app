@@ -536,12 +536,14 @@ class AppManager extends EventTarget {
             if (!app.matrix.equals(app.lastMatrix)) {
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
+              app.updateMatrix();
               app.updateMatrixWorld();
               const physicsObjects = app.getPhysicsObjects();
               for (const physicsObject of physicsObjects) {
                 physicsObject.position.copy(app.position);
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
+                physicsObject.updateMatrix();
                 physicsObject.updateMatrixWorld();
                 
                 physicsManager.pushUpdate(physicsObject);

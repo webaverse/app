@@ -2205,6 +2205,7 @@ class Avatar {
       this.getHandEnabled(0),
       this.getHandEnabled(1),
     );
+    this.modelBones.Hips.updateMatrix();
     this.modelBones.Hips.updateMatrixWorld();
 
     if (this.springBoneManager) {
@@ -2340,27 +2341,6 @@ class Avatar {
       }
     };
     this.options.visemes && _updateVisemes();
-
-    /* if (this.debugMeshes) {
-      if (this.getTopEnabled()) {
-        this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
-        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
-        this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
-        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
-      }
-
-      for (const k in this.debugMeshes.attributes) {
-        const attribute = this.debugMeshes.attributes[k];
-        if (attribute.visible) {
-          const output = this.modelBoneOutputs[k];
-          attribute.array.set(attribute.srcGeometry.attributes.position.array);
-          attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
-        } else {
-          attribute.array.fill(0);
-        }
-      }
-      this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    } */
     
     this.now += timeDiff;
 	}
@@ -2407,11 +2387,6 @@ class Avatar {
           o.matrixWorld.copy(o.savedMatrixWorld);
         }
       });
-      /* if (this.debugMeshes) {
-        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
-          attribute.visible = true;
-        });
-      } */
       this.decapitated = false;
     }
   }

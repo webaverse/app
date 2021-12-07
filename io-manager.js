@@ -161,6 +161,8 @@ const _updateIo = timeDiff => {
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
               .premultiply(localMatrix2.copy(localMatrix2).invert())
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
+              dolly.updateMatrix();
+              dolly.updateMatrixWorld();
           };
           if (
             (axes[0] < -0.75 && !(ioManager.lastAxes[index][0] < -0.75)) ||

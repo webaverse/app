@@ -32,6 +32,7 @@ const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.physicsId = physicsId;
+  physicsObject.matrixAutoUpdate = true;
   physicsObject.error = new Error().stack;
   return physicsObject;
 };
@@ -80,6 +81,7 @@ physicsManager.addGeometry = mesh => {
       physicsMesh.quaternion,
       physicsMesh.scale
     );
+    physicsMesh.updateMatrix();
     physicsMesh.updateMatrixWorld();
   }
   
@@ -117,6 +119,7 @@ physicsManager.addConvexGeometry = mesh => {
       physicsMesh.quaternion,
       physicsMesh.scale
     );
+    physicsMesh.updateMatrix();
     physicsMesh.updateMatrixWorld();
   }
   
@@ -129,6 +132,7 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
   physicsMesh.scale.set(1, 1, 1);
+  physicsMesh.updateMatrix();
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
@@ -166,15 +170,16 @@ physicsManager.removeGeometry = physicsObject => {
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.simulatePhysics = timeDiff => {
-  const t = timeDiff/1000;
+  const t = timeDiff / 1000;
   // console.log('simulate', timeDiff, t);
   const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
   physicsUpdates.length = 0;
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
     const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-    physicsObject.position.copy(position);
-    physicsObject.quaternion.copy(quaternion);
+    physicsObject.matrix.setPosition(position);
+    physicsObject.matrix.setRotationFromQuaternion(quaternion);
+    physicsObject.updateMatrix();
     // physicsObject.scale.copy(scale);
     physicsObject.updateMatrixWorld();
   }
@@ -183,7 +188,8 @@ physicsManager.simulatePhysics = timeDiff => {
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
+  physicsMesh.updateMatrix();
+  physicsMesh.updateMatrixWorld();
   physicsUpdates.push({
     id: physicsId,
     position: localVector.clone(),

@@ -66,10 +66,10 @@ class CharacterPhysics {
       // capsule physics
       if (!this.player.hasAction('sit')) {
         applyVelocity(this.player.position, this.velocity, timeDiffS);
-
+        this.player.updateMatrix();
         this.player.updateMatrixWorld();
         this.player.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
+        
         const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
 
         // avatar facing direction
@@ -146,7 +146,9 @@ class CharacterPhysics {
               localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+
         }
+        controlledApp.updateMatrix();
         controlledApp.updateMatrixWorld();
 
         localMatrix.copy(sitPos.matrixWorld)
@@ -161,12 +163,15 @@ class CharacterPhysics {
       // apply to player
       if (updateRig) {
         this.player.matrix.copy(localMatrix);
+        this.player.updateMatrix();
       } else {
         this.player.matrix.identity();
+        this.player.updateMatrix();
       }
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
+      this.player.updateMatrix();
       this.player.updateMatrixWorld();
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
@@ -174,6 +179,7 @@ class CharacterPhysics {
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
+        this.avatar.updateMatrix();
         this.avatar.updateMatrixWorld();
       }
     }

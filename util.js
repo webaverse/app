@@ -689,4 +689,5 @@ export function copyPQS(dst, src) {
   dst.position.copy(src.position);
   dst.quaternion.copy(src.quaternion);
   dst.scale.copy(src.scale);
+  dst.updateMatrix();
 }

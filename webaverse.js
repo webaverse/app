@@ -335,7 +335,8 @@ export default class Webaverse extends EventTarget {
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-        
+      xrCamera.updateMatrix();
+      xrCamera.updateMatrixWorld();
       this.render(timestamp, timeDiffCapped);
 
     }

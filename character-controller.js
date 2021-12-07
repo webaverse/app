@@ -701,6 +701,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
         app.updateMatrixWorld();
+        app.updateMatrix();
       }
 
       const physicsObjects = app.getPhysicsObjects();
@@ -726,7 +727,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
-
+    app.updateMatrix()
     app.updateMatrixWorld();
     app.savedRotation = app.rotation.clone();
     app.startQuaternion = quaternion.clone();
