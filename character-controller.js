@@ -268,7 +268,7 @@ class Player extends THREE.Object3D {
     this.syncAvatarCancelFn = null;
   }
   getActionsState() {
-    let actionsArray = this.playerMap.get(actionsMapName);
+    let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
@@ -279,7 +279,7 @@ class Player extends THREE.Object3D {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
-    let avatarMap = this.playerMap.get(avatarMapName);
+    let avatarMap = this.playerMap.has(avatarMapName) ? this.playerMap.get(avatarMapName, Z.Map) : null;
     if (!avatarMap) {
       avatarMap = new Z.Map();
       this.playerMap.set(avatarMapName, avatarMap);
@@ -287,7 +287,7 @@ class Player extends THREE.Object3D {
     return avatarMap;
   }
   getAppsState() {
-    let appsArray = this.playerMap.get(appsMapName);
+    let appsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
     if (!appsArray) {
       appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
@@ -848,14 +848,14 @@ class RemotePlayer extends InterpolatedPlayer {
   attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i);
+      const player = this.playersArray.get(i, Z.Map);
       if (player.get('playerId') === this.playerId) {
         index = i;
         break;
       }
     }
     if (index !== -1) {
-      this.playerMap = this.playersArray.get(index);
+      this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
