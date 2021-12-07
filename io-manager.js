@@ -51,6 +51,8 @@ ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.debugMode = false;
+
+//TODO Held down buttons, using jump value here to detect jump button being held down
 ioManager.keys = {
   up: false,
   down: false,
@@ -462,6 +464,7 @@ ioManager.keydown = e => {
       break;
     }
     case 32: { // space
+      console.log('jump button')
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {

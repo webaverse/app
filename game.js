@@ -1406,18 +1406,23 @@ const gameManager = {
       return 4/this.gridSnap;
     }
   },
+
+  // There's a difference between action and type?
   menuVDown() {
+    console.log('Jump test');
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('dance');
+      const action = localPlayer.getAction('chargeJump');
       if (!action) {
         const newAction = {
-          type: 'dance',
-          animation: 'dansu',
+          type: 'chargeJump',
+          animation: 'chargeJump',
           // time: 0,
         };
+        console.log(newAction)
+
         localPlayer.addAction(newAction);
       }
     }
@@ -1556,6 +1561,8 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
     
+    console.log(localPlayer)
+    console.log(jumpAction);
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
@@ -1574,6 +1581,9 @@ const gameManager = {
       localPlayer.addAction(newJumpAction);
     }
   },
+
+  // TODO DO HOLD DOWN LOGIC HERE (CHARACTER CHARGES JUMP ANIM)
+  // TODO ON SPACE UP DO THE LOGIC
   jump() {
     this.ensureJump();
     const localPlayer = metaversefileApi.useLocalPlayer();
