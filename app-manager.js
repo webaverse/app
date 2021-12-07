@@ -11,6 +11,8 @@ import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {worldMapName} from './constants.js';
+import { Vector3 } from 'three';
+import { Quaternion } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -236,9 +238,13 @@ class AppManager extends EventTarget {
           })(),
         });
         app.position.fromArray(position);
+        // app.matrix.setPosition(new Vector3().fromArray(position));
+        // app.matrix.setRotationFromQuaternion(new Quaternion().fromArray(quaternion))
         app.quaternion.fromArray(quaternion);
         app.scale.fromArray(scale);
-        app.updateMatrixWorld();
+        // app.updateMatrix();
+        // app.updateMatrixWorld();
+        // app.matrixAutoUpdate=false;
         app.contentId = contentId;
         app.instanceId = instanceId;
         app.setComponent('physics', true);
@@ -382,6 +388,7 @@ class AppManager extends EventTarget {
     trackedApp.set('quaternion', quaternion);
     trackedApp.set('scale', scale);
     trackedApp.set('components', JSON.stringify(components));
+
     return trackedApp;
   }
   addTrackedApp(
@@ -444,7 +451,8 @@ class AppManager extends EventTarget {
   }
   addApp(app) {
     this.apps.push(app);
-    
+    app.updateMatrix();
+    app.updateMatrixWorld();
     this.dispatchEvent(new MessageEvent('appadd', {
       data: app,
     }));
@@ -536,21 +544,22 @@ class AppManager extends EventTarget {
             if (!app.matrix.equals(app.lastMatrix)) {
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
-              app.updateMatrix();
-              app.updateMatrixWorld();
+
               const physicsObjects = app.getPhysicsObjects();
               for (const physicsObject of physicsObjects) {
                 physicsObject.position.copy(app.position);
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
                 physicsObject.updateMatrix();
-                physicsObject.updateMatrixWorld();
+                physicsObject.updateMatrixWorld(true);
                 
                 physicsManager.pushUpdate(physicsObject);
                 physicsObject.needsUpdate = false;
               }
               
               app.lastMatrix.copy(app.matrix);
+              app.updateMatrix();
+              app.updateMatrixWorld(true);
             }
           }
         }

@@ -32,7 +32,6 @@ const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.physicsId = physicsId;
-  physicsObject.matrixAutoUpdate = true;
   physicsObject.error = new Error().stack;
   return physicsObject;
 };
@@ -94,6 +93,7 @@ physicsManager.addGeometry = mesh => {
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
   physicsMesh.scale.set(1, 1, 1);
+  physicsMesh.updateMatrix();
   physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
@@ -177,8 +177,8 @@ physicsManager.simulatePhysics = timeDiff => {
   for (const updateOut of updatesOut) {
     const {id, position, quaternion, scale} = updateOut;
     const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-    physicsObject.matrix.setPosition(position);
-    physicsObject.matrix.setRotationFromQuaternion(quaternion);
+    physicsObject.position.set(position);
+    physicsObject.quaternion.set(quaternion);
     physicsObject.updateMatrix();
     // physicsObject.scale.copy(scale);
     physicsObject.updateMatrixWorld();

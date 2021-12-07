@@ -790,6 +790,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
         highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
         highlightPhysicsMesh.visible = true;
+        highlightPhysicsMesh.updateMatrix();
         highlightPhysicsMesh.updateMatrixWorld();
       }
     }
@@ -813,6 +814,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseHighlightPhysicsMesh.visible = true;
+        mouseHighlightPhysicsMesh.updateMatrix();
         mouseHighlightPhysicsMesh.updateMatrixWorld();
       }
     }
@@ -843,6 +845,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           // mouseSelectPhysicsMesh.quaternion.identity();
           // mouseSelectPhysicsMesh.scale.set(1, 1, 1);
           mouseSelectPhysicsMesh.visible = true;
+          mouseSelectPhysicsMesh.updateMatrix();
           mouseSelectPhysicsMesh.updateMatrixWorld();
 
         }
@@ -875,6 +878,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomHoverPhysicsMesh.visible = true;
+        mouseDomHoverPhysicsMesh.updateMatrix();
         mouseDomHoverPhysicsMesh.updateMatrixWorld();
       }
     }
@@ -897,6 +901,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
+        mouseDomEquipmentHoverPhysicsMesh.updateMatrix();
         mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld();
       }
     }
@@ -992,6 +997,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localQuaternion,
           localVector2
         );
+        localPlayer.updateMatrix();
+        localPlayer.updateMatrixWorld();
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         localVector.y -= avatarHeight / 2;
         const distanceSpecs = apps.map(object => {
@@ -1193,6 +1200,7 @@ window.addEventListener('drop', async e => {
   arrowLoader.position.copy(position);
   arrowLoader.quaternion.copy(quaternion);
   scene.add(arrowLoader);
+  arrowLoader.updateMatrix();
   arrowLoader.updateMatrixWorld();
   const items = Array.from(e.dataTransfer.items);
   await Promise.all(items.map(async item => {

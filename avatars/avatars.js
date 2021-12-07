@@ -1195,6 +1195,7 @@ class Avatar {
   }
   static bindAvatar(object) {
     const model = object.scene;
+    model.updateMatrix();
     model.updateMatrixWorld(true);
     
     const skinnedMeshes = getSkinnedMeshes(object);
@@ -1401,6 +1402,7 @@ class Avatar {
     modelBones.Left_elbow.quaternion
       .premultiply(ql)
       .premultiply(ql2.clone().invert());
+    model.updateMatrix();
 	  model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
@@ -1450,6 +1452,7 @@ class Avatar {
         }
       }
     }
+    modelBones.Root.updateMatrix();
     modelBones.Root.updateMatrixWorld();
   }
   static modelBoneRenames = {
@@ -1570,7 +1573,7 @@ class Avatar {
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
     if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
-
+    this.shoulderTransforms.root.updateMatrix();
     this.shoulderTransforms.root.updateMatrixWorld();
   }
   setHandEnabled(i, enabled) {
@@ -1627,6 +1630,7 @@ class Avatar {
       this.velocity.copy(positionDiff);
       this.lastPosition.copy(currentPosition);
       this.direction.copy(positionDiff).normalize();
+      this.inputs.hmd.updateMatrix();
     };
     _updatePosition();
     
@@ -2060,12 +2064,18 @@ class Avatar {
       this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
       this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
       this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
-
+      this.sdkInputs.hmd.updateMatrix();
+      this.sdkInputs.hmd.updateMatrixWorld();
+      this.sdkInputs.leftGamepad.updateMatrix();
+      this.sdkInputs.leftGamepad.updateMatrixWorld();
+      this.sdkInputs.rightGamepad.updateMatrix();
+      this.sdkInputs.rightGamepad.updateMatrixWorld();
       const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
       if (modelScaleFactor !== this.lastModelScaleFactor) {
         this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
         this.lastModelScaleFactor = modelScaleFactor;
-
+        this.model.updateMatrix();
+        this.model.updateMatrixWorld();
         this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
           springBoneGroup.forEach(springBone => {
             springBone._worldBoneLength = springBone.bone
@@ -2110,25 +2120,25 @@ class Avatar {
     if (!this.getBottomEnabled()) {
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position);
       this.modelBoneOutputs.Root.position.y -= this.height;
-
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+      this.modelBoneOutputs.Root.updateMatrix();
+      this.modelBoneOutputs.Root.updateMatrixWorld(true);
+      this.modelBoneOutputs.Root.updateWorldMatrix (true);
     }
-    /* if (!this.getTopEnabled() && this.debugMeshes) {
-      this.modelBoneOutputs.Hips.updateMatrixWorld();
-    } */
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
 
     if (this.eyeTargetEnabled) {
       const eyePosition = getEyePosition(this.modelBones);
-      this.modelBoneOutputs.Neck.updateMatrixWorld();
-      this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
+      this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      this.modelBoneOutputs.Neck.updateMatrix();
+      this.modelBoneOutputs.Neck.updateMatrixWorld();
       const globalQuaternion = localQuaternion2.setFromRotationMatrix(
         new THREE.Matrix4().lookAt(
           eyePosition,
@@ -2151,20 +2161,27 @@ class Avatar {
         
         this.lastEyeTargetQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, this.trackMouseAmount);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
+        this.modelBoneOutputs.Neck.updateMatrix();
+        this.modelBoneOutputs.Neck.updateMatrixWorld();
       } 
       else {
         this.trackMouseAmount = 0;
         this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
+        this.modelBoneOutputs.Neck.updateMatrix();
+        this.modelBoneOutputs.Neck.updateMatrixWorld();
       }
 
       this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
+          this.modelBoneOutputs.Neck.updateMatrix();
+          this.modelBoneOutputs.Neck.updateMatrixWorld();
     } 
     else {
       if (this.trackMouseAmount > 0) {
         const eyePosition = getEyePosition(this.modelBones);
+        this.modelBoneOutputs.Neck.updateMatrix();
         this.modelBoneOutputs.Neck.updateMatrixWorld();
         this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
@@ -2184,11 +2201,13 @@ class Avatar {
 
         this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
-
+        
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
-
+        
+        this.modelBoneOutputs.Neck.updateMatrix();
+        this.modelBoneOutputs.Neck.updateMatrixWorld();
         if (this.trackMouseAmount <= 0) {
           this.trackMouseAmount = 0;
         } else {
@@ -2385,6 +2404,8 @@ class Avatar {
         if (o.savedPosition) {
           o.position.copy(o.savedPosition);
           o.matrixWorld.copy(o.savedMatrixWorld);
+          o.updateMatrix();
+          o.updateMatrixWorld();
         }
       });
       this.decapitated = false;
