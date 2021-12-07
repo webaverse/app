@@ -624,6 +624,8 @@ const animationMappingConfig = [
 
 class Avatar {
 	constructor(object, options = {}) {
+
+    this.speedValue = 0;
     if (!object) {
       object = {};
     }
@@ -1610,6 +1612,12 @@ class Avatar {
     const {now} = this;
     const timeDiffS = timeDiff / 1000;
 
+    const lerpFloat = (value1, value2, amount) => {
+      amount = amount < 0 ? 0 : amount;
+      amount = amount > 1 ? 1 : amount;
+      return value1 + (value2 - value1) * amount;
+    };
+
     const _updatePosition = () => {
       const currentPosition = this.inputs.hmd.position;
       const currentQuaternion = this.inputs.hmd.quaternion;
@@ -1635,6 +1643,9 @@ class Avatar {
       const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
+
+      this.speedValue = lerpFloat(this.speedValue,currentSpeed,0.1);
+
       
       const _getAnimationKey = (crouchState, velocity) => {
         if (crouchState) {
@@ -1704,6 +1715,191 @@ class Avatar {
           return animationsIdleArrays[key].animation;
         }
       }; */
+
+      const _getBlendIdleWalkRun = (mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
+
+        //console.log(currentSpeed);
+        // Blend: idle <-> walk
+        if (currentSpeed <= 0.45) {
+
+          const keyAnimationAnglesWalk = _getClosest2AnimationAngles('walk');
+          const keyAnimationAnglesWalkMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'walk');
+          const idleAnimation = _getIdleAnimation('walk');
+    
+          // normal horizontal walk
+          {
+            const t1 = timeSeconds % keyAnimationAnglesWalk[0].animation.duration;
+            const src1 = keyAnimationAnglesWalk[0].animation.interpolants[k];
+            const v1 = src1.evaluate(t1);
+
+            const t2 = timeSeconds % keyAnimationAnglesWalk[1].animation.duration;
+            const src2 = keyAnimationAnglesWalk[1].animation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            
+            lerpFn
+              .call(
+                localQuaternion3.fromArray(v2),
+                localQuaternion4.fromArray(v1),
+                angleFactor
+              );
+          }
+            
+          // mirror horizontal blend (backwards walk)
+          {
+            const t1 = timeSeconds % keyAnimationAnglesWalkMirror[0].animation.duration;
+            const src1 = keyAnimationAnglesWalkMirror[0].animation.interpolants[k];
+            const v1 = src1.evaluate(t1);
+
+            const t2 = timeSeconds % keyAnimationAnglesWalkMirror[1].animation.duration;
+            const src2 = keyAnimationAnglesWalkMirror[1].animation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            lerpFn
+              .call(
+                localQuaternion4.fromArray(v2),
+                localQuaternion5.fromArray(v1),
+                angleFactor
+              );
+          }
+
+          // blend mirrors together to get a smooth walk
+          lerpFn
+            .call(
+              localQuaternion5.copy(localQuaternion3),
+              localQuaternion4,
+              mirrorFactor
+            );
+
+          // blend the smooth walk with idle
+          {
+            const t3 = timeSeconds % idleAnimation.duration;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            lerpFn
+              .call(
+                target.fromArray(v3),
+                localQuaternion5,
+                speedFactor
+              );
+          }
+
+        }
+        // Blend: walk <-> run
+        else {
+
+          const walkRunLerpFactor = (Math.min(this.speedValue,1.15) - 0.45) * 1.4; // This is [0,0.7] interval but we need [0,1] so multyply with 1.4
+          const keyAnimationAnglesWalk = _getClosest2AnimationAngles('walk');
+          const keyAnimationAnglesWalkMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'walk');
+
+          // normal horizontal walk
+          {
+            const t1 = timeSeconds % keyAnimationAnglesWalk[0].animation.duration;
+            const src1 = keyAnimationAnglesWalk[0].animation.interpolants[k];
+            const v1 = src1.evaluate(t1);
+
+            const t2 = timeSeconds % keyAnimationAnglesWalk[1].animation.duration;
+            const src2 = keyAnimationAnglesWalk[1].animation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            
+            lerpFn
+              .call(
+                localQuaternion3.fromArray(v2),
+                localQuaternion4.fromArray(v1),
+                angleFactor
+              );
+          }
+            
+          // mirror horizontal blend (backwards walk)
+          {
+            const t1 = timeSeconds % keyAnimationAnglesWalkMirror[0].animation.duration;
+            const src1 = keyAnimationAnglesWalkMirror[0].animation.interpolants[k];
+            const v1 = src1.evaluate(t1);
+
+            const t2 = timeSeconds % keyAnimationAnglesWalkMirror[1].animation.duration;
+            const src2 = keyAnimationAnglesWalkMirror[1].animation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            lerpFn
+              .call(
+                localQuaternion4.fromArray(v2),
+                localQuaternion5.fromArray(v1),
+                angleFactor
+              );
+          }
+
+          // blend mirrors together to get a smooth walk
+          lerpFn
+            .call(
+              localQuaternion5.copy(localQuaternion3),
+              localQuaternion4,
+              mirrorFactor
+            );
+
+            // localQuaternion5 -> walk info
+
+            const keyAnimationAnglesRun = _getClosest2AnimationAngles('run');
+            const keyAnimationAnglesRunMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'run');
+            
+            // normal horizontal run
+            {
+              const t1 = timeSeconds % keyAnimationAnglesRun[0].animation.duration;
+              const src1 = keyAnimationAnglesRun[0].animation.interpolants[k];
+              const v1 = src1.evaluate(t1);
+            
+              const t2 = timeSeconds % keyAnimationAnglesRun[1].animation.duration;
+              const src2 = keyAnimationAnglesRun[1].animation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+              
+              lerpFn
+                .call(
+                  localQuaternion2.fromArray(v2),
+                  localQuaternion3.fromArray(v1),
+                  angleFactor
+                );
+            }
+              
+            // mirror horizontal blend (backwards run)
+            {
+              const t1 = timeSeconds % keyAnimationAnglesRunMirror[0].animation.duration;
+              const src1 = keyAnimationAnglesRunMirror[0].animation.interpolants[k];
+              const v1 = src1.evaluate(t1);
+            
+              const t2 = timeSeconds % keyAnimationAnglesRunMirror[1].animation.duration;
+              const src2 = keyAnimationAnglesRunMirror[1].animation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+            
+              lerpFn
+                .call(
+                  localQuaternion3.fromArray(v2),
+                  localQuaternion4.fromArray(v1),
+                  angleFactor
+                );
+            }
+            
+            // blend mirrors together to get a smooth run
+            lerpFn
+              .call(
+                localQuaternion2, // <- smooth run info is here
+                localQuaternion3,
+                mirrorFactor
+              );
+
+            // blend the smooth walk with run
+            {
+              lerpFn
+                .call(
+                  target.copy(localQuaternion5),
+                  localQuaternion2,
+                  walkRunLerpFactor
+                );
+            }
+            //target.copy(localQuaternion5);
+
+
+        }
+      };
+
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
         // normal horizontal walk/run blend
         {
@@ -1859,15 +2055,23 @@ class Avatar {
       this.lastBackwardFactor = mirrorFactor;
 
       const _getHorizontalBlend = (k, lerpFn, target) => {
-        _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
-        _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
-        
-        lerpFn
-          .call(
-            target.copy(localQuaternion),
-            localQuaternion2,
-            crouchFactor
-          );
+        //_get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
+        _getBlendIdleWalkRun(mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
+
+        // Blend crouch only if there is a need for that
+        if (crouchFactor > 0.0) {
+          _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+          
+          lerpFn
+            .call(
+              target.copy(localQuaternion),
+              localQuaternion2,
+              crouchFactor
+            );
+        }
+        else {
+          target.copy(localQuaternion);
+        }
       };
       const _getApplyFn = () => {
         if (this.jumpState) {
