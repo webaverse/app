@@ -313,6 +313,7 @@ export default () => {
       r * Math.sin(azimuth) * Math.sin(inclination),
       r * Math.cos(inclination)
     );
+
     mesh.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(
         lastPosition,
@@ -326,6 +327,7 @@ export default () => {
     azimuth %= Math.PI*2;
     inclination += di;
     inclination %= Math.PI*2;
+    mesh.updateMatrixWorld();
     /* mesh.quaternion.setFromEuler(angle);
     mesh.position.set(0, 0, -1).applyQuaternion(mesh.quaternion);
     angle.x += direction.x * 0.01;

@@ -207,6 +207,7 @@ physicsManager.isGrounded = physicsObject => {
   return physx.physxWorker.checkGrounded(physx.physics, physicsObject.physicsId);
 }
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
+physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.simulatePhysics = timeDiff => {
   if(physicsManager.physicsEnabled) {
     const t = timeDiff/1000;

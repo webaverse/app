@@ -3,9 +3,9 @@ this file is responisible for maintaining player state that is network-replicate
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -60,7 +60,7 @@ class PlayerHand extends THREE.Object3D {
 class Player extends THREE.Object3D {
   constructor({
     playerId = makeId(5),
-    playersArray = new Y.Doc().getArray(playersMapName),
+    playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
     super();
 
@@ -268,9 +268,9 @@ class Player extends THREE.Object3D {
     this.syncAvatarCancelFn = null;
   }
   getActionsState() {
-    let actionsArray = this.playerMap.get(actionsMapName);
+    let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
-      actionsArray = new Y.Array();
+      actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
     }
     return actionsArray;
@@ -279,17 +279,17 @@ class Player extends THREE.Object3D {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
-    let avatarMap = this.playerMap.get(avatarMapName);
+    let avatarMap = this.playerMap.has(avatarMapName) ? this.playerMap.get(avatarMapName, Z.Map) : null;
     if (!avatarMap) {
-      avatarMap = new Y.Map();
+      avatarMap = new Z.Map();
       this.playerMap.set(avatarMapName, avatarMap);
     }
     return avatarMap;
   }
   getAppsState() {
-    let appsArray = this.playerMap.get(appsMapName);
+    let appsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
     if (!appsArray) {
-      appsArray = new Y.Array();
+      appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
     }
     return appsArray;
@@ -599,9 +599,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   detachState() {
-    const oldActions = (this.playersArray ? this.getActionsState() : new Y.Array());
-    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Y.Map()).toJSON();
-    const oldApps = (this.playersArray ? this.getAppsState() : new Y.Array()).toJSON();
+    const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
+    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Z.Map()).toJSON();
+    const oldApps = (this.playersArray ? this.getAppsState() : new Z.Array()).toJSON();
     return {
       oldActions,
       oldAvatar,
@@ -617,7 +617,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      self.playerMap = new Y.Map();
+      self.playerMap = new Z.Map();
+      self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
       self.playerMap.set('position', self.position.toArray(localArray3));
       self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
@@ -635,15 +636,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
-        const mapApp = new Y.Map();
+        const mapApp = new Z.Map();
         for (const k in oldApp) {
           const v = oldApp[k];
           mapApp.set(k, v);
         }
         apps.push([mapApp]);
       }
-      
-      self.playersArray.push([self.playerMap]);
     });
     
     this.appManager.bindState(this.getAppsState());
@@ -788,9 +787,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
-      if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
-      }
+      } */
       this.playerMap.set('position', this.position.toArray(localArray3));
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
@@ -851,16 +850,16 @@ class RemotePlayer extends InterpolatedPlayer {
   attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i);
+      const player = this.playersArray.get(i, Z.Map);
       if (player.get('playerId') === this.playerId) {
         index = i;
         break;
       }
     }
     if (index !== -1) {
-      this.playerMap = this.playersArray.get(index);
+      this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      console.warn('binding to nonexistent player object', playerId, this.playersArray.toJSON());
+      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
     const observePlayerFn = e => {

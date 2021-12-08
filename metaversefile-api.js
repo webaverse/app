@@ -10,9 +10,9 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Y from 'yjs';
+import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, rootScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, rootScene, postScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -32,6 +32,7 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import soundManager from './sound-manager.js';
 
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
@@ -258,7 +259,7 @@ const defaultComponents = {
 };
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
-  state: new Y.Doc(),
+  state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
@@ -402,6 +403,9 @@ const _threeTone = _memoize(() => {
 const _fiveTone = _memoize(() => {
   return _loadImageTexture('/textures/fiveTone.jpg');
 });
+const _twentyTone = _memoize(() => {
+  return _loadImageTexture('/textures/twentyTone.png');
+});
 const gradientMaps = {
   get threeTone() {
     return _threeTone();
@@ -409,9 +413,10 @@ const gradientMaps = {
   get fiveTone() {
     return _fiveTone();
   },
+  get twentyTone() {
+    return _twentyTone();
+  },
 };
-
-const _makeRegexp = s => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
 const abis = {
   ERC721,
@@ -455,6 +460,9 @@ metaversefile.setApi({
   useScene() {
     return scene;
   },
+  usePostScene() {
+    return postScene;
+  },
   useWorld() {
     return {
       /* addObject() {
@@ -470,6 +478,9 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  useSoundManager() {
+    return soundManager;
   },
   usePostProcessing() {
     return postProcessing;
@@ -529,9 +540,9 @@ metaversefile.setApi({
   },
   useRemotePlayer(playerId) {
     let player = remotePlayers.get(playerId);
-    if (!player) {
+    /* if (!player) {
       player = new RemotePlayer();
-    }
+    } */
     return player;
   },
   useRemotePlayers() {
@@ -823,6 +834,7 @@ metaversefile.setApi({
     const app = new App();
     // app.name = name;
     app.type = type;
+    app.contentId = start_url;
     // app.components = components;
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
@@ -924,6 +936,7 @@ export default () => {
       renderer,
       scene,
       rootScene,
+      postScene,
       camera,
       sceneHighPriority,
       iframeContainer,
