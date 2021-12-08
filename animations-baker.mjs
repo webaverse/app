@@ -44,7 +44,7 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
     
     for (const name of animationFileNames) {
         const u = uriPath + name;
-        console.log('got name', name, u);
+        console.log('processing', name);
         let o;
         o = await new Promise((accept, reject) => {
             fbxLoader.load(u, o => {
