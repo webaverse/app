@@ -178,7 +178,7 @@ class CharacterPhysics {
           .decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(this.sitOffset);
-        localVector.y += 1;
+        localVector.y += this.player.avatar.height;
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
       localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
@@ -200,12 +200,15 @@ class CharacterPhysics {
         //this.debugCapsule.quaternion.copy(this.rigidBody.quaternion);
       }*/
 
+      this.player.updateMatrixWorld();
+
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
+        this.avatar.updateMatrixWorld();
       }
     }
   }

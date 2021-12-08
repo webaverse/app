@@ -3,7 +3,8 @@ this file contains the singleplayer code.
 */
 
 import * as THREE from 'three';
-import * as Y from 'yjs';
+// import * as Y from 'yjs';
+import * as Z from 'zjs/z.mjs';
 import WSRTC from 'wsrtc/wsrtc.js';
 
 import hpManager from './hp-manager.js';
@@ -11,7 +12,7 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
-import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+import {scene, postScene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
@@ -74,6 +75,8 @@ world.disableMic = () => {
 };
 
 world.connectState = state => {
+  state.setResolvePriority(1);
+
   world.appManager.unbindState();
   world.appManager.clear();
   world.appManager.bindState(state.getArray(appsMapName));
@@ -94,7 +97,8 @@ world.connectRoom = async u => {
   world.appManager.clear();
 
   const localPlayer = metaversefileApi.useLocalPlayer();
-  const state = new Y.Doc();
+  const state = new Z.Doc();
+  state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,
     crdtState: state,
@@ -294,6 +298,9 @@ const _getBindSceneForRenderPriority = renderPriority => {
     }
     case 'low': {
       return sceneLowPriority;
+    }
+    case 'postScene': {
+      return postScene;
     }
     default: {
       return scene;

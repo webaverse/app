@@ -2,10 +2,11 @@
   "name": "webaverse-app",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
-    "start": "forever start index.js",
-    "dev": "node index.js",
+    "start": "forever start index.mjs -p",
+    "dev": "node index.mjs",
+    "prod": "sudo $(which node) index.mjs -p",
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
@@ -29,7 +30,7 @@
     "json-6": "^1.1.4",
     "key-did-provider-ed25519": "^1.1.0",
     "key-did-resolver": "^1.4.0",
-    "metaversefile": "./packages/metaversefile",
+    "metaversefile": "./packages/totum",
     "openai-api": "^1.2.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -40,7 +41,7 @@
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
     "xhr2": "^0.2.1",
-    "yjs": "^13.5.16"
+    "zjs": "./packages/zjs"
   },
   "repository": {
     "type": "git",
@@ -64,6 +65,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "spectorjs": "^0.9.27",
     "vite": "^2.5.1"
   }
 }

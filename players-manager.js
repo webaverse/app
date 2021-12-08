@@ -1,8 +1,11 @@
+/* player manager binds y.js data to player objects
+player objects load their own avatar and apps using this binding */
+
 // import * as THREE from 'three';
-// import * as Y from 'yjs';
+import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
-import {getPlayerPrefix} from './util.js';
-import {playersMapName} from './constants.js';
+// import {getPlayerPrefix} from './util.js';
+// import {playersMapName} from './constants.js';
 import metaversefileApi from 'metaversefile';
 
 class PlayersManager {
@@ -35,7 +38,17 @@ class PlayersManager {
       const playersObserveFn = e => {
         const {added, deleted, delta, keys} = e.changes;
         for (const item of added.values()) {
-          const playerMap = item.content.type;
+          let playerMap = item.content.type;
+          if (playerMap.constructor === Object) {
+            for (let i = 0; i < this.playersArray.length; i++) {
+              const localPlayerMap = this.playersArray.get(i, Z.Map); // force to be a map
+              if (localPlayerMap.binding === item.content.type) {
+                playerMap = localPlayerMap;
+                break;
+              }
+            }
+          }
+
           const playerId = playerMap.get('playerId');
           
           if (playerId !== localPlayer.playerId) {
@@ -69,7 +82,7 @@ class PlayersManager {
   }
   update(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers.values()) {
-      remotePlayer.update(timestamp, timeDiff);
+      remotePlayer.updateAvatar(timestamp, timeDiff);
     }
   }
 }

@@ -32,6 +32,7 @@ const _makeRenderer = (width, height) => {
   renderer.setSize(width, height);
 
   const scene = new THREE.Scene();
+  scene.autoUpdate = false;
 
   /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
     color: 0x0000FF,

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import {playersMapName, maxGrabDistance, tokensHost, storageHost} from './constants.js';
+import { getAddressFromMnemonic } from './blockchain.js';
+import {playersMapName, maxGrabDistance, tokensHost, storageHost, accountsHost, loginEndpoint} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -607,6 +608,45 @@ export function makeId(length) {
   return result;
 }
 
+async function contentIdToStorageUrl(id) {
+  if (typeof id === 'number') {
+    const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
+    return `${storageHost}/${hash}`;
+  } else if (typeof id === 'string') {
+    return id;
+  } else {
+    return null;
+  }
+}
+
+async function pullUserObject(loginToken) {
+  const address = getAddressFromMnemonic(loginToken.mnemonic);
+  const res = await fetch(`${accountsHost}/${address}`);
+  var result = await res.json();
+  result.mnemonic = loginToken.mnemonic;
+  return result;
+}
+
+export const handleDiscordLogin = async (code, id) => {
+  if (!code) {
+    return;
+  }
+  try{
+    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}&redirect_uri=${window.location.origin}/login`, {
+      method: 'POST',
+    });
+    res = await res.json();
+    if (!res.error) {
+      return await pullUserObject(res);
+    } else {
+      //console.warn('Unable to login ', res.error);
+      return res;
+    }
+  }catch(e){
+    
+  }
+};
+
 export function mod(a, n) {
   return (a % n + n) % n;
 }
@@ -638,6 +678,7 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   // camera.lookAt(center);
   camera.updateMatrixWorld();
 }
+
 
 export function applyVelocity(position, velocity, timeDiffS) {
   position.add(localVector.copy(velocity).multiplyScalar(timeDiffS));

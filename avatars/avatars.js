@@ -24,7 +24,11 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
+  cloneModelBones,
+  decorateAnimation,
+  // retargetAnimation,
 }  from './util.mjs';
+
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -36,7 +40,6 @@ const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -77,6 +80,7 @@ const simplexes = _makeSimplexes(5);
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
+const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -198,17 +202,11 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
-let animations;
 
-// let walkingAnimations;
-// let walkingBackwardAnimations;
-// let runningAnimations;
-// let runningBackwardAnimations;
+let animations;
+let animationsBaseModel;
 let jumpAnimation;
-// let sittingAnimation;
 let floatAnimation;
-// let rifleAnimation;
-// let hitAnimation;
 let useAnimations;
 let sitAnimations;
 let danceAnimations;
@@ -217,10 +215,32 @@ let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 const loadPromise = (async () => {
-  const res = await fetch('../animations/animations.cbor');
-  const arrayBuffer = await res.arrayBuffer();
-  animations = CBOR.decode(arrayBuffer).animations
-    .map(a => THREE.AnimationClip.parse(a));
+  await Promise.resolve(); // wait for metaversefile to be defined
+  
+  await Promise.all([
+    (async () => {
+      const res = await fetch('../animations/animations.cbor');
+      const arrayBuffer = await res.arrayBuffer();
+      animations = CBOR.decode(arrayBuffer).animations
+        .map(a => THREE.AnimationClip.parse(a));
+    })(),
+    (async () => {
+      const srcUrl = '../animations/animations-skeleton.glb';
+      
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          const {gltfLoader} = metaversefile.useLoaders();
+          gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+        });
+      } catch(err) {
+        console.warn(err);
+      }
+      if (o) {
+        animationsBaseModel = o;
+      }
+    })(),
+  ]);
 
   for (const k in animationsAngleArrays) {
     const as = animationsAngleArrays[k];
@@ -289,72 +309,7 @@ const loadPromise = (async () => {
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   for (const animation of animations) {
-    /* animation.direction = (() => {
-      switch (animation.name) {
-        case 'Fast Run.fbx':
-        case 'walking.fbx':
-        case 'Sneaking Forward.fbx':
-          return 'forward';
-        case 'running backwards.fbx':
-        case 'walking backwards.fbx':
-          return 'backward';
-        case 'left strafe walking.fbx':
-        case 'left strafe.fbx':
-        case 'left strafe walking reverse.fbx':
-        case 'left strafe reverse.fbx':
-        case 'Crouched Sneaking Left.fbx':
-          return 'left';
-        case 'right strafe walking.fbx':
-        case 'right strafe.fbx':
-        case 'right strafe walking reverse.fbx':
-        case 'right strafe reverse.fbx':
-        case 'Crouched Sneaking Right.fbx':
-          return 'right';
-        case 'jump.fbx':
-          return 'jump';
-        // case 'floating.fbx':
-        case 'treading water.fbx':
-          return 'float';
-        default:
-          return null;
-      }
-    })(); */
-    animation.isIdle = /idle/i.test(animation.name);
-    animation.isJump = /^jump/i.test(animation.name);
-    animation.isSitting = /sitting/i.test(animation.name);
-    // animation.isFalling  = /falling/i.test(animation.name);
-    animation.isFloat  = /treading/i.test(animation.name);
-    animation.isPistol  = /pistol aiming/i.test(animation.name);
-    animation.isRifle  = /rifle aiming/i.test(animation.name);
-    // animation.isHit  = /downward/i.test(animation.name);
-    animation.isSlash  = /slash/i.test(animation.name);
-    // animation.isHit  = /attack/i.test(animation.name);
-    animation.isCombo  = /combo/i.test(animation.name);
-    // animation.isHit = /sword and shield idle/i.test(animation.name);
-    animation.isMagic = /magic/i.test(animation.name);
-    animation.isSkateboarding = /skateboarding/i.test(animation.name);
-    animation.isThrow = /throw/i.test(animation.name);
-    animation.isDancing = /dancing/i.test(animation.name);
-    animation.isDrinking = /drinking/i.test(animation.name);
-    animation.isCrouch = /crouch|sneak/i.test(animation.name);
-    animation.isForward = /forward/i.test(animation.name);
-    animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
-    animation.isLeft = /left/i.test(animation.name);
-    animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
-    animation.isActivate = /object/i.test(animation.name);
-    animation.isNarutoRun = /naruto run/i.test(animation.name);
-    animation.isReverse = /reverse/i.test(animation.name);
-    animation.interpolants = {};
-    animation.tracks.forEach(track => {
-      const i = track.createInterpolant();
-      i.name = track.name;
-      animation.interpolants[track.name] = i;
-      return i;
-    });
-    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-    } */
+    decorateAnimation(animation);
   }
   
   jumpAnimation = animations.find(a => a.isJump);
@@ -401,116 +356,6 @@ const loadPromise = (async () => {
       narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
     });
   }
-
-  /* // bake animations
-  (async () => {
-    animations = [];
-    const fbxLoader = new FBXLoader();
-    const animationFileNames = [
-      `idle.fbx`,
-      `jump.fbx`,
-      `left strafe walking.fbx`,
-      `left strafe.fbx`,
-      // `left turn 90.fbx`,
-      // `left turn.fbx`,
-      `right strafe walking.fbx`,
-      `right strafe.fbx`,
-      // `right turn 90.fbx`,
-      // `right turn.fbx`,
-      `running.fbx`,
-      `walking.fbx`,
-      // `ybot.fbx`,
-      `running backwards.fbx`,
-      `walking backwards.fbx`,
-      // `falling.fbx`,
-      // `falling idle.fbx`,
-      // `falling landing.fbx`,
-      // `floating.fbx`,
-      `treading water.fbx`,
-      `sitting idle.fbx`,
-      `Pistol Aiming Idle.fbx`,
-      `Pistol Idle.fbx`,
-      `Rifle Aiming Idle.fbx`,
-      `Rifle Idle.fbx`,
-      `Standing Torch Idle 01.fbx`,
-      `standing melee attack downward.fbx`,
-      `sword and shield idle (4).fbx`,
-      `sword and shield slash.fbx`,
-      `sword and shield attack (4).fbx`,
-      `One Hand Sword Combo.fbx`,
-      `magic standing idle.fbx`,
-      `Skateboarding.fbx`,
-      `Throw.fbx`,
-      `Hip Hop Dancing.fbx`,
-      `Crouch Idle.fbx`,
-      `Standing To Crouched.fbx`,
-      `Crouched To Standing.fbx`,
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of animationFileNames) {
-      const u = './animations/' + name;
-      let o = await new Promise((accept, reject) => {
-        fbxLoader.load(u, accept, function progress() {}, reject);
-      });
-      o = o.animations[0];
-      o.name = name;
-      animations.push(o);
-    }
-    const _reverseAnimation = animation => {
-      animation = animation.clone();
-      const {tracks} = animation;
-      for (const track of tracks) {
-        track.times.reverse();
-        for (let i = 0; i < track.times.length; i++) {
-          track.times[i] = animation.duration - track.times[i];
-        }
-
-        const values2 = new track.values.constructor(track.values.length);
-        const valueSize = track.getValueSize();
-        const numValues = track.values.length / valueSize;
-        for (let i = 0; i < numValues; i++) {
-          const aIndex = i;
-          const bIndex = numValues - 1 - i;
-          for (let j = 0; j < valueSize; j++) {
-            values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
-          }
-        }
-        track.values = values2;
-      }
-      return animation;
-    };
-    const reversibleAnimationNames = [
-      `left strafe walking.fbx`,
-      `left strafe.fbx`,
-      `right strafe walking.fbx`,
-      `right strafe.fbx`,
-      `Sneaking Forward.fbx`,
-      `Crouched Sneaking Left.fbx`,
-      `Crouched Sneaking Right.fbx`,
-    ];
-    for (const name of reversibleAnimationNames) {
-      const animation = animations.find(a => a.name === name);
-      const reverseAnimation = _reverseAnimation(animation);
-      reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
-      animations.push(reverseAnimation);
-    }
-    const animationsJson = animations.map(a => a.toJSON());
-    const animationsString = JSON.stringify(animationsJson);
-    const animationsCborBuffer = CBOR.encode({
-      animations: animationsJson,
-    });
-    console.log('decoding 1', animationsCborBuffer);
-    console.log('decoding 2', CBOR.decode(animationsCborBuffer));
-    animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-    console.log('exporting', animations);
-    downloadFile(new Blob([animationsCborBuffer], {
-      type: 'application/cbor',
-    }), 'animations.cbor');
-  })().catch(err => {
-    console.warn(err);
-  }); */
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
@@ -706,16 +551,76 @@ const _importSkeleton = s => {
 }; */
 
 class AnimationMapping {
-  constructor(quaternionKey, quaternion, isTop, isPosition) {
-    this.quaternionKey = quaternionKey;
-    this.quaternion = quaternion;
+  constructor(animationTrackName, boneName, isTop, isPosition) {
+    this.animationTrackName = animationTrackName;
+    this.boneName = boneName;
     this.isTop = isTop;
     this.isPosition = isPosition;
-    
-    this.lerpFn = _getLerpFn(isPosition);
+  }
+  clone() {
+    return new AnimationMapping(this.animationTrackName, this.boneName, this.isTop, this.isPosition);
   }
 }
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
+const animationMappingConfig = [
+  new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
+  new AnimationMapping('mixamorigHips.quaternion', 'Hips', false, false),
+  new AnimationMapping('mixamorigSpine.quaternion', 'Spine', false, false),
+  new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', false, false),
+  new AnimationMapping('mixamorigSpine2.quaternion', 'UpperChest', false, false),
+  new AnimationMapping('mixamorigNeck.quaternion', 'Neck', false, false),
+  new AnimationMapping('mixamorigHead.quaternion', 'Head', false, false),
+
+  new AnimationMapping('mixamorigLeftShoulder.quaternion', 'Left_shoulder', true, false),
+  new AnimationMapping('mixamorigLeftArm.quaternion', 'Left_arm', true, false),
+  new AnimationMapping('mixamorigLeftForeArm.quaternion', 'Left_elbow', true, false),
+  new AnimationMapping('mixamorigLeftHand.quaternion', 'Left_wrist', true, false),
+  new AnimationMapping('mixamorigLeftHandMiddle1.quaternion', 'Left_middleFinger1', true, false),
+  new AnimationMapping('mixamorigLeftHandMiddle2.quaternion', 'Left_middleFinger2', true, false),
+  new AnimationMapping('mixamorigLeftHandMiddle3.quaternion', 'Left_middleFinger3', true, false),
+  new AnimationMapping('mixamorigLeftHandThumb1.quaternion', 'Left_thumb0', true, false),
+  new AnimationMapping('mixamorigLeftHandThumb2.quaternion', 'Left_thumb1', true, false),
+  new AnimationMapping('mixamorigLeftHandThumb3.quaternion', 'Left_thumb2', true, false),
+  new AnimationMapping('mixamorigLeftHandIndex1.quaternion', 'Left_indexFinger1', true, false),
+  new AnimationMapping('mixamorigLeftHandIndex2.quaternion', 'Left_indexFinger2', true, false),
+  new AnimationMapping('mixamorigLeftHandIndex3.quaternion', 'Left_indexFinger3', true, false),
+  new AnimationMapping('mixamorigLeftHandRing1.quaternion', 'Left_ringFinger1', true, false),
+  new AnimationMapping('mixamorigLeftHandRing2.quaternion', 'Left_ringFinger2', true, false),
+  new AnimationMapping('mixamorigLeftHandRing3.quaternion', 'Left_ringFinger3', true, false),
+  new AnimationMapping('mixamorigLeftHandPinky1.quaternion', 'Left_littleFinger1', true, false),
+  new AnimationMapping('mixamorigLeftHandPinky2.quaternion', 'Left_littleFinger2', true, false),
+  new AnimationMapping('mixamorigLeftHandPinky3.quaternion', 'Left_littleFinger3', true, false),
+
+  new AnimationMapping('mixamorigRightShoulder.quaternion', 'Right_shoulder', true, false),
+  new AnimationMapping('mixamorigRightArm.quaternion', 'Right_arm', true, false),
+  new AnimationMapping('mixamorigRightForeArm.quaternion', 'Right_elbow', true, false),
+  new AnimationMapping('mixamorigRightHand.quaternion', 'Right_wrist', true, false),
+  new AnimationMapping('mixamorigRightHandMiddle1.quaternion', 'Right_middleFinger1', true, false),
+  new AnimationMapping('mixamorigRightHandMiddle2.quaternion', 'Right_middleFinger2', true, false),
+  new AnimationMapping('mixamorigRightHandMiddle3.quaternion', 'Right_middleFinger3', true, false),
+  new AnimationMapping('mixamorigRightHandThumb1.quaternion', 'Left_thumb0', true, false),
+  new AnimationMapping('mixamorigRightHandThumb2.quaternion', 'Left_thumb1', true, false),
+  new AnimationMapping('mixamorigRightHandThumb3.quaternion', 'Left_thumb2', true, false),
+  new AnimationMapping('mixamorigRightHandIndex1.quaternion', 'Right_indexFinger1', true, false),
+  new AnimationMapping('mixamorigRightHandIndex2.quaternion', 'Right_indexFinger2', true, false),
+  new AnimationMapping('mixamorigRightHandIndex3.quaternion', 'Right_indexFinger3', true, false),
+  new AnimationMapping('mixamorigRightHandRing1.quaternion', 'Right_ringFinger1', true, false),
+  new AnimationMapping('mixamorigRightHandRing2.quaternion', 'Right_ringFinger2', true, false),
+  new AnimationMapping('mixamorigRightHandRing3.quaternion', 'Right_ringFinger3', true, false),
+  new AnimationMapping('mixamorigRightHandPinky1.quaternion', 'Right_littleFinger1', true, false),
+  new AnimationMapping('mixamorigRightHandPinky2.quaternion', 'Right_littleFinger2', true, false),
+  new AnimationMapping('mixamorigRightHandPinky3.quaternion', 'Right_littleFinger3', true, false),
+
+  new AnimationMapping('mixamorigRightUpLeg.quaternion', 'Right_leg', false, false),
+  new AnimationMapping('mixamorigRightLeg.quaternion', 'Right_knee', false, false),
+  new AnimationMapping('mixamorigRightFoot.quaternion', 'Right_ankle', false, false),
+  new AnimationMapping('mixamorigRightToeBase.quaternion', 'Right_toe', false, false),
+
+  new AnimationMapping('mixamorigLeftUpLeg.quaternion', 'Left_leg', false, false),
+  new AnimationMapping('mixamorigLeftLeg.quaternion', 'Left_knee', false, false),
+  new AnimationMapping('mixamorigLeftFoot.quaternion', 'Left_ankle', false, false),
+  new AnimationMapping('mixamorigLeftToeBase.quaternion', 'Left_toe', false, false),
+];
 
 class Avatar {
 	constructor(object, options = {}) {
@@ -773,6 +678,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      // retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
@@ -781,6 +687,7 @@ class Avatar {
     this.flipZ = flipZ;
     this.flipY = flipY;
     this.flipLeg = flipLeg;
+    // this.retargetedAnimations = retargetedAnimations;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -1026,7 +933,7 @@ class Avatar {
     };
     this.sdkInputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
-		this.outputs = {
+		/* this.outputs = {
 			// eyes: this.shoulderTransforms.eyes,
       eyel: this.shoulderTransforms.eyel,
       eyer: this.shoulderTransforms.eyer,
@@ -1035,7 +942,7 @@ class Avatar {
       root: this.shoulderTransforms.root,
       spine: this.shoulderTransforms.spine,
       chest: this.shoulderTransforms.chest,
-      upperChest: this.shoulderTransforms.upperChest,
+      upperChest: this.shoulderTransforms.chest,
       neck: this.shoulderTransforms.neck,
       leftShoulder: this.shoulderTransforms.leftShoulderAnchor,
       leftUpperArm: this.shoulderTransforms.leftArm.upperArm,
@@ -1083,66 +990,66 @@ class Avatar {
       rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
       rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-		};
+		}; */
 		this.modelBoneOutputs = {
-      Root: this.outputs.root,
+      Root: this.shoulderTransforms.root,
 
-	    Hips: this.outputs.hips,
-	    Spine: this.outputs.spine,
-	    Chest: this.outputs.chest,
-	    UpperChest: this.outputs.upperChest,
-	    Neck: this.outputs.neck,
-	    Head: this.outputs.head,
-      Eye_L: this.outputs.eyel,
-      Eye_R: this.outputs.eyer,
+	    Hips: this.shoulderTransforms.hips,
+	    Spine: this.shoulderTransforms.spine,
+	    Chest: this.shoulderTransforms.chest,
+	    UpperChest: this.shoulderTransforms.chest,
+	    Neck: this.shoulderTransforms.neck,
+	    Head: this.shoulderTransforms.head,
+      Eye_L: this.shoulderTransforms.eyel,
+      Eye_R: this.shoulderTransforms.eyer,
 
-	    Left_shoulder: this.outputs.rightShoulder,
-	    Left_arm: this.outputs.rightUpperArm,
-	    Left_elbow: this.outputs.rightLowerArm,
-	    Left_wrist: this.outputs.rightHand,
-      Left_thumb2: this.outputs.leftThumb2,
-      Left_thumb1: this.outputs.leftThumb1,
-      Left_thumb0: this.outputs.leftThumb0,
-      Left_indexFinger3: this.outputs.leftIndexFinger3,
-      Left_indexFinger2: this.outputs.leftIndexFinger2,
-      Left_indexFinger1: this.outputs.leftIndexFinger1,
-      Left_middleFinger3: this.outputs.leftMiddleFinger3,
-      Left_middleFinger2: this.outputs.leftMiddleFinger2,
-      Left_middleFinger1: this.outputs.leftMiddleFinger1,
-      Left_ringFinger3: this.outputs.leftRingFinger3,
-      Left_ringFinger2: this.outputs.leftRingFinger2,
-      Left_ringFinger1: this.outputs.leftRingFinger1,
-      Left_littleFinger3: this.outputs.leftLittleFinger3,
-      Left_littleFinger2: this.outputs.leftLittleFinger2,
-      Left_littleFinger1: this.outputs.leftLittleFinger1,
-	    Left_leg: this.outputs.rightUpperLeg,
-	    Left_knee: this.outputs.rightLowerLeg,
-	    Left_ankle: this.outputs.rightFoot,
+	    Left_shoulder: this.shoulderTransforms.rightShoulderAnchor,
+	    Left_arm: this.shoulderTransforms.rightArm.upperArm,
+	    Left_elbow: this.shoulderTransforms.rightArm.lowerArm,
+	    Left_wrist: this.shoulderTransforms.rightArm.hand,
+      Left_thumb2: this.shoulderTransforms.rightArm.thumb2,
+      Left_thumb1: this.shoulderTransforms.rightArm.thumb1,
+      Left_thumb0: this.shoulderTransforms.rightArm.thumb0,
+      Left_indexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
+      Left_indexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
+      Left_indexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
+      Left_middleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
+      Left_middleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
+      Left_middleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
+      Left_ringFinger3: this.shoulderTransforms.rightArm.ringFinger3,
+      Left_ringFinger2: this.shoulderTransforms.rightArm.ringFinger2,
+      Left_ringFinger1: this.shoulderTransforms.rightArm.ringFinger1,
+      Left_littleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
+      Left_littleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
+      Left_littleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
+	    Left_leg: this.legsManager.rightLeg.upperLeg,
+	    Left_knee: this.legsManager.rightLeg.lowerLeg,
+	    Left_ankle: this.legsManager.rightLeg.foot,
 
-	    Right_shoulder: this.outputs.leftShoulder,
-	    Right_arm: this.outputs.leftUpperArm,
-	    Right_elbow: this.outputs.leftLowerArm,
-	    Right_wrist: this.outputs.leftHand,
-      Right_thumb2: this.outputs.rightThumb2,
-      Right_thumb1: this.outputs.rightThumb1,
-      Right_thumb0: this.outputs.rightThumb0,
-      Right_indexFinger3: this.outputs.rightIndexFinger3,
-      Right_indexFinger2: this.outputs.rightIndexFinger2,
-      Right_indexFinger1: this.outputs.rightIndexFinger1,
-      Right_middleFinger3: this.outputs.rightMiddleFinger3,
-      Right_middleFinger2: this.outputs.rightMiddleFinger2,
-      Right_middleFinger1: this.outputs.rightMiddleFinger1,
-      Right_ringFinger3: this.outputs.rightRingFinger3,
-      Right_ringFinger2: this.outputs.rightRingFinger2,
-      Right_ringFinger1: this.outputs.rightRingFinger1,
-      Right_littleFinger3: this.outputs.rightLittleFinger3,
-      Right_littleFinger2: this.outputs.rightLittleFinger2,
-      Right_littleFinger1: this.outputs.rightLittleFinger1,
-	    Right_leg: this.outputs.leftUpperLeg,
-	    Right_knee: this.outputs.leftLowerLeg,
-	    Right_ankle: this.outputs.leftFoot,
-      Left_toe: this.outputs.leftToe,
-      Right_toe: this.outputs.rightToe,
+	    Right_shoulder: this.shoulderTransforms.leftShoulderAnchor,
+	    Right_arm: this.shoulderTransforms.leftArm.upperArm,
+	    Right_elbow: this.shoulderTransforms.leftArm.lowerArm,
+	    Right_wrist: this.shoulderTransforms.leftArm.hand,
+      Right_thumb2: this.shoulderTransforms.leftArm.thumb2,
+      Right_thumb1: this.shoulderTransforms.leftArm.thumb1,
+      Right_thumb0: this.shoulderTransforms.leftArm.thumb0,
+      Right_indexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
+      Right_indexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
+      Right_indexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
+      Right_middleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
+      Right_middleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
+      Right_middleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
+      Right_ringFinger3: this.shoulderTransforms.leftArm.ringFinger3,
+      Right_ringFinger2: this.shoulderTransforms.leftArm.ringFinger2,
+      Right_ringFinger1: this.shoulderTransforms.leftArm.ringFinger1,
+      Right_littleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
+      Right_littleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
+      Right_littleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
+	    Right_leg: this.legsManager.leftLeg.upperLeg,
+	    Right_knee: this.legsManager.leftLeg.lowerLeg,
+	    Right_ankle: this.legsManager.leftLeg.foot,
+      Left_toe: this.legsManager.leftLeg.toe,
+      Right_toe: this.legsManager.rightLeg.toe,
 	  };
 
     this.emotes = [];
@@ -1243,65 +1150,13 @@ class Avatar {
       }
     } */
 
-    this.animationMappings = [
-      new AnimationMapping('mixamorigHips.position', this.outputs.hips.position, false, true),
-      new AnimationMapping('mixamorigHips.quaternion', this.outputs.hips.quaternion, false, false),
-      new AnimationMapping('mixamorigSpine.quaternion', this.outputs.spine.quaternion, false, false),
-      new AnimationMapping('mixamorigSpine1.quaternion', this.outputs.chest.quaternion, false, false),
-      new AnimationMapping('mixamorigSpine2.quaternion', this.outputs.upperChest.quaternion, false, false),
-      new AnimationMapping('mixamorigNeck.quaternion', this.outputs.neck.quaternion, false, false),
-      new AnimationMapping('mixamorigHead.quaternion', this.outputs.head.quaternion, false, false),
-
-      new AnimationMapping('mixamorigLeftShoulder.quaternion', this.outputs.rightShoulder.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftArm.quaternion', this.outputs.rightUpperArm.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftForeArm.quaternion', this.outputs.rightLowerArm.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHand.quaternion', this.outputs.rightHand.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandMiddle1.quaternion', this.outputs.leftMiddleFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandMiddle2.quaternion', this.outputs.leftMiddleFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandMiddle3.quaternion', this.outputs.leftMiddleFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandThumb1.quaternion', this.outputs.leftThumb0.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandThumb2.quaternion', this.outputs.leftThumb1.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandThumb3.quaternion', this.outputs.leftThumb2.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandIndex1.quaternion', this.outputs.leftIndexFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandIndex2.quaternion', this.outputs.leftIndexFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandIndex3.quaternion', this.outputs.leftIndexFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandRing1.quaternion', this.outputs.leftRingFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandRing2.quaternion', this.outputs.leftRingFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandRing3.quaternion', this.outputs.leftRingFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandPinky1.quaternion', this.outputs.leftLittleFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandPinky2.quaternion', this.outputs.leftLittleFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigLeftHandPinky3.quaternion', this.outputs.leftLittleFinger3.quaternion, true, false),
-
-      new AnimationMapping('mixamorigRightShoulder.quaternion', this.outputs.leftShoulder.quaternion, true, false),
-      new AnimationMapping('mixamorigRightArm.quaternion', this.outputs.leftUpperArm.quaternion, true, false),
-      new AnimationMapping('mixamorigRightForeArm.quaternion', this.outputs.leftLowerArm.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHand.quaternion', this.outputs.leftHand.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandMiddle1.quaternion', this.outputs.rightMiddleFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandMiddle2.quaternion', this.outputs.rightMiddleFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandMiddle3.quaternion', this.outputs.rightMiddleFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandThumb1.quaternion', this.outputs.rightThumb0.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandThumb2.quaternion', this.outputs.rightThumb1.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandThumb3.quaternion', this.outputs.rightThumb2.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandIndex1.quaternion', this.outputs.rightIndexFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandIndex2.quaternion', this.outputs.rightIndexFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandIndex3.quaternion', this.outputs.rightIndexFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandRing1.quaternion', this.outputs.rightRingFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandRing2.quaternion', this.outputs.rightRingFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandRing3.quaternion', this.outputs.rightRingFinger3.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandPinky1.quaternion', this.outputs.rightLittleFinger1.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandPinky2.quaternion', this.outputs.rightLittleFinger2.quaternion, true, false),
-      new AnimationMapping('mixamorigRightHandPinky3.quaternion', this.outputs.rightLittleFinger3.quaternion, true, false),
-
-      new AnimationMapping('mixamorigRightUpLeg.quaternion', this.outputs.leftUpperLeg.quaternion, false, false),
-      new AnimationMapping('mixamorigRightLeg.quaternion', this.outputs.leftLowerLeg.quaternion, false, false),
-      new AnimationMapping('mixamorigRightFoot.quaternion', this.outputs.leftFoot.quaternion, false, false),
-      new AnimationMapping('mixamorigRightToeBase.quaternion', this.outputs.leftToe.quaternion, false, false),
-
-      new AnimationMapping('mixamorigLeftUpLeg.quaternion', this.outputs.rightUpperLeg.quaternion, false, false),
-      new AnimationMapping('mixamorigLeftLeg.quaternion', this.outputs.rightLowerLeg.quaternion, false, false),
-      new AnimationMapping('mixamorigLeftFoot.quaternion', this.outputs.rightFoot.quaternion, false, false),
-      new AnimationMapping('mixamorigLeftToeBase.quaternion', this.outputs.rightToe.quaternion, false, false),
-    ];
+    this.animationMappings = animationMappingConfig.map(animationMapping => {
+      animationMapping = animationMapping.clone();
+      const isPosition = /\.position$/.test(animationMapping.animationTrackName);
+      animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
+      animationMapping.lerpFn = _getLerpFn(isPosition);
+      return animationMapping;
+    });
 
     // shared state
     this.direction = new THREE.Vector3();
@@ -1347,12 +1202,10 @@ class Avatar {
     const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
-	  // this.modelBones = modelBones;
-    /* for (const k in modelBones) {
-      if (!modelBones[k]) {
-        console.warn('missing bone', k);
-      }
-    } */
+    
+    /* const retargetedAnimations = animations
+      .filter(a => a.name === 'idle.fbx')
+      .map(a => retargetAnimation(a, animationsBaseModel, object)); */
     
     const foundModelBones = {};
     for (const k in modelBones) {
@@ -1551,9 +1404,7 @@ class Avatar {
 	  model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
-      if (bone.isBone) {
-        bone.initialQuaternion = bone.quaternion.clone();
-      }
+      bone.initialQuaternion = bone.quaternion.clone();
     });
     
     return {
@@ -1568,6 +1419,7 @@ class Avatar {
       armature,
       armatureQuaternion,
       armatureMatrixInverse,
+      // retargetedAnimations,
     };
   }
   static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
@@ -1666,8 +1518,8 @@ class Avatar {
     this.shoulderTransforms.neck.position.copy(setups.neck);
     this.shoulderTransforms.head.position.copy(setups.head);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
-    this.shoulderTransforms.eyel.position.copy(setups.eyel);
-    this.shoulderTransforms.eyer.position.copy(setups.eyer);
+    if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
+    if (setups.eyer) this.shoulderTransforms.eyer.position.copy(setups.eyer);
 
     if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
     this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
@@ -1712,12 +1564,12 @@ class Avatar {
     this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
     this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
     this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
-    this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
+    if (setups.leftToe) this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
 
     this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
     this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
-    this.legsManager.rightLeg.toe.position.copy(setups.leftToe);
+    if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
 
     this.shoulderTransforms.root.updateMatrixWorld();
   }
@@ -1750,7 +1602,7 @@ class Avatar {
     );
     return localEuler.y;
   }
-	update(timeDiff) {
+  update(timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
@@ -1844,8 +1696,16 @@ class Avatar {
         }
       };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+      /* const _getIdleAnimation = key => {
+        if (key === 'walk' || key === 'run') {
+          const name = animationsIdleArrays[key].name;
+          return this.retargetedAnimations.find(a => a.name === name);
+        } else {
+          return animationsIdleArrays[key].animation;
+        }
+      }; */
       const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
-        // normal horizontal blend
+        // normal horizontal walk/run blend
         {
           const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
           const src1 = horizontalAnimationAngles[0].animation.interpolants[k];
@@ -1863,7 +1723,7 @@ class Avatar {
             );
         }
           
-        // mirror horizontal blend
+        // mirror horizontal blend (backwards walk/run)
         {
           const t1 = timeSeconds % horizontalAnimationAnglesMirror[0].animation.duration;
           const src1 = horizontalAnimationAnglesMirror[0].animation.interpolants[k];
@@ -1881,7 +1741,7 @@ class Avatar {
             );
         }
 
-        // blend mirrors together
+        // blend mirrors together to get a smooth walk
         lerpFn
           .call(
             localQuaternion5.copy(localQuaternion3),
@@ -1889,7 +1749,7 @@ class Avatar {
             mirrorFactor
           );
 
-        // blend mirrors with idle
+        // blend the smooth walk with idle
         {
           const t3 = timeSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
@@ -1912,6 +1772,49 @@ class Avatar {
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
       const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
+
+
+      const soundManager = metaversefile.useSoundManager();
+      //console.log(key);
+      //console.log(currentSpeed);
+      //console.log(idleAnimation.duration);
+      const currAniTime = timeSeconds % idleAnimation.duration;
+      //console.log(currAniTime);
+
+      if (currentSpeed > 0.1) {
+        if (key == 'walk') {
+          if (currAniTime > 0.26 && currAniTime < 0.4)
+            soundManager.playStepSound(1);
+          if (currAniTime > 0.76 && currAniTime < 0.9)
+            soundManager.playStepSound(2);
+          if (currAniTime > 1.26 && currAniTime < 1.4)
+            soundManager.playStepSound(3);
+          if (currAniTime > 1.76 && currAniTime < 1.9)
+            soundManager.playStepSound(4);
+          if (currAniTime > 2.26 && currAniTime < 2.5)
+            soundManager.playStepSound(5);
+        }
+        if (key == 'run') {
+          if (currAniTime > 0.16 && currAniTime < 0.3)
+            soundManager.playStepSound(1);
+          if (currAniTime > 0.43 && currAniTime < 0.45)
+            soundManager.playStepSound(2);
+          if (currAniTime > 0.693 && currAniTime < 0.8)
+            soundManager.playStepSound(3);
+          if (currAniTime > 0.963 && currAniTime < 1.1)
+            soundManager.playStepSound(4);
+          if (currAniTime > 1.226 && currAniTime < 1.3)
+            soundManager.playStepSound(5);
+          if (currAniTime > 1.496 && currAniTime < 1.6)
+            soundManager.playStepSound(6);
+          if (currAniTime > 1.759 && currAniTime < 1.9)
+            soundManager.playStepSound(7);
+          if (currAniTime > 2.029 && currAniTime < 2.1)
+            soundManager.playStepSound(8);
+          if (currAniTime > 2.292 && currAniTime < 2.4)
+            soundManager.playStepSound(9);
+        }
+      }
       
       // crouch
       const keyOther = _getAnimationKey(
@@ -1970,8 +1873,8 @@ class Avatar {
         if (this.jumpState) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -1985,8 +1888,8 @@ class Avatar {
         if (this.sitState) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -2000,8 +1903,8 @@ class Avatar {
         if (this.activateTime > 0) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             const activateAnimation = activateAnimations[defaultActivateAnimation];
@@ -2015,8 +1918,8 @@ class Avatar {
         if (this.narutoRunState) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -2031,8 +1934,8 @@ class Avatar {
         if (this.danceState) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -2047,8 +1950,8 @@ class Avatar {
         if (this.throwState) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -2062,8 +1965,8 @@ class Avatar {
         }
         const _handleDefault = spec => {
           const {
-            quaternionKey: k,
-            quaternion: dst,
+            animationTrackName: k,
+            dst,
             isTop,
             lerpFn,
           } = spec;
@@ -2073,8 +1976,8 @@ class Avatar {
         if (this.useTime >= 0) {
           return spec => {
             const {
-              quaternionKey: k,
-              quaternion: dst,
+              animationTrackName: k,
+              dst,
               isTop,
             } = spec;
             
@@ -2099,8 +2002,8 @@ class Avatar {
       const applyFn = _getApplyFn();
       const _blendFly = spec => {
         const {
-          quaternionKey: k,
-          quaternion: dst,
+          animationTrackName: k,
+          dst,
           isTop,
           lerpFn,
         } = spec;
@@ -2121,8 +2024,8 @@ class Avatar {
       };
       for (const spec of this.animationMappings) {
         const {
-          quaternionKey: k,
-          quaternion: dst,
+          animationTrackName: k,
+          dst,
           isTop,
           isPosition,
         } = spec;
@@ -2205,17 +2108,17 @@ class Avatar {
       }
     }
     if (!this.getBottomEnabled()) {
-      this.outputs.root.position.copy(this.inputs.hmd.position);
-      this.outputs.root.position.y -= this.height;
+      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position);
+      this.modelBoneOutputs.Root.position.y -= this.height;
 
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
-      this.outputs.root.quaternion.setFromEuler(localEuler);
+      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
     }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
-      this.outputs.hips.updateMatrixWorld();
+      this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
 
     this.shoulderTransforms.Update();
@@ -2440,16 +2343,16 @@ class Avatar {
 
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
-        this.getHandEnabled(0) && this.outputs.leftHand.quaternion.multiply(rightRotation); // center
-        this.outputs.leftHand.updateMatrixWorld();
-        this.getHandEnabled(1) && this.outputs.rightHand.quaternion.multiply(leftRotation); // center
-        this.outputs.rightHand.updateMatrixWorld();
+        this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
+        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
+        this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
+        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
       }
 
       for (const k in this.debugMeshes.attributes) {
         const attribute = this.debugMeshes.attributes[k];
         if (attribute.visible) {
-          const output = this.outputs[k];
+          const output = this.modelBoneOutputs[k];
           attribute.array.set(attribute.srcGeometry.attributes.position.array);
           attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
         } else {
@@ -2527,4 +2430,5 @@ class Avatar {
 }
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
+Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 export default Avatar;
