@@ -3,16 +3,14 @@ import XMLHttpRequest from 'xhr2';
 global.XMLHttpRequest = XMLHttpRequest;
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import {getHeight} from './avatars/util.mjs';
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import fs from 'fs';
 import express from 'express';
-import path from 'path';
 
-
-if (process.argv.length < 4) {
+/* if (process.argv.length < 4) {
     console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animations-baker.mjs dir/files*.fbx ani.cbor\n\n`);
     process.exit();
-}
+} */
 
 const idleAnimationName = 'idle.fbx';
 const reversibleAnimationNames = [
@@ -42,10 +40,11 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
       // const animation = o.animations[0];
       return getHeight(o);
     })();
-    console.log('got height', height);
+    // console.log('got height', height);
     
     for (const name of animationFileNames) {
         const u = uriPath + name;
+        console.log('processing', name);
         let o;
         o = await new Promise((accept, reject) => {
             fbxLoader.load(u, o => {
@@ -114,24 +113,17 @@ const baker = async (uriPath = "", animationFileNames, outFile) => {
     console.log('exported animations at', outFile);
 }
 
-
-
 (async () => {
     const app = express();
-    app.use(express.static(path.dirname(process.argv[2])))
+    app.use(express.static('public/animations'))
     app.listen(9999);
-    const filesToBake = [];
-    for (let index = 2; index < process.argv.length - 1; index++) {
-        const element = process.argv[index];
-        filesToBake.push(path.basename(element));
-    }
-    await baker('http://localhost:9999/', filesToBake, process.argv[process.argv.length - 1]).catch((e) => {
-        console.warn(e);
+    const animationFileNames = fs.readdirSync('public/animations');
+    const fbxFileNames = animationFileNames.filter(name => /\.fbx$/.test(name));
+    const animationsCborFileName = 'public/animations/animations.cbor';
+    await baker('http://localhost:9999/', fbxFileNames, animationsCborFileName).catch((e) => {
+        console.warn('bake error', new Error().stack);
     })
     process.exit();
 })();
-
-
-
 
 // baker('http://localhost:3000/', ['falling.fbx']);
