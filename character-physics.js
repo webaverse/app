@@ -241,7 +241,7 @@ class CharacterPhysics {
     }
   }
   updateTransform() {
-    if(this.rigidBody && physicsManager.physicsEnabled) {
+    /* if (this.rigidBody && physicsManager.physicsEnabled) {
       localArray.push({
         id: this.rigidBody.physicsId,
         position: this.rigidBody.position,
@@ -251,17 +251,16 @@ class CharacterPhysics {
       const newTransform = physicsManager.getTransforms(localArray);
       localArray.length = 0;
 
-      for (const updateOut of newTransform)
-        {
-          const {id, position, quaternion, scale} = updateOut; 
-          if(id === this.rigidBody.physicsId) {
-            this.rigidBody.position.copy(position);
-            this.rigidBody.quaternion.copy(quaternion);
-            this.rigidBody.updateMatrixWorld();
-            this.rigidBody.needsUpdate = false;
-          }
+      for (const updateOut of newTransform) {
+        const {id, position, quaternion, scale} = updateOut; 
+        if(id === this.rigidBody.physicsId) {
+          this.rigidBody.position.copy(position);
+          this.rigidBody.quaternion.copy(quaternion);
+          this.rigidBody.updateMatrixWorld();
+          this.rigidBody.needsUpdate = false;
         }
       }
+    } */
   }
   applyAvatarPhysics(timeDiffS) {
     const renderer = getRenderer();
