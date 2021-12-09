@@ -247,12 +247,19 @@ class Player extends THREE.Object3D {
           physicsManager.setAngularLockFlags(physicsObject.physicsId, false, true, false);
 
           const debugCapsule = new THREE.Mesh(
-            new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshStandardMaterial({transparent: true, opacity: 0.9, color: 0xff0000, wireframe: true, wireframeLinewidth: 2})
+            new CapsuleGeometry(radius, radius, halfHeight*2),
+            new THREE.MeshStandardMaterial({
+              transparent: true,
+              opacity: 0.9,
+              color: 0xff0000,
+              wireframe: true,
+              wireframeLinewidth: 2,
+            })
           );
           scene.add(debugCapsule);
           // console.log('add capsule', debugCapsule);
           world.appManager.addEventListener('frame', e => {
-            window.debugCapsule = debugCapsule;
+            // window.debugCapsule = debugCapsule;
             debugCapsule.position.copy(physicsObject.position);
             debugCapsule.quaternion.copy(physicsObject.quaternion);
             debugCapsule.scale.copy(physicsObject.scale);
@@ -261,7 +268,7 @@ class Player extends THREE.Object3D {
 
           return physicsObject;
         })();
-        console.log('got local player  capsule', this.capsule);
+        // console.log('got local player capsule', this.capsule);
       })();
       
       this.dispatchEvent({
