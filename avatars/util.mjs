@@ -545,8 +545,10 @@ export const decorateAnimation = animation => {
   animation.isLanding = /landing/i.test(animation.name);
   animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);
   animation.isChargeJump = /charge_jump/i.test(animation.name);
+  animation.isStandCharge = /stand_charge/i.test(animation.name);
   animation.isFallLoop = /fall_loop/i.test(animation.name);
   animation.interpolants = {};
+
   animation.tracks.forEach(track => {
     const i = track.createInterpolant();
     i.name = track.name;
