@@ -44,7 +44,6 @@ class CharacterPhysics {
   applyWasd(keysDirection, timeDiff) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
       physicsManager.getVelocity(this.player.capsule, localVelocity);
-      this.applyVelocityDamping(localVelocity, timeDiff);
       localVelocity.add(keysDirection);
       physicsManager.setVelocity(this.player.capsule, localVelocity, true);
     }
@@ -99,7 +98,6 @@ class CharacterPhysics {
 
         localOffset.set(0, this.player.avatar.height/2, 0); // Capsule offset
         localVector.add(localOffset); */
-        const {collided, grounded} = capsule;
         // const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
 
         // avatar facing direction
@@ -140,13 +138,15 @@ class CharacterPhysics {
         const _ensureNoJumpAction = () => {
           this.player.removeAction('jump');
         };
+
+        const {collided, grounded} = capsule;
+        // console.log('collided grounded', collided, grounded);
+        physicsManager.getVelocity(this.player.capsule, localVector4);
         if (collided) {
           /*localVector.add(
             localVector4
               .fromArray(collision.direction)
           );*/
-
-          physicsManager.getVelocity(this.player.capsule, localVector4);
           
           if (grounded) {
             if(!jumpAction) {
@@ -340,10 +340,19 @@ class CharacterPhysics {
     this.updateVelocity();
     this.updateTransform();
   } */
+  updateVelocity(timeDiffS) {
+    if (this.player.capsule) {
+      physicsManager.getVelocity(this.player.capsule, localVelocity);
+      const timeDiff = timeDiffS * 1000;
+      this.applyVelocityDamping(localVelocity, timeDiff);
+      physicsManager.setVelocity(this.player.capsule, localVelocity, true);
+    }
+  }
   update(timeDiffS) {
     // this.applyGravity(timeDiffS);
     // this.applyVelocityDamping(timeDiffS);
     // this.updateRigidbody();
+    this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(timeDiffS);
     this.updateCamera(timeDiffS);
   }
