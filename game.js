@@ -1414,11 +1414,11 @@ const gameManager = {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('chargeJump');
+      const action = localPlayer.getAction('standCharge');
       if (!action) {
         const newAction = {
-          type: 'chargeJump',
-          animation: 'chargeJump',
+          type: 'standCharge',
+          animation: 'standCharge',
           // time: 0,
         };
         console.log(newAction)
@@ -1429,7 +1429,7 @@ const gameManager = {
   },
   menuVUp(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('dance');
+    localPlayer.removeAction('standCharge');
   },
   menuBDown(e) {
     if (e.ctrlKey) {
