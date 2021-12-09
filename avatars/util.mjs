@@ -548,6 +548,8 @@ export const decorateAnimation = animation => {
   animation.isStandCharge = /stand_charge/i.test(animation.name);
   animation.isFallLoop = /fall_loop/i.test(animation.name);
   animation.isSwordSideSlash = /sword_side_slash/i.test(animation.name);
+  animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
+
   animation.interpolants = {};
 console.log(animation.name)
   animation.tracks.forEach(track => {

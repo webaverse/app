@@ -222,6 +222,7 @@ let chargeJump;
 let standCharge;
 let fallLoop;
 let swordSideSlash;
+let swordtopDownSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -334,6 +335,7 @@ const loadPromise = (async () => {
   standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
+  swordtopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
 
   jumpAnimation = animations.find(a => a.isJump);
@@ -1213,6 +1215,8 @@ class Avatar {
     this.fallLoopTime = 0;
     this.swordSideSlashState = false;
     this.swordSideSlashTime = 0;
+    this.swordTopDownSlashState = false;
+    this.swordTopDownSlashTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -2011,10 +2015,25 @@ class Avatar {
               isTop,
             } = spec;
 
-            console.log('Broken thru')
-
             const t2 = (this.swordSideSlashTime/1000) ;
             const src2 = swordSideSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordTopDownSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            console.log('Broken thru')
+
+            const t2 = (this.swordTopDownSlashTime/1000) ;
+            const src2 = swordtopDownSlash.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
