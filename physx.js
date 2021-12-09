@@ -703,7 +703,16 @@ const physxWorker = (() => {
     else {
       throw new Error('raycastPhysicsArray error');
     }
-  };  
+  };
+  w.setAngularLockFlags = (physics, physicsId, x, y, z) => {
+    moduleInstance._setAngularLockFlagsPhysics(
+      physics,
+      physicsId,
+      x,
+      y,
+      z
+    );
+  };
   w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)

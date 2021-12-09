@@ -211,6 +211,9 @@ physicsManager.getTransforms = physicsObjects => {
 } */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
+physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
+  physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
+};
 physicsManager.simulatePhysics = timeDiff => {
   if (physicsManager.physicsEnabled) {
     const t = timeDiff/1000;
