@@ -198,14 +198,14 @@ physicsManager.removeGeometry = physicsObject => {
 physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
 };
-physicsManager.setTransform = (physicsObject) => {
+physicsManager.setTransform = physicsObject => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
 };
-physicsManager.getTransforms = physicsObjects => {
+/* physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
   return objs;
-};
+}; */
 /* physicsManager.isGrounded = physicsObject => {
   return physx.physxWorker.checkGrounded(physx.physics, physicsObject.physicsId);
 } */
