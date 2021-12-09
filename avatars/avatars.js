@@ -92,6 +92,8 @@ const defaultThrowAnimation = 'throw';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 const defaultchargeJumpAnimation = 'chargeJump';
+const defaultStandChargeAnimation = 'standCharge';
+
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -217,6 +219,7 @@ let activateAnimations;
 let narutoRunAnimations;
 let jumpAnimationSegments;
 let chargeJump;
+let standCharge;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -326,6 +329,7 @@ const loadPromise = (async () => {
 
   console.log(chargeJump);
   chargeJump = animations.find(a => a.isChargeJump)
+  standCharge = animations.find(a => a.isStandCharge) 
 
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
@@ -1198,6 +1202,8 @@ class Avatar {
     this.chargeJumpState = false;
     this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
+    this.standChargeState = false;
+    this.standChargeTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -1971,7 +1977,25 @@ class Avatar {
         }
 
          // TODO Change it here to test
-         if (this.chargeJumpState) {
+         if (this.standChargeState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+            console.log('CHARGE JUMP ACTIVATED', standCharge);
+
+            const t2 = (this.standChargeTime/1000) ;
+            const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.chargeJumpState) {
           return spec => {
             const {
               animationTrackName: k,
