@@ -34,7 +34,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
-    this.rigidBody = null;
+    // this.rigidBody = null;
     this.debugCapsule = null;
 
     this.velocity = new THREE.Vector3();
@@ -71,26 +71,31 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
+      //console.log(physicsId);
 
-      this.rigidBody = this.player.avatar.app.physicsObjects[0];
-      //this.debugCapsule = this.player.avatar.app.debugCapsule;;
+      const avatarVrmPhysicsObject = this.player.avatar.app.physicsObjects[0];
+      //this.debugCapsule = this.player.avatar.app.debugCapsule;
+      physicsManager.disableGeometryQueries(avatarVrmPhysicsObject);
+      physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
 
-      if(!this.rigidBody) return;
+      const {capsule} = this.player;
 
-      physicsManager.disableGeometryQueries(this.rigidBody);
-      physicsManager.enablePhysicsObject(this.rigidBody);
+      capsule.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+
+      // if(!this.rigidBody) return;
+      
       // capsule physics
       if (!this.player.hasAction('sit')) {
         //applyVelocity(this.player.position, this.velocity, timeDiffS);
 
-
-        this.rigidBody.updateMatrixWorld();
+        /* this.rigidBody.updateMatrixWorld();
         this.rigidBody.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         localQuaternion.copy(this.player.quaternion);
 
         localOffset.set(0, this.player.avatar.height/2, 0); // Capsule offset
-        localVector.add(localOffset);
-        const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
+        localVector.add(localOffset); */
+        const {collided, grounded} = capsule;
+        // const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
 
         // avatar facing direction
         if (velocityAvatarDirection) {
@@ -127,12 +132,12 @@ class CharacterPhysics {
         const _ensureNoJumpAction = () => {
           this.player.removeAction('jump');
         };
-        if (collision) {
+        if (collided) {
           /*localVector.add(
             localVector4
               .fromArray(collision.direction)
           );*/
-          if (collision.grounded) {
+          if (grounded) {
             if(!jumpAction) {
               this.velocity.y = 0;
               _ensureNoJumpAction();
@@ -225,7 +230,7 @@ class CharacterPhysics {
     }
   }
   updateVelocity() {
-    if(this.player.avatar && physicsManager.physicsEnabled) {
+    /* if(this.player.avatar && physicsManager.physicsEnabled) {
       if(this.rigidBody) {
         let y = 0;
         if(this.velocity.y > 0) {
@@ -238,7 +243,7 @@ class CharacterPhysics {
         }
         physicsManager.setVelocity(this.rigidBody, this.velocity, enableGravity);
       }
-    }
+    } */
   }
   updateTransform() {
     /* if (this.rigidBody && physicsManager.physicsEnabled) {

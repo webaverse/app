@@ -4,8 +4,9 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-// import physicsManager from './physics-manager.js';
+import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -89,6 +90,7 @@ class Player extends THREE.Object3D {
     
     this.avatarEpoch = 0;
     this.avatar = null;
+    this.capsule = null;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
@@ -228,6 +230,36 @@ class Player extends THREE.Object3D {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+        this.capsule = (() => {
+          const avatarHeight = this.avatar.height;
+          const radius = 0.3/1.6 * avatarHeight;
+          const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+          const physicsMaterial = new THREE.Vector3(0.5, 0.5, 1);
+          const physicsObject = physicsManager.addCapsuleGeometry(
+            new THREE.Vector3(0, -avatarHeight * 0.5, 0),
+            new THREE.Quaternion(),
+            radius,
+            halfHeight,
+            physicsMaterial,
+            true
+          );
+
+          const debugCapsule = new THREE.Mesh(
+            new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshStandardMaterial({transparent: true, opacity: 0.9, color: 0xff0000, wireframe: true, wireframeLinewidth: 2})
+          );
+          scene.add(debugCapsule);
+          // console.log('add capsule', debugCapsule);
+          world.appManager.addEventListener('frame', e => {
+            window.debugCapsule = debugCapsule;
+            debugCapsule.position.copy(physicsObject.position);
+            debugCapsule.quaternion.copy(physicsObject.quaternion);
+            debugCapsule.scale.copy(physicsObject.scale);
+            debugCapsule.updateMatrixWorld();
+          });
+
+          return physicsObject;
+        })();
+        console.log('got local player  capsule', this.capsule);
       })();
       
       this.dispatchEvent({

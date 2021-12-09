@@ -35,6 +35,8 @@ const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.physicsId = physicsId;
+  physicsObject.collided = false;
+  physicsObject.grounded = false;
   physicsObject.error = new Error().stack;
   return physicsObject;
 };
@@ -72,7 +74,8 @@ physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMateria
 
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsId, physicsMaterial, ccdEnabled);
+  // console.log('woot', {physics: physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled});
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
   const physicsMesh = new THREE.Mesh(
@@ -203,15 +206,33 @@ physicsManager.getTransforms = physicsObjects => {
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
   return objs;
 };
-physicsManager.isGrounded = physicsObject => {
+/* physicsManager.isGrounded = physicsObject => {
   return physx.physxWorker.checkGrounded(physx.physics, physicsObject.physicsId);
-}
+} */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.simulatePhysics = timeDiff => {
-  if(physicsManager.physicsEnabled) {
+  if (physicsManager.physicsEnabled) {
     const t = timeDiff/1000;
-    physx.physxWorker.simulatePhysics(physx.physics, t);  
+    // console.log('simulate', timeDiff, t);
+    const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
+    physicsUpdates.length = 0;
+    for (const updateOut of updatesOut) {
+      const {id, position, quaternion, /*scale,*/ collided, grounded} = updateOut;
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      /* if (!physicsObject.position) {
+        debugger;
+      } */
+      physicsObject.position.copy(position);
+      physicsObject.quaternion.copy(quaternion);
+      // physicsObject.scale.copy(scale);
+      physicsObject.updateMatrixWorld();
+      physicsObject.collided = collided;
+      physicsObject.grounded = grounded;
+      /* if (physicsObject.collided) {
+        debugger;
+      } */
+    }
   }
 };
 

@@ -620,12 +620,7 @@ metaversefile.setApi({
         // app.add(physicsObject);
         physicsObject.updateMatrixWorld();
 
-
-        const debugCapsule = new THREE.Mesh(
-          new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshStandardMaterial({transparent: true, opacity: 0.9, color: 0xff0000, wireframe: true, wireframeLinewidth: 2})
-        );
-
-        const localPlayer = metaversefile.useLocalPlayer();
+        // const localPlayer = metaversefile.useLocalPlayer();
 
         /*if(localPlayer.avatar) {
           if(localPlayer.avatar.height) {
@@ -900,12 +895,17 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
-  getPhysicsObjectByPhysicsId() {
+  getPhysicsObjectByPhysicsId(physicsId) {
     const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
-       remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+    if (localPlayer.capsule.physicsId === physicsId) {
+      // console.log('got capsule', localPlayer.capsule);
+      return localPlayer.capsule;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+        localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+        remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+    }
   },
   getAvatarHeight(obj) {
     return getHeight(obj);
