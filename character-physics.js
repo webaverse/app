@@ -42,7 +42,10 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
-    this.velocity.add(keysDirection);
+    if (this.player.avatar && physicsManager.physicsEnabled) {
+      this.velocity.add(keysDirection);
+      physicsManager.setVelocity(this.player.capsule, this.velocity, true);
+    }
   }
   /* applyGravity(timeDiffS) {
     if (this.player) {
