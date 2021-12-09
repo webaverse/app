@@ -220,6 +220,8 @@ let narutoRunAnimations;
 let jumpAnimationSegments;
 let chargeJump;
 let standCharge;
+let fallLoop;
+let swordSideSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -328,8 +330,11 @@ const loadPromise = (async () => {
   }
 
   console.log(chargeJump);
-  chargeJump = animations.find(a => a.isChargeJump)
-  standCharge = animations.find(a => a.isStandCharge) 
+  chargeJump = animations.find(a => a.isChargeJump);
+  standCharge = animations.find(a => a.isStandCharge);
+  fallLoop = animations.find(a => a.isFallLoop);
+  swordSideSlash = animations.find(a => a.isSwordSideSlash);
+
 
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
@@ -1204,6 +1209,10 @@ class Avatar {
     this.narutoRunTime = 0;
     this.standChargeState = false;
     this.standChargeTime = 0;
+    this.fallLoopState = false;
+    this.fallLoopTime = 0;
+    this.swordSideSlashState = false;
+    this.swordSideSlashTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -1986,10 +1995,44 @@ class Avatar {
             } = spec;
 
             
-            console.log('CHARGE JUMP ACTIVATED', standCharge);
 
             const t2 = (this.standChargeTime/1000) ;
             const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordSideSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            console.log('Broken thru')
+
+            const t2 = (this.swordSideSlashTime/1000) ;
+            const src2 = swordSideSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.fallLoopState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            console.log('hittt')
+            
+
+            const t2 = (this.fallLoopTime/1000) ;
+            const src2 = fallLoop.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
