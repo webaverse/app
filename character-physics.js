@@ -44,7 +44,7 @@ class CharacterPhysics {
   applyWasd(keysDirection, timeDiff) {
     this.velocity.add(keysDirection);
   }
-  applyGravity(timeDiffS) {
+  /* applyGravity(timeDiffS) {
     if (this.player) {
       if (this.player.hasAction('jump')) {
         localVector.copy(physicsManager.getGravity())
@@ -52,7 +52,7 @@ class CharacterPhysics {
         this.velocity.add(localVector);
       }
     }
-  }
+  } */
   /* collideCapsule = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -79,8 +79,8 @@ class CharacterPhysics {
       physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
 
       const {capsule} = this.player;
-
       capsule.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.y += this.player.avatar.height * 0.5;
 
       // if(!this.rigidBody) return;
       
@@ -218,7 +218,7 @@ class CharacterPhysics {
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
-  applyDamping(timeDiffS) {
+  applyVelocityDamping(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
@@ -229,8 +229,8 @@ class CharacterPhysics {
       this.velocity.z *= factor;
     }
   }
-  updateVelocity() {
-    /* if(this.player.avatar && physicsManager.physicsEnabled) {
+  /* updateVelocity() {
+    if(this.player.avatar && physicsManager.physicsEnabled) {
       if(this.rigidBody) {
         let y = 0;
         if(this.velocity.y > 0) {
@@ -243,8 +243,8 @@ class CharacterPhysics {
         }
         physicsManager.setVelocity(this.rigidBody, this.velocity, enableGravity);
       }
-    } */
-  }
+    }
+  } */
   updateTransform() {
     /* if (this.rigidBody && physicsManager.physicsEnabled) {
       localArray.push({
@@ -317,6 +317,7 @@ class CharacterPhysics {
     const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
     const crouchOffset = avatarHeight * (1 - getPlayerCrouchFactor(this.player)) * 0.5;
     camera.position.copy(this.player.position)
+      // .add(localVector.set(0, avatarHeight * 0.5, 0))
       .sub(
         localVector.copy(avatarCameraOffset)
           .applyQuaternion(camera.quaternion)
@@ -324,14 +325,14 @@ class CharacterPhysics {
     camera.position.y -= crouchOffset;
     camera.updateMatrixWorld();
   }
-  updateRigidbody() {
+  /* updateRigidbody() {
     this.updateVelocity();
     this.updateTransform();
-  }
+  } */
   update(timeDiffS) {
-    this.applyGravity(timeDiffS);
-    this.applyDamping(timeDiffS);
-    this.updateRigidbody();
+    // this.applyGravity(timeDiffS);
+    this.applyVelocityDamping(timeDiffS);
+    // this.updateRigidbody();
     this.applyAvatarPhysics(timeDiffS);
     this.updateCamera(timeDiffS);
   }
