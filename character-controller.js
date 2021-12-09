@@ -246,7 +246,7 @@ class Player extends THREE.Object3D {
           // console.log('set flags', physicsObject.physicsId, physicsObject);
           physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
           physicsManager.setTransform(physicsObject);
-          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, true, false);
+          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
 
           const debugCapsule = new THREE.Mesh(
             new CapsuleGeometry(radius, radius, halfHeight*2),
