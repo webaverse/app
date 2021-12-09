@@ -195,6 +195,9 @@ physicsManager.enableGeometryQueries = physicsObject => {
 physicsManager.removeGeometry = physicsObject => {
   physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
+physicsManager.getVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+};
 physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
 };
