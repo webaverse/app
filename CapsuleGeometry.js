@@ -276,7 +276,12 @@ class CapsuleGeometry extends THREE.BufferGeometry {
         }
 
     }
-  }
+
+    this.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+    ));
+    
+   }
 }
 CapsuleGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength ) {
 
