@@ -53,7 +53,7 @@ class CharacterPhysics {
       }
     }
   }
-  collideCapsule = (() => {
+  /* collideCapsule = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     return (p, q) => {
@@ -64,7 +64,7 @@ class CharacterPhysics {
       const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
       return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, q, 12);
     };
-  })()
+  })() */
   applyAvatarPhysicsDetail(
     velocityAvatarDirection,
     updateRig,
