@@ -243,6 +243,8 @@ class Player extends THREE.Object3D {
             physicsMaterial,
             true
           );
+          // console.log('set flags', physicsObject.physicsId, physicsObject);
+          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, true, false);
 
           const debugCapsule = new THREE.Mesh(
             new CapsuleGeometry(radius, radius, halfHeight*2), new THREE.MeshStandardMaterial({transparent: true, opacity: 0.9, color: 0xff0000, wireframe: true, wireframeLinewidth: 2})
