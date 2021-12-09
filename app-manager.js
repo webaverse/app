@@ -237,12 +237,19 @@ class AppManager extends EventTarget {
             }
           })(),
         });
-        app.position.fromArray(position);
-        // app.matrix.setPosition(new Vector3().fromArray(position));
-        // app.matrix.setRotationFromQuaternion(new Quaternion().fromArray(quaternion))
-        app.quaternion.fromArray(quaternion);
-        app.scale.fromArray(scale);
-        app.updateMatrix();
+        setTimeout(()=>{
+          app.quaternion.copy(new Quaternion().fromArray(quaternion));
+          app.position.copy(new Vector3().fromArray(position));
+          app.scale.copy(new Vector3().fromArray(scale));
+
+          // app.position.fromArray(position);
+          app.traverse(o=>{
+            o.updateMatrix();
+            o.updateMatrixWorld(true);
+          })
+     
+        },5500)
+
 
         // app.matrixAutoUpdate=false;
         app.contentId = contentId;
@@ -451,8 +458,7 @@ class AppManager extends EventTarget {
   }
   addApp(app) {
     this.apps.push(app);
-    app.updateMatrix();
-    app.updateMatrixWorld();
+
     this.dispatchEvent(new MessageEvent('appadd', {
       data: app,
     }));
