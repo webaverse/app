@@ -222,7 +222,7 @@ let chargeJump;
 let standCharge;
 let fallLoop;
 let swordSideSlash;
-let swordtopDownSlash;
+let swordTopDownSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -333,7 +333,7 @@ const loadPromise = (async () => {
   standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
-  swordtopDownSlash = animations.find(a => a.isSwordTopDownSlash)
+  swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
 
   jumpAnimation = animations.find(a => a.isJump);
@@ -2027,7 +2027,7 @@ class Avatar {
             } = spec;
 
             const t2 = (this.swordTopDownSlashTime/1000) ;
-            const src2 = swordtopDownSlash.interpolants[k];
+            const src2 = swordTopDownSlash.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
