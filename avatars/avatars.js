@@ -2073,7 +2073,6 @@ class Avatar {
             } = spec;
             
 
-            console.log(spec);
             const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
             const danceAnimation = danceAnimations[0];
             const src2 = throwAnimation.interpolants[k];

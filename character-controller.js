@@ -894,7 +894,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
     this.appManager.syncApps();
     
-    console.log(this.playerMap);
     this.syncAvatar();
   }
 }

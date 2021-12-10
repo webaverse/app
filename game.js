@@ -1407,7 +1407,6 @@ const gameManager = {
     }
   },
 
-  // There's a difference between action and type?
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
