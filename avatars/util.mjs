@@ -551,7 +551,6 @@ export const decorateAnimation = animation => {
   animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
 
   animation.interpolants = {};
-console.log(animation.name)
   animation.tracks.forEach(track => {
     const i = track.createInterpolant();
     i.name = track.name;
