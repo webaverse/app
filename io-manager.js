@@ -52,7 +52,6 @@ ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.debugMode = false;
 
-//TODO Held down buttons, using jump value here to detect jump button being held down
 ioManager.keys = {
   up: false,
   down: false,
