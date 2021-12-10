@@ -161,7 +161,7 @@ class CharacterPhysics {
           } else if (!jumpAction) {
             //_ensureJumpAction();
           }
-        } else if (!jumpAction && localVector4.y <= -2) {
+        } else if (!jumpAction && localVector4.y <= -1) {
           _ensureJumpAction();
         }
       } else {
