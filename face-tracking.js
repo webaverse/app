@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import metaversefile from "metaversefile";
-import * as Kalidokit from './kalidokit/src/index.js';
-// import {calcLegs} from './kalidokit/src/PoseSolver/calcLegs.js';
+import * as Kalidokit from 'kalidokit/src/index.js';
+// import {calcLegs} from 'kalidokit/src/PoseSolver/calcLegs.js';
 // import {Holistic} from '@mediapipe/holistic/holistic';
 // import {Camera} from '@mediapipe/camera_utils/camera_utils';
 // import '@tensorflow/tfjs-backend-webgl';
