@@ -243,9 +243,8 @@ class CharacterPhysics {
 
     const {capsule} = this.player;
     const {grounded} = capsule;
-    // console.log('grounded', grounded, velocity.y);
     if (grounded && velocity.y > 0 && !this.player.hasAction('jump')) {
-      velocity.y *= 0.1;
+      velocity.y = 0;
     }
   }
   /* updateVelocity() {
