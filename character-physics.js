@@ -84,6 +84,7 @@ class CharacterPhysics {
 
       const {capsule} = this.player;
       capsule.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
 
       // if(!this.rigidBody) return;
