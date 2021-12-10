@@ -91,6 +91,9 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
+const defaultchargeJumpAnimation = 'chargeJump';
+const defaultStandChargeAnimation = 'standCharge';
+
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -214,6 +217,12 @@ let throwAnimations;
 let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
+let jumpAnimationSegments;
+let chargeJump;
+let standCharge;
+let fallLoop;
+let swordSideSlash;
+let swordTopDownSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -311,7 +320,22 @@ const loadPromise = (async () => {
   for (const animation of animations) {
     decorateAnimation(animation);
   }
-  
+
+
+  jumpAnimationSegments = {
+    chargeJump: animations.find(a => a.isChargeJump),
+    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
+    isFallLoop: animations.find(a => a.isFallLoop),
+    isLanding: animations.find(a => a.isLanding)
+  }
+
+  chargeJump = animations.find(a => a.isChargeJump);
+  standCharge = animations.find(a => a.isStandCharge);
+  fallLoop = animations.find(a => a.isFallLoop);
+  swordSideSlash = animations.find(a => a.isSwordSideSlash);
+  swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
+
+
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -1180,7 +1204,17 @@ class Avatar {
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
     this.narutoRunState = false;
+    this.chargeJumpState = false;
+    this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
+    this.standChargeState = false;
+    this.standChargeTime = 0;
+    this.fallLoopState = false;
+    this.fallLoopTime = 0;
+    this.swordSideSlashState = false;
+    this.swordSideSlashTime = 0;
+    this.swordTopDownSlashState = false;
+    this.swordTopDownSlashTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -1870,6 +1904,7 @@ class Avatar {
           );
       };
       const _getApplyFn = () => {
+
         if (this.jumpState) {
           return spec => {
             const {
@@ -1877,7 +1912,8 @@ class Avatar {
               dst,
               isTop,
             } = spec;
-            
+            // console.log('JumpState', spec)
+
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -1931,6 +1967,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
+
         if (this.danceState) {
           return spec => {
             const {
@@ -1939,9 +1976,107 @@ class Avatar {
               isTop,
             } = spec;
             
+
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+
+         if (this.standChargeState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+
+            const t2 = (this.standChargeTime/1000) ;
+            const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordSideSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.swordSideSlashTime/1000) ;
+            const src2 = swordSideSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordTopDownSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.swordTopDownSlashTime/1000) ;
+            const src2 = swordTopDownSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.fallLoopState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.fallLoopTime/1000) ;
+            const src2 = fallLoop.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.chargeJumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+            const t2 = (this.chargeJumpTime/1000) ;
+            const src2 = chargeJump.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.jumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+            
+
+            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
+            const danceAnimation = danceAnimations[0];
+            const src2 = throwAnimation.interpolants[k];
+            const t2 = (this.danceTime/1000) ;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
