@@ -321,7 +321,6 @@ const loadPromise = (async () => {
     decorateAnimation(animation);
   }
 
-  //TODO add all jumpAnimations
 
   jumpAnimationSegments = {
     chargeJump: animations.find(a => a.isChargeJump),
@@ -330,7 +329,6 @@ const loadPromise = (async () => {
     isLanding: animations.find(a => a.isLanding)
   }
 
-  console.log(chargeJump);
   chargeJump = animations.find(a => a.isChargeJump);
   standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
@@ -1970,7 +1968,6 @@ class Avatar {
           };
         }
 
-        // TODO Change it here to test
         if (this.danceState) {
           return spec => {
             const {
@@ -1989,7 +1986,6 @@ class Avatar {
           };
         }
 
-         // TODO Change it here to test
          if (this.standChargeState) {
           return spec => {
             const {
@@ -2030,8 +2026,6 @@ class Avatar {
               isTop,
             } = spec;
 
-            console.log('Broken thru')
-
             const t2 = (this.swordTopDownSlashTime/1000) ;
             const src2 = swordtopDownSlash.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -2046,9 +2040,6 @@ class Avatar {
               dst,
               isTop,
             } = spec;
-
-            console.log('hittt')
-            
 
             const t2 = (this.fallLoopTime/1000) ;
             const src2 = fallLoop.interpolants[k];
@@ -2066,8 +2057,6 @@ class Avatar {
             } = spec;
 
             
-            console.log('CHARGE JUMP ACTIVATED', chargeJump);
-
             const t2 = (this.chargeJumpTime/1000) ;
             const src2 = chargeJump.interpolants[k];
             const v2 = src2.evaluate(t2);

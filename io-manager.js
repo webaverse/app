@@ -464,7 +464,6 @@ ioManager.keydown = e => {
       break;
     }
     case 32: { // space
-      console.log('jump button')
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
