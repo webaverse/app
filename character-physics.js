@@ -39,6 +39,7 @@ class CharacterPhysics {
 
     // this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
+    this.lastGrounded = true;
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
@@ -243,9 +244,10 @@ class CharacterPhysics {
 
     const {capsule} = this.player;
     const {grounded} = capsule;
-    if (grounded && velocity.y > 0 && !this.player.hasAction('jump')) {
+    if (this.lastGrounded && !grounded && velocity.y > 0 && !this.player.hasAction('jump')) {
       velocity.y = 0;
     }
+    this.lastGrounded = grounded;
   }
   /* updateVelocity() {
     if(this.player.avatar && physicsManager.physicsEnabled) {
