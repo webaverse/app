@@ -22,10 +22,10 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-const localOffset = new THREE.Vector3();
+// const localOffset = new THREE.Vector3();
 const localOffset2 = new THREE.Vector3();
 
-const localArray = [];
+// const localArray = [];
 const localVelocity = new THREE.Vector3();
 
 const zeroVector = new THREE.Vector3();
