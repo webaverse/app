@@ -2,38 +2,44 @@ import {storageHost} from './constants';
 
 export const generatePreview = async (reqUrl, ext, type, width, height) => {
 
-    var iframeExists = document.getElementsByName('screenshotIframe');
+    // check for existing iframe
+    var iframe = document.querySelector(`iframe[src^="${window.origin}/screenshot.html"]`);
 
-    if(!iframeExists.length) {
-        var iframe = document.createElement('iframe');
-        iframe.width = '0px';
-        iframe.height = '0px';
-        iframe.name = 'screenshotIframe';
-        document.body.appendChild(iframe);
-    }
+    // else create new iframe
+	if (!iframe) {
+		iframe = document.createElement('iframe');
+		iframe.width = '0px';
+		iframe.height = '0px';
+		document.body.appendChild(iframe);
+	}
 
-    if(!isValidURL(reqUrl)) {
-        reqUrl = `${storageHost}/ipfs/${reqUrl}`;
-    }
-    var ssUrl = `${window.origin}/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
-    
-    window.open(ssUrl, 'screenshotIframe')
+    // check either first param is url or hash
+	if (!isValidURL(reqUrl)) {
+		reqUrl = `${storageHost}/ipfs/${reqUrl}`;
+	}
 
-    return new Promise(function (resolve) {
+    // create URL
+	var ssUrl = `${window.origin}/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
-    var f = function(event){
-        if(event.data.method == "result") {
-            window.removeEventListener("message", f, false);
-            var blob = new Blob([event.data.result]);
-            resolve(blob)
-        }
-    }
-    window.addEventListener("message", f);
-    });
+    // set src attr for iframe
+	iframe.src = ssUrl;
+
+    // event listener for postMessage from screenshot.js
+	return new Promise(function(resolve) {
+		var f = function(event) {
+			if (event.data.method == "result") {
+				window.removeEventListener("message", f, false);
+				var blob = new Blob([event.data.result]);
+				resolve(blob)
+			}
+		}
+		window.addEventListener("message", f);
+	});
 
 }
 
+// URL validate function
 function isValidURL(string) {
-    var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-    return (res !== null)
+	var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+	return (res !== null)
 };
