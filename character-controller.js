@@ -243,6 +243,10 @@ class Player extends THREE.Object3D {
             physicsMaterial,
             true
           );
+          
+          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          
           // console.log('set flags', physicsObject.physicsId, physicsObject);
           physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
           physicsManager.setTransform(physicsObject);
