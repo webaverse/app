@@ -230,11 +230,12 @@ class Player extends THREE.Object3D {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+        
+        const avatarHeight = this.avatar.height;
+        const radius = 0.3/1.6 * avatarHeight;
+        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const physicsMaterial = new THREE.Vector3(0, 0, 0);
         this.capsule = (() => {
-          const avatarHeight = this.avatar.height;
-          const radius = 0.3/1.6 * avatarHeight;
-          const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
-          const physicsMaterial = new THREE.Vector3(0, 0, 0);
           const physicsObject = physicsManager.addCapsuleGeometry(
             new THREE.Vector3(0, -avatarHeight * 0.5, 0),
             new THREE.Quaternion(),
@@ -274,7 +275,21 @@ class Player extends THREE.Object3D {
 
           return physicsObject;
         })();
-        // console.log('got local player capsule', this.capsule);
+        {
+          this.characterController = physicsManager.createCharacterController(radius, halfHeight*2, physicsMaterial);
+          const displacement = new THREE.Vector3(0, 0, 0);
+          const minDist = 0;
+          const elapsedTime = 0;
+          const outPosition = new THREE.Vector3();
+          physicsManager.moveCharacterController(
+            this.characterController,
+            displacement,
+            minDist,
+            elapsedTime,
+            outPosition
+          );
+          // console.log('got out position', outPosition.toArray().join(','));
+        }
       })();
       
       this.dispatchEvent({

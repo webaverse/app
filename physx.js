@@ -1172,6 +1172,30 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
+  w.createCharacterControllerPhysics = (physics, radius, height, mat) => {
+    return moduleInstance._createCharacterControllerPhysics(physics, radius, height, mat);
+  };
+  w.moveCharacterControllerPhysics = (physics, characterController, displacement, minDist, elapsedTime, outPosition) => {
+    const allocator = new Allocator();
+    const disp = allocator.alloc(Float32Array, 3);
+    const outPositions = allocator.alloc(Float32Array, 3);
+    
+    displacement.toArray(disp);
+
+    const flags = moduleInstance._moveCharacterControllerPhysics(
+      physics,
+      characterController,
+      disp.byteOffset,
+      minDist,
+      elapsedTime,
+      outPositions.byteOffset
+    );
+    outPosition.fromArray(outPositions);
+    
+    allocator.freeAll();
+
+    return flags;
+  };
   return w;
 })();
 physx.physxWorker = physxWorker;
