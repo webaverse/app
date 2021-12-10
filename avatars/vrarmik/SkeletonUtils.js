@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Quaternion } from 'three';
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,
@@ -83,9 +84,10 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
       if (averagedDir) {
 
         //set quaternion
-        parentBone.quaternion.copy(RESETQUAT);
+        parentBone.matrix.makeRotationFromQuaternion(RESETQUAT);
         // parentBone.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*2));
-        parentBone.updateMatrixWorld();
+        // parentBone.updateMatrix();
+        parentBone.updateMatrixWorld(true);
 
         //get the child bone position in local coordinates
         // var childBoneDir = parentBone.worldToLocal(averagedDir.clone()).normalize();
@@ -95,16 +97,19 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
         // console.log('new quaternion', parentBone.quaternion.toArray().join(','));
     }
     var preRot = preRotations[parentBone.id] || preRotations[parentBone.name];
-    if (preRot) parentBone.quaternion.multiply(preRot);
+    if (preRot) parentBone.matrix.makeRotationFromQuaternion(new Quaternion().multiply(preRot));
     // parentBone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-    parentBone.updateMatrixWorld();
+    // parentBone.updateMatrix();
+    parentBone.updateMatrixWorld(true);
 
     //set child bone position relative to the new parent matrix.
     const childBones = parentBone.children.filter(c => c.isBone);
     childBones.forEach((childBone) => {
       var childBonePosWorld = worldPos[childBone.id][0].clone();
       parentBone.worldToLocal(childBonePosWorld);
-      childBone.position.copy(childBonePosWorld);
+      // childBone.position.copy(childBonePosWorld);
+      childBone.matrix.setPosition(childBonePosWorld)
+      childBone.updateMatrixWorld(true)
     });
 
     childBones.forEach((childBone) => {

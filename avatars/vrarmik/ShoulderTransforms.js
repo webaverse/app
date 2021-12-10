@@ -23,10 +23,10 @@ class ShoulderTransforms {
     this.neck.add(this.head);
     this.head.add(this.eyel);
     this.head.add(this.eyer);
-    // this.leftShoulder = new THREE.Object3D();
-    // this.transform.add(this.leftShoulder);
-    // this.rightShoulder = new THREE.Object3D();
-    // this.transform.add(this.rightShoulder);
+
+    this.root.traverse(e => {
+      e.updateMatrixWorld(true);
+    })
 
     this.leftShoulderAnchor = new THREE.Object3D();
     this.upperChest.add(this.leftShoulderAnchor);

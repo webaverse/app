@@ -56,11 +56,12 @@ class Leg {
 
     this.toe = new THREE.Object3D();
 
+
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
     this.lowerLeg.add(this.foot);
     this.foot.add(this.toe);
-
+    this.upperLeg.updateWorldMatrix(true);
     this.upperLegLength = 0;
     this.lowerLegLength = 0;
     this.legLength = 0;
@@ -130,8 +131,8 @@ class Leg {
     )
       .multiply(downHalfRotation)
       .premultiply(Helpers.getWorldQuaternion(this.transform, localQuaternion2).invert());
-    Helpers.updateMatrixMatrixWorld(this.upperLeg);
 
+    this.upperLeg.updateMatrixWorld(true);
     this.lowerLeg.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(
         zeroVector,
@@ -141,22 +142,17 @@ class Leg {
     )
       .multiply(downHalfRotation)
       .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion2).invert());
-    Helpers.updateMatrixMatrixWorld(this.lowerLeg);
+    // Helpers.updateMatrixMatrixWorld(this.lowerLeg);
 
-    this.lowerLeg.updateMatrix();
-    this.lowerLeg.updateMatrixWorld();
-
-    // this.lowerLeg.position = lowerLegPosition;
-
-    // if (this.standing || this.stepping) {
-      // this.foot.position = footPosition;
-      this.foot.quaternion.copy(footRotation)
-        .multiply(downHalfRotation)
-        .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
-      Helpers.updateMatrixMatrixWorld(this.foot);
+    this.lowerLeg.updateMatrixWorld(true);
       
-      this.foot.updateMatrix();
-      this.foot.updateMatrixWorld();
+      const footRot = footRotation
+      .multiply(downHalfRotation)
+      .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
+      this.foot.matrix.makeRotationFromQuaternion(footRot);
+
+        
+      this.foot.updateMatrixWorld(true);
 	}
 
 }

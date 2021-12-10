@@ -259,8 +259,7 @@ const cameraManager = {
       camera.matrix.setPosition(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion))
       // camera.matrixAutoUpdate = true;
       // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld();
-      camera.updateMatrix();
+      camera.updateMatrixWorld(true);
     }
 
   },

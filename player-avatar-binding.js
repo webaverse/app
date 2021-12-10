@@ -16,14 +16,14 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
 
-    rig.inputs.hmd.updateMatrix();
-    rig.inputs.hmd.updateMatrixWorld();
+    // rig.inputs.hmd.updateMatrix();
+    // rig.inputs.hmd.updateMatrixWorld();
 
-    rig.inputs.leftGamepad.updateMatrix();
-    rig.inputs.leftGamepad.updateMatrixWorld();
+    // rig.inputs.leftGamepad.updateMatrix();
+    // rig.inputs.leftGamepad.updateMatrixWorld();
 
-    rig.inputs.rightGamepad.updateMatrix();
-    rig.inputs.rightGamepad.updateMatrixWorld();
+    // rig.inputs.rightGamepad.updateMatrix();
+    // rig.inputs.rightGamepad.updateMatrixWorld();
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
