@@ -856,9 +856,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(timeDiff) {
+  updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timeDiffS);
+    /* if (isNaN(timeDiff)) {
+      console.log('updaet', now, timeDiffS);
+      debugger;
+    } */
+    this.characterPhysics.update(now, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -948,8 +952,8 @@ function getPlayerCrouchFactor(player) {
 function updateAvatar(timestamp, timeDiff) {
   metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
-function updatePhysics(timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
+function updatePhysics(now, timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
 }
 
 export {
