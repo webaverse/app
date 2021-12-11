@@ -462,15 +462,12 @@ ioManager.keydown = e => {
       lastShiftDownTime = now;
       break;
     }
+
+    // Move this to key up space,
+    // and allow key up
     case 32: { // space
       ioManager.keys.space = true;
-      // if (controlsManager.isPossessed()) {
-        if (!game.isJumping()) {
-          game.jump();
-        } /* else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
-        } */
-      // }
+      game.menuSpace();
       break;
     }
     /* case 17: { // ctrl
@@ -547,6 +544,13 @@ ioManager.keyup = e => {
       break;
     }
     case 32: { // space
+      // if (controlsManager.isPossessed()) {
+        if (!game.isJumping()) {
+          game.jump();
+        } /* else {
+          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
+        } */
+      // }
       ioManager.keys.space = false;
       break;
     }

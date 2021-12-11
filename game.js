@@ -1413,6 +1413,8 @@ const gameManager = {
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
       const action = localPlayer.getAction('dance');
+      localPlayer.removeAction('dance');
+
       if (!action) {
         const newAction = {
           type: 'dance',
@@ -1427,6 +1429,25 @@ const gameManager = {
   menuVUp(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
+  },
+  menuSpace() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+
+    if (_getGrabbedObject(0)) {
+      this.menuGridSnap();
+    } else {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const action = localPlayer.getAction('standCharge');
+      if (!action) {
+        const newAction = {
+          type: 'standCharge',
+          animation: 'standCharge',
+          // time: 0,
+        };
+
+        localPlayer.addAction(newAction);
+      }
+    }
   },
   menuBDown(e) {
     if (e.ctrlKey) {
@@ -1552,11 +1573,11 @@ const gameManager = {
     }
   },
   isJumping() {
-    return metaversefileApi.useLocalPlayer().hasAction('jump');
+    return metaversefileApi.useLocalPlayer().hasAction('chargeJump');
   },
   ensureJump() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const jumpAction = localPlayer.getAction('jump');
+    const jumpAction = localPlayer.getAction('chargeJump');
 
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
@@ -1570,7 +1591,7 @@ const gameManager = {
 
     if (!jumpAction) {
       const newJumpAction = {
-        type: 'jump',
+        type: 'chargeJump',
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
@@ -1581,6 +1602,7 @@ const gameManager = {
   jump() {
     this.ensureJump();
     const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('standCharge');
     localPlayer.characterPhysics.velocity.y += 5;
     soundManager.play('jump');
   },

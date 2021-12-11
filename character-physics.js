@@ -92,11 +92,11 @@ class CharacterPhysics {
           localQuaternion.copy(camera.quaternion);
         }
 
-        const jumpAction = this.player.getAction('jump');
+        const jumpAction = this.player.getAction('chargeJump');
         const _ensureJumpAction = () => {
           if (!jumpAction) {
             const newJumpAction = {
-              type: 'jump',
+              type: 'chargeJump',
               time: 0,
             };
             this.player.addAction(newJumpAction);
@@ -105,7 +105,7 @@ class CharacterPhysics {
           }
         };
         const _ensureNoJumpAction = () => {
-          this.player.removeAction('jump');
+           this.player.removeAction('chargeJump');
         };
         if (collision) {
           localVector.add(
@@ -169,7 +169,7 @@ class CharacterPhysics {
       this.player.matrixWorld.copy(this.player.matrix);
       this.player.updateMatrixWorld();
       if (this.avatar) {
-        if (this.player.hasAction('jump')) {
+        if (this.player.hasAction('chargeJump')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
@@ -195,7 +195,7 @@ class CharacterPhysics {
     const session = renderer.xr.getSession();
 
     if (session) {
-      if (ioManager.currentWalked || this.player.hasAction('jump')) {
+      if (ioManager.currentWalked || this.player.hasAction('chargeJump')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
         this.applyAvatarPhysicsDetail(false, false, timeDiffS);
