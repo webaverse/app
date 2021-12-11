@@ -36,6 +36,7 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
+    this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
   }
   /* apply the currently held keys to the character */
@@ -68,6 +69,7 @@ class CharacterPhysics {
   applyAvatarPhysicsDetail(
     velocityAvatarDirection,
     updateRig,
+    now,
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
@@ -91,7 +93,7 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterControllerObject.position
       );
-      const collided = flags !== 0;
+      // const collided = flags !== 0;
       const grounded = !!(flags & 0x1); 
 
       this.player.characterControllerObject.updateMatrixWorld();
@@ -138,20 +140,24 @@ class CharacterPhysics {
         };
 
         if (grounded) {
-          _ensureNoJumpAction();
+          this.lastGroundedTime = now;
 
           this.velocity.y = -1;
+        }
+
+        if (!jumpAction) {
+          const lastGroundedTimeDiff = now - this.lastGroundedTime;
+          if (lastGroundedTimeDiff <= 100) {
+            _ensureNoJumpAction();
+          } else {
+            _ensureJumpAction();
           
-          /* if(!jumpAction) {
+            this.velocity.y = 0;
+          }
+        } else {
+          if (grounded) {
             _ensureNoJumpAction();
           }
-          else if(jumpAction && this.velocity.y <= 0) {
-            _ensureNoJumpAction();
-          } */
-        } else if (!jumpAction) {
-          _ensureJumpAction();
-        
-          this.velocity.y = 0;
         }
       } else {
         /* //Outdated vehicle code
@@ -270,7 +276,7 @@ class CharacterPhysics {
       }
     } */
   }
-  applyAvatarPhysics(timeDiffS) {
+  applyAvatarPhysics(now, timeDiffS) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
@@ -278,7 +284,7 @@ class CharacterPhysics {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
-        this.applyAvatarPhysicsDetail(false, false, timeDiffS);
+        this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
 
         /* dolly.position.add(
           avatarWorldObject.position.clone().sub(originalPosition)
@@ -290,19 +296,19 @@ class CharacterPhysics {
       const cameraMode = cameraManager.getMode();
       switch (cameraMode) {
         case 'firstperson': {
-          this.applyAvatarPhysicsDetail(false, true, timeDiffS);
+          this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
           break;
         }
         case 'isometric': {
           if (this.player.hasAction('aim') && !this.player.hasAction('narutoRun')) {
-            this.applyAvatarPhysicsDetail(false, true, timeDiffS);
+            this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
           } else {
-            this.applyAvatarPhysicsDetail(true, true, timeDiffS);
+            this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
           }
           break;
         }
         /* case 'birdseye': {
-          this.applyAvatarPhysicsDetail(true, true, timeDiffS);
+          this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
           break;
         } */
         default: {
@@ -332,10 +338,10 @@ class CharacterPhysics {
     const timeDiff = timeDiffS * 1000;
     this.applyVelocityDamping(this.velocity, timeDiff);
   }
-  update(timeDiffS) {
+  update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
-    this.applyAvatarPhysics(timeDiffS);
+    this.applyAvatarPhysics(now, timeDiffS);
     this.updateCamera(timeDiffS);
   }
   reset() {

@@ -1191,6 +1191,8 @@ const physxWorker = (() => {
       outPositions.byteOffset
     );
     outPosition.fromArray(outPositions);
+
+    // console.log('got flags', flags);
     
     allocator.freeAll();
 
