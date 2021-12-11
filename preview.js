@@ -1,45 +1,61 @@
-import {storageHost} from './constants';
+import {inAppPreviewHost} from './constants';
 
-export const generatePreview = async (reqUrl, ext, type, width, height) => {
+const mountPreviewApp = async () => {
+  // check for existing iframe
+  let iframe = document.querySelector(`iframe[src^="${inAppPreviewHost}"]`);
+  // else create new iframe
+  if (!iframe) {
+    return new Promise((resolve, reject) => {
+      const rejectTimeout = setTimeout(() => {
+        // reject();
+      }, 30000);
+      const f = ({data}) => {
+        if (data === 'PreviewAppLoaded') {
+          clearTimeout(rejectTimeout);
+          window.removeEventListener('message', f);
+          resolve(iframe);
+        }
+      };
+      window.addEventListener('message', f);
 
-    // check for existing iframe
-    var iframe = document.querySelector(`iframe[src^="${window.origin}/screenshot.html"]`);
+      iframe = document.createElement('iframe');
+      iframe.width = '0px';
+      iframe.height = '0px';
 
-    // else create new iframe
-	if (!iframe) {
-		iframe = document.createElement('iframe');
-		iframe.width = '0px';
-		iframe.height = '0px';
-		document.body.appendChild(iframe);
-	}
+      iframe.setAttribute('name', 'preview-frame');
+      document.body.appendChild(iframe);
+      iframe.src = `${inAppPreviewHost}`;
+    });
+  }
+  return iframe;
+};
 
-    // check either first param is url or hash
-	if (!isValidURL(reqUrl)) {
-		reqUrl = `${storageHost}/ipfs/${reqUrl}`;
-	}
+const makeId = length => {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
 
-    // create URL
-	var ssUrl = `${window.origin}/screenshot.html?url=${reqUrl}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+export const preview = async (url, ext, type, width, height) => {
+  const previewRequest = makeId(8);
 
-    // set src attr for iframe
-	iframe.src = ssUrl;
+  const frame = await mountPreviewApp();
+  frame.contentWindow.postMessage({
+    method: 'preview',
+    id: previewRequest,
+    data: {url, ext, type, width, height},
+  }, inAppPreviewHost);
 
-    // event listener for postMessage from screenshot.js
-	return new Promise(function(resolve) {
-		var f = function(event) {
-			if (event.data.method == "result") {
-				window.removeEventListener("message", f, false);
-				var blob = new Blob([event.data.result]);
-				resolve(blob)
-			}
-		}
-		window.addEventListener("message", f);
-	});
-
-}
-
-// URL validate function
-function isValidURL(string) {
-	var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-	return (res !== null)
+  return new Promise((resolve, reject) => {
+    const f = event => {
+      if (event.data.id === previewRequest) {
+        window.removeEventListener('message', f);
+        resolve(event.data.data);
+      }
+    };
+    window.addEventListener('message', f);
+  });
 };

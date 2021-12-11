@@ -31,7 +31,8 @@ export {
 export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 export const storageHost = 'https://ipfs.exokit.org';
-export const previewHost = 'https://preview.exokit.org';
+export const inAppPreviewHost = 'https://preview.exokit.org';
+export const previewHost = 'https://inapp-preview-priv.vercel.app/';
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = `https://${chainName}sidechain-accounts.webaverse.com`;
 export const contractsHost = 'https://contracts.webaverse.com';
