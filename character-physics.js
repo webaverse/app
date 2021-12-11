@@ -47,7 +47,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     if (this.player) {
-      if (this.player.hasAction('jump')) {
+      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
