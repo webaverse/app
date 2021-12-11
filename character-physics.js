@@ -34,22 +34,17 @@ const upVector = new THREE.Vector3(0, 1, 0);
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
-    // this.rigidBody = null;
-    this.debugCapsule = null;
 
-    // this.velocity = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
     this.sitOffset = new THREE.Vector3();
-    this.lastGrounded = true;
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-      physicsManager.getVelocity(this.player.capsule, localVelocity);
-      localVelocity.add(keysDirection);
-      physicsManager.setVelocity(this.player.capsule, localVelocity, true);
+      this.velocity.add(keysDirection);
     }
   }
-  /* applyGravity(timeDiffS) {
+  applyGravity(timeDiffS) {
     if (this.player) {
       if (this.player.hasAction('jump')) {
         localVector.copy(physicsManager.getGravity())
@@ -57,7 +52,7 @@ class CharacterPhysics {
         this.velocity.add(localVector);
       }
     }
-  } */
+  }
   /* collideCapsule = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -76,42 +71,43 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-      //console.log(physicsId);
+      // disable old vrm
+      {
+        const avatarVrmPhysicsObject = this.player.avatar.app.physicsObjects[0];
+        //this.debugCapsule = this.player.avatar.app.debugCapsule;
+        physicsManager.disableGeometryQueries(avatarVrmPhysicsObject);
+        physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
+      }
 
-      const avatarVrmPhysicsObject = this.player.avatar.app.physicsObjects[0];
-      //this.debugCapsule = this.player.avatar.app.debugCapsule;
-      physicsManager.disableGeometryQueries(avatarVrmPhysicsObject);
-      physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
+      // move character controller
+      const minDist = 0;
+      localVector3.copy(this.velocity)
+        .multiplyScalar(timeDiffS);
+      // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      const flags = physicsManager.moveCharacterController(
+        this.player.characterController,
+        localVector3,
+        minDist,
+        timeDiffS,
+        this.player.characterControllerObject.position
+      );
+      const collided = flags !== 0;
+      const grounded = !!(flags & 0x1); 
 
-      const {capsule} = this.player;
-      capsule.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      this.player.characterControllerObject.updateMatrixWorld();
+      this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
-
-      // if(!this.rigidBody) return;
       
       // capsule physics
       if (!this.player.hasAction('sit')) {
-        //applyVelocity(this.player.position, this.velocity, timeDiffS);
-
-        /* this.rigidBody.updateMatrixWorld();
-        this.rigidBody.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localQuaternion.copy(this.player.quaternion);
-
-        localOffset.set(0, this.player.avatar.height/2, 0); // Capsule offset
-        localVector.add(localOffset); */
-        // const collision = this.collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1)); // TODO: Replace with physicsManager.isGrounded restitution check
-
         // avatar facing direction
         if (velocityAvatarDirection) {
-          physicsManager.getVelocity(this.player.capsule, localVector5);
-          const horizontalVelocity = localVector5;
-          /* const horizontalVelocity = localVector5.set(
+          const horizontalVelocity = localVector5.set(
             this.velocity.x,
             0,
             this.velocity.z
-          ); */
-          horizontalVelocity.y = 0;
+          );
           if (horizontalVelocity.lengthSq() > 0.001) {
             localQuaternion.setFromRotationMatrix(
               localMatrix.lookAt(
@@ -141,28 +137,21 @@ class CharacterPhysics {
           this.player.removeAction('jump');
         };
 
-        const {collided, grounded} = capsule;
-        // console.log('collided grounded', collided, grounded);
-        physicsManager.getVelocity(this.player.capsule, localVector4);
-        if (collided) {
-          /*localVector.add(
-            localVector4
-              .fromArray(collision.direction)
-          );*/
+        if (grounded) {
+          _ensureNoJumpAction();
+
+          this.velocity.y = -1;
           
-          if (grounded) {
-            if(!jumpAction) {
-              // this.velocity.y = 0;
-              _ensureNoJumpAction();
-            }
-            else if(jumpAction && localVector4.y <= 0) {
-              _ensureNoJumpAction();
-            } 
-          } else if (!jumpAction) {
-            //_ensureJumpAction();
+          /* if(!jumpAction) {
+            _ensureNoJumpAction();
           }
-        } else if (!jumpAction && localVector4.y <= -1) {
+          else if(jumpAction && this.velocity.y <= 0) {
+            _ensureNoJumpAction();
+          } */
+        } else if (!jumpAction) {
           _ensureJumpAction();
+        
+          this.velocity.y = 0;
         }
       } else {
         /* //Outdated vehicle code
@@ -213,11 +202,6 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
-      /*if(this.debugCapsule) {
-        this.debugCapsule.position.copy(this.rigidBody.position);
-        //this.debugCapsule.quaternion.copy(this.rigidBody.quaternion);
-      }*/
-
       this.player.updateMatrixWorld();
 
       if (this.avatar) {
@@ -232,7 +216,6 @@ class CharacterPhysics {
   }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
-    // const timeDiff = timeDiffS * 1000;
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
@@ -242,12 +225,12 @@ class CharacterPhysics {
       velocity.z *= factor;
     }
 
-    const {capsule} = this.player;
+    /* const {capsule} = this.player;
     const {grounded} = capsule;
     if (this.lastGrounded && !grounded && velocity.y > 0 && !this.player.hasAction('jump')) {
       velocity.y = 0;
     }
-    this.lastGrounded = grounded;
+    this.lastGrounded = grounded; */
   }
   /* updateVelocity() {
     if(this.player.avatar && physicsManager.physicsEnabled) {
@@ -345,32 +328,19 @@ class CharacterPhysics {
     camera.position.y -= crouchOffset;
     camera.updateMatrixWorld();
   }
-  /* updateRigidbody() {
-    this.updateVelocity();
-    this.updateTransform();
-  } */
   updateVelocity(timeDiffS) {
-    if (this.player.capsule) {
-      physicsManager.getVelocity(this.player.capsule, localVelocity);
-      const timeDiff = timeDiffS * 1000;
-      this.applyVelocityDamping(localVelocity, timeDiff);
-      physicsManager.setVelocity(this.player.capsule, localVelocity, true);
-    }
+    const timeDiff = timeDiffS * 1000;
+    this.applyVelocityDamping(this.velocity, timeDiff);
   }
   update(timeDiffS) {
-    // this.applyGravity(timeDiffS);
-    // this.applyVelocityDamping(timeDiffS);
-    // this.updateRigidbody();
+    this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(timeDiffS);
     this.updateCamera(timeDiffS);
   }
-  getVelocity(v) {
-    physicsManager.getVelocity(this.player.capsule, v);
-  }
   reset() {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-      physicsManager.setVelocity(this.player.capsule, localVelocity.set(0, 0, 0), true);
+      this.player.characterPhysics.velocity.set(0, 0, 0);
     }
   }
 }

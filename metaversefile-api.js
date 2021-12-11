@@ -895,17 +895,11 @@ export default () => {
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
-  getPhysicsObjectByPhysicsId(physicsId) {
-    const localPlayer = metaversefile.useLocalPlayer();
-    if (localPlayer.capsule.physicsId === physicsId) {
-      // console.log('got capsule', localPlayer.capsule);
-      return localPlayer.capsule;
-    } else {
-      const remotePlayers = metaversefile.useRemotePlayers();
-      return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-        localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
-        remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
-    }
+  getPhysicsObjectByPhysicsId() {
+    const remotePlayers = metaversefile.useRemotePlayers();
+    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
+      remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
   },
   getAvatarHeight(obj) {
     return getHeight(obj);

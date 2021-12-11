@@ -193,14 +193,18 @@ physicsManager.enableGeometryQueries = physicsObject => {
   physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.removeGeometry = physicsObject => {
-  physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
+  try {
+    physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
+  } catch(err) {
+    console.warn('failed to remove geometry', err.stack);
+  }
 };
-physicsManager.getVelocity = (physicsObject, velocity) => {
+/* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
 };
 physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
-};
+}; */
 physicsManager.setTransform = physicsObject => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
 };
@@ -234,17 +238,18 @@ physicsManager.simulatePhysics = timeDiff => {
     for (const updateOut of updatesOut) {
       const {id, position, quaternion, /*scale,*/ collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-      /* if (!physicsObject.position) {
-        debugger;
-      } */
-      physicsObject.position.copy(position);
-      physicsObject.quaternion.copy(quaternion);
-      // physicsObject.scale.copy(scale);
-      physicsObject.updateMatrixWorld();
-      physicsObject.collided = collided;
-      physicsObject.grounded = grounded;
-      /* if (physicsObject.collided) {
-        debugger;
+      if (physicsObject) {
+        physicsObject.position.copy(position);
+        physicsObject.quaternion.copy(quaternion);
+        // physicsObject.scale.copy(scale);
+        physicsObject.updateMatrixWorld();
+        physicsObject.collided = collided;
+        physicsObject.grounded = grounded;
+        /* if (physicsObject.collided) {
+          debugger;
+        } */
+      } /* else {
+        console.warn('failed to get physics object', id);
       } */
     }
   }

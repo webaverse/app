@@ -1579,9 +1579,7 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.capsule) {
       // update velocity
-      physicsManager.getVelocity(localPlayer.capsule, localVector);
-      localVector.y += 5;
-      physicsManager.setVelocity(localPlayer.capsule, localVector, true);
+      localPlayer.characterPhysics.velocity.y += 6;
 
       // localPlayer.capsule.grounded = false;
       

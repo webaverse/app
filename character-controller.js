@@ -235,7 +235,7 @@ class Player extends THREE.Object3D {
         const radius = 0.3/1.6 * avatarHeight;
         const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
-        this.capsule = (() => {
+        /* this.capsule = (() => {
           const physicsObject = physicsManager.addCapsuleGeometry(
             new THREE.Vector3(0, -avatarHeight * 0.5, 0),
             new THREE.Quaternion(),
@@ -253,8 +253,18 @@ class Player extends THREE.Object3D {
           physicsManager.setTransform(physicsObject);
           physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
 
+          return physicsObject;
+        })(); */
+        {
+          this.characterController = physicsManager.createCharacterController(radius, halfHeight*2, physicsMaterial);
+          this.characterControllerObject = new THREE.Object3D();
+
+          const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
+          debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
+            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
+          ));
           const debugCapsule = new THREE.Mesh(
-            new CapsuleGeometry(radius, radius, halfHeight*2),
+            debugCapsuleGeometry,
             new THREE.MeshStandardMaterial({
               transparent: true,
               opacity: 0.9,
@@ -267,27 +277,11 @@ class Player extends THREE.Object3D {
           // console.log('add capsule', debugCapsule);
           world.appManager.addEventListener('frame', e => {
             // window.debugCapsule = debugCapsule;
-            debugCapsule.position.copy(physicsObject.position);
-            debugCapsule.quaternion.copy(physicsObject.quaternion);
-            debugCapsule.scale.copy(physicsObject.scale);
+            debugCapsule.position.copy(this.characterControllerObject.position);
+            debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
+            debugCapsule.scale.copy(this.characterControllerObject.scale);
             debugCapsule.updateMatrixWorld();
           });
-
-          return physicsObject;
-        })();
-        {
-          this.characterController = physicsManager.createCharacterController(radius, halfHeight*2, physicsMaterial);
-          const displacement = new THREE.Vector3(0, 0, 0);
-          const minDist = 0;
-          const elapsedTime = 0;
-          const outPosition = new THREE.Vector3();
-          physicsManager.moveCharacterController(
-            this.characterController,
-            displacement,
-            minDist,
-            elapsedTime,
-            outPosition
-          );
           // console.log('got out position', outPosition.toArray().join(','));
         }
       })();
