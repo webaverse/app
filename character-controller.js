@@ -90,7 +90,6 @@ class Player extends THREE.Object3D {
     
     this.avatarEpoch = 0;
     this.avatar = null;
-    this.capsule = null;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
