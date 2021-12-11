@@ -236,15 +236,13 @@ physicsManager.simulatePhysics = timeDiff => {
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
-      const {id, position, quaternion, /*scale,*/ collided, grounded} = updateOut;
+      const {id, position, quaternion} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         // physicsObject.scale.copy(scale);
         physicsObject.updateMatrixWorld();
-        physicsObject.collided = collided;
-        physicsObject.grounded = grounded;
         /* if (physicsObject.collided) {
           debugger;
         } */
