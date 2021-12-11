@@ -62,35 +62,17 @@ const _proxyUrl = (req, res, u) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public|login)\//.test(o.pathname) && o.search !== '?import') {
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
         res.redirect(u);
-      }else if(/^\/login/.test(o.pathname)){
-        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'');
-        res.redirect(req.originalUrl);
       } else {
         req.originalUrl = u;
         next();
       }
-    } else if (o.query['noimport'] !== undefined) {
-      const p = path.join(cwd, path.resolve(o.pathname));
-      const rs = fs.createReadStream(p);
-      rs.on('error', err => {
-        if (err.code === 'ENOENT') {
-          res.statusCode = 404;
-          res.end('not found');
-        } else {
-          console.error(err);
-          res.statusCode = 500;
-          res.end(err.stack);
-        }
-      });
-      rs.pipe(res);
-      // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
       return res.redirect(req.originalUrl);
