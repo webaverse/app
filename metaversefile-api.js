@@ -56,7 +56,6 @@ class App extends THREE.Object3D {
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
-    this.debugCapsule = null;
     this.lastMatrix = new THREE.Matrix4();
   }
   getComponent(key) {
@@ -627,13 +626,6 @@ metaversefile.setApi({
             console.log(localPlayer.avatar.height);
           }
         }*/
-
-        ///
-        /*app.add(debugCapsule);
-        app.debugCapsule = debugCapsule;
-        app.debugCapsule.position.copy(basePosition);
-        app.debugCapsule.quaternion.copy(baseQuaternion);*/
-        ///
         
         app.physicsObjects.push(physicsObject);
 
