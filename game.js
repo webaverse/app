@@ -1575,17 +1575,15 @@ const gameManager = {
     }
   },
   jump() {
+    // add jump action
     this.ensureJump();
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.capsule) {
-      // update velocity
-      localPlayer.characterPhysics.velocity.y += 6;
 
-      // localPlayer.capsule.grounded = false;
-      
-      // play sound
-      soundManager.play('jump');
-    }
+    // update velocity
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.characterPhysics.velocity.y += 6;
+    
+    // play sound
+    soundManager.play('jump');
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
