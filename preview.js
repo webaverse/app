@@ -1,5 +1,5 @@
 import {inAppPreviewHost} from './constants';
-
+import { makeId } from './util';
 const mountPreviewApp = async () => {
   // check for existing iframe
   let iframe = document.querySelector(`iframe[src^="${inAppPreviewHost}"]`);
@@ -28,15 +28,6 @@ const mountPreviewApp = async () => {
     });
   }
   return iframe;
-};
-
-const makeId = length => {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
 };
 
 export const preview = async (url, ext, type, width, height) => {
