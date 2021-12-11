@@ -16,6 +16,7 @@ import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 import {parseQuery} from '../util.js'
 import User from './User';
+import { Monetization } from './monitization';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
 
@@ -611,6 +612,9 @@ export default function Header({
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
+            />
+            <Monetization
+              address={address}
             />
           </div>
 				</header>
