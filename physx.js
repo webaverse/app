@@ -1172,8 +1172,8 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.createCharacterControllerPhysics = (physics, radius, height, mat) => {
-    return moduleInstance._createCharacterControllerPhysics(physics, radius, height, mat);
+  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, mat) => {
+    return moduleInstance._createCharacterControllerPhysics(physics, radius, height, contactOffset, mat);
   };
   w.moveCharacterControllerPhysics = (physics, characterController, displacement, minDist, elapsedTime, outPosition) => {
     const allocator = new Allocator();

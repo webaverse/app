@@ -208,8 +208,8 @@ physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
 physicsManager.setTransform = physicsObject => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
 };
-physicsManager.createCharacterController = (radius, height, mat) => {
-  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, mat);
+physicsManager.createCharacterController = (radius, height, contactOffset, mat) => {
+  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, mat);
   return characterController;
 };
 physicsManager.moveCharacterController = (characterController, displacement, minDist, elapsedTime, position) => {

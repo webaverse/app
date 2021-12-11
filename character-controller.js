@@ -232,6 +232,7 @@ class Player extends THREE.Object3D {
         this.avatar = nextAvatar;
         
         const avatarHeight = this.avatar.height;
+        const contactOffset = 0.1;
         const radius = 0.3/1.6 * avatarHeight;
         const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
@@ -256,7 +257,12 @@ class Player extends THREE.Object3D {
           return physicsObject;
         })(); */
         {
-          this.characterController = physicsManager.createCharacterController(radius, halfHeight*2, physicsMaterial);
+          this.characterController = physicsManager.createCharacterController(
+            radius - contactOffset,
+            avatarHeight - radius*2,
+            contactOffset,
+            physicsMaterial
+          );
           this.characterControllerObject = new THREE.Object3D();
 
           const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
