@@ -1636,7 +1636,7 @@ class Avatar {
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
-      const _getAnimationKey = (crouchState, velocity) => {
+      const _getAnimationKey = crouchState => {
         if (crouchState) {
           return 'crouch';
         } else {
@@ -1765,10 +1765,7 @@ class Avatar {
       };
       
       // stand
-      const key = _getAnimationKey(
-        false,
-        this.velocity,
-      );
+      const key = _getAnimationKey(false);
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
       const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
@@ -1817,10 +1814,7 @@ class Avatar {
       }
       
       // crouch
-      const keyOther = _getAnimationKey(
-        true,
-        this.velocity,
-      );
+      const keyOther = _getAnimationKey(true);
       const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, keyOther);
       const idleAnimationOther = _getIdleAnimation(keyOther);
