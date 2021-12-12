@@ -1931,7 +1931,7 @@ class Avatar {
       }
       
       // crouch
-      const keyOther = _getAnimationKey(true);
+      // const keyOther = _getAnimationKey(true);
       const keyAnimationAnglesOther = _getClosest2AnimationAngles('crouch');
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
       const idleAnimationOther = _getIdleAnimation('crouch');
