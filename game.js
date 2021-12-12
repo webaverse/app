@@ -1098,12 +1098,18 @@ const _gameUpdate = (timestamp, timeDiff) => {
   
   const _updateEyes = () => {
     if (localPlayer.avatar) {
-      if (!document.pointerLockElement && lastMouseEvent) {
+      if (mouseSelectedObject) {
+        // console.log('got', mouseSelectedObject.position.toArray().join(','));
+        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
+        localPlayer.avatar.eyeTargetInverted = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
+      } else if (!document.pointerLockElement && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
         localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
+        localPlayer.avatar.eyeTargetInverted = false;
         localPlayer.avatar.eyeTargetEnabled = true;
       } else {
         localPlayer.avatar.eyeTargetEnabled = false;
@@ -1147,10 +1153,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();
+  /*const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.appManager.pushAppUpdates();*/
   
-  const remotePlayers = metaversefileApi.useRemotePlayers();
+  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
@@ -1421,6 +1427,7 @@ const gameManager = {
       return 4/this.gridSnap;
     }
   },
+
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1433,6 +1440,7 @@ const gameManager = {
           animation: 'dansu',
           // time: 0,
         };
+
         localPlayer.addAction(newAction);
       }
     }
@@ -1570,7 +1578,7 @@ const gameManager = {
   ensureJump() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
-    
+
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
@@ -1589,10 +1597,17 @@ const gameManager = {
       localPlayer.addAction(newJumpAction);
     }
   },
+
+
   jump() {
+    // add jump action
     this.ensureJump();
+
+    // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 5;
+    localPlayer.characterPhysics.velocity.y += 6;
+    
+    // play sound
     soundManager.play('jump');
   },
   isMovingBackward() {
@@ -1677,7 +1692,7 @@ const gameManager = {
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 0.1;
+    const walkSpeed = 0.075;
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();

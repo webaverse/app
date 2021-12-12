@@ -13,6 +13,7 @@ import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -23,6 +24,8 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
+const localVelocity = new THREE.Vector3();
+
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -32,6 +35,8 @@ const physicsUpdates = [];
 const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.physicsId = physicsId;
+  physicsObject.collided = false;
+  physicsObject.grounded = false;
   physicsObject.error = new Error().stack;
   return physicsObject;
 };
@@ -45,17 +50,21 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, ccdEnabled) => {
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, ccdEnabled);
+  // console.log('woot', {physics: physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled});
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled);
   
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
   const physicsMesh = new THREE.Mesh(
-    new THREE.CapsuleGeometry(radius, radius, halfHeight*2)
+    new CapsuleGeometry(radius, radius, halfHeight*2)
   );
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
+  //console.log(physicsId);
+  //physicsObject.position.add(new THREE.Vector3(0, 3, 0));
+  //physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
   return physicsObject;
 };
 
@@ -83,9 +92,11 @@ physicsManager.addGeometry = mesh => {
     physicsMesh.updateMatrix();
     physicsMesh.updateMatrixWorld();
   }
+
+  const physicsMaterial = [0.5, 0.5, 0]; // staticFriction, dynamicFriction, restitution
   
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId);
+  physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId, physicsMaterial);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
   
   const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);
@@ -164,24 +175,62 @@ physicsManager.enableGeometryQueries = physicsObject => {
   physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.removeGeometry = physicsObject => {
-  physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
+  try {
+    physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
+  } catch(err) {
+    console.warn('failed to remove geometry', err.stack);
+  }
 };
-
+/* physicsManager.getVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+};
+physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
+  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
+}; */
+physicsManager.setTransform = physicsObject => {
+  physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+};
+physicsManager.createCharacterController = (radius, height, contactOffset, position, mat) => {
+  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, position, mat);
+  return characterController;
+};
+physicsManager.destroyCharacterController = characterController => {
+  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController);
+};
+physicsManager.moveCharacterController = (characterController, displacement, minDist, elapsedTime, position) => {
+  const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController, displacement, minDist, elapsedTime, position);
+  return result;
+};
+physicsManager.setCharacterControllerPosition = (characterController, position) => {
+  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
+  return result;
+};
+/* physicsManager.getTransforms = physicsObjects => {
+  //console.log(physicsObjects, "phyobjssss");
+  const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
+  return objs;
+}; */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
+physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
+  physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
+};
 physicsManager.simulatePhysics = timeDiff => {
-  const t = timeDiff / 1000;
-  // console.log('simulate', timeDiff, t);
-  const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-  physicsUpdates.length = 0;
-  for (const updateOut of updatesOut) {
-    const {id, position, quaternion, scale} = updateOut;
-    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-    physicsObject.position.set(position);
-    physicsObject.quaternion.set(quaternion);
-    physicsObject.updateMatrix();
-    // physicsObject.scale.copy(scale);
-    physicsObject.updateMatrixWorld();
+  if (physicsManager.physicsEnabled) {
+    const t = timeDiff/1000;
+    const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
+    physicsUpdates.length = 0;
+    for (const updateOut of updatesOut) {
+      const {id, position, quaternion} = updateOut;
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      if (physicsObject) {
+        physicsObject.position.copy(position);
+        physicsObject.quaternion.copy(quaternion);
+        physicsObject.updateMatrixWorld();
+      } /* else {
+        console.warn('failed to get physics object', id);
+      } */
+    }
   }
 };
 
@@ -197,14 +246,6 @@ physicsManager.pushUpdate = physicsObject => {
     scale: localVector2.clone(),
   });
 };
-
-// physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
-
-/* const getAvatarHeight = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  return localPlayer.avatar ? localPlayer.avatar.height : 0;
-};
-physicsManager.getAvatarHeight = getAvatarHeight; */
 
 physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {

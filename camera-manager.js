@@ -253,10 +253,14 @@ const cameraManager = {
     if (zDiff === 0) {
       // nothing
     } else {
-      // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.matrix.makeRotationFromQuaternion(camera.quaternion);
+      let camPos = camera.position;
+      camPos.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.matrix.setPosition(camPos)
+      // camera.matrix.makeRotationFromQuaternion(camera.quaternion);
       cameraOffset.z = cameraOffsetZ;
-      camera.matrix.setPosition(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion))
+      camPos = camera.position;
+      camPos.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      camera.matrix.setPosition(camPos)
       // camera.matrixAutoUpdate = true;
       // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld(true);

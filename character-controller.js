@@ -4,8 +4,9 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-// import physicsManager from './physics-manager.js';
+import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -28,6 +29,7 @@ import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone} from './util.js';
+import { Vector3 } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -228,6 +230,72 @@ class Player extends THREE.Object3D {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+        
+        const avatarHeight = this.avatar.height;
+        const contactOffset = 0.1;
+        const radius = 0.3/1.6 * avatarHeight;
+        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const position = this.position.clone()
+          .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+        const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
+        /* this.capsule = (() => {
+          const physicsObject = physicsManager.addCapsuleGeometry(
+            new THREE.Vector3(0, -avatarHeight * 0.5, 0),
+            new THREE.Quaternion(),
+            radius,
+            halfHeight,
+            physicsMaterial,
+            true
+          );
+          
+          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          
+          // console.log('set flags', physicsObject.physicsId, physicsObject);
+          physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
+          physicsManager.setTransform(physicsObject);
+          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+
+          return physicsObject;
+        })(); */
+        {
+          if (this.characterController) {
+            physicsManager.destroyCharacterController(this.characterController);
+            this.characterController = null;
+            this.characterControllerObject = null;
+          }
+          this.characterController = physicsManager.createCharacterController(
+            radius - contactOffset,
+            avatarHeight - radius*2,
+            contactOffset,
+            position,
+            physicsMaterial
+          );
+          this.characterControllerObject = new THREE.Object3D();
+
+          /* const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
+          debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
+            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
+          ));
+          const debugCapsule = new THREE.Mesh(
+            debugCapsuleGeometry,
+            new THREE.MeshStandardMaterial({
+              transparent: true,
+              opacity: 0.9,
+              color: 0xff0000,
+              wireframe: true,
+              wireframeLinewidth: 2,
+            })
+          );
+          scene.add(debugCapsule);
+          world.appManager.addEventListener('frame', e => {
+            debugCapsule.position.copy(this.characterControllerObject.position);
+            debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
+            debugCapsule.scale.copy(this.characterControllerObject.scale);
+            debugCapsule.updateMatrixWorld();
+          }); */
+        }
       })();
       
       this.dispatchEvent({
@@ -268,18 +336,19 @@ class Player extends THREE.Object3D {
     this.syncAvatarCancelFn = null;
   }
   getActionsState() {
-    let actionsArray = this.playerMap.get(actionsMapName);
+    let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
     }
+
     return actionsArray;
   }
   getActionsArray() {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
-    let avatarMap = this.playerMap.get(avatarMapName);
+    let avatarMap = this.playerMap.has(avatarMapName) ? this.playerMap.get(avatarMapName, Z.Map) : null;
     if (!avatarMap) {
       avatarMap = new Z.Map();
       this.playerMap.set(avatarMapName, avatarMap);
@@ -287,7 +356,7 @@ class Player extends THREE.Object3D {
     return avatarMap;
   }
   getAppsState() {
-    let appsArray = this.playerMap.get(appsMapName);
+    let appsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
     if (!appsArray) {
       appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
@@ -324,6 +393,7 @@ class Player extends THREE.Object3D {
   getAction(type) {
     if (this.isBound()) {
       const actions = this.getActionsState();
+     // console.log(actions);
       for (const action of actions) {
         if (action.type === type) {
           return action;
@@ -494,6 +564,11 @@ class InterpolatedPlayer extends Player {
       jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
     };
     this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
     this.actionBinaryTimeSteps = {
@@ -505,6 +580,11 @@ class InterpolatedPlayer extends Player {
       jump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.jump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       dance: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.dance.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       throw: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.throw.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      chargeJump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      standCharge: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.standCharge.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      fallLoop: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fallLoop.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      swordSideSlash: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.swordSideSlash.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      swordTopDownSlash: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.swordTopDownSlash.snapshot(timeDiff);}, avatarInterpolationFrameRate),
     };
     this.actionBinaryTimeStepsArray = Object.keys(this.actionBinaryTimeSteps).map(k => this.actionBinaryTimeSteps[k]);
     this.actionInterpolants = {
@@ -516,6 +596,13 @@ class InterpolatedPlayer extends Player {
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
       dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
       throw: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0),
+      chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
+      standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
+      fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
+      swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
+      swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
+      
+
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
     
@@ -555,6 +642,11 @@ class UninterpolatedPlayer extends Player {
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
+      chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
+      standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
+      fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
+      swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
+      swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
 
@@ -618,6 +710,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
+      self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
       self.playerMap.set('position', self.position.toArray(localArray3));
       self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
@@ -642,8 +735,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         apps.push([mapApp]);
       }
-      
-      self.playersArray.push([self.playerMap]);
     });
     
     this.appManager.bindState(this.getAppsState());
@@ -664,6 +755,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
     }
     
     const {instanceId} = app;
@@ -707,6 +799,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
       }
       
       app.dispatchEvent({
@@ -744,7 +837,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
   }
@@ -757,7 +850,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          //physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
@@ -788,16 +881,20 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
-      if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
-      }
+      } */
       this.playerMap.set('position', this.position.toArray(localArray3));
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(timeDiff) {
+  updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timeDiffS);
+    /* if (isNaN(timeDiff)) {
+      console.log('updaet', now, timeDiffS);
+      debugger;
+    } */
+    this.characterPhysics.update(now, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -831,12 +928,15 @@ class LocalPlayer extends UninterpolatedPlayer {
         dolly.updateMatrix();
         dolly.updateMatrixWorld();
       } else {
-        camera.position.copy(position)
-          .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-        camera.position.y += relation === 'floor' ? avatarHeight : 0;
-        camera.quaternion.copy(quaternion);
-        camera.updateMatrix();
-        camera.updateMatrixWorld();
+        const camPos = camera.position.clone();
+        camPos.copy(position)
+          .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion)).add(new Vector3(0, relation === 'floor' ? avatarHeight : 0, 0));
+        camera.matrix.setPosition(camPos);
+        // camera.position.y += relation === 'floor' ? avatarHeight : 0;
+        // camera.quaternion.copy(quaternion);
+        camera.matrix.makeRotationFromQuaternion(quaternion);
+        // camera.updateMatrix();
+        camera.updateMatrixWorld(true);
       }
 
       this.resetPhysics();
@@ -853,16 +953,16 @@ class RemotePlayer extends InterpolatedPlayer {
   attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i);
+      const player = this.playersArray.get(i, Z.Map);
       if (player.get('playerId') === this.playerId) {
         index = i;
         break;
       }
     }
     if (index !== -1) {
-      this.playerMap = this.playersArray.get(index);
+      this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      console.warn('binding to nonexistent player object', playerId, this.playersArray.toJSON());
+      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
     const observePlayerFn = e => {
@@ -889,8 +989,8 @@ function getPlayerCrouchFactor(player) {
 function updateAvatar(timestamp, timeDiff) {
   metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
-function updatePhysics(timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
+function updatePhysics(now, timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
 }
 
 export {

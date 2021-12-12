@@ -75,6 +75,8 @@ world.disableMic = () => {
 };
 
 world.connectState = state => {
+  state.setResolvePriority(1);
+
   world.appManager.unbindState();
   world.appManager.clear();
   world.appManager.bindState(state.getArray(appsMapName));
@@ -96,6 +98,7 @@ world.connectRoom = async u => {
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
+  state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,
     crdtState: state,

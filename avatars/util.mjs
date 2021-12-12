@@ -34,22 +34,11 @@ export const getSkeleton = object => {
 };
 export const getEyePosition = (() => {
   const localVector = new THREE.Vector3();
-  const localVector2 = new THREE.Vector3();
+  // const localVector2 = new THREE.Vector3();
   return function(modelBones) {
-    if (modelBones.Eye_L && modelBones.Eye_R) {
-      return modelBones.Eye_L.getWorldPosition(localVector)
-        .add(modelBones.Eye_R.getWorldPosition(localVector2))
-        .divideScalar(2);
-    } else {
-      const neckToHeadDiff = modelBones.Head.getWorldPosition(localVector)
-        .sub(modelBones.Neck.getWorldPosition(localVector2));
-      if (neckToHeadDiff.z < 0) {
-        neckToHeadDiff.z *= -1;
-      }
-      return modelBones.Head.getWorldPosition(localVector)
-        .add(neckToHeadDiff)
-        .divideScalar(2);
-    }
+    // const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    return modelBones.Head.getWorldPosition(localVector)
+      // .add(localVector2.set(0, 0.06, 0));
   }
 })();
 export const getHeight = (() => {
@@ -546,6 +535,14 @@ export const decorateAnimation = animation => {
   animation.isActivate = /object/i.test(animation.name);
   animation.isNarutoRun = /naruto run/i.test(animation.name);
   animation.isReverse = /reverse/i.test(animation.name);
+  animation.isLanding = /landing/i.test(animation.name);
+  animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);
+  animation.isChargeJump = /charge_jump/i.test(animation.name);
+  animation.isStandCharge = /stand_charge/i.test(animation.name);
+  animation.isFallLoop = /falling_idle/i.test(animation.name);
+  animation.isSwordSideSlash = /sword_side_slash/i.test(animation.name);
+  animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
+
   animation.interpolants = {};
   animation.tracks.forEach(track => {
     const i = track.createInterpolant();

@@ -82,7 +82,17 @@ class AppManager extends EventTarget {
         const {added, deleted} = e.changes;
         
         for (const item of added.values()) {
-          const appMap = item.content.type;
+          let appMap = item.content.type;
+          if (appMap.constructor === Object) {
+            for (let i = 0; i < this.appsArray.length; i++) {
+              const localAppMap = this.appsArray.get(i, Z.Map); // force to be a map
+              if (localAppMap.binding === item.content.type) {
+                appMap = localAppMap;
+                break;
+              }
+            }
+          }
+
           const instanceId = appMap.get('instanceId');
           
           const hadApp = this.apps.some(app => app.instanceId === instanceId);
@@ -145,7 +155,7 @@ class AppManager extends EventTarget {
   }
   syncApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
-      const trackedApp = this.appsArray.get(i);
+      const trackedApp = this.appsArray.get(i, Z.Map);
       this.dispatchEvent(new MessageEvent('trackedappadd', {
         data: {
           trackedApp,
@@ -341,7 +351,9 @@ class AppManager extends EventTarget {
     return null;
   }
   getOrCreateTrackedApp(instanceId) {
-    for (const app of this.appsArray) {
+    for (let i = 0; this.appsArray.length > i; i++) {
+    // for (const app of this.appsArray) {
+      const app = this.appsArray.get(i, Z.Map);
       if (app.get('instanceId') === instanceId) {
         return app;
       }
@@ -556,10 +568,15 @@ class AppManager extends EventTarget {
                 physicsObject.position.copy(app.position);
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
-                physicsObject.updateMatrix();
-                physicsObject.updateMatrixWorld(true);
+
+                /* if (app.appType === "vrm") {
+                  physicsObject.position.add(new THREE.Vector3(0, 1, 0));
+                } */
+
+                physicsObject.updateMatrixWorld();
                 
-                physicsManager.pushUpdate(physicsObject);
+                //physicsManager.pushUpdate(physicsObject);
+                physicsManager.setTransform(physicsObject);
                 physicsObject.needsUpdate = false;
               }
               
