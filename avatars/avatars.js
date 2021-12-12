@@ -24,7 +24,7 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
-  cloneModelBones,
+  // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
 }  from './util.mjs';
@@ -1021,7 +1021,7 @@ class Avatar {
 	    Hips: this.shoulderTransforms.hips,
 	    Spine: this.shoulderTransforms.spine,
 	    Chest: this.shoulderTransforms.chest,
-	    UpperChest: this.shoulderTransforms.chest,
+	    UpperChest: this.shoulderTransforms.upperChest,
 	    Neck: this.shoulderTransforms.neck,
 	    Head: this.shoulderTransforms.head,
       Eye_L: this.shoulderTransforms.eyel,
@@ -1665,12 +1665,12 @@ class Avatar {
     _updatePosition();
     
     const _applyAnimation = () => {
-      const runSpeed = 0.75;
+      const runSpeed = 0.5;
       const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
-      const _getAnimationKey = (crouchState, velocity) => {
+      const _getAnimationKey = crouchState => {
         if (crouchState) {
           return 'crouch';
         } else {
@@ -1799,10 +1799,7 @@ class Avatar {
       };
       
       // stand
-      const key = _getAnimationKey(
-        false,
-        this.velocity,
-      );
+      const key = _getAnimationKey(false);
       const keyAnimationAngles = _getClosest2AnimationAngles(key);
       const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
       const idleAnimation = _getIdleAnimation(key);
@@ -1851,10 +1848,7 @@ class Avatar {
       }
       
       // crouch
-      const keyOther = _getAnimationKey(
-        true,
-        this.velocity,
-      );
+      const keyOther = _getAnimationKey(true);
       const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, keyOther);
       const idleAnimationOther = _getIdleAnimation(keyOther);
@@ -2242,16 +2236,16 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    if (!this.getBottomEnabled()) {
-      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position);
-      this.modelBoneOutputs.Root.position.y -= this.height;
-
+    // if (!this.getBottomEnabled()) {
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
-    }
+      
+      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+        .sub(localVector.set(0, this.height, 0));
+    // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */

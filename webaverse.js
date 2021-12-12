@@ -298,8 +298,8 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => { 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
-      lastTimestamp = timestamp;
+      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
+      //const timeDiffCapped = timeDiff;
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
@@ -307,9 +307,12 @@ export default class Webaverse extends EventTarget {
       cameraManager.update(timeDiffCapped);
       
       if (this.contentLoaded) {
-        characterController.updatePhysics(timeDiffCapped);
-        physicsManager.simulatePhysics(timeDiffCapped);
+        //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
+        physicsManager.simulatePhysics(timeDiffCapped); 
+        characterController.updatePhysics(timestamp, timeDiffCapped);
       }
+
+      lastTimestamp = timestamp;
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);

@@ -34,22 +34,11 @@ export const getSkeleton = object => {
 };
 export const getEyePosition = (() => {
   const localVector = new THREE.Vector3();
-  const localVector2 = new THREE.Vector3();
+  // const localVector2 = new THREE.Vector3();
   return function(modelBones) {
-    if (modelBones.Eye_L && modelBones.Eye_R) {
-      return modelBones.Eye_L.getWorldPosition(localVector)
-        .add(modelBones.Eye_R.getWorldPosition(localVector2))
-        .divideScalar(2);
-    } else {
-      const neckToHeadDiff = modelBones.Head.getWorldPosition(localVector)
-        .sub(modelBones.Neck.getWorldPosition(localVector2));
-      if (neckToHeadDiff.z < 0) {
-        neckToHeadDiff.z *= -1;
-      }
-      return modelBones.Head.getWorldPosition(localVector)
-        .add(neckToHeadDiff)
-        .divideScalar(2);
-    }
+    // const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    return modelBones.Head.getWorldPosition(localVector)
+      // .add(localVector2.set(0, 0.06, 0));
   }
 })();
 export const getHeight = (() => {
