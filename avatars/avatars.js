@@ -1939,7 +1939,6 @@ class Avatar {
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
       const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-      // const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
       const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI*0.4;
       if (isBackward !== this.lastIsBackward) {
