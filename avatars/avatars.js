@@ -651,9 +651,6 @@ const animationMappingConfig = [
 
 class Avatar {
 	constructor(object, options = {}) {
-
-    this.speedValue = 0;
-
     if (!object) {
       object = {};
     }
@@ -1657,14 +1654,17 @@ class Avatar {
     const {now} = this;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-
-    this.speedValue = this.lerpFloat(this.speedValue,currentSpeed,(timeDiffS * 5.0));
-
-    //console.log(currentSpeed.toFixed(2) + " " + this.speedValue.toFixed(2));
-
-    //let factor = Math.min(1.2, Math.max(0,this.speedValue - 0.5)) * 1.42;
-
-    //console.log(factor.toFixed(2));
+    
+    // walk = 0.29
+    // run = 0.88
+    // walk backward = 0.20
+    // run backward = 0.61
+    const idleSpeed = 0;
+    const walkSpeed = 0.25;
+    const runSpeed = 0.7;
+    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updatePosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1759,7 +1759,21 @@ class Avatar {
           return animationsIdleArrays[key].animation;
         }
       }; */
-      const _get7wayBlend = (horizontalWalkAnimationAngles, horizontalWalkAnimationAnglesMirror, horizontalRunAnimationAngles, horizontalRunAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, walkRunFactor, k, lerpFn, target) => {
+      const _get7wayBlend = (
+        horizontalWalkAnimationAngles,
+        horizontalWalkAnimationAnglesMirror,
+        horizontalRunAnimationAngles,
+        horizontalRunAnimationAnglesMirror,
+        idleAnimation,
+        // mirrorFactor,
+        // angleFactor,
+        // walkRunFactor,
+        // idleWalkFactor,
+        k,
+        lerpFn,
+        target
+      ) => {
+        // WALK
         // normal horizontal walk blend
         {
           const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
@@ -1804,7 +1818,7 @@ class Avatar {
             mirrorFactor
           );
 
-        // Same for run
+        // RUN
         // normal horizontal run blend
         {
           const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
@@ -1867,7 +1881,7 @@ class Avatar {
             .call(
               target.fromArray(v3),
               localQuaternion4,
-              speedFactor
+              idleWalkFactor
             );
         }
       };
@@ -1881,10 +1895,6 @@ class Avatar {
       const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
       
       const idleAnimation = _getIdleAnimation('walk');
-
-
-      
-
 
       const soundManager = metaversefile.useSoundManager();
       //console.log(key);
@@ -1937,7 +1947,7 @@ class Avatar {
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
       const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-      const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
+      // const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
       const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI*0.4;
       if (isBackward !== this.lastIsBackward) {
@@ -1968,11 +1978,34 @@ class Avatar {
       this.lastBackwardFactor = mirrorFactor;
 
       const _getHorizontalBlend = (k, lerpFn, target) => {
-        
-        const walkRunFactor = Math.min(0.88, Math.max(0,this.speedValue - 0.3)) * 1.72; // range [0.3,0.88]
-
-        _get7wayBlend(keyWalkAnimationAngles, keyWalkAnimationAnglesMirror,keyRunAnimationAngles, keyRunAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, walkRunFactor, k, lerpFn, localQuaternion);
-        _get7wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror,keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, walkRunFactor, k, lerpFn, localQuaternion2);
+        _get7wayBlend(
+          keyWalkAnimationAngles,
+          keyWalkAnimationAnglesMirror,
+          keyRunAnimationAngles,
+          keyRunAnimationAnglesMirror,
+          idleAnimation,
+          // mirrorFactor,
+          // angleFactor,
+          // walkRunFactor,
+          // idleWalkFactor,
+          k,
+          lerpFn,
+          localQuaternion
+        );
+        _get7wayBlend(
+          keyAnimationAnglesOther,
+          keyAnimationAnglesOtherMirror,
+          keyAnimationAnglesOther,
+          keyAnimationAnglesOtherMirror,
+          idleAnimationOther,
+          // mirrorFactor,
+          // angleFactor,
+          // walkRunFactor,
+          // idleWalkFactor,
+          k,
+          lerpFn,
+          localQuaternion2
+        );
         
         //_get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
         
