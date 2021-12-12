@@ -1215,6 +1215,19 @@ const physxWorker = (() => {
 
     return flags;
   };
+  w.setCharacterControllerPositionPhysics = (physics, characterController, position) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    
+    position.toArray(p);
+
+    moduleInstance._setCharacterControllerPositionPhysics(
+      physics,
+      characterController,
+      p.byteOffset
+    );
+    allocator.freeAll();
+  };
   return w;
 })();
 physx.physxWorker = physxWorker;

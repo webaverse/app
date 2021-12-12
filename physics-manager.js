@@ -216,6 +216,10 @@ physicsManager.moveCharacterController = (characterController, displacement, min
   const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController, displacement, minDist, elapsedTime, position);
   return result;
 };
+physicsManager.setCharacterControllerPosition = (characterController, position) => {
+  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
+  return result;
+};
 /* physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
