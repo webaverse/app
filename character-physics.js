@@ -160,7 +160,7 @@ class CharacterPhysics {
           }
         }
       } else {
-        /* //Outdated vehicle code
+        //Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
@@ -192,7 +192,7 @@ class CharacterPhysics {
 
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height;
-        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)); */
+        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       localVector.add(localOffset2);
