@@ -40,6 +40,7 @@ const localQuaternion6 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxEyeTargetTime = 2000;
@@ -2395,15 +2396,19 @@ class Avatar {
       if (needsEyeTarget) {
         localQuaternion.copy(this.startEyeTargetQuaternion)
           .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
-
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
-          .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
-        this.modelBoneOutputs.Neck.quaternion.copy(this.startEyeTargetQuaternion)
-          .slerp(localQuaternion.identity(), cubicBezier(eyeTargetFactor));
+        localMatrix.compose(localVector.set(0, 0, 0), this.startEyeTargetQuaternion, localVector2.set(1, 1, 1))
+          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+          .decompose(localVector, localQuaternion, localVector2);
+        localQuaternion
+          .slerp(localQuaternion2.identity(), cubicBezier(eyeTargetFactor));
+        this.modelBoneOutputs.Neck.quaternion.copy(localQuaternion);
       }
+      
     };
     _updateEyeTarget();
     this.modelBoneOutputs.Root.updateMatrixWorld();
