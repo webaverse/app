@@ -442,16 +442,7 @@ bakeFormEl.addEventListener('submit', async e => {
         moduleInstance._doFree(ptr);
       };
       w.makePhysics = () => moduleInstance._makePhysics();
-      w.simulatePhysics = (physics, elapsedTime) => {
-
-        console.log('simulating');
-    
-        moduleInstance._simulatePhysics(
-          physics,
-          elapsedTime,
-        );
-      };
-      /*w.simulatePhysics = (physics, updates, elapsedTime) => {
+      w.simulatePhysics = (physics, updates, elapsedTime) => {
         const maxNumUpdates = 10;
         let index = 0;
         const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
@@ -487,7 +478,7 @@ bakeFormEl.addEventListener('submit', async e => {
         }
         
         return newUpdates;
-      };*/
+      };
       w.requestAddObject = (tracker, geometrySet, name, position, quaternion) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.addObject, true, m => {
           m.pushU32(tracker);
