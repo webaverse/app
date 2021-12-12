@@ -259,6 +259,11 @@ class Player extends THREE.Object3D {
           return physicsObject;
         })(); */
         {
+          if (this.characterController) {
+            physicsManager.destroyCharacterController(this.characterController);
+            this.characterController = null;
+            this.characterControllerObject = null;
+          }
           this.characterController = physicsManager.createCharacterController(
             radius - contactOffset,
             avatarHeight - radius*2,
