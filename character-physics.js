@@ -191,7 +191,11 @@ class CharacterPhysics {
           .decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(this.sitOffset);
-        localVector.y += this.player.avatar.height;
+        localVector.y += this.player.avatar.height * 0.5;
+
+        physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+        localVector.y += this.player.avatar.height * 0.5;
+
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
