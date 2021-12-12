@@ -283,15 +283,12 @@ class Player extends THREE.Object3D {
             })
           );
           scene.add(debugCapsule);
-          // console.log('add capsule', debugCapsule);
           world.appManager.addEventListener('frame', e => {
-            // window.debugCapsule = debugCapsule;
             debugCapsule.position.copy(this.characterControllerObject.position);
             debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
             debugCapsule.scale.copy(this.characterControllerObject.scale);
             debugCapsule.updateMatrixWorld();
           });
-          // console.log('got out position', outPosition.toArray().join(','));
         }
       })();
       
