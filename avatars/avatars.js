@@ -1647,10 +1647,6 @@ class Avatar {
     return value1 + (value2 - value1) * amount;
   }
   update(timeDiff) {
-    /* const wasDecapitated = this.decapitated;
-    if (this.springBoneManager && wasDecapitated) {
-      this.undecapitate();
-    } */
     const {now} = this;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
@@ -1897,11 +1893,7 @@ class Avatar {
       const idleAnimation = _getIdleAnimation('walk');
 
       const soundManager = metaversefile.useSoundManager();
-      //console.log(key);
-      //console.log(currentSpeed);
-      //console.log(idleAnimation.duration);
       const currAniTime = timeSeconds % idleAnimation.duration;
-      //console.log(currAniTime);
 
       if (currentSpeed > 0.1) {
         if (key == 'walk') {
