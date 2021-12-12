@@ -6,14 +6,23 @@ import VRArmIK from './VRArmIK.js';
 class ShoulderTransforms {
   constructor(rig) {
     this.chest = new THREE.Object3D();
+    this.chest.name = 'ikChest';
     this.upperChest = new THREE.Object3D();
+    this.upperChest.name = 'ikUpperChest';
     this.root = new THREE.Object3D();
+    this.root.name = 'ikRoot';
     this.hips = new THREE.Object3D();
+    this.hips.name = 'ikHips';
     this.spine = new THREE.Object3D();
+    this.spine.name = 'ikSpine';
     this.neck = new THREE.Object3D();
+    this.neck.name = 'ikNeck';
     this.head = new THREE.Object3D();
+    this.head.name = 'ikHead';
     this.eyel = new THREE.Object3D();
+    this.eyel.name = 'ikEyeLeft';
     this.eyer = new THREE.Object3D();
+    this.eyer.name = 'ikEyeRight';
 
     this.root.add(this.hips);
     this.hips.add(this.spine);
@@ -29,8 +38,10 @@ class ShoulderTransforms {
     // this.transform.add(this.rightShoulder);
 
     this.leftShoulderAnchor = new THREE.Object3D();
+    this.leftShoulderAnchor.name = 'ikLeftShoulder';
     this.upperChest.add(this.leftShoulderAnchor);
     this.rightShoulderAnchor = new THREE.Object3D();
+    this.rightShoulderAnchor.name = 'ikRightShoulder';
     this.upperChest.add(this.rightShoulderAnchor);
 
     this.leftArm = new ArmTransforms();
