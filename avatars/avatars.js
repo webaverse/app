@@ -36,6 +36,7 @@ const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
 const localQuaternion5 = new THREE.Quaternion();
+const localQuaternion6 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -1641,12 +1642,20 @@ class Avatar {
     return localEuler.y;
   }
   update(timeDiff) {
-    /* const wasDecapitated = this.decapitated;
-    if (this.springBoneManager && wasDecapitated) {
-      this.undecapitate();
-    } */
     const {now} = this;
     const timeDiffS = timeDiff / 1000;
+    const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
+    
+    // walk = 0.29
+    // run = 0.88
+    // walk backward = 0.20
+    // run backward = 0.61
+    const idleSpeed = 0;
+    const walkSpeed = 0.25;
+    const runSpeed = 0.7;
+    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updatePosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1670,7 +1679,6 @@ class Avatar {
     
     const _applyAnimation = () => {
       const runSpeed = 0.5;
-      const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
@@ -1742,15 +1750,29 @@ class Avatar {
           return animationsIdleArrays[key].animation;
         }
       }; */
-      const _get5wayBlend = (horizontalAnimationAngles, horizontalAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, target) => {
-        // normal horizontal walk/run blend
+      const _get7wayBlend = (
+        horizontalWalkAnimationAngles,
+        horizontalWalkAnimationAnglesMirror,
+        horizontalRunAnimationAngles,
+        horizontalRunAnimationAnglesMirror,
+        idleAnimation,
+        // mirrorFactor,
+        // angleFactor,
+        // walkRunFactor,
+        // idleWalkFactor,
+        k,
+        lerpFn,
+        target
+      ) => {
+        // WALK
+        // normal horizontal walk blend
         {
-          const t1 = timeSeconds % horizontalAnimationAngles[0].animation.duration;
-          const src1 = horizontalAnimationAngles[0].animation.interpolants[k];
+          const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
+          const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
           const v1 = src1.evaluate(t1);
 
-          const t2 = timeSeconds % horizontalAnimationAngles[1].animation.duration;
-          const src2 = horizontalAnimationAngles[1].animation.interpolants[k];
+          const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
+          const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
           const v2 = src2.evaluate(t2);
           
           lerpFn
@@ -1761,14 +1783,14 @@ class Avatar {
             );
         }
           
-        // mirror horizontal blend (backwards walk/run)
+        // mirror horizontal blend (backwards walk)
         {
-          const t1 = timeSeconds % horizontalAnimationAnglesMirror[0].animation.duration;
-          const src1 = horizontalAnimationAnglesMirror[0].animation.interpolants[k];
+          const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
+          const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
           const v1 = src1.evaluate(t1);
 
-          const t2 = timeSeconds % horizontalAnimationAnglesMirror[1].animation.duration;
-          const src2 = horizontalAnimationAnglesMirror[1].animation.interpolants[k];
+          const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
+          const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
           const v2 = src2.evaluate(t2);
 
           lerpFn
@@ -1782,12 +1804,65 @@ class Avatar {
         // blend mirrors together to get a smooth walk
         lerpFn
           .call(
-            localQuaternion5.copy(localQuaternion3),
+            localQuaternion5.copy(localQuaternion3), // Result is in localQuaternion5
             localQuaternion4,
             mirrorFactor
           );
 
-        // blend the smooth walk with idle
+        // RUN
+        // normal horizontal run blend
+        {
+          const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
+          const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
+          const v1 = src1.evaluate(t1);
+
+          const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
+          const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          
+          lerpFn
+            .call(
+              localQuaternion3.fromArray(v2),
+              localQuaternion4.fromArray(v1),
+              angleFactor
+            );
+        }
+          
+        // mirror horizontal blend (backwards run)
+        {
+          const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
+          const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
+          const v1 = src1.evaluate(t1);
+
+          const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
+          const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          lerpFn
+            .call(
+              localQuaternion4.fromArray(v2),
+              localQuaternion6.fromArray(v1),
+              angleFactor
+            );
+        }
+
+        // blend mirrors together to get a smooth run
+        lerpFn
+          .call(
+            localQuaternion6.copy(localQuaternion3), // Result is in localQuaternion6
+            localQuaternion4,
+            mirrorFactor
+          );
+
+        // Blend walk/run
+        lerpFn
+          .call(
+            localQuaternion4.copy(localQuaternion5), // Result is in localQuaternion4
+            localQuaternion6,
+            walkRunFactor
+          );
+
+        // blend the smooth walk/run with idle
         {
           const t3 = timeSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
@@ -1796,73 +1871,74 @@ class Avatar {
           lerpFn
             .call(
               target.fromArray(v3),
-              localQuaternion5,
-              speedFactor
+              localQuaternion4,
+              idleWalkFactor
             );
         }
       };
       
       // stand
       const key = _getAnimationKey(false);
-      const keyAnimationAngles = _getClosest2AnimationAngles(key);
-      const keyAnimationAnglesMirror = _getMirrorAnimationAngles(keyAnimationAngles, key);
-      const idleAnimation = _getIdleAnimation(key);
+      const keyWalkAnimationAngles = _getClosest2AnimationAngles('walk');
+      const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
 
+      const keyRunAnimationAngles = _getClosest2AnimationAngles('run');
+      const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
+      
+      const idleAnimation = _getIdleAnimation('walk');
 
-      const soundManager = metaversefile.useSoundManager();
-      //console.log(key);
-      //console.log(currentSpeed);
-      //console.log(idleAnimation.duration);
-      const currAniTime = timeSeconds % idleAnimation.duration;
-      //console.log(currAniTime);
+      // walk sound effect
+      {
+        const soundManager = metaversefile.useSoundManager();
+        const currAniTime = timeSeconds % idleAnimation.duration;
 
-      if (currentSpeed > 0.1) {
-        if (key == 'walk') {
-          if (currAniTime > 0.26 && currAniTime < 0.4)
-            soundManager.playStepSound(1);
-          if (currAniTime > 0.76 && currAniTime < 0.9)
-            soundManager.playStepSound(2);
-          if (currAniTime > 1.26 && currAniTime < 1.4)
-            soundManager.playStepSound(3);
-          if (currAniTime > 1.76 && currAniTime < 1.9)
-            soundManager.playStepSound(4);
-          if (currAniTime > 2.26 && currAniTime < 2.5)
-            soundManager.playStepSound(5);
-        }
-        if (key == 'run') {
-          if (currAniTime > 0.16 && currAniTime < 0.3)
-            soundManager.playStepSound(1);
-          if (currAniTime > 0.43 && currAniTime < 0.45)
-            soundManager.playStepSound(2);
-          if (currAniTime > 0.693 && currAniTime < 0.8)
-            soundManager.playStepSound(3);
-          if (currAniTime > 0.963 && currAniTime < 1.1)
-            soundManager.playStepSound(4);
-          if (currAniTime > 1.226 && currAniTime < 1.3)
-            soundManager.playStepSound(5);
-          if (currAniTime > 1.496 && currAniTime < 1.6)
-            soundManager.playStepSound(6);
-          if (currAniTime > 1.759 && currAniTime < 1.9)
-            soundManager.playStepSound(7);
-          if (currAniTime > 2.029 && currAniTime < 2.1)
-            soundManager.playStepSound(8);
-          if (currAniTime > 2.292 && currAniTime < 2.4)
-            soundManager.playStepSound(9);
+        if (currentSpeed > 0.1) {
+          if (key === 'walk') {
+            if (currAniTime > 0.26 && currAniTime < 0.4)
+              soundManager.playStepSound(1);
+            if (currAniTime > 0.76 && currAniTime < 0.9)
+              soundManager.playStepSound(2);
+            if (currAniTime > 1.26 && currAniTime < 1.4)
+              soundManager.playStepSound(3);
+            if (currAniTime > 1.76 && currAniTime < 1.9)
+              soundManager.playStepSound(4);
+            if (currAniTime > 2.26 && currAniTime < 2.5)
+              soundManager.playStepSound(5);
+          }
+          if (key === 'run') {
+            if (currAniTime > 0.16 && currAniTime < 0.3)
+              soundManager.playStepSound(1);
+            if (currAniTime > 0.43 && currAniTime < 0.45)
+              soundManager.playStepSound(2);
+            if (currAniTime > 0.693 && currAniTime < 0.8)
+              soundManager.playStepSound(3);
+            if (currAniTime > 0.963 && currAniTime < 1.1)
+              soundManager.playStepSound(4);
+            if (currAniTime > 1.226 && currAniTime < 1.3)
+              soundManager.playStepSound(5);
+            if (currAniTime > 1.496 && currAniTime < 1.6)
+              soundManager.playStepSound(6);
+            if (currAniTime > 1.759 && currAniTime < 1.9)
+              soundManager.playStepSound(7);
+            if (currAniTime > 2.029 && currAniTime < 2.1)
+              soundManager.playStepSound(8);
+            if (currAniTime > 2.292 && currAniTime < 2.4)
+              soundManager.playStepSound(9);
+          }
         }
       }
       
       // crouch
-      const keyOther = _getAnimationKey(true);
-      const keyAnimationAnglesOther = _getClosest2AnimationAngles(keyOther);
-      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, keyOther);
-      const idleAnimationOther = _getIdleAnimation(keyOther);
+      // const keyOther = _getAnimationKey(true);
+      const keyAnimationAnglesOther = _getClosest2AnimationAngles('crouch');
+      const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
+      const idleAnimationOther = _getIdleAnimation('crouch');
       
-      const angleToClosestAnimation = Math.abs(angleDifference(angle, keyAnimationAnglesMirror[0].angle));
-      const angleBetweenAnimations = Math.abs(angleDifference(keyAnimationAnglesMirror[0].angle, keyAnimationAnglesMirror[1].angle));
+      const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
+      const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-      const speedFactor = Math.min(Math.pow(currentSpeed, 0.5) * 2, 1);
       const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
-      const isBackward = _getAngleToBackwardAnimation(keyAnimationAnglesMirror) < Math.PI*0.4;
+      const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI*0.4;
       if (isBackward !== this.lastIsBackward) {
         this.backwardAnimationSpec = {
           startFactor: this.lastBackwardFactor,
@@ -1891,8 +1967,36 @@ class Avatar {
       this.lastBackwardFactor = mirrorFactor;
 
       const _getHorizontalBlend = (k, lerpFn, target) => {
-        _get5wayBlend(keyAnimationAngles, keyAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion);
-        _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+        _get7wayBlend(
+          keyWalkAnimationAngles,
+          keyWalkAnimationAnglesMirror,
+          keyRunAnimationAngles,
+          keyRunAnimationAnglesMirror,
+          idleAnimation,
+          // mirrorFactor,
+          // angleFactor,
+          // walkRunFactor,
+          // idleWalkFactor,
+          k,
+          lerpFn,
+          localQuaternion
+        );
+        _get7wayBlend(
+          keyAnimationAnglesOther,
+          keyAnimationAnglesOtherMirror,
+          keyAnimationAnglesOther,
+          keyAnimationAnglesOtherMirror,
+          idleAnimationOther,
+          // mirrorFactor,
+          // angleFactor,
+          // walkRunFactor,
+          // idleWalkFactor,
+          k,
+          lerpFn,
+          localQuaternion2
+        );
+        
+        //_get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
         
         lerpFn
           .call(
@@ -1900,6 +2004,7 @@ class Avatar {
             localQuaternion2,
             crouchFactor
           );
+
       };
       const _getApplyFn = () => {
 
