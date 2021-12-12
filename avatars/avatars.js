@@ -2271,11 +2271,8 @@ class Avatar {
             upVector
           )
       );
-      const rootQuaternion = this.modelBones.Root.quaternion.clone()
-        .premultiply(y180Quaternion);
-      this.modelBoneOutputs.Root.updateMatrixWorld();
+      // this.modelBoneOutputs.Root.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      // localQuaternion.premultiply(y180Quaternion);
 
       if (this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4) {
         this.lastEyeTargetQuaternion.copy(globalQuaternion);
@@ -2284,8 +2281,6 @@ class Avatar {
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
-      } else {
-        // nothing
       }
     };
     _updateEyeTarget();
