@@ -29,7 +29,6 @@ import {
   // retargetAnimation,
 }  from './util.mjs';
 
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -41,6 +40,9 @@ const localQuaternion6 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+
+// const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const maxEyeTargetTime = 2000;
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -805,6 +807,7 @@ class Avatar {
     this.hairBones = hairBones;
     
     this.eyeTarget = new THREE.Vector3();
+    this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
 
     this.springBoneManager = null;
@@ -1228,8 +1231,9 @@ class Avatar {
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
-    this.lastEyeTargetQuaternion = new THREE.Quaternion();
-    this.trackMouseAmount = 0;
+    this.startEyeTargetQuaternion = new THREE.Quaternion();
+    this.lastNeedsEyeTarget = false;
+    this.lastEyeTargetTime = 0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2336,79 +2340,52 @@ class Avatar {
     this.shoulderTransforms.Update();
     this.legsManager.Update();
 
-    if (this.eyeTargetEnabled) {
+    const _updateEyeTarget = () => {
       const eyePosition = getEyePosition(this.modelBones);
-      this.modelBoneOutputs.Neck.updateMatrixWorld();
-      this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
       const globalQuaternion = localQuaternion2.setFromRotationMatrix(
-        new THREE.Matrix4().lookAt(
-          eyePosition,
-          this.eyeTarget,
-          upVector
-        )
-      );
-      localQuaternion3.copy(globalQuaternion)// .setFromEuler(localEuler)
-        .premultiply(
-          this.modelBoneOutputs.Hips.getWorldQuaternion(localQuaternion4)
-            .invert()
-        )
-
-      if (localQuaternion.angleTo(localQuaternion3) < Math.PI*0.4) {
-        if (this.trackMouseAmount < 1) {
-          this.trackMouseAmount += timeDiffS*3;
-        } else {
-          this.trackMouseAmount = 1;
-        }
-        
-        this.lastEyeTargetQuaternion.slerpQuaternions(localQuaternion, localQuaternion3, this.trackMouseAmount);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
-      } 
-      else {
-        this.trackMouseAmount = 0;
-        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
-      }
-
-      this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
-          .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
-    } 
-    else {
-      if (this.trackMouseAmount > 0) {
-        const eyePosition = getEyePosition(this.modelBones);
-        this.modelBoneOutputs.Neck.updateMatrixWorld();
-        this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-        const globalQuaternion = localQuaternion2.setFromRotationMatrix(
-          new THREE.Matrix4().lookAt(
+        this.eyeTargetInverted ?
+          localMatrix.lookAt(
+            this.eyeTarget,
+            eyePosition,
+            upVector
+          )
+        :
+          localMatrix.lookAt(
             eyePosition,
             this.eyeTarget,
             upVector
           )
-        );
+      );
+      // this.modelBoneOutputs.Root.updateMatrixWorld();
+      this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-        localQuaternion3.copy(globalQuaternion)// .setFromEuler(localEuler)
-          .premultiply(
-            this.modelBoneOutputs.Hips.getWorldQuaternion(localQuaternion4)
-              .invert()
-          )
+      const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4;
+      if (needsEyeTarget && !this.lastNeedsEyeTarget) {
+        this.startEyeTargetQuaternion.copy(localQuaternion);
+        this.lastEyeTargetTime = now;
+      } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
+        this.startEyeTargetQuaternion.copy(localQuaternion);
+        this.lastEyeTargetTime = now;
+      }
+      this.lastNeedsEyeTarget = needsEyeTarget;
 
-        this.lastEyeTargetQuaternion.slerp(localQuaternion, 0.1);
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2);
+      const eyeTargetFactor = Math.min(Math.max((now - this.lastEyeTargetTime) / maxEyeTargetTime, 0), 1);
+      if (needsEyeTarget) {
+        localQuaternion.copy(this.startEyeTargetQuaternion)
+          .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
 
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, this.modelBoneOutputs.Neck.scale);
-
-        if (this.trackMouseAmount <= 0) {
-          this.trackMouseAmount = 0;
-        } else {
-          this.trackMouseAmount -= timeDiffS*3;
-        }
+          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
+      } else {
+        this.modelBoneOutputs.Neck.quaternion.copy(this.startEyeTargetQuaternion)
+          .slerp(localQuaternion.identity(), cubicBezier(eyeTargetFactor));
       }
-    }
-
+    };
+    _updateEyeTarget();
+    this.modelBoneOutputs.Root.updateMatrixWorld();
+    
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
       this.modelBoneOutputs,
@@ -2417,7 +2394,7 @@ class Avatar {
       this.getHandEnabled(0),
       this.getHandEnabled(1),
     );
-    this.modelBones.Hips.updateMatrixWorld();
+    // this.modelBones.Root.updateMatrixWorld();
 
     if (this.springBoneManager) {
       this.springBoneTimeStep.update(timeDiff);
