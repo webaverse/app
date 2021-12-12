@@ -51,6 +51,7 @@ ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.debugMode = false;
+
 ioManager.keys = {
   up: false,
   down: false,

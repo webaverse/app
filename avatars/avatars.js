@@ -24,7 +24,7 @@ import {
   makeBoneMap,
   getTailBones,
   getModelBones,
-  cloneModelBones,
+  // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
 }  from './util.mjs';
@@ -92,6 +92,9 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
+const defaultchargeJumpAnimation = 'chargeJump';
+const defaultStandChargeAnimation = 'standCharge';
+
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -215,6 +218,12 @@ let throwAnimations;
 let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
+let jumpAnimationSegments;
+let chargeJump;
+let standCharge;
+let fallLoop;
+let swordSideSlash;
+let swordTopDownSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -312,7 +321,22 @@ const loadPromise = (async () => {
   for (const animation of animations) {
     decorateAnimation(animation);
   }
-  
+
+
+  jumpAnimationSegments = {
+    chargeJump: animations.find(a => a.isChargeJump),
+    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
+    isFallLoop: animations.find(a => a.isFallLoop),
+    isLanding: animations.find(a => a.isLanding)
+  }
+
+  chargeJump = animations.find(a => a.isChargeJump);
+  standCharge = animations.find(a => a.isStandCharge);
+  fallLoop = animations.find(a => a.isFallLoop);
+  swordSideSlash = animations.find(a => a.isSwordSideSlash);
+  swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
+
+
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -1001,7 +1025,7 @@ class Avatar {
 	    Hips: this.shoulderTransforms.hips,
 	    Spine: this.shoulderTransforms.spine,
 	    Chest: this.shoulderTransforms.chest,
-	    UpperChest: this.shoulderTransforms.chest,
+	    UpperChest: this.shoulderTransforms.upperChest,
 	    Neck: this.shoulderTransforms.neck,
 	    Head: this.shoulderTransforms.head,
       Eye_L: this.shoulderTransforms.eyel,
@@ -1184,7 +1208,17 @@ class Avatar {
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
     this.narutoRunState = false;
+    this.chargeJumpState = false;
+    this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
+    this.standChargeState = false;
+    this.standChargeTime = 0;
+    this.fallLoopState = false;
+    this.fallLoopTime = 0;
+    this.swordSideSlashState = false;
+    this.swordSideSlashTime = 0;
+    this.swordTopDownSlashState = false;
+    this.swordTopDownSlashTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -1649,11 +1683,11 @@ class Avatar {
     _updatePosition();
     
     const _applyAnimation = () => {
-      const runSpeed = 0.75;
+      const runSpeed = 0.5;
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
-      const _getAnimationKey = (crouchState, velocity) => {
+      const _getAnimationKey = crouchState => {
         if (crouchState) {
           return 'crouch';
         } else {
@@ -1835,10 +1869,7 @@ class Avatar {
       };
       
       // stand
-      const key = _getAnimationKey(
-        false,
-        this.velocity,
-      );
+      const key = _getAnimationKey(false);
       const keyWalkAnimationAngles = _getClosest2AnimationAngles('walk');
       const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
 
@@ -1894,10 +1925,7 @@ class Avatar {
       }
       
       // crouch
-      const keyOther = _getAnimationKey(
-        true,
-        this.velocity,
-      );
+      const keyOther = _getAnimationKey(true);
       const keyAnimationAnglesOther = _getClosest2AnimationAngles('crouch');
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
       const idleAnimationOther = _getIdleAnimation('crouch');
@@ -1937,7 +1965,7 @@ class Avatar {
 
       const _getHorizontalBlend = (k, lerpFn, target) => {
         
-        const walkRunFactor = Math.min(1.2, Math.max(0,this.speedValue - 0.5)) * 1.42; // range [0.5,1.2]
+        const walkRunFactor = Math.min(0.88, Math.max(0,this.speedValue - 0.3)) * 1.72; // range [0.3,0.88]
 
         _get7wayBlend(keyWalkAnimationAngles, keyWalkAnimationAnglesMirror,keyRunAnimationAngles, keyRunAnimationAnglesMirror, idleAnimation, mirrorFactor, angleFactor, speedFactor, walkRunFactor, k, lerpFn, localQuaternion);
         _get7wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror,keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, walkRunFactor, k, lerpFn, localQuaternion2);
@@ -1953,6 +1981,7 @@ class Avatar {
 
       };
       const _getApplyFn = () => {
+
         if (this.jumpState) {
           return spec => {
             const {
@@ -1960,7 +1989,8 @@ class Avatar {
               dst,
               isTop,
             } = spec;
-            
+            // console.log('JumpState', spec)
+
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -2014,6 +2044,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
+
         if (this.danceState) {
           return spec => {
             const {
@@ -2022,9 +2053,107 @@ class Avatar {
               isTop,
             } = spec;
             
+
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+
+         if (this.standChargeState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+
+            const t2 = (this.standChargeTime/1000) ;
+            const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordSideSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.swordSideSlashTime/1000) ;
+            const src2 = swordSideSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.swordTopDownSlashState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.swordTopDownSlashTime/1000) ;
+            const src2 = swordTopDownSlash.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.fallLoopState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.fallLoopTime/1000) ;
+            const src2 = fallLoop.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.chargeJumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+            const t2 = (this.chargeJumpTime/1000) ;
+            const src2 = chargeJump.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+        if (this.jumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+            
+
+            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
+            const danceAnimation = danceAnimations[0];
+            const src2 = throwAnimation.interpolants[k];
+            const t2 = (this.danceTime/1000) ;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
@@ -2190,16 +2319,16 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    if (!this.getBottomEnabled()) {
-      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position);
-      this.modelBoneOutputs.Root.position.y -= this.height;
-
+    // if (!this.getBottomEnabled()) {
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
-    }
+      
+      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+        .sub(localVector.set(0, this.height, 0));
+    // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
