@@ -2109,10 +2109,7 @@ class Avatar {
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-        .sub(
-          localVector.copy(this.heightOffset)
-            .applyQuaternion(this.modelBoneOutputs.Root.quaternion)
-        );
+        .sub(localVector.set(0, this.height, 0));
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
