@@ -171,7 +171,7 @@ class ShoulderPoser {
     } */
 
     const headPosition = localVector.copy(this.vrTransforms.head.position)
-      .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
+      // .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const neckPosition = headPosition.sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const upperChestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
     const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
