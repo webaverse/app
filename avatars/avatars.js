@@ -40,7 +40,8 @@ const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+// const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const maxEyeTargetTime = 2000;
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -1226,8 +1227,9 @@ class Avatar {
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
-    this.lastEyeTargetQuaternion = new THREE.Quaternion();
-    this.trackMouseAmount = 0;
+    this.startEyeTargetQuaternion = new THREE.Quaternion();
+    this.lastNeedsEyeTarget = false;
+    this.lastEyeTargetTime = 0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2257,7 +2259,7 @@ class Avatar {
 
     const _updateEyeTarget = () => {
       const eyePosition = getEyePosition(this.modelBones);
-      const globalQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+      const globalQuaternion = localQuaternion2.setFromRotationMatrix(
         this.eyeTargetInverted ?
           localMatrix.lookAt(
             this.eyeTarget,
@@ -2274,13 +2276,28 @@ class Avatar {
       // this.modelBoneOutputs.Root.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-      if (this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4) {
-        this.lastEyeTargetQuaternion.copy(globalQuaternion);
+      const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4;
+      if (needsEyeTarget && !this.lastNeedsEyeTarget) {
+        this.startEyeTargetQuaternion.copy(localQuaternion);
+        this.lastEyeTargetTime = now;
+      } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
+        this.startEyeTargetQuaternion.copy(localQuaternion);
+        this.lastEyeTargetTime = now;
+      }
+      this.lastNeedsEyeTarget = needsEyeTarget;
 
-        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, this.lastEyeTargetQuaternion, localVector2)
+      const eyeTargetFactor = Math.min(Math.max((now - this.lastEyeTargetTime) / maxEyeTargetTime, 0), 1);
+      if (needsEyeTarget) {
+        localQuaternion.copy(this.startEyeTargetQuaternion)
+          .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
+
+        this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
+      } else {
+        this.modelBoneOutputs.Neck.quaternion.copy(this.startEyeTargetQuaternion)
+          .slerp(localQuaternion.identity(), cubicBezier(eyeTargetFactor));
       }
     };
     _updateEyeTarget();
