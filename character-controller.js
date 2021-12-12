@@ -234,6 +234,8 @@ class Player extends THREE.Object3D {
         const contactOffset = 0.1;
         const radius = 0.3/1.6 * avatarHeight;
         const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const position = this.position.clone()
+          .add(new THREE.Vector3(0, -avatarHeight/2, 0));
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
         /* this.capsule = (() => {
@@ -261,7 +263,7 @@ class Player extends THREE.Object3D {
             radius - contactOffset,
             avatarHeight - radius*2,
             contactOffset,
-            this.position,
+            position,
             physicsMaterial
           );
           this.characterControllerObject = new THREE.Object3D();
