@@ -50,28 +50,6 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addSphereGeometry = (position, quaternion, radius, physicsMaterial, ccdEnabled) => {
-  const physicsId = getNextPhysicsId();
-  // physicsMaterial disabled for now (set in wasm)
-  physx.physxWorker.addSphereGeometryPhysics(physx.physics, position, quaternion, radius, physicsId, physicsMaterial, ccdEnabled);
-  
-  const physicsObject = _makePhysicsObject(physicsId);
-  const physicsMesh = new THREE.Mesh(
-    new THREE.SphereGeometry( radius, 32, 16 )
-  );
-  physicsMesh.visible = false;
-  // physicsMesh.position.copy(position);
-  // physicsMesh.quaternion.copy(quaternion);
-  // physicsMesh.scale.copy(size);
-  //physicsObject.position.copy(position);
-  physicsObject.add(physicsMesh);
-  physicsObject.physicsMesh = physicsMesh;
-  //physicsObjects[physicsId] = physicsObject;
-  //physicsObject.velocity = new THREE.Vector3(0,0,0);
-  //physicsManager.disablePhysicsObject(physicsObject);
-  return physicsObject;
-};
-
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
   // console.log('woot', {physics: physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled});
