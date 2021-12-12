@@ -87,7 +87,7 @@ class ShoulderPoser {
         this.shoulder.lastStandTimestamp = Date.now();
       }
 
-      // this.updateHips();
+      this.updateHips();
 
       // this.shoulder.transform.rotation = Quaternion.identity;
       // this.positionShoulder();
@@ -114,15 +114,7 @@ class ShoulderPoser {
       // Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
     } else if (leftEnabled || rightEnabled) {
       // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
-      // this.updateHips();
-
-      Helpers.updateMatrix(this.shoulder.hips);
-      Helpers.updateMatrixWorld(this.shoulder.spine);
-      Helpers.updateMatrixWorld(this.shoulder.chest);
-      Helpers.updateMatrixWorld(this.shoulder.upperChest);
-      Helpers.updateMatrixMatrixWorld(this.shoulder.upperChest);
-      Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
-      Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
+      this.updateHips();
     }
   }
 
@@ -150,6 +142,16 @@ class ShoulderPoser {
 		} */
 
   updateHips() {
+    Helpers.updateMatrix(this.shoulder.root);
+    this.shoulder.root.matrixWorld.copy(this.shoulder.root.matrix);
+    Helpers.updateMatrixWorld(this.shoulder.hips);
+    Helpers.updateMatrixWorld(this.shoulder.spine);
+    Helpers.updateMatrixWorld(this.shoulder.chest);
+    Helpers.updateMatrixWorld(this.shoulder.upperChest);
+    Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
+    Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
+    return;
+
     const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
       .multiply(z180Quaternion);
     /* const hmdXYRotation = localQuaternion2.setFromRotationMatrix(localMatrix.lookAt(
