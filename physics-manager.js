@@ -286,7 +286,7 @@ physicsManager.simulatePhysics = timeDiff => {
       phyObj.needsUpdate = false;
       
     }
-}
+} */
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
@@ -298,7 +298,7 @@ physicsManager.pushUpdate = physicsObject => {
     quaternion: localQuaternion.clone(),
     scale: localVector2.clone(),
   });
-};*/
+};
 
 // physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 
