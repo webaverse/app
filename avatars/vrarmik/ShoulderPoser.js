@@ -87,7 +87,7 @@ class ShoulderPoser {
         this.shoulder.lastStandTimestamp = Date.now();
       }
 
-      this.updateHips();
+      // this.updateHips();
 
       // this.shoulder.transform.rotation = Quaternion.identity;
       // this.positionShoulder();
@@ -114,7 +114,7 @@ class ShoulderPoser {
       // Debug.DrawRay(this.shoulder.transform.position, this.shoulder.transform.forward);
     } else if (leftEnabled || rightEnabled) {
       // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
-      this.updateHips();
+      // this.updateHips();
 
       Helpers.updateMatrix(this.shoulder.hips);
       Helpers.updateMatrixWorld(this.shoulder.spine);
