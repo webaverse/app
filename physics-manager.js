@@ -203,9 +203,6 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
   return objs;
 }; */
-/* physicsManager.isGrounded = physicsObject => {
-  return physx.physxWorker.checkGrounded(physx.physics, physicsObject.physicsId);
-} */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
@@ -214,7 +211,6 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
 physicsManager.simulatePhysics = timeDiff => {
   if (physicsManager.physicsEnabled) {
     const t = timeDiff/1000;
-    // console.log('simulate', timeDiff, t);
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
@@ -223,52 +219,13 @@ physicsManager.simulatePhysics = timeDiff => {
       if (physicsObject) {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
-        // physicsObject.scale.copy(scale);
         physicsObject.updateMatrixWorld();
-        /* if (physicsObject.collided) {
-          debugger;
-        } */
       } /* else {
         console.warn('failed to get physics object', id);
       } */
     }
   }
 };
-
-/*physicsManager.updateRigidbodies = physicsObject => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-
-  const physicsObjects2 = [];
-
-  //console.log(physicsObject.physicsId);
-
-  physicsObjects2.push({
-    id: physicsObject.physicsId,
-    position: new THREE.Vector3(0,0,0),
-    quaternion: new THREE.Quaternion(),
-    scale: new THREE.Vector3(0,0,0),
-  });
-
-  const newTransform = physicsManager.getTransforms(physicsObjects2);
-  //console.log(physicsObjects2);
-
-  for (const updateOut of newTransform)
-    {
-      //physicsObjects2.length = 0;
-      const {id, position, quaternion, scale} = updateOut; 
-      const phyObj = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-      //console.log(position);
-      phyObj.position.copy(position);
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0; 
-      const offset =  avatarHeight - 0.3;
-      phyObj.position.add(new THREE.Vector3(0, offset, 0)); // Height offset: Can't seem to change set it in the vrm.js during capsule creation
-      phyObj.quaternion.copy(quaternion);
-      //physicsObject.scale.copy(scale);
-      phyObj.updateMatrixWorld();
-      phyObj.needsUpdate = false;
-      
-    }
-} */
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
@@ -281,14 +238,6 @@ physicsManager.pushUpdate = physicsObject => {
     scale: localVector2.clone(),
   });
 };
-
-// physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
-
-/* const getAvatarHeight = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  return localPlayer.avatar ? localPlayer.avatar.height : 0;
-};
-physicsManager.getAvatarHeight = getAvatarHeight; */
 
 physicsManager.physicsEnabled = false;
 physicsManager.setPhysicsEnabled = physicsEnabled => {
