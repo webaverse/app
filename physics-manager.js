@@ -190,6 +190,9 @@ physicsManager.createCharacterController = (radius, height, contactOffset, posit
   const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, position, mat);
   return characterController;
 };
+physicsManager.destroyCharacterController = characterController => {
+  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController);
+};
 physicsManager.moveCharacterController = (characterController, displacement, minDist, elapsedTime, position) => {
   const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController, displacement, minDist, elapsedTime, position);
   return result;

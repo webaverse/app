@@ -1170,6 +1170,9 @@ const physxWorker = (() => {
   
     return characterController;
   };
+  w.destroyCharacterControllerPhysics = (physics, characterController) => {
+    moduleInstance._destroyCharacterControllerPhysics(physics, characterController);
+  };
   w.moveCharacterControllerPhysics = (physics, characterController, displacement, minDist, elapsedTime, outPosition) => {
     const allocator = new Allocator();
     const disp = allocator.alloc(Float32Array, 3);
