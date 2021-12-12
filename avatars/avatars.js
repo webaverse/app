@@ -223,6 +223,7 @@ let standCharge;
 let fallLoop;
 let swordSideSlash;
 let swordTopDownSlash;
+let landing;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -326,11 +327,11 @@ const loadPromise = (async () => {
     chargeJump: animations.find(a => a.isChargeJump),
     chargeJumpFall: animations.find(a => a.isChargeJumpFall),
     isFallLoop: animations.find(a => a.isFallLoop),
-    isLanding: animations.find(a => a.isLanding)
   }
 
   chargeJump = animations.find(a => a.isChargeJump);
   standCharge = animations.find(a => a.isStandCharge);
+  landing = animations.find(a => a.isLanding)
   fallLoop = animations.find(a => a.isFallLoop);
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
   swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
@@ -1215,6 +1216,8 @@ class Avatar {
     this.swordSideSlashTime = 0;
     this.swordTopDownSlashState = false;
     this.swordTopDownSlashTime = 0;
+    this.landingState = false;
+    this.landingTime = 0;
     this.aimState = false;
     this.aimDirection = new THREE.Vector3();
     
@@ -1998,6 +2001,22 @@ class Avatar {
 
             const t2 = (this.standChargeTime/1000) ;
             const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
+
+        if (this.landingState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            const t2 = (this.landingTime/1000) ;
+            const src2 = landing.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);

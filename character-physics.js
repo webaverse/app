@@ -25,6 +25,10 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
+let isJumping = false;
+
+let isJumpIdle = false;
+
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -103,16 +107,18 @@ class CharacterPhysics {
           } else {
             jumpAction.set('time', 0);
           }
+          console.log('new jumpaction')
+
         };
         const _ensureNoJumpAction = () => {
            this.player.removeAction('chargeJump');
+           // _ensureFallLoop();
         };
         if (collision) {
           localVector.add(
             localVector4
               .fromArray(collision.direction)
           );
-
           if (collision.grounded) {
             this.velocity.y = 0;
             _ensureNoJumpAction();
@@ -124,7 +130,7 @@ class CharacterPhysics {
         }
       } else {
         this.velocity.y = 0;
-
+        console.log('sit?')
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;

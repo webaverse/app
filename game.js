@@ -1412,14 +1412,13 @@ const gameManager = {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('dance');
-      localPlayer.removeAction('dance');
+      const action = localPlayer.getAction('landing');
 
       if (!action) {
         const newAction = {
-          type: 'dance',
-          animation: 'dansu',
-          // time: 0,
+          type: 'landing',
+          animation: 'landing',
+          time: 0,
         };
 
         localPlayer.addAction(newAction);
@@ -1595,6 +1594,18 @@ const gameManager = {
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
+
+      setTimeout(() => {
+        const fallAction = localPlayer.getAction('landing');
+
+        if (!fallAction) {
+          const fallAction = {
+            type: 'landing',
+            // time: 0,
+          };
+          localPlayer.addAction(fallAction);
+        }
+      }, 500);
     }
   },
 
@@ -1603,7 +1614,7 @@ const gameManager = {
     this.ensureJump();
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('standCharge');
-    localPlayer.characterPhysics.velocity.y += 5;
+    localPlayer.characterPhysics.velocity.y += 8;
     soundManager.play('jump');
   },
   isMovingBackward() {
