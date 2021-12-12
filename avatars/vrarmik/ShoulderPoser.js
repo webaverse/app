@@ -77,7 +77,7 @@ class ShoulderPoser {
 
   Update(enabled, leftEnabled, rightEnabled) {
     if (enabled) {
-      this.shoulder.spine.quaternion.set(0, 0, 0, 1);
+      // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
       
       this.shoulder.proneFactor = this.getProneFactor();
       this.shoulder.prone = this.shoulder.proneFactor > 0;
