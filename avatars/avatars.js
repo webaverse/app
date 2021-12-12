@@ -2101,16 +2101,19 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    if (!this.getBottomEnabled()) {
-      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position);
-      this.modelBoneOutputs.Root.position.y -= this.height;
-
+    // if (!this.getBottomEnabled()) {
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
-    }
+      
+      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+        .sub(
+          localVector.copy(this.heightOffset)
+            .applyQuaternion(this.modelBoneOutputs.Root.quaternion)
+        );
+    // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
