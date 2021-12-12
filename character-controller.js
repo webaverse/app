@@ -235,6 +235,7 @@ class Player extends THREE.Object3D {
         const radius = 0.3/1.6 * avatarHeight;
         const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
         /* this.capsule = (() => {
           const physicsObject = physicsManager.addCapsuleGeometry(
             new THREE.Vector3(0, -avatarHeight * 0.5, 0),
@@ -260,6 +261,7 @@ class Player extends THREE.Object3D {
             radius - contactOffset,
             avatarHeight - radius*2,
             contactOffset,
+            this.position,
             physicsMaterial
           );
           this.characterControllerObject = new THREE.Object3D();
