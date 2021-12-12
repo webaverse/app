@@ -1085,12 +1085,18 @@ const _gameUpdate = (timestamp, timeDiff) => {
   
   const _updateEyes = () => {
     if (localPlayer.avatar) {
-      if (!document.pointerLockElement && lastMouseEvent) {
+      if (mouseSelectedObject) {
+        // console.log('got', mouseSelectedObject.position.toArray().join(','));
+        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
+        localPlayer.avatar.eyeTargetInverted = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
+      } else if (!document.pointerLockElement && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
         localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
+        localPlayer.avatar.eyeTargetInverted = false;
         localPlayer.avatar.eyeTargetEnabled = true;
       } else {
         localPlayer.avatar.eyeTargetEnabled = false;
