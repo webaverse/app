@@ -73,13 +73,13 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-      // disable old vrm
+      /* // disable old vrm
       {
         const avatarVrmPhysicsObject = this.player.avatar.app.physicsObjects[0];
         //this.debugCapsule = this.player.avatar.app.debugCapsule;
         physicsManager.disableGeometryQueries(avatarVrmPhysicsObject);
         physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
-      }
+      } */
 
       // move character controller
       const minDist = 0;
