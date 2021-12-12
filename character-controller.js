@@ -268,7 +268,7 @@ class Player extends THREE.Object3D {
           );
           this.characterControllerObject = new THREE.Object3D();
 
-          const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
+          /* const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
           debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
             new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
           ));
@@ -288,7 +288,7 @@ class Player extends THREE.Object3D {
             debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
             debugCapsule.scale.copy(this.characterControllerObject.scale);
             debugCapsule.updateMatrixWorld();
-          });
+          }); */
         }
       })();
       
