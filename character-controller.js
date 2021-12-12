@@ -4,8 +4,9 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
-// import physicsManager from './physics-manager.js';
+import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
@@ -228,6 +229,72 @@ class Player extends THREE.Object3D {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+        
+        const avatarHeight = this.avatar.height;
+        const contactOffset = 0.1;
+        const radius = 0.3/1.6 * avatarHeight;
+        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const position = this.position.clone()
+          .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+        const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
+        /* this.capsule = (() => {
+          const physicsObject = physicsManager.addCapsuleGeometry(
+            new THREE.Vector3(0, -avatarHeight * 0.5, 0),
+            new THREE.Quaternion(),
+            radius,
+            halfHeight,
+            physicsMaterial,
+            true
+          );
+          
+          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          
+          // console.log('set flags', physicsObject.physicsId, physicsObject);
+          physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
+          physicsManager.setTransform(physicsObject);
+          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+
+          return physicsObject;
+        })(); */
+        {
+          if (this.characterController) {
+            physicsManager.destroyCharacterController(this.characterController);
+            this.characterController = null;
+            this.characterControllerObject = null;
+          }
+          this.characterController = physicsManager.createCharacterController(
+            radius - contactOffset,
+            avatarHeight - radius*2,
+            contactOffset,
+            position,
+            physicsMaterial
+          );
+          this.characterControllerObject = new THREE.Object3D();
+
+          /* const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
+          debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
+            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
+          ));
+          const debugCapsule = new THREE.Mesh(
+            debugCapsuleGeometry,
+            new THREE.MeshStandardMaterial({
+              transparent: true,
+              opacity: 0.9,
+              color: 0xff0000,
+              wireframe: true,
+              wireframeLinewidth: 2,
+            })
+          );
+          scene.add(debugCapsule);
+          world.appManager.addEventListener('frame', e => {
+            debugCapsule.position.copy(this.characterControllerObject.position);
+            debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
+            debugCapsule.scale.copy(this.characterControllerObject.scale);
+            debugCapsule.updateMatrixWorld();
+          }); */
+        }
       })();
       
       this.dispatchEvent({
@@ -687,6 +754,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
     }
     
     const {instanceId} = app;
@@ -729,6 +797,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
       }
       
       app.dispatchEvent({
@@ -766,7 +835,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
   }
@@ -779,7 +848,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          //physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
@@ -816,9 +885,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(timeDiff) {
+  updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timeDiffS);
+    /* if (isNaN(timeDiff)) {
+      console.log('updaet', now, timeDiffS);
+      debugger;
+    } */
+    this.characterPhysics.update(now, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -908,8 +981,8 @@ function getPlayerCrouchFactor(player) {
 function updateAvatar(timestamp, timeDiff) {
   metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
-function updatePhysics(timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(timeDiff);
+function updatePhysics(now, timeDiff) {
+  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
 }
 
 export {

@@ -25,7 +25,7 @@ const enterWorld = async worldSpec => {
   localPlayer.resetPhysics();
   localPlayer.updateMatrixWorld();
   physicsManager.setPhysicsEnabled(true);
-  localPlayer.updatePhysics(0);
+  localPlayer.updatePhysics(0, 0);
   physicsManager.setPhysicsEnabled(false);
 
   const _doLoad = async () => {
@@ -61,7 +61,7 @@ const enterWorld = async worldSpec => {
 
   localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
-  localPlayer.updatePhysics(0);
+  localPlayer.updatePhysics(0, 0);
 
   currentWorld = worldSpec;
 };

@@ -1133,10 +1133,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();
+  /*const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.appManager.pushAppUpdates();*/
   
-  const remotePlayers = metaversefileApi.useRemotePlayers();
+  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
@@ -1579,9 +1579,14 @@ const gameManager = {
 
 
   jump() {
+    // add jump action
     this.ensureJump();
+
+    // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 5;
+    localPlayer.characterPhysics.velocity.y += 6;
+    
+    // play sound
     soundManager.play('jump');
   },
   isMovingBackward() {
@@ -1666,7 +1671,7 @@ const gameManager = {
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 0.1;
+    const walkSpeed = 0.075;
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
