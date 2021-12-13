@@ -1443,6 +1443,9 @@ const gameManager = {
     // physicsManager.setThrowState(null);
   },
   menuDoubleShift() {
+    if (this.isCrouched()) {
+      return;
+    }
     const localPlayer = metaversefileApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (!narutoRunAction) {
@@ -1594,6 +1597,7 @@ const gameManager = {
     
     // play sound
     soundManager.play('jump');
+
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
