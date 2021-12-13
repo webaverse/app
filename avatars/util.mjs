@@ -543,6 +543,7 @@ export const decorateAnimation = animation => {
   animation.isNarutoRun = /naruto run/i.test(animation.name);
   animation.isReverse = /reverse/i.test(animation.name);
   animation.isLanding = /landing/i.test(animation.name);
+  animation.isChargeIdle = /charge_idle/i.test(animation.name);
   animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);
   animation.isChargeJump = /charge_jump/i.test(animation.name);
   animation.isStandCharge = /stand_charge/i.test(animation.name);

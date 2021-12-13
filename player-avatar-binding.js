@@ -87,6 +87,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   const standCharge = player.getAction('standCharge');
   const standChargeAnimation = standCharge ? standCharge.animation : '';
+  const chargeIdle = player.getAction('chargeIdle');
+  const chargeIdleAnimation = chargeIdle ? chargeIdle.animation : '';
   const fallLoop = player.getAction('fallLoop');
   const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
   const swordSideSlash = player.getAction('swordSideSlash');
@@ -137,6 +139,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.landingTime = player.actionInterpolants.landing.get();
   rig.landingAnimation = landingAnimation;
   rig.landingState = !!landing;
+  rig.chargeIdleTime = player.actionInterpolants.chargeIdle.get();
+  rig.chargeIdleAnimation = chargeIdleAnimation;
+  rig.chargeIdleState = !!chargeIdle;
 
 }
 export function applyPlayerChatToAvatar(player, rig) {

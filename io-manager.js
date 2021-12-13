@@ -467,7 +467,9 @@ ioManager.keydown = e => {
     // and allow key up
     case 32: { // space
       ioManager.keys.space = true;
-      game.menuSpace();
+      if (!game.isJumping()) {
+        game.menuSpace();
+      }
       break;
     }
     /* case 17: { // ctrl

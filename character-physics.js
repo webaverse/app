@@ -25,9 +25,7 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
-let isJumping = false;
 
-let isJumpIdle = false;
 
 class CharacterPhysics {
   constructor(player) {
@@ -107,20 +105,42 @@ class CharacterPhysics {
           } else {
             jumpAction.set('time', 0);
           }
-          console.log('new jumpaction')
-
         };
         const _ensureNoJumpAction = () => {
            this.player.removeAction('chargeJump');
-           // _ensureFallLoop();
-        };
+      }
         if (collision) {
           localVector.add(
             localVector4
               .fromArray(collision.direction)
           );
-          if (collision.grounded) {
+
+          if(collision.grounded) {
             this.velocity.y = 0;
+            const fallLoopAction = this.player.getAction('fallLoop');
+            const chargeAction = this.player.getAction('chargeJump');
+            const landingAction = this.player.getAction('landing');
+            if (fallLoopAction || chargeAction ) {
+            
+                const localPlayer = metaversefileApi.useLocalPlayer();
+                const isLandingPlaying = localPlayer.avatar.landingState;
+                if(!isLandingPlaying )
+                {
+                const action = localPlayer.getAction('landing');
+                if (!action) {
+                  const landing = {
+                    type: 'landing',
+                    animation: 'landing',
+                    // time: 0,
+                  };
+                  localPlayer.addAction(landing);
+                  setTimeout(() => {
+                    localPlayer.removeAction('landing');
+                    localPlayer.removeAction('fallLoop');
+                  }, 1100);
+                }
+              }
+          }
             _ensureNoJumpAction();
           } else if (!jumpAction) {
             _ensureJumpAction();
@@ -130,7 +150,6 @@ class CharacterPhysics {
         }
       } else {
         this.velocity.y = 0;
-        console.log('sit?')
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;
