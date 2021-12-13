@@ -1085,7 +1085,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   
   const _updateEyes = () => {
     if (localPlayer.avatar) {
-      if (mouseSelectedObject) {
+      if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
         localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
         localPlayer.avatar.eyeTargetInverted = true;
