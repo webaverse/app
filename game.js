@@ -1649,7 +1649,7 @@ const gameManager = {
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('fallLoop');
     clearTimeout(chargeIdleTimer);
-    localPlayer.characterPhysics.velocity.y += 12;
+    localPlayer.characterPhysics.velocity.y += 14;
     soundManager.play('jump');
   },
   isMovingBackward() {

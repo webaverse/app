@@ -31,8 +31,6 @@ const localVelocity = new THREE.Vector3();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
-
-
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -49,7 +47,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+      if ((this.player.hasAction('jump') || (this.player.hasAction('chargeJump') || (this.player.hasAction('chargeIdle'))) && !this.player.hasAction('fly'))) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -148,8 +146,6 @@ class CharacterPhysics {
 
           this.player.removeAction('chargeJump');
 
-          if(collision.grounded) {
-            this.velocity.y = 0;
             const fallLoopAction = this.player.getAction('fallLoop');
             const chargeAction = this.player.getAction('chargeJump');
             const landingAction = this.player.getAction('landing');
@@ -193,6 +189,7 @@ class CharacterPhysics {
       } else {
         //Outdated vehicle code
         this.velocity.y = 0;
+
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;
@@ -253,7 +250,7 @@ class CharacterPhysics {
         this.avatar.updateMatrixWorld();
       }
     }
-  }}
+  }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
     if (this.player.hasAction('fly')) {
@@ -315,7 +312,7 @@ class CharacterPhysics {
     const session = renderer.xr.getSession();
 
     if (session) {
-      if (ioManager.currentWalked || this.player.hasAction('chargeJump')) {
+      if (ioManager.currentWalked || this.player.hasAction('jump')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
         this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
