@@ -1593,7 +1593,9 @@ const gameManager = {
     localPlayer.characterPhysics.velocity.y += 6;
     
     // play sound
-    soundManager.play('jump');
+    if (!localPlayer.hasAction('fly')) {
+      soundManager.play('jump');
+    }
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();

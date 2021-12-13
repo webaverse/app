@@ -46,9 +46,11 @@ class SoundManager {
     }
     
     const isJumping = this.localPlayer.hasAction('jump');
-    //const isFlying = gameManager.isFlying();
-    
-    if (this.lastIsJumping && !isJumping) {
+    const isNarutoRun = this.localPlayer.hasAction('narutoRun');
+    const isFlying = this.localPlayer.hasAction('fly');
+
+    // Jump end
+    if (this.lastIsJumping && !isJumping && !isFlying) {
       this.play('jumpEnd');
     }
 
@@ -91,12 +93,19 @@ class SoundManager {
     }
     this.playWithId('step1',id);
   }
+  playNarutoStepSound(id) {
+    if (gameManager.isFlying() || gameManager.isSitting() || gameManager.isJumping()) {
+      return;
+    }
+    this.playWithId('narutoRun',id);
+  }
   loadBasicSounds() {
 
     this.loadSound('jump','sounds/Jump1.mp3');
     this.loadSound('jumpEnd','sounds/JumpEnd.mp3');
     this.loadSound('step1','sounds/FootstepA.mp3',0.15);
     this.loadSound('step2','sounds/FootstepB.mp3',0.15);
+    this.loadSound('narutoRun','sounds/Naruto.mp3',0.05);
   
   }
   loadSound(name,path,volume=1.0,shouldLoop=false,shouldReload=false) {

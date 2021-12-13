@@ -1887,47 +1887,6 @@ class Avatar {
       const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
       
       const idleAnimation = _getIdleAnimation('walk');
-
-      // walk sound effect
-      {
-        const soundManager = metaversefile.useSoundManager();
-        const currAniTime = timeSeconds % idleAnimation.duration;
-
-        if (currentSpeed > 0.1) {
-          if (key === 'walk') {
-            if (currAniTime > 0.26 && currAniTime < 0.4)
-              soundManager.playStepSound(1);
-            if (currAniTime > 0.76 && currAniTime < 0.9)
-              soundManager.playStepSound(2);
-            if (currAniTime > 1.26 && currAniTime < 1.4)
-              soundManager.playStepSound(3);
-            if (currAniTime > 1.76 && currAniTime < 1.9)
-              soundManager.playStepSound(4);
-            if (currAniTime > 2.26 && currAniTime < 2.5)
-              soundManager.playStepSound(5);
-          }
-          if (key === 'run') {
-            if (currAniTime > 0.16 && currAniTime < 0.3)
-              soundManager.playStepSound(1);
-            if (currAniTime > 0.43 && currAniTime < 0.45)
-              soundManager.playStepSound(2);
-            if (currAniTime > 0.693 && currAniTime < 0.8)
-              soundManager.playStepSound(3);
-            if (currAniTime > 0.963 && currAniTime < 1.1)
-              soundManager.playStepSound(4);
-            if (currAniTime > 1.226 && currAniTime < 1.3)
-              soundManager.playStepSound(5);
-            if (currAniTime > 1.496 && currAniTime < 1.6)
-              soundManager.playStepSound(6);
-            if (currAniTime > 1.759 && currAniTime < 1.9)
-              soundManager.playStepSound(7);
-            if (currAniTime > 2.029 && currAniTime < 2.1)
-              soundManager.playStepSound(8);
-            if (currAniTime > 2.292 && currAniTime < 2.4)
-              soundManager.playStepSound(9);
-          }
-        }
-      }
       
       // crouch
       // const keyOther = _getAnimationKey(true);
@@ -1966,6 +1925,37 @@ class Avatar {
         mirrorFactor = isBackward ? 1 : 0;
       }
       this.lastBackwardFactor = mirrorFactor;
+
+
+      // walk,run,naruto run sound effect
+      {
+        const soundManager = metaversefile.useSoundManager();
+        const currAniTime = ((key === 'walk')?timeSeconds % keyWalkAnimationAngles[0].animation.duration:timeSeconds % keyRunAnimationAngles[0].animation.duration);
+
+        if (currentSpeed > 0.1) {
+          if (this.narutoRunState) {
+            const narutoAniTime = (timeSeconds * 4) % narutoRunAnimations[defaultNarutoRunAnimation].duration;
+            if (narutoAniTime > 0.23 && narutoAniTime < 0.35)
+              soundManager.playNarutoStepSound(1);
+            if (narutoAniTime > 0.53 && narutoAniTime < 0.65)
+              soundManager.playNarutoStepSound(2);
+          }
+          else {
+            if (key === 'walk') {
+              if (currAniTime > 0.23 && currAniTime < 0.35)
+                soundManager.playStepSound(1);
+              if (currAniTime > 0.73 && currAniTime < 0.85)
+                soundManager.playStepSound(2);
+            }
+            if (key === 'run') {
+              if (currAniTime > 0.13 && currAniTime < 0.25)
+                soundManager.playStepSound(1);
+              if (currAniTime > 0.4 && currAniTime < 0.5)
+                soundManager.playStepSound(2);
+            }
+          }
+        }
+      }      
 
       const _getHorizontalBlend = (k, lerpFn, target) => {
         _get7wayBlend(
