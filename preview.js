@@ -41,7 +41,8 @@ export const generatePreview = async (url, ext, type, width, height, resolve) =>
       });
       running = false;
       if (queue.length > 0) {
-        generatePreview(...queue.shift());
+        const {url, ext, type, width, height, resolve} = queue.shift();
+        generatePreview(url, ext, type, width, height, resolve);
       }
     }
   };
@@ -63,5 +64,3 @@ export const preview = async (url, ext, type, width, height) => {
     }
   });
 };
-
-window.generatePreview = generatePreview;
