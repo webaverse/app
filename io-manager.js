@@ -64,7 +64,13 @@ ioManager.keys = {
   space: false,
   ctrl: false,
 };
-let lastWASDDownTime = [0,0,0,0];
+
+let lastWASDDownTime = {
+  keyW : 0,
+  keyA : 0,
+  keyS : 0,
+  keyD : 0
+};
 
 const resetKeys = () => {
   for (const k in ioManager.keys) {
@@ -298,12 +304,12 @@ ioManager.keydown = e => {
       }
 
       const now = Date.now();
-      const timeDiff = now - lastWASDDownTime[0];
+      const timeDiff = now - lastWASDDownTime.keyW;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleShift = true;
         game.menuDoubleShift();
       }
-      lastWASDDownTime[0] = now;
+      lastWASDDownTime.keyW = now;
       break;
     }
     case 65: { // A
@@ -313,12 +319,12 @@ ioManager.keydown = e => {
       }
 
       const now = Date.now();
-      const timeDiff = now - lastWASDDownTime[1];
+      const timeDiff = now - lastWASDDownTime.keyA;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleShift = true;
         game.menuDoubleShift();
       }
-      lastWASDDownTime[1] = now;
+      lastWASDDownTime.keyA = now;
       break;
     }
     case 83: { // S
@@ -334,12 +340,12 @@ ioManager.keydown = e => {
       }
 
       const now = Date.now();
-      const timeDiff = now - lastWASDDownTime[2];
+      const timeDiff = now - lastWASDDownTime.keyS;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleShift = true;
         game.menuDoubleShift();
       }
-      lastWASDDownTime[2] = now;
+      lastWASDDownTime.keyS = now;
       break;
     }
     case 68: { // D
@@ -349,12 +355,12 @@ ioManager.keydown = e => {
       }
 
       const now = Date.now();
-      const timeDiff = now - lastWASDDownTime[3];
+      const timeDiff = now - lastWASDDownTime.keyD;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleShift = true;
         game.menuDoubleShift();
       }
-      lastWASDDownTime[3] = now;
+      lastWASDDownTime.keyD = now;
       break;
     }
     case 82: { // R
