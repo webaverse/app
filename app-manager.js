@@ -554,9 +554,15 @@ class AppManager extends EventTarget {
                 physicsObject.position.copy(app.position);
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
+
+                /* if (app.appType === "vrm") {
+                  physicsObject.position.add(new THREE.Vector3(0, 1, 0));
+                } */
+
                 physicsObject.updateMatrixWorld();
                 
-                physicsManager.pushUpdate(physicsObject);
+                //physicsManager.pushUpdate(physicsObject);
+                physicsManager.setTransform(physicsObject);
                 physicsObject.needsUpdate = false;
               }
               

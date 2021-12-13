@@ -47,15 +47,15 @@
           "threshold": 0.8
         }
       }
-    },    
+    },
     {
       "position": [
         0,
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/desert-hill/"
-    },
+      "start_url": "https://webaverse.github.io/silk-fountains/silk-fountain-01/index.js"
+    },  
     {
       "position": [
         0,
@@ -66,74 +66,28 @@
     },
     {
       "position": [
-        -1,
-        -0.15,
-        10
-      ],
-      "quaternion": [
         0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
-        -13,
         0,
         0
       ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "https://plankatron.github.io./zone0/terrain.glb"
     },
     {
       "position": [
-        -6,
-        -2,
-        32
+        0,
+        0,
+        0
       ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
+      "start_url": "https://plankatron.github.io./zone0/street.glb"
     },
     {
       "position": [
-        -6,
-        0.16,
-        16
+        0,
+        0,
+        0
       ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/fox/"
-    },
-    {
-      "position": [
-        20,
-        -1,
-        -4
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/pistol/"
+      "start_url": "https://plankatron.github.io./zone0/wall.glb"
     }
+
   ]
 }

@@ -77,7 +77,7 @@ class ShoulderPoser {
 
   Update(enabled, leftEnabled, rightEnabled) {
     if (enabled) {
-      this.shoulder.spine.quaternion.set(0, 0, 0, 1);
+      // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
       
       this.shoulder.proneFactor = this.getProneFactor();
       this.shoulder.prone = this.shoulder.proneFactor > 0;
@@ -115,14 +115,6 @@ class ShoulderPoser {
     } else if (leftEnabled || rightEnabled) {
       // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
       this.updateHips();
-
-      Helpers.updateMatrix(this.shoulder.hips);
-      Helpers.updateMatrixWorld(this.shoulder.spine);
-      Helpers.updateMatrixWorld(this.shoulder.chest);
-      Helpers.updateMatrixWorld(this.shoulder.upperChest);
-      Helpers.updateMatrixMatrixWorld(this.shoulder.upperChest);
-      Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
-      Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
     }
   }
 
@@ -150,6 +142,16 @@ class ShoulderPoser {
 		} */
 
   updateHips() {
+    Helpers.updateMatrix(this.shoulder.root);
+    this.shoulder.root.matrixWorld.copy(this.shoulder.root.matrix);
+    Helpers.updateMatrixWorld(this.shoulder.hips);
+    Helpers.updateMatrixWorld(this.shoulder.spine);
+    Helpers.updateMatrixWorld(this.shoulder.chest);
+    Helpers.updateMatrixWorld(this.shoulder.upperChest);
+    Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
+    Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
+    return;
+
     const hmdRotation = localQuaternion.copy(this.vrTransforms.head.quaternion)
       .multiply(z180Quaternion);
     /* const hmdXYRotation = localQuaternion2.setFromRotationMatrix(localMatrix.lookAt(
@@ -171,7 +173,7 @@ class ShoulderPoser {
     } */
 
     const headPosition = localVector.copy(this.vrTransforms.head.position)
-      .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
+      // .sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const neckPosition = headPosition.sub(localVector2.copy(this.shoulder.head.position).applyQuaternion(hmdRotation));
     const upperChestPosition = neckPosition.sub(localVector2.copy(this.shoulder.neck.position).applyQuaternion(hmdXYRotation));
     const chestPosition = upperChestPosition.sub(localVector2.copy(this.shoulder.upperChest.position).applyQuaternion(hmdXYRotation));
