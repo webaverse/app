@@ -64,8 +64,8 @@ ioManager.keys = {
   space: false,
   ctrl: false,
 };
-let lastShiftDownTime = 0;
-ioManager.getLastShiftDownTime = () => lastShiftDownTime;
+let lastWASDDownTime = [0,0,0,0];
+
 const resetKeys = () => {
   for (const k in ioManager.keys) {
     ioManager.keys[k] = false;
@@ -296,6 +296,14 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuVertical(-1);
       }
+
+      const now = Date.now();
+      const timeDiff = now - lastWASDDownTime[0];
+      if (timeDiff < 200 && ioManager.keys.shift) {
+        ioManager.keys.doubleShift = true;
+        game.menuDoubleShift();
+      }
+      lastWASDDownTime[0] = now;
       break;
     }
     case 65: { // A
@@ -303,6 +311,14 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuHorizontal(-1);
       }
+
+      const now = Date.now();
+      const timeDiff = now - lastWASDDownTime[1];
+      if (timeDiff < 200 && ioManager.keys.shift) {
+        ioManager.keys.doubleShift = true;
+        game.menuDoubleShift();
+      }
+      lastWASDDownTime[1] = now;
       break;
     }
     case 83: { // S
@@ -316,6 +332,14 @@ ioManager.keydown = e => {
           // }
         }
       }
+
+      const now = Date.now();
+      const timeDiff = now - lastWASDDownTime[2];
+      if (timeDiff < 200 && ioManager.keys.shift) {
+        ioManager.keys.doubleShift = true;
+        game.menuDoubleShift();
+      }
+      lastWASDDownTime[2] = now;
       break;
     }
     case 68: { // D
@@ -323,6 +347,14 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuHorizontal(1);
       }
+
+      const now = Date.now();
+      const timeDiff = now - lastWASDDownTime[3];
+      if (timeDiff < 200 && ioManager.keys.shift) {
+        ioManager.keys.doubleShift = true;
+        game.menuDoubleShift();
+      }
+      lastWASDDownTime[3] = now;
       break;
     }
     case 82: { // R
@@ -452,14 +484,6 @@ ioManager.keydown = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = true;
-      
-      const now = Date.now();
-      const timeDiff = now - lastShiftDownTime;
-      if (timeDiff < 200) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
-      }
-      lastShiftDownTime = now;
       break;
     }
     case 32: { // space
