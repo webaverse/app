@@ -97,13 +97,7 @@
         0,
         0.7071067811865475
       ],
-      "scale": [
-        2,
-        2,
-        2
-      ],
-      "physics": false,
-      "start_url": "https://avaer.github.io/sakura/index.glbb",
+      "start_url": "https://yaserosource.github.io/material-debug-assets/MaterialDebug_MTOON_vian.vrm",
       "dynamic": true
     },
     {
