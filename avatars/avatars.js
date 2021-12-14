@@ -340,20 +340,22 @@ const loadPromise = (async () => {
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
   swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
+  function mergeAnimations(a, b) {
+    const o = {};
+    for (const k in a) {
+      o[k] = a[k];
+    }
+    for (const k in b) {
+      o[k] = b[k];
+    }
+    return o;
+  }
 
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
-  useAnimations = {
-    combo: animations.find(a => a.isCombo),
-    slash: animations.find(a => a.isSlash),
-    rifle: animations.find(a => a.isRifle),
-    pistol: animations.find(a => a.isPistol),
-    magic: animations.find(a => a.isMagic),
-    drink: animations.find(a => a.isDrinking),
-  };
   aimAnimations = {
     swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
     swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
@@ -361,6 +363,14 @@ const loadPromise = (async () => {
     swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
     swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
   };
+  useAnimations = mergeAnimations({
+    combo: animations.find(a => a.isCombo),
+    slash: animations.find(a => a.isSlash),
+    rifle: animations.find(a => a.isRifle),
+    pistol: animations.find(a => a.isPistol),
+    magic: animations.find(a => a.isMagic),
+    drink: animations.find(a => a.isDrinking),
+  }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -2231,8 +2241,9 @@ class Avatar {
             } = spec;
             
             if (isTop) {
-              const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]);
-              // console.log('get use animation', [this.useAnimation, useAnimation]);
+              // XXX this should support combos
+              const useAnimationName = Array.isArray(this.useAnimation) ? this.useAnimation[0] : this.useAnimation;
+              const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
               if (useAnimation) {
                 const t2 = (this.useTime/useMaxTime) % useAnimation.duration;
                 const src2 = useAnimation.interpolants[k];
