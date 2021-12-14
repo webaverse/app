@@ -46,6 +46,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 let chargeIdleTimer;
+let jumpActionName;
 
 
 const oneVector = new THREE.Vector3(1, 1, 1);
@@ -1442,7 +1443,7 @@ const gameManager = {
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('chargeIdle');
 
-    const jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'standCharge';
+    jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'standCharge';
 
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1585,7 +1586,7 @@ const gameManager = {
     }
   },
   isJumping() {
-    return metaversefileApi.useLocalPlayer().hasAction('chargeJump');
+    return metaversefileApi.useLocalPlayer().hasAction('chargeJump') || metaversefileApi.useLocalPlayer().hasAction('chargeJumpForward') || metaversefileApi.useLocalPlayer().hasAction('fallLoop');
   },
 
   ensureFallLoop () {
@@ -1602,10 +1603,10 @@ const gameManager = {
 
   ensureJump() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const jumpAction = localPlayer.getAction('chargeJump');
+    const jumpAction = localPlayer.getAction(jumpActionName);
 
     setTimeout(() => {
-      this.ensureFallLoop()
+      // this.ensureFallLoop()
     }, 800)
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
@@ -1619,7 +1620,7 @@ const gameManager = {
 
     if (!jumpAction) {
       const newJumpAction = {
-        type: 'chargeJump',
+        type: jumpActionName,
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
@@ -1638,6 +1639,8 @@ const gameManager = {
     clearTimeout(chargeIdleTimer);
     localPlayer.characterPhysics.velocity.y += 14;
     soundManager.play('jump');
+
+    
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();

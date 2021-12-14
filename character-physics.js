@@ -47,7 +47,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     if (this.player) {
-      if ((this.player.hasAction('jump') || (this.player.hasAction('chargeJump') || (this.player.hasAction('chargeIdle'))) && !this.player.hasAction('fly'))) {
+      if ((this.player.hasAction('jump') || (this.player.hasAction('chargeJump') || (this.player.hasAction('chargeJumpForward'))) && !this.player.hasAction('fly'))) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -123,8 +123,9 @@ class CharacterPhysics {
           localQuaternion.copy(camera.quaternion);
         }
 
-        const jumpAction = this.player.getAction('chargeJump');
+        const jumpAction = this.player.getAction('chargeJump') || this.player.getAction('chargeJumpForward') ;
         const _ensureJumpAction = () => {
+          console.log('ensuringjump action')
           if (!jumpAction) {
             const newJumpAction = {
               type: 'chargeJump',
@@ -141,21 +142,21 @@ class CharacterPhysics {
 
         if (grounded) {
           this.lastGroundedTime = now;
-
+          
           this.velocity.y = -1;
 
-          this.player.removeAction('chargeJump');
 
-            const fallLoopAction = this.player.getAction('fallLoop');
-            const chargeAction = this.player.getAction('chargeJump');
-            const landingAction = this.player.getAction('landing');
-            if (fallLoopAction || chargeAction ) {
-            
+            const fallLoopAction = this.player.hasAction('fallLoop');
+            const chargeAction = this.player.hasAction('chargeJump');
+            const chargeJumpForward = this.player.hasAction('chargeJumpForward');
+            console.log(fallLoopAction, chargeAction, chargeJumpForward)
+            if (fallLoopAction || chargeAction || chargeJumpForward) {
+            console.log('landing')
                 const localPlayer = metaversefileApi.useLocalPlayer();
                 const isLandingPlaying = localPlayer.avatar.landingState;
                 if(!isLandingPlaying )
                 {
-                const action = localPlayer.getAction('landing');
+                const action =  this.player.getAction('landing');
                 if (!action) {
                   const landing = {
                     type: 'landing',
@@ -164,8 +165,10 @@ class CharacterPhysics {
                   };
                   localPlayer.addAction(landing);
                   setTimeout(() => {
-                    localPlayer.removeAction('landing');
-                    localPlayer.removeAction('fallLoop');
+                    this.player.removeAction('landing');
+                    this.player.removeAction('fallLoop');
+                    this.player.removeAction('chargeJump');
+                    this.player.removeAction('chargeJumpForward');
                   }, 200);
                 }
               }
@@ -242,7 +245,7 @@ class CharacterPhysics {
       this.player.updateMatrixWorld();
 
       if (this.avatar) {
-        if (this.player.hasAction('chargeJump')) {
+        if (this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
@@ -312,7 +315,7 @@ class CharacterPhysics {
     const session = renderer.xr.getSession();
 
     if (session) {
-      if (ioManager.currentWalked || this.player.hasAction('jump')) {
+      if (ioManager.currentWalked || this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
         this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
