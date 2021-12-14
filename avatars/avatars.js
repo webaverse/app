@@ -13,7 +13,7 @@ import {angleDifference, getVelocityDampingFactor} from '../util.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
 import metaversefile from 'metaversefile';
 import {
@@ -215,6 +215,7 @@ let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
 let useAnimations;
+let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let throwAnimations;
@@ -339,20 +340,37 @@ const loadPromise = (async () => {
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
   swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
+  function mergeAnimations(a, b) {
+    const o = {};
+    for (const k in a) {
+      o[k] = a[k];
+    }
+    for (const k in b) {
+      o[k] = b[k];
+    }
+    return o;
+  }
 
   jumpAnimation = animations.find(a => a.isJump);
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
-  useAnimations = {
+  aimAnimations = {
+    swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
+    swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
+    swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
+    swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
+    swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
+  };
+  useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
     slash: animations.find(a => a.isSlash),
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),
     magic: animations.find(a => a.isMagic),
     drink: animations.find(a => a.isDrinking),
-  };
+  }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -1220,8 +1238,9 @@ class Avatar {
     this.swordSideSlashTime = 0;
     this.swordTopDownSlashState = false;
     this.swordTopDownSlashTime = 0;
-    this.aimState = false;
-    this.aimDirection = new THREE.Vector3();
+    this.aimTime = NaN;
+    this.aimAnimation = null;
+    // this.aimDirection = new THREE.Vector3();
     
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -2202,7 +2221,8 @@ class Avatar {
           
           _getHorizontalBlend(k, lerpFn, dst);
         };
-        if (this.useTime >= 0) {
+        // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
+        if (this.useAnimation) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2211,10 +2231,41 @@ class Avatar {
             } = spec;
             
             if (isTop) {
-              const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]) //|| useAnimations[defaultUseAnimation];
+              const isCombo = Array.isArray(this.useAnimation);
+              const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
+              const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
               if (useAnimation) {
-                const t2 = (this.useTime/useMaxTime) % useAnimation.duration;
+                const t2 = (() => {
+                  if (isCombo) {
+                    return Math.min(this.useTime/1000, useAnimation.duration);
+                  } else {
+                    return (this.useTime/1000) % useAnimation.duration;
+                  }
+                })();
                 const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                dst.fromArray(v2);
+              } else {
+                _handleDefault(spec);
+              }
+            } else {
+              _handleDefault(spec);
+            }
+          };
+        } else if (this.aimAnimation) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+            
+            if (isTop) {
+              const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+              if (aimAnimation) {
+                const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
+                const src2 = aimAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
                 dst.fromArray(v2);
