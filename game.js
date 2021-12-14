@@ -47,6 +47,7 @@ const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 let chargeIdleTimer;
 let jumpActionName;
+let isDirectional = false;
 
 
 const oneVector = new THREE.Vector3(1, 1, 1);
@@ -1444,7 +1445,8 @@ const gameManager = {
     localPlayer.removeAction('chargeIdle');
 
     jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'chargeJump';
-
+    
+    isDirectional = isDirectionHeld ? 'chargeJumpForward' : 'chargeJump';
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
@@ -1641,10 +1643,19 @@ const gameManager = {
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('fallLoop');
     clearTimeout(chargeIdleTimer);
-    localPlayer.characterPhysics.velocity.y += 14;
-    soundManager.play('jump');
 
-    
+
+    if (isDirectional) {
+
+     localPlayer.characterPhysics.applyForceToForward(12);
+     localPlayer.characterPhysics.velocity.y += 12;
+
+    }
+
+    else {
+      localPlayer.characterPhysics.velocity.y += 8;
+    }
+    soundManager.play('jump');
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
