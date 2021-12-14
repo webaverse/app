@@ -49,7 +49,10 @@ function makeId(length) {
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
         res.redirect(u);
-      } else {
+      } else if (/^\/login/.test(o.pathname)) {
+        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+        return res.redirect(req.originalUrl);
+      }  else {
         req.originalUrl = u;
         next();
       }
