@@ -1281,41 +1281,6 @@ class Avatar {
     armature.scale.set(1, 1, 1);
     armature.updateMatrix();
 
-    /* const _findFingerBone = (r, left) => {
-      const fingerTipBone = tailBones
-        .filter(bone => r.test(bone.name) && _findClosestParentBone(bone, bone => bone === modelBones.Left_wrist || bone === modelBones.Right_wrist))
-        .sort((a, b) => {
-          const aName = a.name.replace(r, '');
-          const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-          const bName = b.name.replace(r, '');
-          const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-          if (!left) {
-            return aLeftBalance - bLeftBalance;
-          } else {
-            return bLeftBalance - aLeftBalance;
-          }
-        });
-      const fingerRootBone = fingerTipBone.length > 0 ? _findFurthestParentBone(fingerTipBone[0], bone => r.test(bone.name)) : null;
-      return fingerRootBone;
-    }; */
-    /* const fingerBones = {
-      left: {
-        thumb: _findFingerBone(/thumb/gi, true),
-        index: _findFingerBone(/index/gi, true),
-        middle: _findFingerBone(/middle/gi, true),
-        ring: _findFingerBone(/ring/gi, true),
-        little: _findFingerBone(/little/gi, true) || _findFingerBone(/pinky/gi, true),
-      },
-      right: {
-        thumb: _findFingerBone(/thumb/gi, false),
-        index: _findFingerBone(/index/gi, false),
-        middle: _findFingerBone(/middle/gi, false),
-        ring: _findFingerBone(/ring/gi, false),
-        little: _findFingerBone(/little/gi, false) || _findFingerBone(/pinky/gi, false),
-      },
-    };
-    this.fingerBones = fingerBones; */
-
     const preRotations = {};
     const _ensurePrerotation = k => {
       const boneName = modelBones[k].name;
@@ -1555,17 +1520,17 @@ class Avatar {
     rightToe: 'Right_toe'
   }
   initializeBonePositions(setups) {
-    this.shoulderTransforms.hips.position.copy(setups.hips);
+    this.shoulderTransforms.hips.matrix.setPosition(setups.hips);
     this.shoulderTransforms.hips.updateMatrixWorld(true);
-    this.shoulderTransforms.spine.position.copy(setups.spine);
+    this.shoulderTransforms.spine.matrix.setPosition(setups.spine);
     this.shoulderTransforms.spine.updateMatrixWorld(true);
-    this.shoulderTransforms.chest.position.copy(setups.chest);
+    this.shoulderTransforms.chest.matrix.setPosition(setups.chest);
     this.shoulderTransforms.chest.updateMatrixWorld(true);
-    if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
+    if (setups.upperChest) this.shoulderTransforms.upperChest.matrix.setPosition(setups.upperChest);
     this.shoulderTransforms.upperChest.updateMatrixWorld(true);
-    this.shoulderTransforms.neck.position.copy(setups.neck);
+    this.shoulderTransforms.neck.matrix.setPosition(setups.neck);
     this.shoulderTransforms.neck.updateMatrixWorld(true);
-    this.shoulderTransforms.head.position.copy(setups.head);
+    this.shoulderTransforms.head.matrix.setPosition(setups.head);
     this.shoulderTransforms.head.updateMatrixWorld(true);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
     if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
@@ -2363,8 +2328,10 @@ class Avatar {
       localEuler.y += Math.PI;
       this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
-      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-        .sub(localVector.set(0, this.height, 0));
+      const hmdPos = this.inputs.hmd.position;
+      hmdPos.sub(localVector.set(0, this.height, 0));
+      this.modelBoneOutputs.Root.matrix.setPosition(hmdPos)
+        
 
       this.modelBoneOutputs.Root.updateMatrixWorld(true);
     // }
