@@ -1435,16 +1435,16 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
-      
-      modelBone.position.set(modelBoneOutput.position);
+
+      // modelBone.position.set(modelBoneOutput.position);
       const quat = modelBone.quaternion;
       quat.multiplyQuaternions(
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
       );
-      
-      // modelBone.matrix.compose(modelBoneOutput.position, quat, new Vector3(1,1,1))
-      modelBone.matrix.makeRotationFromQuaternion(quat);
+      console.log(modelBone.position);
+      modelBone.matrix.compose(modelBoneOutput.position, quat, new Vector3(1,1,1))
+      // modelBone.matrix.makeRotationFromQuaternion(quat);
       modelBone.updateMatrixWorld(true);
       // if (topEnabled) {
         if (k === 'Left_wrist') {
@@ -1460,6 +1460,7 @@ class Avatar {
       if (bottomEnabled) {
         if (k === 'Left_ankle' || k === 'Right_ankle') {
           modelBone.quaternion.multiply(upRotation);
+          modelBone.updateMatrixWorld(true);
         }
       }
     }
@@ -2313,7 +2314,7 @@ class Avatar {
         }
       }
     };
-    // _applyAnimation();
+    _applyAnimation();
 
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
