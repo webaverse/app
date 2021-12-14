@@ -215,6 +215,7 @@ let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
 let useAnimations;
+let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let throwAnimations;
@@ -352,6 +353,13 @@ const loadPromise = (async () => {
     pistol: animations.find(a => a.isPistol),
     magic: animations.find(a => a.isMagic),
     drink: animations.find(a => a.isDrinking),
+  };
+  aimAnimations = {
+    swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
+    swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
+    swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
+    swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
+    swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
   };
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
