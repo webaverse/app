@@ -37,7 +37,6 @@ const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
   physicsObject.physicsId = physicsId;
   physicsObject.collided = false;
   physicsObject.grounded = false;
-  physicsObject.error = new Error().stack;
   return physicsObject;
 };
 const _extractPhysicsGeometryForId = physicsId => {
