@@ -12,6 +12,7 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
+import { Vector3 } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -30,7 +31,6 @@ const localVelocity = new THREE.Vector3();
 
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
-
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -54,6 +54,12 @@ class CharacterPhysics {
       }
     }
   }
+
+  applyForceToForward(scaler) {
+    const val = new Vector3(this.velocity.x * scaler, this.velocity.y, this.velocity.z * scaler);
+    this.velocity.add(val)
+  }
+
   /* collideCapsule = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
