@@ -1301,8 +1301,31 @@ const gameManager = {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const wearAimApp = (() => {
+        const wearApps = Array.from(localPlayer.getActionsState())
+          .filter(action => action.type === 'wear')
+          .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
+        for (const wearApp of wearApps) {
+          const aimComponent = wearApp.getComponent('aim');
+          if (aimComponent) {
+            return wearApp;
+          }
+        }
+        return null;
+      })();
+      const wearAimComponent = wearAimApp?.getComponent('aim');
+
+      const {instanceId} = wearAimApp ?? {};
+      const {appAnimation, playerAnimation, boneAttachment, position, quaternion, scale} = wearAimComponent ?? {};
       const aimAction = {
         type: 'aim',
+        instanceId,
+        appAnimation,
+        playerAnimation,
+        boneAttachment,
+        position,
+        quaternion,
+        scale,
       };
       localPlayer.addAction(aimAction);
     }
