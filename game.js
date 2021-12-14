@@ -323,6 +323,14 @@ const _click = () => {
     }
   }
 };
+let lastUseIndex = 0;
+const _getNextUseIndex = animation => {
+  if (Array.isArray(animation)) {
+    return (lastUseIndex++) % animation.length;
+  } else {
+    return 0;
+  }
+};
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -336,6 +344,8 @@ const _startUse = () => {
       if (!useAction) {
         const {instanceId} = wearApp;
         const {subtype, boneAttachment, animation, position, quaternion, scale} = useComponent;
+        const index = _getNextUseIndex(animation);
+        // console.log('index', index, swordTopDownSlash);
         const newUseAction = {
           type: 'use',
           subtype,
@@ -343,6 +353,7 @@ const _startUse = () => {
           instanceId,
           animation,
           boneAttachment,
+          index,
           position,
           quaternion,
           scale,

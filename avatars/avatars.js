@@ -2241,11 +2241,17 @@ class Avatar {
             } = spec;
             
             if (isTop) {
-              // XXX this should support combos
-              const useAnimationName = Array.isArray(this.useAnimation) ? this.useAnimation[0] : this.useAnimation;
+              const isCombo = Array.isArray(this.useAnimation);
+              const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
               const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
               if (useAnimation) {
-                const t2 = (this.useTime/useMaxTime) % useAnimation.duration;
+                const t2 = (() => {
+                  if (isCombo) {
+                    return Math.min(this.useTime/1000, useAnimation.duration);
+                  } else {
+                    return (this.useTime/1000) % useAnimation.duration;
+                  }
+                })();
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 

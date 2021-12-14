@@ -101,6 +101,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = player.actionInterpolants.use.get();
   rig.useAnimation = (useAction?.animation) || '';
+  rig.useAnimationIndex = useAction?.index;
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
