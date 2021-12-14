@@ -1,6 +1,7 @@
 /* utils to bind players to their avatars
 set the avatar state from the player state */
 
+import { Vector3 } from 'three';
 import Avatar from './avatars/avatars.js';
 import {unFrustumCull} from './util.js';
 
@@ -9,16 +10,19 @@ const avatarSymbol = 'avatar'; // Symbol('avatar');
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
-    rig.inputs.hmd.matrix.setPosition(player.avatarBinding.position);
-    rig.inputs.hmd.matrix.makeRotationFromQuaternion(player.avatarBinding.quaternion);
-    rig.inputs.leftGamepad.matrix.setPosition(player.leftHand.position);
-    rig.inputs.leftGamepad.matrix.makeRotationFromQuaternion(player.leftHand.quaternion);
-    rig.inputs.rightGamepad.matrix.setPosition(player.rightHand.position);
-    rig.inputs.rightGamepad.matrix.makeRotationFromQuaternion(player.rightHand.quaternion);
+    // rig.inputs.hmd.matrix.setPosition(player.avatarBinding.position);
+    // rig.inputs.hmd.matrix.makeRotationFromQuaternion(player.avatarBinding.quaternion);
+    // rig.inputs.leftGamepad.matrix.setPosition(player.leftHand.position);
+    // rig.inputs.leftGamepad.matrix.makeRotationFromQuaternion(player.leftHand.quaternion);
+    // rig.inputs.rightGamepad.matrix.setPosition(player.rightHand.position);
+    // rig.inputs.rightGamepad.matrix.makeRotationFromQuaternion(player.rightHand.quaternion);
 
-    rig.inputs.hmd.updateMatrixWorld(true);
-    rig.inputs.leftGamepad.updateMatrixWorld(true);
-    rig.inputs.rightGamepad.updateMatrixWorld(true);
+    rig.inputs.hmd.matrix.compose(player.avatarBinding.position, player.avatarBinding.quaternion, new Vector3(1, 1, 1));
+    rig.inputs.leftGamepad.matrix.compose(player.leftHand.position, player.leftHand.quaternion, new Vector3(1, 1, 1));
+    rig.inputs.rightGamepad.matrix.compose(player.rightHand.position, player.rightHand.quaternion, new Vector3(1, 1, 1));
+    // rig.inputs.hmd.updateMatrixWorld(true);
+    // rig.inputs.leftGamepad.updateMatrixWorld(true);
+    // rig.inputs.rightGamepad.updateMatrixWorld(true);
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {

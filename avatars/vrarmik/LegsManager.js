@@ -182,6 +182,8 @@ class LegsManager {
     this.rightLeg = new Leg(this, false);
     this.hips.add(this.rightLeg.transform);
 
+    this.hips.updateMatrixWorld(true);
+
     this.rig = rig;
     this.poseManager = rig.poseManager;
 

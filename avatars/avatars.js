@@ -1436,16 +1436,16 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
       
-      // modelBone.position.set(modelBoneOutput.position);
+      modelBone.position.set(modelBoneOutput.position);
       const quat = modelBone.quaternion;
       quat.multiplyQuaternions(
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
       );
       
-      modelBone.matrix.compose(modelBoneOutput.position, quat, new Vector3(1,1,1))
-      // modelBone.matrix.makeRotationFromQuaternion(modelBoneQuat);
-      // modelBone.updateMatrixWorld(true);
+      // modelBone.matrix.compose(modelBoneOutput.position, quat, new Vector3(1,1,1))
+      modelBone.matrix.makeRotationFromQuaternion(quat);
+      modelBone.updateMatrixWorld(true);
       // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
@@ -1537,58 +1537,106 @@ class Avatar {
     this.shoulderTransforms.head.matrix.setPosition(setups.head);
     this.shoulderTransforms.head.updateMatrixWorld(true);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
-    if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
-    if (setups.eyer) this.shoulderTransforms.eyer.position.copy(setups.eyer);
+    if (setups.eyel) this.shoulderTransforms.eyel.matrix.setPosition(setups.eyel);
+    this.shoulderTransforms.eyel.updateMatrixWorld(true);
+    if (setups.eyer) this.shoulderTransforms.eyer.matrix.setPosition(setups.eyer);
+    this.shoulderTransforms.eyer.updateMatrixWorld(true);
 
-    if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.position.copy(setups.leftShoulder);
-    this.shoulderTransforms.leftArm.upperArm.position.copy(setups.leftUpperArm);
-    this.shoulderTransforms.leftArm.lowerArm.position.copy(setups.leftLowerArm);
-    this.shoulderTransforms.leftArm.hand.position.copy(setups.leftHand);
-    if (setups.leftThumb2) this.shoulderTransforms.leftArm.thumb2.position.copy(setups.leftThumb2);
-    if (setups.leftThumb1) this.shoulderTransforms.leftArm.thumb1.position.copy(setups.leftThumb1);
-    if (setups.leftThumb0) this.shoulderTransforms.leftArm.thumb0.position.copy(setups.leftThumb0);
-    if (setups.leftIndexFinger3) this.shoulderTransforms.leftArm.indexFinger3.position.copy(setups.leftIndexFinger3);
-    if (setups.leftIndexFinger2) this.shoulderTransforms.leftArm.indexFinger2.position.copy(setups.leftIndexFinger2);
-    if (setups.leftIndexFinger1) this.shoulderTransforms.leftArm.indexFinger1.position.copy(setups.leftIndexFinger1);
-    if (setups.leftMiddleFinger3) this.shoulderTransforms.leftArm.middleFinger3.position.copy(setups.leftMiddleFinger3);
-    if (setups.leftMiddleFinger2) this.shoulderTransforms.leftArm.middleFinger2.position.copy(setups.leftMiddleFinger2);
-    if (setups.leftMiddleFinger1) this.shoulderTransforms.leftArm.middleFinger1.position.copy(setups.leftMiddleFinger1);
-    if (setups.leftRingFinger3) this.shoulderTransforms.leftArm.ringFinger3.position.copy(setups.leftRingFinger3);
-    if (setups.leftRingFinger2) this.shoulderTransforms.leftArm.ringFinger2.position.copy(setups.leftRingFinger2);
-    if (setups.leftRingFinger1) this.shoulderTransforms.leftArm.ringFinger1.position.copy(setups.leftRingFinger1);
-    if (setups.leftLittleFinger3) this.shoulderTransforms.leftArm.littleFinger3.position.copy(setups.leftLittleFinger3);
-    if (setups.leftLittleFinger2) this.shoulderTransforms.leftArm.littleFinger2.position.copy(setups.leftLittleFinger2);
-    if (setups.leftLittleFinger1) this.shoulderTransforms.leftArm.littleFinger1.position.copy(setups.leftLittleFinger1);
+    if (setups.leftShoulder) this.shoulderTransforms.leftShoulderAnchor.matrix.setPosition(setups.leftShoulder);
+    this.shoulderTransforms.leftShoulderAnchor.updateMatrixWorld(true);
+    this.shoulderTransforms.leftArm.upperArm.matrix.setPosition(setups.leftUpperArm);
+    this.shoulderTransforms.leftArm.upperArm.updateMatrixWorld(true);
+    this.shoulderTransforms.leftArm.lowerArm.matrix.setPosition(setups.leftLowerArm);
+    this.shoulderTransforms.leftArm.lowerArm.updateMatrixWorld(true);
+    this.shoulderTransforms.leftArm.hand.matrix.setPosition(setups.leftHand);
+    this.shoulderTransforms.leftArm.hand.updateMatrixWorld(true);
+    if (setups.leftThumb2) this.shoulderTransforms.leftArm.thumb2.matrix.setPosition(setups.leftThumb2);
+    this.shoulderTransforms.leftArm.thumb2.updateMatrixWorld(true);
+    if (setups.leftThumb1) this.shoulderTransforms.leftArm.thumb1.matrix.setPosition(setups.leftThumb1);
+    this.shoulderTransforms.leftArm.thumb1.updateMatrixWorld(true);
+    if (setups.leftThumb0) this.shoulderTransforms.leftArm.thumb0.matrix.setPosition(setups.leftThumb0);
+    this.shoulderTransforms.leftArm.thumb0.updateMatrixWorld(true);
+    if (setups.leftIndexFinger3) this.shoulderTransforms.leftArm.indexFinger3.matrix.setPosition(setups.leftIndexFinger3);
+    this.shoulderTransforms.leftArm.indexFinger3.updateMatrixWorld(true);
+    if (setups.leftIndexFinger2) this.shoulderTransforms.leftArm.indexFinger2.matrix.setPosition(setups.leftIndexFinger2);
+    this.shoulderTransforms.leftArm.indexFinger2.updateMatrixWorld(true);
+    if (setups.leftIndexFinger1) this.shoulderTransforms.leftArm.indexFinger1.matrix.setPosition(setups.leftIndexFinger1);
+    this.shoulderTransforms.leftArm.indexFinger1.updateMatrixWorld(true);
+    if (setups.leftMiddleFinger3) this.shoulderTransforms.leftArm.middleFinger3.matrix.setPosition(setups.leftMiddleFinger3);
+    this.shoulderTransforms.leftArm.middleFinger3.updateMatrixWorld(true);
+    if (setups.leftMiddleFinger2) this.shoulderTransforms.leftArm.middleFinger2.matrix.setPosition(setups.leftMiddleFinger2);
+    this.shoulderTransforms.leftArm.middleFinger2.updateMatrixWorld(true);
+    if (setups.leftMiddleFinger1) this.shoulderTransforms.leftArm.middleFinger1.matrix.setPosition(setups.leftMiddleFinger1);
+    this.shoulderTransforms.leftArm.middleFinger1.updateMatrixWorld(true);
+    if (setups.leftRingFinger3) this.shoulderTransforms.leftArm.ringFinger3.matrix.setPosition(setups.leftRingFinger3);
+    this.shoulderTransforms.leftArm.ringFinger3.updateMatrixWorld(true);
+    if (setups.leftRingFinger2) this.shoulderTransforms.leftArm.ringFinger2.matrix.setPosition(setups.leftRingFinger2);
+    this.shoulderTransforms.leftArm.ringFinger2.updateMatrixWorld(true);
+    if (setups.leftRingFinger1) this.shoulderTransforms.leftArm.ringFinger1.matrix.setPosition(setups.leftRingFinger1);
+    this.shoulderTransforms.leftArm.ringFinger1.updateMatrixWorld(true);
+    if (setups.leftLittleFinger3) this.shoulderTransforms.leftArm.littleFinger3.matrix.setPosition(setups.leftLittleFinger3);
+    this.shoulderTransforms.leftArm.littleFinger3.updateMatrixWorld(true);
+    if (setups.leftLittleFinger2) this.shoulderTransforms.leftArm.littleFinger2.matrix.setPosition(setups.leftLittleFinger2);
+    this.shoulderTransforms.leftArm.littleFinger2.updateMatrixWorld(true);
+    if (setups.leftLittleFinger1) this.shoulderTransforms.leftArm.littleFinger1.matrix.setPosition(setups.leftLittleFinger1);
+    this.shoulderTransforms.leftArm.littleFinger1.updateMatrixWorld(true);
 
-    if (setups.rightShoulder) this.shoulderTransforms.rightShoulderAnchor.position.copy(setups.rightShoulder);
-    this.shoulderTransforms.rightArm.upperArm.position.copy(setups.rightUpperArm);
-    this.shoulderTransforms.rightArm.lowerArm.position.copy(setups.rightLowerArm);
-    this.shoulderTransforms.rightArm.hand.position.copy(setups.rightHand);
-    if (setups.rightThumb2) this.shoulderTransforms.rightArm.thumb2.position.copy(setups.rightThumb2);
-    if (setups.rightThumb1) this.shoulderTransforms.rightArm.thumb1.position.copy(setups.rightThumb1);
-    if (setups.rightThumb0) this.shoulderTransforms.rightArm.thumb0.position.copy(setups.rightThumb0);
-    if (setups.rightIndexFinger3) this.shoulderTransforms.rightArm.indexFinger3.position.copy(setups.rightIndexFinger3);
-    if (setups.rightIndexFinger2) this.shoulderTransforms.rightArm.indexFinger2.position.copy(setups.rightIndexFinger2);
-    if (setups.rightIndexFinger1) this.shoulderTransforms.rightArm.indexFinger1.position.copy(setups.rightIndexFinger1);
-    if (setups.rightMiddleFinger3) this.shoulderTransforms.rightArm.middleFinger3.position.copy(setups.rightMiddleFinger3);
-    if (setups.rightMiddleFinger2) this.shoulderTransforms.rightArm.middleFinger2.position.copy(setups.rightMiddleFinger2);
-    if (setups.rightMiddleFinger1) this.shoulderTransforms.rightArm.middleFinger1.position.copy(setups.rightMiddleFinger1);
-    if (setups.rightRingFinger3) this.shoulderTransforms.rightArm.ringFinger3.position.copy(setups.rightRingFinger3);
-    if (setups.rightRingFinger2) this.shoulderTransforms.rightArm.ringFinger2.position.copy(setups.rightRingFinger2);
-    if (setups.rightRingFinger1) this.shoulderTransforms.rightArm.ringFinger1.position.copy(setups.rightRingFinger1);
-    if (setups.rightLittleFinger3) this.shoulderTransforms.rightArm.littleFinger3.position.copy(setups.rightLittleFinger3);
-    if (setups.rightLittleFinger2) this.shoulderTransforms.rightArm.littleFinger2.position.copy(setups.rightLittleFinger2);
-    if (setups.rightLittleFinger1) this.shoulderTransforms.rightArm.littleFinger1.position.copy(setups.rightLittleFinger1);
+    if (setups.rightShoulder) this.shoulderTransforms.rightShoulderAnchor.matrix.setPosition(setups.rightShoulder);
+    this.shoulderTransforms.rightShoulderAnchor.updateMatrixWorld(true);
+    this.shoulderTransforms.rightArm.upperArm.matrix.setPosition(setups.rightUpperArm);
+    this.shoulderTransforms.rightArm.upperArm.updateMatrixWorld(true);
+    this.shoulderTransforms.rightArm.lowerArm.matrix.setPosition(setups.rightLowerArm);
+    this.shoulderTransforms.rightArm.lowerArm.updateMatrixWorld(true);
+    this.shoulderTransforms.rightArm.hand.matrix.setPosition(setups.rightHand);
+    this.shoulderTransforms.rightArm.hand.updateMatrixWorld(true);
+    if (setups.rightThumb2) this.shoulderTransforms.rightArm.thumb2.matrix.setPosition(setups.rightThumb2);
+    this.shoulderTransforms.rightArm.thumb2.updateMatrixWorld(true);
+    if (setups.rightThumb1) this.shoulderTransforms.rightArm.thumb1.matrix.setPosition(setups.rightThumb1);
+    this.shoulderTransforms.rightArm.thumb1.updateMatrixWorld(true);
+    if (setups.rightThumb0) this.shoulderTransforms.rightArm.thumb0.matrix.setPosition(setups.rightThumb0);
+    this.shoulderTransforms.rightArm.thumb0.updateMatrixWorld(true);
+    if (setups.rightIndexFinger3) this.shoulderTransforms.rightArm.indexFinger3.matrix.setPosition(setups.rightIndexFinger3);
+    this.shoulderTransforms.rightArm.indexFinger3.updateMatrixWorld(true);
+    if (setups.rightIndexFinger2) this.shoulderTransforms.rightArm.indexFinger2.matrix.setPosition(setups.rightIndexFinger2);
+    this.shoulderTransforms.rightArm.indexFinger2.updateMatrixWorld(true);
+    if (setups.rightIndexFinger1) this.shoulderTransforms.rightArm.indexFinger1.matrix.setPosition(setups.rightIndexFinger1);
+    this.shoulderTransforms.rightArm.indexFinger1.updateMatrixWorld(true);
+    if (setups.rightMiddleFinger3) this.shoulderTransforms.rightArm.middleFinger3.matrix.setPosition(setups.rightMiddleFinger3);
+    this.shoulderTransforms.rightArm.middleFinger3.updateMatrixWorld(true);
+    if (setups.rightMiddleFinger2) this.shoulderTransforms.rightArm.middleFinger2.matrix.setPosition(setups.rightMiddleFinger2);
+    this.shoulderTransforms.rightArm.middleFinger2.updateMatrixWorld(true);
+    if (setups.rightMiddleFinger1) this.shoulderTransforms.rightArm.middleFinger1.matrix.setPosition(setups.rightMiddleFinger1);
+    this.shoulderTransforms.rightArm.middleFinger1.updateMatrixWorld(true);
+    if (setups.rightRingFinger3) this.shoulderTransforms.rightArm.ringFinger3.matrix.setPosition(setups.rightRingFinger3);
+    this.shoulderTransforms.rightArm.ringFinger3.updateMatrixWorld(true);
+    if (setups.rightRingFinger2) this.shoulderTransforms.rightArm.ringFinger2.matrix.setPosition(setups.rightRingFinger2);
+    this.shoulderTransforms.rightArm.ringFinger2.updateMatrixWorld(true);
+    if (setups.rightRingFinger1) this.shoulderTransforms.rightArm.ringFinger1.matrix.setPosition(setups.rightRingFinger1);
+    this.shoulderTransforms.rightArm.ringFinger1.updateMatrixWorld(true);
+    if (setups.rightLittleFinger3) this.shoulderTransforms.rightArm.littleFinger3.matrix.setPosition(setups.rightLittleFinger3);
+    this.shoulderTransforms.rightArm.littleFinger3.updateMatrixWorld(true);
+    if (setups.rightLittleFinger2) this.shoulderTransforms.rightArm.littleFinger2.matrix.setPosition(setups.rightLittleFinger2);
+    this.shoulderTransforms.rightArm.littleFinger2.updateMatrixWorld(true);
+    if (setups.rightLittleFinger1) this.shoulderTransforms.rightArm.littleFinger1.matrix.setPosition(setups.rightLittleFinger1);
+    this.shoulderTransforms.rightArm.littleFinger1.updateMatrixWorld(true);
 
-    this.legsManager.leftLeg.upperLeg.position.copy(setups.leftUpperLeg);
-    this.legsManager.leftLeg.lowerLeg.position.copy(setups.leftLowerLeg);
-    this.legsManager.leftLeg.foot.position.copy(setups.leftFoot);
-    if (setups.leftToe) this.legsManager.leftLeg.toe.position.copy(setups.leftToe);
+    this.legsManager.leftLeg.upperLeg.matrix.setPosition(setups.leftUpperLeg);
+    this.legsManager.leftLeg.upperLeg.updateMatrixWorld(true);
+    this.legsManager.leftLeg.lowerLeg.matrix.setPosition(setups.leftLowerLeg);
+    this.legsManager.leftLeg.lowerLeg.updateMatrixWorld(true);
+    this.legsManager.leftLeg.foot.matrix.setPosition(setups.leftFoot);
+    this.legsManager.leftLeg.foot.updateMatrixWorld(true);
+    if (setups.leftToe) this.legsManager.leftLeg.toe.matrix.setPosition(setups.leftToe);
+    this.legsManager.leftLeg.toe.updateMatrixWorld(true);
 
-    this.legsManager.rightLeg.upperLeg.position.copy(setups.rightUpperLeg);
-    this.legsManager.rightLeg.lowerLeg.position.copy(setups.rightLowerLeg);
-    this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
-    if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
+    this.legsManager.rightLeg.upperLeg.matrix.setPosition(setups.rightUpperLeg);
+    this.legsManager.rightLeg.upperLeg.updateMatrixWorld(true);
+    this.legsManager.rightLeg.lowerLeg.matrix.setPosition(setups.rightLowerLeg);
+    this.legsManager.rightLeg.lowerLeg.updateMatrixWorld(true);
+    this.legsManager.rightLeg.foot.matrix.setPosition(setups.rightFoot);
+    this.legsManager.rightLeg.foot.updateMatrixWorld(true);
+    if (setups.rightToe) this.legsManager.rightLeg.toe.matrix.setPosition(setups.rightToe);
+    this.legsManager.rightLeg.toe.updateMatrixWorld(true);
 
     this.shoulderTransforms.root.updateMatrixWorld(true);
   }
@@ -2265,7 +2313,7 @@ class Avatar {
         }
       }
     };
-    _applyAnimation();
+    // _applyAnimation();
 
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -2337,7 +2385,7 @@ class Avatar {
       // this.modelBoneOutputs.Root.matrix.setPosition(hmdPos)
         
       this.modelBoneOutputs.Root.matrix.compose(hmdPos, new Quaternion().setFromEuler(localEuler), new Vector3(1,1,1));
-
+      this.modelBoneOutputs.Root.updateMatrixWorld(true);
       // this.modelBoneOutputs.Root.updateMatrixWorld(true);
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {

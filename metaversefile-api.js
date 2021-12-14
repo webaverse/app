@@ -36,6 +36,7 @@ import soundManager from './sound-manager.js';
 
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
+import { Vector3 } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -576,16 +577,20 @@ metaversefile.setApi({
         size = localVector2;
         
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
-        physicsObject.scale.copy(app.scale);
+        // physicsObject.position.copy(app.position);
+        // physicsObject.quaternion.copy(app.quaternion);
+        // physicsObject.scale.copy(app.scale);
+
+        physicsObject.matrix.compose(app.position, app.quaternion, app.scale);
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
+
+        physicsObject.matrix.compose(basePosition, baseQuaternion, baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld(true);
+        // physicsObject.updateMatrixWorld(true);
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -606,14 +611,16 @@ metaversefile.setApi({
         //size = localVector2;
         
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
+        // physicsObject.position.copy(app.position);
+        // physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
+
+        physicsObject.matrix.compose(app.position, app.quaternion, app.scale);
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
-
+        physicsMesh.matrix.compose(basePosition, baseQuaternion, new Vector3(1, 1, 1));
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
@@ -654,6 +661,7 @@ metaversefile.setApi({
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
+        physicsMesh.matrix.compose(basePosition, baseQuaternion, new Vector3(1, 1, 1));
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
         physicsObject.updateMatrixWorld(true);
@@ -666,17 +674,17 @@ metaversefile.setApi({
         const oldParent = mesh.parent;
         
         const parentMesh = new THREE.Object3D();
-        parentMesh.position.copy(app.position);
-        parentMesh.quaternion.copy(app.quaternion);
-        parentMesh.scale.copy(app.scale);
+        // parentMesh.position.copy(app.position);
+        // parentMesh.quaternion.copy(app.quaternion);
+        // parentMesh.scale.copy(app.scale);
+        parentMesh.matrix.compose(app.position, app.quaternion, app.scale);
         parentMesh.add(mesh);
-        parentMesh.updateMatrixWorld(true);
+        // parentMesh.updateMatrixWorld(true);
         
         const physicsObject = addGeometry.call(this, mesh);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
-        physicsObject.scale.copy(app.scale);
-        physicsObject.updateMatrixWorld(true);
+        physicsObject.matrix.compose(app.position, app.quaternion, app.scale);
+
+        // physicsObject.updateMatrixWorld(true);
         // window.physicsObject = physicsObject;
         
         if (oldParent) {
