@@ -28,6 +28,7 @@ import {
   decorateAnimation,
   // retargetAnimation,
 }  from './util.mjs';
+import { Quaternion, Vector3 } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1309,7 +1310,6 @@ class Avatar {
           child.matrix
             .premultiply(localMatrix.compose(localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), localVector2.set(1, 1, 1)))
             .decompose(child.position, child.quaternion, child.scale);
-          child.updateMatrixWorld(true);
         }
       }
     };
@@ -1435,13 +1435,17 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
-
-      modelBone.position.copy(modelBoneOutput.position);
-      modelBone.quaternion.multiplyQuaternions(
+      
+      // modelBone.position.set(modelBoneOutput.position);
+      const quat = modelBone.quaternion;
+      quat.multiplyQuaternions(
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
       );
-
+      
+      modelBone.matrix.compose(modelBoneOutput.position, quat, new Vector3(1,1,1))
+      // modelBone.matrix.makeRotationFromQuaternion(modelBoneQuat);
+      // modelBone.updateMatrixWorld(true);
       // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
@@ -2326,14 +2330,15 @@ class Avatar {
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
-      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+      // this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
       const hmdPos = this.inputs.hmd.position;
       hmdPos.sub(localVector.set(0, this.height, 0));
-      this.modelBoneOutputs.Root.matrix.setPosition(hmdPos)
+      // this.modelBoneOutputs.Root.matrix.setPosition(hmdPos)
         
+      this.modelBoneOutputs.Root.matrix.compose(hmdPos, new Quaternion().setFromEuler(localEuler), new Vector3(1,1,1));
 
-      this.modelBoneOutputs.Root.updateMatrixWorld(true);
+      // this.modelBoneOutputs.Root.updateMatrixWorld(true);
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld(true);
@@ -2390,7 +2395,7 @@ class Avatar {
       
     };
     _updateEyeTarget();
-    this.modelBoneOutputs.Root.updateMatrixWorld(true);
+    // this.modelBoneOutputs.Root.updateMatrixWorld(true);
     
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
