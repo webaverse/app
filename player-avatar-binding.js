@@ -103,9 +103,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.useAnimation = (useAction?.animation) || '';
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
-  rig.aimState = !!aimAction;
-  rig.aimDirection.set(0, 0, -1);
-  aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
+  rig.aimTime = player.actionInterpolants.aim.get();
+  rig.aimAnimation = (aimAction?.playerAnimation) || '';
+  // rig.aimDirection.set(0, 0, -1);
+  // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
