@@ -4,14 +4,14 @@ it contains code for character capsules and world simulation.
 */
 
 import * as THREE from 'three';
-import {getRenderer, camera, dolly} from './renderer.js';
+// import {getRenderer, camera, dolly} from './renderer.js';
 import physx from './physx.js';
-import cameraManager from './camera-manager.js';
-import ioManager from './io-manager.js';
-import {getPlayerCrouchFactor} from './character-controller.js';
+// import cameraManager from './camera-manager.js';
+// import ioManager from './io-manager.js';
+// import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
-import {applyVelocity} from './util.js';
+// import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 
@@ -24,10 +24,8 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-const localVelocity = new THREE.Vector3();
-
-const zeroVector = new THREE.Vector3(0, 0, 0);
-const upVector = new THREE.Vector3(0, 1, 0);
+// const zeroVector = new THREE.Vector3(0, 0, 0);
+// const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
 
@@ -51,7 +49,6 @@ const _extractPhysicsGeometryForId = physicsId => {
 
 physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) => {
   const physicsId = getNextPhysicsId();
-  // console.log('woot', {physics: physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled});
   physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, ccdEnabled);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion);
@@ -61,9 +58,6 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
-  //console.log(physicsId);
-  //physicsObject.position.add(new THREE.Vector3(0, 3, 0));
-  //physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
   return physicsObject;
 };
 
