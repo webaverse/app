@@ -33,6 +33,7 @@ import {
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
+import './audio-recognizer.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
