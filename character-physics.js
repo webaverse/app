@@ -124,6 +124,8 @@ class CharacterPhysics {
         }
 
         const jumpAction = this.player.getAction('chargeJump') || this.player.getAction('chargeJumpForward') ;
+       // const jumpActionAvailable = this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward') ||  this.player.hasAction('standCharge') ;
+
         const _ensureJumpAction = () => {
           console.log('ensuringjump action')
           if (!jumpAction) {
@@ -138,6 +140,8 @@ class CharacterPhysics {
         };
         const _ensureNoJumpAction = () => {
           this.player.removeAction('chargeJump');
+          this.player.removeAction('chargeJumpForward');
+
         };
 
         if (grounded) {
@@ -171,7 +175,7 @@ class CharacterPhysics {
                     this.player.removeAction('chargeJumpForward');
                   }, 200);
                 }
-              }
+            }
           }
         }
 
@@ -182,7 +186,7 @@ class CharacterPhysics {
           } else {
             _ensureJumpAction();
           
-            this.velocity.y = 0;
+           // this.velocity.y = 0;
           }
         } else {
           if (grounded) {
@@ -247,7 +251,9 @@ class CharacterPhysics {
       if (this.avatar) {
         if (this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
+          console.log('floorheight')
         } else {
+          console.log('floorheight')
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
         this.avatar.updateMatrixWorld();
@@ -318,6 +324,7 @@ class CharacterPhysics {
       if (ioManager.currentWalked || this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
+        console.log('test')
         this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
 
         /* dolly.position.add(

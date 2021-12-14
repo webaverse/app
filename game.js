@@ -1443,7 +1443,7 @@ const gameManager = {
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('chargeIdle');
 
-    jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'standCharge';
+    jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'chargeJump';
 
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1605,9 +1605,13 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction(jumpActionName);
 
-    setTimeout(() => {
-      // this.ensureFallLoop()
-    }, 800)
+    // idle animation only available for chargeJump
+    if (jumpActionName === 'chargeJump') {
+      setTimeout(() => {
+        this.ensureFallLoop()
+     }, 800)
+    }
+ 
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
