@@ -611,11 +611,11 @@ const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THR
 const animationMappingConfig = [
   new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
   new AnimationMapping('mixamorigHips.quaternion', 'Hips', false, false),
-  new AnimationMapping('mixamorigSpine.quaternion', 'Spine', false, false),
-  new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', false, false),
-  new AnimationMapping('mixamorigSpine2.quaternion', 'UpperChest', false, false),
-  new AnimationMapping('mixamorigNeck.quaternion', 'Neck', false, false),
-  new AnimationMapping('mixamorigHead.quaternion', 'Head', false, false),
+  new AnimationMapping('mixamorigSpine.quaternion', 'Spine', true, false),
+  new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', true, false),
+  new AnimationMapping('mixamorigSpine2.quaternion', 'UpperChest', true, false),
+  new AnimationMapping('mixamorigNeck.quaternion', 'Neck', true, false),
+  new AnimationMapping('mixamorigHead.quaternion', 'Head', true, false),
 
   new AnimationMapping('mixamorigLeftShoulder.quaternion', 'Left_shoulder', true, false),
   new AnimationMapping('mixamorigLeftArm.quaternion', 'Left_arm', true, false),
