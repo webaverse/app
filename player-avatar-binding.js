@@ -38,7 +38,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     return null;
   })();
   for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+    rig.setHandEnabled(i, !!session || (i === 0 && (!!aimAction && !aimAction.playerAnimation) && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
   }
   rig.setTopEnabled(
     (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
@@ -93,7 +93,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   const swordTopDownSlash = player.getAction('swordTopDownSlash');
   const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
-
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
