@@ -104,7 +104,7 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
     childBones.forEach((childBone) => {
       var childBonePosWorld = worldPos[childBone.id][0].clone();
       parentBone.worldToLocal(childBonePosWorld);
-      childBone.position.copy(childBonePosWorld);
+      childBone.matrix.setPosition(childBonePosWorld);
       childBone.updateMatrixWorld(true);
     });
 
