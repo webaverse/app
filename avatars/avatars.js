@@ -2281,15 +2281,23 @@ class Avatar {
             
             if (isTop) {
               const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+              _handleDefault(spec);
               if (aimAnimation) {
                 const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
                 const src2 = aimAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
-                dst.fromArray(v2);
-              } else {
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              } /* else {
                 _handleDefault(spec);
-              }
+              } */
             } else {
               _handleDefault(spec);
             }
