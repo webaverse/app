@@ -76,7 +76,7 @@
       await app.waitForLoad();
       const object = await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
       // window.object = object;
-      object.updateMatrixWorld();
+      object.updateMatrixWorld(true);
       // const replacementMeshes = [];
       const planes = [
         new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), extents.min),

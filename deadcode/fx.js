@@ -220,7 +220,7 @@ const _updateEffects = () => {
       switch (effect.fxType) {
         case 'bullet': {
           effect.position.add(localVector.set(0, 0, -bulletSpeed).applyQuaternion(effect.quaternion));
-          effect.updateMatrixWorld();
+          effect.updateMatrixWorld(true);
           
           const line = localLine.set(
             effect.position,
@@ -248,7 +248,7 @@ const _updateEffects = () => {
           break;
         }
         case 'hit': {
-          effect.updateMatrixWorld();
+          effect.updateMatrixWorld(true);
           localMatrix.copy(effect.matrixWorld);
           geometry = hitFxGeometry;
           index = numHitFx++;
@@ -256,7 +256,7 @@ const _updateEffects = () => {
           break;
         }
         case 'fire': {
-          effect.updateMatrixWorld();
+          effect.updateMatrixWorld(true);
           localMatrix.copy(effect.matrixWorld);
           geometry = fireFxGeometry;
           index = numFireFx++;

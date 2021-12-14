@@ -881,7 +881,7 @@ const _makeContextMenuMesh = mouseUiMesh => {
   m.update = () => {
     if (weaponsManager.contextMenu && !lastContextMenu) {
       m.position.copy(mouseUiMesh.position);
-      m.updateMatrixWorld();
+      m.updateMatrixWorld(true);
 
       const renderer = getRenderer();
       const projectVector = v => {
@@ -2859,7 +2859,7 @@ Promise.all([
               localVector3.copy(startMousePosition)
                 .sub(endMousePosition)
              );
-          camera.updateMatrixWorld();
+          camera.updateMatrixWorld(true);
         }
       });
       app.addEventListener('frame', () => {

@@ -13,7 +13,7 @@ function toScreenPosition(obj, camera, vector) {
   var widthHalf = 0.5*context.canvas.width;
   var heightHalf = 0.5*context.canvas.height;
 
-  obj.updateMatrixWorld();
+  obj.updateMatrixWorld(true);
   vector.setFromMatrixPosition(obj.matrixWorld);
   vector.project(camera);
 

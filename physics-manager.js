@@ -62,6 +62,8 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.physicsMesh = physicsMesh;
+  physicsObject.updateMatrixWorld(true);
+  physicsMesh.updateMatrixWorld(true);
   //console.log(physicsId);
   //physicsObject.position.add(new THREE.Vector3(0, 3, 0));
   //physicsManager.disablePhysicsObject(physicsObject); // Disabled on creation, enabled on if(this.player.avatar) in character-physics.js
@@ -89,7 +91,7 @@ physicsManager.addGeometry = mesh => {
       physicsMesh.quaternion,
       physicsMesh.scale
     );
-    physicsMesh.updateMatrixWorld();
+    physicsMesh.updateMatrixWorld(true);
   }
 
   const physicsMaterial = [0.5, 0.5, 0]; // staticFriction, dynamicFriction, restitution
@@ -103,7 +105,7 @@ physicsManager.addGeometry = mesh => {
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
   physicsMesh.scale.set(1, 1, 1);
-  physicsMesh.updateMatrixWorld();
+  physicsMesh.updateMatrixWorld(true);
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
@@ -128,7 +130,7 @@ physicsManager.addConvexGeometry = mesh => {
       physicsMesh.quaternion,
       physicsMesh.scale
     );
-    physicsMesh.updateMatrixWorld();
+    physicsMesh.updateMatrixWorld(true);
   }
   
   const physicsId = getNextPhysicsId();
@@ -140,7 +142,7 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
   physicsMesh.scale.set(1, 1, 1);
-  physicsMesh.updateMatrixWorld();
+  physicsMesh.updateMatrixWorld(true);
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
@@ -222,7 +224,7 @@ physicsManager.simulatePhysics = timeDiff => {
       if (physicsObject) {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(true);
       } /* else {
         console.warn('failed to get physics object', id);
       } */

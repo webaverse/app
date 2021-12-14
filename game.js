@@ -690,7 +690,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const {position, quaternion} = localPlayer.hands[i];
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         
-        grabbedObject.updateMatrixWorld();
+        grabbedObject.updateMatrixWorld(true);
 
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
@@ -699,7 +699,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           gridSnap: gameManager.getGridSnap(),
         });
 
-        grabbedObject.updateMatrixWorld();
+        grabbedObject.updateMatrixWorld(true);
         
         grabUseMesh.position.copy(camera.position)
           .add(
@@ -709,7 +709,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               .multiplyScalar(3)
           );
         grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
+        grabUseMesh.updateMatrixWorld(true);
         // grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -731,7 +731,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
-          grabUseMesh.updateMatrixWorld();
+          grabUseMesh.updateMatrixWorld(true);
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -774,7 +774,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
 
-      highlightedPhysicsObject.updateMatrixWorld();
+      highlightedPhysicsObject.updateMatrixWorld(true);
 
       const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if(physicsObject) {
@@ -783,14 +783,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
         // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
         highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
           .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-        // highlightPhysicsMesh.updateMatrixWorld();
+        // highlightPhysicsMesh.updateMatrixWorld(true);
         // window.highlightPhysicsMesh = highlightPhysicsMesh;
         highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
         highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
         highlightPhysicsMesh.visible = true;
-        highlightPhysicsMesh.updateMatrixWorld();
+        highlightPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -813,7 +813,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseHighlightPhysicsMesh.visible = true;
-        mouseHighlightPhysicsMesh.updateMatrixWorld();
+        mouseHighlightPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -843,7 +843,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           // mouseSelectPhysicsMesh.quaternion.identity();
           // mouseSelectPhysicsMesh.scale.set(1, 1, 1);
           mouseSelectPhysicsMesh.visible = true;
-          mouseSelectPhysicsMesh.updateMatrixWorld();
+          mouseSelectPhysicsMesh.updateMatrixWorld(true);
 
         }
         // update uniforms
@@ -875,7 +875,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomHoverPhysicsMesh.visible = true;
-        mouseDomHoverPhysicsMesh.updateMatrixWorld();
+        mouseDomHoverPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -897,7 +897,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
-        mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld();
+        mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -1064,7 +1064,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
     cylinderMesh.quaternion.copy(localPlayer.quaternion);
     // cylinderMesh.startPosition.copy(localPlayer.position);
-    cylinderMesh.updateMatrixWorld();
+    cylinderMesh.updateMatrixWorld(true);
     const useAction = localPlayer.getAction('use');
     if (useAction && useAction.animation === 'combo') {
       const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
@@ -1198,7 +1198,7 @@ window.addEventListener('drop', async e => {
   arrowLoader.position.copy(position);
   arrowLoader.quaternion.copy(quaternion);
   scene.add(arrowLoader);
-  arrowLoader.updateMatrixWorld();
+  arrowLoader.updateMatrixWorld(true);
   const items = Array.from(e.dataTransfer.items);
   await Promise.all(items.map(async item => {
     await _handleUpload(item, {
@@ -1335,7 +1335,7 @@ const gameManager = {
 
       camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-      camera.updateMatrixWorld();
+      camera.updateMatrixWorld(true);
     }
   },
   menuDragup() {

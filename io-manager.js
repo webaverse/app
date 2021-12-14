@@ -627,7 +627,7 @@ const _updateMouseMovement = e => {
 
     camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-    camera.updateMatrixWorld();
+    camera.updateMatrixWorld(true);
   // }
   // lastMouseDistance = mouseDistance;
 };

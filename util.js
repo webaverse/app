@@ -368,7 +368,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
   oldParent && oldParent.remove(topMesh);
 
-  topMesh.updateMatrixWorld();
+  topMesh.updateMatrixWorld(true);
   // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
@@ -418,7 +418,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
   });
   if (oldParent) {
     oldParent.add(topMesh);
-    topMesh.updateMatrixWorld();
+    topMesh.updateMatrixWorld(true);
   }
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
@@ -676,7 +676,7 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
 
   camera.position.z = distance;
   // camera.lookAt(center);
-  camera.updateMatrixWorld();
+  camera.updateMatrixWorld(true);
 }
 
 

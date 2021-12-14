@@ -617,7 +617,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const arrayBuffer = await res.arrayBuffer();
       physicsBuffer = new Uint8Array(arrayBuffer);
     } else {
-      mesh.updateMatrixWorld();
+      mesh.updateMatrixWorld(true);
       physicsMesh = convertMeshToPhysicsMesh(gltfObject);
       physicsMesh.position.copy(mesh.position);
       physicsMesh.quaternion.copy(mesh.quaternion);
@@ -1089,7 +1089,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     const localMatrix = new THREE.Matrix4();
     const localMatrix2 = new THREE.Matrix4();
     physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
-      app.rootObject.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld(true);
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
         .premultiply(app.rootObject.matrixWorld)
@@ -1123,7 +1123,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
     physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
       const transform = getPhysicsTransform.apply(this, arguments);
       const {position, quaternion} = transform;
-      app.rootObject.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld(true);
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
         .premultiply(localMatrix2.copy(app.rootObject.matrixWorld).invert())
@@ -1131,7 +1131,7 @@ const _loadGif = async (file, {files = null, contentId = null, instanceId = null
       return transform;
     })(physics.getPhysicsTransform);
     physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
-      app.rootObject.updateMatrixWorld();
+      app.rootObject.updateMatrixWorld(true);
       localMatrix
         .compose(position, quaternion, scale)
         .premultiply(app.rootObject.matrixWorld)

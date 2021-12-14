@@ -229,7 +229,7 @@ class MeshComposer {
       center.divideScalar(meshes.length);
       for (const mesh of this.meshes) {
         mesh.position.sub(center);
-        mesh.updateMatrixWorld();
+        mesh.updateMatrixWorld(true);
       }
 
       const geometries = [];

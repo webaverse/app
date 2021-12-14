@@ -194,9 +194,7 @@ export async function switchAvatar(oldAvatar, newApp) {
   if (newApp) {
     promises.push((async () => {
       await newApp.setSkinning(true);
-      
       // unwear old rig
-      
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
       }

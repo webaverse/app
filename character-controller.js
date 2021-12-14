@@ -292,7 +292,7 @@ class Player extends THREE.Object3D {
             debugCapsule.position.copy(this.characterControllerObject.position);
             debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
             debugCapsule.scale.copy(this.characterControllerObject.scale);
-            debugCapsule.updateMatrixWorld();
+            debugCapsule.updateMatrixWorld(true);
           }); */
         }
       })();
@@ -791,7 +791,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
       }
 
       const physicsObjects = app.getPhysicsObjects();
@@ -819,7 +819,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     :
       camera;
 
-    app.updateMatrixWorld();
+    app.updateMatrixWorld(true);
     app.savedRotation = app.rotation.clone();
     app.startQuaternion = quaternion.clone();
 
@@ -867,7 +867,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       )
     );
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    camera.updateMatrixWorld();
+    camera.updateMatrixWorld(true);
     
     /* this.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(this.position, p, upVector)
@@ -922,13 +922,13 @@ class LocalPlayer extends UninterpolatedPlayer {
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
           .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
-        dolly.updateMatrixWorld();
+        dolly.updateMatrixWorld(true);
       } else {
         camera.position.copy(position)
           .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
         camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
-        camera.updateMatrixWorld();
+        camera.updateMatrixWorld(true);
       }
 
       this.resetPhysics();

@@ -327,7 +327,7 @@ export default () => {
     azimuth %= Math.PI*2;
     inclination += di;
     inclination %= Math.PI*2;
-    mesh.updateMatrixWorld();
+    mesh.updateMatrixWorld(true);
     /* mesh.quaternion.setFromEuler(angle);
     mesh.position.set(0, 0, -1).applyQuaternion(mesh.quaternion);
     angle.x += direction.x * 0.01;

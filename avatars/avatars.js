@@ -1343,6 +1343,7 @@ class Avatar {
           child.matrix
             .premultiply(localMatrix.compose(localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), localVector2.set(1, 1, 1)))
             .decompose(child.position, child.quaternion, child.scale);
+          child.updateMatrixWorld(true);
         }
       }
     };
@@ -1445,6 +1446,8 @@ class Avatar {
     
     modelBones.Root.traverse(bone => {
       bone.initialQuaternion = bone.quaternion.clone();
+      bone.updateMatrix();
+      bone.updateMatrix(true);
     });
     
     return {
@@ -1490,7 +1493,7 @@ class Avatar {
         }
       }
     }
-    modelBones.Root.updateMatrixWorld();
+    modelBones.Root.updateMatrixWorld(true);
   }
   static modelBoneRenames = {
     spine: 'Spine',
@@ -1552,11 +1555,17 @@ class Avatar {
   }
   initializeBonePositions(setups) {
     this.shoulderTransforms.hips.position.copy(setups.hips);
+    this.shoulderTransforms.hips.updateMatrixWorld(true);
     this.shoulderTransforms.spine.position.copy(setups.spine);
+    this.shoulderTransforms.spine.updateMatrixWorld(true);
     this.shoulderTransforms.chest.position.copy(setups.chest);
+    this.shoulderTransforms.chest.updateMatrixWorld(true);
     if (setups.upperChest) this.shoulderTransforms.upperChest.position.copy(setups.upperChest);
+    this.shoulderTransforms.upperChest.updateMatrixWorld(true);
     this.shoulderTransforms.neck.position.copy(setups.neck);
+    this.shoulderTransforms.neck.updateMatrixWorld(true);
     this.shoulderTransforms.head.position.copy(setups.head);
+    this.shoulderTransforms.head.updateMatrixWorld(true);
     // this.shoulderTransforms.eyes.position.copy(setups.eyes);
     if (setups.eyel) this.shoulderTransforms.eyel.position.copy(setups.eyel);
     if (setups.eyer) this.shoulderTransforms.eyer.position.copy(setups.eyer);
@@ -1611,7 +1620,7 @@ class Avatar {
     this.legsManager.rightLeg.foot.position.copy(setups.rightFoot);
     if (setups.rightToe) this.legsManager.rightLeg.toe.position.copy(setups.rightToe);
 
-    this.shoulderTransforms.root.updateMatrixWorld();
+    this.shoulderTransforms.root.updateMatrixWorld(true);
   }
   setHandEnabled(i, enabled) {
     this.shoulderTransforms.handsEnabled[i] = enabled;
@@ -2355,9 +2364,11 @@ class Avatar {
       
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
         .sub(localVector.set(0, this.height, 0));
+
+      this.modelBoneOutputs.Root.updateMatrixWorld(true);
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
-      this.modelBoneOutputs.Hips.updateMatrixWorld();
+      this.modelBoneOutputs.Hips.updateMatrixWorld(true);
     } */
 
     this.shoulderTransforms.Update();
@@ -2379,7 +2390,7 @@ class Avatar {
             upVector
           )
       );
-      // this.modelBoneOutputs.Root.updateMatrixWorld();
+      // this.modelBoneOutputs.Root.updateMatrixWorld(true);
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
       const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4;
@@ -2411,7 +2422,7 @@ class Avatar {
       
     };
     _updateEyeTarget();
-    this.modelBoneOutputs.Root.updateMatrixWorld();
+    this.modelBoneOutputs.Root.updateMatrixWorld(true);
     
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
@@ -2421,7 +2432,7 @@ class Avatar {
       this.getHandEnabled(0),
       this.getHandEnabled(1),
     );
-    // this.modelBones.Root.updateMatrixWorld();
+    // this.modelBones.Root.updateMatrixWorld(true);
 
     if (this.springBoneManager) {
       this.springBoneTimeStep.update(timeDiff);
@@ -2560,9 +2571,9 @@ class Avatar {
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
-        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
+        this.modelBoneOutputs.Left_arm.updateMatrixWorld(true);
         this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
-        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
+        this.modelBoneOutputs.Right_arm.updateMatrixWorld(true);
       }
 
       for (const k in this.debugMeshes.attributes) {

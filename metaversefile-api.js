@@ -251,7 +251,7 @@ const defaultComponents = {
           }
         }
         
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
       });
     }
   },
@@ -261,7 +261,7 @@ const localPlayer = new LocalPlayer({
   state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
-localPlayer.updateMatrixWorld();
+localPlayer.updateMatrixWorld(true);
 const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
@@ -566,7 +566,7 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
         localMatrix
           .compose(position, quaternion, size)
           .premultiply(app.matrixWorld)
@@ -585,7 +585,7 @@ metaversefile.setApi({
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(true);
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -596,7 +596,7 @@ metaversefile.setApi({
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
 
-        // app.updateMatrixWorld();
+        // app.updateMatrixWorld(true);
         // localMatrix
         //   .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
         //   .premultiply(app.matrixWorld)
@@ -617,7 +617,7 @@ metaversefile.setApi({
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(true);
 
         // const localPlayer = metaversefile.useLocalPlayer();
 
@@ -637,7 +637,7 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, radius, radius);
-        // app.updateMatrixWorld();
+        // app.updateMatrixWorld(true);
         // localMatrix
         //   .compose(position, quaternion, new THREE.Vector3(1, 1, 1))
         //   .premultiply(app.matrixWorld)
@@ -656,7 +656,7 @@ metaversefile.setApi({
         physicsMesh.quaternion.copy(baseQuaternion);
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(true);
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -670,18 +670,18 @@ metaversefile.setApi({
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
         parentMesh.add(mesh);
-        parentMesh.updateMatrixWorld();
+        parentMesh.updateMatrixWorld(true);
         
         const physicsObject = addGeometry.call(this, mesh);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(true);
         // window.physicsObject = physicsObject;
         
         if (oldParent) {
           oldParent.add(mesh);
-          mesh.updateMatrixWorld();
+          mesh.updateMatrixWorld(true);
         }
         
         // app.add(physicsObject);
@@ -716,7 +716,7 @@ metaversefile.setApi({
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
         localMatrix
           .compose(position, quaternion, localVector2.set(1, 1, 1))
           .premultiply(localMatrix2.copy(app.matrixWorld).invert())
@@ -724,7 +724,7 @@ metaversefile.setApi({
         return transform;
       })(physics.getPhysicsTransform);
       physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
         localMatrix
           .compose(position, quaternion, scale)
           .premultiply(app.matrixWorld)

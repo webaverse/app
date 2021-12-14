@@ -325,7 +325,7 @@ const Scene = React.memo(({objects, setObjects, open, selectedObjectIndex, setSe
       selectedObject.position.set(px, py, pz);
       selectedObject.quaternion.set(rx, ry, rz, rw);
       selectedObject.scale.set(sx, sy, sz);
-      selectedObject.updateMatrixWorld();
+      selectedObject.updateMatrixWorld(true);
       const newMatrix = localMatrix2.copy(selectedObject.matrixWorld);
 
       if (selectedObject.getPhysicsIds) {

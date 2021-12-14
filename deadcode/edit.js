@@ -405,7 +405,7 @@ worker = w;
   const _makeConvexHullShape = object => {
     const shape = new Ammo.btConvexHullShape();
     // let numPoints = 0;
-    object.updateMatrixWorld();
+    object.updateMatrixWorld(true);
     object.traverse(o => {
       if (o.isMesh) {
         const positions = o.geometry.attributes.position.array;
@@ -430,7 +430,7 @@ worker = w;
     const _vec3_2 = new Ammo.btVector3(0, 0, 0);
     const _vec3_3 = new Ammo.btVector3(0, 0, 0);
 
-    object.updateMatrixWorld();
+    object.updateMatrixWorld(true);
     object.traverse(o => {
       if (o.isMesh) {
         const positions = o.geometry.attributes.position.array;
@@ -994,7 +994,7 @@ chunkMesh = await _makeLandChunkMesh(PARCEL_SIZE, SUBPARCEL_SIZE);
 chunkMesh.position.y = -PARCEL_SIZE - 5;
 chunkMesh.position.x = -PARCEL_SIZE/2;
 chunkMesh.position.z = -PARCEL_SIZE/2;
-chunkMesh.updateMatrixWorld();
+chunkMesh.updateMatrixWorld(true);
 await chunkMesh.update(new THREE.Vector3(0, 0, 0));
 chunkMeshContainer.add(chunkMesh);
 remoteChunkMeshes.push(chunkMesh);
@@ -1083,7 +1083,7 @@ for (let i = 0; i < 30; i++) {
   npcMesh.update = () => {
     animation && animation.update();
   };
-  npcMesh.updateMatrixWorld();
+  npcMesh.updateMatrixWorld(true);
   npcMesh.matrix.premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
     .decompose(npcMesh.position, npcMesh.quaternion, npcMesh.scale);
   currentChunkMesh.add(npcMesh);
@@ -1413,7 +1413,7 @@ class PointRaycaster {
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
+    this.camera.updateMatrixWorld(true);
 
     this.renderer.render(this.scene, this.camera);
 
@@ -1569,7 +1569,7 @@ class CollisionRaycaster {
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
+    this.camera.updateMatrixWorld(true);
 
     this.camera.left = uSize / -2;
     this.camera.right = uSize / 2;
@@ -1709,7 +1709,7 @@ class PhysicsRaycaster {
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
+    this.camera.updateMatrixWorld(true);
 
     this.camera.left = uSize / -2;
     this.camera.right = uSize / 2;
@@ -2115,7 +2115,7 @@ planetContainer.add(planetMesh);
 const planetAuxContainer = new THREE.Object3D();
 const planetAuxMesh = _makePlanetMesh();
 planetAuxMesh.position.copy(planetMesh.position);
-planetAuxMesh.updateMatrixWorld();
+planetAuxMesh.updateMatrixWorld(true);
 planetAuxContainer.add(planetAuxMesh);
 
 const numRemotePlanetMeshes = 10;
@@ -2188,7 +2188,7 @@ const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
     .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, 1)))
     .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
     .decompose(planetAuxContainer.position, planetAuxContainer.quaternion, planetAuxContainer.scale)
-  planetAuxContainer.updateMatrixWorld();
+  planetAuxContainer.updateMatrixWorld(true);
 };
 const _tickPlanetAnimation = factor => {
   const {startTime, endTime, startMatrix, pivot, startQuaternion, endQuaternion} = planetAnimation;
@@ -3542,7 +3542,7 @@ function animate(timestamp, frame) {
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
       _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
+      pe.camera.updateMatrixWorld(true);
       const groundedDistance = _collideFloor(pe.camera.matrix);
       const offset = _getFloorOffset(groundedDistance);
       const ceilingDistance = _collideCeiling(pe.camera.matrix);
@@ -3554,7 +3554,7 @@ function animate(timestamp, frame) {
         velocity.y = 0;
       } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += ceilingOffset;
         velocity.y = 0;
       }
@@ -3581,7 +3581,7 @@ function animate(timestamp, frame) {
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
       _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
+      pe.camera.updateMatrixWorld(true);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       if (oldVelocity.lengthSq() > 0) {
@@ -3597,12 +3597,12 @@ function animate(timestamp, frame) {
       _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += offset;
         velocity.y = 0;
       } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += ceilingOffset;
         velocity.y = 0;
       }
@@ -3629,7 +3629,7 @@ function animate(timestamp, frame) {
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
       _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
+      pe.camera.updateMatrixWorld(true);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       if (oldVelocity.lengthSq() > 0) {
@@ -3645,12 +3645,12 @@ function animate(timestamp, frame) {
       _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += offset;
         velocity.y = 0;
       } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += ceilingOffset;
         velocity.y = 0;
       }
@@ -3678,7 +3678,7 @@ function animate(timestamp, frame) {
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
       _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
+      pe.camera.updateMatrixWorld(true);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       if (oldVelocity.lengthSq() > 0) {
@@ -3694,12 +3694,12 @@ function animate(timestamp, frame) {
       _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += offset;
         velocity.y = 0;
       } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(true);
         localVector.y += ceilingOffset;
         velocity.y = 0;
       }
@@ -3852,19 +3852,19 @@ for (let i = 0; i < tools.length; i++) {
       switch (oldSelectedTool) {
         case 'thirdperson': {
           pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
           break;
         }
         case 'isometric': {
           pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
           break;
         }
         case 'birdseye': {
           pe.camera.position.y += -birdsEyeHeight + _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
           break;
         }
@@ -3882,7 +3882,7 @@ for (let i = 0; i < tools.length; i++) {
         }
         case 'firstperson': {
           /* pe.camera.position.y = _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera); */
 
           document.dispatchEvent(new MouseEvent('mouseup'));
@@ -3893,11 +3893,11 @@ for (let i = 0; i < tools.length; i++) {
         case 'thirdperson': {
           /* pe.camera.position.y = _getAvatarHeight();
           pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera); */
 
           pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
@@ -3911,13 +3911,13 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.y = _getAvatarHeight();
           pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera); */
 
           pe.camera.rotation.x = -Math.PI / 6;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
@@ -3930,13 +3930,13 @@ for (let i = 0; i < tools.length; i++) {
           /* pe.camera.position.y = birdsEyeHeight;
           pe.camera.rotation.x = -Math.PI / 2;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera); */
 
           pe.camera.rotation.x = -Math.PI / 2;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
+          pe.camera.updateMatrixWorld(true);
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
@@ -4446,7 +4446,7 @@ const _bindTransformControls = o => {
     transformControlsHovered = false;
   });
   control.addEventListener('objectChange', e => {
-    o.updateMatrixWorld();
+    o.updateMatrixWorld(true);
     o.package.setMatrix(o.matrix);
   });
   control.attach(o);
@@ -4486,7 +4486,7 @@ const _updateMouseMovement = e => {
   } else if (selectedTool === 'birdseye') {
     pe.camera.rotation.x = -Math.PI / 2;
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-    // pe.camera.updateMatrixWorld();
+    // pe.camera.updateMatrixWorld(true);
     // pe.setCamera(camera);
   }
 
@@ -4502,7 +4502,7 @@ const _updateMouseMovement = e => {
   } else if (selectedTool === 'isometric') {
     pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
   }
-  pe.camera.updateMatrixWorld();
+  pe.camera.updateMatrixWorld(true);
   pe.setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
@@ -4736,7 +4736,7 @@ async function screenshotEngine() {
       .add(new THREE.Vector3(0, size.y / 2, 0))
       .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
     camera.lookAt(center);
-    camera.updateMatrixWorld();
+    camera.updateMatrixWorld(true);
     pe.render(
       null,
       width,

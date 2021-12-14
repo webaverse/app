@@ -292,7 +292,7 @@ const _getType = id => {
       o.avatar.setBottomEnabled(false);
       o.avatar.inputs.hmd.position.y = o.avatar.height;
       o.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-      o.avatar.inputs.hmd.updateMatrixWorld();
+      o.avatar.inputs.hmd.updateMatrixWorld(true);
       o.avatar.update(1000);
     }
   };
@@ -434,7 +434,7 @@ const _getType = id => {
               .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
           );
         camera.lookAt(center);
-        camera.updateMatrixWorld();
+        camera.updateMatrixWorld(true);
         renderer.render(scene, camera);
 
         // read
@@ -488,7 +488,7 @@ const _getType = id => {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
       scene.add(o);
-      o.updateMatrixWorld();
+      o.updateMatrixWorld(true);
 
       if (o) {
         const boundingBox = new THREE.Box3().setFromObject(o);
@@ -561,7 +561,7 @@ const _getType = id => {
                 )
               );
             camera.lookAt(center);
-            camera.updateMatrixWorld(); */
+            camera.updateMatrixWorld(true); */
             _lookAt(camera, boundingBox);
             renderer.render(scene, camera);
 
@@ -579,7 +579,7 @@ const _getType = id => {
                   .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
               );
             camera.lookAt(center);
-            camera.updateMatrixWorld(); */
+            camera.updateMatrixWorld(true); */
             _lookAt(camera, boundingBox);
             // console.log(camera.position.toArray(), camera.quaternion.toArray());
             renderer.render(scene, camera);

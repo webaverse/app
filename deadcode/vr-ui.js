@@ -499,7 +499,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
         if ((pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) && (gamepad = inputSource.gamepad)) {
           localMatrix.fromArray(pose.transform.matrix)
             .decompose(ray.position, ray.quaternion, ray.scale);
-          ray.updateMatrixWorld();
+          ray.updateMatrixWorld(true);
         }
       }
     };

@@ -25,6 +25,7 @@ export const getSkeleton = object => {
     const bones = [];
     object.scene.traverse(o => {
       o.isBone = true;
+      o.updateMatrixWorld(true);
       bones.push(o);
     });
     skeleton = new THREE.Skeleton(bones);
@@ -45,6 +46,8 @@ export const getHeight = (() => {
   const localVector = new THREE.Vector3();
   return function(object) {
     const modelBones = getModelBones(object);
+    modelBones.Root.updateMatrixWorld(true);
+    modelBones.Head.updateMatrixWorld(true);
     return getEyePosition(modelBones)
       .sub(modelBones.Root.getWorldPosition(localVector))
       .y;
@@ -626,7 +629,7 @@ const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
       console.warn('non-matching track name', track.name);
     }
   }
-  modelBones.Root.updateMatrixWorld();
+  modelBones.Root.updateMatrixWorld(true);
 };
 const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const _setSkeletonWorld = (() => {
@@ -659,7 +662,7 @@ const _setSkeletonWorld = (() => {
         dstModelBone.matrix.copy(dstModelBone.matrixWorld)
           .premultiply(localMatrix2.copy(dstModelBone.parent.matrixWorld).invert())
           .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
-        dstModelBone.updateMatrixWorld();
+        dstModelBone.updateMatrixWorld(true);
       }
       
       for (let i = 0; i < srcModelBone.children.length; i++) {
@@ -713,8 +716,8 @@ export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   for (let frame = 0; frame < numFrames; frame++) {
     const srcModelBones2 = cloneModelBones(srcModelBones);
     const dstModelBones2 = cloneModelBones(dstModelBones);
-    srcModelBones2.Root.updateMatrixWorld();
-    dstModelBones2.Root.updateMatrixWorld();
+    srcModelBones2.Root.updateMatrixWorld(true);
+    dstModelBones2.Root.updateMatrixWorld(true);
     
     _setSkeletonToAnimationFrame(srcModelBones2, srcAnimation, frame);
     _setSkeletonWorld(dstModelBones2, srcModelBones2);

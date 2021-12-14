@@ -248,7 +248,7 @@ class AppManager extends EventTarget {
         app.position.fromArray(position);
         app.quaternion.fromArray(quaternion);
         app.scale.fromArray(scale);
-        app.updateMatrixWorld();
+        app.updateMatrixWorld(true);
         app.contentId = contentId;
         app.instanceId = instanceId;
         app.setComponent('physics', true);
@@ -543,12 +543,12 @@ class AppManager extends EventTarget {
       this.appsArray.doc.transact(() => { 
         for (const app of this.apps) {
           if (this.hasTrackedApp(app.instanceId)) {
-            // app.updateMatrixWorld();
+            // app.updateMatrixWorld(true);
             
             if (!app.matrix.equals(app.lastMatrix)) {
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
-              app.updateMatrixWorld();
+              app.updateMatrixWorld(true);
               const physicsObjects = app.getPhysicsObjects();
               for (const physicsObject of physicsObjects) {
                 physicsObject.position.copy(app.position);
@@ -559,7 +559,7 @@ class AppManager extends EventTarget {
                   physicsObject.position.add(new THREE.Vector3(0, 1, 0));
                 } */
 
-                physicsObject.updateMatrixWorld();
+                physicsObject.updateMatrixWorld(true);
                 
                 //physicsManager.pushUpdate(physicsObject);
                 physicsManager.setTransform(physicsObject);
