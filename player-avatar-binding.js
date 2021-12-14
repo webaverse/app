@@ -9,12 +9,16 @@ const avatarSymbol = 'avatar'; // Symbol('avatar');
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
-    rig.inputs.hmd.position.copy(player.avatarBinding.position);
-    rig.inputs.hmd.quaternion.copy(player.avatarBinding.quaternion);
-    rig.inputs.leftGamepad.position.copy(player.leftHand.position);
-    rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
-    rig.inputs.rightGamepad.position.copy(player.rightHand.position);
-    rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
+    rig.inputs.hmd.matrix.setPosition(player.avatarBinding.position);
+    rig.inputs.hmd.matrix.makeRotationFromQuaternion(player.avatarBinding.quaternion);
+    rig.inputs.leftGamepad.matrix.setPosition(player.leftHand.position);
+    rig.inputs.leftGamepad.matrix.makeRotationFromQuaternion(player.leftHand.quaternion);
+    rig.inputs.rightGamepad.matrix.setPosition(player.rightHand.position);
+    rig.inputs.rightGamepad.matrix.makeRotationFromQuaternion(player.rightHand.quaternion);
+
+    rig.inputs.hmd.updateMatrixWorld(true);
+    rig.inputs.leftGamepad.updateMatrixWorld(true);
+    rig.inputs.rightGamepad.updateMatrixWorld(true);
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {

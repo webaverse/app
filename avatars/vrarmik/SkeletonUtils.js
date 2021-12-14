@@ -85,7 +85,7 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
         //set quaternion
         parentBone.matrix.makeRotationFromQuaternion(RESETQUAT);
         // parentBone.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*2));
-        parentBone.updateMatrixWorld(true);
+
 
         //get the child bone position in local coordinates
         // var childBoneDir = parentBone.worldToLocal(averagedDir.clone()).normalize();

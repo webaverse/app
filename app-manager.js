@@ -248,7 +248,7 @@ class AppManager extends EventTarget {
         app.position.fromArray(position);
         app.quaternion.fromArray(quaternion);
         app.scale.fromArray(scale);
-        app.updateMatrixWorld(true);
+        app.updateMatrix();
         app.contentId = contentId;
         app.instanceId = instanceId;
         app.setComponent('physics', true);
