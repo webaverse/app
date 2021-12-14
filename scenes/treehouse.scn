@@ -167,6 +167,44 @@
         0.5
       ],
       "start_url": "https://webaverse.github.io/potion/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        12
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/pistol/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        11
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
     }
   ]
 }
