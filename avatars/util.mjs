@@ -536,6 +536,8 @@ export const decorateAnimation = animation => {
   animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);
   animation.isChargeJump = /charge_jump/i.test(animation.name);
   animation.isStandCharge = /stand_charge/i.test(animation.name);
+  animation.isChargeJumpForward = /charge_jump_forward/i.test(animation.name);
+  animation.isChargeJumpBackward = /charge_jump_backward/i.test(animation.name);
   animation.isFallLoop = /falling_idle/i.test(animation.name);
   animation.isSwordSideSlash = /sword_side_slash/i.test(animation.name);
   animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
