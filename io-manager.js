@@ -258,16 +258,19 @@ ioManager.updatePost = _updateIoPost;
 
 // You can jump up / jump forward from ground
 // if you press back, you jump backward
-const _jumpDirectionHeld = (button) => {
-  if (ioManager.keys.space) {
-    if (!game.isJumping()) {      
-      // Do first
-      game.menuSpace();
+const _jumpDirectionHeld = (button, condition) => {
 
+  const isDirectionKeyHeld = ioManager.keys.up || ioManager.keys.down || ioManager.keys.right || ioManager.keys.left;
+  condition = true;
+    if (!game.isJumping()) {
+      // Do first
+      game.menuSpace(isDirectionKeyHeld);
+
+      setTimeout(() => {
+        game.jump();
+      }, 100);
       // Do after. With timeout
-      game.jump();
     }
-  }
 }
 
 ioManager.bindInterface = () => {
@@ -481,11 +484,13 @@ ioManager.keydown = e => {
     // Move this to key up space,
     // and allow key up
     case 32: { // space
-      ioManager.keys.space = true;
-      canAvatarRotate = false;
-      if (!game.isJumping()) {
-        game.menuSpace();
-      }
+
+      _jumpDirectionHeld();
+      // ioManager.keys.space = true;
+      // // canAvatarRotate = false;
+      // if (!game.isJumping()) {
+      //   game.menuSpace();
+      // }
       break;
     }
     /* case 17: { // ctrl
@@ -562,13 +567,13 @@ ioManager.keyup = e => {
       break;
     }
     case 32: { // space
-      // if (controlsManager.isPossessed()) {
+      /* if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
           game.jump();
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
-        } */
-      // }
+        } 
+      // }*/
       ioManager.keys.space = false;
       break;
     }

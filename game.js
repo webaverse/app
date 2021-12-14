@@ -1437,10 +1437,12 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   },
-  menuSpace() {
+  menuSpace(isDirectionHeld) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('chargeIdle');
+
+    const jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'standCharge';
 
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1455,22 +1457,7 @@ const gameManager = {
           animation: 'standCharge',
           // time: 0,
         };
-
         localPlayer.addAction(newAction);
-
-        chargeIdleTimer = setTimeout(() => {
-          const localPlayer = metaversefileApi.useLocalPlayer();
-          localPlayer.removeAction('standCharge');
-          const action = localPlayer.getAction('chargeIdle');
-          if (!action) {
-            const chargeIdleAction = {
-              type: 'chargeIdle',
-              animation: 'chargeIdle',
-            // time: 0,
-            };
-            localPlayer.addAction(chargeIdleAction);
-          }
-        }, 300);
       }
     }
   },

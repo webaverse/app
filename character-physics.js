@@ -166,7 +166,7 @@ class CharacterPhysics {
                   setTimeout(() => {
                     localPlayer.removeAction('landing');
                     localPlayer.removeAction('fallLoop');
-                  }, 1100);
+                  }, 200);
                 }
               }
           }
