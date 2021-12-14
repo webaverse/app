@@ -2237,22 +2237,23 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
-            if (isTop) {
-              const isCombo = Array.isArray(this.useAnimation);
-              const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
-              const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
-              _handleDefault(spec);
+            const isCombo = Array.isArray(this.useAnimation);
+            const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
+            const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
+            _handleDefault(spec);
+            const t2 = (() => {
+              if (isCombo) {
+                return Math.min(this.useTime/1000, useAnimation.duration);
+              } else {
+                return (this.useTime/1000) % useAnimation.duration;
+              }
+            })();
+            if (!isPosition) {
               if (useAnimation) {
-                const t2 = (() => {
-                  if (isCombo) {
-                    return Math.min(this.useTime/1000, useAnimation.duration);
-                  } else {
-                    return (this.useTime/1000) % useAnimation.duration;
-                  }
-                })();
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
@@ -2268,7 +2269,17 @@ class Avatar {
                 _handleDefault(spec);
               } */
             } else {
-              _handleDefault(spec);
+              const src2 = useAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         } else if (this.aimAnimation) {
@@ -2276,14 +2287,15 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
-            if (isTop) {
-              const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
-              _handleDefault(spec);
+            const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+            _handleDefault(spec);
+            const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
+            if (!isPosition) {
               if (aimAnimation) {
-                const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
                 const src2 = aimAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
@@ -2299,7 +2311,17 @@ class Avatar {
                 _handleDefault(spec);
               } */
             } else {
-              _handleDefault(spec);
+              const src2 = aimAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         }
