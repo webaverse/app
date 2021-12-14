@@ -564,6 +564,7 @@ class InterpolatedPlayer extends Player {
       dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      chargeJumpForward: new BinaryInterpolant(() => this.hasAction('chargeJumpForward'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeIdle: new BinaryInterpolant(() => this.hasAction('chargeIdle'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -584,6 +585,7 @@ class InterpolatedPlayer extends Player {
       throw: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.throw.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       chargeJump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       standCharge: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.standCharge.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      chargeJumpForward: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJumpForward.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       chargeIdle: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeIdle.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       fallLoop: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fallLoop.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       swordSideSlash: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.swordSideSlash.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -603,6 +605,7 @@ class InterpolatedPlayer extends Player {
       throw: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0),
       chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
       standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
+      chargeJumpForward: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJumpForward.get(), 0),
       chargeIdle: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeIdle.get(), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
       swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
@@ -656,6 +659,7 @@ class UninterpolatedPlayer extends Player {
       swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       landing: new InfiniteActionInterpolant(() => this.hasAction('landing'), 0),
       chargeIdle: new InfiniteActionInterpolant(() => this.hasAction('chargeIdle'), 0),
+      chargeJumpForward: new InfiniteActionInterpolant(() => this.hasAction('chargeJumpForward'), 0),
 
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);

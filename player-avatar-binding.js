@@ -85,6 +85,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const crouchAction = player.getAction('crouch');
   const chargeJump = player.getAction('chargeJump');
   const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
+  const chargeJumpForward = player.getAction('chargeJumpForward');
+  const chargeJumpForwardAnimation = chargeJumpForward ? chargeJumpForward.animation : '';
   const standCharge = player.getAction('standCharge');
   const standChargeAnimation = standCharge ? standCharge.animation : '';
   const chargeIdle = player.getAction('chargeIdle');
@@ -127,6 +129,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.standChargeTime = player.actionInterpolants.standCharge.get();
   rig.standChargeAnimation = standChargeAnimation;
   rig.standChargeState = !!standCharge;
+
+  rig.chargeJumpForwardTime = player.actionInterpolants.chargeJumpForward.get();
+  rig.chargeJumpForwardAnimation = chargeJumpForwardAnimation;
+  rig.chargeJumpForwardState = !!chargeJumpForward;
   rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoop;

@@ -1420,12 +1420,12 @@ const gameManager = {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('fallLoop');
+      const action = localPlayer.getAction('dance');
 
       if (!action) {
         const newAction = {
-          type: 'fallLoop',
-          animation: 'fallLoop',
+          type: 'dance',
+          animation: 'dansu',
           time: 0,
         };
 
@@ -1435,7 +1435,7 @@ const gameManager = {
   },
   menuVUp(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('fallLoop');
+    localPlayer.removeAction('dance');
   },
   menuSpace() {
     const localPlayer = metaversefileApi.useLocalPlayer();
