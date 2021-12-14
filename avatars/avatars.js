@@ -13,7 +13,7 @@ import {angleDifference, getVelocityDampingFactor} from '../util.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
 import metaversefile from 'metaversefile';
 import {
@@ -1228,8 +1228,9 @@ class Avatar {
     this.swordSideSlashTime = 0;
     this.swordTopDownSlashState = false;
     this.swordTopDownSlashTime = 0;
-    this.aimState = false;
-    this.aimDirection = new THREE.Vector3();
+    this.aimTime = NaN;
+    this.aimAnimation = null;
+    // this.aimDirection = new THREE.Vector3();
     
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -2220,7 +2221,8 @@ class Avatar {
           
           _getHorizontalBlend(k, lerpFn, dst);
         };
-        if (this.useTime >= 0) {
+        // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
+        if (this.useAnimation) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2229,10 +2231,34 @@ class Avatar {
             } = spec;
             
             if (isTop) {
-              const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]) //|| useAnimations[defaultUseAnimation];
+              const useAnimation = (this.useAnimation && useAnimations[this.useAnimation]);
+              // console.log('get use animation', [this.useAnimation, useAnimation]);
               if (useAnimation) {
                 const t2 = (this.useTime/useMaxTime) % useAnimation.duration;
                 const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                dst.fromArray(v2);
+              } else {
+                _handleDefault(spec);
+              }
+            } else {
+              _handleDefault(spec);
+            }
+          };
+        } else if (this.aimAnimation) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+            
+            if (isTop) {
+              const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+              if (aimAnimation) {
+                const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
+                const src2 = aimAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
                 dst.fromArray(v2);
