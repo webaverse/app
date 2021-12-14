@@ -446,8 +446,8 @@ ioManager.keydown = e => {
       break;
     }
     case 80: { // P
-      game.destroyWorld()
-      game.menuPhysics();
+      // game.destroyWorld()
+      // game.menuPhysics();
       break;
     }
     case 16: { // shift
