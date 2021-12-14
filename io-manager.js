@@ -35,7 +35,7 @@ const localRaycaster = new THREE.Raycaster();
 const zeroVector = new THREE.Vector3();
 
 const ioManager = new EventTarget();
-
+let canAvatarRotate = true;
 ioManager.lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
 ioManager.lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
 ioManager.currentWeaponValue = 0;
@@ -80,16 +80,16 @@ const _inputFocused = () => document.activeElement && (document.activeElement.ta
 ioManager.inputFocused = _inputFocused;
 
 const _updateHorizontal = direction => {
-  if (ioManager.keys.left) {
+  if (ioManager.keys.left && canAvatarRotate) {
     direction.x -= 1;
   }
-  if (ioManager.keys.right) {
+  if (ioManager.keys.right && canAvatarRotate) {
     direction.x += 1;
   }
-  if (ioManager.keys.up) {
+  if (ioManager.keys.up && canAvatarRotate) {
     direction.z -= 1;
   }
-  if (ioManager.keys.down) {
+  if (ioManager.keys.down && canAvatarRotate) {
     direction.z += 1;
   }
 };
@@ -254,6 +254,21 @@ const _updateIoPost = () => {
   }
 };
 ioManager.updatePost = _updateIoPost;
+
+
+// You can jump up / jump forward from ground
+// if you press back, you jump backward
+const _jumpDirectionHeld = (button) => {
+  if (ioManager.keys.space) {
+    if (!game.isJumping()) {      
+      // Do first
+      game.menuSpace();
+
+      // Do after. With timeout
+      game.jump();
+    }
+  }
+}
 
 ioManager.bindInterface = () => {
   const iframed = isInIframe();
@@ -467,6 +482,7 @@ ioManager.keydown = e => {
     // and allow key up
     case 32: { // space
       ioManager.keys.space = true;
+      canAvatarRotate = false;
       if (!game.isJumping()) {
         game.menuSpace();
       }
