@@ -21,7 +21,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/"
+      "start_url": "https://yaserosource.github.io/street/"
     },
     {
       "position": [
@@ -29,7 +29,7 @@
         30,
         -30
       ],
-      "start_url": "https://webaverse.github.io/floating-island/"
+      "start_url": "https://yaserosource.github.io/floating-island/"
     },
     {
       "position": [
@@ -37,7 +37,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox/"
+      "start_url": "https://yaserosource.github.io/skybox/"
     },
     {
       "position": [
@@ -45,7 +45,7 @@
         0,
         -2
       ],
-      "start_url": "https://webaverse.github.io/mirror/"
+      "start_url": "https://yaserosource.github.io/mirror/"
     }
   ]
 }
