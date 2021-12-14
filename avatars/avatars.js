@@ -2244,6 +2244,7 @@ class Avatar {
               const isCombo = Array.isArray(this.useAnimation);
               const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
               const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
+              _handleDefault(spec);
               if (useAnimation) {
                 const t2 = (() => {
                   if (isCombo) {
@@ -2255,10 +2256,17 @@ class Avatar {
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
-                dst.fromArray(v2);
-              } else {
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              } /* else {
                 _handleDefault(spec);
-              }
+              } */
             } else {
               _handleDefault(spec);
             }
