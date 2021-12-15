@@ -140,10 +140,6 @@
         }
       }
 
-
-
-      
-
       let isRecognizerReady = false;
 
       // These will be initialized later
@@ -234,48 +230,6 @@
            updateStatus("Recognizer ready");
       };
 
-      // We get the grammars defined below and fill in the input select tag
-      /* var updateGrammars = function() {
-        var selectTag = document.getElementById('grammars');
-        for (var i = 0 ; i < grammarIds.length ; i++) {
-            var newElt = document.createElement('option');
-            newElt.value=grammarIds[i].id;
-            newElt.innerHTML = grammarIds[i].title;
-            selectTag.appendChild(newElt);
-        }                          
-      }; */
-
-      // This adds a grammar from the grammars array
-      // We add them one by one and call it again as
-      // a callback.
-      // Once we are done adding all grammars, we can call
-      // recognizerReady()
-      var feedGrammar = function(g, index, id) {
-        if (id && (grammarIds.length > 0)) grammarIds[0].id = id.id;
-        if (index < g.length) {
-          grammarIds.unshift({title: g[index].title});
-          postRecognizerJob({command: 'addGrammar', data: g[index].g},
-                              function(id) {feedGrammar(grammars, index + 1, {id:id});});
-        } else {
-          // We are adding keyword spotting which has id 0
-          grammarIds.push({"id":0, "title": "Keyword spotting"});
-          recognizerReady();
-        }
-      };
-
-      // This adds words to the recognizer. When it calls back, we add grammars
-      var feedWords = function(words) {
-        postRecognizerJob(
-          {
-            command: 'addWords',
-            data: words,
-          },
-          function() {
-            feedGrammar(grammars, 0);
-          }
-        );
-      };
-
       // This initializes the recognizer. When it calls back, we add words
       var initRecognizer = function() {
           // You can pass parameters to the recognizer, such as : {command: 'initialize', data: [["-hmm", "my_model"], ["-fwdflat", "no"]]}
@@ -285,8 +239,6 @@
               data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */['-allphone', 'en-us-phone.lm.bin']],
             },
             function() {
-              // if (recorder) recorder.consumers = [recognizer];
-              // feedWords(wordList);
               recognizerReady();
             }
           );
@@ -366,7 +318,7 @@
       stopBtn.disabled = true;
       startBtn.onclick = startRecording;
       stopBtn.onclick = stopRecording;
-      };
+    };
     </script>
   </body>
 </html>
