@@ -228,7 +228,7 @@
         postRecognizerJob(message, callback) {
           var msg = message || {};
           msg.callbackId = this.callbackManager.add(callback);
-          if (audioRecognizer) audioRecognizer.worker.postMessage(msg);
+          this.worker.postMessage(msg);
         }
         waitForLoad() {
           return this.loadPromise;
