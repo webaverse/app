@@ -122,7 +122,7 @@ class Resampler extends EventTarget {
 
 		const config = {};
 		let recBuffers = [];
-		var inputBufferLength = config.inputBufferLength || 4096;
+		// var inputBufferLength = config.inputBufferLength || 4096;
 		var outputBufferLength = config.outputBufferLength || 4000;
 		const inSampleRate = sampleRate;
 		const outputSampleRate = config.outputSampleRate || 16000;
