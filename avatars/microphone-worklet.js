@@ -62,14 +62,6 @@ class VolumeProcessor extends AudioWorkletProcessor {
         numSamples = 0;
       }
     }
-    if (emitBuffer) {
-      const i = 0;
-      const samples = channels[i];
-      this.port.postMessage({
-        method: 'buffer',
-        data: samples,
-      });
-    }
 
     if (!muted) {
       for (let i = 0; i < outputs.length; i++) {
@@ -82,6 +74,17 @@ class VolumeProcessor extends AudioWorkletProcessor {
           output[channel] && input[channel] &&
             output[channel].set(input[channel]);
         }
+      }
+    }
+
+    if (emitBuffer) {
+      const i = 0;
+      const samples = channels[i];
+      if (samples) {
+        this.port.postMessage({
+          method: 'buffer',
+          data: samples,
+        }, [samples.buffer]);
       }
     }
 
