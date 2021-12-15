@@ -494,10 +494,16 @@
       // This initializes the recognizer. When it calls back, we add words
       var initRecognizer = function() {
           // You can pass parameters to the recognizer, such as : {command: 'initialize', data: [["-hmm", "my_model"], ["-fwdflat", "no"]]}
-          postRecognizerJob({command: 'initialize', data: [["-kws", "kws.txt"], ["-dict","kws.dict"]]},
-                            function() {
-                                        if (recorder) recorder.consumers = [recognizer];
-                                        feedWords(wordList);});
+          postRecognizerJob(
+            {
+              command: 'initialize',
+              data: [["-kws", "kws.txt"], ["-dict","kws.dict"], ['-allphone', 'en-us-phone.lm.bin']],
+            },
+            function() {
+              if (recorder) recorder.consumers = [recognizer];
+              feedWords(wordList);
+            }
+          );
       };
 
       // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
@@ -530,10 +536,30 @@
             // Once the worker is fully loaded, we can call the initialize function
             // but before that we lazy-load two files for keyword spoting (key phrase
             // file plus associated dictionary.
-            postRecognizerJob({command: 'lazyLoad',
-                               data: {folders: [], files: [["/", "kws.txt", "../kws.txt"],
-                                                           ["/", "kws.dict", "../kws.dict"]]}
-                              }, initRecognizer);
+            
+            // console.log('lazy load');
+            
+            postRecognizerJob({
+              command: 'lazyLoad',
+              data: {
+                // pocketsphinx/model/en-us/en-us-phone.lm.bin
+                // folders: [["/", "zh_broadcastnews_ptm256_8000"]],
+                folders: [],
+                files: [
+                  ["/", "en-us-phone.lm.bin", "../../../model/en-us/en-us-phone.lm.bin"],
+                  /* ["/zh_broadcastnews_ptm256_8000", "means", "../zh_broadcastnews_ptm256_8000/means"],
+                  ["/zh_broadcastnews_ptm256_8000", "variances", "../zh_broadcastnews_ptm256_8000/variances"],
+                  ["/zh_broadcastnews_ptm256_8000", "transition_matrices", "../zh_broadcastnews_ptm256_8000/transition_matrices"],
+                  ["/zh_broadcastnews_ptm256_8000", "sendump", "../zh_broadcastnews_ptm256_8000/sendump"],
+                  ["/zh_broadcastnews_ptm256_8000", "mdef", "../zh_broadcastnews_ptm256_8000/mdef"],
+                  ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
+                  ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
+                  ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
+                  ["/", "kws.txt", "../kws.txt"],
+                  ["/", "kws.dict", "../kws.dict"],
+                ],
+              },
+            }, initRecognizer);
         });
 
         // The following is to initialize Web Audio
