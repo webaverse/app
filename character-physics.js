@@ -159,9 +159,8 @@ class CharacterPhysics {
             const fallLoopAction = this.player.hasAction('fallLoop');
             const chargeAction = this.player.hasAction('chargeJump');
             const chargeJumpForward = this.player.hasAction('chargeJumpForward');
-            console.log(fallLoopAction, chargeAction, chargeJumpForward)
-            if (fallLoopAction || chargeAction || chargeJumpForward) {
-            console.log('landing')
+            const chargeJumpForwardIdle = this.player.hasAction('chargeJumpForwardIdle');
+            if (fallLoopAction || chargeAction || chargeJumpForward || chargeJumpForwardIdle) {
                 const localPlayer = metaversefileApi.useLocalPlayer();
                 const isLandingPlaying = localPlayer.avatar.landingState;
                 if(!isLandingPlaying )
@@ -179,6 +178,7 @@ class CharacterPhysics {
                     this.player.removeAction('fallLoop');
                     this.player.removeAction('chargeJump');
                     this.player.removeAction('chargeJumpForward');
+                    this.player.removeAction('chargeJumpForwardIdle');
                   }, 200);
                 }
             }

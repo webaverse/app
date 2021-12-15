@@ -1445,8 +1445,7 @@ const gameManager = {
     localPlayer.removeAction('chargeIdle');
 
     jumpActionName = isDirectionHeld ? 'chargeJumpForward' : 'chargeJump';
-    
-    isDirectional = isDirectionHeld ? 'chargeJumpForward' : 'chargeJump';
+    isDirectional = isDirectionHeld ;
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
@@ -1588,31 +1587,36 @@ const gameManager = {
     }
   },
   isJumping() {
-    return metaversefileApi.useLocalPlayer().hasAction('chargeJump') || metaversefileApi.useLocalPlayer().hasAction('chargeJumpForward') || metaversefileApi.useLocalPlayer().hasAction('fallLoop');
+    return metaversefileApi.useLocalPlayer().hasAction('chargeJump') || metaversefileApi.useLocalPlayer().hasAction('chargeJumpForward') ||
+    metaversefileApi.useLocalPlayer().hasAction('fallLoop') || metaversefileApi.useLocalPlayer().hasAction('chargeJumpForwardIdle');
   },
 
   ensureFallLoop () {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const fallLoopAction = localPlayer.getAction('fallLoop');
+    const fallLoopAction = localPlayer.getAction(this.getFallAction());
 
     if (!fallLoopAction) {
       const newfallLoopAction = {
-        type: 'fallLoop',
+        type: this.getFallAction(),
       };
+
+      console.log(this.getFallAction())
       localPlayer.addAction(newfallLoopAction);
     }
+  },
+
+  getFallAction() {
+    return isDirectional ? 'chargeJumpForwardIdle' : 'fallLoop';
   },
 
   ensureJump() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction(jumpActionName);
 
-    // idle animation only available for chargeJump
-    if (jumpActionName === 'chargeJump') {
       setTimeout(() => {
         this.ensureFallLoop()
      }, 800)
-    }
+
  
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
@@ -1642,6 +1646,8 @@ const gameManager = {
     localPlayer.removeAction('chargeIdle');
     localPlayer.removeAction('standCharge');
     localPlayer.removeAction('fallLoop');
+    localPlayer.removeAction('chargeJumpForwardIdle');
+
     clearTimeout(chargeIdleTimer);
 
 
