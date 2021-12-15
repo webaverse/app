@@ -243,7 +243,7 @@
       let isRecognizerReady = false;
 
       // These will be initialized later
-      var audioRecognizer, audioRecorder, audioContext, outputContainer;
+      var audioContext, outputContainer;
       // Only when both recorder and recognizer do we have a ready application
       var isRecorderReady = isRecognizerReady = false;
 
@@ -269,18 +269,6 @@
         else document.getElementById('recording-indicator').innerHTML = "";
       };
 
-      // This starts recording. We first need to get the id of the grammar to use
-      var startRecording = function() {
-        audioRecorder.start();
-        displayRecording(true);
-      };
-
-      // Stops recording
-      var stopRecording = function() {
-        audioRecorder && audioRecorder.stop();
-        displayRecording(false);
-      };
-
       // Called once the recognizer is ready
       // We then add the grammars to the input select tag and update the UI
       var recognizerReady = function() {
@@ -297,6 +285,17 @@
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
 
         {
+          // This starts recording. We first need to get the id of the grammar to use
+          var startRecording = function() {
+            audioRecorder.start();
+            displayRecording(true);
+          };
+          // Stops recording
+          var stopRecording = function() {
+            audioRecorder && audioRecorder.stop();
+            displayRecording(false);
+          };
+
           // Wiring JavaScript to the UI
           var startBtn = document.getElementById('startBtn');
           var stopBtn = document.getElementById('stopBtn');
@@ -316,8 +315,8 @@
           updateStatus("Error initializing Web Audio browser");
         }
 
-        audioRecognizer = new AudioRecognizer();
-        audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
+        const audioRecognizer = new AudioRecognizer();
+        const audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
 
         await audioRecognizer.waitForLoad();
         recognizerReady();
