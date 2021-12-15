@@ -132,7 +132,7 @@ class Resampler extends EventTarget {
 			for (var i = 0 ; i < inputBuffer.length ; i++) {
 				recBuffers.push(inputBuffer[i] * 2 * 16383.0);
 			}
-			while (recBuffers.length * outputSampleRate / inSampleRate > outputBufferLength) {
+			while (outputBufferLength < recBuffers.length * outputSampleRate / inSampleRate) {
 				var result = new Int16Array(outputBufferLength);
 				var bin = 0,
 				num = 0,
