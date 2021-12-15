@@ -387,8 +387,7 @@ function _updateResult() {
 		if (i === vowelIndex) {
 			result[i] = 1;
 		} else {
-			const now = performance.now();
-			result[i] = Math.max(0, 1 - (now - lastVowelTimestamps[i]) / vowelDecayTime);
+			result[i] = Math.max(0, 1 - (performance.now() - lastVowelTimestamps[i]) / vowelDecayTime);
 		}
 	}
 }
