@@ -19,7 +19,7 @@
     </div>
     <h2>Status</h2>
     <div id="current-status">Loading page</div>
-    
+
     <script type="module">
       import MicrophoneWorker from './avatars/microphone-worker.js';
 
@@ -132,6 +132,7 @@
                 ]
               }); */
             });
+            this.microphoneWorker = microphoneWorker;
 
             await microphoneWorker.waitForLoad();
 
@@ -146,12 +147,13 @@
           audio.addEventListener('error', e => {
             console.log('load error', e);
           });
-          window.audio = audio;
+          // window.audio = audio;
           // console.log('create audio', audio);
-          document.body.appendChild(audio);
+          // document.body.appendChild(audio);
         }
         stop() {
           this.consumer.postMessage({ command: 'stop' });
+          this.microphoneWorker.close();
         }
         cancel() {
           this.stop();
