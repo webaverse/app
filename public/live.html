@@ -358,8 +358,7 @@
             data: words,
           },
           function() {
-            // feedGrammar(grammars, 0);
-            recognizerReady();
+            feedGrammar(grammars, 0);
           }
         );
       };
@@ -373,8 +372,9 @@
               data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */['-allphone', 'en-us-phone.lm.bin']],
             },
             function() {
-              if (recorder) recorder.consumers = [recognizer];
-              feedWords(wordList);
+              // if (recorder) recorder.consumers = [recognizer];
+              // feedWords(wordList);
+              recognizerReady();
             }
           );
       };
