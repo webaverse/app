@@ -244,13 +244,13 @@
       let isRecognizerReady = false;
 
       // These will be initialized later
-      var audioContext, outputContainer;
+      let outputContainer;
       // Only when both recorder and recognizer do we have a ready application
-      var isRecorderReady = isRecognizerReady = false;
+      let isRecorderReady = isRecognizerReady = false;
 
       // To display the hypothesis sent by the recognizer
       function updateHyp(hyp) {
-        if (outputContainer) outputContainer.innerHTML = hyp;
+        outputContainer.innerHTML = hyp;
       };
 
       // This updates the UI when the app might get ready
@@ -285,8 +285,9 @@
         outputContainer = document.getElementById("output");
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
 
-        const audioUrl = '/sounds/pissbaby.mp3';
         {
+          const audioUrl = '/sounds/pissbaby.mp3';
+
           // This starts recording. We first need to get the id of the grammar to use
           var startRecording = function() {
             audioRecorder.start(audioUrl);
