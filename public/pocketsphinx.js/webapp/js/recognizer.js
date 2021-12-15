@@ -343,9 +343,34 @@ function stop() {
     }
 }
 
-function getResult(hyp) {
-	const words = hyp.split(' ');
-	return words[words.length - 1] ?? '';
+const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+const _getLastWord = function(hyp, pred = () => true) {
+	let lastWord = '';
+	let i = hyp.length - 1;
+	while (i >= 0) {
+		for (; i >= 0; i--) {
+			if (hyp[i] === ' ' && lastWord.length !== 0) {
+				break;
+			}
+			if (hyp[i] !== ' ') {
+				lastWord = hyp[i] + lastWord;
+			}
+		}
+		if (pred(lastWord)) {
+		  break;
+		} else {
+		  lastWord = '';
+		}
+	}
+	return lastWord;
+};
+const result = new Float32Array(VOWELS.length);
+function _updateResult(hyp) {
+	const lastWord = _getLastWord(hyp);
+	const vowelIndex = VOWELS.findIndex(v => lastWord.includes(v)) ?? '';
+	if (vowelIndex !== -1) {
+	  result[vowelIndex] += 1;
+	}
 }
 
 function process(array) {
@@ -369,7 +394,7 @@ function process2(array) {
 				hyp: Utf8Decode(recognizer.getHyp()),
 				hypseg: segToArray(segmentation),
 			}); */
-			const result = getResult(hyp);
+			_updateResult(hyp);
 			post({
 				result,
 			});
