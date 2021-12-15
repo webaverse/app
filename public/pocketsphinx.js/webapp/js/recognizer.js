@@ -325,6 +325,8 @@ function start(id) {
     } else {
 	post({status: "error", command: "start", code: "js-no-recognizer"});
     }
+
+  _startLoop();
 }
 
 function stop() {
@@ -341,9 +343,18 @@ function stop() {
     } else {
 	post({status: "error", command: "stop", code: "js-no-recognizer"});
     }
+
+	_stopLoop();
 }
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+const lastVowelTimestamps = new Float32Array(VOWELS.length);
+for (let i = 0; i < lastVowelTimestamps.length; i++) {
+	lastVowelTimestamps[i] = -Infinity;
+}
+let vowelIndex = -1;
+const result = new Float32Array(VOWELS.length);
+const vowelDecayTime = 500;
 const _getLastWord = function(hyp, pred = () => true) {
 	let lastWord = '';
 	let i = hyp.length - 1;
@@ -364,12 +375,21 @@ const _getLastWord = function(hyp, pred = () => true) {
 	}
 	return lastWord;
 };
-const result = new Float32Array(VOWELS.length);
-function _updateResult(hyp) {
-	const lastWord = _getLastWord(hyp, word => word !== 'SIL');
-	const vowelIndex = VOWELS.findIndex(v => lastWord.includes(v)) ?? '';
+function _pushResult(hyp) {
+	const lastWord = _getLastWord(hyp, word => word !== 'SIL' && VOWELS.some(v => word.includes(v)));
+	vowelIndex = VOWELS.findIndex(v => lastWord.includes(v));
 	if (vowelIndex !== -1) {
-	  result[vowelIndex] += 1;
+		lastVowelTimestamps[vowelIndex] = performance.now();
+	}
+}
+function _updateResult() {
+	for (let i = 0; i < VOWELS.length; i++) {
+		if (i === vowelIndex) {
+			result[i] = 1;
+		} else {
+			const now = performance.now();
+			result[i] = Math.max(0, 1 - (now - lastVowelTimestamps[i]) / vowelDecayTime);
+		}
 	}
 }
 
@@ -394,12 +414,26 @@ function process2(array) {
 				hyp: Utf8Decode(recognizer.getHyp()),
 				hypseg: segToArray(segmentation),
 			}); */
-			_updateResult(hyp);
-			post({
+			_pushResult(hyp);
+			/* post({
 				result,
-			});
+			}); */
 	  }
   } else {
 	  post({status: "error", command: "process", code: "js-no-recognizer"});
   }
 }
+
+let interval = null;
+const _startLoop = () => {
+	interval = setInterval(() => {
+		_updateResult();
+		post({
+			result,
+		});
+	}, 1000/60);
+};
+const _stopLoop = () => {
+  clearInterval(interval);
+  interval = null;
+};
