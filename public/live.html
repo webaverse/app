@@ -370,7 +370,7 @@
           postRecognizerJob(
             {
               command: 'initialize',
-              data: [["-kws", "kws.txt"], ["-dict","kws.dict"], ['-allphone', 'en-us-phone.lm.bin']],
+              data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */['-allphone', 'en-us-phone.lm.bin']],
             },
             function() {
               if (recorder) recorder.consumers = [recognizer];
@@ -428,8 +428,8 @@
                   ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
                   ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
                   ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
-                  ["/", "kws.txt", "../kws.txt"],
-                  ["/", "kws.dict", "../kws.dict"],
+                  // ["/", "kws.txt", "../kws.txt"],
+                  // ["/", "kws.dict", "../kws.dict"],
                 ],
               },
             }, initRecognizer);
