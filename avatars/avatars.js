@@ -2647,9 +2647,12 @@ class Avatar {
         this.volume = this.volume*0.8 + e.data*0.2;
       });
       this.microphoneWorker.addEventListener('buffer', e => {
-        this.audioRecognizer.send(e.data);
+        if (live) {
+          this.audioRecognizer.send(e.data);
+        }
       });
 
+      let live = false;
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: options.audioContext.sampleRate,
       });
@@ -2657,6 +2660,10 @@ class Avatar {
         this.vowels.set(e.data);
         console.log('got vowels', this.vowels.join(','));
       });
+      this.audioRecognizer.waitForLoad()
+        .then(() => {
+          live = true;
+        });
     } else {
       this.volume = -1;
     }
