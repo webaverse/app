@@ -29,7 +29,7 @@ class AudioRecognizer extends EventTarget {
 
     const workerURL = '/pocketsphinx.js/webapp/js/recognizer.js';
     this.worker = new Worker(workerURL);
-    this.worker.onmessage = event => {
+    this.worker.onmessage = e => {
       this.worker.onmessage = e => {
         // This is the case when we have a callback id to be called
         if (e.data.hasOwnProperty('id')) {
