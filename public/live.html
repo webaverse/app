@@ -140,16 +140,14 @@
         }
       }
       class Resampler extends EventTarget {
-        constructor(audioContext) {
+        constructor({sampleRate}) {
           super();
-
-          this.audioContext = audioContext;
 
           const config = {};
           let recBuffers = [];
           var inputBufferLength = config.inputBufferLength || 4096;
           var outputBufferLength = config.outputBufferLength || 4000;
-          const inSampleRate = this.audioContext.sampleRate;
+          const inSampleRate = sampleRate;
           const outputSampleRate = config.outputSampleRate || 16000;
           
           this.handle = inputBuffer => {
@@ -288,7 +286,9 @@
         function stop() {
           microphoneWorker.close();
         }
-        const resampler = new Resampler(audioContext);
+        const resampler = new Resampler({
+          sampleRate: audioContext.sampleRate,
+        });
         resampler.addEventListener('data', e => {
           audioRecognizer.send(e.data);
         });
