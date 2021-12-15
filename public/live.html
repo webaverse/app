@@ -136,7 +136,10 @@
           });
         }
         send(result) {
-          this.worker.postMessage({ command: 'process', data: result });
+          this.worker.postMessage({
+            command: 'process',
+            data: result,
+          }, [result.buffer]);
         }
         destroy() {
           this.worker.postMessage({ command: 'stop' });
