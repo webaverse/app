@@ -264,15 +264,11 @@
         let microphoneWorker = null;
         function start(audioUrl) {
           const audio = new Audio(audioUrl);
-          // audio.controls = true;
-          // audio.loop = true;
           audio.addEventListener('canplaythrough', async e => {
             const options = {
               muted: false,
-              // emitVolume: true,
               emitBuffer: true,
               audioContext,
-              // microphoneWorkletUrl: 'microphone-worklet.js',
               microphoneWorkletUrl: '/avatars/microphone-worklet.js',
             }
             microphoneWorker = new MicrophoneWorker(audio, options);
@@ -282,15 +278,12 @@
             microphoneWorker.addEventListener('buffer', e => {
               resampler.send(e.data);
             });
-
-            await microphoneWorker.waitForLoad();
-
-            audio.play();
-            audioContext.resume();
           }, {once: true});
           audio.addEventListener('error', e => {
             console.log('load error', e);
           });
+          audio.play();
+          audioContext.resume();
         }
         function stop() {
           microphoneWorker.close();
