@@ -177,7 +177,6 @@
             };
 
             (async () => {
-              // console.log('got 1');
               await this.postRecognizerJob({
                 command: 'lazyLoad',
                 data: {
@@ -199,7 +198,6 @@
                   ],
                 },
               });
-              // console.log('got 2');
               await this.postRecognizerJob(
                 {
                   command: 'initialize',
@@ -210,11 +208,9 @@
               this.worker.postMessage({ command: 'start', data: '' });
 
               this.loadPromise.accept();
-              // console.log('got 3');
             })();
           };
-          // As arguments, you can pass non-default path to pocketsphinx.js and pocketsphinx.wasm:
-          // recognizer.postMessage({'pocketsphinx.wasm': '/path/to/pocketsphinx.wasm', 'pocketsphinx.js': '/path/to/pocketsphinx.js'});
+
           this.worker.postMessage({
             'pocketsphinx.js': 'pocketsphinx.js',
             'pocketsphinx.wasm': 'pocketsphinx.wasm',
