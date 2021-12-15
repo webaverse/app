@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Vector3 } from 'three';
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,
@@ -83,7 +84,7 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
       if (averagedDir) {
 
         //set quaternion
-        parentBone.matrix.makeRotationFromQuaternion(RESETQUAT);
+        parentBone.quaternion.copy(RESETQUAT);
         // parentBone.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*2));
         parentBone.updateMatrixWorld(true);
 
@@ -104,6 +105,7 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
     childBones.forEach((childBone) => {
       var childBonePosWorld = worldPos[childBone.id][0].clone();
       parentBone.worldToLocal(childBonePosWorld);
+      // childBone.matrix.compose(childBonePosWorld, childBone.quaternion, new Vector3(1, 1, 1));
       childBone.position.copy(childBonePosWorld);
       childBone.updateMatrixWorld(true);
     });
