@@ -7,6 +7,7 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 // import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
+import {AudioRecognizer} from '../audio-recognizer.js';
 // import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
 // import physicsManager from '../physics-manager.js';
@@ -734,6 +735,7 @@ class Avatar {
     this.flipY = flipY;
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
+    this.vowels = new Float32Array(5);
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -2638,11 +2640,23 @@ class Avatar {
       this.microphoneWorker = null;
     }
     if (microphoneMediaStream) {
+      this.volume = 0;
+      
       this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
       this.microphoneWorker.addEventListener('volume', e => {
         this.volume = this.volume*0.8 + e.data*0.2;
       });
-      this.volume = 0;
+      this.microphoneWorker.addEventListener('buffer', e => {
+        this.audioRecognizer.send(e.data);
+      });
+
+      this.audioRecognizer = new AudioRecognizer({
+        sampleRate: options.audioContext.sampleRate,
+      });
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+        console.log('got vowels', this.vowels.join(','));
+      });
     } else {
       this.volume = -1;
     }
