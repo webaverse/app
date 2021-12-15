@@ -62,6 +62,9 @@ startup(function(event) {
     case 'initialize':
 	initialize(event.data.data, event.data.callbackId);
 	break;
+	  case 'configure':
+			configure(event.data.data);
+	break;
     case 'load':
 	load(event.data.data, event.data.callbackId);
 	break;
@@ -113,6 +116,67 @@ function segToArray(segmentation) {
     return output;
 };
 
+class Resampler extends EventTarget {
+	constructor({sampleRate}) {
+		super();
+
+		const config = {};
+		let recBuffers = [];
+		var inputBufferLength = config.inputBufferLength || 4096;
+		var outputBufferLength = config.outputBufferLength || 4000;
+		const inSampleRate = sampleRate;
+		const outputSampleRate = config.outputSampleRate || 16000;
+		
+		this.handle = inputBuffer => {
+			var isSilent = true;
+			for (var i = 0 ; i < inputBuffer.length ; i++) {
+				recBuffers.push(inputBuffer[i] * 2 * 16383.0);
+			}
+			while (recBuffers.length * outputSampleRate / inSampleRate > outputBufferLength) {
+				var result = new Int16Array(outputBufferLength);
+				var bin = 0,
+				num = 0,
+				indexIn = 0,
+				indexOut = 0;
+				while (indexIn < outputBufferLength) {
+					bin = 0;
+					num = 0;
+					while(indexOut < Math.min(recBuffers.length, (indexIn + 1) * inSampleRate / outputSampleRate)) {
+						bin += recBuffers[indexOut];
+						num += 1;
+						indexOut++;
+					}
+					result[indexIn] = bin / num;
+					if(isSilent && (result[indexIn] != 0)) isSilent = false;
+					indexIn++;
+				}
+				/* var output = {};
+				output.command = 'newBuffer';
+				output.data = result;
+				if (isSilent) output.error = "silent"; */
+
+				this.dispatchEvent(new MessageEvent('data', {
+					data: result,
+				}));
+				
+				recBuffers = recBuffers.slice(indexOut);
+			}
+		};
+	}
+	send(data) {
+		this.handle(data);
+	}
+}
+
+let resampler = null;
+function configure({sampleRate}) {
+	resampler = new Resampler({
+		sampleRate,
+	});
+	resampler.addEventListener('data', e => {
+		process2(e.data);
+	});
+}
 
 function initialize(data, clbId) {
     var config = new Module.Config();
@@ -280,6 +344,9 @@ function stop() {
 }
 
 function process(array) {
+	resampler.send(array);
+}
+function process2(array) {
     if (recognizer) {
 	while (buffer.size() < array.length)
 	    buffer.push_back(0);

@@ -55,7 +55,7 @@
         }
       };
       class AudioRecognizer {
-        constructor() {
+        constructor({sampleRate}) {
           this.callbackManager = new CallbackManager();
           this.loadPromise = _makePromise();
 
@@ -83,6 +83,9 @@
             };
 
             (async () => {
+              this.worker.postMessage({ command: 'configure', data: {
+                sampleRate,
+              } });
               await this.postRecognizerJob({
                 command: 'lazyLoad',
                 data: {
@@ -137,57 +140,6 @@
         }
         destroy() {
           this.worker.postMessage({ command: 'stop' });
-        }
-      }
-      class Resampler extends EventTarget {
-        constructor({sampleRate}) {
-          super();
-
-          const config = {};
-          let recBuffers = [];
-          var inputBufferLength = config.inputBufferLength || 4096;
-          var outputBufferLength = config.outputBufferLength || 4000;
-          const inSampleRate = sampleRate;
-          const outputSampleRate = config.outputSampleRate || 16000;
-          
-          this.handle = inputBuffer => {
-            var isSilent = true;
-            for (var i = 0 ; i < inputBuffer.length ; i++) {
-              recBuffers.push(inputBuffer[i] * 2 * 16383.0);
-            }
-            while (recBuffers.length * outputSampleRate / inSampleRate > outputBufferLength) {
-              var result = new Int16Array(outputBufferLength);
-              var bin = 0,
-              num = 0,
-              indexIn = 0,
-              indexOut = 0;
-              while (indexIn < outputBufferLength) {
-                bin = 0;
-                num = 0;
-                while(indexOut < Math.min(recBuffers.length, (indexIn + 1) * inSampleRate / outputSampleRate)) {
-                  bin += recBuffers[indexOut];
-                  num += 1;
-                  indexOut++;
-                }
-                result[indexIn] = bin / num;
-                if(isSilent && (result[indexIn] != 0)) isSilent = false;
-                indexIn++;
-              }
-              /* var output = {};
-              output.command = 'newBuffer';
-              output.data = result;
-              if (isSilent) output.error = "silent"; */
-
-              this.dispatchEvent(new MessageEvent('data', {
-                data: result,
-              }));
-              
-              recBuffers = recBuffers.slice(indexOut);
-            }
-          };
-        }
-        send(data) {
-          this.handle(data);
         }
       }
 
@@ -258,7 +210,9 @@
         }
 
         const audioContext = new AudioContext();
-        const audioRecognizer = new AudioRecognizer();
+        const audioRecognizer = new AudioRecognizer({
+          sampleRate: audioContext.sampleRate,
+        });
         let microphoneWorker = null;
         function start(audioUrl) {
           const audio = new Audio(audioUrl);
@@ -274,7 +228,7 @@
               console.log('got volume', e);
             });
             microphoneWorker.addEventListener('buffer', e => {
-              resampler.send(e.data);
+              audioRecognizer.send(e.data);
             });
           }, {once: true});
           audio.addEventListener('error', e => {
@@ -286,12 +240,6 @@
         function stop() {
           microphoneWorker.close();
         }
-        const resampler = new Resampler({
-          sampleRate: audioContext.sampleRate,
-        });
-        resampler.addEventListener('data', e => {
-          audioRecognizer.send(e.data);
-        });
 
         await audioRecognizer.waitForLoad();
         recognizerReady();
