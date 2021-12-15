@@ -343,24 +343,38 @@ function stop() {
     }
 }
 
+function getResult(hyp) {
+	const words = hyp.split(' ');
+	return words[words.length - 1] ?? '';
+}
+
 function process(array) {
 	resampler.send(array);
 }
 function process2(array) {
-    if (recognizer) {
-	while (buffer.size() < array.length)
-	    buffer.push_back(0);
-	for (var i = 0 ; i < array.length ; i++)
-	    buffer.set(i, array[i]);
-	var output = recognizer.process(buffer);
-	if (output != Module.ReturnType.SUCCESS)
-	    post({status: "error", command: "process", code: output});
-	else {
-	    recognizer.getHypseg(segmentation);
-	    post({hyp: Utf8Decode(recognizer.getHyp()),
-		  hypseg: segToArray(segmentation)});
-	    }
-    } else {
-	post({status: "error", command: "process", code: "js-no-recognizer"});
-    }
+  if (recognizer) {
+		while (buffer.size() < array.length) {
+			buffer.push_back(0);
+		}
+		for (var i = 0 ; i < array.length ; i++) {
+			buffer.set(i, array[i]);
+		}
+		var output = recognizer.process(buffer);
+		if (output != Module.ReturnType.SUCCESS) {
+			post({status: "error", command: "process", code: output});
+	  } else {
+			recognizer.getHypseg(segmentation);
+			const hyp = Utf8Decode(recognizer.getHyp());
+			/* post({
+				hyp: Utf8Decode(recognizer.getHyp()),
+				hypseg: segToArray(segmentation),
+			}); */
+			const result = getResult(hyp);
+			post({
+				result,
+			});
+	  }
+  } else {
+	  post({status: "error", command: "process", code: "js-no-recognizer"});
+  }
 }
