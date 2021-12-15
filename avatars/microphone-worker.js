@@ -28,27 +28,43 @@ class MicrophoneWorker extends EventTarget {
       }
     })();
 
-    options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
+    // console.log('load module', options.microphoneWorkletUrl || 'avatars/microphone-worklet.js');
+    this.loadPromise = options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
       .then(() => {
+        console.log('loaded');
         const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
-        if (options.muted === false) {
-          audioWorkletNode.port.postMessage(JSON.stringify({
-            method: 'muted',
-            muted: false,
-          }));
-        }
+        audioWorkletNode.port.postMessage(JSON.stringify({
+          method: 'options',
+          args: {
+            muted: options.muted,
+            emitVolume: options.emitVolume,
+            emitBuffer: options.emitBuffer,
+          },
+        }));
         audioWorkletNode.port.onmessage = e => {
-          if (this.live) {
-            this.dispatchEvent(new MessageEvent('volume', {
-              data: e.data,
-            }));
+          switch (e.data.method) {
+            case 'volume':
+            case 'buffer':
+              {
+                this.dispatchEvent(new MessageEvent(e.data.method, {
+                  data: e.data,
+                }));
+                break;
+              }
+            default: {
+              console.warn('invalid microhpone worklet message', e.data);
+            }
           }
         };
+        console.log('connect', mediaStreamSource);
         mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
      });
   }
   close() {
     this.live = false;
+  }
+  async waitForLoad() {
+    await this.loadPromise;
   }
 }
 export default MicrophoneWorker;
