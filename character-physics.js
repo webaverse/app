@@ -133,7 +133,10 @@ class CharacterPhysics {
        // const jumpActionAvailable = this.player.hasAction('chargeJump') || this.player.hasAction('chargeJumpForward') ||  this.player.hasAction('standCharge') ;
 
         const _ensureJumpAction = () => {
-          console.log('ensuringjump action')
+          
+          if(!grounded) {
+
+         
           if (!jumpAction) {
             const newJumpAction = {
               type: 'chargeJump',
@@ -143,7 +146,8 @@ class CharacterPhysics {
           } else {
             jumpAction.set('time', 0);
           }
-        };
+        }
+      };
         const _ensureNoJumpAction = () => {
           this.player.removeAction('chargeJump');
           this.player.removeAction('chargeJumpForward');
@@ -151,6 +155,8 @@ class CharacterPhysics {
         };
 
         if (grounded) {
+
+          const lastGroundedTimeDiff = now - this.lastGroundedTime;
           this.lastGroundedTime = now;
           
           this.velocity.y = -1;
@@ -163,7 +169,8 @@ class CharacterPhysics {
             if (fallLoopAction || chargeAction || chargeJumpForward || chargeJumpForwardIdle) {
                 const localPlayer = metaversefileApi.useLocalPlayer();
                 const isLandingPlaying = localPlayer.avatar.landingState;
-                if(!isLandingPlaying )
+                
+                if(!isLandingPlaying && lastGroundedTimeDiff > 500)
                 {
                 const action =  this.player.getAction('landing');
                 if (!action) {
@@ -173,14 +180,15 @@ class CharacterPhysics {
                     // time: 0,
                   };
                   localPlayer.addAction(landing);
-                  setTimeout(() => {
-                    this.player.removeAction('landing');
-                    this.player.removeAction('fallLoop');
-                    this.player.removeAction('chargeJump');
-                    this.player.removeAction('chargeJumpForward');
-                    this.player.removeAction('chargeJumpForwardIdle');
-                  }, 200);
+              
                 }
+                setTimeout(() => {
+                  this.player.removeAction('landing');
+                  this.player.removeAction('fallLoop');
+                  this.player.removeAction('chargeJump');
+                  this.player.removeAction('chargeJumpForward');
+                  this.player.removeAction('chargeJumpForwardIdle');
+                }, 200);
             }
           }
         }
