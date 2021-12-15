@@ -9,7 +9,7 @@ class MicrophoneWorker extends EventTarget {
       audio.srcObject = o;
       audio.muted = true;
     } else {
-      const oldO = o;
+      /* const oldO = o;
       oldO.play = (play => function() {
         play.apply(oldO, arguments);
         play.apply(o, arguments);
@@ -18,7 +18,7 @@ class MicrophoneWorker extends EventTarget {
         pause.apply(oldO, arguments);
         pause.apply(o, arguments);
       })(oldO.pause);
-      o = o.cloneNode();
+      o = o.cloneNode(); */
     }
     const mediaStreamSource = (() => {
       if (o instanceof MediaStream) {
