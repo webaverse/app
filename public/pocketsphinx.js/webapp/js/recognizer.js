@@ -366,7 +366,7 @@ const _getLastWord = function(hyp, pred = () => true) {
 };
 const result = new Float32Array(VOWELS.length);
 function _updateResult(hyp) {
-	const lastWord = _getLastWord(hyp);
+	const lastWord = _getLastWord(hyp, word => word !== 'SIL');
 	const vowelIndex = VOWELS.findIndex(v => lastWord.includes(v)) ?? '';
 	if (vowelIndex !== -1) {
 	  result[vowelIndex] += 1;
