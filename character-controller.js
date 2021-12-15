@@ -238,26 +238,6 @@ class Player extends THREE.Object3D {
           .add(new THREE.Vector3(0, -avatarHeight/2, 0));
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
-        /* this.capsule = (() => {
-          const physicsObject = physicsManager.addCapsuleGeometry(
-            new THREE.Vector3(0, -avatarHeight * 0.5, 0),
-            new THREE.Quaternion(),
-            radius,
-            halfHeight,
-            physicsMaterial,
-            true
-          );
-          
-          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-          
-          // console.log('set flags', physicsObject.physicsId, physicsObject);
-          physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
-          physicsManager.setTransform(physicsObject);
-          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
-
-          return physicsObject;
-        })(); */
         {
           if (this.characterController) {
             physicsManager.destroyCharacterController(this.characterController);
@@ -273,27 +253,6 @@ class Player extends THREE.Object3D {
           );
           this.characterControllerObject = new THREE.Object3D();
 
-          /* const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
-          debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
-            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
-          ));
-          const debugCapsule = new THREE.Mesh(
-            debugCapsuleGeometry,
-            new THREE.MeshStandardMaterial({
-              transparent: true,
-              opacity: 0.9,
-              color: 0xff0000,
-              wireframe: true,
-              wireframeLinewidth: 2,
-            })
-          );
-          scene.add(debugCapsule);
-          world.appManager.addEventListener('frame', e => {
-            debugCapsule.position.copy(this.characterControllerObject.position);
-            debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
-            debugCapsule.scale.copy(this.characterControllerObject.scale);
-            debugCapsule.updateMatrixWorld();
-          }); */
         }
       })();
       
@@ -795,7 +754,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
-        app.updateMatrixWorld();
+        app.updateMatrix();
       }
 
       const physicsObjects = app.getPhysicsObjects();
@@ -926,13 +885,13 @@ class LocalPlayer extends UninterpolatedPlayer {
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
           .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
-        dolly.updateMatrixWorld();
+        dolly.updateMatrix();
       } else {
         camera.position.copy(position)
           .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
         camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
-        camera.updateMatrixWorld();
+        camera.updateMatrix();
       }
 
       this.resetPhysics();

@@ -585,7 +585,7 @@ metaversefile.setApi({
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrix();
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -617,7 +617,7 @@ metaversefile.setApi({
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrix();
 
         // const localPlayer = metaversefile.useLocalPlayer();
 
@@ -656,7 +656,7 @@ metaversefile.setApi({
         physicsMesh.quaternion.copy(baseQuaternion);
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrix();
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -670,18 +670,18 @@ metaversefile.setApi({
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
         parentMesh.add(mesh);
-        parentMesh.updateMatrixWorld();
+        parentMesh.updateMatrix();
         
         const physicsObject = addGeometry.call(this, mesh);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrix();
         // window.physicsObject = physicsObject;
         
         if (oldParent) {
           oldParent.add(mesh);
-          mesh.updateMatrixWorld();
+          mesh.updateMatrix();
         }
         
         // app.add(physicsObject);
