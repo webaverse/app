@@ -84,7 +84,7 @@
               let recBuffers = [];
               var inputBufferLength = config.inputBufferLength || 4096;
               var outputBufferLength = config.outputBufferLength || 4000;
-              const inSampleRate = audioContext.sampleRate;
+              const inSampleRate = this.audioContext.sampleRate;
               const outputSampleRate = config.outputSampleRate || 16000;
               
               return inputBuffer => {
@@ -305,16 +305,7 @@
           stopBtn.onclick = stopRecording;
         }
 
-        // The following is to initialize Web Audio
-        try {
-          window.AudioContext = window.AudioContext || window.webkitAudioContext;
-          window.URL = window.URL || window.webkitURL;
-          audioContext = new AudioContext();
-          window.audioContext = audioContext;
-        } catch (e) {
-          updateStatus("Error initializing Web Audio browser");
-        }
-
+        const audioContext = new AudioContext();
         const audioRecognizer = new AudioRecognizer();
         const audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
 
