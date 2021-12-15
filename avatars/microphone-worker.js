@@ -32,41 +32,41 @@ class MicrophoneWorker extends EventTarget {
     this.mediaStreamSource = mediaStreamSource;
 
     // console.log('load module', options.microphoneWorkletUrl || 'avatars/microphone-worklet.js');
-    this.loadPromise = options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
-      .then(() => {
-        if (!this.live) {
-          return;
-        }
+    this.loadPromise = (async () => {
+      await options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js');
+      if (!this.live) {
+        return;
+      }
 
-        const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
-        audioWorkletNode.port.postMessage(JSON.stringify({
-          method: 'options',
-          args: {
-            muted: options.muted,
-            emitVolume: options.emitVolume,
-            emitBuffer: options.emitBuffer,
-          },
-        }));
-        audioWorkletNode.port.onmessage = e => {
-          switch (e.data.method) {
-            case 'volume':
-            case 'buffer':
-              {
-                this.dispatchEvent(new MessageEvent(e.data.method, {
-                  data: e.data,
-                }));
-                break;
-              }
-            default: {
-              console.warn('invalid microhpone worklet message', e.data);
+      const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
+      audioWorkletNode.port.postMessage(JSON.stringify({
+        method: 'options',
+        args: {
+          muted: options.muted,
+          emitVolume: options.emitVolume,
+          emitBuffer: options.emitBuffer,
+        },
+      }));
+      audioWorkletNode.port.onmessage = e => {
+        switch (e.data.method) {
+          case 'volume':
+          case 'buffer':
+            {
+              this.dispatchEvent(new MessageEvent(e.data.method, {
+                data: e.data,
+              }));
+              break;
             }
+          default: {
+            console.warn('invalid microhpone worklet message', e.data);
           }
-        };
-        // console.log('connect', mediaStreamSource);
-        mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
+        }
+      };
+      // console.log('connect', mediaStreamSource);
+      mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
 
-        this.audioWorkletNode = audioWorkletNode;
-      });
+      this.audioWorkletNode = audioWorkletNode;
+    })();
   }
   close() {
     this.live = false;
