@@ -296,8 +296,8 @@
 
       // This starts recording. We first need to get the id of the grammar to use
       var startRecording = function() {
-        var id = document.getElementById('grammars').value;
-        if (recorder && recorder.start(id)) displayRecording(true);
+        recorder.start();
+        displayRecording(true);
       };
 
       // Stops recording
