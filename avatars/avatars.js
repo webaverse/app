@@ -735,7 +735,7 @@ class Avatar {
     this.flipY = flipY;
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
-    this.vowels = new Float32Array(5);
+    this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -2525,16 +2525,16 @@ class Avatar {
               morphTargetInfluences[aIndex] = volumeValue;
             }
             if (eIndex !== -1) {
-              morphTargetInfluences[eIndex] = 0;
+              morphTargetInfluences[eIndex] = volumeValue * this.vowels[1];
             }
             if (iIndex !== -1) {
-              morphTargetInfluences[iIndex] = 0;
+              morphTargetInfluences[iIndex] = volumeValue * this.vowels[2];
             }
             if (oIndex !== -1) {
-              morphTargetInfluences[oIndex] = 0;
+              morphTargetInfluences[oIndex] = volumeValue * this.vowels[3];
             }
             if (uIndex !== -1) {
-              morphTargetInfluences[uIndex] = 0;
+              morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
             }
           } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
@@ -2658,7 +2658,7 @@ class Avatar {
       });
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
-        console.log('got vowels', this.vowels.join(','));
+        // console.log('got vowels', this.vowels.map(n => n.toFixed(1)).join(','));
       });
       this.audioRecognizer.waitForLoad()
         .then(() => {
