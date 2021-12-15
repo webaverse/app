@@ -4,7 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-// import WSRTC from 'wsrtc/wsrtc.js';
+import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -33,7 +33,7 @@ import {
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
-import './audio-recognizer.js';
+import metaversefileApi from 'metaversefile';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -346,3 +346,30 @@ export default class Webaverse extends EventTarget {
     renderer.setAnimationLoop(animate);
   }
 }
+
+window.addEventListener('keydown', e => {
+  if (e.which === 80) { // P
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    if (localPlayer.avatar) {
+      const audioUrl = '/sounds/pissbaby.mp3';
+
+      const audio = new Audio(audioUrl);
+      audio.addEventListener('canplaythrough', async e => {
+        // console.log('set audio', audio);
+        localPlayer.avatar.setMicrophoneMediaStream(audio, {
+          muted: false,
+          emitVolume: true,
+          emitBuffer: true,
+          audioContext: WSRTC.getAudioContext(),
+          // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
+        });
+        audio.play();
+      }, {once: true});
+      audio.addEventListener('error', e => {
+        console.log('load error', e);
+      });
+      // audio.play();
+      // audioContext.resume();
+    }
+  }
+});
