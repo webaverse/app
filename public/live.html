@@ -152,18 +152,11 @@
       }
       class AudioRecognizer {
         constructor() {
-          this.loadPromise = _makePromise();
-          
           this.callbackManager = new CallbackManager();
 
           const workerURL = '/pocketsphinx.js/webapp/js/recognizer.js';
           this.worker = new Worker(workerURL);
           this.worker.onmessage = event => {
-            // onReady(recognizer);
-
-            // console.log('ready event', event);
-            this.loadPromise.accept();
-
             this.worker.onmessage = e => {
               // This is the case when we have a callback id to be called
               if (e.data.hasOwnProperty('id')) {
@@ -235,9 +228,6 @@
             msg.callbackId = this.callbackManager.add(accept);
             this.worker.postMessage(msg);
           });
-        }
-        waitForLoad() {
-          return this.loadPromise;
         }
         send(result) {
           this.worker.postMessage({ command: 'process', data: result });
