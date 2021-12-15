@@ -55,11 +55,10 @@
         }
       };
       class AudioRecorder extends EventTarget {
-        constructor(audioContext, consumer) {
+        constructor(audioContext) {
           super();
 
           this.audioContext = audioContext;
-          this.consumer = consumer;
         }
         start(u) {
           const audio = new Audio(u);
@@ -109,13 +108,14 @@
                     if(isSilent && (result[indexIn] != 0)) isSilent = false;
                     indexIn++;
                   }
-                  var output = {};
+                  /* var output = {};
                   output.command = 'newBuffer';
                   output.data = result;
-                  if (isSilent) output.error = "silent";
+                  if (isSilent) output.error = "silent"; */
                   
-                  // this.consumer.postMessage({ command: 'process', data: result });
-                  this.consumer.send(result);
+                  this.dispatchEvent(new MessageEvent('data', {
+                    data: result,
+                  }));
                   
                   recBuffers = recBuffers.slice(indexOut);
                 }
@@ -142,7 +142,6 @@
           });
         }
         stop() {
-          // this.consumer.postMessage({ command: 'stop' });
           this.microphoneWorker.close();
         }
         cancel() {
@@ -292,7 +291,7 @@
           };
           // Stops recording
           var stopRecording = function() {
-            audioRecorder && audioRecorder.stop();
+            audioRecorder.stop();
             displayRecording(false);
           };
 
@@ -307,7 +306,10 @@
 
         const audioContext = new AudioContext();
         const audioRecognizer = new AudioRecognizer();
-        const audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
+        const audioRecorder = new AudioRecorder(audioContext);
+        audioRecorder.addEventListener('data', e => {
+          audioRecognizer.send(e.data);
+        });
 
         await audioRecognizer.waitForLoad();
         recognizerReady();
