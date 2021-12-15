@@ -110,7 +110,7 @@
               await this.postRecognizerJob(
                 {
                   command: 'initialize',
-                  data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */ ['-allphone', 'en-us-phone.lm.bin']],
+                  data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */ ['-allphone', 'en-us-phone.lm.bin'], ['-logfn', '/dev/null']],
                 }
               );
 
