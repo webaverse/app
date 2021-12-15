@@ -4,7 +4,7 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
