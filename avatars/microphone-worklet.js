@@ -9,6 +9,9 @@ let emitBuffer = false;
 
 // console.log('load worklet');
 
+const queue = [];
+let queueLength = 0;
+const maxQueueLength = 4000;
 class VolumeProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
@@ -64,15 +67,25 @@ class VolumeProcessor extends AudioWorkletProcessor {
     }
 
     if (!muted) {
-      for (let i = 0; i < outputs.length; i++) {
-        const input = inputs[i];
-        const output = outputs[i];
-
-        for (let channel = 0; channel < output.length; channel++) {
-          // console.log('got output 1', output, input);
-          // console.log('got output 2', output[channel], input[channel]);
-          output[channel] && input[channel] &&
-            output[channel].set(input[channel]);
+      queue.push(inputs.map(channels => channels.map(samples => Float32Array.from(samples))));
+      queueLength += (inputs && inputs[0] && inputs[0][0] && inputs[0][0].length) ?? 0;
+      // console.log('got queue length', inputs[0]);
+      
+      // console.log('push', inputs, inputs.map(input => Float32Array.from(input)));
+      // debugger;
+      while (queueLength > maxQueueLength) {
+        const inputs = queue.shift();
+        queueLength -= (inputs && inputs[0] && inputs[0][0] && inputs[0][0].length) ?? 0;
+        for (let i = 0; i < outputs.length; i++) {
+          const input = inputs[i];
+          const output = outputs[i];
+  
+          for (let channel = 0; channel < output.length; channel++) {
+            // console.log('got output 1', output, input);
+            // console.log('got output 2', output[channel], input[channel]);
+            output[channel] && input[channel] &&
+              output[channel].set(input[channel]);
+          }
         }
       }
     }
