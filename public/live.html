@@ -153,6 +153,7 @@
       class AudioRecognizer {
         constructor() {
           this.callbackManager = new CallbackManager();
+          this.loadPromise = _makePromise();
 
           const workerURL = '/pocketsphinx.js/webapp/js/recognizer.js';
           this.worker = new Worker(workerURL);
@@ -209,9 +210,8 @@
               );
 
               this.worker.postMessage({ command: 'start', data: '' });
-              
-              recognizerReady();
 
+              this.loadPromise.accept();
               // console.log('got 3');
             })();
           };
@@ -221,6 +221,9 @@
             'pocketsphinx.js': 'pocketsphinx.js',
             'pocketsphinx.wasm': 'pocketsphinx.wasm',
           });
+        }
+        waitForLoad() {
+          return this.loadPromise;
         }
         postRecognizerJob(message) {
           return new Promise((accept, reject) => {
@@ -289,9 +292,19 @@
 
       // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
       // request access to the microphone
-      window.onload = function() {
+      window.onload = async function() {
         outputContainer = document.getElementById("output");
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
+
+        {
+          // Wiring JavaScript to the UI
+          var startBtn = document.getElementById('startBtn');
+          var stopBtn = document.getElementById('stopBtn');
+          startBtn.disabled = true;
+          stopBtn.disabled = true;
+          startBtn.onclick = startRecording;
+          stopBtn.onclick = stopRecording;
+        }
 
         // The following is to initialize Web Audio
         try {
@@ -303,20 +316,16 @@
           updateStatus("Error initializing Web Audio browser");
         }
 
-        audioRecognizer = new AudioRecognizer(); 
+        audioRecognizer = new AudioRecognizer();
         audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
+
+        await audioRecognizer.waitForLoad();
+        recognizerReady();
+
         isRecorderReady = true;
         updateUI();
         updateStatus("Audio recorder ready");
-
-      // Wiring JavaScript to the UI
-      var startBtn = document.getElementById('startBtn');
-      var stopBtn = document.getElementById('stopBtn');
-      startBtn.disabled = true;
-      stopBtn.disabled = true;
-      startBtn.onclick = startRecording;
-      stopBtn.onclick = stopRecording;
-    };
+      };
     </script>
   </body>
 </html>
