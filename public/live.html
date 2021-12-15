@@ -61,8 +61,7 @@
           this.audioContext = audioContext;
           this.consumer = consumer;
         }
-        start() {
-          const u = '/sounds/pissbaby.mp3';
+        start(u) {
           const audio = new Audio(u);
           audio.controls = true;
           audio.loop = true;
@@ -284,10 +283,11 @@
         outputContainer = document.getElementById("output");
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
 
+        const audioUrl = '/sounds/pissbaby.mp3';
         {
           // This starts recording. We first need to get the id of the grammar to use
           var startRecording = function() {
-            audioRecorder.start();
+            audioRecorder.start(audioUrl);
             displayRecording(true);
           };
           // Stops recording
