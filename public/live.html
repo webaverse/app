@@ -77,58 +77,11 @@
             microphoneWorker.addEventListener('volume', e => {
               console.log('got volume', e);
             });
-            const record = (() => {
-              const config = {};
-              let recBuffers = [];
-              var inputBufferLength = config.inputBufferLength || 4096;
-              var outputBufferLength = config.outputBufferLength || 4000;
-              const inSampleRate = this.audioContext.sampleRate;
-              const outputSampleRate = config.outputSampleRate || 16000;
-              
-              return inputBuffer => {
-                var isSilent = true;
-                for (var i = 0 ; i < inputBuffer[0].length ; i++) {
-                  recBuffers.push((inputBuffer[0][i] + inputBuffer[1][i]) * 16383.0);
-                }
-                while (recBuffers.length * outputSampleRate / inSampleRate > outputBufferLength) {
-                  var result = new Int16Array(outputBufferLength);
-                  var bin = 0,
-                  num = 0,
-                  indexIn = 0,
-                  indexOut = 0;
-                  while (indexIn < outputBufferLength) {
-                    bin = 0;
-                    num = 0;
-                    while(indexOut < Math.min(recBuffers.length, (indexIn + 1) * inSampleRate / outputSampleRate)) {
-                      bin += recBuffers[indexOut];
-                      num += 1;
-                      indexOut++;
-                    }
-                    result[indexIn] = bin / num;
-                    if(isSilent && (result[indexIn] != 0)) isSilent = false;
-                    indexIn++;
-                  }
-                  /* var output = {};
-                  output.command = 'newBuffer';
-                  output.data = result;
-                  if (isSilent) output.error = "silent"; */
-                  
-                  this.dispatchEvent(new MessageEvent('data', {
-                    data: result,
-                  }));
-                  
-                  recBuffers = recBuffers.slice(indexOut);
-                }
-              };
-            })();
             microphoneWorker.addEventListener('buffer', e => {
-              const {method, data} = e.data;
-              
-              const inputBuffer = [
+              const {/* method, */data} = e.data;
+              this.dispatchEvent(new MessageEvent('data', {
                 data,
-                data,
-              ];
-              record(inputBuffer);
+              }));
             });
             this.microphoneWorker = microphoneWorker;
 
@@ -303,8 +256,69 @@
         const audioContext = new AudioContext();
         const audioRecognizer = new AudioRecognizer();
         const audioRecorder = new AudioRecorder(audioContext);
-        audioRecorder.addEventListener('data', e => {
+        const record = (() => {
+          
+        })();
+        class Resampler extends EventTarget {
+          constructor(audioContext) {
+            super();
+
+            this.audioContext = audioContext;
+
+            const config = {};
+            let recBuffers = [];
+            var inputBufferLength = config.inputBufferLength || 4096;
+            var outputBufferLength = config.outputBufferLength || 4000;
+            const inSampleRate = this.audioContext.sampleRate;
+            const outputSampleRate = config.outputSampleRate || 16000;
+            
+            this.handle = inputBuffer => {
+              var isSilent = true;
+              for (var i = 0 ; i < inputBuffer.length ; i++) {
+                recBuffers.push(inputBuffer[i] * 2 * 16383.0);
+              }
+              while (recBuffers.length * outputSampleRate / inSampleRate > outputBufferLength) {
+                var result = new Int16Array(outputBufferLength);
+                var bin = 0,
+                num = 0,
+                indexIn = 0,
+                indexOut = 0;
+                while (indexIn < outputBufferLength) {
+                  bin = 0;
+                  num = 0;
+                  while(indexOut < Math.min(recBuffers.length, (indexIn + 1) * inSampleRate / outputSampleRate)) {
+                    bin += recBuffers[indexOut];
+                    num += 1;
+                    indexOut++;
+                  }
+                  result[indexIn] = bin / num;
+                  if(isSilent && (result[indexIn] != 0)) isSilent = false;
+                  indexIn++;
+                }
+                /* var output = {};
+                output.command = 'newBuffer';
+                output.data = result;
+                if (isSilent) output.error = "silent"; */
+                
+                // console.log('got data', result);
+                this.dispatchEvent(new MessageEvent('data', {
+                  data: result,
+                }));
+                
+                recBuffers = recBuffers.slice(indexOut);
+              }
+            };
+          }
+          send(data) {
+            this.handle(data);
+          }
+        }
+        const resampler = new Resampler(audioContext);
+        resampler.addEventListener('data', (e) => {
           audioRecognizer.send(e.data);
+        });
+        audioRecorder.addEventListener('data', e => {
+          resampler.send(e.data);
         });
 
         await audioRecognizer.waitForLoad();
