@@ -154,6 +154,8 @@
         constructor() {
           this.loadPromise = _makePromise();
           
+          this.callbackManager = new CallbackManager();
+
           const workerURL = '/pocketsphinx.js/webapp/js/recognizer.js';
           this.worker = new Worker(workerURL);
           this.worker.onmessage = event => {
@@ -162,10 +164,10 @@
             console.log('ready event', event);
             this.loadPromise.accept();
 
-            this.worker.onmessage = function(e) {
+            this.worker.onmessage = e => {
               // This is the case when we have a callback id to be called
               if (e.data.hasOwnProperty('id')) {
-                var clb = callbackManager.get(e.data['id']);
+                var clb = this.callbackManager.get(e.data['id']);
                 var data = {};
                 if ( e.data.hasOwnProperty('data')) data = e.data.data;
                 if(clb) clb(data);
@@ -182,7 +184,7 @@
               }
             };
 
-            postRecognizerJob({
+            this.postRecognizerJob({
               command: 'lazyLoad',
               data: {
                 // pocketsphinx/model/en-us/en-us-phone.lm.bin
@@ -203,7 +205,7 @@
                 ],
               },
             }, () => {
-              postRecognizerJob(
+              this.postRecognizerJob(
                 {
                   command: 'initialize',
                   data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */ ['-allphone', 'en-us-phone.lm.bin']],
@@ -223,6 +225,11 @@
             'pocketsphinx.wasm': 'pocketsphinx.wasm',
           });
         }
+        postRecognizerJob(message, callback) {
+          var msg = message || {};
+          msg.callbackId = this.callbackManager.add(callback);
+          if (audioRecognizer) audioRecognizer.worker.postMessage(msg);
+        }
         waitForLoad() {
           return this.loadPromise;
         }
@@ -237,17 +244,9 @@
       let isRecognizerReady = false;
 
       // These will be initialized later
-      var audioRecognizer, audioRecorder, callbackManager, audioContext, outputContainer;
+      var audioRecognizer, audioRecorder, audioContext, outputContainer;
       // Only when both recorder and recognizer do we have a ready application
       var isRecorderReady = isRecognizerReady = false;
-
-      // A convenience function to post a message to the recognizer and associate
-      // a callback to its response
-      function postRecognizerJob(message, callback) {
-        var msg = message || {};
-        if (callbackManager) msg.callbackId = callbackManager.add(callback);
-        if (audioRecognizer) audioRecognizer.worker.postMessage(msg);
-      };
 
       // To display the hypothesis sent by the recognizer
       function updateHyp(hyp) {
@@ -292,26 +291,11 @@
            updateStatus("Recognizer ready");
       };
 
-      // This initializes the recognizer. When it calls back, we add words
-      var initRecognizer = function() {
-          // You can pass parameters to the recognizer, such as : {command: 'initialize', data: [["-hmm", "my_model"], ["-fwdflat", "no"]]}
-          postRecognizerJob(
-            {
-              command: 'initialize',
-              data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */['-allphone', 'en-us-phone.lm.bin']],
-            },
-            function() {
-              recognizerReady();
-            }
-          );
-      };
-
       // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
       // request access to the microphone
       window.onload = function() {
         outputContainer = document.getElementById("output");
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
-        callbackManager = new CallbackManager();
 
         // The following is to initialize Web Audio
         try {
