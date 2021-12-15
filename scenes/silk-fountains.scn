@@ -11,7 +11,7 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 5],
+        "args": [[255, 255, 255], 0.5],
         "position": [1, 2, 3],
         "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
       }
@@ -19,66 +19,41 @@
     {
       "type": "application/rendersettings",
       "content": {
-        "fog": {
-          "fogType": "exp",
-          "args": [[255, 255, 255], 0.01]
-        },
-        "ssao": {
-          "kernelRadius": 16,
-          "minDistance": 0.005,
-          "maxDistance": 0.1
-        },
-        "dof": {
-          "focus": 3.0,
-          "aperture": 0.00002,
-          "maxblur": 0.005
-        },
-        "hdr": {
-          "adaptive": true,
-          "resolution": 256,
-          "adaptionRate": 100,
-          "maxLuminance": 10,
-          "minLuminance": 0,
-          "middleGrey": 3
-        },
-        "bloom": {
-          "strength": 0.2,
-          "radius": 0.5,
-          "threshold": 0.8
-        }
+        
       }
     },
     {
       "position": [
         0,
-        -10.0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/silk-fountains/silk-fountain-01/index.js"
-    },  
-    {
-      "position": [
-        0,
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains/silk-fountains-ground/"
-    },  
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "https://webaverse.github.io/night-skybox/"
     },
     {
       "position": [
         0,
+        -1,
+        -10
+      ],
+      "start_url": "./silk-fountains/silk-fountain-01/index.js"
+    },
+
+    {
+      "position": [
         0,
+        -15,
         0
       ],
-      "start_url": "https://plankatron.github.io./zone0/terrain.glb"
+      "start_url": "./silk-fountains/silk-fountain-tunnels/index.js"
+    },  
+    {
+      "position": [
+        0,
+        -15,
+        0
+      ],
+      "start_url": "./silk-fountains/silk-fountains-ground/index.js"
     }
   ]
 }
