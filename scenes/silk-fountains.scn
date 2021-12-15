@@ -51,10 +51,18 @@
     {
       "position": [
         0,
-        0,
+        -10.0,
         0
       ],
       "start_url": "https://webaverse.github.io/silk-fountains/silk-fountain-01/index.js"
+    },  
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/silk-fountains/silk-fountains-ground/"
     },  
     {
       "position": [
@@ -71,23 +79,6 @@
         0
       ],
       "start_url": "https://plankatron.github.io./zone0/terrain.glb"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://plankatron.github.io./zone0/street.glb"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://plankatron.github.io./zone0/wall.glb"
     }
-
   ]
 }
