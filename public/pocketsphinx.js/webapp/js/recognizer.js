@@ -354,7 +354,7 @@ for (let i = 0; i < lastVowelTimestamps.length; i++) {
 }
 let vowelIndex = -1;
 const result = new Float32Array(VOWELS.length);
-const vowelDecayTime = 500;
+const vowelDecayTime = 1000;
 const _getLastWord = function(hyp, pred = () => true) {
 	let lastWord = '';
 	let i = hyp.length - 1;
