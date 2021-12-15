@@ -237,7 +237,7 @@
       let isRecognizerReady = false;
 
       // These will be initialized later
-      var audioRecognizer, recorder, callbackManager, audioContext, outputContainer;
+      var audioRecognizer, audioRecorder, callbackManager, audioContext, outputContainer;
       // Only when both recorder and recognizer do we have a ready application
       var isRecorderReady = isRecognizerReady = false;
 
@@ -247,13 +247,6 @@
         var msg = message || {};
         if (callbackManager) msg.callbackId = callbackManager.add(callback);
         if (audioRecognizer) audioRecognizer.worker.postMessage(msg);
-      };
-
-      // This function initializes an instance of the recorder
-      // it posts a message right away and calls onReady when it
-      // is ready so that onmessage can be properly set
-      function spawnWorker(workerURL, onReady) {
-          audioRecognizer = new AudioRecognizer();
       };
 
       // To display the hypothesis sent by the recognizer
@@ -278,31 +271,15 @@
         else document.getElementById('recording-indicator').innerHTML = "";
       };
 
-      // Callback function once the user authorises access to the microphone
-      // in it, we instanciate the recorder
-      function startUserMedia(audioContext) {
-        // var input = audioContext.createMediaStreamSource(stream);
-        // Firefox hack https://support.mozilla.org/en-US/questions/984179
-        // window.firefox_audio_hack = input; 
-        // var audioRecorderConfig = {errorCallback: function(x) {updateStatus("Error from recorder: " + x);}};
-        recorder = new AudioRecorder(audioContext, audioRecognizer);
-        // If a recognizer is ready, we pass it to the recorder
-        // recorder.consumers = [recognizer];
-
-        isRecorderReady = true;
-        updateUI();
-        updateStatus("Audio recorder ready");
-      };
-
       // This starts recording. We first need to get the id of the grammar to use
       var startRecording = function() {
-        recorder.start();
+        audioRecorder.start();
         displayRecording(true);
       };
 
       // Stops recording
       var stopRecording = function() {
-        recorder && recorder.stop();
+        audioRecorder && audioRecorder.stop();
         displayRecording(false);
       };
 
@@ -335,14 +312,6 @@
         outputContainer = document.getElementById("output");
         updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
         callbackManager = new CallbackManager();
-        spawnWorker("/pocketsphinx.js/webapp/js/recognizer.js", function(worker) {
-            // This is the onmessage function, once the worker is fully loaded
-            // Once the worker is fully loaded, we can call the initialize function
-            // but before that we lazy-load two files for keyword spoting (key phrase
-            // file plus associated dictionary.
-            
-            // console.log('lazy load');
-        });
 
         // The following is to initialize Web Audio
         try {
@@ -353,7 +322,12 @@
         } catch (e) {
           updateStatus("Error initializing Web Audio browser");
         }
-        startUserMedia(audioContext);
+
+        audioRecognizer = new AudioRecognizer(); 
+        audioRecorder = new AudioRecorder(audioContext, audioRecognizer);
+        isRecorderReady = true;
+        updateUI();
+        updateStatus("Audio recorder ready");
 
       // Wiring JavaScript to the UI
       var startBtn = document.getElementById('startBtn');
