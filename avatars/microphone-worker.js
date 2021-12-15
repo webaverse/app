@@ -3,6 +3,8 @@ class MicrophoneWorker extends EventTarget {
     super();
 
     this.live = true;
+    this.mediaStreamSource = null;
+    this.audioWorkletNode = null;
 
     if (o instanceof MediaStream) {
       const audio = document.createElement('audio');
@@ -27,11 +29,15 @@ class MicrophoneWorker extends EventTarget {
         return options.audioContext.createMediaElementSource(o);
       }
     })();
+    this.mediaStreamSource = mediaStreamSource;
 
     // console.log('load module', options.microphoneWorkletUrl || 'avatars/microphone-worklet.js');
     this.loadPromise = options.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
       .then(() => {
-        console.log('loaded');
+        if (!this.live) {
+          return;
+        }
+
         const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
         audioWorkletNode.port.postMessage(JSON.stringify({
           method: 'options',
@@ -56,12 +62,20 @@ class MicrophoneWorker extends EventTarget {
             }
           }
         };
-        console.log('connect', mediaStreamSource);
+        // console.log('connect', mediaStreamSource);
         mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
-     });
+
+        this.audioWorkletNode = audioWorkletNode;
+      });
   }
   close() {
     this.live = false;
+    this.mediaStreamSource && this.mediaStreamSource.disconnect();
+    if (this.audioWorkletNode) {
+      this.audioWorkletNode.disconnect();
+      this.audioWorkletNode.port.onmessage = null;
+      this.audioWorkletNode.port.close();
+    }
   }
   async waitForLoad() {
     await this.loadPromise;
