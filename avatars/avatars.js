@@ -1431,6 +1431,10 @@ class Avatar {
     for (const k in preRotations) {
       preRotations[k].invert();
     }
+    modelBones.Root.traverse(bone => {
+      bone.updateMatrix();
+    });
+
 	  fixSkeletonZForward(armature.children[0], {
 	    preRotations,
 	  });

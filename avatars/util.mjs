@@ -37,6 +37,8 @@ export const getEyePosition = (() => {
   // const localVector2 = new THREE.Vector3();
   return function(modelBones) {
     // const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    modelBones.Root.updateMatrix();
+    modelBones.Head.updateMatrix();
     return modelBones.Head.getWorldPosition(localVector)
       // .add(localVector2.set(0, 0.06, 0));
   }
@@ -45,6 +47,8 @@ export const getHeight = (() => {
   const localVector = new THREE.Vector3();
   return function(object) {
     const modelBones = getModelBones(object);
+    modelBones.Root.updateMatrix();
+    modelBones.Head.updateMatrix();
     return getEyePosition(modelBones)
       .sub(modelBones.Root.getWorldPosition(localVector))
       .y;
