@@ -54,53 +54,6 @@
           return null;
         }
       };
-      class AudioRecorder extends EventTarget {
-        constructor(audioContext) {
-          super();
-
-          this.audioContext = audioContext;
-        }
-        start(u) {
-          const audio = new Audio(u);
-          audio.controls = true;
-          audio.loop = true;
-          audio.addEventListener('canplaythrough', async e => {
-            const options = {
-              muted: false,
-              // emitVolume: true,
-              emitBuffer: true,
-              audioContext: this.audioContext,
-              // microphoneWorkletUrl: 'microphone-worklet.js',
-              microphoneWorkletUrl: '/avatars/microphone-worklet.js',
-            }
-            const microphoneWorker = new MicrophoneWorker(audio, options);
-            microphoneWorker.addEventListener('volume', e => {
-              console.log('got volume', e);
-            });
-            microphoneWorker.addEventListener('buffer', e => {
-              const {/* method, */data} = e.data;
-              this.dispatchEvent(new MessageEvent('data', {
-                data,
-              }));
-            });
-            this.microphoneWorker = microphoneWorker;
-
-            await microphoneWorker.waitForLoad();
-
-            audio.play();
-            this.audioContext.resume();
-          }, {once: true});
-          audio.addEventListener('error', e => {
-            console.log('load error', e);
-          });
-        }
-        stop() {
-          this.microphoneWorker.close();
-        }
-        cancel() {
-          this.stop();
-        }
-      }
       class AudioRecognizer {
         constructor() {
           this.callbackManager = new CallbackManager();
@@ -226,8 +179,7 @@
               output.command = 'newBuffer';
               output.data = result;
               if (isSilent) output.error = "silent"; */
-              
-              // console.log('got data', result);
+
               this.dispatchEvent(new MessageEvent('data', {
                 data: result,
               }));
@@ -287,15 +239,14 @@
 
         {
           const audioUrl = '/sounds/pissbaby.mp3';
-
           // This starts recording. We first need to get the id of the grammar to use
           var startRecording = function() {
-            audioRecorder.start(audioUrl);
+            start(audioUrl);
             displayRecording(true);
           };
           // Stops recording
           var stopRecording = function() {
-            audioRecorder.stop();
+            stop();
             displayRecording(false);
           };
 
@@ -310,13 +261,43 @@
 
         const audioContext = new AudioContext();
         const audioRecognizer = new AudioRecognizer();
-        const audioRecorder = new AudioRecorder(audioContext);
+        let microphoneWorker = null;
+        function start(audioUrl) {
+          const audio = new Audio(audioUrl);
+          // audio.controls = true;
+          // audio.loop = true;
+          audio.addEventListener('canplaythrough', async e => {
+            const options = {
+              muted: false,
+              // emitVolume: true,
+              emitBuffer: true,
+              audioContext,
+              // microphoneWorkletUrl: 'microphone-worklet.js',
+              microphoneWorkletUrl: '/avatars/microphone-worklet.js',
+            }
+            microphoneWorker = new MicrophoneWorker(audio, options);
+            microphoneWorker.addEventListener('volume', e => {
+              console.log('got volume', e);
+            });
+            microphoneWorker.addEventListener('buffer', e => {
+              resampler.send(e.data);
+            });
+
+            await microphoneWorker.waitForLoad();
+
+            audio.play();
+            audioContext.resume();
+          }, {once: true});
+          audio.addEventListener('error', e => {
+            console.log('load error', e);
+          });
+        }
+        function stop() {
+          microphoneWorker.close();
+        }
         const resampler = new Resampler(audioContext);
-        resampler.addEventListener('data', (e) => {
+        resampler.addEventListener('data', e => {
           audioRecognizer.send(e.data);
-        });
-        audioRecorder.addEventListener('data', e => {
-          resampler.send(e.data);
         });
 
         await audioRecognizer.waitForLoad();
