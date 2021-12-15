@@ -184,39 +184,43 @@
               }
             };
 
-            this.postRecognizerJob({
-              command: 'lazyLoad',
-              data: {
-                // pocketsphinx/model/en-us/en-us-phone.lm.bin
-                // folders: [["/", "zh_broadcastnews_ptm256_8000"]],
-                folders: [],
-                files: [
-                  ["/", "en-us-phone.lm.bin", "../../../model/en-us/en-us-phone.lm.bin"],
-                  /* ["/zh_broadcastnews_ptm256_8000", "means", "../zh_broadcastnews_ptm256_8000/means"],
-                  ["/zh_broadcastnews_ptm256_8000", "variances", "../zh_broadcastnews_ptm256_8000/variances"],
-                  ["/zh_broadcastnews_ptm256_8000", "transition_matrices", "../zh_broadcastnews_ptm256_8000/transition_matrices"],
-                  ["/zh_broadcastnews_ptm256_8000", "sendump", "../zh_broadcastnews_ptm256_8000/sendump"],
-                  ["/zh_broadcastnews_ptm256_8000", "mdef", "../zh_broadcastnews_ptm256_8000/mdef"],
-                  ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
-                  ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
-                  ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
-                  // ["/", "kws.txt", "../kws.txt"],
-                  // ["/", "kws.dict", "../kws.dict"],
-                ],
-              },
-            }, () => {
-              this.postRecognizerJob(
+            (async () => {
+              // console.log('got 1');
+              await this.postRecognizerJob({
+                command: 'lazyLoad',
+                data: {
+                  // pocketsphinx/model/en-us/en-us-phone.lm.bin
+                  // folders: [["/", "zh_broadcastnews_ptm256_8000"]],
+                  folders: [],
+                  files: [
+                    ["/", "en-us-phone.lm.bin", "../../../model/en-us/en-us-phone.lm.bin"],
+                    /* ["/zh_broadcastnews_ptm256_8000", "means", "../zh_broadcastnews_ptm256_8000/means"],
+                    ["/zh_broadcastnews_ptm256_8000", "variances", "../zh_broadcastnews_ptm256_8000/variances"],
+                    ["/zh_broadcastnews_ptm256_8000", "transition_matrices", "../zh_broadcastnews_ptm256_8000/transition_matrices"],
+                    ["/zh_broadcastnews_ptm256_8000", "sendump", "../zh_broadcastnews_ptm256_8000/sendump"],
+                    ["/zh_broadcastnews_ptm256_8000", "mdef", "../zh_broadcastnews_ptm256_8000/mdef"],
+                    ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
+                    ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
+                    ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
+                    // ["/", "kws.txt", "../kws.txt"],
+                    // ["/", "kws.dict", "../kws.dict"],
+                  ],
+                },
+              });
+              // console.log('got 2');
+              await this.postRecognizerJob(
                 {
                   command: 'initialize',
                   data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */ ['-allphone', 'en-us-phone.lm.bin']],
-                },
-                () => {
-                  recognizerReady();
-
-                  this.worker.postMessage({ command: 'start', data: '' });
                 }
               );
-            });
+
+              this.worker.postMessage({ command: 'start', data: '' });
+              
+              recognizerReady();
+
+              // console.log('got 3');
+            })();
           };
           // As arguments, you can pass non-default path to pocketsphinx.js and pocketsphinx.wasm:
           // recognizer.postMessage({'pocketsphinx.wasm': '/path/to/pocketsphinx.wasm', 'pocketsphinx.js': '/path/to/pocketsphinx.js'});
@@ -225,10 +229,12 @@
             'pocketsphinx.wasm': 'pocketsphinx.wasm',
           });
         }
-        postRecognizerJob(message, callback) {
-          var msg = message || {};
-          msg.callbackId = this.callbackManager.add(callback);
-          this.worker.postMessage(msg);
+        postRecognizerJob(message) {
+          return new Promise((accept, reject) => {
+            var msg = message || {};
+            msg.callbackId = this.callbackManager.add(accept);
+            this.worker.postMessage(msg);
+          });
         }
         waitForLoad() {
           return this.loadPromise;
