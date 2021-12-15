@@ -222,14 +222,15 @@
           audio.addEventListener('canplaythrough', async e => {
             const options = {
               muted: false,
+              // emitVolume: true,
               emitBuffer: true,
               audioContext,
               microphoneWorkletUrl: '/avatars/microphone-worklet.js',
             }
             microphoneWorker = new MicrophoneWorker(audio, options);
-            microphoneWorker.addEventListener('volume', e => {
+            /* microphoneWorker.addEventListener('volume', e => {
               console.log('got volume', e);
-            });
+            }); */
             microphoneWorker.addEventListener('buffer', e => {
               audioRecognizer.send(e.data);
             });
