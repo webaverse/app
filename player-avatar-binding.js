@@ -87,6 +87,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   const chargeJumpForward = player.getAction('chargeJumpForward');
   const chargeJumpForwardAnimation = chargeJumpForward ? chargeJumpForward.animation : '';
+  const chargeJumpForwardIdle = player.getAction('chargeJumpForwardIdle');
+  const chargeJumpForwardIdleAnimation = chargeJumpForwardIdle ? chargeJumpForwardIdle.animation : '';
   const chargeJumpBackward = player.getAction('chargeJumpBackward');
   const chargeJumpBackwardAnimation = chargeJumpBackward ? chargeJumpBackward.animation : '';
   const standCharge = player.getAction('standCharge');
@@ -131,10 +133,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.standChargeTime = player.actionInterpolants.standCharge.get();
   rig.standChargeAnimation = standChargeAnimation;
   rig.standChargeState = !!standCharge;
-
   rig.chargeJumpForwardTime = player.actionInterpolants.chargeJumpForward.get();
   rig.chargeJumpForwardAnimation = chargeJumpForwardAnimation;
   rig.chargeJumpForwardState = !!chargeJumpForward;
+  rig.chargeJumpForwardIdleTime = player.actionInterpolants.chargeJumpForwardIdle.get();
+  rig.chargeJumpForwardIdleAnimation = chargeJumpForwardIdleAnimation;
+  rig.chargeJumpForwardIdleState = !!chargeJumpForwardIdle;
   rig.chargeJumpBackwardTime = player.actionInterpolants.chargeJumpBackward.get();
   rig.chargeJumpBackwardAnimation = chargeJumpBackwardAnimation;
   rig.chargeJumpBackwardState = !!chargeJumpBackward;

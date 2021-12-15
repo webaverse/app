@@ -565,6 +565,7 @@ class InterpolatedPlayer extends Player {
       throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeJumpForward: new BinaryInterpolant(() => this.hasAction('chargeJumpForward'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      chargeJumpForwardIdle: new BinaryInterpolant(() => this.hasAction('chargeJumpForwardIdle'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeJumpBackward: new BinaryInterpolant(() => this.hasAction('chargeJumpBackward'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       chargeIdle: new BinaryInterpolant(() => this.hasAction('chargeIdle'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -587,6 +588,7 @@ class InterpolatedPlayer extends Player {
       chargeJump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       standCharge: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.standCharge.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       chargeJumpForward: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJumpForward.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      chargeJumpForwardIdle: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJumpForwardIdle.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       chargeJumpBackward: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJumpBackward.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       chargeIdle: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeIdle.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       fallLoop: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fallLoop.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -608,6 +610,7 @@ class InterpolatedPlayer extends Player {
       chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
       standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
       chargeJumpForward: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJumpForward.get(), 0),
+      chargeJumpForwardIdle: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJumpForwardIdle.get(), 0),
       chargeJumpBackward: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJumpBackward.get(), 0),
       chargeIdle: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeIdle.get(), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
@@ -663,6 +666,7 @@ class UninterpolatedPlayer extends Player {
       landing: new InfiniteActionInterpolant(() => this.hasAction('landing'), 0),
       chargeIdle: new InfiniteActionInterpolant(() => this.hasAction('chargeIdle'), 0),
       chargeJumpForward: new InfiniteActionInterpolant(() => this.hasAction('chargeJumpForward'), 0),
+      chargeJumpForwardIdle: new InfiniteActionInterpolant(() => this.hasAction('chargeJumpForwardIdle'), 0),
       chargeJumpBackward: new InfiniteActionInterpolant(() => this.hasAction('chargeJumpBackward'), 0),
 
     };

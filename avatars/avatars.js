@@ -224,6 +224,7 @@ let narutoRunAnimations;
 let jumpAnimationSegments;
 let chargeJump;
 let chargeJumpForward;
+let chargeJumpForwardIdle;
 let chargeJumpBackward;
 let standCharge;
 let chargeIdle;
@@ -330,12 +331,6 @@ const loadPromise = (async () => {
   }
 
 
-  jumpAnimationSegments = {
-    chargeJump: animations.find(a => a.isChargeJump),
-    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
-    isFallLoop: animations.find(a => a.isFallLoop),
-  }
-
   chargeJump = animations.find(a => a.isChargeJump);
   standCharge = animations.find(a => a.isStandCharge);
   chargeIdle = animations.find(a => a.isChargeIdle);
@@ -344,6 +339,7 @@ const loadPromise = (async () => {
   swordSideSlash = animations.find(a => a.isSwordSideSlash);
   swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
   chargeJumpForward =  animations.find(a => a.isChargeJumpForward);
+  chargeJumpForwardIdle =  animations.find(a => a.isChargeJumpForwardIdle);
   chargeJumpBackward =  animations.find(a => a.isChargeJumpBackward);
 
   
@@ -1221,6 +1217,8 @@ class Avatar {
     this.chargeJumpTime = 0;
     this.chargeJumpForwardState = false;
     this.chargeJumpForwardTime = 0;
+    this.chargeJumpForwardIdleState = false;
+    this.chargeJumpForwardIdleTime = 0;
     this.chargeJumpBackwardtate = false;
     this.chargeJumpBackwardTime = 0;
     this.narutoRunTime = 0;
@@ -2215,6 +2213,21 @@ class Avatar {
             const src2 = chargeJump.interpolants[k];
             const v2 = src2.evaluate(t2);
 
+            dst.fromArray(v2);
+          };
+        }
+        if (this.chargeJumpForwardIdleState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              isTop,
+            } = spec;
+
+            
+            const t2 = (this.chargeJumpForwardIdleTime/1000) ;
+            const src2 = chargeJumpForwardIdle.interpolants[k];
+            const v2 = src2.evaluate(t2);
             dst.fromArray(v2);
           };
         }
