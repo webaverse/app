@@ -23,6 +23,17 @@
     <script type="module">
       import MicrophoneWorker from './avatars/microphone-worker.js';
 
+      const _makePromise = () => {
+        let resolve, reject;
+        const promise = new Promise((res, rej) => {
+          resolve = res;
+          reject = rej;
+        });
+        promise.accept = resolve;
+        promise.reject = reject;
+        return promise;
+      };
+
       class CallbackManager {
         constructor() {
           this.currentId = 0;
@@ -43,14 +54,14 @@
           return null;
         }
       };
-      class AudioRecorder {
+      class AudioRecorder extends EventTarget {
         constructor(audioContext, consumer) {
+          super();
+
           this.audioContext = audioContext;
           this.consumer = consumer;
         }
-        start(data) {
-          this.consumer.postMessage({ command: 'start', data: data });
-        
+        start() {
           const u = '/sounds/pissbaby.mp3';
           const audio = new Audio(u);
           audio.controls = true;
@@ -104,8 +115,8 @@
                   output.data = result;
                   if (isSilent) output.error = "silent";
                   
-                  this.consumer.postMessage({ command: 'process', data: result });
-                  // this.postMessage(output);
+                  // this.consumer.postMessage({ command: 'process', data: result });
+                  this.consumer.send(result);
                   
                   recBuffers = recBuffers.slice(indexOut);
                 }
@@ -132,18 +143,101 @@
           });
         }
         stop() {
-          this.consumer.postMessage({ command: 'stop' });
+          // this.consumer.postMessage({ command: 'stop' });
           this.microphoneWorker.close();
         }
         cancel() {
           this.stop();
         }
       }
+      class AudioRecognizer {
+        constructor() {
+          this.loadPromise = _makePromise();
+          
+          const workerURL = '/pocketsphinx.js/webapp/js/recognizer.js';
+          this.worker = new Worker(workerURL);
+          this.worker.onmessage = event => {
+            // onReady(recognizer);
+
+            console.log('ready event', event);
+            this.loadPromise.accept();
+
+            this.worker.onmessage = function(e) {
+              // This is the case when we have a callback id to be called
+              if (e.data.hasOwnProperty('id')) {
+                var clb = callbackManager.get(e.data['id']);
+                var data = {};
+                if ( e.data.hasOwnProperty('data')) data = e.data.data;
+                if(clb) clb(data);
+              }
+              // This is a case when the recognizer has a new hypothesis
+              if (e.data.hasOwnProperty('hyp')) {
+                var newHyp = e.data.hyp;
+                if (e.data.hasOwnProperty('final') &&  e.data.final) newHyp = "Final: " + newHyp;
+                updateHyp(newHyp);
+              }
+              // This is the case when we have an error
+              if (e.data.hasOwnProperty('status') && (e.data.status == "error")) {
+                updateStatus("Error in " + e.data.command + " with code " + e.data.code);
+              }
+            };
+
+            postRecognizerJob({
+              command: 'lazyLoad',
+              data: {
+                // pocketsphinx/model/en-us/en-us-phone.lm.bin
+                // folders: [["/", "zh_broadcastnews_ptm256_8000"]],
+                folders: [],
+                files: [
+                  ["/", "en-us-phone.lm.bin", "../../../model/en-us/en-us-phone.lm.bin"],
+                  /* ["/zh_broadcastnews_ptm256_8000", "means", "../zh_broadcastnews_ptm256_8000/means"],
+                  ["/zh_broadcastnews_ptm256_8000", "variances", "../zh_broadcastnews_ptm256_8000/variances"],
+                  ["/zh_broadcastnews_ptm256_8000", "transition_matrices", "../zh_broadcastnews_ptm256_8000/transition_matrices"],
+                  ["/zh_broadcastnews_ptm256_8000", "sendump", "../zh_broadcastnews_ptm256_8000/sendump"],
+                  ["/zh_broadcastnews_ptm256_8000", "mdef", "../zh_broadcastnews_ptm256_8000/mdef"],
+                  ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
+                  ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
+                  ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
+                  // ["/", "kws.txt", "../kws.txt"],
+                  // ["/", "kws.dict", "../kws.dict"],
+                ],
+              },
+            }, () => {
+              postRecognizerJob(
+                {
+                  command: 'initialize',
+                  data: [/*["-kws", "kws.txt"], ["-dict","kws.dict"], */ ['-allphone', 'en-us-phone.lm.bin']],
+                },
+                () => {
+                  recognizerReady();
+
+                  this.worker.postMessage({ command: 'start', data: '' });
+                }
+              );
+            });
+          };
+          // As arguments, you can pass non-default path to pocketsphinx.js and pocketsphinx.wasm:
+          // recognizer.postMessage({'pocketsphinx.wasm': '/path/to/pocketsphinx.wasm', 'pocketsphinx.js': '/path/to/pocketsphinx.js'});
+          this.worker.postMessage({
+            'pocketsphinx.js': 'pocketsphinx.js',
+            'pocketsphinx.wasm': 'pocketsphinx.wasm',
+          });
+        }
+        waitForLoad() {
+          return this.loadPromise;
+        }
+        send(result) {
+          this.worker.postMessage({ command: 'process', data: result });
+        }
+        destroy() {
+          this.worker.postMessage({ command: 'stop' });
+        }
+      }
 
       let isRecognizerReady = false;
 
       // These will be initialized later
-      var recognizer, recorder, callbackManager, audioContext, outputContainer;
+      var audioRecognizer, recorder, callbackManager, audioContext, outputContainer;
       // Only when both recorder and recognizer do we have a ready application
       var isRecorderReady = isRecognizerReady = false;
 
@@ -152,23 +246,14 @@
       function postRecognizerJob(message, callback) {
         var msg = message || {};
         if (callbackManager) msg.callbackId = callbackManager.add(callback);
-        if (recognizer) recognizer.postMessage(msg);
+        if (audioRecognizer) audioRecognizer.worker.postMessage(msg);
       };
 
       // This function initializes an instance of the recorder
       // it posts a message right away and calls onReady when it
       // is ready so that onmessage can be properly set
       function spawnWorker(workerURL, onReady) {
-          recognizer = new Worker(workerURL);
-          recognizer.onmessage = function(event) {
-            onReady(recognizer);
-          };
-          // As arguments, you can pass non-default path to pocketsphinx.js and pocketsphinx.wasm:
-          // recognizer.postMessage({'pocketsphinx.wasm': '/path/to/pocketsphinx.wasm', 'pocketsphinx.js': '/path/to/pocketsphinx.js'});
-          recognizer.postMessage({
-            'pocketsphinx.js': 'pocketsphinx.js',
-            'pocketsphinx.wasm': 'pocketsphinx.wasm',
-          });
+          audioRecognizer = new AudioRecognizer();
       };
 
       // To display the hypothesis sent by the recognizer
@@ -200,7 +285,7 @@
         // Firefox hack https://support.mozilla.org/en-US/questions/984179
         // window.firefox_audio_hack = input; 
         // var audioRecorderConfig = {errorCallback: function(x) {updateStatus("Error from recorder: " + x);}};
-        recorder = new AudioRecorder(audioContext, recognizer);
+        recorder = new AudioRecorder(audioContext, audioRecognizer);
         // If a recognizer is ready, we pass it to the recorder
         // recorder.consumers = [recognizer];
 
@@ -252,52 +337,11 @@
         callbackManager = new CallbackManager();
         spawnWorker("/pocketsphinx.js/webapp/js/recognizer.js", function(worker) {
             // This is the onmessage function, once the worker is fully loaded
-            worker.onmessage = function(e) {
-                // This is the case when we have a callback id to be called
-                if (e.data.hasOwnProperty('id')) {
-                  var clb = callbackManager.get(e.data['id']);
-                  var data = {};
-                  if ( e.data.hasOwnProperty('data')) data = e.data.data;
-                  if(clb) clb(data);
-                }
-                // This is a case when the recognizer has a new hypothesis
-                if (e.data.hasOwnProperty('hyp')) {
-                  var newHyp = e.data.hyp;
-                  if (e.data.hasOwnProperty('final') &&  e.data.final) newHyp = "Final: " + newHyp;
-                  updateHyp(newHyp);
-                }
-                // This is the case when we have an error
-                if (e.data.hasOwnProperty('status') && (e.data.status == "error")) {
-                  updateStatus("Error in " + e.data.command + " with code " + e.data.code);
-                }
-            };
             // Once the worker is fully loaded, we can call the initialize function
             // but before that we lazy-load two files for keyword spoting (key phrase
             // file plus associated dictionary.
             
             // console.log('lazy load');
-            
-            postRecognizerJob({
-              command: 'lazyLoad',
-              data: {
-                // pocketsphinx/model/en-us/en-us-phone.lm.bin
-                // folders: [["/", "zh_broadcastnews_ptm256_8000"]],
-                folders: [],
-                files: [
-                  ["/", "en-us-phone.lm.bin", "../../../model/en-us/en-us-phone.lm.bin"],
-                  /* ["/zh_broadcastnews_ptm256_8000", "means", "../zh_broadcastnews_ptm256_8000/means"],
-                  ["/zh_broadcastnews_ptm256_8000", "variances", "../zh_broadcastnews_ptm256_8000/variances"],
-                  ["/zh_broadcastnews_ptm256_8000", "transition_matrices", "../zh_broadcastnews_ptm256_8000/transition_matrices"],
-                  ["/zh_broadcastnews_ptm256_8000", "sendump", "../zh_broadcastnews_ptm256_8000/sendump"],
-                  ["/zh_broadcastnews_ptm256_8000", "mdef", "../zh_broadcastnews_ptm256_8000/mdef"],
-                  ["/zh_broadcastnews_ptm256_8000", "feat.params", "../zh_broadcastnews_ptm256_8000/feat.params"],
-                  ["/zh_broadcastnews_ptm256_8000", "mixture_weights", "../zh_broadcastnews_ptm256_8000/mixture_weights"],
-                  ["/zh_broadcastnews_ptm256_8000", "noisedict", "../zh_broadcastnews_ptm256_8000/noisedict"] */
-                  // ["/", "kws.txt", "../kws.txt"],
-                  // ["/", "kws.dict", "../kws.dict"],
-                ],
-              },
-            }, initRecognizer);
         });
 
         // The following is to initialize Web Audio
