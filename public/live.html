@@ -487,8 +487,16 @@
 
       // This adds words to the recognizer. When it calls back, we add grammars
       var feedWords = function(words) {
-           postRecognizerJob({command: 'addWords', data: words},
-                        function() {feedGrammar(grammars, 0);});
+        postRecognizerJob(
+          {
+            command: 'addWords',
+            data: words,
+          },
+          function() {
+            // feedGrammar(grammars, 0);
+            recognizerReady();
+          }
+        );
       };
 
       // This initializes the recognizer. When it calls back, we add words
