@@ -114,23 +114,11 @@
             microphoneWorker.addEventListener('buffer', e => {
               const {method, data} = e.data;
               
-              // console.log('got buffer', method, data);
               const inputBuffer = [
                 data,
                 data,
               ];
               record(inputBuffer);
-              
-              // console.log('got buffer', e, buffer);
-              /* this.consumer.postMessage({
-                command: 'record',
-                buffer: [
-                  // e.inputBuffer.getChannelData(0),
-                  // e.inputBuffer.getChannelData(1),
-                  buffer,
-                  buffer,
-                ]
-              }); */
             });
             this.microphoneWorker = microphoneWorker;
 
@@ -138,18 +126,10 @@
 
             audio.play();
             this.audioContext.resume();
-
-            /* const response = await fetch(u)
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await context.decodeAudioData(arrayBuffer);
-            console.log('got audio buffer', audioBuffer); */
           }, {once: true});
           audio.addEventListener('error', e => {
             console.log('load error', e);
           });
-          // window.audio = audio;
-          // console.log('create audio', audio);
-          // document.body.appendChild(audio);
         }
         stop() {
           this.consumer.postMessage({ command: 'stop' });
@@ -158,7 +138,7 @@
         cancel() {
           this.stop();
         }
-        extra() {
+        /* extra() {
           var AUDIO_RECORDER_WORKER = 'js/audioRecorderWorker.js';
           var AudioRecorder = function(source, cfg) {
           this.consumers = [];
@@ -224,7 +204,7 @@
           this.node.connect(this.context.destination);
             };
             window.AudioRecorder = AudioRecorder;
-        }
+        } */
       }
 
 
