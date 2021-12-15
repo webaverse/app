@@ -53,7 +53,7 @@ class MicrophoneWorker extends EventTarget {
           case 'buffer':
             {
               this.dispatchEvent(new MessageEvent(e.data.method, {
-                data: e.data,
+                data: e.data.data,
               }));
               break;
             }
