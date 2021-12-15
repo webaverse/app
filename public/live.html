@@ -161,7 +161,7 @@
           this.worker.onmessage = event => {
             // onReady(recognizer);
 
-            console.log('ready event', event);
+            // console.log('ready event', event);
             this.loadPromise.accept();
 
             this.worker.onmessage = e => {
