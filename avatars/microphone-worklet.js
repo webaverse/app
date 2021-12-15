@@ -77,7 +77,10 @@ class VolumeProcessor extends AudioWorkletProcessor {
         const output = outputs[i];
 
         for (let channel = 0; channel < output.length; channel++) {
-          output[channel].set(input[channel]);
+          // console.log('got output 1', output, input);
+          // console.log('got output 2', output[channel], input[channel]);
+          output[channel] && input[channel] &&
+            output[channel].set(input[channel]);
         }
       }
     }
