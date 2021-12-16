@@ -370,6 +370,9 @@ window.addEventListener('keydown', e => {
       audio.addEventListener('error', e => {
         console.log('load error', e);
       });
+      audio.addEventListener('ended', e => {
+        localPlayer.avatar.setMicrophoneMediaStream(null);
+      });
       // audio.play();
       // audioContext.resume();
     }
