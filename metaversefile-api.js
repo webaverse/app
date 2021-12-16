@@ -119,6 +119,7 @@ class App extends THREE.Object3D {
   use() {
     this.dispatchEvent({
       type: 'use',
+      use: true,
     });
   }
   hit(damage) {
