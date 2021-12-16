@@ -348,10 +348,12 @@ export default class Webaverse extends EventTarget {
 }
 
 window.addEventListener('keydown', e => {
-  if (e.which === 80) { // P
+  if (e.which === 219) { // [
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
       const audioUrl = '/sounds/pissbaby.mp3';
+      // const audioUrl = '/sounds/Scillia_Lines_Narrative.wav';
+      // const audioUrl = '/sounds/narrative2.mp3';
 
       const audio = new Audio(audioUrl);
       audio.addEventListener('canplaythrough', async e => {
