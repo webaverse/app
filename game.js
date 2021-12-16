@@ -372,7 +372,15 @@ const _startUse = () => {
 };
 const _endUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.removeAction('use');
+  const useAction = localPlayer.getAction('use');
+  if (useAction) {
+    const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
+    app.dispatchEvent({
+      type: 'use',
+      use: false,
+    });
+    localPlayer.removeAction('use');
+  }
 };
 const _mousedown = () => {
   _startUse();
