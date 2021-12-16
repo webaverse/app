@@ -77,6 +77,15 @@ class SoundManager {
       }
       this.sounds.get(name).play();
     }
+/*
+    const originalSound = this.sounds.get(name);
+
+    const sound = new THREE.Audio( this.listener );
+    sound.setBuffer( originalSound.buffer );
+	  sound.setLoop( originalSound.getLoop() );
+	  sound.setVolume( originalSound.getVolume() );
+	  sound.play();
+    */
   }
   playWithId(name,id) {
     const lastId = this.lastIds.get(name);
