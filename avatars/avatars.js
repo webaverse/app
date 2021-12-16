@@ -361,6 +361,7 @@ const loadPromise = (async () => {
     swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
     swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
     swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
+    swordSideSlashStep: animations.find(a => a.name === 'sword_side_slash_step.fbx'),
     swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
     swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
   };
