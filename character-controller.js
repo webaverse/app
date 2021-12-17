@@ -532,6 +532,8 @@ class Player extends THREE.Object3D {
 
       this.avatar.update(timeDiff);
     }
+
+    this.characterPhysics.updateCamera(timeDiff);
   }
   destroy() {
     this.unbindState();
