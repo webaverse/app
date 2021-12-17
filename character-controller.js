@@ -637,7 +637,7 @@ class UninterpolatedPlayer extends Player {
     
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
+      activate: new BiActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
