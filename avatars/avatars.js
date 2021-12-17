@@ -363,6 +363,7 @@ const loadPromise = (async () => {
     swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
     swordSideSlashStep: animations.find(a => a.name === 'sword_side_slash_step.fbx'),
     swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
+    swordTopDownSlashStep: animations.find(a => a.name === 'sword_topdown_slash_step.fbx'),
     swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
   };
   useAnimations = mergeAnimations({
