@@ -2022,6 +2022,17 @@ class Avatar {
 
       };
       const _getApplyFn = () => {
+        
+        const _handleDefault = spec => {
+          const {
+            animationTrackName: k,
+            dst,
+            isTop,
+            lerpFn,
+          } = spec;
+          
+          _getHorizontalBlend(k, lerpFn, dst);
+        };
 
         if (this.jumpState) {
           return spec => {
@@ -2109,16 +2120,30 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              //isTop,
+              isPosition
             } = spec;
 
-            
-
+            _handleDefault(spec);
             const t2 = (this.standChargeTime/1000) ;
+
+            if (!isPosition) {
+            const idleAnimation = _getIdleAnimation('walk');
+            
+            
             const src2 = standCharge.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+            dst
+                  .premultiply(localQuaternion6.fromArray(v2))
+                  .premultiply(localQuaternion6.fromArray(v3).invert())
+
+           
+          };
+          return _handleDefault;
           };
         }
 
@@ -2145,15 +2170,47 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              //isTop,
+              isPosition
             } = spec;
 
+            _handleDefault(spec);
             const t2 = (this.landingTime/1000) ;
+
+            if (!isPosition) {
+            const idleAnimation = _getIdleAnimation('walk');
+            
+            
             const src2 = landing.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+            dst
+                  .premultiply(localQuaternion6.fromArray(v2))
+                  .premultiply(localQuaternion6.fromArray(v3).invert())
+
+           
+          } else {
+            const src2 = landing.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            dst
+              .sub(localVector2.fromArray(v3))
+              .add(localVector2.fromArray(v2));
+
+          
+
           };
+          return _handleDefault;
+
+        }
         }
         if (this.swordSideSlashState) {
           return spec => {
@@ -2205,15 +2262,29 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              //isTop,
+              isPosition
             } = spec;
 
-            
+            _handleDefault(spec);
             const t2 = (this.chargeJumpTime/1000) ;
+
+            if (!isPosition) {
+            const idleAnimation = _getIdleAnimation('walk');
+            
+            
             const src2 = chargeJump.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+            dst
+                  .premultiply(localQuaternion3.fromArray(v3).invert())
+                  .premultiply(localQuaternion3.fromArray(v2));
+           
+          };
+          return _handleDefault;
           };
         }
         if (this.chargeJumpForwardIdleState) {
@@ -2231,16 +2302,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        const _handleDefault = spec => {
-          const {
-            animationTrackName: k,
-            dst,
-            isTop,
-            lerpFn,
-          } = spec;
-          
-          _getHorizontalBlend(k, lerpFn, dst);
-        };
+ 
         if (this.chargeJumpForwardState) {
           return spec => {
             const {
@@ -2263,13 +2325,9 @@ class Avatar {
             const t3 = 0;
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
-            console.log(dst)
             dst
-                  .premultiply(localQuaternion2.fromArray(v3).invert())
-                  .premultiply(localQuaternion2.fromArray(v2));
-                
-                 
-                  
+                  .premultiply(localQuaternion6.fromArray(v3).invert())
+                  .premultiply(localQuaternion6.fromArray(v2));
            
           };
           return _handleDefault;
