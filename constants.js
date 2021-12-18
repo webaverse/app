@@ -32,6 +32,7 @@ export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 export const storageHost = 'https://ipfs.webaverse.com';
 export const previewHost = 'https://preview.exokit.org';
+export const inappPreviewHost = 'https://app.webaverse.online';
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = `https://${chainName}sidechain-accounts.webaverse.com`;
 export const contractsHost = 'https://contracts.webaverse.com';
@@ -44,7 +45,7 @@ export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
 export const discordClientId = '684141574808272937';
-export const walletHost = 'https://webaverse.github.io/weba-wallet';
+export const walletHost = 'https://wallet.webaverse.com';
 
 export const worldMapName = 'world';
 export const actionsMapName = 'actions';
@@ -58,6 +59,7 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
+export const aimMaxTime = 1000;
 export const minFov = 60;
 export const maxFov = 120;
 export const initialPosY = 1.5;
