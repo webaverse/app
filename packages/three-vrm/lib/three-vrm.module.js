@@ -1699,7 +1699,7 @@ class VRMLookAtImporter {
 const getEncodingComponents = (encoding) => {
     switch (encoding) {
         case THREE.LinearEncoding:
-            return ['Linear', '( value )'];
+            // return ['Linear', '( value )'];
         case THREE.sRGBEncoding:
             return ['sRGB', '( value )'];
         case THREE.RGBEEncoding:
