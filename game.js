@@ -323,6 +323,14 @@ const _click = () => {
     }
   }
 };
+let lastUseIndex = 0;
+const _getNextUseIndex = animation => {
+  if (Array.isArray(animation)) {
+    return (lastUseIndex++) % animation.length;
+  } else {
+    return 0;
+  }
+};
 let lastPistolUseStartTime = -Infinity;
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -336,6 +344,8 @@ const _startUse = () => {
       if (!useAction) {
         const {instanceId} = wearApp;
         const {subtype, boneAttachment, animation, position, quaternion, scale} = useComponent;
+        const index = _getNextUseIndex(animation);
+        // console.log('index', index, swordTopDownSlash);
         const newUseAction = {
           type: 'use',
           subtype,
@@ -343,6 +353,7 @@ const _startUse = () => {
           instanceId,
           animation,
           boneAttachment,
+          index,
           position,
           quaternion,
           scale,
@@ -361,7 +372,15 @@ const _startUse = () => {
 };
 const _endUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.removeAction('use');
+  const useAction = localPlayer.getAction('use');
+  if (useAction) {
+    const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
+    app.dispatchEvent({
+      type: 'use',
+      use: false,
+    });
+    localPlayer.removeAction('use');
+  }
 };
 const _mousedown = () => {
   _startUse();
@@ -1301,8 +1320,31 @@ const gameManager = {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const wearAimApp = (() => {
+        const wearApps = Array.from(localPlayer.getActionsState())
+          .filter(action => action.type === 'wear')
+          .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
+        for (const wearApp of wearApps) {
+          const aimComponent = wearApp.getComponent('aim');
+          if (aimComponent) {
+            return wearApp;
+          }
+        }
+        return null;
+      })();
+      const wearAimComponent = wearAimApp?.getComponent('aim');
+
+      const {instanceId} = wearAimApp ?? {};
+      const {appAnimation, playerAnimation, boneAttachment, position, quaternion, scale} = wearAimComponent ?? {};
       const aimAction = {
         type: 'aim',
+        instanceId,
+        appAnimation,
+        playerAnimation,
+        boneAttachment,
+        position,
+        quaternion,
+        scale,
       };
       localPlayer.addAction(aimAction);
     }
