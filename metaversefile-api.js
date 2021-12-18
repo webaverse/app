@@ -707,9 +707,18 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
+      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+        enablePhysicsObject.call(this, physicsObject);
+      })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
         disablePhysicsObject.call(this, physicsObject);
       })(physics.disablePhysicsObject);
+      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
+        enableGeometryQueries.call(this, physicsObject);
+      })(physics.enableGeometryQueries);
+      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
+        disableGeometryQueries.call(this, physicsObject);
+      })(physics.disableGeometryQueries);
 
       physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
