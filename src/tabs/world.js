@@ -10,6 +10,7 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
   return (
     <Tab
       type="world"
+      newStyles={styles}
       top
       right
       className={styles['selected-panel-' + (selectedApp ? 2 : 1)]}

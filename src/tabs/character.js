@@ -1,13 +1,27 @@
-import React from 'react';
+import React, {useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
+import newStyles from '../styles/character.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 
 export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef, setOpen, toggleOpen}) => {
+  const [characterPreview, setCharacterPreview] = useState();
+  const [avatarContentId, setAvatarContentId] = useState('');
+
+  const localPlayer = metaversefile.useLocalPlayer();
+  localPlayer.addEventListener('avatarupdate', e => {
+    if (e.app) {
+      if (avatarContentId !== e.app.contentId) {
+        setAvatarContentId(e.app.contentId);
+      }
+    }
+  });
+
   return (
     <Tab
       type="character"
+      newStyles={newStyles}
       top
       left
       label={
@@ -18,11 +32,11 @@ export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef,
         </div>
       }
       panels={[
-        (<div className={styles.panel} key="left">
-          <div className={styles['panel-header']}>
+        (<div className={newStyles.panel} key="left">
+          <div className={newStyles['panel-header']}>
             <h1>Sheila</h1>
           </div>
-          <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
+          <img src={characterPreview} />
           {/* <div className={styles['panel-header']}>
               <h1>Equipment</h1>
             </div> */}

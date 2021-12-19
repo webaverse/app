@@ -77,12 +77,11 @@ var rendererStats = Stats();
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
-
     rendererStats.domElement.style.position = 'absolute';
     rendererStats.domElement.style.left = '0px';
     rendererStats.domElement.style.bottom = '0px';
     rendererStats.domElement.style.display = 'none';
-    document.body.appendChild( rendererStats.domElement );
+    document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = Promise.all([
       physx.waitForLoad(),
@@ -90,10 +89,10 @@ export default class Webaverse extends EventTarget {
       transformControls.waitForLoad(),
       // WSRTC.waitForReady(),
       metaverseModules.waitForLoad(),
-    ])
+    ]);
     this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -101,37 +100,46 @@ export default class Webaverse extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+
   getScene() {
     return scene;
   }
+
   getSceneHighPriority() {
     return sceneHighPriority;
   }
+
   getSceneLowPriority() {
     return sceneLowPriority;
   }
+
   getCamera() {
     return camera;
   }
-  
+
   setContentLoaded() {
     this.contentLoaded = true;
   }
+
   bindInput() {
     ioManager.bindInput();
   }
+
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
   }
+
   bindCanvas(c) {
     bindCanvas(c);
-    
+
     postProcessing.bindCanvas();
   }
+
   bindPreviewCanvas(previewCanvas) {
     // equipmentRender.bindPreviewCanvas(previewCanvas);
   }
+
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -145,6 +153,7 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
+
   /* toggleMic() {
     return world.toggleMic();
   } */
@@ -155,10 +164,10 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch(err) {
+      } catch (err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch(err) {
+        } catch (err) {
           console.warn(err);
         }
       }
@@ -175,7 +184,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-  
+
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -269,33 +278,35 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   render(timestamp, timeDiff) {
+    return;
     const renderer = getRenderer();
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     // frameEvent.data.lastTimestamp = timestamp;
-    
+
     // equipment panel render
     // equipmentRender.previewScene.add(world.lights);
     // equipmentRender.render();
 
     getComposer().render();
-    if(ioManager.debugMode) {
+    if (ioManager.debugMode) {
       rendererStats.update(renderer);
     }
   }
-  
+
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
-    
+
     let lastTimestamp = performance.now();
 
-    const animate = (timestamp, frame) => { 
+    const animate = (timestamp, frame) => {
+      return;
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
@@ -303,9 +314,9 @@ export default class Webaverse extends EventTarget {
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
-      
+
       cameraManager.update(timeDiffCapped);
-      
+
       if (this.contentLoaded) {
         //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
         physicsManager.simulatePhysics(timeDiffCapped); 
@@ -316,32 +327,30 @@ export default class Webaverse extends EventTarget {
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
-      
+
       characterController.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
-      
+
       world.appManager.tick(timestamp, timeDiffCapped, frame);
 
       hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();
-      
+
       game.pushAppUpdates();
       game.pushPlayerUpdates();
 
       soundManager.update(timeDiffCapped);
-      
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-        
-      this.render(timestamp, timeDiffCapped);
 
-    }
+      this.render(timestamp, timeDiffCapped);
+    };
     renderer.setAnimationLoop(animate);
   }
 }

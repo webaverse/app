@@ -7,6 +7,7 @@ export const XR = ({app, xrSupported, open, toggleOpen, panelsRef}) => {
   return (
     <Tab
       type="xr"
+      newStyles={styles}
       onclick={async e => {
         if (xrSupported) {
           await app.enterXr();

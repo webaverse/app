@@ -7,29 +7,29 @@ import Chat from './Chat.jsx';
 import MagicMenu from './MagicMenu.jsx';
 import * as Z from 'zjs';
 // import {Color} from './Color.js';
-import {world} from '../world.js'
-import game from '../game.js'
-import * as universe from '../universe.js'
-import * as hacks from '../hacks.js'
-import cameraManager from '../camera-manager.js'
-import metaversefile from '../metaversefile-api.js'
-import ioManager from '../io-manager.js'
-import {parseQuery} from '../util.js'
+import {world} from '../world.js';
+import game from '../game.js';
+import * as universe from '../universe.js';
+import * as hacks from '../hacks.js';
+import cameraManager from '../camera-manager.js';
+import metaversefile from '../metaversefile-api.js';
+import ioManager from '../io-manager.js';
+import {parseQuery} from '../util.js';
 import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
-import { Tab } from './components/tab';
-import { Location } from './components/location';
-import { Character } from './tabs/character';
-import { Claims } from './tabs/claims';
-import { World } from './tabs/world';
-import { XR } from './tabs/xr';
+import {Tab} from './components/tab';
+import {Location} from './components/location';
+import {Character} from './tabs/character';
+import {Claims} from './tabs/claims';
+import {World} from './tabs/world';
+import {XR} from './tabs/xr';
 
 const localEuler = new THREE.Euler();
 
 // console.log('index 1');
 
-const _makeName = (N = 8) => (Math.random().toString(36)+'00000000000000000').slice(2, N+2);
+const _makeName = (N = 8) => (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
 const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
@@ -49,19 +49,19 @@ const NumberInput = ({input}) => {
     if (e.which === 13) {
       e.target.blur();
     }
-  }} />
+  }} />;
 };
 
 export default function Header({
   app,
 }) {
-  
+
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
-  
-	// console.log('index 2');
+
+  // console.log('index 2');
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
-	
+
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
@@ -73,10 +73,10 @@ export default function Header({
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
-  
+
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
-  
+
   let [px, setPx] = useState(0);
   let [py, setPy] = useState(0);
   let [pz, setPz] = useState(0);
@@ -86,16 +86,16 @@ export default function Header({
   let [sx, setSx] = useState(1);
   let [sy, setSy] = useState(1);
   let [sz, setSz] = useState(1);
-  px = {value: px, onChange: e => {const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx(v);}};
-  py = {value: py, onChange: e => {const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy(v);}};
-  pz = {value: pz, onChange: e => {const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz(v);}};
-  rx = {value: rx, onChange: e => {const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx(v);}};
-  ry = {value: ry, onChange: e => {const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy(v);}};
-  rz = {value: rz, onChange: e => {const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz(v);}};
-  sx = {value: sx, onChange: e => {const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx(v);}};
-  sy = {value: sy, onChange: e => {const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy(v);}};
-  sz = {value: sz, onChange: e => {const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz(v);}};
-  
+  px = {value: px, onChange: e => { const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx(v); }};
+  py = {value: py, onChange: e => { const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy(v); }};
+  pz = {value: pz, onChange: e => { const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz(v); }};
+  rx = {value: rx, onChange: e => { const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx(v); }};
+  ry = {value: ry, onChange: e => { const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy(v); }};
+  rz = {value: rz, onChange: e => { const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz(v); }};
+  sx = {value: sx, onChange: e => { const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx(v); }};
+  sy = {value: sy, onChange: e => { const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy(v); }};
+  sz = {value: sz, onChange: e => { const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz(v); }};
+
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
@@ -103,7 +103,7 @@ export default function Header({
   const worldOpen = open === 'world';
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
-  
+
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
   };
@@ -120,7 +120,7 @@ export default function Header({
   const selectApp = (app, physicsId, position) => {
     game.setMouseSelectedObject(app, physicsId, position);
   };
-  
+
   const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
   useEffect(() => {
     const update = e => {
@@ -133,7 +133,7 @@ export default function Header({
     localPlayer.addEventListener('wearupdate', e => {
       const wearActions = _getWearActions();
       setWearActions(wearActions);
-      
+
       const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
       if (mouseDomEquipmentHoverObject && !wearActions.some(action => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
         game.setMouseDomEquipmentHoverObject(null);
@@ -160,11 +160,11 @@ export default function Header({
   useEffect(() => {
     if (address && !nfts) {
       setNfts([]);
-      
+
       (async () => {
         const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
           headers: {
-            'X-API-KEY': `6a7ceb45f3c44c84be65779ad2907046`,
+            'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046',
           },
         });
         const j = await res.json();
@@ -193,7 +193,7 @@ export default function Header({
     const popstate = e => {
       _loadUrlState();
       // console.log('set room name', {roomName});
-      
+
       universe.handleUrlUpdate();
     };
     window.addEventListener('pushstate', pushstate);
@@ -231,7 +231,7 @@ export default function Header({
       panelsRef.current.scrollTo(0, 0);
     }
   }, [selectedApp, panelsRef.current]);
-  
+
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -243,7 +243,7 @@ export default function Header({
       const key2 = key;
       const index = (key1 * 10) + key2;
       game.addLocalEmote(index);
-      
+
       lastEmoteKey.key = -1;
       lastEmoteKey.timestamp = 0;
     } else {
@@ -251,7 +251,7 @@ export default function Header({
       lastEmoteKey.timestamp = timestamp;
     }
   };
-  
+
   const _handleNonInputKey = e => {
     switch (e.which) {
       case 13: { // enter
@@ -281,10 +281,10 @@ export default function Header({
         return true;
       }
       case 191: { // /
-        if (!magicMenuOpen && !ioManager.inputFocused()) { 
+        if (!magicMenuOpen && !ioManager.inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          
+
           // setPage('input');
           // setInput('');
           // setNeedsFocus(true);
@@ -349,7 +349,7 @@ export default function Header({
       if (hoverObject) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const physicsId = game.getMouseHoverPhysicsId();
         const position = game.getMouseHoverPosition();
         selectApp(hoverObject, physicsId, position);
@@ -387,15 +387,15 @@ export default function Header({
     };
   }, [dragging]);
 
-	return (
+  return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
-			<Chat open={open} setOpen={setOpen} />
+      <Chat open={open} setOpen={setOpen} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
-				<header className={styles.header}>
+        <header className={styles.header}>
           <div className={styles.row}>
             <a href="/" className={styles.logo}>
               <img src="images/arrow-logo.svg" className={styles.image} />
@@ -425,76 +425,21 @@ export default function Header({
               toggleOpen={toggleOpen}
             />
           </div>
-				</header>
+        </header>
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
-            <Tab
-              type="character"
-              top
-              left
-              label={
-                <div className={styles.label}>
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                  <span className={styles.text}>人 Character</span>
-                  <span className={styles.key}>Tab</span>
-                </div>
-              }
-              panels={[
-                (<div className={styles.panel} key="left">
-                  <div className={styles['panel-header']}>
-                    <h1>Sheila</h1>
-                  </div>
-                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
-                  {/* <div className={styles['panel-header']}>
-                    <h1>Equipment</h1>
-                  </div> */}
-                  {wearActions.map((wearAction, i) => {
-                    return (
-                      <div
-                        className={styles.equipment}
-                        key={i}
-                        onMouseEnter={e => {
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                          game.setMouseHoverObject(null);
-                          const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                          game.setMouseDomEquipmentHoverObject(app, physicsId);
-                        }}
-                        onMouseLeave={e => {
-                          game.setMouseDomEquipmentHoverObject(null);
-                        }}
-                      >
-                        <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                        <img src="images/flower.png" className={styles.icon} />
-                        <div className={styles.name}>{wearAction.instanceId}</div>
-                        <button className={styles.button} onClick={e => {
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                          localPlayer.unwear(app);
-                        }}>
-                          <img src="images/remove.svg" />
-                        </button>
-                        <div className={styles.background2} />
-                      </div>
-                    );
-                  })}
-                </div>)
-              ]}
+            <Character
               open={open}
+              setOpen={setOpen}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
-            />
-            <Character 
-              open={open}
-              setOpen={setOpen} 
-              toggleOpen={toggleOpen} 
-              panelsRef={panelsRef} 
-              wearActions={wearActions} 
+              wearActions={wearActions}
               previewCanvasRef={previewCanvasRef}
               game={game}
             />
             <World
               open={open}
-              setOpen={setOpen} 
+              setOpen={setOpen}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
               game={game}
@@ -527,7 +472,7 @@ export default function Header({
             />
           </div>
         </header>
-        
+
         <section className={classnames(styles.sidebar, userOpen ? styles.open : null)} onClick={e => {
           e.preventDefault();
           e.stopPropagation();
@@ -550,10 +495,10 @@ export default function Header({
                 <div className={styles.description}>{description}</div>
                 <div className={styles.tokenid}>{asset_contract.address} / {id}</div>
               </div>
-            </div>
+            </div>;
           })}
         </section>
       </div>
     </div>
-  )
-};
+  );
+}
