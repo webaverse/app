@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 
-export const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
+export const Tab = ({className, newStyles, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -16,6 +16,7 @@ export const Tab = ({className, type, left, right, top, bottom, disabled, label,
   return (
     <div className={classnames(
       className,
+      newStyles.tab,
       styles.tab,
       left ? styles.left : null,
       right ? styles.right : null,
@@ -27,8 +28,13 @@ export const Tab = ({className, type, left, right, top, bottom, disabled, label,
     )} onClick={onclick}>
       {left ? <>
         {before}
-        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
-          <div className={styles['panels-wrap']}>
+        {panels ? <div className={classnames(
+          newStyles.panels,
+          styles.panels)} onClick={stopPropagation} ref={panelsRef}>
+          <div className={classnames(
+            newStyles['panels-wrap'],
+            styles['panels-wrap'],
+          )}>
             {panels}
           </div>
         </div> : null}
@@ -37,8 +43,12 @@ export const Tab = ({className, type, left, right, top, bottom, disabled, label,
       </> : <>
         {before}
         {label}
-        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
-          <div className={styles['panels-wrap']}>
+        {panels ? <div className={classnames(
+          newStyles.panels,
+          styles.panels)} onClick={stopPropagation} ref={panelsRef}>
+          <div className={classnames(
+            newStyles['panels-wrap'],
+            styles['panels-wrap'])}>
             {panels}
           </div>
         </div> : null}

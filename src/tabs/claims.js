@@ -7,6 +7,7 @@ export const Claims = ({claims, open, toggleOpen, panelsRef}) => {
   return (
     <Tab
       type="claims"
+      newStyles={styles}
       bottom
       left
       disabled={claims.length === 0}
