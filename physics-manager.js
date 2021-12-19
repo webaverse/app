@@ -133,7 +133,7 @@ physicsManager.addConvexGeometry = mesh => {
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
   physicsMesh.scale.set(1, 1, 1);
-  physicsMesh.updateMatrixWorld();
+  physicsMesh.updateMatrix();
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
@@ -215,7 +215,7 @@ physicsManager.simulatePhysics = timeDiff => {
       if (physicsObject) {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrix();
       } /* else {
         console.warn('failed to get physics object', id);
       } */

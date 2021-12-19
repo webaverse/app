@@ -85,13 +85,14 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
     const {point} = collision;
     o.position.fromArray(point)
       // .add(localVector2.set(0, 0.01, 0));
-
+      o.updateMatrix();
     if (o.position.distanceTo(localVector) > offset) {
       collision = null;
     }
   }
   if (!collision) {
     o.position.copy(localVector5);
+    o.updateMatrix();
   }
 
   /* for (const physicsObject of grabbedPhysicsObjects) {
@@ -105,6 +106,8 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   } else {
     o.quaternion.copy(localQuaternion3);
   }
+
+  o.updateMatrix();
 
   return {
     handSnap,
@@ -207,10 +210,6 @@ const _makeHighlightPhysicsMesh = material => {
   return mesh;
 };
 
-/* const highlightMesh = _makeTargetMesh();
-highlightMesh.visible = false;
-sceneLowPriority.add(highlightMesh);
-let highlightedObject = null; */
 
 const highlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
 highlightPhysicsMesh.visible = false;
