@@ -6,7 +6,7 @@ phases:
       nodejs: latest
     commands:
       - echo Entered the install phase...
-      - sudo npm install forever -g
+      - npm install forever -g
       - git submodule init
       - git submodule update
       - npm install -y
