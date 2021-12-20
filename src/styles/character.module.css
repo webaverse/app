@@ -27,6 +27,12 @@
     text-transform: uppercase;
 }
 
+.panel > img{
+    width: 180px !important;
+    height: 170px !important;
+}
+
+
 .panels {
     height: calc(0.73 * 100vh) !important;
     max-height: 790px !important;
@@ -38,6 +44,10 @@
     /* Note: backdrop-filter has minimal browser support */
 }
 
+.panels .open{
+    display: flex !important;
+}
+
 .panels-wrap {
     background: rgba(10, 40, 50, 0.4) !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
@@ -46,4 +56,32 @@
 
 .tab {
     background-color: purple;
+}
+
+.line{
+    border-bottom: 1px solid rgba(85, 157, 219, 39.65);
+    width: 95%;
+    backdrop-filter: blur(100px);
+    height: 1px;
+}
+
+.equipment{
+    height: 58.249053955078125px;
+    width: 78.82109069824219px;
+    border-radius: 0px;        
+    background: rgba(4, 18, 22, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+}
+
+.equipmentHeading{
+    color: white;
+    font-family: Gotham;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 325;
+    line-height: 17px;
+    letter-spacing: 0em;
+    text-align: left;
+    padding-left: 20px;
 }
