@@ -293,17 +293,11 @@ class AppManager extends EventTarget {
           app.updateMatrixWorld(true);
           //bad patch for race-condition 
           setTimeout(()=>{
-            app.traverse(e => {
+            mesh.traverse(e => {
               e.updateMatrix();
               e.updateMatrixWorld(true);
             })
-            const physicsObjects = app.getPhysicsObjects();
-            physicsObjects.forEach(physicsObject=>{
-              physicsObject.position.copy(app.position);
-              physicsObject.quaternion.copy(app.quaternion);
-              physicsObject.scale.copy(app.scale);
-              physicsObject.updateMatrix();
-            })
+
           }, 5000)
         // },15000)
         if (!live) return _bailout(app);
