@@ -774,3 +774,7 @@ body {
   margin-left: 10px;
 
 }
+
+.panels:not(.open){
+  display: none !important;
+}

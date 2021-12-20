@@ -1,18 +1,13 @@
-/* eslint-disable no-useless-escape */
-import {storageHost, inappPreviewHost} from './constants';
+import {storageHost, inappPreviewHost, inappPreviewHostDev} from './constants';
+import {makeId} from './util';
 
 const queue = [];
 let running = false;
-let f;
+const useDev = true;
 
-const next = ()=>{
-  /** Unshift the queue to generate the next preview */
-  const {url, ext, type, width, height, resolve, reject} = queue.shift();
-  generatePreview(url, ext, type, width, height, resolve, reject);
-}
 
-export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
-  const previewHost = inappPreviewHost;
+export const generatePreview = async (url, ext, type, width, height, resolve) => {
+  const previewHost = window.origin; //= useDev ? inappPreviewHostDev : inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
@@ -37,18 +32,9 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   iframe.src = ssUrl;
   console.log('Preview generation in progress for ', ssUrl);
   // event listener for postMessage from screenshot.js
-  const rejection = setTimeout(() => {
-    reject('Preview Server Timed Out');
-    running = false;
-    /** discard old function */
-    window.removeEventListener('message', f, false);
-    if (queue.length > 0) {
-      next();
-    }
-  }, 30 * 1000);
-
-  f = (event) => {
+  var f = function(event) {
     if (event.data.method === 'result') {
+      console.log('Preview generation result ', event.data.result);
       window.removeEventListener('message', f, false);
       let blob;
       if (type === 'webm') {
@@ -60,14 +46,14 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
           type: `image/${type}`,
         });
       }
-      clearTimeout(rejection);
       resolve({
         blob: blob,
         url: URL.createObjectURL(blob),
       });
       running = false;
       if (queue.length > 0) {
-        next();
+        const {url, ext, type, width, height, resolve} = queue.shift();
+        generatePreview(url, ext, type, width, height, resolve);
       }
     }
   };
@@ -83,9 +69,9 @@ function isValidURL(string) {
 export const preview = async (url, ext, type, width, height) => {
   return new Promise((resolve, reject) => {
     if (!running) {
-      generatePreview(url, ext, type, width, height, resolve, reject);
+      generatePreview(url, ext, type, width, height, resolve);
     } else {
-      queue.push({url, ext, type, width, height, resolve, reject});
+      queue.push({url, ext, type, width, height, resolve});
     }
   });
 };

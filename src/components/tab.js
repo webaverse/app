@@ -30,7 +30,9 @@ export const Tab = ({className, newStyles, type, left, right, top, bottom, disab
         {before}
         {panels ? <div className={classnames(
           newStyles.panels,
-          styles.panels)} onClick={stopPropagation} ref={panelsRef}>
+          styles.panels,
+          open === type ? styles.open : null,
+        )} onClick={stopPropagation} ref={panelsRef}>
           <div className={classnames(
             newStyles['panels-wrap'],
             styles['panels-wrap'],
@@ -45,7 +47,9 @@ export const Tab = ({className, newStyles, type, left, right, top, bottom, disab
         {label}
         {panels ? <div className={classnames(
           newStyles.panels,
-          styles.panels)} onClick={stopPropagation} ref={panelsRef}>
+          styles.panels,
+          open === type ? styles.open : null,
+        )} onClick={stopPropagation} ref={panelsRef}>
           <div className={classnames(
             newStyles['panels-wrap'],
             styles['panels-wrap'])}>
