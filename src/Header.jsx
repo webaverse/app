@@ -398,7 +398,7 @@ export default function Header({
         <header className={styles.header}>
           <div className={styles.row}>
             <a href="/" className={styles.logo}>
-              <img src="images/arrow-logo.svg" className={styles.image} />
+              <img src="images/logo-new.png" className={styles.image} />
             </a>
             <Location
               sceneNames={sceneNames}
@@ -429,6 +429,7 @@ export default function Header({
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
             <Character
+              apps={apps}
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
