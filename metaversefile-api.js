@@ -12,7 +12,7 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, rootScene, postScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postScene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -119,6 +119,7 @@ class App extends THREE.Object3D {
   use() {
     this.dispatchEvent({
       type: 'use',
+      use: true,
     });
   }
   hit(damage) {
@@ -706,9 +707,18 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
+      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+        enablePhysicsObject.call(this, physicsObject);
+      })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
         disablePhysicsObject.call(this, physicsObject);
       })(physics.disablePhysicsObject);
+      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
+        enableGeometryQueries.call(this, physicsObject);
+      })(physics.enableGeometryQueries);
+      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
+        disableGeometryQueries.call(this, physicsObject);
+      })(physics.disableGeometryQueries);
 
       physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
@@ -925,6 +935,7 @@ export default () => {
       postScene,
       camera,
       sceneHighPriority,
+      sceneLowPriority,
       iframeContainer,
     };
   },
