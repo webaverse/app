@@ -794,7 +794,13 @@ class LocalPlayer extends UninterpolatedPlayer {
         app.position.copy(this.position)
           .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
-        app.scale.set(1, 1, 1);
+        if (wearComponent.scale) {
+          app.scale.fromArray(wearComponent.scale);
+        }
+        else {
+          app.scale.set(1, 1, 1);
+        }
+        
         app.updateMatrixWorld();
       }
 
