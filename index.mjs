@@ -21,8 +21,8 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs-local/privkey.pem') || _tryReadFile('./certs/privkey.pem'),
-  cert: _tryReadFile('./certs-local/fullchain.pem') || _tryReadFile('./certs/fullchain.pem'),
+  key: _tryReadFile('./certs/privkey.pem') || _tryReadFile('./certs-local/privkey.pem'),
+  cert: _tryReadFile('./certs/fullchain.pem') || _tryReadFile('./certs-local/fullchain.pem'),
 };
 
 function makeId(length) {
