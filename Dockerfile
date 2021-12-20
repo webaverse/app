@@ -19,9 +19,8 @@ RUN npm list
 	
 
 # Expose API port to the outside
-EXPOSE 3000
-EXPOSE 3001
+EXPOSE 443
 	
 
 	# Launch application
-CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.js
+CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.mjs -p
