@@ -85,3 +85,32 @@
     text-align: left;
     padding-left: 20px;
 }
+
+.equipmentItems{
+    padding: 50px; /* 25px of padding and 25degree of skewing adjustment*/
+    padding-top: 10px;
+    display: flex;
+}
+
+.equipmentItems> .item{
+    border: 1px solid #FFFFFF1A;
+    background: rgba(4, 18, 22, 0.25);
+    /* border: 1px solid rgba(255, 255, 255, 0.1); */
+    box-sizing: border-box;
+    height: 58.249053955078125px;
+    width: 78.82109069824219px;
+    left: 15px;
+    transform-origin: top left;
+    transform: skew(-25deg);
+}
+
+.equipmentItems> .item> .itemWrapper{
+    transform: skew(25deg);
+}
+
+
+
+.equipmentItems > .item > .itemWrapper> img{
+    height: 58.249053955078125px;
+    width: 78.82109069824219px;
+}
