@@ -73,13 +73,7 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-      /* // disable old vrm
-      {
-        const avatarVrmPhysicsObject = this.player.avatar.app.physicsObjects[0];
-        //this.debugCapsule = this.player.avatar.app.debugCapsule;
-        physicsManager.disableGeometryQueries(avatarVrmPhysicsObject);
-        physicsManager.disablePhysicsObject(avatarVrmPhysicsObject);
-      } */
+
 
       // move character controller
       const minDist = 0;
@@ -96,11 +90,11 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       const grounded = !!(flags & 0x1); 
 
-      this.player.characterControllerObject.updateMatrixWorld();
+      this.player.characterControllerObject.updateMatrix();
       this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
-      
+      this.player.characterControllerObject.updateMatrixWorld();
       // capsule physics
       if (!this.player.hasAction('sit')) {
         // avatar facing direction
@@ -185,7 +179,7 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
-        controlledApp.updateMatrixWorld();
+        controlledApp.updateMatrixWorld(true);
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
@@ -318,6 +312,7 @@ class CharacterPhysics {
       );
     camera.position.y -= crouchOffset;
     camera.updateMatrix();
+    this.player.updateMatrix();
   }
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
