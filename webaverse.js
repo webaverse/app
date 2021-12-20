@@ -14,7 +14,7 @@ import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-import equipmentRender from './equipment-render.js';
+// import equipmentRender from './equipment-render.js';
 import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
@@ -130,7 +130,7 @@ export default class Webaverse extends EventTarget {
     postProcessing.bindCanvas();
   }
   bindPreviewCanvas(previewCanvas) {
-    equipmentRender.bindPreviewCanvas(previewCanvas);
+    // equipmentRender.bindPreviewCanvas(previewCanvas);
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -279,7 +279,7 @@ export default class Webaverse extends EventTarget {
     
     // equipment panel render
     // equipmentRender.previewScene.add(world.lights);
-    equipmentRender.render();
+    // equipmentRender.render();
 
     getComposer().render();
     if(ioManager.debugMode) {
