@@ -8,6 +8,8 @@ phases:
       - echo Entered the install phase...
       - apt update -y
       - sudo npm install forever -g
+      - git submodule init
+      - git submodule update
       - npm install -y
   pre_build:
     commands:
