@@ -16,6 +16,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import {
   worldMapName
 } from './constants.js';
+import { Quaternion } from 'three';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -262,13 +263,8 @@ class AppManager extends EventTarget {
             }
           })(),
         });
-        app.position.fromArray(position);
-        app.quaternion.fromArray(quaternion);
-        app.scale.fromArray(scale);
-        app.updateMatrix();
-        app.traverse(e => {
-          e.updateMatrix();
-        })
+
+
         app.contentId = contentId;
         app.instanceId = instanceId;
         app.setComponent('physics', true);
@@ -287,6 +283,29 @@ class AppManager extends EventTarget {
           app.setComponent(key, value);
         }
         const mesh = await app.addModule(m);
+        
+       
+        // setTimeout(()=>{
+          app.position.copy(new THREE.Vector3().fromArray(position));
+          app.quaternion.copy(new Quaternion().fromArray(quaternion));
+          app.scale.copy(new THREE.Vector3().fromArray(scale));
+          app.updateMatrix();
+          app.updateMatrixWorld(true);
+          //bad patch for race-condition 
+          setTimeout(()=>{
+            app.traverse(e => {
+              e.updateMatrix();
+              e.updateMatrixWorld(true);
+            })
+            const physicsObjects = app.getPhysicsObjects();
+            physicsObjects.forEach(physicsObject=>{
+              physicsObject.position.copy(app.position);
+              physicsObject.quaternion.copy(app.quaternion);
+              physicsObject.scale.copy(app.scale);
+              physicsObject.updateMatrix();
+            })
+          }, 5000)
+        // },15000)
         if (!live) return _bailout(app);
         if (!mesh) {
           console.warn('failed to load object', {
@@ -581,9 +600,10 @@ class AppManager extends EventTarget {
       this.appsArray.doc.transact(() => {
         for (const app of this.apps) {
           if (this.hasTrackedApp(app.instanceId)) {
-            // app.updateMatrixWorld();
+            // app.updateMatrixWorld(true);
 
             if (!app.matrix.equals(app.lastMatrix)) {
+              app.updateMatrixWorld(true);
               app.matrix.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
               const physicsObjects = app.getPhysicsObjects();
@@ -592,18 +612,14 @@ class AppManager extends EventTarget {
                 physicsObject.quaternion.copy(app.quaternion);
                 physicsObject.scale.copy(app.scale);
 
-                /* if (app.appType === "vrm") {
-                  physicsObject.position.add(new THREE.Vector3(0, 1, 0));
-                } */
-
                 physicsObject.updateMatrix();
 
                 //physicsManager.pushUpdate(physicsObject);
                 physicsManager.setTransform(physicsObject);
-                physicsObject.needsUpdate = false;
-              }
 
+              }
               app.lastMatrix.copy(app.matrix);
+              app.updateMatrixWorld(true);
             }
           }
         }

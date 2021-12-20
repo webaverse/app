@@ -6,9 +6,9 @@ import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 import ioManager from './io-manager.js';
-import {getVelocityDampingFactor} from './util.js';
+import {getVelocityDampingFactor, applyVelocity} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
-import {applyVelocity} from './util.js';
+
 import {getRenderer, camera} from './renderer.js';
 import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -39,12 +39,14 @@ class CharacterPhysics {
     this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
   }
+
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
       this.velocity.add(keysDirection);
     }
   }
+
   applyGravity(timeDiffS) {
     if (this.player) {
       if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
@@ -54,6 +56,7 @@ class CharacterPhysics {
       }
     }
   }
+
   /* collideCapsule = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -73,8 +76,6 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
-
-
       // move character controller
       const minDist = 0;
       localVector3.copy(this.velocity)
@@ -85,10 +86,10 @@ class CharacterPhysics {
         localVector3,
         minDist,
         timeDiffS,
-        this.player.characterControllerObject.position
+        this.player.characterControllerObject.position,
       );
       // const collided = flags !== 0;
-      const grounded = !!(flags & 0x1); 
+      const grounded = !!(flags & 0x1);
 
       this.player.characterControllerObject.updateMatrix();
       this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -102,15 +103,15 @@ class CharacterPhysics {
           const horizontalVelocity = localVector5.set(
             this.velocity.x,
             0,
-            this.velocity.z
+            this.velocity.z,
           );
           if (horizontalVelocity.lengthSq() > 0.001) {
             localQuaternion.setFromRotationMatrix(
               localMatrix.lookAt(
                 zeroVector,
                 horizontalVelocity,
-                upVector
-              )
+                upVector,
+              ),
             );
           }
         } else {
@@ -145,7 +146,7 @@ class CharacterPhysics {
             _ensureNoJumpAction();
           } else {
             _ensureJumpAction();
-          
+
             this.velocity.y = 0;
           }
         } else {
@@ -154,7 +155,7 @@ class CharacterPhysics {
           }
         }
       } else {
-        //Outdated vehicle code
+        // Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
@@ -175,7 +176,7 @@ class CharacterPhysics {
           controlledApp.quaternion
             .setFromUnitVectors(
               localVector4.set(0, 0, -1),
-              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
+              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize(),
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
@@ -206,7 +207,7 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
-      this.player.updateMatrixWorld();
+      this.player.updateMatrixWorld(true);
 
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
@@ -214,10 +215,11 @@ class CharacterPhysics {
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
-        this.avatar.updateMatrixWorld();
+        this.avatar.updateMatrixWorld(true);
       }
     }
   }
+
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
     if (this.player.hasAction('fly')) {
@@ -236,6 +238,7 @@ class CharacterPhysics {
     }
     this.lastGrounded = grounded; */
   }
+
   /* updateVelocity() {
     if(this.player.avatar && physicsManager.physicsEnabled) {
       if(this.rigidBody) {
@@ -255,6 +258,7 @@ class CharacterPhysics {
   updateTransform() {
 
   }
+
   applyAvatarPhysics(now, timeDiffS) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -296,6 +300,7 @@ class CharacterPhysics {
       }
     }
   }
+
   /* offset the camera back from the avatar */
   updateCamera(timeDiffS) {
     const renderer = getRenderer();
@@ -308,22 +313,25 @@ class CharacterPhysics {
       // .add(localVector.set(0, avatarHeight * 0.5, 0))
       .sub(
         localVector.copy(avatarCameraOffset)
-          .applyQuaternion(camera.quaternion)
+          .applyQuaternion(camera.quaternion),
       );
     camera.position.y -= crouchOffset;
     camera.updateMatrix();
     this.player.updateMatrix();
   }
+
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
     this.applyVelocityDamping(this.velocity, timeDiff);
   }
+
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.updateCamera(timeDiffS);
   }
+
   reset() {
     if (this.player.avatar && physicsManager.physicsEnabled) {
       this.player.characterPhysics.velocity.set(0, 0, 0);

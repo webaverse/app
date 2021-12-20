@@ -18,6 +18,8 @@ const Helpers = {
   },
   updateMatrixWorld(o) {
     o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
+    // o.parent.updateMatrixWorld(true);
+    // o.updateMatrixWorld(true); //not needed
   },
   updateMatrixMatrixWorld(o) {
     o.matrix.compose(o.position, o.quaternion, o.scale);

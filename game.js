@@ -207,6 +207,7 @@ const _makeHighlightPhysicsMesh = material => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.physicsId = 0;
+  mesh.updateMatrixWorld(true);
   return mesh;
 };
 
@@ -628,6 +629,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
         localPlayer.leftHand.position.copy(leftGamepadPosition);
         localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
+        localPlayer.leftHand.updateMatrix();
       }
       {
         const rightGamepadPosition = localVector2.copy(localVector)
@@ -639,6 +641,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
         localPlayer.rightHand.position.copy(rightGamepadPosition);
         localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
+        localPlayer.rightHand.updateMatrix();
       }
       
       if (lastPistolUseStartTime >= 0) {
@@ -665,6 +668,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localVector.set(0, 0, -fakeArmLength)
             .applyQuaternion(localPlayer.leftHand.quaternion)
         );
+        localPlayer.leftHand.updateMatrix();
+        
         
         localPlayer.leftHand.quaternion.slerp(localQuaternion, v);
         
@@ -672,6 +677,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localVector.set(0, 0, -fakeArmLength)
             .applyQuaternion(localPlayer.leftHand.quaternion)
         );
+        localPlayer.leftHand.updateMatrixWorld(true);
       }
     }
   };
@@ -719,7 +725,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
               .multiplyScalar(3)
           );
         grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
+        grabUseMesh.updateMatrix();
+        grabUseMesh.updateMatrixWorld(true);
         // grabUseMesh.visible = true;
         grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -738,10 +745,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
         if (object && !_isWear(object)) {
+          grabUseMesh.updateMatrixWorld(true);
           object.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
-          grabUseMesh.updateMatrixWorld();
+          grabUseMesh.updateMatrix();
+          grabUseMesh.updateMatrixWorld(true);
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -755,25 +764,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
     highlightedPhysicsObject = null;
 
     if (gameManager.editMode) {
-      /* const grabbedObject = _getGrabbedObject(0);
-      const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
-      for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
-
       const {position, quaternion} = renderer.xr.getSession() ? metaversefileApi.useLocalPlayer().leftHand : camera;
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
+        highlightedPhysicsObject.updateMatrixWorld(true);
         highlightedPhysicsId = physicsId;
       }
-
-      /* for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
     }
   };
   _handlePhysicsHighlight();
@@ -784,7 +782,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (highlightedPhysicsObject) {
       const physicsId = highlightedPhysicsId;
 
-      highlightedPhysicsObject.updateMatrixWorld();
+      highlightedPhysicsObject.updateMatrixWorld(true);
 
       const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if(physicsObject) {
@@ -800,7 +798,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
         highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
         highlightPhysicsMesh.visible = true;
-        highlightPhysicsMesh.updateMatrixWorld();
+        highlightPhysicsMesh.updateMatrix();
+        highlightPhysicsMesh.updateMatrixWorld(true);
+        physicsObject.updateMatrixWorld(true);
       }
     }
   };
@@ -823,7 +823,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseHighlightPhysicsMesh.visible = true;
-        mouseHighlightPhysicsMesh.updateMatrixWorld();
+        mouseHighlightPhysicsMesh.updateMatrix();
+        mouseHighlightPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -853,13 +854,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
           // mouseSelectPhysicsMesh.quaternion.identity();
           // mouseSelectPhysicsMesh.scale.set(1, 1, 1);
           mouseSelectPhysicsMesh.visible = true;
-          mouseSelectPhysicsMesh.updateMatrixWorld();
-
+          mouseSelectPhysicsMesh.updateMatrix();
+          mouseSelectPhysicsMesh.updateMatrixWorld(true);
+          physicsMesh.updateMatrixWorld(true);
         }
         // update uniforms
         {
           mouseSelectPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
           mouseSelectPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          mouseSelectPhysicsMesh.updateMatrix();
           
         }
       } /* else {
@@ -885,7 +888,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomHoverPhysicsMesh.visible = true;
-        mouseDomHoverPhysicsMesh.updateMatrixWorld();
+        mouseDomHoverPhysicsMesh.updateMatrix();
+        mouseDomHoverPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -902,12 +906,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const {physicsMesh} = physicsObject;
         mouseDomEquipmentHoverPhysicsMesh.geometry = physicsMesh.geometry;
         localMatrix2.copy(physicsMesh.matrixWorld)
-          // .premultiply(localMatrix3.copy(mouseHoverObject.matrixWorld).invert())
           .decompose(mouseDomEquipmentHoverPhysicsMesh.position, mouseDomEquipmentHoverPhysicsMesh.quaternion, mouseDomEquipmentHoverPhysicsMesh.scale);
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseDomEquipmentHoverPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         mouseDomEquipmentHoverPhysicsMesh.visible = true;
-        mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld();
+        mouseDomEquipmentHoverPhysicsMesh.updateMatrix();
+        mouseDomEquipmentHoverPhysicsMesh.updateMatrixWorld(true);
       }
     }
   };
@@ -927,7 +931,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const apps = world.appManager.apps;
     if (apps.length > 0) {
       let closestObject;
-      
       if (!gameManager.getMouseSelectedObject() && !gameManager.contextMenu) {
         if (/*controlsManager.isPossessed() &&*/ cameraManager.getMode() !== 'firstperson') {
           localPlayer.matrixWorld.decompose(
@@ -1074,7 +1077,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
     cylinderMesh.quaternion.copy(localPlayer.quaternion);
     // cylinderMesh.startPosition.copy(localPlayer.position);
-    cylinderMesh.updateMatrixWorld();
+    cylinderMesh.updateMatrix();
     const useAction = localPlayer.getAction('use');
     if (useAction && useAction.animation === 'combo') {
       const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
@@ -1367,7 +1370,7 @@ const gameManager = {
       camera.quaternion.setFromEuler(camera.rotation);
 
       camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-
+      camera.updateMatrix();
       camera.updateMatrixWorld();
     }
   },

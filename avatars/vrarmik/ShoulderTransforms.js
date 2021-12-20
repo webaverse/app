@@ -43,7 +43,7 @@ class ShoulderTransforms {
     this.rightShoulderAnchor = new THREE.Object3D();
     this.rightShoulderAnchor.name = 'ikRightShoulder';
     this.upperChest.add(this.rightShoulderAnchor);
-
+    this.upperChest.updateMatrixWorld(true);
     this.leftArm = new ArmTransforms();
     this.rightArm = new ArmTransforms();
 

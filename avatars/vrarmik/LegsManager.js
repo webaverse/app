@@ -69,6 +69,15 @@ class Leg {
     this.legsManager = legsManager;
     this.left = left;
 
+    this.transform.updateMatrixWorld();
+    this.upperLeg.updateMatrixWorld();
+    this.lowerLeg.updateMatrixWorld();
+    this.foot.updateMatrixWorld();
+    this.foot.stickTransform.updateMatrixWorld();
+    this.foot.startTransform.updateMatrixWorld();
+    this.foot.endTransform.updateMatrixWorld();
+    this.foot.startHmdFloorTransform.updateMatrixWorld();
+    this.toe.updateMatrixWorld();
     // this.standing = true;
     // this.standFactor = 1;
     // const now = Date.now();
@@ -182,6 +191,7 @@ class LegsManager {
     this.rightLeg = new Leg(this, false);
     this.hips.add(this.rightLeg.transform);
 
+    this.hips.updateMatrixWorld(true);
     this.rig = rig;
     this.poseManager = rig.poseManager;
 
@@ -198,6 +208,7 @@ class LegsManager {
   	this.legSeparation = Helpers.getWorldPosition(this.leftLeg.upperLeg, localVector)
   	  .distanceTo(Helpers.getWorldPosition(this.rightLeg.upperLeg, localVector2));
   	this.lastHmdPosition.copy(this.poseManager.vrTransforms.head.position);
+    
   	this.leftLeg.Start();
   	this.rightLeg.Start();
 
@@ -217,12 +228,15 @@ class LegsManager {
     this.rightLeg.foot.getWorldPosition(this.rightLeg.foot.stickTransform.position);
     this.rightLeg.foot.getWorldQuaternion(this.rightLeg.foot.stickTransform.quaternion);
 
+    this.rightLeg.foot.updateMatrix();
+    this.rightLeg.foot.updateMatrix();
     // this.leftLeg.Reset();
     // this.rightLeg.Reset();
   }
 
 	Update() {
     if (this.enabled) {
+      console.log('hello im legs update')
       if (!this.lastEnabled) {
         this.Reset();
       }

@@ -78,7 +78,7 @@ class ShoulderPoser {
   Update(enabled, leftEnabled, rightEnabled) {
     if (enabled) {
       // this.shoulder.spine.quaternion.set(0, 0, 0, 1);
-      
+      console.log('shoulderpose update')
       this.shoulder.proneFactor = this.getProneFactor();
       this.shoulder.prone = this.shoulder.proneFactor > 0;
       if (this.shoulder.prone) {
@@ -142,6 +142,7 @@ class ShoulderPoser {
 		} */
 
   updateHips() {
+    console.log('updating that shoulder poser')
     Helpers.updateMatrix(this.shoulder.root);
     this.shoulder.root.matrixWorld.copy(this.shoulder.root.matrix);
     Helpers.updateMatrixWorld(this.shoulder.hips);
