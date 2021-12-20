@@ -32,6 +32,7 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import * as materials from './materials.js';
 import soundManager from './sound-manager.js';
 
 import {CapsuleGeometry} from './CapsuleGeometry.js';
@@ -947,6 +948,9 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useMaterials() {
+    return materials;
   },
   useJSON6Internal() {
     return JSON6;
