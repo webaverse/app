@@ -16,38 +16,58 @@ export class Character extends React.Component {
     console.log(this.props);
   }
 
+  async setPreview(stateKey, stateSource, isContentId, id, options = {}) {
+    const manageContentId = async (stateKey, stateSource) => {
+      let _tempUrl = this.state[stateKey];
+      if (_tempUrl) {
+        if (_tempUrl.startsWith('.')) {
+          _tempUrl = _tempUrl.slice(1, _tempUrl.length);
+        }
+      }
+      if (_tempUrl.startsWith('/')) {
+        _tempUrl = window.origin + _tempUrl;
+      }
+
+      console.log(_tempUrl);
+      if (_tempUrl) {
+        const _preview = await preview(_tempUrl, options.type, 'png', 180, 170);
+        const _s = {};
+        _s[stateSource] = _preview.url;
+        this.setState(_s);
+        console.log(_preview);
+      }
+    };
+
+    if (this.state[stateKey] !== id) {
+      if (isContentId) {
+        const _s = {};
+        _s[stateKey] = id;
+        this.setState(_s);
+        manageContentId(stateKey, stateSource);
+      } else { // its an instanceId
+        const _app = this.props.apps.find(a => {
+          return a.id === id;
+        });
+        console.log(_app);
+      }
+    }
+  }
+
+  getD() {
+    this.props.wearActions.map(wearAction => {
+      const _state = {};
+      _state[`e_${wearAction.instanceId}`] = './public/images/loader.gif';
+      this.setState(_state);
+      this.setPreview(`k_${wearAction.instanceId}`, `e_${wearAction.instanceId}`, false, wearAction.instanceId);
+    });
+  }
+
   componentDidMount() {
-    /** Intiialise State */
-    // const [characterPreview, setCharacterPreview] = useState();
-    // const [avatarContentId, setAvatarContentId] = useState('');
     /** To do URL fixing */
     const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.addEventListener('avatarupdate', async e => {
+    localPlayer.addEventListener('avatarupdate', e => {
       if (e.app) {
-        if (this.state.avatarContentId !== e.app.contentId) {
-          this.setState({
-            avatarContentId: e.app.contentId,
-          });
-
-          let _tempUrl = this.state.avatarContentId;
-          if (_tempUrl) {
-            if (_tempUrl.startsWith('.')) {
-              _tempUrl = _tempUrl.slice(1, _tempUrl.length);
-            }
-          }
-          if (_tempUrl.startsWith('/')) {
-            _tempUrl = window.origin + _tempUrl;
-          }
-
-          console.log(_tempUrl);
-          if (_tempUrl) {
-            const _preview = await preview(_tempUrl, e.app.type, 'png', 180, 170);
-            this.setState({
-              characterPreview: _preview.url
-            })
-            console.log(_preview);
-          }
-        }
+        this.setPreview('avatarContentId', 'characterPreview', true, e.app.contentId, {type: e.app.type});
       }
     });
   }
@@ -74,17 +94,42 @@ export class Character extends React.Component {
             {
               this.state.characterPreview ? <img src={this.state.characterPreview} /> : <></>
             }
-            {/*
-              <div className={styles['panel-header']}>
-                <h1>Equipment</h1>
-              </div>
-            */}
             <hr className={newStyles.line}></hr>
-            <h1 className={newStyles.equipmentHeading}>Equipment</h1>
+
+            <div className={newStyles.equiment}>
+              <h1 className={newStyles.equipmentHeading}>Equipment</h1>
+              <div className={newStyles.equipmentItems}>
+                {this.props.wearActions.map((wearAction, i) => {
+                  return (
+                    <div className={newStyles.item}
+
+                      key={i}
+                      onMouseEnter={e => {
+                        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                        this.props.game.setMouseHoverObject(null);
+                        const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+                        this.props.game.setMouseDomEquipmentHoverObject(app, physicsId);
+                      }}
+                      onMouseLeave={e => {
+                        this.props.game.setMouseDomEquipmentHoverObject(null);
+                      }}
+
+                    >
+                      <div className={newStyles.itemWrapper}>
+                        <img src={`e_${wearAction.instanceId}`} />
+                      </div>
+                      <div className={styles.name}>{wearAction.instanceId}</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
             {this.props.wearActions.map((wearAction, i) => {
               return (
                 <div
-                  className={newStyles.equipment}
+                  style={{display: 'none'}}
+                  className={styles.equipment}
                   key={i}
                   onMouseEnter={e => {
                     const app = metaversefile.getAppByInstanceId(wearAction.instanceId);

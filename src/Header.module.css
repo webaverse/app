@@ -66,12 +66,14 @@ body {
 }
 
 .header .logo {
-  height: 100%;
-	margin-right: auto;
+  width: 65px;
+  height: 90px;
   padding: 0 10px;
   user-select: none;
 }
 .header .logo img {
+  width: 65px;
+  height: 90px;
   pointer-events: none;
 }
 .header .logo:hover img {
@@ -89,6 +91,7 @@ body {
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .header .tab .label {
+  display: none !important;
   position: relative;
   padding: 10px;
   background: rgba(10, 40, 50, 0.4);
@@ -138,7 +141,7 @@ body {
   padding: 0 10px;
 }
 .header .tab.top.left .panel-header {
-  margin-top: 20px;
+  margin-top: 100px;
 }
 .header .tab.top.right .panel-header {
   margin-top: 40px;
@@ -479,25 +482,96 @@ body {
   height: 100%;
   flex-direction: column;
   overflow: visible;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+  margin-left: auto;
+  margin-right: auto;
 }
 .location .row {
   display: flex;
-  height: 100%;
+  width: 72vw;
+  padding-left: 40px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border: 1px solid #FFFFFF59;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+  height: 52.5px;
 }
 .location .rooms {
   position: absolute;
   top: 50px;
   display: flex;
-  width: 100%;
-  background-color: #000;
+  width: 22vw;
+  max-width: 404px;
   flex-direction: column;
+  background: rgba(10, 40, 50, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(100px);
+  max-height: 394px;
+  overflow-y: scroll;
 }
+
+.location .login {
+  position: absolute;
+  top: 50px;
+  right:0px;
+  display: flex;
+  width: 22vw;
+  max-width: 404px;
+  flex-direction: column;
+  background: rgba(10, 40, 50, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(100px);
+  max-height: 394px;
+  overflow-y: scroll;
+}
+.location .login .header{
+  height: 60px;
+  width: 400px;
+  color: #5B5875;
+  font-family: Gotham;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 29px;
+  letter-spacing: 0em;
+  padding-left: 22px;
+  padding-top: 14px;
+  text-align: left;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(100px);
+}
+
+.location .login .loginOption{
+  height: 203px;
+  width: 400px;
+  background: rgba(10, 40, 50, 0.4);
+  backdrop-filter: blur(100px);
+}
+
+
 .location .rooms .room {
   display: flex;
   padding: 10px;
   color: #FFF;
   cursor: pointer;
+  backdrop-filter: blur(100px);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #595959;
+  box-sizing: border-box;
+  width: 380px;
+  height: 72px;
+  margin: 2px;
+  margin-left: 6px;
 }
+.locationRight{
+  position: absolute;
+  right: 82px;
+  display: flex;
+}
+
+
 .location .rooms .room:hover {
   background-color: #42a5f5;
 }
@@ -537,6 +611,8 @@ body {
   background-color: #000;
   font-family: monospace;
   overflow: hidden;
+  transform-origin: top left;
+  transform: skew(-30deg);
 }
 .location .input-wrap .background {
   position: absolute;
@@ -544,7 +620,8 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 100%;
+  height: 32px;
+  width: 23vw;  
   transform: translateX(-100%);
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
@@ -552,6 +629,7 @@ body {
   position: relative;
   height: inherit;
   width: inherit;
+  font-size: 22px;
   padding: 10px;
   background-color: transparent;
   border: 0;
@@ -560,6 +638,7 @@ body {
   font-size: 15px;
   outline: none;
   z-index: 1;
+  transform: skew(30deg);
   transition: color 1s cubic-bezier(0, 1, 0, 1);
 }
 .location .input-wrap .input:focus {
@@ -588,9 +667,33 @@ body {
   display: flex;
   height: 100%;
   border: 0;
-  background-color: #9ccc65;
+  background-color: #000;
+  border-left: solid 1px rgba(196, 196, 196, 0.25);
   align-items: center;
+  transform-origin: top left;
+  transform: skew(-30deg);
 }
+
+.location .rightButton,
+.location .rightButton.disabled:hover
+{
+  display: flex;
+  height: 100%;
+  border: 0;
+  align-items: center;
+  background-color: transparent;
+  margin-right:10px;
+}
+
+.location .rightButton .hidden {
+  display: none;
+}
+
+.location .rightButton img {
+  width: 25px; 
+  height: 25px;
+}
+
 .location .button:hover {
   background-color: #7cb342;
 }
@@ -600,11 +703,12 @@ body {
   background: linear-gradient(to right, #ff416c, #ff4b2b);
 } 
 .location .button.disabled {
-  background-color: #888;
+  background-color: #000;
 }
 .location .button img {
-  width: 30px; 
-  height: 30px;
+  width: 25px; 
+  height: 25px;
+  transform: skew(30deg);
 }
 .location .button:not(.disabled) img {
   filter: invert(1);

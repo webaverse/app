@@ -6,6 +6,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
   const [rooms, setRooms] = useState([]);
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
+  const loginOpen = open === 'login';
 
   const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost());
@@ -22,13 +23,6 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
   return (
     <div className={styles.location}>
       <div className={styles.row}>
-        <div className={styles['button-wrap']} onClick={e => {
-          toggleOpen('scenes');
-        }}>
-          <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
-            <img src="images/webarrow.svg" />
-          </button>
-        </div>
         <div className={styles['input-wrap']}>
           <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
             setSceneName(e.target.value);
@@ -47,25 +41,45 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
         </div>
         <div className={styles['button-wrap']} onClick={e => {
-          if (!multiplayerConnected) {
-            toggleOpen('multiplayer');
-          } else {
-            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
-            /* world.disconnectRoom();
-            setMultiplayerConnected(false); */
-            setOpen(null);
-          }
+          toggleOpen('scenes');
         }}>
-          <button className={classnames(styles.button, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
-            <img src="images/wifi.svg" />
+          <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
+            <img src="images/arrow-down.svg" />
           </button>
         </div>
-        <div className={styles['button-wrap']} onClick={toggleMic}>
-          <button className={classnames(styles.button, micOn ? null : styles.disabled)}>
-            <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
-            <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
-          </button>
+        <div className={styles.locationRight}>
+
+          <div className={styles['button-wrap']} onClick={e => {
+            if (!multiplayerConnected) {
+              toggleOpen('multiplayer');
+            } else {
+              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
+              // world.disconnectRoom();
+              // setMultiplayerConnected(false);
+              setOpen(null);
+            }
+          }}>
+            <button className={classnames(styles.rightButton, (multiplayerOpen || multiplayerConnected) ? null : styles.disabled)}>
+              <img src="images/wifi.svg" />
+            </button>
+          </div>
+          <div className={styles['button-wrap']} onClick={toggleMic}>
+            <button className={classnames(styles.rightButton, micOn ? null : styles.disabled)}>
+              <img src="images/microphone.svg" className={classnames(styles['mic-on'], micOn ? null : styles.hidden)} />
+              <img src="images/microphone-slash.svg" className={classnames(styles['mic-off'], micOn ? styles.hidden : null)} />
+            </button>
+          </div>
+
+          <div className={styles['button-wrap']} onClick={e => {
+            toggleOpen('login');
+          }}>
+            <button className={styles.rightButton}>
+              <img src="images/login.svg" />
+            </button>
+          </div>
+
         </div>
+
       </div>
       {scenesOpen ? <div className={styles.rooms}>
         {sceneNames.map((sceneName, i) => (
@@ -151,6 +165,17 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           </div>
         ))}
       </div> : null}
+
+      {loginOpen
+        ? <div className={styles.login}>
+          <div className={classnames(styles.row, styles.header)}>
+          Login
+          </div>
+          <div className={classnames(styles.row, styles.loginOtion)}>METAMASK</div>
+          <hr/>
+          <div className={classnames(styles.row, styles.loginOtion)}>METAMASK</div>
+        </div> : null}
+
     </div>
   );
 };
