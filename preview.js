@@ -1,13 +1,16 @@
-import {storageHost, inappPreviewHost} from './constants';
+import {storageHost, inappPreviewHost, inappPreviewHostDev} from './constants';
 import {makeId} from './util';
 
 const queue = [];
 let running = false;
+const useDev = true;
+
 
 export const generatePreview = async (url, ext, type, width, height, resolve) => {
+  const previewHost = window.origin; //= useDev ? inappPreviewHostDev : inappPreviewHost;
   running = true;
   // check for existing iframe
-  var iframe = document.querySelector(`iframe[src^="${inappPreviewHost}/screenshot.html"]`);
+  var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
 
   // else create new iframe
   if (!iframe) {
@@ -23,18 +26,26 @@ export const generatePreview = async (url, ext, type, width, height, resolve) =>
   }
 
   // create URL
-  var ssUrl = `${inappPreviewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+  var ssUrl = `${previewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
   // set src attr for iframe
   iframe.src = ssUrl;
-
+  console.log('Preview generation in progress for ', ssUrl);
   // event listener for postMessage from screenshot.js
   var f = function(event) {
     if (event.data.method === 'result') {
+      console.log('Preview generation result ', event.data.result);
       window.removeEventListener('message', f, false);
-      var blob = new Blob([event.data.result], {
-        type: `image/${type}`,
-      });
+      let blob;
+      if (type === 'webm') {
+        blob = new Blob([event.data.result], {
+          type: `video/${type}`,
+        });
+      } else {
+        blob = new Blob([event.data.result], {
+          type: `image/${type}`,
+        });
+      }
       resolve({
         blob: blob,
         url: URL.createObjectURL(blob),
