@@ -188,7 +188,7 @@ class CharacterPhysics {
                   this.player.removeAction('chargeJump');
                   this.player.removeAction('chargeJumpForward');
                   this.player.removeAction('chargeJumpForwardIdle');
-                }, 200);
+                }, 2000);
             }
           }
         }
