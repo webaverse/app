@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import metaversefile from "metaversefile";
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 
 class EquipmentRender {
   constructor() {
@@ -12,19 +12,19 @@ class EquipmentRender {
 
   initializeScene() {
     this.previewScene = new THREE.Scene();
-    
+
     const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
     this.previewScene.add(ambientLight);
-    
+
     const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
     directionalLight.position.set(1, 2, 3);
     this.previewScene.add(directionalLight);
-    
+
     this.previewCamera = new THREE.PerspectiveCamera(
       10,
       window.innerWidth / window.innerHeight,
       0.1,
-      100
+      100,
     );
     this.previewCamera.position.set(0, 1.35, 4.5);
   }
@@ -35,7 +35,7 @@ class EquipmentRender {
     const rect = this.previewCanvas.getBoundingClientRect();
     this.previewContext =
       this.previewCanvas &&
-      this.previewCanvas.getContext("webgl2", {
+      this.previewCanvas.getContext('webgl2', {
         antialias: true,
         alpha: true,
         preserveDrawingBuffer: false,
@@ -68,7 +68,7 @@ class EquipmentRender {
         avatar.parent.remove(avatar);
         avatar = null;
       }
-      
+
       if (e.app) {
         const newAvatar = e.app.clone();
 
@@ -78,15 +78,16 @@ class EquipmentRender {
 
         // this.previewScene.clear();
         this.previewScene.add(newAvatar);
-        
+
         newAvatar.instanceId = metaversefile.getNextInstanceId();
-        
+
         avatar = newAvatar;
       }
     });
   }
 
   render() {
+    return;
     this.previewRenderer.clear();
     this.previewRenderer.render(this.previewScene, this.previewCamera);
   }
