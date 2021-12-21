@@ -75,19 +75,19 @@ const enterWorld = async worldSpec => {
   physicsManager.setPhysicsEnabled(true);
   localPlayer.updatePhysics(0, 0);
 
-  setTimeout(() => {
-    // TODO: Do not use setTimeout, find the place where the load is really complete.
-    console.log(333)
-    rootScene.traverse((child) => {
-      if (child.type === 'vrm') {
-        window.role = child
-        window.role.position.y = 1
-      }
-      // child.matrixWorldNeedsUpdate = true
-      child.updateMatrix()
-    })
-    rootScene.updateMatrixWorld(true)
-  }, 10000)
+  // setTimeout(() => {
+  // TODO: Do not use setTimeout, find the place where the load is really complete.
+  console.log(333)
+  rootScene.traverse((child) => {
+    if (child.type === 'vrm') {
+      window.role = child
+      window.role.position.y = 1
+    }
+    // child.matrixWorldNeedsUpdate = true
+    child.updateMatrix()
+  })
+  rootScene.updateMatrixWorld(true)
+  // }, 10000)
 
   currentWorld = worldSpec;
 };
