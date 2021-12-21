@@ -113,6 +113,22 @@
     },
     {
       "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/damage-mesh/",
+      "dynamic": true
+    },
+    {
+      "position": [
         4,
         1,
         4
