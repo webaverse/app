@@ -24,4 +24,4 @@ EXPOSE 443
 
 	# Launch application
 # CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.mjs -p
-CMD pm2 start index.mjs -p
+CMD pm2 start index.mjs -i 4
