@@ -621,6 +621,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateFakeHands = () => {
     const session = renderer.xr.getSession();
     if (!session) {
+      // localPlayer.updateMatrix()
+      // localPlayer.updateMatrixWorld(true)
       localMatrix.copy(localPlayer.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
 
@@ -938,6 +940,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
       
       if (!gameManager.getMouseSelectedObject() && !gameManager.contextMenu) {
         if (/*controlsManager.isPossessed() &&*/ cameraManager.getMode() !== 'firstperson') {
+          // localPlayer.updateMatrix()
+          // localPlayer.updateMatrixWorld(true)
           localPlayer.matrixWorld.decompose(
             localVector,
             localQuaternion,
@@ -1005,6 +1009,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
         !gameManager.contextMenu /* &&
         controlsManager.isPossessed() */
       ) {
+        // localPlayer.updateMatrix()
+        // localPlayer.updateMatrixWorld(true)
         localPlayer.matrixWorld.decompose(
           localVector,
           localQuaternion,
