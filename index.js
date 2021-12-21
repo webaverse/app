@@ -215,7 +215,11 @@ export default () => {
           //if (cellRand < 0.1) b = 0.0;
           
           float c = 1.-b;
-          fragColor = vec4(vec3(c), b);
+          if (b > 0.5) {
+            fragColor = vec4(vec3(c), b);
+          } else {
+            discard;
+          }
       }
       void main() {
         mainImage(gl_FragColor, vUv);
