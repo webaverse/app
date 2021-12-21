@@ -215,7 +215,7 @@ export default () => {
           //if (cellRand < 0.1) b = 0.0;
           
           float c = 1.-b;
-          if (b > 0.5) {
+          if (b > 0.001) {
             fragColor = vec4(vec3(c), b);
           } else {
             discard;
