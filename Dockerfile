@@ -12,8 +12,8 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt update -y
-RUN apt install sudo -y
-RUN npm install forever -g
+RUN npm install -g pm2
+RUN pm2 link 0ve2nlmollwq16k wicmdcymxzyukdq
 RUN npm install
 RUN npm list
 	
@@ -23,4 +23,5 @@ EXPOSE 443
 	
 
 	# Launch application
-CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.mjs -p
+# CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.mjs -p
+CMD pm2 start index.mjs -p
