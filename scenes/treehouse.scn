@@ -97,6 +97,22 @@
     },
     {
       "position": [
+        24,
+        0,
+        24
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/barrier/",
+      "dynamic": true
+    },
+    {
+      "position": [
         4,
         1,
         4
