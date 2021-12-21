@@ -1,0 +1,115 @@
+.popup {
+    position: absolute;
+    display: flex;
+    width: 22vw;
+    max-width: 404px;
+    flex-direction: column;
+    background: rgba(10, 40, 50, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(100px);
+    max-height: 394px;
+    z-index: 999999;
+}
+
+.popup:after, .popup:before {
+	bottom: 100%;
+	left: 50%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.popup:after {
+	border-color: rgba(238, 238, 238, 0);
+	border-bottom-color: rgb(199 205 207);
+	border-width: 15px;
+	margin-left: -15px;
+}
+
+.popup:before {
+	border-color: rgba(204, 204, 204, 0);
+	border-bottom-color: rgb(199 205 207);
+	border-width: 16px;
+	margin-left: -16px;
+}
+
+
+.popupHeader{
+    height: 60px;
+    width: 400px;
+    color: #5B5875;
+    font-family: Gotham;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 29px;
+    letter-spacing: 0em;
+    padding-left: 22px;
+    padding-top: 14px;
+    text-align: left;
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(100px);
+  }
+  
+.popupOption{
+    height: 71px;
+    width: 400px;
+    background: rgba(10, 40, 50, 0.4);
+    backdrop-filter: blur(100px);
+    color: white;
+    font-size: 12px;
+    display: table;
+    cursor: pointer;
+  }
+  
+  .popupOptionBg{
+    background: rgba(10, 40, 50, 0.4);
+    backdrop-filter: blur(100px);
+  }
+  
+  .popupOptionContent{
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: scroll;
+    text-align: center;
+    font-family: Gotham;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 350;
+    line-height: 14px;
+    letter-spacing: 0em;    
+  }
+
+  .line{
+    border-bottom: 1px solid rgba(85, 157, 219, 39.65);
+    width: 95%;
+    backdrop-filter: blur(100px);
+    height: 0px;
+    margin: 0;
+  
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .icon{
+    display: block;
+    float: left;
+    height: 29px;
+    width: 32px;
+    margin-right: 15px;
+    margin-top: 18.5px;
+  }
+
+  .popupOptionContent > span{
+    display: block;
+    float: left; 
+    margin-top: 26px;
+  }

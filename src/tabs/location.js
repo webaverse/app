@@ -1,9 +1,14 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
+import {Popup} from '../components/popup';
+import * as ceramicApi from '../../ceramic.js';
+import { discordClientId } from '../../constants';
 
-export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
+export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress}) => {
   const [rooms, setRooms] = useState([]);
+  const loginButton = useRef();
+
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
   const loginOpen = open === 'login';
@@ -19,6 +24,23 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
     }
   };
   useEffect(refreshRooms, []);
+
+  const metaMaskLogin = async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (address) {
+      toggleOpen('user');
+    } else {
+      try {
+        const {address, profile} = await ceramicApi.login();
+        setAddress(address);
+      } catch (err) {
+        console.warn(err);
+      } finally {
+        // setLoggingIn(false);
+      }
+    }
+  };
 
   return (
     <div className={styles.location}>
@@ -70,9 +92,13 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
             </button>
           </div>
 
-          <div className={styles['button-wrap']} onClick={e => {
-            toggleOpen('login');
-          }}>
+          <div
+            className={styles['button-wrap']}
+            onClick={e => {
+              toggleOpen('login');
+            }}
+            ref={loginButton}
+          >
             <button className={styles.rightButton}>
               <img src="images/login.svg" />
             </button>
@@ -167,14 +193,25 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
       </div> : null}
 
       {loginOpen
-        ? <div className={styles.login}>
-          <div className={classnames(styles.row, styles.header)}>
-          Login
-          </div>
-          <div className={classnames(styles.row, styles.loginOtion)}>METAMASK</div>
-          <hr/>
-          <div className={classnames(styles.row, styles.loginOtion)}>METAMASK</div>
-        </div> : null}
+        ? <Popup
+
+          header={'Login'}
+          options={[{
+            text: 'Discord',
+            icon: './images/discord-white.svg',
+            action: () => {
+              window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`;
+              setOpen(null);
+            },
+          },
+          {
+            text: 'Metamask',
+            icon: './images/metamask-white.svg',
+            action: metaMaskLogin,
+          },
+          ]}
+          anchor={loginButton}
+        ></Popup> : null}
 
     </div>
   );
