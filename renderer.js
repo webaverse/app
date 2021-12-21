@@ -86,6 +86,7 @@ sceneHighPriority.name = 'highPriorioty';
 const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
+window.rootScene = rootScene /// TEST
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
 const postScene = new THREE.Scene();

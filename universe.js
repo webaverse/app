@@ -10,6 +10,7 @@ import {initialPosY} from './constants.js';
 import {parseQuery, parseCoord} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
+import { rootScene } from './renderer'
 
 let currentWorld = null;
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
@@ -55,13 +56,23 @@ const enterWorld = async worldSpec => {
     
     await Promise.all(promises);
   };
+  console.log(111)
   await _doLoad().catch(err => {
     console.warn(err);
   });
+  console.log(222)
 
   localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
   localPlayer.updatePhysics(0, 0);
+
+  setTimeout(() => { // TODO: Do not use setTimeout, find the place where the load is really complete.
+    rootScene.traverse((child) => {
+      // child.matrixWorldNeedsUpdate = true
+      child.updateMatrix()
+    })
+    rootScene.updateMatrixWorld()
+  }, 10000)
 
   currentWorld = worldSpec;
 };

@@ -244,6 +244,7 @@ const loadPromise = (async () => {
       
       let o;
       try {
+        // console.log('111 avatar')
         o = await new Promise((accept, reject) => {
           const {gltfLoader} = metaversefile.useLoaders();
           gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
