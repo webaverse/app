@@ -214,6 +214,8 @@ class CharacterPhysics {
       } else {
         this.player.matrix.identity();
       }
+      this.player.updateMatrix()
+      this.player.updateMatrixWorld(true)
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale); // FORMAL
       this.player.matrixWorld.copy(this.player.matrix);
