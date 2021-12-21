@@ -204,7 +204,10 @@ class CharacterPhysics {
 
       // apply to player
       if (updateRig) {
+        // console.log(111, 'player.matrix.copy', localMatrix)
         this.player.matrix.copy(localMatrix);
+        this.player.matrix.decompose(this.player.position,this.player.quaternion,this.player.scale) // TEST
+        this
       } else {
         this.player.matrix.identity();
       }

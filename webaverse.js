@@ -304,7 +304,7 @@ export default class Webaverse extends EventTarget {
           child.updateMatrix()
           window.role.updateMatrixWorld(true)
         })
-        console.log('update role')
+        // console.log('update role')
       }
 
       timestamp = timestamp ?? performance.now();
