@@ -261,6 +261,7 @@ const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
   state: new Z.Doc(),
 });
+window.localPlayer = localPlayer // TEST
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
