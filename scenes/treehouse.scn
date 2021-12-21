@@ -97,6 +97,22 @@
     },
     {
       "position": [
+        4,
+        1,
+        4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/basiheart/",
+      "dynamic": true
+    },
+    {
+      "position": [
         -13,
         0,
         0
