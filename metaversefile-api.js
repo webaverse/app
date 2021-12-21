@@ -444,6 +444,7 @@ metaversefile.setApi({
     }
   },
   async load(u) {
+    console.log(111,u)
     const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
