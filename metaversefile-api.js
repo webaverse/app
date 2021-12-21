@@ -593,7 +593,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -615,7 +615,6 @@ metaversefile.setApi({
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
-
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
