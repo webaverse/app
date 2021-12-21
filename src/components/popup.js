@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import styles from './popup.module.css';
 
-export const Popup = ({header, options, anchor}) => {
+export const Popup = ({header, options, anchor, scroll}) => {
   if (anchor) {
     console.log(anchor);
   }
@@ -22,7 +22,7 @@ export const Popup = ({header, options, anchor}) => {
       <div className={classnames(styles.popupHeader)}>
         {header}
       </div>
-      <div className={classnames(styles.popupOptionBg)}>
+      <div className={classnames(styles.popupOptionBg, scroll? styles.observescroll : null)}>
 
         {options.map((option, index) => {
           return (

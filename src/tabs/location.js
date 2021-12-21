@@ -3,11 +3,14 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Popup} from '../components/popup';
 import * as ceramicApi from '../../ceramic.js';
-import { discordClientId } from '../../constants';
+import {discordClientId} from '../../constants';
 
 export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress}) => {
   const [rooms, setRooms] = useState([]);
+  const [locationOpen, setLocationOpen] = useState(true);
+
   const loginButton = useRef();
+  const sceneLocations = useRef();
 
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
@@ -41,11 +44,10 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
       }
     }
   };
-
   return (
-    <div className={styles.location}>
+    <div className={classnames(styles.location, !locationOpen ? styles.closed : null)}>
       <div className={styles.row}>
-        <div className={styles['input-wrap']}>
+        <div ref={sceneLocations} className={styles['input-wrap']}>
           <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
             setSceneName(e.target.value);
           }} disabled={multiplayerConnected} onKeyDown={e => {
@@ -107,17 +109,36 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
         </div>
 
       </div>
-      {scenesOpen ? <div className={styles.rooms}>
-        {sceneNames.map((sceneName, i) => (
-          <div className={styles.room} onClick={async e => {
-            universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
-            setOpen(null);
-          }} key={i}>
-            <img className={styles.image} src="images/world.jpg" />
-            <div className={styles.name}>{sceneName}</div>
-          </div>
-        ))}
-      </div> : null}
+      {scenesOpen
+        ? <Popup
+          anchor={sceneLocations}
+          scroll={true}
+          options={
+            sceneNames.map((sceneName, i) => {
+              return {
+                text: sceneName,
+                icon: 'images/world.jpg',
+                action: async e => {
+                  universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
+                  setOpen(null);
+                },
+              };
+            })
+          }
+        />
+      // <div className={styles.rooms}>
+      //   {sceneNames.map((sceneName, i) => (
+      //     <div className={styles.room} onClick={async e => {
+      //       universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
+      //       setOpen(null);
+      //     }} key={i}>
+      //       <img className={styles.image} src="images/world.jpg" />
+      //       <div className={styles.name}>{sceneName}</div>
+      //     </div>
+      //   ))}
+      // </div>
+
+        : null}
       {multiplayerOpen ? <div className={styles.rooms}>
         <div className={styles.create}>
           <button className={styles.button} onClick={async e => {
@@ -212,6 +233,14 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           ]}
           anchor={loginButton}
         ></Popup> : null}
+
+      <div className={classnames(styles.locationButton, !locationOpen ? styles.closed : null)} onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+        setLocationOpen(!locationOpen);
+      }}>
+        <img src='/images/location-button.svg'></img>
+      </div>
 
     </div>
   );
