@@ -33,9 +33,9 @@ import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
 import * as materials from './materials.js';
+import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
 
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -948,6 +948,9 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useGeometries() {
+    return geometries;
   },
   useMaterials() {
     return materials;
