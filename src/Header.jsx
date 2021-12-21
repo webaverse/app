@@ -18,8 +18,7 @@ import {parseQuery} from '../util.js';
 import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
 import sceneNames from '../scenes/scenes.json';
-import {Tab} from './components/tab';
-import {Location} from './components/location';
+import {Location} from './tabs/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {World} from './tabs/world';
@@ -416,6 +415,8 @@ export default function Header({
               multiplayerConnected={multiplayerConnected}
               micOn={micOn}
               toggleMic={toggleMic}
+              address={address}
+              setAddress={setAddress}
             />
             <User
               address={address}
