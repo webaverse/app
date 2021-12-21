@@ -484,6 +484,14 @@ body {
   overflow: visible;
   margin-left: auto;
   margin-right: auto;
+
+  transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: ease;
+}
+
+.location.closed{
+  transform: translate(0, -55px);
 }
 
 .location:before {
@@ -503,6 +511,66 @@ body {
   -webkit-transform: perspective(50em) rotateX(-40deg);
   transform: perspective(50em) rotateX(-40deg);
 }
+
+.locationButton{
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: 271.18px;
+  height: 23.94px;
+  cursor: pointer;
+  position: absolute;
+  top: 109%;
+  left: 38%;
+
+  transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: ease;
+}
+
+.locationButton::before{
+  content: "";
+  position: absolute;
+  /* border: 3px solid teal; */
+  border: 3px solid transparent;  
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+
+  top: -15%; bottom: -20%; left: -3%; right: -3%;
+  z-index: -1;
+
+  -webkit-transform: perspective(50em) rotateX(-40deg);
+  transform: perspective(50em) rotateX(-40deg);
+}
+
+.locationButton.closed{
+  margin-top: 0%;
+  transform: rotate(180deg);
+}
+
+.locationButton img{
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0%;
+}
+
+.locationButton.closed::before{
+  content: "";
+  position: absolute;
+  /* border: 3px solid teal; */
+  border: 3px solid transparent;  
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+
+  top: -15%; bottom: -20%; left: -3%; right: -3%;
+  z-index: -1;
+
+  -webkit-transform: perspective(50em) rotateX(40deg);
+  transform: perspective(50em) rotateX(40deg);
+}
+
 
 .location .row {
   display: flex;
