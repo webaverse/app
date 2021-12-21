@@ -6,6 +6,17 @@ export default () => {
   return (
     <footer>
       <div className={classnames(styles.helper, styles.left)}>
+        <div style={{
+          background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.50) -22.66%, rgba(10, 40, 50, 0.50) 103.86%)',
+          backdropFilter: 'blur(100px)',
+          width: '42px',
+          height: '27px',
+          position: 'absolute',
+          left: ' -83px',
+          top: '67%',
+          zIndex: '0',
+          transform: 'skew(-37deg)',
+        }}></div>
         <div className={styles.loadout}>
           <div className={styles.item}>
             <div className={classnames(styles.label, styles.labelW)}>TAB</div>
@@ -24,6 +35,17 @@ export default () => {
             return items;
           })()}
         </div>
+        <div style={{
+          background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.50) -22.66%, rgba(10, 40, 50, 0.50) 103.86%)',
+          backdropFilter: 'blur(100px)',
+          width: '42px',
+          height: '27px',
+          position: 'absolute',
+          left: '104.5%',
+          top: '67%',
+          zIndex: '-1',
+          transform: 'skew(30deg)',
+        }}></div>
       </div>
       <div className={classnames(styles.helper, styles.right)}>
         <div className={styles.chat} id="chat">

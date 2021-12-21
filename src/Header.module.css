@@ -482,20 +482,37 @@ body {
   height: 100%;
   flex-direction: column;
   overflow: visible;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px);
   margin-left: auto;
   margin-right: auto;
 }
+
+.location:before {
+  content: "";
+  position: absolute;
+  /* border: 3px solid teal; */
+  border: 3px solid transparent;  
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+
+  top: -15%;
+  bottom: -27%;
+  left: -3%;
+  right: -3%;
+  z-index: -1;
+
+  -webkit-transform: perspective(50em) rotateX(-40deg);
+  transform: perspective(50em) rotateX(-40deg);
+}
+
 .location .row {
   display: flex;
   width: 72vw;
   padding-left: 40px;
   padding-top: 10px;
   padding-bottom: 10px;
-  border: 1px solid #FFFFFF59;
+  /* border: 1px solid #FFFFFF59;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px);
+  backdrop-filter: blur(100px); */
   height: 52.5px;
 }
 .location .rooms {
@@ -526,7 +543,7 @@ body {
   max-height: 394px;
   overflow-y: scroll;
 }
-.location .login .header{
+.location .login .loginHeader{
   height: 60px;
   width: 400px;
   color: #5B5875;
@@ -544,10 +561,26 @@ body {
 }
 
 .location .login .loginOption{
-  height: 203px;
+  height: 71px;
   width: 400px;
   background: rgba(10, 40, 50, 0.4);
   backdrop-filter: blur(100px);
+  color: white;
+  font-size: 12px;
+  display: table;
+}
+
+.loginOptionBg{
+  background: rgba(10, 40, 50, 0.4);
+  backdrop-filter: blur(100px);
+}
+
+.loginOptionContent{
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
@@ -881,4 +914,18 @@ body {
 
 .panels:not(.open){
   display: none !important;
+}
+
+.line{
+  border-bottom: 1px solid rgba(85, 157, 219, 39.65);
+  width: 95%;
+  backdrop-filter: blur(100px);
+  height: 0px;
+  margin: 0;
+
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  margin-left: auto;
+  margin-right: auto;
 }
