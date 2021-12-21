@@ -17,9 +17,9 @@ export default () => {
 
   const physicsIds = [];
 
-  const w = 16;
+  const w = 8;
   const h = 4;
-  const d = 16;
+  const d = 8;
   const barrierGeometry = new THREE.BoxGeometry(w, h, d)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h/2, 0));
   for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
