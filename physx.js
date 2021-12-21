@@ -1108,7 +1108,7 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled) => {
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled = false) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
