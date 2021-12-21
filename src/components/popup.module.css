@@ -113,3 +113,17 @@
     float: left; 
     margin-top: 26px;
   }
+
+
+.observescroll::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #555;
+}
+
+.popup .observescroll{
+  max-height: 394px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}

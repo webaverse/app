@@ -2161,12 +2161,20 @@ footer {
   margin-right: auto;
   margin-left: auto;
 
+  transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: ease;
+
 }
 .helper.right {
   padding: 10px;
   background: rgba(10, 40, 50, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(100px)
+  backdrop-filter: blur(100px);
+
+  transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: ease;
 }
 
 
@@ -2191,7 +2199,14 @@ footer {
   padding-right: 25px;
   padding-top: 10px;
   padding-bottom: 10px;
+
+  pointer-events: all;
 }
+
+.hide{
+  transform: translate(0, 80px);
+}
+
 
 .loadout:before {
   content: "";
@@ -2202,7 +2217,7 @@ footer {
   backdrop-filter: blur(100px);
 
   top: -15%; bottom: -20%; left: -3%; right: -3%;
-  z-index: -1;
+  z-index: 0;
 
   -webkit-transform: perspective(50em) rotateX(40deg);
   transform: perspective(50em) rotateX(40deg);
@@ -2224,6 +2239,7 @@ footer {
   transform: skew(-30deg);
 }
 
+
 .loadout .item .label {
   display: flex;
   margin-left: -2px;
@@ -2242,7 +2258,8 @@ footer {
 }
 
 .loadout .item .labelW {
-  width: 42px;
+  width: fit-content;
+  padding: 0 4px;
   height: 21.42px;
   margin-left: -10px;
 }
@@ -2256,6 +2273,66 @@ footer {
   height: 48px;
   color: white;
 }
+
+.loadOutButton{
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: 271.18px;
+  height: 23.94px;
+  cursor: pointer;
+  position: absolute;
+  top: -26%;
+  left: 38%;
+
+  transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: ease;
+}
+
+.loadOutButton::before{
+  content: "";
+  position: absolute;
+  /* border: 3px solid teal; */
+  border: 3px solid transparent;  
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+
+  top: -15%; bottom: -20%; left: -3%; right: -3%;
+  z-index: 0;
+
+  -webkit-transform: perspective(50em) rotateX(40deg);
+  transform: perspective(50em) rotateX(40deg);
+}
+
+.loadOutButton.closed{
+  margin-top: 0%;
+  transform: rotate(180deg);
+}
+
+.loadOutButton img{
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -3%;
+}
+
+.loadOutButton.closed::before{
+  content: "";
+  position: absolute;
+  /* border: 3px solid teal; */
+  border: 3px solid transparent;  
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
+  backdrop-filter: blur(100px);
+
+  top: -15%; bottom: -20%; left: -3%; right: -3%;
+  z-index: -1;
+
+  -webkit-transform: perspective(50em) rotateX(-40deg);
+  transform: perspective(50em) rotateX(-40deg);
+}
+
 .loadout .item.selected .box {
   top: -3px;
   border-color: #FFF;

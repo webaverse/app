@@ -3,11 +3,11 @@ import {makeId} from './util';
 
 const queue = [];
 let running = false;
-const useDev = true;
+const useDev = false;
 
 
 export const generatePreview = async (url, ext, type, width, height, resolve) => {
-  const previewHost = window.origin; //= useDev ? inappPreviewHostDev : inappPreviewHost;
+  const previewHost = useDev ? inappPreviewHostDev : inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);

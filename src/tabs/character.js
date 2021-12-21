@@ -9,9 +9,11 @@ import {contentIdToFile} from '../../util';
 export class Character extends React.Component {
   constructor() {
     super();
+    this.previousPreviewActionsLength = 0;
     this.state = {
       characterPreview: './public/images/loader.gif',
       avatarContentId: null,
+      previews: {},
     };
     console.log(this.props);
   }
@@ -46,20 +48,34 @@ export class Character extends React.Component {
         manageContentId(stateKey, stateSource);
       } else { // its an instanceId
         const _app = this.props.apps.find(a => {
-          return a.id === id;
+          return a.instanceId === id;
         });
-        console.log(_app);
+        if (_app) {
+          fetch(`${_app.contentId}.metaversefile`).then(async res => {
+            const _res = await res.json();
+            const _preview = await preview(`${_app.contentId}${_res.start_url}`, _app.appType, 'png', 180, 170);
+            const newPreviewState = this.state.previews;
+            newPreviewState[id] = _preview.url;
+            this.setState({
+              previews: newPreviewState,
+            });
+          }).catch(e => {
+            console.warn('App Preview failed', e);
+          });
+        }
       }
     }
   }
 
-  getD() {
-    this.props.wearActions.map(wearAction => {
-      const _state = {};
-      _state[`e_${wearAction.instanceId}`] = './public/images/loader.gif';
-      this.setState(_state);
-      this.setPreview(`k_${wearAction.instanceId}`, `e_${wearAction.instanceId}`, false, wearAction.instanceId);
-    });
+  componentDidUpdate() {
+    if (this.previousPreviewActionsLength !== this.props.wearActions.length) {
+      this.previousPreviewActionsLength = this.props.wearActions.length;
+      this.props.wearActions.map(async wearAction => {
+        if (!this.state.previews[wearAction.instanceId]) {
+          this.setPreview('preview', `${wearAction.instanceId}`, false, wearAction.instanceId);
+        }
+      });
+    }
   }
 
   componentDidMount() {
@@ -116,7 +132,7 @@ export class Character extends React.Component {
 
                     >
                       <div className={newStyles.itemWrapper}>
-                        <img src={`e_${wearAction.instanceId}`} />
+                        <img src={this.state.previews[wearAction.instanceId] || '/images/loader.gif'} />
                       </div>
                       <div className={styles.name}>{wearAction.instanceId}</div>
                     </div>
