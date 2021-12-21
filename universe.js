@@ -77,7 +77,7 @@ const enterWorld = async worldSpec => {
       // child.matrixWorldNeedsUpdate = true
       child.updateMatrix()
     })
-    rootScene.updateMatrixWorld()
+    rootScene.updateMatrixWorld(true)
   }, 10000)
 
   currentWorld = worldSpec;
