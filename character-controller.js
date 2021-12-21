@@ -795,7 +795,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
         app.quaternion.identity();
         app.scale.set(1, 1, 1);
-        app.updateMatrixWorld();
+        app.updateMatrix();
       }
 
       const physicsObjects = app.getPhysicsObjects();

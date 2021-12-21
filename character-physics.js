@@ -177,6 +177,7 @@ class CharacterPhysics {
         this.sitOffset.fromArray(sitOffset);
 
         applyVelocity(controlledApp.position, this.velocity, timeDiffS);
+        controlledApp.updateMatrix();
         if (this.velocity.lengthSq() > 0) {
           controlledApp.quaternion
             .setFromUnitVectors(
@@ -185,7 +186,7 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
-        controlledApp.updateMatrixWorld();
+        controlledApp.updateMatrixWorld(true);
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
@@ -212,7 +213,7 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
-      this.player.updateMatrixWorld();
+      this.player.updateMatrixWorld(true);
 
       if (this.avatar) {
         if (this.player.hasAction('jump')) {
@@ -220,7 +221,7 @@ class CharacterPhysics {
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
-        this.avatar.updateMatrixWorld();
+        this.avatar.updateMatrixWorld(true);
       }
     }
   }
