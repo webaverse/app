@@ -29,6 +29,7 @@ import {
   // retargetAnimation,
 }  from './util.mjs';
 
+// TODO. BLEND ALL JUMP ANIMATIONS TOGETHER
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -593,6 +594,8 @@ class AnimationMapping {
     return new AnimationMapping(this.animationTrackName, this.boneName, this.isTop, this.isPosition);
   }
 }
+
+// isTop = 
 const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THREE.Quaternion.prototype.slerp;
 const animationMappingConfig = [
   new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
@@ -2115,6 +2118,10 @@ class Avatar {
           };
         }
 
+        // We blend from the last blend state to the next
+        // Standcharge > charge_Jump uses
+        // A new state to return from ANY animation to walk? What condition will it be under
+        // How do we add a weight to blend
          if (this.standChargeState) {
           return spec => {
             const {
@@ -2137,16 +2144,30 @@ class Avatar {
             const t3 = 0;
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
+            const blendWeight = v3;
+            // console.log(v3);
             dst
-                  .premultiply(localQuaternion6.fromArray(v2))
-                  .premultiply(localQuaternion6.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2))
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+          }
+          else {
+            const src2 = standCharge.interpolants[k];
+            const v2 = src2.evaluate(t2);
+  
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+  
+            dst.fromArray(v2);
 
-           
-          };
-          return _handleDefault;
+            //  .add(localVector2.fromArray(v3));
+            };
+
+            return _handleDefault;
           };
         }
-
+     
         if (this.chargeIdleState) {
           return spec => {
             const {
@@ -2187,9 +2208,10 @@ class Avatar {
             const t3 = 0;
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
+            localQuaternion2
             dst
-                  .premultiply(localQuaternion6.fromArray(v2))
-                  .premultiply(localQuaternion6.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2))
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
 
            
           } else {
@@ -2210,7 +2232,7 @@ class Avatar {
           };
           return _handleDefault;
 
-        }
+          }
         }
         if (this.swordSideSlashState) {
           return spec => {
@@ -2265,26 +2287,11 @@ class Avatar {
               //isTop,
               isPosition
             } = spec;
-
             _handleDefault(spec);
             const t2 = (this.chargeJumpTime/1000) ;
-
-            if (!isPosition) {
-            const idleAnimation = _getIdleAnimation('walk');
-            
-            
             const src2 = chargeJump.interpolants[k];
             const v2 = src2.evaluate(t2);
-
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            dst
-                  .premultiply(localQuaternion3.fromArray(v3).invert())
-                  .premultiply(localQuaternion3.fromArray(v2));
-           
-          };
-          return _handleDefault;
+            dst.fromArray(v2);
           };
         }
         if (this.chargeJumpForwardIdleState) {
@@ -2294,8 +2301,6 @@ class Avatar {
               dst,
               isTop,
             } = spec;
-
-            
             const t2 = (this.chargeJumpForwardIdleTime/1000) ;
             const src2 = chargeJumpForwardIdle.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -2321,17 +2326,29 @@ class Avatar {
             
             const src2 = chargeJumpForward.interpolants[k];
             const v2 = src2.evaluate(t2);
+            dst.fromArray(v2);
 
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            dst
-                  .premultiply(localQuaternion6.fromArray(v3).invert())
-                  .premultiply(localQuaternion6.fromArray(v2));
+
+            // const t3 = 0;
+            // const src3 = standCharge.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+            // dst
+            //       .premultiply(localQuaternion2.fromArray(v3).invert())
+            //       .premultiply(localQuaternion2.fromArray(v2));
            
-          };
-          return _handleDefault;
-        }
+          }
+          // else {
+          //   const src2 = chargeJumpForward.interpolants[k];
+          //   const v2 = src2.evaluate(t2);
+  
+          //   const idleAnimation = _getIdleAnimation('walk');
+          //   const t3 = 0;
+          //   const src3 = standCharge.interpolants[k];
+          //   const v3 = src3.evaluate(t3);
+
+           //  };
+          //  return _handleDefault;
+          }
         }
         if (this.chargeJumpBackwardState) {
           return spec => {
