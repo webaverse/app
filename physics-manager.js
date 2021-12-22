@@ -172,10 +172,10 @@ physicsManager.removeGeometry = physicsObject => {
 };
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
-};
+}; */
 physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
-}; */
+};
 physicsManager.setTransform = physicsObject => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
 };
@@ -210,12 +210,15 @@ physicsManager.simulatePhysics = timeDiff => {
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
-      const {id, position, quaternion} = updateOut;
+      const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
+
+        physicsObject.collided = collided;
+        physicsObject.grounded = grounded;
       } /* else {
         console.warn('failed to get physics object', id);
       } */

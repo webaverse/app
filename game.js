@@ -957,8 +957,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
               if (timeDiff > 1000) {
                 // const worldPosition = object.getWorldPosition(localVector);
                 const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                const hitDirection = object.position.clone()
+                  .sub(localPlayer.position);
+                hitDirection.y = 0;
+                hitDirection.normalize();
+                
                 object.hit(damage, {
                   collisionId,
+                  hitDirection,
                 });
               
                 lastHitTimes.set(object, now);
