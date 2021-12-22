@@ -1,6 +1,8 @@
-FROM node	
+FROM node
+ARG pm2_secret_key	
 ENV LAST_UPDATED 20160605T165400
 ENV PM2_PUBLIC_KEY wicmdcymxzyukdq
+ENV PM2_SECRET_KEY=$pm2_secret_key
 LABEL description="webaverse-app"
 	
 # Copy source code
@@ -15,7 +17,7 @@ WORKDIR /app
 RUN apt update -y
 RUN npm install -g pm2
 RUN npm install
-RUN pm2 link ${PM2_SECRET_KEY} ${PM2_PUBLIC_KEY}
+RUN pm2 link $PM2_SECRET_KEY $PM2_PUBLIC_KEY
 	
 
 # Expose API port to the outside
@@ -23,5 +25,4 @@ EXPOSE 443
 	
 
 	# Launch application
-# CMD forever -a -l /host/forever.log -o stdout.log -e stderr.log index.mjs -p
 CMD ["pm2-runtime", "index.mjs", "--", "-p"]
