@@ -63,8 +63,6 @@ ioManager.keys = {
   doubleShift: false,
   space: false,
   ctrl: false,
-  yawLeft: false,
-  yawRight: false
 };
 let lastShiftDownTime = 0;
 ioManager.getLastShiftDownTime = () => lastShiftDownTime;
@@ -387,7 +385,6 @@ ioManager.keydown = e => {
       break;
     }
     case 67: { // C
-      ioManager.keys.backward = true;
       // if (!e.ctrlKey) {
         /* if (game.canStartBuild()) {
           game.startBuild('stair');
@@ -482,7 +479,6 @@ ioManager.keydown = e => {
     } */
     case 81: { // Q
       // game.setWeaponWheel(true);
-      ioManager.keys.yawLeft = true;
       if (game.canToggleAxis()) {
         game.toggleAxis();
       }
@@ -490,7 +486,6 @@ ioManager.keydown = e => {
     }
     case 69: { // E
       // if (document.pointerLockElement) {
-        ioManager.keys.yawRight = true;
         if (game.canRotate()) {
           game.menuRotate(-1);
         } else {
@@ -531,11 +526,10 @@ ioManager.keyup = e => {
     return;
   }
   switch (e.which) {
-     case 81: { // Q
-      ioManager.keys.yawLeft = false;
-      //game.setWeaponWheel(false);
+    /* case 81: { // Q
+      game.setWeaponWheel(false);
       break;
-    } 
+    } */
     case 87: { // W
       ioManager.keys.up = false;
       break;
@@ -561,7 +555,6 @@ ioManager.keyup = e => {
       break;
     } */
     case 69: { // E
-      ioManager.keys.yawRight = false;
       if (document.pointerLockElement) {
         game.menuActivateUp();
       }
