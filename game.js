@@ -332,6 +332,14 @@ const _getNextUseIndex = animation => {
   }
 };
 let lastPistolUseStartTime = -Infinity;
+const _handleNewLocalUseAction = (app, action) => {
+  // console.log('got action animation', action);
+  if (action.ik === 'pistol') {
+    lastPistolUseStartTime = performance.now();
+  }
+
+  app.use();
+};
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApps = Array.from(localPlayer.getActionsState())
@@ -343,15 +351,15 @@ const _startUse = () => {
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
-        const {subtype, boneAttachment, animation, position, quaternion, scale} = useComponent;
+        const {boneAttachment, animation, ik, behavior, position, quaternion, scale} = useComponent;
         const index = _getNextUseIndex(animation);
         // console.log('index', index, swordTopDownSlash);
         const newUseAction = {
           type: 'use',
-          subtype,
-          // time: 0,
           instanceId,
           animation,
+          ik,
+          behavior,
           boneAttachment,
           index,
           position,
@@ -359,12 +367,8 @@ const _startUse = () => {
           scale,
         };
         localPlayer.addAction(newUseAction);
-        
-        if (subtype === 'pistol') {
-          lastPistolUseStartTime = performance.now();
-        }
 
-        wearApp.use();
+        _handleNewLocalUseAction(wearApp, newUseAction);
       }
       break;
     }
@@ -578,8 +582,11 @@ const _grab = object => {
   gameManager.editMode = false;
 };
 
+const hitRadius = 1;
+const hitHeight = 0.2;
+const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
-const cylinderMesh = (() => {
+/* const cylinderMesh = (() => {
   const radius = 1;
   const height = 0.2;
   const halfHeight = height/2;
@@ -592,7 +599,7 @@ const cylinderMesh = (() => {
   cylinderMesh.radius = radius;
   cylinderMesh.halfHeight = halfHeight;
   return cylinderMesh;
-})();
+})(); */
 
 let grabUseMesh = null;
 const _gameInit = () => {
@@ -613,6 +620,7 @@ let lastDraggingRight = false;
 let dragRightSpec = null;
 let fovFactor = 0;
 let lastActivated = false;
+let lastHitTimes = new WeakMap();
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
@@ -922,6 +930,51 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateMouseDomEquipmentHover();
 
+  const _updateBehavior = () => {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      switch (useAction.behavior) {
+        case 'sword': {
+          localVector.copy(localPlayer.position)
+            .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+
+          const collision = physx.physxWorker.collidePhysics(
+            physx.physics,
+            hitRadius,
+            hitHalfHeight,
+            localVector,
+            localPlayer.quaternion,
+            1
+          );
+          if (collision) {
+            const collisionId = collision.objectId;
+            const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
+            if (object) {
+              const lastHitTime = lastHitTimes.get(object) ?? 0;
+              const timeDiff = now - lastHitTime;
+              if (timeDiff > 1000) {
+                // const worldPosition = object.getWorldPosition(localVector);
+                const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                object.hit(damage, {
+                  collisionId,
+                });
+              
+                lastHitTimes.set(object, now);
+              }
+            }
+          }
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+  };
+  _updateBehavior();
+
   const _handleTeleport = () => {
     if (localPlayer.avatar) {
       teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
@@ -1075,32 +1128,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     lastActivated = currentActivated;
   };
   _updateUses();
-  
-  const _updateHits = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-  
-    cylinderMesh.position.copy(localPlayer.position)
-      .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
-    cylinderMesh.quaternion.copy(localPlayer.quaternion);
-    // cylinderMesh.startPosition.copy(localPlayer.position);
-    cylinderMesh.updateMatrixWorld();
-    const useAction = localPlayer.getAction('use');
-    if (useAction && useAction.animation === 'combo') {
-      const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-      if (collision) {
-        const collisionId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
-        if (object) {
-          // const worldPosition = object.getWorldPosition(localVector);
-          const damage = typeof useAction.damage === 'number' ? useAction.damage : 30;
-          object.hit(damage, {
-            collisionId,
-          });
-        }
-      }
-    }
-  };
-  _updateHits();
   
   const _updateEyes = () => {
     if (localPlayer.avatar) {
