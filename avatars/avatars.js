@@ -747,6 +747,11 @@ class Avatar {
       this.debugMeshes = null;
     } */
 
+    modelBones.Root.traverse(bone => {
+      bone.updateMatrix();
+    });
+    modelBones.Root.updateMatrixWorld(true)
+
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
@@ -1220,6 +1225,7 @@ class Avatar {
   }
   static bindAvatar(object) {
     const model = object.scene;
+    model.traverse(child => child.updateMatrix())
     model.updateMatrixWorld(true);
     
     const skinnedMeshes = getSkinnedMeshes(object);
@@ -1400,6 +1406,7 @@ class Avatar {
     modelBones.Root.traverse(bone => {
       bone.updateMatrix();
     });
+    modelBones.Root.updateMatrixWorld(true)
 
 	  fixSkeletonZForward(armature.children[0], {
 	    preRotations,

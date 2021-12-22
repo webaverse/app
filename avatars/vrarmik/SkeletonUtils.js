@@ -82,10 +82,12 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
   if (averagedDir) {
     // set quaternion
     parentBone.quaternion.copy(RESETQUAT);
+    parentBone.traverse(child => child.updateMatrix())
     parentBone.updateMatrixWorld(true);
   }
   var preRot = preRotations[parentBone.id] || preRotations[parentBone.name];
   if (preRot) parentBone.quaternion.multiply(preRot);
+  parentBone.traverse(child => child.updateMatrix())
   parentBone.updateMatrixWorld(true);
 
   // set child bone position relative to the new parent matrix.
@@ -94,6 +96,7 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
     var childBonePosWorld = worldPos[childBone.id][0].clone();
     parentBone.worldToLocal(childBonePosWorld);
     childBone.position.copy(childBonePosWorld);
+    childBone.traverse(child => child.updateMatrix())
     childBone.updateMatrixWorld(true);
   });
 
