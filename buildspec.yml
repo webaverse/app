@@ -19,7 +19,7 @@ phases:
       - echo Building the Docker image...
       - echo Logging in to Docker Hub...
       - echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-      - docker build -t $REPOSITORY_URI:latest --build-arg PM2_SECRET_KEY=${PM2_SECRET_KEY} .
+      - docker build -t $REPOSITORY_URI:latest --build-arg pm2_secret_key=${PM2_SECRET_KEY} .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
