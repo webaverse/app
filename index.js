@@ -232,6 +232,7 @@ export default () => {
   const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
   barrierMesh.frustumCulled = false;
   app.add(barrierMesh);
+  app.updateMatrixWorld();
 
   const _updateBarrierMesh = (now, timeDiff) => {
     barrierMesh.material.uniforms.iTime.value = now/1000;
