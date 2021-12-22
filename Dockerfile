@@ -15,7 +15,7 @@ WORKDIR /app
 RUN apt update -y
 RUN npm install -g pm2
 RUN npm install
-RUN npm list
+RUN pm2 link ${PM2_SECRET_KEY} ${PM2_PUBLIC_KEY}
 	
 
 # Expose API port to the outside
