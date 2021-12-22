@@ -77,6 +77,7 @@ const loadPromise = (async () => {
     sphere.position.copy(p);
     const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
     sphere.scale.copy(defaultScale);
+    sphere.name = 'sphereOfDropManagerJs'
     scene.add(sphere);
     const o = sphere;
 

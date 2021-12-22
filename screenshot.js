@@ -54,9 +54,11 @@ const _makeRenderer = (width, height) => {
   scene.add(ambientLight); */
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
   directionalLight.position.set(2, 2, -2);
+  directionalLight.name = 'directionalLight'
   scene.add(directionalLight);
   const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
   directionalLight2.position.set(-2, 2, 2);
+  directionalLight2.name = 'directionalLight2'
   scene.add(directionalLight2);
 
   return {renderer, scene, camera};

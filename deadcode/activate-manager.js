@@ -20,6 +20,7 @@ const _makeActivatePhysicsMesh = () => {
 
 const activatePhysicsMesh = _makeActivatePhysicsMesh();
 activatePhysicsMesh.visible = false;
+activatePhysicsMesh.name = 'activatePhysicsMesh'
 scene.add(activatePhysicsMesh);
 
 const radius = 0.8;
