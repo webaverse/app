@@ -170,12 +170,15 @@ physicsManager.removeGeometry = physicsObject => {
     console.warn('failed to remove geometry', err.stack);
   }
 };
-/* physicsManager.getVelocity = (physicsObject, velocity) => {
+physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
 };
 physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
-}; */
+};
+physicsManager.setAngularVelocity = (physicsObject, velocity, enableGravity) => {
+  physx.physxWorker.setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
+};  
 physicsManager.setTransform = physicsObject => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
 };
@@ -194,11 +197,11 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
   const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
   return result;
 };
-/* physicsManager.getTransforms = physicsObjects => {
+ physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
   return objs;
-}; */
+}; 
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {

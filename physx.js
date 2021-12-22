@@ -1043,6 +1043,14 @@ const physxWorker = (() => {
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, +enableGravity);
     allocator.freeAll();
   };
+  w.setAngularVelocityPhysics = (physics, id, velocity, enableGravity) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+   
+    moduleInstance._setAngularVelocityPhysics(physics, id, vel.byteOffset, +enableGravity);
+    allocator.freeAll();
+  };
   /* w.checkGrounded = (physics, id) => {
     //moduleInstance._checkGrounded(physics, id);
   }; */

@@ -159,6 +159,20 @@
     },
     {
       "position": [
+        38,
+        1,
+        16
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/flying-machine/"
+    },
+    {
+      "position": [
         24,
         0,
         16
