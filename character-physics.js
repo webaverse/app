@@ -168,20 +168,39 @@ class CharacterPhysics {
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
         const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
+
         const sitComponent = controlledApp.getComponent('sit');
         const {
           sitOffset = [0, 0, 0],
           // damping,
         } = sitComponent;
         this.sitOffset.fromArray(sitOffset);
-        
+
+        ///
+        if(sitComponent.mountType && sitComponent.mountType === "flying") {
+          // do nothing
+        }
+        else {
+          applyVelocity(controlledApp.position, this.velocity, timeDiffS);
+          if (this.velocity.lengthSq() > 0) {
+            controlledApp.quaternion
+              .setFromUnitVectors(
+                localVector4.set(0, 0, -1),
+                localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
+              )
+              .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+          }
+          controlledApp.updateMatrixWorld();
+          physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+        }
+        ///
+      
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height * 0.5;
 
-        //physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
         localVector.y += this.player.avatar.height * 0.5;
 
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
