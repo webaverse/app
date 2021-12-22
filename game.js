@@ -953,7 +953,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
             const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
             if (object) {
               const lastHitTime = lastHitTimes.get(object) ?? 0;
-              console.log('check', object, lastHitTime);
               const timeDiff = now - lastHitTime;
               if (timeDiff > 1000) {
                 // const worldPosition = object.getWorldPosition(localVector);
