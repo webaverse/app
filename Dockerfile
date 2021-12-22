@@ -27,4 +27,4 @@ EXPOSE 443
 	
 
 	# Launch application
-CMD ["pm2-runtime", "index.mjs", "--", "-p", "--secret", "$PM2_SECRET_KEY", "--public", "$PM2_PUBLIC_KEY", "--no-auto-exit", "--raw"]
+CMD ["pm2-runtime", "index.mjs", "--", "-p", "--secret", "$PM2_SECRET_KEY", "--public", "$PM2_PUBLIC_KEY", "--no-auto-exit", "--instances", "1", "--restart-delay", "60000"]
