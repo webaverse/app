@@ -24,6 +24,7 @@ RUN npm install
 
 # Expose API port to the outside
 EXPOSE 443
+EXPOSE 444
 	
 
 	# Launch application
