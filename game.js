@@ -705,6 +705,61 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePush();
 
+  const _updateActivateAnimation = (grabUseMeshPosition) => {
+
+    let currentDistance = 100;
+    let currentAnimation = "grab_forward";
+    let distance = 0;
+
+    // Forward
+    localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    currentDistance = grabUseMeshPosition.distanceTo(localVector);
+
+    // Down
+    localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = "grab_down";
+    }
+
+    // Up
+    localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = "grab_up";
+    }
+
+    // Left
+    localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = "grab_left";
+    }
+    
+    // Right
+    localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = "grab_right";
+    }
+
+    if (localPlayer.getAction('activate')) {
+      localPlayer.getAction('activate').animationName = currentAnimation;
+    }
+
+    return {distance:currentDistance,
+            animation:currentAnimation};
+  };
+
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
@@ -762,6 +817,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.visible = true;
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+          
+          _updateActivateAnimation(grabUseMesh.position);
+
         }
       }
     }
