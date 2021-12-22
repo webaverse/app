@@ -35,7 +35,6 @@ import {rarityColors, initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
-import ioManager from './io-manager.js';
 
 import {getHeight} from './avatars/util.mjs';
 
@@ -480,9 +479,6 @@ metaversefile.setApi({
         return world.lights;
       },
     };
-  },
-  useIO() {
-    return ioManager;
   },
   useSoundManager() {
     return soundManager;
