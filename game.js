@@ -332,6 +332,14 @@ const _getNextUseIndex = animation => {
   }
 };
 let lastPistolUseStartTime = -Infinity;
+const _handleNewLocalUseAction = (app, action) => {
+  // console.log('got action animation', action);
+  if (action.ik === 'pistol') {
+    lastPistolUseStartTime = performance.now();
+  }
+
+  app.use();
+};
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApps = Array.from(localPlayer.getActionsState())
@@ -359,12 +367,8 @@ const _startUse = () => {
           scale,
         };
         localPlayer.addAction(newUseAction);
-        
-        if (subtype === 'pistol') {
-          lastPistolUseStartTime = performance.now();
-        }
 
-        wearApp.use();
+        _handleNewLocalUseAction(wearApp, newUseAction);
       }
       break;
     }
