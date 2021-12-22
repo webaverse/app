@@ -197,11 +197,11 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
   const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
   return result;
 };
- physicsManager.getTransforms = physicsObjects => {
+ /*physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
   return objs;
-}; 
+}; */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
