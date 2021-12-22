@@ -177,10 +177,9 @@ class CharacterPhysics {
         this.sitOffset.fromArray(sitOffset);
 
         ///
-        if(sitComponent.mountType && sitComponent.mountType === "flying") {
+        if (sitComponent.mountType && sitComponent.mountType === "flying") {
           // do nothing
-        }
-        else {
+        } else {
           applyVelocity(controlledApp.position, this.velocity, timeDiffS);
           if (this.velocity.lengthSq() > 0) {
             controlledApp.quaternion
