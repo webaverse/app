@@ -519,10 +519,12 @@ export const addDefaultLights = (scene, {
   shadowMap = false,
 } = {}) => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+  ambientLight.name = 'ambientLight'
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
   directionalLight.position.set(1, 2, 3);
+  directionalLight.name = 'directionalLight'
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
   /* if (shadowMap) {

@@ -141,10 +141,12 @@ const lineMeshes = [
   makeLineMesh(),
 ];
 lineMeshes.forEach(lineMesh => {
+  lineMesh.name = 'lineMeshOfTeleportJs'
   scene.add(lineMesh);
 });
 const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh, i));
 teleportMeshes.forEach(teleportMesh => {
+  teleportMesh.name = 'teleportMesh'
   scene.add(teleportMesh);
 });
 

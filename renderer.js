@@ -154,6 +154,7 @@ const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
 // dolly.add(avatarCamera);
+dolly.name = 'dolly'
 scene.add(dolly);
 
 // const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);

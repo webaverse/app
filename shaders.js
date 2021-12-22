@@ -1565,6 +1565,7 @@ const copyScene = (() => {
   );
   const scene = new THREE.Scene();
   scene.autoUpdate = false;
+  mesh.name = 'meshOfShadersJs'
   scene.add(mesh);
   scene.mesh = mesh;
   return scene;
