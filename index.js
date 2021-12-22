@@ -2,11 +2,12 @@ import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useLocalPlayer, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localBox = new THREE.Box3();
 
 export default () => {
   const app = useApp();
@@ -248,10 +249,28 @@ export default () => {
   useActivate(() => {
     activateCb && activateCb();
   }); */
+
+  const _getBarrierBox = box => {
+    return box.set(
+      localVector.set(-w/2, 0, -d/2)
+        .applyMatrix4(barrierMesh.matrixWorld),
+      localVector2.set(w/2, h, d/2)
+        .applyMatrix4(barrierMesh.matrixWorld),
+    )
+  };
+
   useFrame(({timestamp, timeDiff}) => {
     // frameCb && frameCb();
 
     _updateBarrierMesh(timestamp, timeDiff);
+
+    const localPlayer = useLocalPlayer();
+    const barrierBox = _getBarrierBox(localBox);
+    window.barrierBox = barrierBox;
+    window.localPlayer = localPlayer;
+    if (barrierBox.containsPoint(localPlayer.position)) {
+      console.log('inside barrier');
+    }
 
     // material.uniforms.time.value = (performance.now() / 1000) % 1;
   });
