@@ -4,6 +4,7 @@ import url from 'url';
 import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
+import fetch from 'node-fetch';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
@@ -34,6 +35,8 @@ function makeId(length) {
   return result;
 }
 
+const proxy = httpProxy.createProxyServer();
+
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
@@ -48,7 +51,20 @@ function makeId(length) {
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
-        res.redirect(u);
+        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
+        proxyReq.on('response', proxyRes => {
+          for (const header in proxyRes.headers) {
+            res.setHeader(header, proxyRes.headers[header]);
+          }
+          res.statusCode = proxyRes.statusCode;
+          proxyRes.pipe(res);
+        });
+        proxyReq.on('error', err => {
+          console.error(err);
+          res.statusCode = 500;
+          res.end();
+        });
+        proxyReq.end();
       } else if (/^\/login/.test(o.pathname)) {
         req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
         return res.redirect(req.originalUrl);
