@@ -35,8 +35,6 @@ function makeId(length) {
   return result;
 }
 
-const proxy = httpProxy.createProxyServer();
-
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
