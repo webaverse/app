@@ -4,13 +4,14 @@ import url from 'url';
 import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
+import fetch from 'node-fetch';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
 
 const isProduction = process.argv[2] === '-p';
 
-const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3)$/.test(p);
+const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
@@ -21,8 +22,8 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs-local/privkey.pem') || _tryReadFile('./certs/privkey.pem'),
-  cert: _tryReadFile('./certs-local/fullchain.pem') || _tryReadFile('./certs/fullchain.pem'),
+  key: _tryReadFile('./certs/privkey.pem') || _tryReadFile('./certs-local/privkey.pem'),
+  cert: _tryReadFile('./certs/fullchain.pem') || _tryReadFile('./certs-local/fullchain.pem'),
 };
 
 function makeId(length) {
@@ -48,7 +49,20 @@ function makeId(length) {
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname)) {
-        res.redirect(u);
+        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
+        proxyReq.on('response', proxyRes => {
+          for (const header in proxyRes.headers) {
+            res.setHeader(header, proxyRes.headers[header]);
+          }
+          res.statusCode = proxyRes.statusCode;
+          proxyRes.pipe(res);
+        });
+        proxyReq.on('error', err => {
+          console.error(err);
+          res.statusCode = 500;
+          res.end();
+        });
+        proxyReq.end();
       } else if (/^\/login/.test(o.pathname)) {
         req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
         return res.redirect(req.originalUrl);

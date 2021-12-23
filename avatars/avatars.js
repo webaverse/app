@@ -205,6 +205,7 @@ const animationsAngleArraysMirror = {
   ],
 };
 const animationsIdleArrays = {
+  reset: {name: 'reset.fbx'},
   walk: {name: 'idle.fbx'},
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
@@ -360,7 +361,9 @@ const loadPromise = (async () => {
     swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
     swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
     swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
+    swordSideSlashStep: animations.find(a => a.name === 'sword_side_slash_step.fbx'),
     swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
+    swordTopDownSlashStep: animations.find(a => a.name === 'sword_topdown_slash_step.fbx'),
     swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
   };
   useAnimations = mergeAnimations({
@@ -611,11 +614,11 @@ const _getLerpFn = isPosition => isPosition ? THREE.Vector3.prototype.lerp : THR
 const animationMappingConfig = [
   new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
   new AnimationMapping('mixamorigHips.quaternion', 'Hips', false, false),
-  new AnimationMapping('mixamorigSpine.quaternion', 'Spine', false, false),
-  new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', false, false),
-  new AnimationMapping('mixamorigSpine2.quaternion', 'UpperChest', false, false),
-  new AnimationMapping('mixamorigNeck.quaternion', 'Neck', false, false),
-  new AnimationMapping('mixamorigHead.quaternion', 'Head', false, false),
+  new AnimationMapping('mixamorigSpine.quaternion', 'Spine', true, false),
+  new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', true, false),
+  new AnimationMapping('mixamorigSpine2.quaternion', 'UpperChest', true, false),
+  new AnimationMapping('mixamorigNeck.quaternion', 'Neck', true, false),
+  new AnimationMapping('mixamorigHead.quaternion', 'Head', true, false),
 
   new AnimationMapping('mixamorigLeftShoulder.quaternion', 'Left_shoulder', true, false),
   new AnimationMapping('mixamorigLeftArm.quaternion', 'Left_arm', true, false),
@@ -2196,30 +2199,49 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
-            if (isTop) {
-              const isCombo = Array.isArray(this.useAnimation);
-              const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
-              const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
+            const isCombo = Array.isArray(this.useAnimation);
+            const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
+            const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
+            _handleDefault(spec);
+            const t2 = (() => {
+              if (isCombo) {
+                return Math.min(this.useTime/1000, useAnimation.duration);
+              } else {
+                return (this.useTime/1000) % useAnimation.duration;
+              }
+            })();
+            if (!isPosition) {
               if (useAnimation) {
-                const t2 = (() => {
-                  if (isCombo) {
-                    return Math.min(this.useTime/1000, useAnimation.duration);
-                  } else {
-                    return (this.useTime/1000) % useAnimation.duration;
-                  }
-                })();
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
-                dst.fromArray(v2);
-              } else {
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              } /* else {
                 _handleDefault(spec);
-              }
+              } */
             } else {
-              _handleDefault(spec);
+              const src2 = useAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         } else if (this.aimAnimation) {
@@ -2227,22 +2249,41 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
-            if (isTop) {
-              const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+            const aimAnimation = (this.aimAnimation && aimAnimations[this.aimAnimation]);
+            _handleDefault(spec);
+            const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
+            if (!isPosition) {
               if (aimAnimation) {
-                const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
                 const src2 = aimAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
-                dst.fromArray(v2);
-              } else {
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              } /* else {
                 _handleDefault(spec);
-              }
+              } */
             } else {
-              _handleDefault(spec);
+              const src2 = aimAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         }

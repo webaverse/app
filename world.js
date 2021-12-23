@@ -336,15 +336,15 @@ const _bindHitTracker = app => {
     const result = hitTracker.hit(damage);
     const {hit, died} = result;
     if (hit) {
-      const {collisionId} = opts;
+      const {collisionId, hitDirection} = opts;
       if (collisionId) {
         hpManager.triggerDamageAnimation(collisionId);
       }
       
       app.dispatchEvent({
         type: 'hit',
-        // position: cylinderMesh.position,
-        // quaternion: cylinderMesh.quaternion,
+        collisionId,
+        hitDirection,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });

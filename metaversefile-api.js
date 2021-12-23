@@ -32,9 +32,10 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import * as materials from './materials.js';
+import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
 
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -122,13 +123,14 @@ class App extends THREE.Object3D {
       use: true,
     });
   }
-  hit(damage) {
+  /* hit(damage) {
+    console.log('hit', new Error().stack);
     this.dispatchEvent({
       type: 'hit',
       hp: 100,
       totalHp: 100,
     });
-  }
+  } */
   willDieFrom(damage) {
     return false;
   }
@@ -592,7 +594,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -614,7 +616,6 @@ metaversefile.setApi({
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
-
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
@@ -707,9 +708,18 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
+      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+        enablePhysicsObject.call(this, physicsObject);
+      })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
         disablePhysicsObject.call(this, physicsObject);
       })(physics.disablePhysicsObject);
+      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
+        enableGeometryQueries.call(this, physicsObject);
+      })(physics.enableGeometryQueries);
+      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
+        disableGeometryQueries.call(this, physicsObject);
+      })(physics.disableGeometryQueries);
 
       physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
@@ -938,6 +948,12 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useGeometries() {
+    return geometries;
+  },
+  useMaterials() {
+    return materials;
   },
   useJSON6Internal() {
     return JSON6;
