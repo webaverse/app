@@ -46,9 +46,9 @@ class SoundManager {
     }
     
     const isJumping = this.localPlayer.hasAction('jump');
-    //const isFlying = gameManager.isFlying();
+    const isFlying = gameManager.isFlying();
     
-    if (this.lastIsJumping && !isJumping) {
+    if (this.lastIsJumping && !isJumping && !isFlying) {
       this.play('jumpEnd');
     }
 

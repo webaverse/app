@@ -1667,8 +1667,10 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.characterPhysics.velocity.y += 6;
     
-    // play sound
-    soundManager.play('jump');
+    if (!this.isFlying()) {
+      // play sound
+      soundManager.play('jump');
+    }
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();

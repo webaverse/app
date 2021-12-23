@@ -2,6 +2,7 @@
 it is used for footsteps sfx etc */
 
 import * as THREE from 'three';
+import gameManager from './game.js';
 import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import ioManager from './io-manager.js';
@@ -65,7 +66,7 @@ class CharacterSfx {
     boneFootRight.matrix.decompose(localVector, localQuaternion, localVector2);
 
     posRight = localVector.z;
-    
+
 
     if (posLeft < this.prevLeftZ && posLeft > -0.1 && this.shouldExpectLeftStep) {
       this.shouldExpectLeftStep = false;
@@ -91,8 +92,12 @@ class CharacterSfx {
   }
   
   update(now, timeDiffS) {
-    
-    this.updateSteps(timeDiffS);
+
+    const isFlying = gameManager.isFlying();
+
+    if (!isFlying) {
+      this.updateSteps(timeDiffS);
+    }
   }
   
 }
