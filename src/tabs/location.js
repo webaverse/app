@@ -7,7 +7,7 @@ import {discordClientId} from '../../constants';
 
 export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress}) => {
   const [rooms, setRooms] = useState([]);
-  const [locationOpen, setLocationOpen] = useState(true);
+  const [locationOpen, setLocationOpen] = useState(false);
 
   const loginButton = useRef();
   const sceneLocations = useRef();
@@ -118,6 +118,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
               return {
                 text: sceneName,
                 icon: 'images/world.jpg',
+                //iconPreview: `${window.origin}/?src=${encodeURIComponent('./scenes/' + sceneName)}`,
+                iconExtension: 'scn',
                 action: async e => {
                   universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
                   setOpen(null);
@@ -126,18 +128,6 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
             })
           }
         />
-      // <div className={styles.rooms}>
-      //   {sceneNames.map((sceneName, i) => (
-      //     <div className={styles.room} onClick={async e => {
-      //       universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
-      //       setOpen(null);
-      //     }} key={i}>
-      //       <img className={styles.image} src="images/world.jpg" />
-      //       <div className={styles.name}>{sceneName}</div>
-      //     </div>
-      //   ))}
-      // </div>
-
         : null}
       {multiplayerOpen ? <div className={styles.rooms}>
         <div className={styles.create}>

@@ -6,7 +6,7 @@ let running = false;
 const useDev = false;
 
 
-export const generatePreview = async (url, ext, type, width, height, resolve) => {
+export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
   const previewHost = useDev ? inappPreviewHostDev : inappPreviewHost;
   running = true;
   // check for existing iframe
@@ -32,6 +32,15 @@ export const generatePreview = async (url, ext, type, width, height, resolve) =>
   iframe.src = ssUrl;
   console.log('Preview generation in progress for ', ssUrl);
   // event listener for postMessage from screenshot.js
+  const rejection = setTimeout(() => {
+    reject('Preview Server Timed Out');
+    running = false;
+    if (queue.length > 0) {
+      const {url, ext, type, width, height, resolve, reject} = queue.shift();
+      generatePreview(url, ext, type, width, height, resolve, reject);
+    }
+  }, 30 * 1000);
+
   var f = function(event) {
     if (event.data.method === 'result') {
       console.log('Preview generation result ', event.data.result);
@@ -46,14 +55,15 @@ export const generatePreview = async (url, ext, type, width, height, resolve) =>
           type: `image/${type}`,
         });
       }
+      clearTimeout(rejection);
       resolve({
         blob: blob,
         url: URL.createObjectURL(blob),
       });
       running = false;
       if (queue.length > 0) {
-        const {url, ext, type, width, height, resolve} = queue.shift();
-        generatePreview(url, ext, type, width, height, resolve);
+        const {url, ext, type, width, height, resolve, reject} = queue.shift();
+        generatePreview(url, ext, type, width, height, resolve, reject);
       }
     }
   };
@@ -69,9 +79,9 @@ function isValidURL(string) {
 export const preview = async (url, ext, type, width, height) => {
   return new Promise((resolve, reject) => {
     if (!running) {
-      generatePreview(url, ext, type, width, height, resolve);
+      generatePreview(url, ext, type, width, height, resolve, reject);
     } else {
-      queue.push({url, ext, type, width, height, resolve});
+      queue.push({url, ext, type, width, height, resolve, reject});
     }
   });
 };

@@ -39,7 +39,8 @@
 
 .popupHeader{
     height: 60px;
-    width: 400px;
+    width: 22vw;
+    max-width: 404px;
     color: #5B5875;
     font-family: Gotham;
     font-size: 24px;
@@ -56,7 +57,8 @@
   
 .popupOption{
     height: 71px;
-    width: 400px;
+    width: 22vw;
+    max-width: 404px;
     background: rgba(10, 40, 50, 0.4);
     backdrop-filter: blur(100px);
     color: white;
@@ -68,10 +70,12 @@
   .popupOptionBg{
     background: rgba(10, 40, 50, 0.4);
     backdrop-filter: blur(100px);
+    width: fit-content;
   }
   
   .popupOptionContent{
     display: block;
+    overflow: hidden !important;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
@@ -101,6 +105,7 @@
 
   .icon{
     display: block;
+    overflow: hidden !important;
     float: left;
     height: 29px;
     width: 32px;
@@ -110,6 +115,7 @@
 
   .popupOptionContent > span{
     display: block;
+    overflow: hidden !important;
     float: left; 
     margin-top: 26px;
   }

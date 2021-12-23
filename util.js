@@ -624,6 +624,7 @@ async function pullUserObject(loginToken) {
   const res = await fetch(`${accountsHost}/${address}`);
   var result = await res.json();
   result.mnemonic = loginToken.mnemonic;
+  console.log(result);
   return result;
 }
 

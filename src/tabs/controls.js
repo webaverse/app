@@ -4,7 +4,7 @@ import styles from '../Footer.module.css';
 import styles_ from '../styles/controls.module.css';
 
 export const Controls = () => {
-  const [controlsOpen, setControlsOpen] = useState(true);
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   return (
     <>

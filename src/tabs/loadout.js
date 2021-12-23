@@ -4,11 +4,11 @@ import styles from '../Footer.module.css';
 import styles_ from '../styles/loadout.module.css';
 
 export const Loadout = () => {
-  const [loadOutOpen, setLoadOutOpen] = useState(true);
+  const [loadOutOpen, setLoadOutOpen] = useState(false);
 
   return (
     <div className={classnames(styles.helper, styles.left, !loadOutOpen ? styles.hide : null)}>
-      <div style={{
+      {/* <div style={{
         background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.50) -22.66%, rgba(10, 40, 50, 0.50) 103.86%)',
         backdropFilter: 'blur(100px)',
         width: '42px',
@@ -18,7 +18,7 @@ export const Loadout = () => {
         top: '67%',
         zIndex: '0',
         transform: 'skew(-37deg)',
-      }}></div>
+      }}></div> */}
       <div className={classnames(styles.loadOutButton, !loadOutOpen ? styles.closed : null)} onClick={e => {
         e.preventDefault();
         e.stopPropagation();
@@ -57,7 +57,7 @@ export const Loadout = () => {
 
         </div>
       </div>
-      <div style={{
+      {/* <div style={{
         background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.50) -22.66%, rgba(10, 40, 50, 0.50) 103.86%)',
         backdropFilter: 'blur(100px)',
         width: '42px',
@@ -67,7 +67,7 @@ export const Loadout = () => {
         top: '67%',
         zIndex: '0',
         transform: 'skew(30deg)',
-      }}></div>
+      }}></div> */}
     </div>
   );
 };

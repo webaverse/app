@@ -6,6 +6,15 @@ import metaversefile from '../../metaversefile-api.js';
 
 const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
 
+
+const NumberInput = ({input}) => {
+  return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} onKeyDown={e => {
+    if (e.which === 13) {
+      e.target.blur();
+    }
+  }} />;
+};
+
 export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp, px, py, pz, rx, ry, rz, sx, sy, sz, panelsRef, setOpen, toggleOpen}) => {
   return (
     <Tab
