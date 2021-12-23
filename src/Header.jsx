@@ -43,14 +43,6 @@ const _getCurrentRoom = () => {
   return room || '';
 };
 
-const NumberInput = ({input}) => {
-  return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} onKeyDown={e => {
-    if (e.which === 13) {
-      e.target.blur();
-    }
-  }} />;
-};
-
 export default function Header({
   app,
 }) {
@@ -72,6 +64,8 @@ export default function Header({
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
+
+  const [userData, setUserData] = useState(null);
 
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());

@@ -51,9 +51,7 @@ export class Character extends React.Component {
           return a.instanceId === id;
         });
         if (_app) {
-          fetch(`${_app.contentId}.metaversefile`).then(async res => {
-            const _res = await res.json();
-            const _preview = await preview(`${_app.contentId}${_res.start_url}`, _app.appType, 'png', 180, 170);
+          preview(`${_app.contentId}`, _app.appType, 'png', 180, 170).then(_preview => {
             const newPreviewState = this.state.previews;
             newPreviewState[id] = _preview.url;
             this.setState({
@@ -115,6 +113,7 @@ export class Character extends React.Component {
             <div className={newStyles.equiment}>
               <h1 className={newStyles.equipmentHeading}>Equipment</h1>
               <div className={newStyles.equipmentItems}>
+
                 {this.props.wearActions.map((wearAction, i) => {
                   return (
                     <div className={newStyles.item}
@@ -131,6 +130,11 @@ export class Character extends React.Component {
                       }}
 
                     >
+                      <div className={classnames(newStyles.label)} onClick={e => {
+                        const localPlayer = metaversefile.useLocalPlayer();
+                        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+                        localPlayer.unwear(app);
+                      }}>X</div>
                       <div className={newStyles.itemWrapper}>
                         <img src={this.state.previews[wearAction.instanceId] || '/images/loader.gif'} />
                       </div>
@@ -141,36 +145,6 @@ export class Character extends React.Component {
               </div>
 
             </div>
-            {this.props.wearActions.map((wearAction, i) => {
-              return (
-                <div
-                  style={{display: 'none'}}
-                  className={styles.equipment}
-                  key={i}
-                  onMouseEnter={e => {
-                    const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                    this.props.game.setMouseHoverObject(null);
-                    const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                    this.props.game.setMouseDomEquipmentHoverObject(app, physicsId);
-                  }}
-                  onMouseLeave={e => {
-                    this.props.game.setMouseDomEquipmentHoverObject(null);
-                  }}
-                >
-                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                  <img src="images/flower.png" className={styles.icon} />
-                  <div className={styles.name}>{wearAction.instanceId}</div>
-                  <button className={styles.button} onClick={e => {
-                    const localPlayer = metaversefile.useLocalPlayer();
-                    const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                    localPlayer.unwear(app);
-                  }}>
-                    <img src="images/remove.svg" />
-                  </button>
-                  <div className={styles.background2} />
-                </div>
-              );
-            })}
           </div>),
         ]}
         open={this.props.open}

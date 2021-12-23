@@ -114,12 +114,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
     }
   };
 
-  const discordLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoginButtons(false);
-  };
-
   useEffect(async () => {
     const {
       error,

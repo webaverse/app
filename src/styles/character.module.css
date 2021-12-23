@@ -88,8 +88,13 @@
 
 .equipmentItems{
     padding: 50px; /* 25px of padding and 25degree of skewing adjustment*/
+    padding-right: 25px;
+    padding-left: 25px;
     padding-top: 10px;
     display: flex;
+    flex-flow: row wrap;
+    align-content: space-between;
+    justify-content: space-evenly;
 }
 
 .equipmentItems> .item{
@@ -98,7 +103,8 @@
     /* border: 1px solid rgba(255, 255, 255, 0.1); */
     box-sizing: border-box;
     height: 58.249053955078125px;
-    width: 78.82109069824219px;
+    width: 77px;
+    margin-top: 24px;
     left: 15px;
     transform-origin: top left;
     transform: skew(-25deg);
@@ -113,4 +119,21 @@
 .equipmentItems > .item > .itemWrapper> img{
     height: 58.249053955078125px;
     width: 78.82109069824219px;
+}
+
+.item .label {
+    display: flex;
+    margin-left: -2px;
+    margin-top: -5px;
+    justify-content: center;
+    align-items: center;
+    width: 24.42px;
+    height: 21.42px;
+    max-width: 38px;
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #FFFFFF80;
+    transform: skew(30deg);
+    z-index: 2;
 }
