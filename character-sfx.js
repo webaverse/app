@@ -68,7 +68,7 @@ class CharacterSfx {
     posRight = localVector.z;
 
 
-    if (posLeft < this.prevLeftZ && posLeft > -0.1 && this.shouldExpectLeftStep) {
+    if (posLeft < this.prevLeftZ && posLeft > 0.1 && this.shouldExpectLeftStep) {
       this.shouldExpectLeftStep = false;
       //console.log("LEFT");
       soundManager.play('step1');
@@ -78,7 +78,7 @@ class CharacterSfx {
       this.shouldExpectLeftStep = true;
     }
 
-    if (posRight < this.prevRightZ && posRight > -0.1 && this.shouldExpectRightStep) {
+    if (posRight < this.prevRightZ && posRight > 0.1 && this.shouldExpectRightStep) {
       this.shouldExpectRightStep = false;
       //console.log("RIGHT");
       soundManager.play('step1');
