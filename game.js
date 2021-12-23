@@ -756,6 +756,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.getAction('activate').animationName = currentAnimation;
     }
 
+    return (currentDistance < 0.8);
+
   };
 
   const _updateGrab = () => {
@@ -812,11 +814,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
-          grabUseMesh.visible = true;
+          //grabUseMesh.visible = true;
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          _updateActivateAnimation(grabUseMesh.position);
+          grabUseMesh.visible = _updateActivateAnimation(grabUseMesh.position);
 
         }
       }
