@@ -216,6 +216,7 @@ physicsManager.simulatePhysics = timeDiff => {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrix();
+        physicsObject.updateMatrixWorld();
       } /* else {
         console.warn('failed to get physics object', id);
       } */
