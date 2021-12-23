@@ -11,7 +11,7 @@ Error.stackTraceLimit = 300;
 
 const isProduction = process.argv[2] === '-p';
 
-const _isMediaType = p => /\.(?:png|jpe?g|gif|glb|mp3|webm|mp4|mov)$/.test(p);
+const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
