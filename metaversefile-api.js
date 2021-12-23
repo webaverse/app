@@ -32,9 +32,10 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import * as materials from './materials.js';
+import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
 
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -592,7 +593,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -614,7 +615,6 @@ metaversefile.setApi({
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
-
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
@@ -947,6 +947,12 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useGeometries() {
+    return geometries;
+  },
+  useMaterials() {
+    return materials;
   },
   useJSON6Internal() {
     return JSON6;
