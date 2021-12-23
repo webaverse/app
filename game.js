@@ -756,8 +756,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.getAction('activate').animationName = currentAnimation;
     }
 
-    return {distance:currentDistance,
-            animation:currentAnimation};
   };
 
   const _updateGrab = () => {
