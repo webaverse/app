@@ -21,21 +21,22 @@ const localMatrix = new THREE.Matrix4();
 class CharacterSfx {
   constructor(player) {
     this.player = player;
-    this.minFootPosition = 0;
-    this.timeUntilFootPosReset = 1.0;
+
+    this.shouldExpectLeftStep = false;
+    this.shouldExpectRightStep = false;
+
+    this.prevLeftZ = 10;
+    this.prevRightZ = 10;
+  }
+
+  round2(num) {
+    return +(Math.round(num + "e+2")  + "e-2");
   }
   
   updateSteps(now, timeDiffS) {
     
     if (this.player === null || this.player.avatar === null) {
       return;
-    }
-
-    // Reset min foot position
-    this.timeUntilFootPosReset -= now;
-    if (this.timeUntilFootPosReset <= 0) {
-      this.timeUntilFootPosReset = 0.3;
-      this.minFootPosition = 0.2;
     }
 
     //debugger;
@@ -55,7 +56,7 @@ class CharacterSfx {
 
     boneFootLeft.matrix.decompose(localVector, localQuaternion, localVector2);
 
-    posLeft = localVector.y;
+    posLeft = localVector.z;
 
 
     boneFootRight.matrix.copy(boneFootRight.matrixWorld).
@@ -63,25 +64,30 @@ class CharacterSfx {
 
     boneFootRight.matrix.decompose(localVector, localQuaternion, localVector2);
 
-    posRight = localVector.y;
+    posRight = localVector.z;
+    
 
-    //console.log(posLeft.toFixed(2) + " " + posRight.toFixed(2));
+    if (posLeft < this.prevLeftZ && posLeft > -0.1 && this.shouldExpectLeftStep) {
+      this.shouldExpectLeftStep = false;
+      //console.log("LEFT");
+      soundManager.play('step1');
 
-    this.minFootPosition = Math.min(posRight, this.minFootPosition);
-    this.minFootPosition = Math.min(posLeft, this.minFootPosition);
-
-    if (posLeft <= (this.minFootPosition + 0.02))
-    {
-      soundManager.playStepSound(1);
+    }
+    else if (posLeft < -0.1 && !this.shouldExpectLeftStep) {
+      this.shouldExpectLeftStep = true;
     }
 
-    if (posRight <= (this.minFootPosition + 0.02))
-    {
-      soundManager.playStepSound(2);
+    if (posRight < this.prevRightZ && posRight > -0.1 && this.shouldExpectRightStep) {
+      this.shouldExpectRightStep = false;
+      //console.log("RIGHT");
+      soundManager.play('step1');
+    }
+    else if (posRight < -0.1 && !this.shouldExpectRightStep) {
+      this.shouldExpectRightStep = true;
     }
 
-    //console.log(this.minFootPosition.toFixed(2));
-
+    this.prevLeftZ = this.round2(posLeft);
+    this.prevRightZ = this.round2(posRight);
   }
   
   update(now, timeDiffS) {
