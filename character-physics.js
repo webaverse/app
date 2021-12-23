@@ -218,7 +218,7 @@ class CharacterPhysics {
       } else {
         this.player.matrix.identity();
       }
-      // this.player.updateMatrix() // Do not update, will reset matrix position to zero.
+      // this.player.updateMatrix() // Do not update here, will reset position/rotation to zero.
       // this.player.updateMatrixWorld(true)
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale); // FORMAL
