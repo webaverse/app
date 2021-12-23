@@ -81,7 +81,7 @@ const enterWorld = async worldSpec => {
   rootScene.traverse((child) => {
     if (child.type === 'vrm') {
       window.role = child
-      window.role.position.y = 1
+      // window.role.position.y = 1
     }
     // child.matrixWorldNeedsUpdate = true
     child.updateMatrix()
