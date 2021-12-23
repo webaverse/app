@@ -96,12 +96,13 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       const grounded = !!(flags & 0x1); 
 
-      this.player.characterControllerObject.updateMatrixWorld();
+      this.player.characterControllerObject.updateMatrix();
       this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       // this.player.characterControllerObject.matrixWorld.decompose(this.player.position,this.player.quaternion,this.player.scale) // TEST
 
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
+      this.player.characterControllerObject.updateMatrixWorld();
       
       // capsule physics
       if (!this.player.hasAction('sit')) {
@@ -120,6 +121,7 @@ class CharacterPhysics {
                 upVector
               )
             );
+            if(window.isDebug) debugger
           }
         } else {
           localQuaternion.copy(camera.quaternion);
@@ -187,10 +189,11 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
-        controlledApp.updateMatrixWorld();
+        controlledApp.updateMatrixWorld(true);
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
+          if(window.isDebug) debugger
 
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height * 0.5;
@@ -202,7 +205,8 @@ class CharacterPhysics {
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       localVector.add(localOffset2);
-      localMatrix.compose(localVector, localQuaternion, localVector2);
+      localMatrix.compose(localVector, localQuaternion, localVector2);      
+      if(window.isDebug) debugger
 
       // apply to player
       if (updateRig) {
@@ -214,8 +218,8 @@ class CharacterPhysics {
       } else {
         this.player.matrix.identity();
       }
-      this.player.updateMatrix()
-      this.player.updateMatrixWorld(true)
+      // this.player.updateMatrix() // Do not update, will reset matrix position to zero.
+      // this.player.updateMatrixWorld(true)
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale); // FORMAL
       this.player.matrixWorld.copy(this.player.matrix);
@@ -327,6 +331,7 @@ class CharacterPhysics {
     camera.position.y -= crouchOffset;
     camera.updateMatrix();
     camera.updateMatrixWorld();
+    this.player.updateMatrix();
   }
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
