@@ -299,16 +299,16 @@ export default class Webaverse extends EventTarget {
 
       // console.log('tick')
 
-      // if (window.role) {
-      if (window.localPlayer && window.localPlayer.characterControllerObject) {
-        // window.role.traverse((child) => { // TODO: Why not work?
-        //   child.updateMatrix()
-        //   window.role.updateMatrixWorld(true)
-        // })
-        // console.log('update role')
+      // // if (window.role) {
+      // if (window.localPlayer && window.localPlayer.characterControllerObject) {
+      //   // window.role.traverse((child) => { // TODO: Why not work?
+      //   //   child.updateMatrix()
+      //   //   window.role.updateMatrixWorld(true)
+      //   // })
+      //   // console.log('update role')
 
-        window.localPlayer.position.copy(window.localPlayer.characterControllerObject.position)
-      }
+      //   window.localPlayer.position.copy(window.localPlayer.characterControllerObject.position)
+      // }
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;

@@ -29,7 +29,7 @@ function fixSkeletonZForward(rootBone, context) {
 }
 
 const RESETQUAT = new THREE.Quaternion();
-const Y_AXIS = new THREE.Vector3(0, -1, 0);
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 /**
 * Takes in a rootBone and recursively traverses the bone heirarchy,

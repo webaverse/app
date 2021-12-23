@@ -66,7 +66,7 @@ const enterWorld = async worldSpec => {
     new Promise((resolve) => {
       setTimeout(() => {
         resolve()
-      }, 10000)
+      }, 15000)
     }),
   ])
   console.log(222)
