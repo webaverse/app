@@ -201,7 +201,7 @@ class CharacterPhysics {
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       localVector.add(localOffset2);
-      localMatrix.compose(localVector, localQuaternion, localVector2);      
+      localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
       if (updateRig) {
@@ -260,7 +260,26 @@ class CharacterPhysics {
     }
   } */
   updateTransform() {
+    /* if (this.rigidBody && physicsManager.physicsEnabled) {
+      localArray.push({
+        id: this.rigidBody.physicsId,
+        position: this.rigidBody.position,
+        quaternion: this.rigidBody.quaternion,
+        scale: this.rigidBody.scale,
+      });
+      const newTransform = physicsManager.getTransforms(localArray);
+      localArray.length = 0;
 
+      for (const updateOut of newTransform) {
+        const {id, position, quaternion, scale} = updateOut; 
+        if(id === this.rigidBody.physicsId) {
+          this.rigidBody.position.copy(position);
+          this.rigidBody.quaternion.copy(quaternion);
+          this.rigidBody.updateMatrixWorld();
+          this.rigidBody.needsUpdate = false;
+        }
+      }
+    } */
   }
   applyAvatarPhysics(now, timeDiffS) {
     const renderer = getRenderer();

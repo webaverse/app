@@ -85,7 +85,7 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
     const {point} = collision;
     o.position.fromArray(point)
       // .add(localVector2.set(0, 0.01, 0));
-      o.updateMatrix();
+    o.updateMatrix();
     if (o.position.distanceTo(localVector) > offset) {
       collision = null;
     }

@@ -65,7 +65,6 @@ const enterWorld = async worldSpec => {
   localPlayer.updatePhysics(0, 0);
 
   rootScene.traverse((child) => {
-    // child.matrixWorldNeedsUpdate = true
     child.updateMatrix()
   })
   rootScene.updateMatrixWorld(true)

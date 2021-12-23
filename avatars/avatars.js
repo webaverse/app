@@ -842,6 +842,48 @@ class Avatar {
     let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
+        /* if (!object.parser.json.extensions) {
+          object.parser.json.extensions = {};
+        }
+        if (!object.parser.json.extensions.VRM) {
+          object.parser.json.extensions.VRM = {
+            secondaryAnimation: {
+              boneGroups: this.hairBones.map(hairBone => {
+                const boneIndices = [];
+                const _recurse = bone => {
+                  boneIndices.push(this.allHairBones.indexOf(bone));
+                  if (bone.children.length > 0) {
+                    _recurse(bone.children[0]);
+                  }
+                };
+                _recurse(hairBone);
+                return {
+                  comment: hairBone.name,
+                  stiffiness: 0.5,
+                  gravityPower: 0.2,
+                  gravityDir: {
+                    x: 0,
+                    y: -1,
+                    z: 0
+                  },
+                  dragForce: 0.3,
+                  center: -1,
+                  hitRadius: 0.02,
+                  bones: boneIndices,
+                  colliderGroups: [],
+                };
+              }),
+            },
+          };
+          object.parser.getDependency = async (type, nodeIndex) => {
+            if (type === 'node') {
+              return this.allHairBones[nodeIndex];
+            } else {
+              throw new Error('unsupported type');
+            }
+          };
+        } */
+
         springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
@@ -850,10 +892,10 @@ class Avatar {
     }
 
 
-    const _getOffset = ((bone, parent = bone?.parent) => {
+    const _getOffset = (bone, parent = bone?.parent) => {
       bone && bone.updateMatrix();
       return bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
-    });
+    };
     modelBones.Hips.updateMatrix();
     modelBones.Spine.updateMatrix();
     this.initializeBonePositions({
@@ -1471,7 +1513,7 @@ class Avatar {
         b.updateMatrixWorld(true);
         b.updateMatrix();
       });
-      
+
       // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
