@@ -56,38 +56,19 @@ const enterWorld = async worldSpec => {
     
     await Promise.all(promises);
   };
-
-  console.log(111)
-  // await _doLoad().catch(err => {
-  //   console.warn(err);
-  // });
-  await Promise.race([
-    _doLoad(),
-    new Promise((resolve) => {
-      setTimeout(() => {
-        resolve()
-      }, 10000)
-    }),
-  ])
-  console.log(222)
+  await _doLoad().catch(err => {
+    console.warn(err);
+  });
 
   localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
   localPlayer.updatePhysics(0, 0);
 
-  // setTimeout(() => {
-  // TODO: Do not use setTimeout, find the place where the load is really complete.
-  console.log(333)
   rootScene.traverse((child) => {
-    if (child.type === 'vrm') {
-      window.role = child
-      // window.role.position.y = 1
-    }
     // child.matrixWorldNeedsUpdate = true
     child.updateMatrix()
   })
   rootScene.updateMatrixWorld(true)
-  // }, 10000)
 
   currentWorld = worldSpec;
 };

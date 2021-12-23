@@ -296,20 +296,6 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => { 
-
-      // console.log('tick')
-
-      // // if (window.role) {
-      // if (window.localPlayer && window.localPlayer.characterControllerObject) {
-      //   // window.role.traverse((child) => { // TODO: Why not work?
-      //   //   child.updateMatrix()
-      //   //   window.role.updateMatrixWorld(true)
-      //   // })
-      //   // console.log('update role')
-
-      //   window.localPlayer.position.copy(window.localPlayer.characterControllerObject.position)
-      // }
-
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 

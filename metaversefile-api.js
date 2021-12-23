@@ -261,7 +261,6 @@ const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
   state: new Z.Doc(),
 });
-window.localPlayer = localPlayer // TEST
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
@@ -445,7 +444,6 @@ metaversefile.setApi({
     }
   },
   async load(u) {
-    console.log(111,u)
     const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);

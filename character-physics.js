@@ -98,8 +98,6 @@ class CharacterPhysics {
 
       this.player.characterControllerObject.updateMatrix();
       this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      // this.player.characterControllerObject.matrixWorld.decompose(this.player.position,this.player.quaternion,this.player.scale) // TEST
-
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
       this.player.characterControllerObject.updateMatrixWorld();
@@ -121,7 +119,6 @@ class CharacterPhysics {
                 upVector
               )
             );
-            if(window.isDebug) debugger
           }
         } else {
           localQuaternion.copy(camera.quaternion);
@@ -193,7 +190,6 @@ class CharacterPhysics {
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
-          if(window.isDebug) debugger
 
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height * 0.5;
@@ -206,22 +202,15 @@ class CharacterPhysics {
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       localVector.add(localOffset2);
       localMatrix.compose(localVector, localQuaternion, localVector2);      
-      if(window.isDebug) debugger
 
       // apply to player
       if (updateRig) {
-        // console.log(111, 'player.matrix.copy', localMatrix)
         this.player.matrix.copy(localMatrix);
-        // this.player.matrix.decompose(this.player.position,this.player.quaternion,this.player.scale) // TEST
-        // this.player.characterControllerObject.matrix.decompose(this.player.position,this.player.quaternion,this.player.scale) // TEST/
-        // console.log(this.player.position.z)
       } else {
         this.player.matrix.identity();
       }
-      // this.player.updateMatrix() // Do not update here, will reset position/rotation to zero.
-      // this.player.updateMatrixWorld(true)
       this.player.matrix
-        .decompose(this.player.position, this.player.quaternion, this.player.scale); // FORMAL
+        .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
       this.player.updateMatrixWorld();

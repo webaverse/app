@@ -244,7 +244,6 @@ const loadPromise = (async () => {
       
       let o;
       try {
-        // console.log('111 avatar')
         o = await new Promise((accept, reject) => {
           const {gltfLoader} = metaversefile.useLoaders();
           gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
@@ -1462,7 +1461,7 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
-      // modelBoneOutput.updateMatrixWorld(true);
+
       modelBone.position.copy(modelBoneOutput.position);
       modelBone.quaternion.multiplyQuaternions(
         modelBoneOutput.quaternion,
@@ -1472,8 +1471,7 @@ class Avatar {
         b.updateMatrixWorld(true);
         b.updateMatrix();
       });
-      // modelBone.updateMatrix();
-      // modelBone.updateMatrixWorld(true);
+      
       // if (topEnabled) {
         if (k === 'Left_wrist') {
           if (rHandEnabled) {
