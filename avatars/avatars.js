@@ -41,6 +41,7 @@ const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const tempVec3a = new THREE.Vector3()
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxEyeTargetTime = 2000;
@@ -894,7 +895,7 @@ class Avatar {
 
     const _getOffset = (bone, parent = bone?.parent) => {
       bone && bone.updateMatrix();
-      return bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
+      return bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(tempVec3a));
     };
     modelBones.Hips.updateMatrix();
     modelBones.Spine.updateMatrix();
