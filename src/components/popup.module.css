@@ -6,7 +6,7 @@
     flex-direction: column;
     background: rgba(10, 40, 50, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
     max-height: 394px;
     z-index: 999999;
 }
@@ -52,7 +52,7 @@
     padding-top: 14px;
     text-align: left;
     background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
   }
   
 .popupOption{
@@ -60,7 +60,7 @@
     width: 22vw;
     max-width: 404px;
     background: rgba(10, 40, 50, 0.4);
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
     color: white;
     font-size: 12px;
     display: table;
@@ -69,7 +69,7 @@
   
   .popupOptionBg{
     background: rgba(10, 40, 50, 0.4);
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
     width: fit-content;
   }
   
@@ -92,7 +92,7 @@
   .line{
     border-bottom: 1px solid rgba(85, 157, 219, 39.65);
     width: 95%;
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
     height: 0px;
     margin: 0;
   

@@ -2171,7 +2171,7 @@ footer {
   padding: 10px;
   background: rgba(10, 40, 50, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(100px);
+  /*backdrop-filter: blur(100px);*/
   left: calc(100vw - 345px);
   transition-property: all;
 	transition-duration: .5s;
@@ -2192,7 +2192,7 @@ footer {
 .loadout {
   display: flex;
   /* background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px); */
+  /*backdrop-filter: blur(100px);*/
   margin-left: auto;
   margin-right: auto;
   width: calc(0.71 * 100vw);
@@ -2216,7 +2216,7 @@ footer {
   /* border: 3px solid teal; */
   border: 3px solid transparent;  
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px);
+  /*backdrop-filter: blur(100px);*/
 
   top: -15%; bottom: -20%; left: -3%; right: -3%;
   z-index: 0;
@@ -2298,7 +2298,7 @@ footer {
   /* border: 3px solid teal; */
   border: 3px solid transparent;  
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px);
+  /*backdrop-filter: blur(100px);*/
 
   top: -15%; bottom: -20%; left: -3%; right: -3%;
   z-index: 0;
@@ -2326,7 +2326,7 @@ footer {
   /* border: 3px solid teal; */
   border: 3px solid transparent;  
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) -22.66%, rgba(10, 40, 50, 0.5) 103.86%);
-  backdrop-filter: blur(100px);
+  /*backdrop-filter: blur(100px);*/
 
   top: -15%; bottom: -20%; left: -3%; right: -3%;
   z-index: -1;

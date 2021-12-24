@@ -61,7 +61,7 @@
 .line{
     border-bottom: 1px solid rgba(85, 157, 219, 39.65);
     width: 95%;
-    backdrop-filter: blur(100px);
+    /*backdrop-filter: blur(100px);*/
     height: 1px;
 }
 

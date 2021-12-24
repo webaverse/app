@@ -80,7 +80,6 @@ export class UserX extends React.Component {
   }
 
   render() {
-    console.log('************** RENDER ************* loop called', this.props.user);
     return (
       this.props.user
         ? <Tab
