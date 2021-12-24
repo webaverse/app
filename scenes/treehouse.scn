@@ -113,6 +113,22 @@
     },
     {
       "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
         2,
         1,
         0
@@ -125,6 +141,22 @@
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/damage-mesh/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/particle-mesh/",
       "dynamic": true
     },
     {

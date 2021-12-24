@@ -250,7 +250,7 @@ function setPasses(rendersettings) {
       const bloomPass = makeBloomPass(bloom);
       composer.addPass(bloomPass);
     }
-    if(enablePostScene) {
+    if (enablePostScene) {
       const postRenderPass = new RenderPass(postScene, camera);
       composer.addPass(postRenderPass);
     }

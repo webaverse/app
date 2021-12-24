@@ -389,7 +389,11 @@ const loadPromise = (async () => {
     crouch: animations.find(a => a.isCrouch),
   };
   activateAnimations = {
-    activate: animations.find(a => a.isActivate),
+    grab_forward: {animation:animations.find(a => a.name === 'grab_forward.fbx'), speedFactor: 1.2},
+    grab_down: {animation:animations.find(a => a.name === 'grab_down.fbx'), speedFactor: 1.7},
+    grab_up: {animation:animations.find(a => a.name === 'grab_up.fbx'), speedFactor: 1.2},
+    grab_left: {animation:animations.find(a => a.name === 'grab_left.fbx'), speedFactor: 1.2},
+    grab_right: {animation:animations.find(a => a.name === 'grab_right.fbx'), speedFactor: 1.2},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -2062,21 +2066,6 @@ class Avatar {
             dst.fromArray(v2);
           }
         }
-        if (this.activateTime > 0) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-            const activateAnimation = activateAnimations[defaultActivateAnimation];
-            const src2 = activateAnimation.interpolants[k];
-            const t2 = Math.pow(this.activateTime/1000*activateAnimation.duration/2, 0.5);
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
         if (this.narutoRunState) {
           return spec => {
             const {
@@ -2353,6 +2342,41 @@ class Avatar {
             );
         }
       };
+
+      const _blendActivateAction = spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isTop,
+          lerpFn,
+        } = spec;
+        
+        if (this.activateTime > 0) {
+          
+            const localPlayer = metaversefile.useLocalPlayer();
+
+            let defaultAnimation = "grab_forward";
+
+            if (localPlayer.getAction('activate').animationName) {
+              defaultAnimation = localPlayer.getAction('activate').animationName;
+            }
+
+            const activateAnimation = activateAnimations[defaultAnimation].animation;
+            const src2 = activateAnimation.interpolants[k];
+            const t2 = ((this.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+            const v2 = src2.evaluate(t2);
+
+            const f = this.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+            lerpFn
+              .call(
+                dst,
+                localQuaternion.fromArray(v2),
+                f
+              );
+        }
+      };
+
       for (const spec of this.animationMappings) {
         const {
           animationTrackName: k,
@@ -2363,6 +2387,7 @@ class Avatar {
         
         applyFn(spec);
         _blendFly(spec);
+        _blendActivateAction(spec);
         
         // ignore all animation position except y
         if (isPosition) {
