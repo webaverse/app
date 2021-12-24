@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import {getExt, makePromise, parseQuery} from './util.js';
+import {getExt, makePromise, parseQuery, fitCameraToBox} from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
 import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
-import {fitCameraToBox} from './util.js';
 // import {defaultRendererUrl} from './constants.js'
-import * as WebMWriter from 'webm-writer'
+import * as WebMWriter from 'webm-writer';
 const defaultWidth = 512;
 const defaultHeight = 512;
 const cameraPosition = new THREE.Vector3(0, 1, 2);
@@ -39,7 +38,7 @@ const _makeRenderer = (width, height) => {
   }));
   scene.add(cubeMesh); */
 
-  const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
   // camera.position.copy(cameraPosition);
   // camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
@@ -50,7 +49,6 @@ const _makeRenderer = (width, height) => {
   // camera.updateProjectionMatrix();
 
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
-
 
   /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
   scene.add(ambientLight); */
@@ -261,7 +259,7 @@ const _getType = id => {
   if (isNaN(height)) {
     height = defaultHeight;
   }
-  
+
   let o;
   try {
     const app = await metaversefileApi.load(url);
@@ -304,13 +302,13 @@ const _getType = id => {
   const _lookAt = (camera, boundingBox) => {
     const center = boundingBox.getCenter(new THREE.Vector3());
     const size = boundingBox.getSize(new THREE.Vector3());
-    
+
     if (ext === 'vrm') {
       camera.position.x = center.x;
       camera.position.y = center.y;
     } else {
-      camera.position.x = center.x/2;
-      camera.position.y = center.y/2;
+      camera.position.x = center.x / 2;
+      camera.position.y = center.y / 2;
     }
     camera.position.z = size.z / 2;
     fitCameraToBox(camera, boundingBox);
@@ -329,7 +327,7 @@ const _getType = id => {
 
             _initializeAnimation();
             _lookAt(camera, boundingBox);
-            
+
             renderer.compile(scene, camera);
 
             if (type === 'jpg' || type === 'jpeg') {
@@ -340,7 +338,7 @@ const _getType = id => {
           } else {
             return null;
           }
-        } else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+        } else if (['png', 'jpg', 'jpeg', 'gif', 'image'].includes(ext)) {
           const img = await new Promise((accept, reject) => {
             const img = new Image();
             img.onload = () => {
@@ -355,21 +353,21 @@ const _getType = id => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (img.width > img.height) { // vertical padding needed
-            const scaleFactor = img.width/width;
-            const dstWidth = img.width/scaleFactor;
-            const dstHeight = img.height/scaleFactor;
+            const scaleFactor = img.width / width;
+            const dstWidth = img.width / scaleFactor;
+            const dstHeight = img.height / scaleFactor;
 
             const pixelsToAdd = dstWidth - dstHeight;
-            const pixelsToAddD2 = pixelsToAdd/2;
+            const pixelsToAddD2 = pixelsToAdd / 2;
 
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
           } else { // horizontal padding needed
-            const scaleFactor = img.height/height;
-            const dstWidth = img.width/scaleFactor;
-            const dstHeight = img.height/scaleFactor;
+            const scaleFactor = img.height / height;
+            const dstWidth = img.width / scaleFactor;
+            const dstHeight = img.height / scaleFactor;
 
             const pixelsToAdd = dstHeight - dstWidth;
-            const pixelsToAddD2 = pixelsToAdd/2;
+            const pixelsToAddD2 = pixelsToAdd / 2;
 
             ctx.drawImage(img, pixelsToAddD2, 0, dstWidth, dstHeight);
           }
@@ -389,8 +387,8 @@ const _getType = id => {
         img.onerror = reject;
         img.src = URL.createObjectURL(blob);
       });
-      img.style.width = `${img.width/window.devicePixelRatio}px`;
-      img.style.height = `${img.height/window.devicePixelRatio}px`;
+      img.style.width = `${img.width / window.devicePixelRatio}px`;
+      img.style.height = `${img.height / window.devicePixelRatio}px`;
       screenshotResult.appendChild(img);
 
       const arrayBuffer = await blob.arrayBuffer();
@@ -430,8 +428,8 @@ const _getType = id => {
         camera.position.copy(center)
           // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
-            new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
-              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
+            new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
+              .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2),
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -496,13 +494,12 @@ const _getType = id => {
         const size = boundingBox.getSize(new THREE.Vector3());
 
         const videoWriter = new WebMWriter({
-          quality: 1, 
-          fileWriter: null, 
-          fd: null, 
-          frameDuration: null, 
-          frameRate: FPS 
+          quality: 1,
+          fileWriter: null,
+          fd: null,
+          frameDuration: null,
+          frameRate: FPS,
         });
-
 
         _initializeAnimation();
         _lookAt(camera, boundingBox);
@@ -515,10 +512,10 @@ const _getType = id => {
         const writeCtx = writeCanvas.getContext('2d');
 
         const _pushFrame = () => {
-          // draw  
+          // draw
           writeCtx.drawImage(renderer.domElement, 0, 0);
           videoWriter.addFrame(writeCanvas);
-        }
+        };
 
         if (isVrm && isVideo) {
           /* const timeDiff = 1/FPS;
@@ -531,10 +528,10 @@ const _getType = id => {
 
             _pushFrame();
           } */
-          
+
           let now = 0;
-          const timeDiff = 1000/FPS;
-          while (now < idleAnimationDuration*1000) {
+          const timeDiff = 1000 / FPS;
+          while (now < walkAnimation.duration * 1000) {
             o.avatar.update(timeDiff);
 
             _lookAt(camera, boundingBox);
@@ -542,7 +539,7 @@ const _getType = id => {
             renderer.render(scene, camera);
 
             _pushFrame();
-            
+            console.log('Pushing frame');
             now += timeDiff;
           }
         } else if (isImage && isVideo) {
@@ -550,7 +547,7 @@ const _getType = id => {
             // o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2) * 1) * 0.005),
               );
             /* camera.position.copy(center)
               .add(
@@ -588,7 +585,7 @@ const _getType = id => {
           }
         }
 
-        const blob = await videoWriter.complete();      
+        const blob = await videoWriter.complete();
         console.log('got video blob', blob);
 
         const video = document.createElement('video');
@@ -599,8 +596,8 @@ const _getType = id => {
           video.onerror = reject;
           video.src = URL.createObjectURL(blob);
         });
-        video.style.width = `${width/window.devicePixelRatio}px`;
-        video.style.height = `${height/window.devicePixelRatio}px`;
+        video.style.width = `${width / window.devicePixelRatio}px`;
+        video.style.height = `${height / window.devicePixelRatio}px`;
         video.loop = true;
         screenshotResult.appendChild(video);
 
