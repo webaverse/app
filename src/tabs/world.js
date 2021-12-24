@@ -3,9 +3,9 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import {preview} from '../../preview.js';
 
 const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
-
 
 const NumberInput = ({input}) => {
   return <input type="number" className={styles.input} value={input.value} onChange={input.onChange} onKeyDown={e => {
@@ -16,6 +16,29 @@ const NumberInput = ({input}) => {
 };
 
 export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp, px, py, pz, rx, ry, rz, sx, sy, sz, panelsRef, setOpen, toggleOpen}) => {
+  const [previews, setPreviews] = React.useState({});
+  const [previewsLength, setPreviewsLength] = React.useState(0);
+
+  React.useEffect(() => {
+    if (previewsLength !== apps.length) {
+      setPreviewsLength(apps.length);
+      console.log('************** RENDER ************* loop called', apps);
+
+      apps.map(app => {
+        if (!previews[app.instanceId]) {
+          previews[app.instanceId] = '/images/loader.gif';
+          preview(`${app.contentId}`, app.appType, 'png', 180, 170).then(_preview => {
+            console.log('************** RENDER ************* loop called', _preview.url);
+            previews[app.instanceId] = _preview.url;
+            setPreviews(previews);
+          }).catch(e => {
+            console.warn('App Preview failed', e);
+          });
+        }
+      });
+    }
+  }, [apps, previews]);
+
   return (
     <Tab
       type="world"
@@ -63,7 +86,7 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
                   // game.setMouseSelectedObject(null);
                 }}>
                   <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                  <img src="images/object.jpg" className={styles.img} />
+                  <img src={ previews[app.instanceId] || 'images/object.jpg'} className={styles.img} />
                   <div className={styles.wrap}>
                     <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
                   </div>
