@@ -68,9 +68,9 @@ function makeId(length) {
         next();
       }
     } else if (/^\/login/.test(o.pathname)) {
-        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
-        return res.redirect(req.originalUrl);
-      } else {
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      return res.redirect(req.originalUrl);
+    } else {
       next();
     }
   });
