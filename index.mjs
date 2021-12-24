@@ -87,7 +87,7 @@ const _proxyUrl = (req, res, u) => {
         next();
       }
     } else if (o.query['noimport'] !== undefined) {
-      const p = path.join(cwd, o.pathname);
+      const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
         if (err.code === 'ENOENT') {
