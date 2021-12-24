@@ -1,6 +1,7 @@
 import http from 'http';
 import https from 'https';
 import url from 'url';
+import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
@@ -8,6 +9,7 @@ import fetch from 'node-fetch';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
+const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
 
@@ -35,6 +37,24 @@ function makeId(length) {
   return result;
 }
 
+const _proxyUrl = (req, res, u) => {
+  console.log('got u', {u});
+  const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
+  proxyReq.on('response', proxyRes => {
+    for (const header in proxyRes.headers) {
+      res.setHeader(header, proxyRes.headers[header]);
+    }
+    res.statusCode = proxyRes.statusCode;
+    proxyRes.pipe(res);
+  });
+  proxyReq.on('error', err => {
+    console.error(err);
+    res.statusCode = 500;
+    res.end();
+  });
+  proxyReq.end();
+};
+
 (async () => {
   const app = express();
   app.use('*', async (req, res, next) => {
@@ -43,7 +63,7 @@ function makeId(length) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.search !== '?import') {
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -67,6 +87,21 @@ function makeId(length) {
         req.originalUrl = u;
         next();
       }
+    } else if (o.query['noimport'] !== undefined) {
+      const p = path.join(cwd, o.pathname);
+      const rs = fs.createReadStream(p);
+      rs.on('error', err => {
+        if (err.code === 'ENOENT') {
+          res.statusCode = 404;
+          res.end('not found');
+        } else {
+          console.error(err);
+          res.statusCode = 500;
+          res.end(err.stack);
+        }
+      });
+      rs.pipe(res);
+      // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
       return res.redirect(req.originalUrl);
