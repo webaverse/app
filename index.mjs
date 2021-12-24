@@ -38,7 +38,6 @@ function makeId(length) {
 }
 
 const _proxyUrl = (req, res, u) => {
-  console.log('got u', {u});
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
