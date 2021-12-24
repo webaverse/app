@@ -818,8 +818,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.target = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          grabUseMesh.visible = _updateActivateAnimation(grabUseMesh.position);
-
+          const inRange = _updateActivateAnimation(grabUseMesh.position);
+          grabUseMesh.visible = inRange;
         }
       }
     }
