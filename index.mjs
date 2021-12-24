@@ -63,14 +63,14 @@ function makeId(length) {
           res.end();
         });
         proxyReq.end();
-      } else if (/^\/login/.test(o.pathname)) {
-        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
-        return res.redirect(req.originalUrl);
-      }  else {
+      } else {
         req.originalUrl = u;
         next();
       }
-    } else {
+    } else if (/^\/login/.test(o.pathname)) {
+        req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+        return res.redirect(req.originalUrl);
+      } else {
       next();
     }
   });
