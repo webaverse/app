@@ -1,0 +1,139 @@
+@import url('https://fonts.cdnfonts.com/css/gotham');
+.panel-header {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(100px) !important;
+    width: calc(0.21 * 100vw) !important;
+    min-width: 400px !important;
+    min-height: 60px;
+}
+
+.panel-header>h1 {
+    font-family: Gotham;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 24px;
+    /* identical to box height */
+    color: #5B5875;
+    display: flex;
+    margin: 0;
+    padding-top: 19px;
+    padding-left: 25px;
+    padding-bottom: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    align-items: left;
+    text-transform: uppercase;
+}
+
+.panel > img{
+    width: 180px !important;
+    height: 170px !important;
+}
+
+
+.panels {
+    height: calc(0.73 * 100vh) !important;
+    max-height: 790px !important;
+    width: calc(0.21 * 100vw) !important;
+    min-width: 400px !important;
+    top: 0px !important;
+    background: transparent !important;
+    border: none !important;
+    /* Note: backdrop-filter has minimal browser support */
+}
+
+.panels .open{
+    display: flex !important;
+}
+
+.panels-wrap {
+    background: rgba(10, 40, 50, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(100px) !important;
+}
+
+.tab {
+    background-color: purple;
+}
+
+.line{
+    border-bottom: 1px solid rgba(85, 157, 219, 39.65);
+    width: 95%;
+    backdrop-filter: blur(100px);
+    height: 1px;
+}
+
+.equipment{
+    height: 58.249053955078125px;
+    width: 78.82109069824219px;
+    border-radius: 0px;        
+    background: rgba(4, 18, 22, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+}
+
+.equipmentHeading{
+    color: white;
+    font-family: Gotham;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 325;
+    line-height: 17px;
+    letter-spacing: 0em;
+    text-align: left;
+    padding-left: 20px;
+}
+
+.equipmentItems{
+    padding: 50px; /* 25px of padding and 25degree of skewing adjustment*/
+    padding-right: 25px;
+    padding-left: 25px;
+    padding-top: 10px;
+    display: flex;
+    flex-flow: row wrap;
+    align-content: space-between;
+    justify-content: space-evenly;
+}
+
+.equipmentItems> .item{
+    border: 1px solid #FFFFFF1A;
+    background: rgba(4, 18, 22, 0.25);
+    /* border: 1px solid rgba(255, 255, 255, 0.1); */
+    box-sizing: border-box;
+    height: 58.249053955078125px;
+    width: 77px;
+    margin-top: 24px;
+    left: 15px;
+    transform-origin: top left;
+    transform: skew(-25deg);
+}
+
+.equipmentItems> .item> .itemWrapper{
+    transform: skew(25deg);
+}
+
+
+
+.equipmentItems > .item > .itemWrapper> img{
+    height: 58.249053955078125px;
+    width: 78.82109069824219px;
+}
+
+.item .label {
+    display: flex;
+    margin-left: -2px;
+    margin-top: -5px;
+    justify-content: center;
+    align-items: center;
+    width: 24.42px;
+    height: 21.42px;
+    max-width: 38px;
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #FFFFFF80;
+    transform: skew(30deg);
+    z-index: 2;
+}

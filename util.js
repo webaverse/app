@@ -619,7 +619,7 @@ async function contentIdToStorageUrl(id) {
   }
 }
 
-async function pullUserObject(loginToken) {
+export async function pullUserObject(loginToken) {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
   const res = await fetch(`${accountsHost}/${address}`);
   var result = await res.json();

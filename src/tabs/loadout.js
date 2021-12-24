@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import styles from '../Footer.module.css';
 import styles_ from '../styles/loadout.module.css';
+import {Button} from '../components/button';
 
 export const Loadout = () => {
   const [loadOutOpen, setLoadOutOpen] = useState(false);
@@ -27,10 +28,6 @@ export const Loadout = () => {
         <img src='/images/loadout-down.svg'></img>
       </div>
       <div className={classnames(styles.loadout)}>
-        <div className={styles.item}>
-          <div className={classnames(styles.label, styles.labelW)}>TAB</div>
-          <img src='/images/user.svg'></img>
-        </div>
         {(() => {
           const numItems = 8;
           const items = Array(numItems);

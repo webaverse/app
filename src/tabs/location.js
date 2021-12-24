@@ -4,13 +4,15 @@ import styles from '../Header.module.css';
 import {Popup} from '../components/popup';
 import * as ceramicApi from '../../ceramic.js';
 import {discordClientId} from '../../constants';
+import {Button} from '../components/button';
 
-export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress}) => {
+export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress, user}) => {
   const [rooms, setRooms] = useState([]);
   const [locationOpen, setLocationOpen] = useState(false);
 
   const loginButton = useRef();
   const sceneLocations = useRef();
+  const multiplayerRef = useRef();
 
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
@@ -47,6 +49,37 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
   return (
     <div className={classnames(styles.location, !locationOpen ? styles.closed : null)}>
       <div className={styles.row}>
+
+        <Button
+          text={'TAB'}
+          icon={'/images/user.svg'}
+          skew={true}
+          skewDirection={'left'}
+          onClick={e => {
+            toggleOpen('character');
+          }}
+        ></Button>
+
+        {user ? <Button
+          text={'X'}
+          icon={'/images/soul.png'}
+          skew={true}
+          skewDirection={'left'}
+          onClick={e => {
+            toggleOpen('userX');
+          }}
+        ></Button> : null}
+
+        <Button
+          text={'X'}
+          icon={'/images/world.svg'}
+          skew={true}
+          skewDirection={'left'}
+          onClick={e => {
+            toggleOpen('world');
+          }}
+        ></Button>
+
         <div ref={sceneLocations} className={styles['input-wrap']}>
           <input type="text" className={styles.input} value={multiplayerConnected ? roomName : sceneName} onChange={e => {
             setSceneName(e.target.value);
@@ -73,7 +106,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
         </div>
         <div className={styles.locationRight}>
 
-          <div className={styles['button-wrap']} onClick={e => {
+          <div ref={multiplayerRef} className={styles['button-wrap']} onClick={e => {
             if (!multiplayerConnected) {
               toggleOpen('multiplayer');
             } else {
@@ -118,7 +151,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
               return {
                 text: sceneName,
                 icon: 'images/world.jpg',
-                //iconPreview: `${window.origin}/?src=${encodeURIComponent('./scenes/' + sceneName)}`,
+                // iconPreview: `${window.origin}/?src=${encodeURIComponent('./scenes/' + sceneName)}`,
                 iconExtension: 'scn',
                 action: async e => {
                   universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
@@ -129,56 +162,58 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           }
         />
         : null}
-      {multiplayerOpen ? <div className={styles.rooms}>
-        <div className={styles.create}>
-          <button className={styles.button} onClick={async e => {
-            e.preventDefault();
-            e.stopPropagation();
 
-            const roomName = _makeName();
-            console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
-            const data = Z.encodeStateAsUpdate(world.getState(true));
-            // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
-            console.log('post', universe.getWorldsHost() + roomName);
-            const res = await fetch(universe.getWorldsHost() + roomName, {
-              method: 'POST',
-              body: data,
-            });
-            console.log('got room name 1', {roomName});
-            if (res.ok) {
-              // const j = await res.json();
-              // console.log('world create result', j);
+      {multiplayerOpen ? <Popup
 
-              refreshRooms();
+        anchor={multiplayerRef}
+        header={<button className={styles.button} onClick={async e => {
+          e.preventDefault();
+          e.stopPropagation();
 
-              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
+          const roomName = _makeName();
+          console.log('got room name 0', {roomName}, universe.getWorldsHost() + roomName);
+          const data = Z.encodeStateAsUpdate(world.getState(true));
+          // console.log('post data', universe.getWorldsHost() + roomName, world.getState(true).toJSON(), data);
+          console.log('post', universe.getWorldsHost() + roomName);
+          const res = await fetch(universe.getWorldsHost() + roomName, {
+            method: 'POST',
+            body: data,
+          });
+          console.log('got room name 1', {roomName});
+          if (res.ok) {
+            // const j = await res.json();
+            // console.log('world create result', j);
 
-              /* this.parent.sendMessage([
+            refreshRooms();
+
+            universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${roomName}`);
+
+            /* this.parent.sendMessage([
                 MESSAGE.ROOMSTATE,
                 data,
               ]); */
-            } else {
-              const text = await res.text();
-              console.warn('error creating room', res.status, text);
-            }
-          }}>Create room</button>
-        </div>
-        {rooms.map((room, i) => (
-          <div className={styles.room} onClick={async e => {
-            if (!world.isConnected() /* && useLocalPlayer().avatar */) {
-              universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${room.name}`);
-              /* const isConnected = world.isConnected();
-              setMultiplayerConnected(isConnected);
-              if (isConnected) {
-                setRoomName(room.name);
-                setMultiplayerOpen(false);
-              } */
-            }
-          }} key={i}>
-            <img className={styles.image} src="images/world.jpg" />
-            <div className={styles.name}>{room.name}</div>
-            <div className={styles.delete}>
-              <button className={classnames(styles.button, styles.warning)} onClick={async e => {
+          } else {
+            const text = await res.text();
+            console.warn('error creating room', res.status, text);
+          }
+        }}>Create room</button>}
+        options={
+          rooms.map((room, i) => {
+            return {
+              action: async e => {
+                if (!world.isConnected() /* && useLocalPlayer().avatar */) {
+                  universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}&room=${room.name}`);
+                  /* const isConnected = world.isConnected();
+                  setMultiplayerConnected(isConnected);
+                  if (isConnected) {
+                    setRoomName(room.name);
+                    setMultiplayerOpen(false);
+                  } */
+                }
+              },
+              icon: 'images/world.jpg',
+              text: room.name,
+              isRemovable: async e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -197,11 +232,12 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
                   const text = await res.text();
                   console.warn('failed to fetch', res.status, text);
                 }
-              }}>Delete</button>
-            </div>
-          </div>
-        ))}
-      </div> : null}
+              },
+            };
+          })
+        }
+
+      /> : null}
 
       {loginOpen
         ? <Popup
