@@ -133,3 +133,10 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
+
+.removable{
+  overflow: hidden;
+  position: absolute;
+  top: 31%;
+  left: 85%;
+}

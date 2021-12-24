@@ -23,7 +23,7 @@ import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {World} from './tabs/world';
 import {XR} from './tabs/xr';
-
+import {UserX} from './tabs/user';
 const localEuler = new THREE.Euler();
 
 // console.log('index 1');
@@ -380,6 +380,8 @@ export default function Header({
     };
   }, [dragging]);
 
+  window.setOpen = setOpen;
+
   return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
@@ -411,6 +413,7 @@ export default function Header({
               toggleMic={toggleMic}
               address={address}
               setAddress={setAddress}
+              user={userData}
             />
             <User
               address={address}
@@ -418,11 +421,23 @@ export default function Header({
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
+              setUserData={setUserData}
             />
           </div>
         </header>
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
+            <UserX
+              user = {userData}
+              apps={apps}
+              open={open}
+              setOpen={setOpen}
+              toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
+              wearActions={wearActions}
+              previewCanvasRef={previewCanvasRef}
+              game={game}
+            />
             <Character
               apps={apps}
               open={open}

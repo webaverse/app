@@ -6,11 +6,12 @@ import * as ceramicApi from '../ceramic.js';
 // import styles from './User.module.css';
 import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId, walletHost} from '../constants';
 import {contracts, getAddressFromMnemonic} from '../blockchain.js';
-import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
+import {pullUserObject, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from './components/modal';
 
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => {
   const [show, setShow] = useState(false);
+  const [loginInProgress, setLoginInProgress] = useState(false);
 
   const showModal = async e => {
     e.preventDefault();
@@ -26,92 +27,115 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
   var iframe = null;
   var walletMessenger = null;
 
-  const fetchWalletData = async key => {
-    iframe = window.open(walletHost, 'wallet');
+  const launchWallet = () => {
+    return new Promise((resolve, reject) => {
+      iframe = document.querySelector(`iframe[src^="${walletHost}"]`);
 
-    var f = function(event) {
-      if (`${event.origin}/weba-wallet` !== walletHost) { return; }
-
-      if (event.data === 'received') {
-        getKeys(key);
-        window.removeEventListener('message', f, false);
+      // else create new iframe
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.width = '0px';
+        iframe.height = '0px';
+        document.body.appendChild(iframe);
+        iframe.src = walletHost;
+      } else {
+        resolve();
+        console.log('...........Resolving...............');
       }
-    };
-    window.addEventListener('message', f);
+      const t = setTimeout(() => {
+        reject('Failed to load wallet in 30 seconds');
+      }, 30 * 1000);
+
+      const f = event => {
+        if (`${event.origin}` !== walletHost) { return; }
+        if (event.data.method === 'wallet_launched') {
+          console.log('...........Resolving...............');
+          window.removeEventListener('message', f, false);
+          clearTimeout(t);
+          resolve();
+        }
+      };
+      window.addEventListener('message', f);
+    });
+  };
+
+  const fetchWalletData = async key => {
+    console.log('About to fetch the wallet data');
+    // check for existing iframe
+    await launchWallet();
+    getKeys(key);
   };
 
   const getKeys = async key => {
+    console.log('Trying to fetch the key');
     if (key) {
-      iframe.postMessage(JSON.stringify({action: 'getKey', key: key}), walletHost);
+      console.log('Posting the message to the weba wallet');
+      console.log('Do we have the iframe ?', iframe);
+      window.abeersIframe = iframe;
+      iframe.contentWindow.postMessage({action: 'getKey', key: key}, walletHost);
     } else {
-      iframe.postMessage(JSON.stringify({action: 'getAllKeys'}), walletHost);
+      iframe.contentWindow.postMessage({action: 'getAllKeys'}, walletHost);
     }
 
-    var f = function(event) {
-      if (`${event.origin}/weba-wallet` !== walletHost) { return; }
-
-      if (event.data.privateKey) {
-        const address = getAddressFromMnemonic(event.data.privateKey);
+    var f = async (event) => {
+      if (event.origin !== walletHost) { return; }
+      console.log('event.data', event.data);
+      if (event.data.pk) {
+        const data = await pullUserObject(event.data.pk);
+        data.loadout = {
+          tokens: [{
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }, {
+            instanceId: 'blah',
+          }],
+        };
+        setUserData(data);
+        const {address, error, mnemonic} = data;
         if (address) {
           setAddress(address);
         }
         window.removeEventListener('message', f, false);
-        iframe.close();
-      } else {
-        window.removeEventListener('message', f, false);
-        iframe.close();
       }
     };
     window.addEventListener('message', f);
   };
 
-  // function for sending data to wallet
-  const sendDataToWallet = async (key, value) => {
-    walletMessenger = window.open(walletHost, 'walletMessenger');
-
-    var f = function(event) {
-      if (`${event.origin}/weba-wallet` !== walletHost) { return; }
-
-      if (event.data === 'received') {
-        sendData(key, value);
-        window.removeEventListener('message', f, false);
-      }
-    };
-    window.addEventListener('message', f);
-  };
+  window.getKeys = getKeys;
 
   const sendData = async (key, value) => {
-    var message = JSON.stringify({action: 'storeKey', key: key, value: value});
-    walletMessenger.postMessage(message, walletHost);
-
-    var f = function(event) {
-      if (`${event.origin}/weba-wallet` !== walletHost) { return; }
-
-      window.removeEventListener('message', f, false);
-      walletMessenger.close();
-    };
-    window.addEventListener('message', f);
-  };
-
-  const metaMaskLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (address) {
-      toggleOpen('user');
-    } else {
-      if (!loggingIn) {
-        setLoggingIn(true);
-        try {
-          const {address, profile} = await ceramicApi.login();
-          setAddress(address);
-          setShow(false);
-        } catch (err) {
-          console.warn(err);
-        } finally {
-          setLoggingIn(false);
-        }
-      }
-    }
+    await launchWallet();
+    var message = {action: 'storeKey', key: key, value: value};
+    iframe.contentWindow.postMessage(message, walletHost);
   };
 
   useEffect(async () => {
@@ -124,79 +148,66 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       twitter: arrivingFromTwitter,
     } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
     if (code) {
-      const {address, error, mnemonic} = await handleDiscordLogin(code, id);
+      const data = await handleDiscordLogin(code, id);
+      /** Dummy modify data here to think that we are getting inventory */
+      data.loadout = {
+        tokens: [{
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }, {
+          instanceId: 'blah',
+        }],
+      };
+      setUserData(data);
+      const {address, error, mnemonic} = data;
+
       if (address) {
         setAddress(address);
-        sendDataToWallet('privateKey', mnemonic);
+        sendData('pk', mnemonic);
         setShow(false);
       } else {
         setLoginError(String(error).toLocaleUpperCase());
       }
     } else {
-      fetchWalletData('privateKey');
+      if (!loginInProgress) {
+        setLoginInProgress(true);
+        console.log('***********************.....................*****************************');
+        fetchWalletData('pk');
+      }
     }
   }, [address, setAddress]);
 
   return (
-    <div>
-      <iframe name="wallet" width="0" height="0"></iframe>
-      <iframe name="walletMessenger" width="0" height="0"></iframe>
-      <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
-        onClick={async e => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (address) {
-            toggleOpen('user');
-          } else {
-            setLoginButtons(true);
-            setOpen(null);
-            setOpen('login');
-          }
-        }}>
-        <img src="images/soul.png" className={styles.icon} />
-        <div className={styles.name} onClick={e => { showModal(e); }}>
-          {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
-
-        </div>
-      </div>
-      { address
-        ? <div className={styles.logoutBtn}
-          onClick={e => {
-            sessionStorage.removeItem('mnemonic');
-            setAddress(null);
-          }}
-        >Logout</div>
-        : ''
-      }
-      {
-        open == 'login'
-          ? <div className={styles.login_options}>
-            {
-              loginButtons ? <>
-                <Modal onClose={ showModal } show={show}>
-                  <div className={styles.loginDiv}>
-                    <div className={styles.loginBtn} onClick={ metaMaskLogin }>
-                      <div className={styles.loginBtnText}>
-                        <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
-                        <span>MetaMask</span>
-                      </div>
-                    </div>
-                    <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
-                      <div className={styles.loginBtn} style={{marginTop: '10px'}}>
-                        <div className={styles.loginBtnText}>
-                          <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
-                          <span>Discord</span>
-                        </div>
-                      </div>
-                    </a>
-                  </div>
-                </Modal>
-              </> : ''
-            }
-          </div>
-          : <div></div>}
-
-    </div>
+    <></>
   );
 };
 

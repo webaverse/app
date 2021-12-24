@@ -1,10 +1,10 @@
+/* eslint-disable no-useless-escape */
 import {storageHost, inappPreviewHost, inappPreviewHostDev} from './constants';
 import {makeId} from './util';
 
 const queue = [];
 let running = false;
 const useDev = false;
-
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
   const previewHost = useDev ? inappPreviewHostDev : inappPreviewHost;
