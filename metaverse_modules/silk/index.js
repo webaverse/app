@@ -9,8 +9,8 @@ const simplex = new Simplex('lol');
 export default () => {
   const app = useApp();
   
-  const components = useDefaultComponents();
-  components.drop(app);
+  // const components = useDefaultComponents();
+  // components.drop(app);
 
   const silkMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
