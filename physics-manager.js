@@ -82,6 +82,7 @@ physicsManager.addGeometry = mesh => {
       physicsMesh.quaternion,
       physicsMesh.scale
     );
+    physicsMesh.traverse(child => child.updateMatrix())
     physicsMesh.updateMatrixWorld();
   }
 
