@@ -674,6 +674,12 @@ const componentHandlerTemplates = {
         app.updateMatrixWorld();
       });
     }
+
+    return {
+      remove() {
+        // nothing
+      },
+    };
   },
 };
 
