@@ -622,7 +622,7 @@ const _updateMouseMovement = e => {
   
     camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
     camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
     camera.quaternion.setFromEuler(camera.rotation);
 
     camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
