@@ -329,6 +329,8 @@ ioManager.keydown = e => {
       if (document.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(1);
+        } else {
+          game.drop();
         }
       } else {
         // if (!game.dragging) {

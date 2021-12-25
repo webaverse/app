@@ -1509,6 +1509,15 @@ const gameManager = {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   },
+  drop() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const wearActions = localPlayer.getActionsArray().filter(action => action.type === 'wear');
+    if (wearActions.length > 0) {
+      const wearAction = wearActions[0];
+      const app = metaversefileApi.getAppByInstanceId(wearAction.instanceId);
+      localPlayer.unwear(app);
+    }
+  },
   canPush() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
