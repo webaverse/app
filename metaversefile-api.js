@@ -332,7 +332,7 @@ const componentHandlerTemplates = {
           // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
           if (wearSpec.skinnedMesh && glb) {
             let skinnedMesh = null;
-            glb.scene.traverse(o => {
+            app.glb.scene.traverse(o => {
               if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
                 skinnedMesh = o;
               }
@@ -489,7 +489,7 @@ const componentHandlerTemplates = {
             const clip = animations.find(a => a.name === appAimAction.appAnimation);
             if (clip) {
               appAimAnimationMixers = [];
-              glb.scene.traverse(o => {
+              app.glb.scene.traverse(o => {
                 if (o.isMesh) {
                   const mixer = new THREE.AnimationMixer(o);
                   
