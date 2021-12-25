@@ -176,6 +176,8 @@ const defaultComponents = {
               localVector.copy(velocity)
                 .multiplyScalar(timeDiffS)
             );
+          app.traverse(child => child.updateMatrix());
+          app.updateMatrixWorld();
           velocity.add(
             localVector.copy(physicsManager.getGravity())
               .multiplyScalar(timeDiffS)
@@ -184,6 +186,8 @@ const defaultComponents = {
           const groundHeight = 0.1;
           if (app.position.y <= groundHeight) {
             app.position.y = groundHeight;
+            app.traverse(child => child.updateMatrix());
+            app.updateMatrixWorld();
             const newDrop = JSON.parse(JSON.stringify(dropComponent));
             velocity.set(0, 0, 0);
             newDrop.velocity = velocity.toArray();
@@ -193,6 +197,8 @@ const defaultComponents = {
         }
         // if (grounded) {
           app.rotation.y += angularVelocity.y * timeDiff;
+          app.traverse(child => child.updateMatrix());
+          app.updateMatrixWorld();
         // }
         
         glowMesh.visible = !animation;
@@ -225,12 +231,16 @@ const defaultComponents = {
               localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                 .add(localVector2.set(0, headOffset, 0));
               app.position.copy(animation.startPosition).lerp(localVector, f);
+              app.traverse(child => child.updateMatrix());
+              app.updateMatrixWorld();
             } else {
               {
                 const f = cubicBezier(tailTimeFactorCutoff);
                 localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, headOffset, 0));
                 app.position.copy(animation.startPosition).lerp(localVector, f);
+                app.traverse(child => child.updateMatrix());
+                app.updateMatrixWorld();
               }
               {
                 const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
@@ -239,6 +249,8 @@ const defaultComponents = {
                   .add(localVector2.set(0, bodyOffset, 0));
                 app.position.lerp(localVector, f);
                 app.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
+                app.traverse(child => child.updateMatrix());
+                app.updateMatrixWorld();
               }
             }
           } else {
@@ -252,6 +264,7 @@ const defaultComponents = {
           }
         }
         
+        app.traverse(child => child.updateMatrix());
         app.updateMatrixWorld();
       });
     }
@@ -262,6 +275,8 @@ const localPlayer = new LocalPlayer({
   state: new Z.Doc(),
 });
 localPlayer.position.y = initialPosY;
+localPlayer.traverse(child => child.updateMatrix());
+localPlayer.updateMatrixWorld();
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 
@@ -567,6 +582,7 @@ metaversefile.setApi({
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
+        app.traverse(child => child.updateMatrix());
         app.updateMatrixWorld();
         localMatrix
           .compose(position, quaternion, size)
@@ -580,13 +596,15 @@ metaversefile.setApi({
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
-        // app.add(physicsObject);
-        physicsObject.updateMatrix();
+        physicsMesh.traverse(child => child.updateMatrix()); // Only update physicsObject is enough?
+        physicsMesh.updateMatrixWorld();
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -609,16 +627,19 @@ metaversefile.setApi({
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         //physicsObject.scale.copy(app.scale);
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
+        physicsMesh.traverse(child => child.updateMatrix());
+        physicsMesh.updateMatrixWorld();
 
 
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrix();
 
         // const localPlayer = metaversefile.useLocalPlayer();
 
@@ -628,6 +649,8 @@ metaversefile.setApi({
           }
         }*/
         
+        app.traverse(child => child.updateMatrix());
+        app.updateMatrixWorld();
         app.physicsObjects.push(physicsObject);
 
         // physicsManager.pushUpdate(app, physicsObject);
@@ -651,13 +674,16 @@ metaversefile.setApi({
         //physicsObject.position.copy(app.position);
         //physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
+        physicsMesh.traverse(child => child.updateMatrix());
+        physicsMesh.updateMatrixWorld();
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrix();
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
@@ -670,19 +696,21 @@ metaversefile.setApi({
         parentMesh.position.copy(app.position);
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
+        parentMesh.traverse(child => child.updateMatrix());
+        parentMesh.updateMatrixWorld();
         parentMesh.add(mesh);
-        parentMesh.updateMatrix();
         
         const physicsObject = addGeometry.call(this, mesh);
         physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
-        physicsObject.updateMatrix();
-        // window.physicsObject = physicsObject;
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         
         if (oldParent) {
           oldParent.add(mesh);
-          mesh.updateMatrix();
+          mesh.traverse(child => child.updateMatrix());
+          mesh.updateMatrixWorld();
         }
         
         // app.add(physicsObject);
@@ -691,18 +719,24 @@ metaversefile.setApi({
       })(physics.addGeometry);
       physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedGeometry.apply(this, arguments);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedGeometry);
       physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
         const physicsObject = addConvexGeometry.apply(this, arguments);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addConvexGeometry);
       physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
+        physicsObject.traverse(child => child.updateMatrix());
+        physicsObject.updateMatrixWorld();
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
@@ -836,6 +870,8 @@ metaversefile.setApi({
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
+      app.traverse(child => child.updateMatrix());
+      app.updateMatrixWorld();
     }
     if (start_url) {
       (async () => {
