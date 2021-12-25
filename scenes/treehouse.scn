@@ -81,6 +81,102 @@
     },
     {
       "position": [
+        4,
+        0,
+        3
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/infinifruit/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        24
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/barrier/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/damage-mesh/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/particle-mesh/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        4,
+        1,
+        4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/basiheart/",
+      "dynamic": true
+    },
+    {
+      "position": [
         -13,
         0,
         0

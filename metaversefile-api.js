@@ -32,9 +32,10 @@ import * as postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {rarityColors, initialPosY} from './constants.js';
+import * as materials from './materials.js';
+import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
 
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -122,13 +123,14 @@ class App extends THREE.Object3D {
       use: true,
     });
   }
-  hit(damage) {
+  /* hit(damage) {
+    console.log('hit', new Error().stack);
     this.dispatchEvent({
       type: 'hit',
       hp: 100,
       totalHp: 100,
     });
-  }
+  } */
   willDieFrom(damage) {
     return false;
   }
@@ -432,6 +434,10 @@ metaversefile.setApi({
   // apps,
   async import(s) {
     if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
+      const prefix = location.protocol + '//' + location.host + '/@proxy/';
+      if (s.startsWith(prefix)) {
+        s = s.slice(prefix.length);
+      }
       s = `/@proxy/${s}`;
     }
     // console.log('do import', s);
@@ -564,7 +570,7 @@ metaversefile.setApi({
       const localMatrix = new THREE.Matrix4();
       // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
-        const basePosition = position;
+        /* const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
         app.updateMatrixWorld();
@@ -574,28 +580,28 @@ metaversefile.setApi({
           .decompose(localVector, localQuaternion, localVector2);
         position = localVector;
         quaternion = localQuaternion;
-        size = localVector2;
+        size = localVector2; */
         
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
-        physicsObject.scale.copy(app.scale);
+        // physicsObject.position.copy(app.position);
+        // physicsObject.quaternion.copy(app.quaternion);
+        // physicsObject.scale.copy(app.scale);
         
-        const {physicsMesh} = physicsObject;
+        /* const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
         physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(); */
         
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled) {
-        const basePosition = position;
-        const baseQuaternion = quaternion;
-        const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
+        // const basePosition = position;
+        // const baseQuaternion = quaternion;
+        // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
 
         // app.updateMatrixWorld();
         // localMatrix
@@ -607,18 +613,18 @@ metaversefile.setApi({
         //size = localVector2;
         
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
-        physicsObject.position.copy(app.position);
-        physicsObject.quaternion.copy(app.quaternion);
-        //physicsObject.scale.copy(app.scale);
+        // physicsObject.position.copy(app.position);
+        // physicsObject.quaternion.copy(app.quaternion);
+        // physicsObject.scale.copy(app.scale);
+        // physicsObject.updateMatrixWorld();
         
-        const {physicsMesh} = physicsObject;
-        physicsMesh.position.copy(basePosition);
-        physicsMesh.quaternion.copy(baseQuaternion);
+        // const {physicsMesh} = physicsObject;
+        // physicsMesh.position.copy(basePosition);
+        // physicsMesh.quaternion.copy(baseQuaternion);
 
-
-        //physicsMesh.scale.copy(baseScale);
+        // physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld();
+        // physicsObject.updateMatrixWorld();
 
         // const localPlayer = metaversefile.useLocalPlayer();
 
@@ -634,7 +640,7 @@ metaversefile.setApi({
         //physicsManager.setTransform(physicsObject);
         return physicsObject;
       })(physics.addCapsuleGeometry);
-      physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
+      /* physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
         const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = new THREE.Vector3(radius, radius, radius);
@@ -662,28 +668,28 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
-      })(physics.addSphereGeometry);
+      })(physics.addSphereGeometry); */
       physics.addGeometry = (addGeometry => function(mesh) {
-        const oldParent = mesh.parent;
+        /* const oldParent = mesh.parent;
         
         const parentMesh = new THREE.Object3D();
         parentMesh.position.copy(app.position);
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
         parentMesh.add(mesh);
-        parentMesh.updateMatrixWorld();
+        parentMesh.updateMatrixWorld(); */
         
         const physicsObject = addGeometry.call(this, mesh);
-        physicsObject.position.copy(app.position);
+        /* physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
-        physicsObject.updateMatrixWorld();
+        physicsObject.updateMatrixWorld(); */
         // window.physicsObject = physicsObject;
         
-        if (oldParent) {
+        /* if (oldParent) {
           oldParent.add(mesh);
           mesh.updateMatrixWorld();
-        }
+        } */
         
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
@@ -707,9 +713,18 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
+      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+        enablePhysicsObject.call(this, physicsObject);
+      })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
         disablePhysicsObject.call(this, physicsObject);
       })(physics.disablePhysicsObject);
+      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
+        enableGeometryQueries.call(this, physicsObject);
+      })(physics.enableGeometryQueries);
+      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
+        disableGeometryQueries.call(this, physicsObject);
+      })(physics.disableGeometryQueries);
 
       physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
@@ -736,6 +751,7 @@ metaversefile.setApi({
       })(physics.setPhysicsTransform); */
       physics.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
+        
         const index = app.physicsObjects.indexOf(physicsObject);
         if (index !== -1) {
           app.remove(physicsObject);
@@ -938,6 +954,12 @@ export default () => {
   },
   useTextInternal() {
     return Text;
+  },
+  useGeometries() {
+    return geometries;
+  },
+  useMaterials() {
+    return materials;
   },
   useJSON6Internal() {
     return JSON6;

@@ -10,7 +10,7 @@ import {getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
-import physx from './physx.js';
+// import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
 
 const localVector = new THREE.Vector3();

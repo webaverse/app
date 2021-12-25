@@ -980,7 +980,7 @@ class RemotePlayer extends InterpolatedPlayer {
 function getPlayerCrouchFactor(player) {
   let factor = 1;
   factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
-  factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
+  //factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
   return factor;
 };
 
