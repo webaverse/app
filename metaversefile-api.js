@@ -16,7 +16,6 @@ import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, post
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -26,13 +25,12 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import easing from './easing.js';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
-import {rarityColors, initialPosY} from './constants.js';
+import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
@@ -45,13 +43,6 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
-
-const oneVector = new THREE.Vector3(1, 1, 1);
-
-const cubicBezier = easing(0, 1, 0, 1);
-const cubicBezier2 = easing(0, 1, 1, 1);
-const gracePickupTime = 1000;
-const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 
 class App extends THREE.Object3D {
   constructor() {
