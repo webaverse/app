@@ -20,6 +20,7 @@ const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 // const localOffset = new THREE.Vector3();
@@ -341,7 +342,7 @@ class CharacterPhysics {
           const boneEyeR = this.player.avatar.foundModelBones['Eye_R'];
           const boneEyeL = this.player.avatar.foundModelBones['Eye_L'];
 
-          boneNeck.quaternion.setFromEuler(new THREE.Euler( Math.min(camera.rotation.x * -0.5,0.6), 0, 0, 'XYZ' ));
+          boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5,0.6), 0, 0, 'XYZ'));
           boneNeck.updateMatrixWorld();
     
           boneEyeR.matrixWorld.decompose(localVector, localQuaternion, localVector3);
