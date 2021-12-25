@@ -478,12 +478,12 @@ const componentHandlerTemplates = {
       if (wearSpec && localPlayer.avatar) {
         const {instanceId} = app;
 
-        const appAimAction = Array.from(localPlayer.getActionsState())
-          .find(action => action.type === 'aim' && action.instanceId === instanceId);
-
         // animations
         if (app.glb) {
+          const appAimAction = Array.from(localPlayer.getActionsState())
+            .find(action => action.type === 'aim' && action.instanceId === instanceId);
           const {animations} = app.glb;
+
           const appAnimation = appAimAction?.appAnimation ? animations.find(a => a.name === appAimAction.appAnimation) : null;
           if (appAnimation && !appAimAnimationMixers) {
             const clip = animations.find(a => a.name === appAimAction.appAnimation);
