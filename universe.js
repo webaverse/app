@@ -10,7 +10,6 @@ import {initialPosY} from './constants.js';
 import {parseQuery, parseCoord} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
-import { rootScene } from './renderer'
 
 let currentWorld = null;
 const getWorldsHost = () => window.location.protocol + '//' + window.location.hostname + ':' +
@@ -63,11 +62,6 @@ const enterWorld = async worldSpec => {
   localPlayer.resetPhysics();
   physicsManager.setPhysicsEnabled(true);
   localPlayer.updatePhysics(0, 0);
-
-  rootScene.traverse((child) => {
-    child.updateMatrix()
-  })
-  rootScene.updateMatrixWorld(true)
 
   currentWorld = worldSpec;
 };

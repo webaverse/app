@@ -458,6 +458,9 @@ class AppManager extends EventTarget {
   addApp(app) {
     this.apps.push(app);
     
+    app.traverse(child => child.updateMatrix())
+    app.updateMatrixWorld()
+    
     this.dispatchEvent(new MessageEvent('appadd', {
       data: app,
     }));
