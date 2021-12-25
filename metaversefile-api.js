@@ -473,7 +473,7 @@ const componentHandlerTemplates = {
         console.warn('invalid bone attachment', {app, boneAttachment});
       }
     };
-    metaversefile.useFrame(({timestamp, timeDiff}) => {
+    const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
       const localPlayer = metaversefile.useLocalPlayer();
       if (wearSpec && localPlayer.avatar) {
         const {instanceId} = app;
@@ -556,6 +556,7 @@ const componentHandlerTemplates = {
         // console.log('wear component remove');
 
         app.removeEventListener('wearupdate', wearupdate);
+        metaversefile.clearFrame(frame);
 
         _unwear();
       },
@@ -585,7 +586,7 @@ const componentHandlerTemplates = {
       const startTime = performance.now();
       let animation = null;
       const timeOffset = Math.random() * 10;
-      metaversefile.useFrame(e => {
+      const frame = metaversefile.useFrame(e => {
         const {timestamp, timeDiff} = e;
         const timeDiffS = timeDiff/1000;
         const dropComponent = app.getComponent('drop');
@@ -677,7 +678,7 @@ const componentHandlerTemplates = {
 
     return {
       remove() {
-        // nothing
+        metaversefile.clearFrame(frame);
       },
     };
   },
