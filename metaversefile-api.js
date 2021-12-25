@@ -471,6 +471,7 @@ metaversefile.setApi({
   },
   useWorld() {
     return {
+      appManager: world.appManager,
       /* addObject() {
         return world.appManager.addObject.apply(world.appManager, arguments);
       },
