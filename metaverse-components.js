@@ -35,7 +35,7 @@ const componentTemplates = {
         if (wearSpec) {
           // const {app, wearSpec} = e.data;
           // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
-          if (wearSpec.skinnedMesh && glb) {
+          if (wearSpec.skinnedMesh && app.glb) {
             let skinnedMesh = null;
             app.glb.scene.traverse(o => {
               if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
@@ -53,7 +53,7 @@ const componentTemplates = {
               // this adds pseudo-VRM onto our GLB assuming a mixamo rig
               // used for the glb wearable skinning feature
               const _mixamoRigToFakeVRMHack = () => {
-                const {nodes} = glb.parser.json;
+                const {nodes} = app.glb.parser.json;
                 const boneNodeMapping = {
                   hips: 'J_Bip_C_Hips',
                   leftUpperLeg: 'J_Bip_L_UpperLeg',
@@ -125,17 +125,17 @@ const componentTemplates = {
                     console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
                   }
                 }
-                if (!glb.parser.json.extensions) {
-                  glb.parser.json.extensions = {};
+                if (!app.glb.parser.json.extensions) {
+                  app.glb.parser.json.extensions = {};
                 }
-                glb.parser.json.extensions.VRM = {
+                app.glb.parser.json.extensions.VRM = {
                   humanoid: {
                     humanBones,
                   },
                 };
               };
               _mixamoRigToFakeVRMHack();
-              const bindSpec = Avatar.bindAvatar(glb);
+              const bindSpec = Avatar.bindAvatar(app.glb);
   
               // skeleton = bindSpec.skeleton;
               modelBones = bindSpec.modelBones;
