@@ -1282,6 +1282,9 @@ export default () => {
       }
       app.addEventListener('componentupdate', e => {
         const {key, value} = e;
+
+        currentAppRender = app;
+
         const componentHandler = componentHandlers[key];
         if (!componentHandler && value !== undefined) {
           const componentHandlerTemplate = componentHandlerTemplates[key];
@@ -1292,6 +1295,8 @@ export default () => {
           componentHandler.remove();
           delete componentHandlers[key];
         }
+
+        currentAppRender = null;
       });
 
       currentAppRender = null;
