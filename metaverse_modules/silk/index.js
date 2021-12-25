@@ -17,14 +17,14 @@ export default () => {
   silkMesh.scale.copy(defaultScale);
   app.add(silkMesh);
 
-  const startTime = Date.now();
+  /* const startTime = Date.now();
   let lastTimestamp = startTime;
-  let animation = null;
+  let animation = null; */
   const timeOffset = Math.random() * 10;
   useFrame(() => {
-    const now = Date.now();
+    /* const now = Date.now();
     const timeDiff = (now - lastTimestamp) / 1000;
-    lastTimestamp = now;
+    lastTimestamp = now; */
 
     const time = timeOffset + performance.now() * 0.002;
     const k = 1;
