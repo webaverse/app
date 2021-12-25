@@ -1,10 +1,20 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import Avatar from './avatars/avatars.js';
+import {world} from './world.js';
+import physicsManager from './physics-manager.js';
+import {glowMaterial} from './shaders.js';
+import easing from './easing.js';
+import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+
+const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
+const cubicBezier = easing(0, 1, 0, 1);
+const cubicBezier2 = easing(0, 1, 1, 1);
+const gracePickupTime = 1000;
 
 const componentTemplates = {
   wear(app, component) {
@@ -13,6 +23,8 @@ const componentTemplates = {
     let appAimAnimationMixers = null;
 
     // console.log('wear component add', app.contentId);
+
+    const localPlayer = metaversefile.useLocalPlayer();
 
     const wearupdate = e => {
       // console.log('wear update', e);
@@ -167,7 +179,7 @@ const componentTemplates = {
       }
     };
     const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
-      const localPlayer = metaversefile.useLocalPlayer();
+      // const localPlayer = metaversefile.useLocalPlayer();
       if (wearSpec && localPlayer.avatar) {
         const {instanceId} = app;
 
@@ -256,7 +268,9 @@ const componentTemplates = {
     };
   },
   drop(app) {
-    console.log('call default component', new Error().stack);
+    // console.log('call default component', new Error().stack);
+
+    const localPlayer = metaversefile.useLocalPlayer();
 
     const dropComponent = app.getComponent('drop');
     if (dropComponent) {
@@ -351,7 +365,7 @@ const componentTemplates = {
                 localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
                   .add(localVector2.set(0, bodyOffset, 0));
                 app.position.lerp(localVector, f);
-                app.scale.copy(oneVector).multiplyScalar(1 - tailTimeFactor);
+                app.scale.setScalar(1 - tailTimeFactor);
               }
             }
           } else {
