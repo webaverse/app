@@ -41,9 +41,11 @@ import {getHeight} from './avatars/util.mjs';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
-const defaultScale = new THREE.Vector3(1, 1, 1);
+
+const oneVector = new THREE.Vector3(1, 1, 1);
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
@@ -144,120 +146,6 @@ class App extends THREE.Object3D {
 const defaultModules = {
   moduleUrls,
   modules,
-};
-const defaultComponents = {
-  drop(app) {
-    const dropComponent = app.getComponent('drop');
-    if (dropComponent) {
-      const glowHeight = 5;
-      const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
-      const colors = new Float32Array(glowGeometry.attributes.position.array.length);
-      glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      const color = new THREE.Color(rarityColorsArray[Math.floor(Math.random() * rarityColorsArray.length)]);
-      for (let i = 0; i < glowGeometry.attributes.color.array.length; i += 3) {
-        color.toArray(glowGeometry.attributes.color.array, i);
-      }
-      const material = glowMaterial.clone();
-      const glowMesh = new THREE.Mesh(glowGeometry, material);
-      app.add(glowMesh);
-
-      const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
-      const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
-      let grounded = false;
-      const startTime = performance.now();
-      let animation = null;
-      const timeOffset = Math.random() * 10;
-      metaversefile.useFrame(e => {
-        const {timestamp, timeDiff} = e;
-        const timeDiffS = timeDiff/1000;
-        const dropComponent = app.getComponent('drop');
-        if (!grounded) {
-          app.position
-            .add(
-              localVector.copy(velocity)
-                .multiplyScalar(timeDiffS)
-            );
-          velocity.add(
-            localVector.copy(physicsManager.getGravity())
-              .multiplyScalar(timeDiffS)
-          );
-          
-          const groundHeight = 0.1;
-          if (app.position.y <= groundHeight) {
-            app.position.y = groundHeight;
-            const newDrop = JSON.parse(JSON.stringify(dropComponent));
-            velocity.set(0, 0, 0);
-            newDrop.velocity = velocity.toArray();
-            app.setComponent('drop', newDrop);
-            grounded = true;
-          }
-        }
-        // if (grounded) {
-          app.rotation.y += angularVelocity.y * timeDiff;
-        // }
-        
-        glowMesh.visible = !animation;
-        if (!animation) {
-          localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
-          localVector.y = 0;
-          const distance = localVector.distanceTo(app.position);
-          if (distance < 1) {
-            // console.log('check 1');
-            const timeSinceStart = timestamp - startTime;
-            if (timeSinceStart > gracePickupTime) {
-              // console.log('check 2');
-              animation = {
-                startPosition: app.position.clone(),
-                startTime: timestamp,
-                endTime: timestamp + 1000,
-              };
-            }
-          }
-        }
-        if (animation) {
-          const headOffset = 0.5;
-          const bodyOffset = -0.3;
-          const tailTimeFactorCutoff = 0.8;
-          const timeDiff = timestamp - animation.startTime;
-          const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
-          if (timeFactor < 1) {
-            if (timeFactor < tailTimeFactorCutoff) {
-              const f = cubicBezier(timeFactor);
-              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                .add(localVector2.set(0, headOffset, 0));
-              app.position.copy(animation.startPosition).lerp(localVector, f);
-            } else {
-              {
-                const f = cubicBezier(tailTimeFactorCutoff);
-                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                  .add(localVector2.set(0, headOffset, 0));
-                app.position.copy(animation.startPosition).lerp(localVector, f);
-              }
-              {
-                const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
-                const f = cubicBezier2(tailTimeFactor);
-                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                  .add(localVector2.set(0, bodyOffset, 0));
-                app.position.lerp(localVector, f);
-                app.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
-              }
-            }
-          } else {
-            world.appManager.dispatchEvent(new MessageEvent('pickup', {
-              data: {
-                app,
-              },
-            }));
-            world.appManager.removeApp(app);
-            app.destroy();
-          }
-        }
-        
-        app.updateMatrixWorld();
-      });
-    }
-  },
 };
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
@@ -423,6 +311,370 @@ const gradientMaps = {
 const abis = {
   ERC721,
   ERC1155,
+};
+
+const componentHandlerTemplates = {
+  wear(app, component) {
+    let wearSpec = null;
+    let modelBones = null;
+    let appAimAnimationMixers = null;
+
+    // console.log('wear component add', app.contentId);
+
+    const wearupdate = e => {
+      // console.log('wear update', e);
+      
+      if (e.wear) {
+        wearSpec = app.getComponent('wear');
+        // console.log('activate component', app, wear);
+        if (wearSpec) {
+          // const {app, wearSpec} = e.data;
+          // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
+          if (wearSpec.skinnedMesh && glb) {
+            let skinnedMesh = null;
+            glb.scene.traverse(o => {
+              if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
+                skinnedMesh = o;
+              }
+            });
+            if (skinnedMesh && localPlayer.avatar) {
+            
+              app.position.set(0, 0, 0);
+              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+              app.scale.set(1, 1, 1)//.multiplyScalar(wearableScale);
+              app.updateMatrix();
+              app.matrixWorld.copy(app.matrix);
+              
+              // this adds pseudo-VRM onto our GLB assuming a mixamo rig
+              // used for the glb wearable skinning feature
+              const _mixamoRigToFakeVRMHack = () => {
+                const {nodes} = glb.parser.json;
+                const boneNodeMapping = {
+                  hips: 'J_Bip_C_Hips',
+                  leftUpperLeg: 'J_Bip_L_UpperLeg',
+                  rightUpperLeg: 'J_Bip_R_UpperLeg',
+                  leftLowerLeg: 'J_Bip_L_LowerLeg',
+                  rightLowerLeg: 'J_Bip_R_LowerLeg',
+                  leftFoot: 'J_Bip_L_Foot',
+                  rightFoot: 'J_Bip_R_Foot',
+                  spine: 'J_Bip_C_Spine',
+                  chest: 'J_Bip_C_Chest',
+                  neck: 'J_Bip_C_Neck',
+                  head: 'J_Bip_C_Head',
+                  leftShoulder: 'J_Bip_L_Shoulder',
+                  rightShoulder: 'J_Bip_R_Shoulder',
+                  leftUpperArm: 'J_Bip_L_UpperArm',
+                  rightUpperArm: 'J_Bip_R_UpperArm',
+                  leftLowerArm: 'J_Bip_L_LowerArm',
+                  rightLowerArm: 'J_Bip_R_LowerArm',
+                  leftHand: 'J_Bip_L_Hand',
+                  rightHand: 'J_Bip_R_Hand',
+                  leftToes: 'J_Bip_L_ToeBase',
+                  rightToes: 'J_Bip_R_ToeBase',
+                  leftEye: 'J_Adj_L_FaceEye',
+                  rightEye: 'J_Adj_R_FaceEye',
+                  leftThumbProximal: 'J_Bip_L_Thumb1',
+                  leftThumbIntermediate: 'J_Bip_L_Thumb2',
+                  leftThumbDistal: 'J_Bip_L_Thumb3',
+                  leftIndexProximal: 'J_Bip_L_Index1',
+                  leftIndexIntermediate: 'J_Bip_L_Index2',
+                  leftIndexDistal: 'J_Bip_L_Index3',
+                  leftMiddleProximal: 'J_Bip_L_Middle1',
+                  leftMiddleIntermediate: 'J_Bip_L_Middle2',
+                  leftMiddleDistal: 'J_Bip_L_Middle3',
+                  leftRingProximal: 'J_Bip_L_Ring1',
+                  leftRingIntermediate: 'J_Bip_L_Ring2',
+                  leftRingDistal: 'J_Bip_L_Ring3',
+                  leftLittleProximal: 'J_Bip_L_Little1',
+                  leftLittleIntermediate: 'J_Bip_L_Little2',
+                  leftLittleDistal: 'J_Bip_L_Little3',
+                  rightThumbProximal: 'J_Bip_R_Thumb1',
+                  rightThumbIntermediate: 'J_Bip_R_Thumb2',
+                  rightThumbDistal: 'J_Bip_R_Thumb3',
+                  rightIndexProximal: 'J_Bip_R_Index1',
+                  rightIndexIntermediate: 'J_Bip_R_Index2',
+                  rightIndexDistal: 'J_Bip_R_Index3',
+                  rightMiddleProximal: 'J_Bip_R_Middle3',
+                  rightMiddleIntermediate: 'J_Bip_R_Middle2',
+                  rightMiddleDistal: 'J_Bip_R_Middle1',
+                  rightRingProximal: 'J_Bip_R_Ring1',
+                  rightRingIntermediate: 'J_Bip_R_Ring2',
+                  rightRingDistal: 'J_Bip_R_Ring3',
+                  rightLittleProximal: 'J_Bip_R_Little1',
+                  rightLittleIntermediate: 'J_Bip_R_Little2',
+                  rightLittleDistal: 'J_Bip_R_Little3',
+                  upperChest: 'J_Bip_C_UpperChest',
+                };
+                const humanBones = [];
+                for (const k in boneNodeMapping) {
+                  const boneName = boneNodeMapping[k];
+                  const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
+                  if (boneNodeIndex !== -1) {
+                    const boneSpec = {
+                      bone: k,
+                      node: boneNodeIndex,
+                      // useDefaultValues: true, // needed?
+                    };
+                    humanBones.push(boneSpec);
+                  } else {
+                    console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
+                  }
+                }
+                if (!glb.parser.json.extensions) {
+                  glb.parser.json.extensions = {};
+                }
+                glb.parser.json.extensions.VRM = {
+                  humanoid: {
+                    humanBones,
+                  },
+                };
+              };
+              _mixamoRigToFakeVRMHack();
+              const bindSpec = Avatar.bindAvatar(glb);
+  
+              // skeleton = bindSpec.skeleton;
+              modelBones = bindSpec.modelBones;
+            }
+          }
+          
+          // app.wear();
+        }
+      } else {
+        _unwear();
+      }
+    };
+    app.addEventListener('wearupdate', wearupdate);
+
+    const _unwear = () => {
+      if (wearSpec) {
+        wearSpec = null;
+        modelBones = null;
+      }
+    };
+
+    const _copyBoneAttachment = spec => {
+      const {boneAttachment = 'hips', position, quaternion, scale} = spec;
+      const boneName = Avatar.modelBoneRenames[boneAttachment];
+      const bone = localPlayer.avatar.foundModelBones[boneName];
+      if (bone) {
+        bone.matrixWorld
+          .decompose(app.position, app.quaternion, app.scale);
+        if (Array.isArray(position)) {
+          app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+        }
+        if (Array.isArray(quaternion)) {
+          app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+        }
+        if (Array.isArray(scale)) {
+          app.scale.multiply(localVector.fromArray(scale));
+        }
+        app.updateMatrixWorld();
+      } else {
+        console.warn('invalid bone attachment', {app, boneAttachment});
+      }
+    };
+    metaversefile.useFrame(({timestamp, timeDiff}) => {
+      const localPlayer = metaversefile.useLocalPlayer();
+      if (wearSpec && localPlayer.avatar) {
+        const {instanceId} = app;
+
+        const appAimAction = Array.from(localPlayer.getActionsState())
+          .find(action => action.type === 'aim' && action.instanceId === instanceId);
+
+        // animations
+        if (app.glb) {
+          const {animations} = app.glb;
+          const appAnimation = appAimAction?.appAnimation ? animations.find(a => a.name === appAimAction.appAnimation) : null;
+          if (appAnimation && !appAimAnimationMixers) {
+            const clip = animations.find(a => a.name === appAimAction.appAnimation);
+            if (clip) {
+              appAimAnimationMixers = [];
+              glb.scene.traverse(o => {
+                if (o.isMesh) {
+                  const mixer = new THREE.AnimationMixer(o);
+                  
+                  const action = mixer.clipAction(clip);
+                  action.setLoop(0, 0);
+                  action.play();
+
+                  const appAimAnimationMixer = {
+                    update(deltaSeconds) {
+                      mixer.update(deltaSeconds);
+                    },
+                    destroy() {
+                      action.stop();
+                    },
+                  };
+                  appAimAnimationMixers.push(appAimAnimationMixer);
+                }
+              });
+            }
+          } else if (appAimAnimationMixers && !appAnimation) {
+            for (const appAimAnimationMixer of appAimAnimationMixers) {
+              appAimAnimationMixer.destroy();
+            }
+            appAimAnimationMixers = null;
+          }
+        }
+        // bone bindings
+        {
+          const appUseAction = Array.from(localPlayer.getActionsState())
+            .find(action => action.type === 'use' && action.instanceId === instanceId);
+          if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
+            _copyBoneAttachment(appUseAction);
+          } else {
+            const appAimAction = Array.from(localPlayer.getActionsState())
+              .find(action => action.type === 'aim' && action.instanceId === instanceId);
+            if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
+              _copyBoneAttachment(appAimAction);
+            } else {
+              if (modelBones) {
+                Avatar.applyModelBoneOutputs(modelBones, localPlayer.avatar.modelBoneOutputs, localPlayer.avatar.getTopEnabled(), localPlayer.avatar.getBottomEnabled(), localPlayer.avatar.getHandEnabled(0), localPlayer.avatar.getHandEnabled(1));
+                modelBones.Root.updateMatrixWorld();
+              } else if (wearSpec.boneAttachment) {
+                _copyBoneAttachment(wearSpec);
+              }
+            }
+          }
+        }
+      }
+
+      const petComponent = app.getComponent('pet');
+      if (!petComponent) {
+        if (appAimAnimationMixers) {
+          const deltaSeconds = timeDiff / 1000;
+          for (const mixer of appAimAnimationMixers) {
+            mixer.update(deltaSeconds);
+            app.updateMatrixWorld();
+          }
+        }
+      }
+    });
+
+    return {
+      remove() {
+        // console.log('wear component remove');
+
+        app.removeEventListener('wearupdate', wearupdate);
+
+        _unwear();
+      },
+    };
+  },
+  drop(app) {
+    console.log('call default component', new Error().stack);
+
+    const dropComponent = app.getComponent('drop');
+    if (dropComponent) {
+      const glowHeight = 5;
+      const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
+      const colors = new Float32Array(glowGeometry.attributes.position.array.length);
+      glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const color = new THREE.Color(rarityColorsArray[Math.floor(Math.random() * rarityColorsArray.length)]);
+      for (let i = 0; i < glowGeometry.attributes.color.array.length; i += 3) {
+        color.toArray(glowGeometry.attributes.color.array, i);
+      }
+      const material = glowMaterial.clone();
+      const glowMesh = new THREE.Mesh(glowGeometry, material);
+      app.add(glowMesh);
+
+      const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
+      const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
+      let grounded = false;
+      const startTime = performance.now();
+      let animation = null;
+      const timeOffset = Math.random() * 10;
+      metaversefile.useFrame(e => {
+        const {timestamp, timeDiff} = e;
+        const timeDiffS = timeDiff/1000;
+        const dropComponent = app.getComponent('drop');
+        if (!grounded) {
+          app.position
+            .add(
+              localVector.copy(velocity)
+                .multiplyScalar(timeDiffS)
+            );
+          velocity.add(
+            localVector.copy(physicsManager.getGravity())
+              .multiplyScalar(timeDiffS)
+          );
+          
+          const groundHeight = 0.1;
+          if (app.position.y <= groundHeight) {
+            app.position.y = groundHeight;
+            const newDrop = JSON.parse(JSON.stringify(dropComponent));
+            velocity.set(0, 0, 0);
+            newDrop.velocity = velocity.toArray();
+            app.setComponent('drop', newDrop);
+            grounded = true;
+          }
+        }
+        // if (grounded) {
+          app.rotation.y += angularVelocity.y * timeDiff;
+        // }
+        
+        glowMesh.visible = !animation;
+        if (!animation) {
+          localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
+          localVector.y = 0;
+          const distance = localVector.distanceTo(app.position);
+          if (distance < 1) {
+            // console.log('check 1');
+            const timeSinceStart = timestamp - startTime;
+            if (timeSinceStart > gracePickupTime) {
+              // console.log('check 2');
+              animation = {
+                startPosition: app.position.clone(),
+                startTime: timestamp,
+                endTime: timestamp + 1000,
+              };
+            }
+          }
+        }
+        if (animation) {
+          const headOffset = 0.5;
+          const bodyOffset = -0.3;
+          const tailTimeFactorCutoff = 0.8;
+          const timeDiff = timestamp - animation.startTime;
+          const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
+          if (timeFactor < 1) {
+            if (timeFactor < tailTimeFactorCutoff) {
+              const f = cubicBezier(timeFactor);
+              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                .add(localVector2.set(0, headOffset, 0));
+              app.position.copy(animation.startPosition).lerp(localVector, f);
+            } else {
+              {
+                const f = cubicBezier(tailTimeFactorCutoff);
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, headOffset, 0));
+                app.position.copy(animation.startPosition).lerp(localVector, f);
+              }
+              {
+                const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
+                const f = cubicBezier2(tailTimeFactor);
+                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                  .add(localVector2.set(0, bodyOffset, 0));
+                app.position.lerp(localVector, f);
+                app.scale.copy(oneVector).multiplyScalar(1 - tailTimeFactor);
+              }
+            }
+          } else {
+            world.appManager.dispatchEvent(new MessageEvent('pickup', {
+              data: {
+                app,
+              },
+            }));
+            world.appManager.removeApp(app);
+            app.destroy();
+          }
+        }
+        
+        app.updateMatrixWorld();
+      });
+    }
+  },
 };
 
 let currentAppRender = null;
@@ -768,9 +1020,6 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useDefaultComponents() {
-    return defaultComponents;
-  },
   useWeb3() {
     return web3.mainnet;
   },
@@ -973,9 +1222,9 @@ export default () => {
 
     let renderSpec = null;
     let waitUntilPromise = null;
-    const fn = m.default;
-    (() => {
+    const _tickModule = () => {
       try {
+        const fn = m.default;
         if (typeof fn === 'function') {
           renderSpec = fn({
             waitUntil(p) {
@@ -990,18 +1239,46 @@ export default () => {
         console.warn(err);
         return null;
       }
-    })();
-    currentAppRender = null
-    
-    /* const loaded = renderSpec?.loaded;
-    if (loaded instanceof Promise) {
-      await loaded;
-    } */
+    };
+    _tickModule();
+
+    currentAppRender = null;
+
     if (waitUntilPromise) {
       await waitUntilPromise;
     }
 
-    // console.log('gor react', React, ReactAll);
+    const _bindDefaultComponents = app => {
+      // console.log('bind default components', app); // XXX
+      
+      currentAppRender = app;
+
+      // component handlers
+      const componentHandlers = {};
+      for (const {key, value} of app.components) {
+        const componentHandlerTemplate = componentHandlerTemplates[key];
+        if (componentHandlerTemplate) {
+          componentHandlers[key] = componentHandlerTemplate(app, value);
+        }
+      }
+      app.addEventListener('componentupdate', e => {
+        const {key, value} = e;
+        const componentHandler = componentHandlers[key];
+        if (!componentHandler && value !== undefined) {
+          const componentHandlerTemplate = componentHandlerTemplates[key];
+          if (componentHandlerTemplate) {
+            componentHandlers[key] = componentHandlerTemplate(app, value);
+          }
+        } else if (componentHandler && value === undefined) {
+          componentHandler.remove();
+          delete componentHandlers[key];
+        }
+      });
+
+      currentAppRender = null;
+    };
+
+    // console.log('got react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
       if (o !== app) {
@@ -1013,6 +1290,8 @@ export default () => {
           app.remove(o);
         }
       });
+
+      _bindDefaultComponents(app);
       
       return app;
     } else if (React.isValidElement(renderSpec)) {
@@ -1124,9 +1403,11 @@ export default () => {
           });
         }
       });
+
+      _bindDefaultComponents(app);
       
       return app;
-    } else if (renderSpec === null || renderSpec === undefined) {
+    } else if (renderSpec === false || renderSpec === null || renderSpec === undefined) {
       app.destroy();
       return null;
     } else if (renderSpec === true) {
