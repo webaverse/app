@@ -763,12 +763,25 @@ metaversefile.setApi({
         fn(e.data);
       };
       world.appManager.addEventListener('frame', frame);
-      app.addEventListener('destroy', () => {
+      const destroy = () => {
+        cleanup();
+      };
+      app.addEventListener('destroy', destroy);
+      
+      const cleanup = () => {
         world.appManager.removeEventListener('frame', frame);
-      });
+        app.removeEventListener('destroy', destroy);
+      };
+      
+      return {
+        cleanup,
+      };
     } else {
       throw new Error('useFrame cannot be called outside of render()');
     }
+  },
+  clearFrame(frame) {
+    frame.cleanup();
   },
   useBeforeRender() {
     recursion++;
