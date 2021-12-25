@@ -704,6 +704,15 @@ const physxWorker = (() => {
       throw new Error('raycastPhysicsArray error');
     }
   };
+  w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
+    moduleInstance._setLinearLockFlagsPhysics(
+      physics,
+      physicsId,
+      x,
+      y,
+      z
+    );
+  };
   w.setAngularLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setAngularLockFlagsPhysics(
       physics,
