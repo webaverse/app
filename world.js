@@ -340,20 +340,20 @@ const _bindHitTracker = app => {
       const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
       if (collisionId) {
         hpManager.triggerDamageAnimation(collisionId);
-
-        const app = metaversefileApi.createApp();
-        (async () => {
-          await metaverseModules.waitForLoad();
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['damageMesh'];
-          await app.addModule(m);
-        })();
-        app.position.copy(hitPosition);
-        app.quaternion.copy(hitQuaternion);
-        app.updateMatrixWorld();
-        // console.log('new damage mesh', app, hitPosition, hitDirection, hitQuaternion);
-        scene.add(app);
       }
+
+      const app = metaversefileApi.createApp();
+      (async () => {
+        await metaverseModules.waitForLoad();
+        const {modules} = metaversefileApi.useDefaultModules();
+        const m = modules['damageMesh'];
+        await app.addModule(m);
+      })();
+      app.position.copy(hitPosition);
+      app.quaternion.copy(hitQuaternion);
+      app.updateMatrixWorld();
+      // console.log('new damage mesh', app, hitPosition, hitDirection, hitQuaternion);
+      scene.add(app);
       
       app.dispatchEvent({
         type: 'hit',
