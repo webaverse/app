@@ -231,9 +231,11 @@ class Player extends THREE.Object3D {
         this.avatar = nextAvatar;
         
         const avatarHeight = this.avatar.height;
-        const contactOffset = 0.1;
-        const radius = 0.3/1.6 * avatarHeight;
-        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const heightFactor = 1.6;
+        const contactOffset = 0.1/heightFactor * avatarHeight;
+        const stepOffset = 0.5/heightFactor * avatarHeight;
+        const radius = 0.3/heightFactor * avatarHeight;
+        // const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const position = this.position.clone()
           .add(new THREE.Vector3(0, -avatarHeight/2, 0));
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
@@ -268,6 +270,7 @@ class Player extends THREE.Object3D {
             radius - contactOffset,
             avatarHeight - radius*2,
             contactOffset,
+            stepOffset,
             position,
             physicsMaterial
           );

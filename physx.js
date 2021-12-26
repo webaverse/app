@@ -1159,7 +1159,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, position, mat) => {
+  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const m = allocator.alloc(Float32Array, 3);
@@ -1172,6 +1172,7 @@ const physxWorker = (() => {
       radius,
       height,
       contactOffset,
+      stepOffset,
       p.byteOffset,
       m.byteOffset
     );
