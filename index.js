@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useLocalPlayer, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
+const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -44,6 +46,9 @@ export default () => {
       iResolution: {
         value: new THREE.Vector2(1024, 1024),
       },
+      uHighlight: {
+        value: 0,
+      },
     },
     vertexShader: `\
       precision highp float;
@@ -82,60 +87,15 @@ export default () => {
       #define PI 3.1415926535897932384626433832795
 
       uniform float iTime;
+      uniform float uHighlight;
       uniform vec2 iResolution;
       varying vec3 vPosition;
       varying vec2 vUv;
 
-      const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
+      /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
       const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
       const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a).toArray().join(', ')});
-      const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')});
-
-      /* float edgeFactor(vec3 bary, float width) {
-        // vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);
-        vec3 d = fwidth(bary);
-        vec3 a3 = smoothstep(d * (width - 0.5), d * (width + 0.5), bary);
-        return min(min(a3.x, a3.y), a3.z);
-      }
-
-      void main() {
-        vec3 c = mix(
-          mix(lineColor1, lineColor2, vPosition.y / 10.),
-          mix(lineColor3, lineColor4, vPosition.y / 10.),
-          1. + sin(pow(time, 2.) * PI * 2.) * 0.5
-        );
-        // vec3 p = fwidth(vPosition);
-        vec3 p = vPosition + 0.5;
-        float f;
-        if (vNormal.y != 0.) {
-          f = min(mod(p.x, 1.), mod(p.z, 1.));
-          f = min(f, mod(1.-p.x, 1.));
-          f = min(f, mod(1.-p.z, 1.));
-        } else if (vNormal.x != 0.) {
-          f = min(mod(p.y, 1.), mod(p.z, 1.));
-          f = min(f, mod(1.-p.y, 1.));
-          f = min(f, mod(1.-p.z, 1.));
-        } else {
-          f = min(mod(p.x, 1.), mod(p.y, 1.));
-          f = min(f, mod(1.-p.x, 1.));
-          f = min(f, mod(1.-p.y, 1.));
-        }
-        f *= 10.;
-        float a = max(1. - f, 0.);
-        if (a < 0.75) {
-          discard;
-        } else {
-          gl_FragColor = vec4(c, 1.);
-          gl_FragColor = sRGBToLinear(gl_FragColor);
-        }
-      } */
-
-
-
-
-
-
-
+      const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')}); */
 
       /*
 
@@ -217,6 +177,7 @@ export default () => {
           
           float c = 1.-b;
           if (b > 0.001) {
+            c += uHighlight;
             fragColor = vec4(vec3(c), b);
           } else {
             discard;
@@ -238,6 +199,19 @@ export default () => {
     barrierMesh.material.uniforms.iTime.value = now/1000;
     barrierMesh.material.uniforms.iResolution.value.set(w, h);
     // renderer.getSize(barrierMesh.material.uniforms.iResolution.value).multiplyScalar(renderer.getPixelRatio());
+    
+    let highlight;
+    if (animationSpec) {
+      let f = Math.min(Math.max((now - animationSpec.startTime) / (animationSpec.endTime - animationSpec.startTime), 0), 1);
+      f = Math.pow(f, 0.1);
+      highlight = (1-f)*animationSpec.startValue + f*animationSpec.endValue;
+    } else {
+      highlight = 0;
+    }
+    // const highlightValue = animationSpec ? animationSpec.highlight : 1; 
+    barrierMesh.material.uniforms.uHighlight.value = highlight;
+
+    barrierMesh.visible = animationSpec ? animationSpec.visible : true;
   };
   /* const material2 = new THREE.MeshPhongMaterial({
     color: 0x00ff00,
@@ -260,20 +234,62 @@ export default () => {
     )
   };
 
+  let animationSpec = null;
+  let lastAnimationFinishTime = 0;
+  const cooldownTime = 2000;
+  // let playing = false;
   useFrame(({timestamp, timeDiff}) => {
-    // frameCb && frameCb();
-
-    _updateBarrierMesh(timestamp, timeDiff);
-
-    const localPlayer = useLocalPlayer();
-    const barrierBox = _getBarrierBox(localBox);
-    window.barrierBox = barrierBox;
-    window.localPlayer = localPlayer;
-    if (barrierBox.containsPoint(localPlayer.position)) {
-      console.log('inside barrier');
+    if (animationSpec) {
+      if (timestamp >= animationSpec.endTime) {
+        if (animationSpec.type === 'trigger') {
+          animationSpec = {
+            type: 'cooldown',
+            startValue: 0,
+            endValue: 0,
+            visible: false,
+            startTime: timestamp,
+            endTime: timestamp + cooldownTime,
+          };
+        } else {
+          animationSpec = null;
+        }
+      }
     }
 
-    // material.uniforms.time.value = (performance.now() / 1000) % 1;
+    
+    const localPlayer = useLocalPlayer();
+    const barrierBox = _getBarrierBox(localBox);
+    // window.barrierBox = barrierBox;
+    // window.localPlayer = localPlayer;
+    if (barrierBox.containsPoint(localPlayer.position)) {
+      if (!animationSpec) {
+        animationSpec = {
+          type: 'trigger',
+          startValue: 0,
+          endValue: 1,
+          visible: true,
+          startTime: timestamp,
+          endTime: timestamp + 1000,
+        };
+      } else if (animationSpec && animationSpec.type === 'cooldown') {
+        animationSpec.startTime = timestamp;
+        animationSpec.endTime = timestamp + cooldownTime;
+      }
+    }
+
+    /* if (!playing) {
+      const audio = new Audio(`${baseUrl}pissbaby.mp3`);
+      audio.oncanplaythrough = () => {
+        console.log('can play');
+        audio.play();
+      };
+      audio.onerror = err => {
+        console.warn(err);
+      };
+      playing = true;
+    } */
+
+    _updateBarrierMesh(timestamp, timeDiff);
   });
   
   useCleanup(() => {
