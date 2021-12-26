@@ -1510,10 +1510,6 @@ class Avatar {
         modelBoneOutput.quaternion,
         modelBone.initialQuaternion
       );
-      modelBone.traverse(b=>{
-        b.updateMatrix();
-      });
-      modelBone.updateMatrixWorld();
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
@@ -1532,6 +1528,9 @@ class Avatar {
         }
       }
     }
+    modelBones.Root.traverse(b=>{
+      b.updateMatrix();
+    });
     modelBones.Root.updateMatrixWorld();
   }
   static modelBoneRenames = {
