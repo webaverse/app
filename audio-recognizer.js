@@ -129,7 +129,11 @@ class AudioRecognizer extends EventTarget {
     }
   }
   destroy() {
-    this.worker.postMessage({ command: 'stop' });
+    this.worker.terminate();
+    this.worker = null;
+    /* this.worker.postMessage({
+      command: 'stop',
+    }); */
   }
 }
 
