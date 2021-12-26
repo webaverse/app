@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import {getExt, makePromise, parseQuery} from './util.js';
+import {getExt, makePromise, parseQuery, fitCameraToBox} from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as icons from './icons.js';
 import GIF from './gif.js';
 import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
-import {fitCameraToBox} from './util.js';
 // import {defaultRendererUrl} from './constants.js'
-import * as WebMWriter from 'webm-writer'
+import * as WebMWriter from 'webm-writer';
 const defaultWidth = 512;
 const defaultHeight = 512;
 const cameraPosition = new THREE.Vector3(0, 1, 2);
@@ -50,7 +49,6 @@ const _makeRenderer = (width, height) => {
   // camera.updateProjectionMatrix();
 
   // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
-
 
   /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
   scene.add(ambientLight); */
@@ -261,7 +259,7 @@ const _getType = id => {
   if (isNaN(height)) {
     height = defaultHeight;
   }
-  
+
   let o;
   try {
     const app = await metaversefileApi.load(url);
@@ -279,13 +277,13 @@ const _getType = id => {
   } catch (err) {
     console.warn(err);
   }
-  const ext = o ? o.appType : '';
-  const isVrm = ext === 'vrm';
-  const isImage = ['png', 'jpg'].includes(ext);
+  const appType = o ? o.appType : '';
+  const isVrm = appType === 'vrm';
+  const isImage = ['png', 'jpg'].includes(appType);
   const isVideo = type === 'webm';
 
   const _initializeAnimation = () => {
-    if (ext === 'vrm') {
+    if (appType === 'vrm') {
       o.avatar.setTopEnabled(false);
       o.avatar.setHandEnabled(0, false);
       o.avatar.setHandEnabled(1, false);
@@ -297,15 +295,15 @@ const _getType = id => {
     }
   };
   const _animate = timeDiff => {
-    if (ext === 'vrm') {
+    if (appType === 'vrm') {
       o.avatar.update(timeDiff);
     }
   };
   const _lookAt = (camera, boundingBox) => {
     const center = boundingBox.getCenter(new THREE.Vector3());
     const size = boundingBox.getSize(new THREE.Vector3());
-    
-    if (ext === 'vrm') {
+
+    if (appType === 'vrm') {
       camera.position.x = center.x;
       camera.position.y = center.y;
     } else {
@@ -319,7 +317,7 @@ const _getType = id => {
   try {
     if (type === 'png' || type === 'jpg' || type === 'jpeg') {
       const canvas = await (async () => {
-        if (['glb', 'vrm', 'vox'].includes(ext)) {
+        if (['glb', 'vrm', 'vox'].includes(appType)) {
           const {renderer, scene, camera} = _makeRenderer(width, height);
 
           if (o) {
@@ -329,7 +327,7 @@ const _getType = id => {
 
             _initializeAnimation();
             _lookAt(camera, boundingBox);
-            
+
             renderer.compile(scene, camera);
 
             if (type === 'jpg' || type === 'jpeg') {
@@ -340,7 +338,7 @@ const _getType = id => {
           } else {
             return null;
           }
-        } else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+        } else if (['gif', 'image'].includes(appType)) {
           const img = await new Promise((accept, reject) => {
             const img = new Image();
             img.onload = () => {
@@ -411,7 +409,7 @@ const _getType = id => {
         method: 'result',
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
-    } else if (type === 'gif' && ext !== 'gif') {
+    } else if (type === 'gif' && appType !== 'gif') {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
       scene.add(o);
@@ -431,7 +429,7 @@ const _getType = id => {
           // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
             new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
-              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2)
+              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2),
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -496,13 +494,12 @@ const _getType = id => {
         const size = boundingBox.getSize(new THREE.Vector3());
 
         const videoWriter = new WebMWriter({
-          quality: 1, 
-          fileWriter: null, 
-          fd: null, 
-          frameDuration: null, 
-          frameRate: FPS 
+          quality: 1,
+          fileWriter: null,
+          fd: null,
+          frameDuration: null,
+          frameRate: FPS,
         });
-
 
         _initializeAnimation();
         _lookAt(camera, boundingBox);
@@ -515,10 +512,10 @@ const _getType = id => {
         const writeCtx = writeCanvas.getContext('2d');
 
         const _pushFrame = () => {
-          // draw  
+          // draw
           writeCtx.drawImage(renderer.domElement, 0, 0);
           videoWriter.addFrame(writeCanvas);
-        }
+        };
 
         if (isVrm && isVideo) {
           /* const timeDiff = 1/FPS;
@@ -531,7 +528,7 @@ const _getType = id => {
 
             _pushFrame();
           } */
-          
+
           let now = 0;
           const timeDiff = 1000/FPS;
           while (now < idleAnimationDuration*1000) {
@@ -542,7 +539,6 @@ const _getType = id => {
             renderer.render(scene, camera);
 
             _pushFrame();
-            
             now += timeDiff;
           }
         } else if (isImage && isVideo) {
@@ -588,7 +584,7 @@ const _getType = id => {
           }
         }
 
-        const blob = await videoWriter.complete();      
+        const blob = await videoWriter.complete();
         console.log('got video blob', blob);
 
         const video = document.createElement('video');
@@ -621,9 +617,9 @@ const _getType = id => {
           result: arrayBuffer,
         }, '*', [arrayBuffer]);
       } else {
-        throw new Error('cannot capture video of type: ' + ext);
+        throw new Error('cannot capture video of type: ' + appType);
       }
-    } else if (type === 'gif' && ext === 'gif') {
+    } else if (type === 'gif' && appType === 'gif') {
       const blob = await fetch(url);
       const img = new Image();
       await new Promise((accept, reject) => {
@@ -652,7 +648,7 @@ const _getType = id => {
         result: arrayBuffer,
       }, '*', [arrayBuffer]);
     } else {
-      throw new Error('unknown output format: ' + type + ' ' + ext);
+      throw new Error('unknown output format: ' + type + ' ' + appType);
     }
 
     // toggleElements(true);
