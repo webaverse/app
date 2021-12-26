@@ -2787,4 +2787,15 @@ class Avatar {
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
+let avatarAudioContext = null;
+const getAudioContext = () => {
+  if (!avatarAudioContext) {
+    avatarAudioContext = new AudioContext();
+  }
+  return avatarAudioContext;
+};
+Avatar.getAudioContext = getAudioContext;
+Avatar.setAudioContext = newAvatarAudioContext => {
+  avatarAudioContext = newAvatarAudioContext;
+};
 export default Avatar;
