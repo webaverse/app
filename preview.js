@@ -1,13 +1,11 @@
 /* eslint-disable no-useless-escape */
-import {storageHost, inappPreviewHost, inappPreviewHostDev} from './constants';
-import {makeId} from './util';
+import {storageHost, inappPreviewHost} from './constants';
 
 const queue = [];
 let running = false;
-const useDev = false;
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
-  const previewHost = useDev ? inappPreviewHostDev : inappPreviewHost;
+  const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
