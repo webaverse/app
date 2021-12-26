@@ -1584,18 +1584,20 @@ const gameManager = {
   menuBUp() {
     // physicsManager.setThrowState(null);
   },
-  menuDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const narutoRunAction = localPlayer.getAction('narutoRun');
-    if (!narutoRunAction) {
-      const newNarutoRunAction = {
-        type: 'narutoRun',
-        // time: 0,
-      };
-      localPlayer.addAction(newNarutoRunAction);
+  menuDoubleTap() {
+    if (!this.isCrouched()) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const narutoRunAction = localPlayer.getAction('narutoRun');
+      if (!narutoRunAction) {
+        const newNarutoRunAction = {
+          type: 'narutoRun',
+          // time: 0,
+        };
+        localPlayer.addAction(newNarutoRunAction);
+      }
     }
   },
-  menuUnDoubleShift() {
+  menuUnDoubleTap() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
@@ -1736,6 +1738,7 @@ const gameManager = {
     
     // play sound
     soundManager.play('jump');
+
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
@@ -1833,7 +1836,7 @@ const gameManager = {
     }
     
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
-      (ioManager.keys.doubleShift ? 20 : 3)
+      (ioManager.keys.doubleTap ? 20 : 3)
     :
       1;
     speed *= sprintMultiplier;
