@@ -30,8 +30,12 @@ const localMatrix = new THREE.Matrix4();
 const physicsManager = new EventTarget();
 
 const physicsUpdates = [];
-const _makePhysicsObject = (physicsId/*, position, quaternion, scale*/) => {
+const _makePhysicsObject = (physicsId, position, quaternion/*, scale*/) => {
   const physicsObject = new THREE.Object3D();
+  physicsObject.position.copy(position);
+  physicsObject.quaternion.copy(quaternion);
+  // physicsObject.scale.copy(scale);
+  physicsObject.updateMatrixWorld();
   physicsObject.physicsId = physicsId;
   physicsObject.collided = false;
   physicsObject.grounded = false;
@@ -65,7 +69,7 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
   
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, size);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion/*, size*/);
   const physicsMesh = new THREE.Mesh(
     new THREE.BoxGeometry(2, 2, 2)
   );
@@ -91,7 +95,7 @@ physicsManager.addGeometry = mesh => {
   physx.physxWorker.addGeometryPhysics(physx.physics, physicsMesh, physicsId, physicsMaterial);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
   
-  const physicsObject = _makePhysicsObject(physicsId, localVector, localQuaternion, localVector2);
+  const physicsObject = _makePhysicsObject(physicsId, physicsMesh.position, physicsMesh.quaternion/*, physicsMesh.scale*/);
   physicsObject.add(physicsMesh);
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
@@ -105,7 +109,7 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addCookedGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
 
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion/*, scale*/);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
@@ -128,7 +132,7 @@ physicsManager.addConvexGeometry = mesh => {
   physx.physxWorker.addConvexGeometryPhysics(physx.physics, physicsMesh, physicsId);
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
 
-  const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+  const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion/*, mesh.scale*/);
   physicsObject.add(physicsMesh);
   physicsMesh.position.set(0, 0, 0);
   physicsMesh.quaternion.set(0, 0, 0, 1);
@@ -142,7 +146,7 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addCookedConvexGeometryPhysics(physx.physics, buffer, position, quaternion, scale, physicsId);
   
-  const physicsObject = _makePhysicsObject(physicsId, position, quaternion, scale);
+  const physicsObject = _makePhysicsObject(physicsId, position, quaternion/*, scale*/);
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId));
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
@@ -201,6 +205,9 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
 }; */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
+physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
+  physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z);
+};
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
