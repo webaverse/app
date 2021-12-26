@@ -33,7 +33,6 @@ export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 export const storageHost = 'https://ipfs.webaverse.com';
 export const previewHost = 'https://preview.exokit.org';
 export const inappPreviewHost = 'https://app.webaverse.online';
-export const inappPreviewHostDev = 'https://staging.webaverse.online';
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = `https://${chainName}sidechain-accounts.webaverse.com`;
 export const contractsHost = 'https://contracts.webaverse.com';
