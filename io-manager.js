@@ -273,6 +273,7 @@ const _setTransformMode = transformMode => {
     transformControls.setTransformMode('disabled');
   }
 };
+const doubleTapTime = 200;
 ioManager.keydown = e => {
   if (_inputFocused() || e.repeat) {
     return;
@@ -304,11 +305,12 @@ ioManager.keydown = e => {
 
       const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyW;
-      if (timeDiff < 200 && ioManager.keys.shift) {
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
       lastWASDDownTime.keyW = now;
+      lastWASDDownTime.keyS = 0;
       break;
     }
     case 65: { // A
@@ -319,11 +321,12 @@ ioManager.keydown = e => {
 
       const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyA;
-      if (timeDiff < 200 && ioManager.keys.shift) {
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
       lastWASDDownTime.keyA = now;
+      lastWASDDownTime.keyD = 0;
       break;
     }
     case 83: { // S
@@ -340,11 +343,12 @@ ioManager.keydown = e => {
 
       const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyS;
-      if (timeDiff < 200 && ioManager.keys.shift) {
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
       lastWASDDownTime.keyS = now;
+      lastWASDDownTime.keyW = 0;
       break;
     }
     case 68: { // D
@@ -355,11 +359,12 @@ ioManager.keydown = e => {
 
       const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyD;
-      if (timeDiff < 200 && ioManager.keys.shift) {
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
       lastWASDDownTime.keyD = now;
+      lastWASDDownTime.keyA = 0;
       break;
     }
     case 82: { // R
