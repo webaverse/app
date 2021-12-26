@@ -28,6 +28,9 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     for (const action of player.getActionsState()) {
       if (action.type === 'wear') {
         const app = player.appManager.getAppByInstanceId(action.instanceId);
+        if (!app) {
+          return null;
+        }
         for (const {key, value} of app.components) {
           if (key === 'aim') {
             return value;

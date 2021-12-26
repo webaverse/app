@@ -8,16 +8,16 @@ import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
 import game from './game.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
+// import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
-import {airFriction, flyFriction} from './constants.js';
+// import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
 
@@ -329,6 +329,8 @@ ioManager.keydown = e => {
       if (document.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(1);
+        } else {
+          game.drop();
         }
       } else {
         // if (!game.dragging) {
@@ -622,7 +624,7 @@ const _updateMouseMovement = e => {
   
     camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
     camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
     camera.quaternion.setFromEuler(camera.rotation);
 
     camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
