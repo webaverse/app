@@ -1030,7 +1030,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
                 const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
                 object.hit(damage, {
-                  collisionId,
+                  collisionId: object.willDieFrom(damage) ? collisionId : null,
+                  // collisionId,
                   hitPosition,
                   hitQuaternion,
                   hitDirection,
