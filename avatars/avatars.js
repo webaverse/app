@@ -2787,8 +2787,8 @@ class Avatar {
   say(audio) {
     this.setMicrophoneMediaStream(audio, {
       muted: false,
-      emitVolume: true,
-      emitBuffer: true,
+      // emitVolume: true,
+      // emitBuffer: true,
       // audioContext: WSRTC.getAudioContext(),
       // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
     });
