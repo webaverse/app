@@ -256,7 +256,6 @@ export default () => {
       }
     }
 
-    
     const localPlayer = useLocalPlayer();
     const barrierBox = _getBarrierBox(localBox);
     // window.barrierBox = barrierBox;
