@@ -60,7 +60,7 @@ ioManager.keys = {
   forward: false,
   backward: false,
   shift: false,
-  doubleShift: false,
+  doubleTap: false,
   space: false,
   ctrl: false,
 };
@@ -306,8 +306,8 @@ ioManager.keydown = e => {
       const now = Date.now();
       const timeDiff = now - lastWASDDownTime.keyW;
       if (timeDiff < 200 && ioManager.keys.shift) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
       }
       lastWASDDownTime.keyW = now;
       break;
@@ -321,8 +321,8 @@ ioManager.keydown = e => {
       const now = Date.now();
       const timeDiff = now - lastWASDDownTime.keyA;
       if (timeDiff < 200 && ioManager.keys.shift) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
       }
       lastWASDDownTime.keyA = now;
       break;
@@ -342,8 +342,8 @@ ioManager.keydown = e => {
       const now = Date.now();
       const timeDiff = now - lastWASDDownTime.keyS;
       if (timeDiff < 200 && ioManager.keys.shift) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
       }
       lastWASDDownTime.keyS = now;
       break;
@@ -357,8 +357,8 @@ ioManager.keydown = e => {
       const now = Date.now();
       const timeDiff = now - lastWASDDownTime.keyD;
       if (timeDiff < 200 && ioManager.keys.shift) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
       }
       lastWASDDownTime.keyD = now;
       break;
@@ -623,9 +623,9 @@ ioManager.keyup = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = false;
-      ioManager.keys.doubleShift = false;
+      ioManager.keys.doubleTap = false;
       
-      game.menuUnDoubleShift();
+      game.menuUnDoubleTap();
       break;
     }
     case 46: { // delete
@@ -781,9 +781,7 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      // if (!ioManager.keys.doubleShift) {
-        game.menuAim();
-      // }
+      game.menuAim();
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
