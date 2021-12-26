@@ -85,7 +85,3 @@ export const preview = async (url, ext, type, width, height) => {
     }
   });
 };
-© 2021 GitHub, Inc.
-Terms
-Privacy
-Security
