@@ -358,7 +358,9 @@ const _bindHitTracker = app => {
       app.dispatchEvent({
         type: 'hit',
         collisionId,
+        hitPosition,
         hitDirection,
+        hitQuaternion,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });
