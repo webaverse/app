@@ -2708,28 +2708,30 @@ class Avatar {
     if (microphoneMediaStream) {
       this.volume = 0;
       
+      const audioContext = getAudioContext();
+      options.audioContext = audioContext;
       this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
       this.microphoneWorker.addEventListener('volume', e => {
         this.volume = this.volume*0.8 + e.data*0.2;
       });
       this.microphoneWorker.addEventListener('buffer', e => {
-        if (live) {
+        // if (live) {
           this.audioRecognizer.send(e.data);
-        }
+        // }
       });
 
-      let live = false;
+      // let live = false;
       this.audioRecognizer = new AudioRecognizer({
-        sampleRate: options.audioContext.sampleRate,
+        sampleRate: audioContext.sampleRate,
       });
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
         // console.log('got vowels', this.vowels.map(n => n.toFixed(1)).join(','));
       });
-      this.audioRecognizer.waitForLoad()
+      /* this.audioRecognizer.waitForLoad()
         .then(() => {
           live = true;
-        });
+        }); */
     } else {
       this.volume = -1;
     }
