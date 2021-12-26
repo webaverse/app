@@ -204,12 +204,18 @@ export default e => {
 
       let minXPoint = Infinity;
       let maxXPoint = -Infinity;
+      let minYPoint = Infinity;
+      let maxYPoint = -Infinity;
       for (let i = 0; i < textMesh.geometry.attributes.aTroikaGlyphBounds.count; i++) {
         const boundingBox = localVector4D.fromArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, i * 4);
         minXPoint = Math.min(boundingBox.x, minXPoint);
-        maxXPoint = Math.max(boundingBox.w, maxXPoint);
+        maxXPoint = Math.max(boundingBox.z, maxXPoint);
+        minYPoint = Math.min(boundingBox.y, minYPoint);
+        maxYPoint = Math.max(boundingBox.w, maxYPoint);
       }
-      textMesh.material.uniforms.uWidth.value = maxXPoint - minXPoint;
+      const width = (maxXPoint - minXPoint) * 0.5; // half because of the text being doubled
+      const height = maxYPoint - minYPoint;
+      textMesh.material.uniforms.uWidth.value = width;
       textMesh.material.uniforms.uWidth.needsUpdate = true;
       textMesh.material.uniforms.uCharacters.value = text.length;
       textMesh.material.uniforms.uCharacters.needsUpdate = true;
@@ -218,6 +224,8 @@ export default e => {
         localVector4D.fromArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, i * 4)
           .toArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, textMesh.geometry.attributes.aTroikaGlyphBounds.array.length*0.5 + i * 4);
       }
+
+      textMesh.position.set(-width * 0.5, height * 0.5, 0);
 
       // const strokeColor = new THREE.Color(0x333333);
       // const outlineColor = new THREE.Color(0x000000);
