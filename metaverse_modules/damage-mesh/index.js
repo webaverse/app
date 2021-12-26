@@ -136,14 +136,7 @@ export default e => {
           y *= 0.5;
 
           vec3 p = position;
-          if (characterIndex >= uCharacters) {
-            /* vec3 center = vec3(
-              (aTroikaGlyphBounds.z + aTroikaGlyphBounds.x) * 0.5,
-              (aTroikaGlyphBounds.w + aTroikaGlyphBounds.y) * 0.5,
-              0.
-            );
-            vec2 dims = vec2(aTroikaGlyphBounds.z - aTroikaGlyphBounds.x, aTroikaGlyphBounds.w - aTroikaGlyphBounds.y); */
-
+          if (characterIndex < uCharacters) {
             // p -= center;
             p.x += 0.02;
             p.y += 0.02;
@@ -172,6 +165,8 @@ export default e => {
       `,
       side: THREE.DoubleSide,
       transparent: true,
+      depthTest: false,
+      depthWrite: false,
     });
     async function makeTextMesh(
       text = '',
