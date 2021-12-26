@@ -310,7 +310,7 @@ const _getType = id => {
       camera.position.x = center.x/2;
       camera.position.y = center.y/2;
     }
-    camera.position.z = size.z/2;
+    camera.position.z = size.z / 2;
     fitCameraToBox(camera, boundingBox);
   };
 
@@ -531,7 +531,7 @@ const _getType = id => {
 
           let now = 0;
           const timeDiff = 1000/FPS;
-          while (now < idleAnimationDuration * 1000) {
+          while (now < idleAnimationDuration*1000) {
             o.avatar.update(timeDiff);
 
             _lookAt(camera, boundingBox);
@@ -546,7 +546,7 @@ const _getType = id => {
             // o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005),
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
               );
             /* camera.position.copy(center)
               .add(
