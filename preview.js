@@ -1,13 +1,21 @@
+/* eslint-disable no-useless-escape */
 import {storageHost, inappPreviewHost} from './constants';
-import {makeId} from './util';
 
 const queue = [];
 let running = false;
+let f;
 
-export const generatePreview = async (url, ext, type, width, height, resolve) => {
+const next = ()=>{
+  /** Unshift the queue to generate the next preview */
+  const {url, ext, type, width, height, resolve, reject} = queue.shift();
+  generatePreview(url, ext, type, width, height, resolve, reject);
+}
+
+export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
+  const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
-  var iframe = document.querySelector(`iframe[src^="${inappPreviewHost}/screenshot.html"]`);
+  var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
 
   // else create new iframe
   if (!iframe) {
@@ -23,26 +31,43 @@ export const generatePreview = async (url, ext, type, width, height, resolve) =>
   }
 
   // create URL
-  var ssUrl = `${inappPreviewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+  var ssUrl = `${previewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
   // set src attr for iframe
   iframe.src = ssUrl;
-
+  console.log('Preview generation in progress for ', ssUrl);
   // event listener for postMessage from screenshot.js
-  var f = function(event) {
+  const rejection = setTimeout(() => {
+    reject('Preview Server Timed Out');
+    running = false;
+    /** discard old function */
+    window.removeEventListener('message', f, false);
+    if (queue.length > 0) {
+      next();
+    }
+  }, 30 * 1000);
+
+  f = (event) => {
     if (event.data.method === 'result') {
       window.removeEventListener('message', f, false);
-      var blob = new Blob([event.data.result], {
-        type: `image/${type}`,
-      });
+      let blob;
+      if (type === 'webm') {
+        blob = new Blob([event.data.result], {
+          type: `video/${type}`,
+        });
+      } else {
+        blob = new Blob([event.data.result], {
+          type: `image/${type}`,
+        });
+      }
+      clearTimeout(rejection);
       resolve({
         blob: blob,
         url: URL.createObjectURL(blob),
       });
       running = false;
       if (queue.length > 0) {
-        const {url, ext, type, width, height, resolve} = queue.shift();
-        generatePreview(url, ext, type, width, height, resolve);
+        next();
       }
     }
   };
@@ -58,9 +83,9 @@ function isValidURL(string) {
 export const preview = async (url, ext, type, width, height) => {
   return new Promise((resolve, reject) => {
     if (!running) {
-      generatePreview(url, ext, type, width, height, resolve);
+      generatePreview(url, ext, type, width, height, resolve, reject);
     } else {
-      queue.push({url, ext, type, width, height, resolve});
+      queue.push({url, ext, type, width, height, resolve, reject});
     }
   });
 };
