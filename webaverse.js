@@ -85,13 +85,18 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
 
-    this.loadPromise = Promise.all([
-      physx.waitForLoad(),
-      Avatar.waitForLoad(),
-      transformControls.waitForLoad(),
-      // WSRTC.waitForReady(),
-      metaverseModules.waitForLoad(),
-    ])
+    {
+      const audioContext = WSRTC.getAudioContext();
+      Avatar.setAudioContext(audioContext);
+    }
+    this.loadPromise = (async () => {
+      await Promise.all([
+        physx.waitForLoad(),
+        Avatar.waitForLoad(),
+        transformControls.waitForLoad(),
+        metaverseModules.waitForLoad(),
+      ]);
+    })();
     this.contentLoaded = false;
   }
   
@@ -357,15 +362,7 @@ window.addEventListener('keydown', e => {
 
       const audio = new Audio(audioUrl);
       audio.addEventListener('canplaythrough', async e => {
-        // console.log('set audio', audio);
-        localPlayer.avatar.setMicrophoneMediaStream(audio, {
-          muted: false,
-          emitVolume: true,
-          emitBuffer: true,
-          audioContext: WSRTC.getAudioContext(),
-          // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
-        });
-        audio.play();
+        localPlayer.avatar.say(audio);
       }, {once: true});
       audio.addEventListener('error', e => {
         console.log('load error', e);
