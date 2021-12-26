@@ -1015,29 +1015,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
               const lastHitTime = lastHitTimes.get(object) ?? 0;
               const timeDiff = now - lastHitTime;
               if (timeDiff > 1000) {
-                // console.log('got collision', collision, object);
-
-                // const worldPosition = object.getWorldPosition(localVector);
                 const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-                // const hitPosition = new THREE.Vector3().fromArray(collision.position);
                 const hitDirection = object.position.clone()
                   .sub(localPlayer.position);
                 hitDirection.y = 0;
                 hitDirection.normalize();
-                // console.log('got hit direction', hitDirection.toArray().join(','));
-                /* const hitQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-                  localMatrix.lookAt(
-                    localPlayer.position,
-                    localVector.copy(localPlayer.position)
-                      .add(hitDirection),
-                    localVector2.set(0, 1, 0)
-                  )
-                ); */
 
                 const hitPosition = localVector.copy(localPlayer.position)
                   .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
                   .clone();
-                // const hitQuaternion = localPlayer.quaternion.clone();
                 localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
                 localEuler.x = 0;
                 localEuler.z = 0;
