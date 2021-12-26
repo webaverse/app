@@ -128,7 +128,7 @@ class Resampler extends EventTarget {
 		const outputSampleRate = config.outputSampleRate || 16000;
 		
 		this.handle = inputBuffer => {
-			var isSilent = true;
+			// var isSilent = true;
 			for (var i = 0 ; i < inputBuffer.length ; i++) {
 				recBuffers.push(inputBuffer[i] * 2 * 16383.0);
 			}
@@ -147,7 +147,7 @@ class Resampler extends EventTarget {
 						indexOut++;
 					}
 					result[indexIn] = bin / num;
-					if(isSilent && (result[indexIn] != 0)) isSilent = false;
+					// if(isSilent && (result[indexIn] != 0)) isSilent = false;
 					indexIn++;
 				}
 				/* var output = {};
