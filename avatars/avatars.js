@@ -2707,9 +2707,13 @@ class Avatar {
     }
     if (microphoneMediaStream) {
       this.volume = 0;
-      
-      const audioContext = getAudioContext();
-      options.audioContext = audioContext;
+     
+      const audioContext = new AudioContext();
+      {
+        options.audioContext = audioContext;
+        options.emitVolume = true;
+        options.emitBuffer = true;
+      };
       this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
       this.microphoneWorker.addEventListener('volume', e => {
         this.volume = this.volume*0.8 + e.data*0.2;
