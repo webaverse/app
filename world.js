@@ -16,6 +16,7 @@ import {scene, postScene, sceneHighPriority, sceneLowPriority} from './renderer.
 import metaversefileApi from 'metaversefile';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
+import * as metaverseModules from './metaverse-modules.js';
 
 // world
 export const world = {};
@@ -336,15 +337,30 @@ const _bindHitTracker = app => {
     const result = hitTracker.hit(damage);
     const {hit, died} = result;
     if (hit) {
-      const {collisionId, hitDirection} = opts;
+      const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
       if (collisionId) {
         hpManager.triggerDamageAnimation(collisionId);
       }
+
+      const app = metaversefileApi.createApp();
+      (async () => {
+        await metaverseModules.waitForLoad();
+        const {modules} = metaversefileApi.useDefaultModules();
+        const m = modules['damageMesh'];
+        await app.addModule(m);
+      })();
+      app.position.copy(hitPosition);
+      app.quaternion.copy(hitQuaternion);
+      app.updateMatrixWorld();
+      // console.log('new damage mesh', app, hitPosition, hitDirection, hitQuaternion);
+      scene.add(app);
       
       app.dispatchEvent({
         type: 'hit',
         collisionId,
+        hitPosition,
         hitDirection,
+        hitQuaternion,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });
