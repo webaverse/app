@@ -1511,9 +1511,9 @@ class Avatar {
         modelBone.initialQuaternion
       );
       modelBone.traverse(b=>{
-        b.updateMatrixWorld(true);
         b.updateMatrix();
       });
+      modelBone.updateMatrixWorld();
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
