@@ -2780,6 +2780,18 @@ class Avatar {
     return this.poseManager.vrTransforms.floorHeight;
   }
 
+  say(audio) {
+    this.setMicrophoneMediaStream(audio, {
+      muted: false,
+      emitVolume: true,
+      emitBuffer: true,
+      // audioContext: WSRTC.getAudioContext(),
+      // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
+    });
+
+    audio.play();
+  }
+
   destroy() {
     this.setMicrophoneMediaStream(null);
   }
