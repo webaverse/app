@@ -1,4 +1,4 @@
-import {makePromise} from './util.js';
+// import {makePromise} from './util.js';
 
 class CallbackManager {
   constructor() {
@@ -12,12 +12,13 @@ class CallbackManager {
     return id;
   }
   get(id) {
-    if (this.callbackPool.hasOwnProperty(id)) {
-      var clb = this.callbackPool[id];
+    const clb = this.callbackPool[id];
+    if (clb) {
       delete this.callbackPool[id];
       return clb;
+    } else {
+      return null;
     }
-    return null;
   }
 }
 class AudioRecognizer extends EventTarget {
