@@ -352,7 +352,7 @@ export default class Webaverse extends EventTarget {
   }
 }
 
-window.addEventListener('keydown', e => {
+/* window.addEventListener('keydown', e => {
   if (e.which === 219) { // [
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
@@ -374,4 +374,4 @@ window.addEventListener('keydown', e => {
       // audioContext.resume();
     }
   }
-});
+}); */
