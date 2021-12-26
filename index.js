@@ -235,7 +235,7 @@ export default () => {
   };
 
   let animationSpec = null;
-  let lastAnimationFinishTime = 0;
+  // let lastAnimationFinishTime = 0;
   const cooldownTime = 2000;
   // let playing = false;
   useFrame(({timestamp, timeDiff}) => {
