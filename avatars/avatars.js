@@ -2701,10 +2701,17 @@ class Avatar {
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
+    // cleanup
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
       this.microphoneWorker = null;
     }
+    if (this.audioRecognizer) {
+      this.audioRecognizer.destroy();
+      this.audioRecognizer = null;
+    }
+
+    // setup
     if (microphoneMediaStream) {
       this.volume = 0;
      
