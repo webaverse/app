@@ -60,12 +60,17 @@ ioManager.keys = {
   forward: false,
   backward: false,
   shift: false,
-  doubleShift: false,
+  doubleTap: false,
   space: false,
   ctrl: false,
 };
-let lastShiftDownTime = 0;
-ioManager.getLastShiftDownTime = () => lastShiftDownTime;
+const lastWASDDownTime = {
+  keyW: 0,
+  keyA: 0,
+  keyS: 0,
+  keyD: 0
+};
+
 const resetKeys = () => {
   for (const k in ioManager.keys) {
     ioManager.keys[k] = false;
@@ -268,6 +273,7 @@ const _setTransformMode = transformMode => {
     transformControls.setTransformMode('disabled');
   }
 };
+const doubleTapTime = 200;
 ioManager.keydown = e => {
   if (_inputFocused() || e.repeat) {
     return;
@@ -296,6 +302,15 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuVertical(-1);
       }
+
+      const now = performance.now();
+      const timeDiff = now - lastWASDDownTime.keyW;
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
+      }
+      lastWASDDownTime.keyW = now;
+      lastWASDDownTime.keyS = 0;
       break;
     }
     case 65: { // A
@@ -303,6 +318,15 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuHorizontal(-1);
       }
+
+      const now = performance.now();
+      const timeDiff = now - lastWASDDownTime.keyA;
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
+      }
+      lastWASDDownTime.keyA = now;
+      lastWASDDownTime.keyD = 0;
       break;
     }
     case 83: { // S
@@ -316,6 +340,15 @@ ioManager.keydown = e => {
           // }
         }
       }
+
+      const now = performance.now();
+      const timeDiff = now - lastWASDDownTime.keyS;
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
+      }
+      lastWASDDownTime.keyS = now;
+      lastWASDDownTime.keyW = 0;
       break;
     }
     case 68: { // D
@@ -323,6 +356,15 @@ ioManager.keydown = e => {
       if (!document.pointerLockElement) {
         game.menuHorizontal(1);
       }
+
+      const now = performance.now();
+      const timeDiff = now - lastWASDDownTime.keyD;
+      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
+      }
+      lastWASDDownTime.keyD = now;
+      lastWASDDownTime.keyA = 0;
       break;
     }
     case 82: { // R
@@ -454,14 +496,6 @@ ioManager.keydown = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = true;
-      
-      const now = Date.now();
-      const timeDiff = now - lastShiftDownTime;
-      if (timeDiff < 200) {
-        ioManager.keys.doubleShift = true;
-        game.menuDoubleShift();
-      }
-      lastShiftDownTime = now;
       break;
     }
     case 32: { // space
@@ -593,9 +627,9 @@ ioManager.keyup = e => {
     }
     case 16: { // shift
       ioManager.keys.shift = false;
-      ioManager.keys.doubleShift = false;
+      ioManager.keys.doubleTap = false;
       
-      game.menuUnDoubleShift();
+      game.menuUnDoubleTap();
       break;
     }
     case 46: { // delete
@@ -751,9 +785,7 @@ ioManager.mousedown = e => {
       game.menuMouseDown();
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
-      // if (!ioManager.keys.doubleShift) {
-        game.menuAim();
-      // }
+      game.menuAim();
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
