@@ -28,6 +28,9 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     for (const action of player.getActionsState()) {
       if (action.type === 'wear') {
         const app = player.appManager.getAppByInstanceId(action.instanceId);
+        if (!app) {
+          return null;
+        }
         for (const {key, value} of app.components) {
           if (key === 'aim') {
             return value;
@@ -38,7 +41,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     return null;
   })();
   for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && !!aimAction && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+    rig.setHandEnabled(i, !!session || (i === 0 && (!!aimAction && !aimAction.playerAnimation) && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
   }
   rig.setTopEnabled(
     (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
@@ -94,7 +97,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const swordTopDownSlash = player.getAction('swordTopDownSlash');
   const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
 
-
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
@@ -102,11 +104,13 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = player.actionInterpolants.use.get();
   rig.useAnimation = (useAction?.animation) || '';
+  rig.useAnimationIndex = useAction?.index;
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
-  rig.aimState = !!aimAction;
-  rig.aimDirection.set(0, 0, -1);
-  aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
+  rig.aimTime = player.actionInterpolants.aim.get();
+  rig.aimAnimation = (aimAction?.playerAnimation) || '';
+  // rig.aimDirection.set(0, 0, -1);
+  // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.danceState = !!danceAction;
