@@ -64,12 +64,11 @@ ioManager.keys = {
   space: false,
   ctrl: false,
 };
-
-let lastWASDDownTime = {
-  keyW : 0,
-  keyA : 0,
-  keyS : 0,
-  keyD : 0
+const lastWASDDownTime = {
+  keyW: 0,
+  keyA: 0,
+  keyS: 0,
+  keyD: 0
 };
 
 const resetKeys = () => {
