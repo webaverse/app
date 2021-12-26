@@ -57,7 +57,7 @@ world.enableMic = async () => {
   
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.setMicMediaStream(mediaStream, {
-    audioContext: WSRTC.getAudioContext(),
+    // audioContext: WSRTC.getAudioContext(),
   });
 };
 world.disableMic = () => {
