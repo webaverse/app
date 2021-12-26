@@ -83,7 +83,7 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.left = '0px';
     rendererStats.domElement.style.bottom = '0px';
     rendererStats.domElement.style.display = 'none';
-    document.body.appendChild( rendererStats.domElement );
+    document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = Promise.all([
       physx.waitForLoad(),
