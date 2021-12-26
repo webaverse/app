@@ -303,7 +303,7 @@ ioManager.keydown = e => {
         game.menuVertical(-1);
       }
 
-      const now = Date.now();
+      const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyW;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
@@ -318,7 +318,7 @@ ioManager.keydown = e => {
         game.menuHorizontal(-1);
       }
 
-      const now = Date.now();
+      const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyA;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
@@ -339,7 +339,7 @@ ioManager.keydown = e => {
         }
       }
 
-      const now = Date.now();
+      const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyS;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
@@ -354,7 +354,7 @@ ioManager.keydown = e => {
         game.menuHorizontal(1);
       }
 
-      const now = Date.now();
+      const now = performance.now();
       const timeDiff = now - lastWASDDownTime.keyD;
       if (timeDiff < 200 && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
