@@ -551,8 +551,8 @@ const physxWorker = (() => {
         position: new THREE.Vector3().fromArray(positions, i*3),
         quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
         scale: new THREE.Vector3().fromArray(scales, i*3),
-        // collided: !!(bitfields[i] & 0x1),
-        // grounded: !!(bitfields[i] & 0x2),
+        collided: !!(bitfields[i] & 0x1),
+        grounded: !!(bitfields[i] & 0x2),
       };
     }
     /* if (updates.length > 0) {
@@ -703,6 +703,15 @@ const physxWorker = (() => {
     else {
       throw new Error('raycastPhysicsArray error');
     }
+  };
+  w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
+    moduleInstance._setLinearLockFlagsPhysics(
+      physics,
+      physicsId,
+      x,
+      y,
+      z
+    );
   };
   w.setAngularLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setAngularLockFlagsPhysics(
@@ -1108,7 +1117,7 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled) => {
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled = false) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1150,7 +1159,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, position, mat) => {
+  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const m = allocator.alloc(Float32Array, 3);
@@ -1163,6 +1172,7 @@ const physxWorker = (() => {
       radius,
       height,
       contactOffset,
+      stepOffset,
       p.byteOffset,
       m.byteOffset
     );

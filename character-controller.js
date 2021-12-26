@@ -231,9 +231,11 @@ class Player extends THREE.Object3D {
         this.avatar = nextAvatar;
         
         const avatarHeight = this.avatar.height;
-        const contactOffset = 0.1;
-        const radius = 0.3/1.6 * avatarHeight;
-        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const heightFactor = 1.6;
+        const contactOffset = 0.1/heightFactor * avatarHeight;
+        const stepOffset = 0.5/heightFactor * avatarHeight;
+        const radius = 0.3/heightFactor * avatarHeight;
+        // const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const position = this.position.clone()
           .add(new THREE.Vector3(0, -avatarHeight/2, 0));
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
@@ -268,6 +270,7 @@ class Player extends THREE.Object3D {
             radius - contactOffset,
             avatarHeight - radius*2,
             contactOffset,
+            stepOffset,
             position,
             physicsMaterial
           );
@@ -532,6 +535,8 @@ class Player extends THREE.Object3D {
 
       this.avatar.update(timeDiff);
     }
+
+    this.characterPhysics.updateCamera(timeDiff);
   }
   destroy() {
     this.unbindState();
@@ -558,6 +563,7 @@ class InterpolatedPlayer extends Player {
       crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -574,6 +580,7 @@ class InterpolatedPlayer extends Player {
       crouch: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.crouch.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       activate: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.activate.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       use: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.use.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      aim: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.aim.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       narutoRun: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.narutoRun.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       fly: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fly.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       jump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.jump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -590,6 +597,7 @@ class InterpolatedPlayer extends Player {
       crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
+      aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
       fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
@@ -636,6 +644,7 @@ class UninterpolatedPlayer extends Player {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
@@ -974,7 +983,7 @@ class RemotePlayer extends InterpolatedPlayer {
 function getPlayerCrouchFactor(player) {
   let factor = 1;
   factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
-  factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
+  //factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
   return factor;
 };
 
