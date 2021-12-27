@@ -1,13 +1,18 @@
 /* eslint-disable no-useless-escape */
-import {storageHost, inappPreviewHost, inappPreviewHostDev} from './constants';
-import {makeId} from './util';
+import {storageHost, inappPreviewHost} from './constants';
 
 const queue = [];
 let running = false;
-const useDev = false;
+let f;
+
+const next = ()=>{
+  /** Unshift the queue to generate the next preview */
+  const {url, ext, type, width, height, resolve, reject} = queue.shift();
+  generatePreview(url, ext, type, width, height, resolve, reject);
+}
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
-  const previewHost = useDev ? inappPreviewHostDev : inappPreviewHost;
+  const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
@@ -35,15 +40,15 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   const rejection = setTimeout(() => {
     reject('Preview Server Timed Out');
     running = false;
+    /** discard old function */
+    window.removeEventListener('message', f, false);
     if (queue.length > 0) {
-      const {url, ext, type, width, height, resolve, reject} = queue.shift();
-      generatePreview(url, ext, type, width, height, resolve, reject);
+      next();
     }
   }, 30 * 1000);
 
-  var f = function(event) {
+  f = (event) => {
     if (event.data.method === 'result') {
-      console.log('Preview generation result ', event.data.result);
       window.removeEventListener('message', f, false);
       let blob;
       if (type === 'webm') {
@@ -62,8 +67,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
       });
       running = false;
       if (queue.length > 0) {
-        const {url, ext, type, width, height, resolve, reject} = queue.shift();
-        generatePreview(url, ext, type, width, height, resolve, reject);
+        next();
       }
     }
   };

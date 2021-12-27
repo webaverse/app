@@ -106,10 +106,10 @@ export class UserX extends React.Component {
                   position='top'
                 />}</h1>
               </div>
-              {
+              {/* {
                 this.state.characterPreview ? <img src={this.state.characterPreview} /> : <></>
               }
-              <hr className={newStyles.line}></hr>
+              <hr className={newStyles.line}></hr> */}
 
               <div className={newStyles.equiment}>
                 <h1 className={newStyles.equipmentHeading}>Tokens</h1>

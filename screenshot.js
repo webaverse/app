@@ -611,7 +611,7 @@ const _getType = id => {
             body: arrayBuffer,
           }).then(res => res.blob());
         }
-        console.log('Pushing result to parent');
+
         window.parent.postMessage({
           method: 'result',
           result: arrayBuffer,
