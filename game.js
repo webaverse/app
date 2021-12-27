@@ -1029,12 +1029,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
                 localEuler.z = 0;
                 const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
+                const willDie = object.willDieFrom(damage);
                 object.hit(damage, {
-                  collisionId: object.willDieFrom(damage) ? collisionId : null,
+                  collisionId,
                   // collisionId,
                   hitPosition,
                   hitQuaternion,
                   hitDirection,
+                  willDie,
                 });
               
                 lastHitTimes.set(object, now);
