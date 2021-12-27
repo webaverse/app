@@ -337,23 +337,24 @@ const _bindHitTracker = app => {
     const result = hitTracker.hit(damage);
     const {hit, died} = result;
     if (hit) {
-      const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
-      if (collisionId) {
+      const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
+      if (willDie) {
         hpManager.triggerDamageAnimation(collisionId);
       }
 
-      const app = metaversefileApi.createApp();
-      (async () => {
-        await metaverseModules.waitForLoad();
-        const {modules} = metaversefileApi.useDefaultModules();
-        const m = modules['damageMesh'];
-        await app.addModule(m);
-      })();
-      app.position.copy(hitPosition);
-      app.quaternion.copy(hitQuaternion);
-      app.updateMatrixWorld();
-      // console.log('new damage mesh', app, hitPosition, hitDirection, hitQuaternion);
-      scene.add(app);
+      {
+        const damageMeshApp = metaversefileApi.createApp();
+        (async () => {
+          await metaverseModules.waitForLoad();
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['damageMesh'];
+          await damageMeshApp.addModule(m);
+        })();
+        damageMeshApp.position.copy(hitPosition);
+        damageMeshApp.quaternion.copy(hitQuaternion);
+        damageMeshApp.updateMatrixWorld();
+        scene.add(damageMeshApp);
+      }
       
       app.dispatchEvent({
         type: 'hit',
@@ -361,6 +362,7 @@ const _bindHitTracker = app => {
         hitPosition,
         hitDirection,
         hitQuaternion,
+        willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });
