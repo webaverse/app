@@ -67,10 +67,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
   };
 
   const getKeys = async key => {
-    console.log('Trying to fetch the key');
     if (key) {
-      console.log('Posting the message to the weba wallet');
-      console.log('Do we have the iframe ?', iframe);
       window.abeersIframe = iframe;
       iframe.contentWindow.postMessage({action: 'getKey', key: key}, walletHost);
     } else {
@@ -79,46 +76,8 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
 
     var f = async (event) => {
       if (event.origin !== walletHost) { return; }
-      console.log('event.data', event.data);
       if (event.data.pk) {
         const data = await pullUserObject(event.data.pk);
-        data.loadout = {
-          tokens: [{
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }, {
-            instanceId: 'blah',
-          }],
-        };
         setUserData(data);
         const {address, error, mnemonic} = data;
         if (address) {
@@ -129,8 +88,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
     };
     window.addEventListener('message', f);
   };
-
-  window.getKeys = getKeys;
 
   const sendData = async (key, value) => {
     await launchWallet();
@@ -149,44 +106,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
     } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
     if (code) {
       const data = await handleDiscordLogin(code, id);
-      /** Dummy modify data here to think that we are getting inventory */
-      data.loadout = {
-        tokens: [{
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }, {
-          instanceId: 'blah',
-        }],
-      };
       setUserData(data);
       const {address, error, mnemonic} = data;
 
@@ -200,10 +119,15 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
     } else {
       if (!loginInProgress) {
         setLoginInProgress(true);
-        console.log('***********************.....................*****************************');
         fetchWalletData('pk');
       }
     }
+    let l = ()=> sendData('pk',null).then(()=>setUserData(null));
+    document.addEventListener('logout', l)
+
+    return function cleanup() {
+      document.removeEventListener(l);
+    };
   }, [address, setAddress]);
 
   return (

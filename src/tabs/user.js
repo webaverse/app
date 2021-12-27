@@ -6,6 +6,7 @@ import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 import {preview} from '../../preview.js';
 import {contentIdToFile} from '../../util';
+import {Tooltip} from '../components/tooltip.js';
 export class UserX extends React.Component {
   constructor() {
     super();
@@ -80,6 +81,8 @@ export class UserX extends React.Component {
   }
 
   render() {
+    console.log(this.props.user);
+
     return (
       this.props.user
         ? <Tab
@@ -97,7 +100,11 @@ export class UserX extends React.Component {
           panels={[
             (<div className={newStyles.panel} key="left">
               <div className={newStyles['panel-header']}>
-                <h1>{this.props.user.name}</h1>
+                <h1>{this.props.user.name || <Tooltip 
+                  text={this.user.address.substring(0,10)}
+                  tooltip={this.user.address}
+                  position='top'
+                />}</h1>
               </div>
               {
                 this.state.characterPreview ? <img src={this.state.characterPreview} /> : <></>
@@ -108,7 +115,7 @@ export class UserX extends React.Component {
                 <h1 className={newStyles.equipmentHeading}>Tokens</h1>
                 <div className={newStyles.equipmentItems}>
 
-                  {this.props.user.loadout.tokens && this.props.user.loadout.tokens.map((token, i) => {
+                  {this.props.user.tokens && this.props.user.tokens.map((token, i) => {
                     return (
                       <div className={newStyles.item}
                         key={i}

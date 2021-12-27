@@ -22,13 +22,10 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
   React.useEffect(() => {
     if (previewsLength !== apps.length) {
       setPreviewsLength(apps.length);
-      console.log('************** RENDER ************* loop called', apps);
-
       apps.map(app => {
         if (!previews[app.instanceId]) {
           previews[app.instanceId] = '/images/loader.gif';
           preview(`${app.contentId}`, app.appType, 'png', 180, 170).then(_preview => {
-            console.log('************** RENDER ************* loop called', _preview.url);
             previews[app.instanceId] = _preview.url;
             setPreviews(previews);
           }).catch(e => {
