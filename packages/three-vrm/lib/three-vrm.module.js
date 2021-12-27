@@ -2742,6 +2742,7 @@ class VRMSpringBone {
          */
         this._initialLocalChildPosition = new THREE.Vector3();
         this.bone = bone; // uniVRMでの parent
+        this.bone.isSpringBone = true
         this.bone.matrixAutoUpdate = false; // updateにより計算されるのでthree.js内での自動処理は不要
         this.radius = (_a = params.radius) !== null && _a !== void 0 ? _a : 0.02;
         this.stiffnessForce = (_b = params.stiffnessForce) !== null && _b !== void 0 ? _b : 1.0;
