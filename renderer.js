@@ -113,7 +113,7 @@ dolly.add(camera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 
-// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
 
 window.addEventListener('resize', e => {
@@ -181,7 +181,7 @@ export {
   postScene,
   // avatarScene,
   camera,
-  // orthographicCamera,
+  orthographicCamera,
   // avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/
