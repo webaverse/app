@@ -73,8 +73,10 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsMesh = new THREE.Mesh(
     new THREE.BoxGeometry(2, 2, 2)
   );
+  physicsMesh.scale.copy(size);
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
+  physicsObject.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
