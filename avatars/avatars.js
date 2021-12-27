@@ -1529,7 +1529,9 @@ class Avatar {
       }
     }
     modelBones.Root.traverse(b=>{
+      // Root & Head already updateMatrix() in util.mjs
       if(b === modelBones.Root) return;
+      else if(b === modelBones.Head) return;
       else if(b.isSpringBone) return; // NOTE: VRMSpringBone has it's own updateMatrix() in three-vrm.module.js.
       
       b.updateMatrix();
