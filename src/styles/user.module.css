@@ -137,3 +137,7 @@
     transform: skew(30deg);
     z-index: 2;
 }
+
+.panel{
+    overflow-y: scroll;
+}

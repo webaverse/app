@@ -1,10 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
+import tooltip from '../styles/tooltip.module.css';
 import {Popup} from '../components/popup';
 import * as ceramicApi from '../../ceramic.js';
 import {discordClientId} from '../../constants';
 import {Button} from '../components/button';
+import { Tooltip } from '../components/tooltip';
 
 export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic, address, setAddress, user}) => {
   const [rooms, setRooms] = useState([]);
@@ -62,16 +64,21 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
 
         {user ? <Button
           text={'X'}
-          icon={'/images/soul.png'}
+          // icon={'/images/soul.png'}
           skew={true}
           skewDirection={'left'}
+          placeholder={
+
+            user.name? <Tooltip text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
+            <Tooltip text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
+          }
           onClick={e => {
             toggleOpen('userX');
           }}
         ></Button> : null}
 
         <Button
-          text={'X'}
+          text={'Z'}
           icon={'/images/world.svg'}
           skew={true}
           skewDirection={'left'}
@@ -100,7 +107,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
         <div className={styles['button-wrap']} onClick={e => {
           toggleOpen('scenes');
         }}>
-          <button className={classnames(styles.button, styles.primary, scenesOpen ? null : styles.disabled)}>
+          <button className={classnames(styles.button, styles.primary, styles.disabled)}>
             <img src="images/arrow-down.svg" />
           </button>
         </div>
@@ -239,7 +246,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
 
       /> : null}
 
-      {loginOpen
+      {loginOpen && !user
         ? <Popup
 
           header={'Login'}
@@ -258,7 +265,19 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           },
           ]}
           anchor={loginButton}
-        ></Popup> : null}
+        ></Popup> : loginOpen && user?
+        <Popup
+          header={user.name ||  <Tooltip text={user.address.substring(0,9)} tooltip={user.address} position='bottom' />}
+          options={[{
+            text: 'Logout',
+            // icon: './images/discord-white.svg',
+            action: () => {
+              document.dispatchEvent(new Event('logout'));
+            },
+          }]}
+          anchor={loginButton}
+        ></Popup>
+        : null}
 
       <div className={classnames(styles.locationButton, !locationOpen ? styles.closed : null)} onClick={e => {
         e.preventDefault();
