@@ -18,6 +18,8 @@ import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
 
+const localEuler = new THREE.Euler();
+
 // world
 export const world = {};
 
@@ -25,7 +27,6 @@ const appManager = new AppManager({
   appsMap: null,
 });
 world.appManager = appManager;
-
 
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
@@ -351,7 +352,10 @@ const _bindHitTracker = app => {
           await damageMeshApp.addModule(m);
         })();
         damageMeshApp.position.copy(hitPosition);
-        damageMeshApp.quaternion.copy(hitQuaternion);
+        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        damageMeshApp.quaternion.setFromEuler(localEuler);
         damageMeshApp.updateMatrixWorld();
         scene.add(damageMeshApp);
       }
