@@ -279,7 +279,7 @@ const _getType = id => {
   }
   const appType = o ? o.appType : '';
   const isVrm = appType === 'vrm';
-  const isImage = ['png', 'jpg'].includes(appType);
+  const isImage = appType === 'image';
   const isVideo = type === 'webm';
 
   const _initializeAnimation = () => {

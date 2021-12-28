@@ -12,7 +12,7 @@ const next = ()=>{
 }
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
-  const previewHost = inappPreviewHost;
+  const previewHost = 'https://local.webaverse.com' || inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
@@ -82,6 +82,9 @@ function isValidURL(string) {
 
 export const preview = async (url, ext, type, width, height) => {
   return new Promise((resolve, reject) => {
+    if(!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)){
+      reject('Undefined Extension')
+    }
     if (!running) {
       generatePreview(url, ext, type, width, height, resolve, reject);
     } else {

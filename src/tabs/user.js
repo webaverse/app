@@ -17,7 +17,6 @@ export class UserX extends React.Component {
       previews: {},
       tokensLength: 0,
     };
-    console.log(this.props);
   }
 
   componentDidUpdate() {
@@ -29,7 +28,10 @@ export class UserX extends React.Component {
             if(!_s[token.hash]){
               _s[token.hash] = '/images/loader.gif';
               preview(token.hash, token.ext, 'png', 180, 170).then((res)=>{
-                this.state.previews[token.hash] = res.url;
+                let _s = this.state.previews;
+                _s[token.hash] = res.url;
+                this.setState({previews:_s});
+                console.log(res);
               });
             }
           }
@@ -50,8 +52,7 @@ export class UserX extends React.Component {
   }
 
   render() {
-    console.log(this.props.user);
-
+    console.log('Render Loop Called Previews are:', this.state.previews);
     return (
       this.props.user
         ? <Tab
@@ -94,9 +95,9 @@ export class UserX extends React.Component {
                         // drop code comes here
                         }}>DROP</div>
                         <div className={newStyles.itemWrapper}>
-                          <img src={this.state.previews[token.instanceId] || '/images/loader.gif'} />
+                          <img src={this.state.previews[token.hash] || '/images/loader.gif'} />
                         </div>
-                        <div className={styles.name}>{token.instanceId}</div>
+                        <div className={styles.name}>{token.name}</div>
                       </div>
                     );
                   })}

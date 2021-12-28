@@ -26,12 +26,14 @@
 
 
   .item.skew.right .label,
-  .item.skew.right img{
+  .item.skew.right img,
+  .item.skew.right > .placeholder > *{
     transform: skew(-30deg);
   }
 
   .item.skew.left .label,
-  .item.skew.left img{
+  .item.skew.left img,
+  .item.skew.left > .placeholder > *{
     transform: skew(30deg);
   }
   

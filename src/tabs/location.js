@@ -65,25 +65,32 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           }}
         ></Button>
 
-
-        {user && user.name ? <div> {
-            user.name? <Tooltip text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
-            <Tooltip text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
-          } </div> : null}
-
         {user && user.name ? <Button
           text={'X'}
           // icon={'/images/soul.png'}
           skew={true}
           skewDirection={'left'}
           placeholder={
-            user.name? <Tooltip text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
-            <Tooltip text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
+            user.name? <Tooltip style={{
+              top: '20%',
+              right: '15%',
+              fontSize: '15px',
+              color: 'white'           
+            }} text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
+            <Tooltip style={{
+              top: '20%',
+              right: '15%',
+              fontSize: '15px',
+              color: 'white'      
+            }} text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
           }
           onClick={e => {
             e.preventDefault();
             e.stopPropagation();
             toggleOpen('userX');
+          }}
+          style={{
+              width: '115px',
           }}
         ></Button> : null}
 
