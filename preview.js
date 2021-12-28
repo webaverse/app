@@ -27,7 +27,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
 
   // check either first param is url or hash
   if (!isValidURL(url)) {
-    url = `${storageHost}/ipfs/${url}`;
+    url = `${storageHost}/${url}/preview.${ext}`;
   }
 
   // create URL

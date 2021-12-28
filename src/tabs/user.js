@@ -15,58 +15,27 @@ export class UserX extends React.Component {
       characterPreview: './public/images/loader.gif',
       avatarContentId: null,
       previews: {},
+      tokensLength: 0,
     };
     console.log(this.props);
   }
 
-  async setPreview(stateKey, stateSource, isContentId, id, options = {}) {
-    const manageContentId = async (stateKey, stateSource) => {
-      let _tempUrl = this.state[stateKey];
-      if (_tempUrl) {
-        if (_tempUrl.startsWith('.')) {
-          _tempUrl = _tempUrl.slice(1, _tempUrl.length);
-        }
-      }
-      if (_tempUrl.startsWith('/')) {
-        _tempUrl = window.origin + _tempUrl;
-      }
-
-      console.log(_tempUrl);
-      if (_tempUrl) {
-        const _preview = await preview(_tempUrl, options.type, 'png', 180, 170);
-        const _s = {};
-        _s[stateSource] = _preview.url;
-        this.setState(_s);
-        console.log(_preview);
-      }
-    };
-
-    if (this.state[stateKey] !== id) {
-      if (isContentId) {
-        const _s = {};
-        _s[stateKey] = id;
-        this.setState(_s);
-        manageContentId(stateKey, stateSource);
-      } else { // its an instanceId
-        const _app = this.props.apps.find(a => {
-          return a.instanceId === id;
-        });
-        if (_app) {
-          preview(`${_app.contentId}`, _app.appType, 'png', 180, 170).then(_preview => {
-            const newPreviewState = this.state.previews;
-            newPreviewState[id] = _preview.url;
-            this.setState({
-              previews: newPreviewState,
-            });
-          }).catch(e => {
-            console.warn('App Preview failed', e);
-          });
-        }
+  componentDidUpdate() {
+    if(this.props.user){
+      if(this.state.tokensLength !== this.props.user.tokens.length){
+          this.setState({tokensLength:this.props.user.tokens.length});
+          let _s = this.state.previews;    
+          for (const token of this.props.user.tokens) {
+            if(!_s[token.hash]){
+              _s[token.hash] = '/images/loader.gif';
+              preview(token.hash, token.ext, 'png', 180, 170).then((res)=>{
+                this.state.previews[token.hash] = res.url;
+              });
+            }
+          }
+          this.setState({previews:_s})
       }
     }
-  }
-
-  componentDidUpdate() {
 
   }
 
@@ -100,7 +69,8 @@ export class UserX extends React.Component {
           panels={[
             (<div className={newStyles.panel} key="left">
               <div className={newStyles['panel-header']}>
-                <h1>{this.props.user.name || <Tooltip 
+                <h1>{this.props.user.name || 
+                <Tooltip 
                   text={this.user.address.substring(0,10)}
                   tooltip={this.user.address}
                   position='top'

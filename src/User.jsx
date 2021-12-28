@@ -78,10 +78,13 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
       if (event.origin !== walletHost) { return; }
       if (event.data.pk) {
         const data = await pullUserObject(event.data.pk);
-        setUserData(data);
-        const {address, error, mnemonic} = data;
+        const {address} = data;
         if (address) {
           setAddress(address);
+          setShow(false);
+          setUserData(data);
+        } else {
+          setLoginError(String(error).toLocaleUpperCase());
         }
         window.removeEventListener('message', f, false);
       }
@@ -106,13 +109,12 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
     } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
     if (code) {
       const data = await handleDiscordLogin(code, id);
-      setUserData(data);
       const {address, error, mnemonic} = data;
-
       if (address) {
         setAddress(address);
         sendData('pk', mnemonic);
         setShow(false);
+        setUserData(data);
       } else {
         setLoginError(String(error).toLocaleUpperCase());
       }

@@ -48,9 +48,10 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
       }
     }
   };
+
   return (
     <div className={classnames(styles.location, !locationOpen ? styles.closed : null)}>
-      <div className={styles.row}>
+      <div className={styles.row} onClick={(e)=>{setOpen(null);console.log('I am clicked')}}>
 
         <Button
           text={'TAB'}
@@ -58,21 +59,30 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           skew={true}
           skewDirection={'left'}
           onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
             toggleOpen('character');
           }}
         ></Button>
 
-        {user ? <Button
+
+        {user && user.name ? <div> {
+            user.name? <Tooltip text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
+            <Tooltip text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
+          } </div> : null}
+
+        {user && user.name ? <Button
           text={'X'}
           // icon={'/images/soul.png'}
           skew={true}
           skewDirection={'left'}
           placeholder={
-
             user.name? <Tooltip text={user.name.substring(0, 10)} tooltip={user.name} position='bottom' /> :
             <Tooltip text={user.address.substring(0, 9)} tooltip={user.address} position='bottom' />
           }
           onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
             toggleOpen('userX');
           }}
         ></Button> : null}
@@ -83,6 +93,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           skew={true}
           skewDirection={'left'}
           onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
             toggleOpen('world');
           }}
         ></Button>
@@ -105,6 +117,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           <img src="images/webpencil.svg" className={classnames(styles.background, styles.green)} />
         </div>
         <div className={styles['button-wrap']} onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
           toggleOpen('scenes');
         }}>
           <button className={classnames(styles.button, styles.primary, styles.disabled)}>
@@ -114,6 +128,9 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
         <div className={styles.locationRight}>
 
           <div ref={multiplayerRef} className={styles['button-wrap']} onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            
             if (!multiplayerConnected) {
               toggleOpen('multiplayer');
             } else {
@@ -137,6 +154,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           <div
             className={styles['button-wrap']}
             onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();  
               toggleOpen('login');
             }}
             ref={loginButton}
@@ -253,7 +272,7 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           options={[{
             text: 'Discord',
             icon: './images/discord-white.svg',
-            action: () => {
+            action: (e) => {
               window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`;
               setOpen(null);
             },
@@ -267,7 +286,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
           anchor={loginButton}
         ></Popup> : loginOpen && user?
         <Popup
-          header={user.name ||  <Tooltip text={user.address.substring(0,9)} tooltip={user.address} position='bottom' />}
+          header={user.name ||  
+          <Tooltip text={user.address.substring(0,9)} tooltip={user.address} position='bottom' />}
           options={[{
             text: 'Logout',
             // icon: './images/discord-white.svg',
@@ -280,9 +300,8 @@ export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, 
         : null}
 
       <div className={classnames(styles.locationButton, !locationOpen ? styles.closed : null)} onClick={e => {
-        e.preventDefault();
-        e.stopPropagation();
         setLocationOpen(!locationOpen);
+        setOpen(null);
       }}>
         <img src='/images/location-button.svg'></img>
       </div>
