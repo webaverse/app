@@ -26,6 +26,12 @@ async function setTestCase() {
   var cPath = path.join(__dirname, '..', 'public', 'testCase.mjs');
   await fs.writeFileSync(cPath, content);
 
+  try{
+    fs.rmdirSync('../certs-local', {recursive: true});
+  }catch(e){
+    //ignore directory might be unlinked already;
+  }
+
   for (const scn of scenes) {
     var scenePath = path.join(__dirname, '..', 'scenes', scn);
     const data2 = fs.readFileSync(scenePath);
