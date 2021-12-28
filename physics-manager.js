@@ -206,6 +206,7 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
   return objs;
 }; */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
+physicsManager.raycastGround = (position, quaternion) => physx.physxWorker.raycastGroundPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z);
