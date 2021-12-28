@@ -159,8 +159,12 @@ export default e => {
         varying vec2 vUv;
         varying vec3 vColor;
 
+        vec3 color1 = vec3(${new THREE.Color(0xffca28).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color2 = vec3(${new THREE.Color(0xff6f00).toArray().map(n => n.toFixed(8)).join(', ')});
+
         void main() {
-          gl_FragColor = vec4(vec3(vUv, 0.) * vColor, 1.0);
+          vec3 c = (color1*(1. - vUv.y) + color2*vUv.y);
+          gl_FragColor = vec4(c * vColor, 1.0);
         }
       `,
       side: THREE.DoubleSide,
@@ -170,10 +174,10 @@ export default e => {
     });
     async function makeTextMesh(
       text = '',
-      font = '/fonts/Plaza Regular.ttf',
-      // font = '/fonts/WinchesterCaps.ttf',
+      // font = '/fonts/Plaza Regular.ttf',
+      font = '/fonts/WinchesterCaps.ttf',
       // font = '/fonts/Koloss.ttf',
-      fontSize = 0.5,
+      fontSize = 0.25,
       anchorX = 'left',
       anchorY = 'middle',
       color = 0x000000,
