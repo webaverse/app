@@ -12,7 +12,7 @@ const next = ()=>{
 }
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
-  const previewHost = 'https://local.webaverse.com' || inappPreviewHost;
+  const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
   var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
