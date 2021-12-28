@@ -338,7 +338,8 @@ class CharacterPhysics {
       );
     camera.position.y -= crouchOffset;
     camera.updateMatrix();
-    camera.updateMatrixWorld();
+    // NOTE: camera will updateMatrixWorld in webaverse.js animationLoop with `xrCamera.updateMatrixWorld(true);`
+    // camera.updateMatrixWorld(); // MARK: camera.updateMatrixWorld() 1
     this.player.updateMatrix();
   }
   updateVelocity(timeDiffS) {

@@ -255,7 +255,8 @@ const cameraManager = {
       camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       cameraOffset.z = cameraOffsetZ;
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld(true);
+      // NOTE: camera will updateMatrixWorld in webaverse.js animationLoop with `xrCamera.updateMatrixWorld(true);`
+      // camera.updateMatrixWorld(true); // MARK: camera.updateMatrixWorld() on wheel
     }
 
   },
