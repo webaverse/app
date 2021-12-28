@@ -1031,6 +1031,17 @@ const physxWorker = (() => {
   w.enableGeometryQueriesPhysics = (physics, id) => {
     moduleInstance._enableGeometryQueriesPhysics(physics, id);
   };
+  w.setMassAndInertiaPhysics = (physics, id, mass, inertia) => {
+    const allocator = new Allocator();
+    const inrt = allocator.alloc(Float32Array, 3);
+    inertia.toArray(inrt);
+   
+    moduleInstance._setMassAndInertiaPhysics(physics, id, mass, inrt);
+    allocator.freeAll();
+  };
+  w.setGravityEnabledPhysics = (physics, id, enabled) => {
+    moduleInstance._setGravityEnabledPhysics(physics, id, enabled);
+  };
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
@@ -1044,18 +1055,27 @@ const physxWorker = (() => {
 
     allocator.freeAll();
   };
-  w.setVelocityPhysics = (physics, id, velocity, enableGravity) => {
+  w.setVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
-    moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, +enableGravity);
+    autoWake = autoWake ?? false;
+
+    moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  /* w.checkGrounded = (physics, id) => {
-    //moduleInstance._checkGrounded(physics, id);
-  }; */
-  w.setTransformPhysics = (physics, id, position, quaternion, scale) => {
+  w.setAngularVelocityPhysics = (physicsObject, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+   
+    autoWake = autoWake ?? false;
+
+    physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+    allocator.freeAll();
+  };
+  w.setTransformPhysics = (physics, id, position, quaternion, scale, autoWake) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1064,8 +1084,10 @@ const physxWorker = (() => {
     position.toArray(p);
     quaternion.toArray(q);
     scale.toArray(s);
-   
-    moduleInstance._setTransformPhysics(physics, id, p.byteOffset, q.byteOffset, s.byteOffset);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._setTransformPhysics(physics, id, p.byteOffset, q.byteOffset, s.byteOffset, autoWake);
     allocator.freeAll();
   };
   w.getTransformPhysics = (physics, updates) => {

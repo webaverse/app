@@ -169,6 +169,12 @@ physicsManager.disableGeometryQueries = physicsObject => {
 physicsManager.enableGeometryQueries = physicsObject => {
   physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
+physicsManager.setMassAndInertia = (physicsObject, mass, inertia) => {
+  physx.physxWorker.setMassAndInertiaPhysics(physx.physics, physicsObject.physicsId, mass, inertia);
+};
+physicsManager.setGravityEnabled = (physicsObject, enabled) => {
+  physx.physxWorker.setGravityEnabledPhysics(physx.physics, physicsObject.physicsId, enabled);
+};
 physicsManager.removeGeometry = physicsObject => {
   try {
     physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
@@ -179,11 +185,14 @@ physicsManager.removeGeometry = physicsObject => {
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
 }; */
-physicsManager.setVelocity = (physicsObject, velocity, enableGravity) => {
-  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, enableGravity);
+physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 };
-physicsManager.setTransform = physicsObject => {
-  physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+};
+physicsManager.setTransform = (physicsObject, autoWake) => {
+  physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
 physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat) => {
   const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat);
