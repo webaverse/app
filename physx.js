@@ -630,6 +630,75 @@ const physxWorker = (() => {
       } : null;
     }
   };
+  w.raycastGroundPhysics = (physics, p, q) => {
+    if (physics) {
+      p.toArray(scratchStack.f32, 0);
+      localVector.set(0, -1, 0)
+        .applyQuaternion(q)
+        .toArray(scratchStack.f32, 3);
+      // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.set(0, 0, 0).toArray(scratchStack.f32, 6);
+      localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 9);
+
+      const originOffset = scratchStack.f32.byteOffset;
+      const directionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+      const meshPositionOffset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
+      const meshQuaternionOffset = scratchStack.f32.byteOffset + 9 * Float32Array.BYTES_PER_ELEMENT;
+
+      const hitOffset = scratchStack.f32.byteOffset + 13 * Float32Array.BYTES_PER_ELEMENT;
+      const pointOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+      const normalOffset = scratchStack.f32.byteOffset + 17 * Float32Array.BYTES_PER_ELEMENT;
+      const distanceOffset = scratchStack.f32.byteOffset + 20 * Float32Array.BYTES_PER_ELEMENT;
+      const objectIdOffset = scratchStack.u32.byteOffset + 21 * Float32Array.BYTES_PER_ELEMENT;
+      const faceIndexOffset = scratchStack.u32.byteOffset + 22 * Float32Array.BYTES_PER_ELEMENT;
+      const positionOffset = scratchStack.u32.byteOffset + 23 * Float32Array.BYTES_PER_ELEMENT;
+      const quaternionOffset = scratchStack.u32.byteOffset + 26 * Float32Array.BYTES_PER_ELEMENT;
+
+      /* const raycastArgs = {
+        origin: allocator.alloc(Float32Array, 3),
+        direction: allocator.alloc(Float32Array, 3),
+        meshPosition: allocator.alloc(Float32Array, 3),
+        meshQuaternion: allocator.alloc(Float32Array, 4),
+        hit: allocator.alloc(Uint32Array, 1),
+        point: allocator.alloc(Float32Array, 3),
+        normal: allocator.alloc(Float32Array, 3),
+        distance: allocator.alloc(Float32Array, 1),
+        meshId: allocator.alloc(Uint32Array, 1),
+        faceIndex: allocator.alloc(Uint32Array, 1),
+      }; */
+
+      moduleInstance._raycastPhysics(
+        physics,
+        originOffset,
+        directionOffset,
+        meshPositionOffset,
+        meshQuaternionOffset,
+        hitOffset,
+        pointOffset,
+        normalOffset,
+        distanceOffset,
+        objectIdOffset,
+        faceIndexOffset,
+        positionOffset,
+        quaternionOffset,
+      );
+      const objectId = scratchStack.u32[21];
+      const faceIndex = scratchStack.u32[22];
+      const objectPosition = scratchStack.f32.slice(23, 26);
+      const objectQuaternion = scratchStack.f32.slice(26, 30);
+
+      return scratchStack.u32[13] ? {
+        point: scratchStack.f32.slice(14, 17),
+        normal: scratchStack.f32.slice(17, 20),
+        distance: scratchStack.f32[20],
+        meshId: scratchStack.u32[21],
+        objectId,
+        faceIndex,
+        objectPosition,
+        objectQuaternion,
+      } : null;
+    }
+  };
   w.raycastPhysicsArray = (physics, p, q, n) => {
     if (physics && (n > 0 && n < 1000)) {
 
