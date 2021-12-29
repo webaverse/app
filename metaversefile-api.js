@@ -458,10 +458,10 @@ metaversefile.setApi({
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
       }
-      const localVector = new THREE.Vector3();
+      /* const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
-      const localMatrix = new THREE.Matrix4();
+      const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
@@ -475,21 +475,21 @@ metaversefile.setApi({
         position = localVector;
         quaternion = localQuaternion;
         size = localVector2; */
-        
+
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
         
-        /* const {physicsMesh} = physicsObject;
-        physicsMesh.position.copy(basePosition);
-        physicsMesh.quaternion.copy(baseQuaternion);
-        physicsMesh.scale.copy(baseScale);
+        // const {physicsMesh} = physicsObject;
+        // physicsMesh.position.copy(position);
+        // physicsMesh.quaternion.copy(quaternion);
+        // physicsMesh.scale.copy(size);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld(); */
-        
+        // physicsObject.updateMatrixWorld();
+
         app.physicsObjects.push(physicsObject);
-        // physicsManager.pushUpdate(app, physicsObject);
+
         return physicsObject;
       })(physics.addBoxGeometry);
       physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
@@ -734,6 +734,8 @@ metaversefile.setApi({
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
+      app.updateMatrixWorld();
+      app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
       (async () => {
@@ -924,11 +926,11 @@ export default () => {
       currentAppRender = null;
     };
 
-    // console.log('got react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
       if (o !== app) {
         app.add(o);
+        o.updateMatrixWorld();
       }
       
       app.addEventListener('destroy', () => {

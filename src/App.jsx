@@ -25,7 +25,8 @@ const _startApp = async (weba, canvas) => {
   universe.handleUrlUpdate();
   await weba.startLoop();
   
-  const defaultAvatarUrl = './avatars/citrine.vrm';
+  // const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
+  const defaultAvatarUrl = './avatars/droid girl 2.vrm';
   const localPlayer = metaversefileApi.useLocalPlayer();
   await localPlayer.setAvatarUrl(defaultAvatarUrl);
 };
