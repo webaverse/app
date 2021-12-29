@@ -931,6 +931,7 @@ export default () => {
       const o = renderSpec;
       if (o !== app) {
         app.add(o);
+        o.updateMatrixWorld();
       }
       
       app.addEventListener('destroy', () => {
