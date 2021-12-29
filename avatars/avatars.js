@@ -1240,14 +1240,14 @@ class Avatar {
     this.chargeJumpState = false;
     this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
-    this.standChargeState = false;
-    this.standChargeTime = 0;
+    // this.standChargeState = false;
+    // this.standChargeTime = 0;
     this.fallLoopState = false;
     this.fallLoopTime = 0;
-    this.swordSideSlashState = false;
-    this.swordSideSlashTime = 0;
-    this.swordTopDownSlashState = false;
-    this.swordTopDownSlashTime = 0;
+    // this.swordSideSlashState = false;
+    // this.swordSideSlashTime = 0;
+    // this.swordTopDownSlashState = false;
+    // this.swordTopDownSlashTime = 0;
     this.aimTime = NaN;
     this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
@@ -2111,15 +2111,13 @@ class Avatar {
           };
         }
 
-         if (this.standChargeState) {
+        /* if (this.standChargeState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
               isTop,
             } = spec;
-
-            
 
             const t2 = (this.standChargeTime/1000) ;
             const src2 = standCharge.interpolants[k];
@@ -2157,7 +2155,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.fallLoopState) {
           return spec => {
             const {
@@ -2173,7 +2171,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        if (this.chargeJumpState) {
+        /* if (this.chargeJumpState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2188,7 +2186,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.jumpState) {
           return spec => {
             const {
