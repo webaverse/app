@@ -312,10 +312,11 @@ export default class Webaverse extends EventTarget {
       
       cameraManager.update(timeDiffCapped);
       
+      const localPlayer = metaversefileApi.useLocalPlayer();
       if (this.contentLoaded) {
         //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
         physicsManager.simulatePhysics(timeDiffCapped); 
-        characterController.updatePhysics(timestamp, timeDiffCapped);
+        localPlayer.updatePhysics(timestamp, timeDiffCapped);
       }
 
       lastTimestamp = timestamp;
@@ -323,7 +324,7 @@ export default class Webaverse extends EventTarget {
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
-      characterController.updateAvatar(timestamp, timeDiffCapped);
+      localPlayer.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
       
       world.appManager.tick(timestamp, timeDiffCapped, frame);
@@ -352,7 +353,7 @@ export default class Webaverse extends EventTarget {
   }
 }
 
-window.addEventListener('keydown', e => {
+/* window.addEventListener('keydown', e => {
   if (e.which === 219) { // [
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
@@ -374,4 +375,4 @@ window.addEventListener('keydown', e => {
       // audioContext.resume();
     }
   }
-});
+}); */
