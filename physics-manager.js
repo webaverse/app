@@ -62,7 +62,6 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   );
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
-  physicsMesh.updateMatrixWorld();
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };

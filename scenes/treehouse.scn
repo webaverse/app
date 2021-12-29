@@ -65,54 +65,6 @@
     },
     {
       "position": [
-        2,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "physics": false,
-      "start_url": "../npc/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        0,
-        -1
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "/avatars/droid girl 2.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "/avatars/scillia_padoru.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
         4,
         0,
         1
@@ -124,23 +76,7 @@
         0.7071067811865475
       ],
       "physics": false,
-      "start_url": "/avatars/hya_influencer_v2_vian.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        0,
-        2
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
+      "start_url": "/avatars/gear.vrm",
       "dynamic": true
     },
     {
@@ -156,7 +92,7 @@
         1
       ],
       "physics": false,
-      "start_url": "../infinifruit/",
+      "start_url": "https://webaverse.github.io/infinifruit/",
       "dynamic": true
     },
     {
@@ -172,7 +108,23 @@
         1
       ],
       "physics": false,
-      "start_url": "../barrier/",
+      "start_url": "https://webaverse.github.io/barrier/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
       "dynamic": true
     },
     {
@@ -188,7 +140,7 @@
         1
       ],
       "physics": false,
-      "start_url": "../particle-mesh/",
+      "start_url": "https://webaverse.github.io/particle-mesh/",
       "dynamic": true
     },
     {
@@ -204,7 +156,7 @@
         1
       ],
       "physics": false,
-      "start_url": "../basiheart/",
+      "start_url": "https://webaverse.github.io/basiheart/",
       "dynamic": true
     },
     {
@@ -233,7 +185,7 @@
         0,
         0
       ],
-      "start_url": "../ramp/"
+      "start_url": "https://webaverse.github.io/ramp/"
     },
     {
       "position": [
@@ -294,7 +246,7 @@
         0.5,
         0.5
       ],
-      "start_url": "../potion/"
+      "start_url": "https://webaverse.github.io/potion/"
     },
     {
       "position": [
@@ -313,7 +265,7 @@
         1,
         1
       ],
-      "start_url": "../pistol/"
+      "start_url": "https://webaverse.github.io/pistol/"
     },
     {
       "position": [
@@ -332,7 +284,7 @@
         1,
         1
       ],
-      "start_url": "../silsword/"
+      "start_url": "https://webaverse.github.io/silsword/"
     }
   ]
 }
