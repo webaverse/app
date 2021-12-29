@@ -734,6 +734,8 @@ metaversefile.setApi({
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
+      app.updateMatrixWorld();
+      app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
       (async () => {
