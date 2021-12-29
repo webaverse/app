@@ -489,7 +489,7 @@ metaversefile.setApi({
         // physicsObject.updateMatrixWorld();
 
         app.physicsObjects.push(physicsObject);
-        // physicsManager.pushUpdate(app, physicsObject);
+
         return physicsObject;
       })(physics.addBoxGeometry);
       physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
@@ -926,7 +926,6 @@ export default () => {
       currentAppRender = null;
     };
 
-    // console.log('got react', React, ReactAll);
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
       if (o !== app) {
