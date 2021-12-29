@@ -475,19 +475,19 @@ metaversefile.setApi({
         position = localVector;
         quaternion = localQuaternion;
         size = localVector2; */
-        
+
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
         
-        /* const {physicsMesh} = physicsObject;
-        physicsMesh.position.copy(basePosition);
-        physicsMesh.quaternion.copy(baseQuaternion);
-        physicsMesh.scale.copy(baseScale);
+        // const {physicsMesh} = physicsObject;
+        // physicsMesh.position.copy(position);
+        // physicsMesh.quaternion.copy(quaternion);
+        // physicsMesh.scale.copy(size);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld(); */
-        
+        // physicsObject.updateMatrixWorld();
+
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
