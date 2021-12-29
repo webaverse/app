@@ -58,7 +58,7 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(
-    new CapsuleGeometry(radius, radius, halfHeight*2)
+    new CapsuleGeometry(radius, radius, radius, halfHeight*2)
   );
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
