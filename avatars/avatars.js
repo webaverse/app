@@ -1797,6 +1797,7 @@ class Avatar {
         // idleWalkFactor,
         k,
         lerpFn,
+        isPosition,
         target
       ) => {
         // WALK
@@ -1905,6 +1906,11 @@ class Avatar {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
+          if (isPosition) {
+            localQuaternion4.x = 0;
+            localQuaternion4.z = 0;
+          }
+
           lerpFn
             .call(
               target.fromArray(v3),
@@ -2003,7 +2009,7 @@ class Avatar {
       }
       this.lastBackwardFactor = mirrorFactor;
 
-      const _getHorizontalBlend = (k, lerpFn, target) => {
+      const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
         _get7wayBlend(
           keyWalkAnimationAngles,
           keyWalkAnimationAnglesMirror,
@@ -2016,6 +2022,7 @@ class Avatar {
           // idleWalkFactor,
           k,
           lerpFn,
+          isPosition,
           localQuaternion
         );
         _get7wayBlend(
@@ -2030,6 +2037,7 @@ class Avatar {
           // idleWalkFactor,
           k,
           lerpFn,
+          isPosition,
           localQuaternion2
         );
         
@@ -2044,13 +2052,12 @@ class Avatar {
 
       };
       const _getApplyFn = () => {
-
         if (this.jumpState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             // console.log('JumpState', spec)
 
@@ -2066,7 +2073,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
             const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
@@ -2081,7 +2088,8 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
@@ -2090,6 +2098,11 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+
+            if (isPosition) {
+              dst.x = 0;
+              dst.z = 0;
+            }
           };
         }
 
@@ -2098,9 +2111,8 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
-            
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
@@ -2161,7 +2173,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
 
             const t2 = (this.fallLoopTime/1000) ;
@@ -2192,7 +2204,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
 
@@ -2210,7 +2222,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
             const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
@@ -2225,11 +2237,12 @@ class Avatar {
           const {
             animationTrackName: k,
             dst,
-            isTop,
+            // isTop,
             lerpFn,
+            isPosition,
           } = spec;
           
-          _getHorizontalBlend(k, lerpFn, dst);
+          _getHorizontalBlend(k, lerpFn, isPosition, dst);
         };
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
@@ -2332,7 +2345,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           lerpFn,
         } = spec;
         
@@ -2355,7 +2368,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           lerpFn,
         } = spec;
         
@@ -2389,7 +2402,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
         
@@ -2399,15 +2412,13 @@ class Avatar {
         
         // ignore all animation position except y
         if (isPosition) {
-          dst.x = 0;
           if (!this.jumpState) {
             // animations position is height-relative
-            dst.y *= this.height;
+            dst.y *= this.height; // XXX this could be made perfect by measuring from foot to hips instead
           } else {
             // force height in the jump case to overide the animation
             dst.y = this.height * 0.55;
           }
-          dst.z = 0;
         }
       }
     };
