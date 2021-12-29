@@ -24,6 +24,8 @@ const componentTemplates = {
 
     // console.log('wear component add', app.contentId);
 
+    const initialScale = app.scale.clone();
+
     const localPlayer = metaversefile.useLocalPlayer();
 
     const wearupdate = e => {
@@ -31,6 +33,7 @@ const componentTemplates = {
       
       if (e.wear) {
         wearSpec = app.getComponent('wear');
+        initialScale.copy(app.scale);
         // console.log('activate component', app, wear);
         if (wearSpec) {
           // const {app, wearSpec} = e.data;
@@ -43,10 +46,9 @@ const componentTemplates = {
               }
             });
             if (skinnedMesh && localPlayer.avatar) {
-            
               app.position.set(0, 0, 0);
               app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.set(1, 1, 1)//.multiplyScalar(wearableScale);
+              app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
               
@@ -152,6 +154,9 @@ const componentTemplates = {
 
     const _unwear = () => {
       if (wearSpec) {
+        app.scale.copy(initialScale);
+        app.updateMatrixWorld();
+
         wearSpec = null;
         modelBones = null;
       }
