@@ -847,6 +847,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
+
+    app.dispatchEvent({
+      type: 'grabupdate',
+      grab: true,
+    });
   }
   ungrab() {
     const actions = Array.from(this.getActionsState());
@@ -862,6 +867,11 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
+
+        app.dispatchEvent({
+          type: 'grabupdate',
+          grab: false,
+        });
       }
     }
   }
