@@ -2,7 +2,7 @@
 set the avatar state from the player state */
 
 import Avatar from './avatars/avatars.js';
-import {unFrustumCull} from './util.js';
+import {unFrustumCull, enableShadows} from './util.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -68,6 +68,7 @@ export function makeAvatar(app) {
       avatar[appSymbol] = app;
       
       unFrustumCull(app);
+      enableShadows(app);
       
       return avatar;
     }
