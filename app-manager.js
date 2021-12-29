@@ -15,6 +15,7 @@ import {worldMapName} from './constants.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
 const localData = {
   timestamp: 0,
@@ -540,43 +541,42 @@ class AppManager extends EventTarget {
     return this.apps.includes(app);
   }
   pushAppUpdates() {
-    // this.setPushingLocalUpdates(true);
-    
     if (this.appsArray) {
       this.appsArray.doc.transact(() => { 
         for (const app of this.apps) {
           if (this.hasTrackedApp(app.instanceId)) {
-            // app.updateMatrixWorld();
-            
             if (!app.matrix.equals(app.lastMatrix)) {
-              app.matrix.decompose(localVector, localQuaternion, localVector2);
+              app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
               app.updateMatrixWorld();
+
+              // update attached physics objects with a relative transform
               const physicsObjects = app.getPhysicsObjects();
-              for (const physicsObject of physicsObjects) {
-                physicsObject.position.copy(app.position);
-                physicsObject.quaternion.copy(app.quaternion);
-                physicsObject.scale.copy(app.scale);
+              if (physicsObjects.length > 0) {
+                const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
 
-                /* if (app.appType === "vrm") {
-                  physicsObject.position.add(new THREE.Vector3(0, 1, 0));
-                } */
+                for (const physicsObject of physicsObjects) {
+                  if (!physicsObject.detached) {
+                    physicsObject.matrix
+                      .premultiply(lastMatrixInverse)
+                      .premultiply(app.matrix)
+                      .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+                    physicsObject.matrixWorld.copy(physicsObject.matrix);
+                    for (const child of physicsObject.children) {
+                      child.updateMatrixWorld();
+                    }
 
-                physicsObject.updateMatrixWorld();
-                
-                //physicsManager.pushUpdate(physicsObject);
-                physicsManager.setTransform(physicsObject);
-                physicsObject.needsUpdate = false;
+                    physicsManager.setTransform(physicsObject);
+                  }
+                }
               }
-              
+
               app.lastMatrix.copy(app.matrix);
             }
           }
         }
       }, 'push');
     }
-
-    // this.setPushingLocalUpdates(false);
   }
   destroy() {
     if (!this.isBound()) {
