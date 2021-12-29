@@ -181,6 +181,7 @@ export default () => {
   // mesh.visible = false;
   // console.log('got bounding box', boundingBox);
   app.add(mesh);
+  mesh.updateMatrixWorld();
 
   const tailMesh = (() => {
     const width = 0.47;
@@ -298,6 +299,7 @@ export default () => {
     return tailMesh;
   })();
   app.add(tailMesh);
+  tailMesh.updateMatrixWorld();
 
   // const angle = new THREE.Euler(Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2, 'YXZ');
   // const direction = new THREE.Euler(Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2, 'YXZ');
