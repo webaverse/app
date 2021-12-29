@@ -45,7 +45,7 @@
         0,
         -2
       ],
-      "start_url": "../mirror/"
+      "start_url": "https://webaverse.github.io/mirror/"
     },
     {
       "position": [
@@ -53,7 +53,7 @@
         0,
         -30
       ],
-      "start_url": "../shield/"
+      "start_url": "https://avaer.github.io/shield/index.js"
     },
     {
       "position": [
@@ -182,7 +182,7 @@
     {
       "position": [-9, 0, -1],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "../chest/"
+      "start_url": "https://webaverse.github.io/chest/"
     },
     {
       "position": [-2, 1, -1],
@@ -192,7 +192,7 @@
     {
       "position": [-1, 1, -1],
       "quaternion": [0, 0, 0, 1],
-      "start_url": "../arrow-loader/"
+      "start_url": "https://webaverse.github.io/arrow-loader/"
     },
     {
       "position": [-5, 4, -6],
