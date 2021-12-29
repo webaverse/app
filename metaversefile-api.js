@@ -458,10 +458,10 @@ metaversefile.setApi({
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
       }
-      const localVector = new THREE.Vector3();
+      /* const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
-      const localMatrix = new THREE.Matrix4();
+      const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
