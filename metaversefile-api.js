@@ -309,6 +309,7 @@ let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
+let sceneLoaded = false;
 // const apps = [];
 metaversefile.setApi({
   // apps,
@@ -860,6 +861,9 @@ export default () => {
   useGradientMapsInternal() {
     return gradientMaps;
   },
+  isSceneLoaded() {
+    return sceneLoaded;
+  },
   async addModule(app, m) {
     currentAppRender = app;
 
@@ -889,6 +893,9 @@ export default () => {
 
     if (waitUntilPromise) {
       await waitUntilPromise;
+      if(app.appType === 'scn') {
+        sceneLoaded = true;
+      }
     }
 
     const _bindDefaultComponents = app => {
