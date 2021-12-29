@@ -845,6 +845,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsId = collision.objectId;
         highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
         highlightedPhysicsId = physicsId;
+
+        window.highlight = {
+          highlightedPhysicsObject,
+          highlightedPhysicsId,
+        };
       }
 
       /* for (const physicsId of grabbedPhysicsIds) {
@@ -867,6 +872,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if(physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
+
+        window.highlightGeometry = physicsMesh.geometry;
+
         // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
         highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
           .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
