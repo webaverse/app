@@ -37,6 +37,7 @@ const _makePhysicsObject = (physicsId, position, quaternion/*, scale*/) => {
   // physicsObject.scale.copy(scale);
   physicsObject.updateMatrixWorld();
   physicsObject.physicsId = physicsId;
+  physicsObject.detached = false;
   physicsObject.collided = false;
   physicsObject.grounded = false;
   return physicsObject;
