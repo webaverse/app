@@ -44,6 +44,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
@@ -1254,6 +1255,7 @@ class Avatar {
     // internal state
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    this.lastMoveTime = 0;
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
@@ -1703,6 +1705,10 @@ class Avatar {
       this.velocity.copy(positionDiff);
       this.lastPosition.copy(currentPosition);
       this.direction.copy(positionDiff).normalize();
+
+      if (this.velocity.length() > maxIdleVelocity) {
+        this.lastMoveTime = now;
+      }
     };
     _updatePosition();
     
@@ -1893,7 +1899,9 @@ class Avatar {
 
         // blend the smooth walk/run with idle
         {
-          const t3 = timeSeconds % idleAnimation.duration;
+          const timeSinceLastMove = now - this.lastMoveTime;
+          const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
+          const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
