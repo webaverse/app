@@ -548,7 +548,7 @@ export const decorateAnimation = animation => {
 };
 
 // retargeting
-/* const animationBoneToModelBone = {
+export const animationBoneToModelBone = {
   'mixamorigHips': 'Hips',
   'mixamorigSpine': 'Spine',
   'mixamorigSpine1': 'Chest',
@@ -602,7 +602,7 @@ export const decorateAnimation = animation => {
   'mixamorigLeftFoot': 'Left_ankle',
   'mixamorigLeftToeBase': 'Left_toe',
 };
-const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
+/* const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   for (const track of animation.tracks) {
     const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
     if (match) {
