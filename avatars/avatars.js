@@ -44,6 +44,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
 VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
@@ -1239,14 +1240,14 @@ class Avatar {
     this.chargeJumpState = false;
     this.chargeJumpTime = 0;
     this.narutoRunTime = 0;
-    this.standChargeState = false;
-    this.standChargeTime = 0;
+    // this.standChargeState = false;
+    // this.standChargeTime = 0;
     this.fallLoopState = false;
     this.fallLoopTime = 0;
-    this.swordSideSlashState = false;
-    this.swordSideSlashTime = 0;
-    this.swordTopDownSlashState = false;
-    this.swordTopDownSlashTime = 0;
+    // this.swordSideSlashState = false;
+    // this.swordSideSlashTime = 0;
+    // this.swordTopDownSlashState = false;
+    // this.swordTopDownSlashTime = 0;
     this.aimTime = NaN;
     this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
@@ -1254,6 +1255,7 @@ class Avatar {
     // internal state
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    this.lastMoveTime = 0;
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
@@ -1703,6 +1705,10 @@ class Avatar {
       this.velocity.copy(positionDiff);
       this.lastPosition.copy(currentPosition);
       this.direction.copy(positionDiff).normalize();
+
+      if (this.velocity.length() > maxIdleVelocity) {
+        this.lastMoveTime = now;
+      }
     };
     _updatePosition();
     
@@ -1791,6 +1797,7 @@ class Avatar {
         // idleWalkFactor,
         k,
         lerpFn,
+        isPosition,
         target
       ) => {
         // WALK
@@ -1893,9 +1900,16 @@ class Avatar {
 
         // blend the smooth walk/run with idle
         {
-          const t3 = timeSeconds % idleAnimation.duration;
+          const timeSinceLastMove = now - this.lastMoveTime;
+          const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
+          const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
+
+          if (isPosition) {
+            localQuaternion4.x = 0;
+            localQuaternion4.z = 0;
+          }
 
           lerpFn
             .call(
@@ -1995,7 +2009,7 @@ class Avatar {
       }
       this.lastBackwardFactor = mirrorFactor;
 
-      const _getHorizontalBlend = (k, lerpFn, target) => {
+      const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
         _get7wayBlend(
           keyWalkAnimationAngles,
           keyWalkAnimationAnglesMirror,
@@ -2008,6 +2022,7 @@ class Avatar {
           // idleWalkFactor,
           k,
           lerpFn,
+          isPosition,
           localQuaternion
         );
         _get7wayBlend(
@@ -2022,6 +2037,7 @@ class Avatar {
           // idleWalkFactor,
           k,
           lerpFn,
+          isPosition,
           localQuaternion2
         );
         
@@ -2036,13 +2052,12 @@ class Avatar {
 
       };
       const _getApplyFn = () => {
-
         if (this.jumpState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             // console.log('JumpState', spec)
 
@@ -2058,7 +2073,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
             const sitAnimation = sitAnimations[this.sitAnimation || defaultSitAnimation];
@@ -2073,7 +2088,8 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
+              isPosition,
             } = spec;
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
@@ -2082,6 +2098,11 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+
+            if (isPosition) {
+              dst.x = 0;
+              dst.z = 0;
+            }
           };
         }
 
@@ -2090,9 +2111,8 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
-            
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
@@ -2103,15 +2123,13 @@ class Avatar {
           };
         }
 
-         if (this.standChargeState) {
+        /* if (this.standChargeState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
               isTop,
             } = spec;
-
-            
 
             const t2 = (this.standChargeTime/1000) ;
             const src2 = standCharge.interpolants[k];
@@ -2149,13 +2167,13 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.fallLoopState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
 
             const t2 = (this.fallLoopTime/1000) ;
@@ -2165,7 +2183,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        if (this.chargeJumpState) {
+        /* if (this.chargeJumpState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2180,13 +2198,13 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.jumpState) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
 
@@ -2204,7 +2222,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
             
             const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
@@ -2219,11 +2237,12 @@ class Avatar {
           const {
             animationTrackName: k,
             dst,
-            isTop,
+            // isTop,
             lerpFn,
+            isPosition,
           } = spec;
           
-          _getHorizontalBlend(k, lerpFn, dst);
+          _getHorizontalBlend(k, lerpFn, isPosition, dst);
         };
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
@@ -2326,7 +2345,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           lerpFn,
         } = spec;
         
@@ -2349,7 +2368,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           lerpFn,
         } = spec;
         
@@ -2383,7 +2402,7 @@ class Avatar {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
         
@@ -2393,15 +2412,13 @@ class Avatar {
         
         // ignore all animation position except y
         if (isPosition) {
-          dst.x = 0;
           if (!this.jumpState) {
             // animations position is height-relative
-            dst.y *= this.height;
+            dst.y *= this.height; // XXX this could be made perfect by measuring from foot to hips instead
           } else {
             // force height in the jump case to overide the animation
             dst.y = this.height * 0.55;
           }
-          dst.z = 0;
         }
       }
     };
