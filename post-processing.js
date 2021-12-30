@@ -5,6 +5,8 @@ this file implements post processing.
 import * as THREE from 'three';
 import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import {DualBloomPassGen} from 'three-dual-bloom';
+import { FullScreenQuad} from 'three/examples/jsm/postprocessing/EffectComposer';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
@@ -31,57 +33,12 @@ import metaversefileApi from 'metaversefile';
 // const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 
-/* const testSpec = {
-  "background": {
-    "color": [0, 0, 0]
-  },
-  "fog": {
-    "fogType": "exp",
-    "args": [[255, 255, 255], 0.01]
-  },
-  "ssao": {
-    "kernelRadius": 16,
-    "minDistance": 0.005,
-    "maxDistance": 0.1
-  },
-  "dof": {
-    "focus": 3.0,
-    "aperture": 0.00002,
-    "maxblur": 0.005
-  },
-  "hdr": {
-    "adaptive": true,
-    "resolution": 256,
-    "adaptionRate": 100,
-    "maxLuminance": 10,
-    "minLuminance": 0,
-    "middleGrey": 3
-  },
-  "bloom": {
-    "strength": 0.2,
-    "radius": 0.5,
-    "threshold": 0.8
-  }
-}; */
-
 function bindCanvas() {
   /* const renderer = getRenderer();
   const size = renderer.getSize(new THREE.Vector2())
     .multiplyScalar(renderer.getPixelRatio()); */
-  
-  setPasses(null);
 
-  /* document.addEventListener('keydown', e => { // XXX move to io manager
-    if (e.key === 'h') {
-      webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : ssaoRenderPass;
-    } else if (e.key === 'j') {
-      bokehPass.enabled = !bokehPass.enabled;
-    } else if (e.key === 'k') {
-      adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
-    } else if (e.key === 'l') {
-      unrealBloomPass.enabled = !unrealBloomPass.enabled;
-    }
-  }); */
+  setPasses(null);
 }
 
 function makeSsaoRenderPass({
@@ -192,12 +149,12 @@ const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getM
 webaverseRenderPass.onBeforeRender = () => {
   // ensure lights attached
   // scene.add(world.lights);
-  
+
   // decapitate avatar if needed
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
     // scene.add(localPlayer.avatar.model);
-    
+
     const decapitated = _isDecapitated();
     if (decapitated) {
       localPlayer.avatar.decapitate();
@@ -224,17 +181,17 @@ function setPasses(rendersettings) {
     const oldPass = oldPasses[i];
     composer.removePass(oldPass);
   }
-  
+
   composer.addPass(webaverseRenderPass);
-  
+
   if (rendersettings) {
     const {ssao, dof, hdr, bloom, enablePostScene} = rendersettings;
     // console.log('got', ssao, dof, hdr, bloom);
-    
+
     if (ssao) {
-      const ssaoRenderPass = makeSsaoRenderPass(ssao);
-      webaverseRenderPass.internalRenderPass = ssaoRenderPass;
-      
+      // const ssaoRenderPass = makeSsaoRenderPass(ssao);
+      // webaverseRenderPass.internalRenderPass = ssaoRenderPass;
+
       // const webaverseRenderPass = new WebaverseRenderPass(ssaoRenderPass);
       // composer.addPass(webaverseRenderPass);
     }
@@ -247,17 +204,25 @@ function setPasses(rendersettings) {
       composer.addPass(hdrPass);
     }
     if (bloom) {
-      const bloomPass = makeBloomPass(bloom);
-      composer.addPass(bloomPass);
+      // const bloomPass = makeBloomPass(bloom);
+      // composer.addPass(bloomPass);
+      const DualBloomPass = DualBloomPassGen({THREE, Pass, FullScreenQuad});
+      const myDualBloomPass = new DualBloomPass({
+        maxDuals: 8, // Max available blur size, immutable after creation. ( >= 1 )
+        blurriness: 0.5, // Ratio of `maxDuals`, mutable. ( 0. <= blurriness <= 1. )
+        threshold: 0.8, // Bloom if luma > `threshold`. ( 0. <= threshold <= 1. )
+        intensity: 0.2, // Bloom intensity. ( >= 0. )
+      });
+      composer.addPass(myDualBloomPass);
     }
     if (enablePostScene) {
       const postRenderPass = new RenderPass(postScene, camera);
       composer.addPass(postRenderPass);
     }
   }
-  
+
   composer.addPass(encodingPass);
-  
+
   window.passes = composer.passes;
 }
 
