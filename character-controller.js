@@ -72,6 +72,12 @@ class PlayerBase extends THREE.Object3D {
     this.avatar = null;
   }
 }
+const controlActionTypes = [
+  'jump',
+  'crouch',
+  'fly',
+  'sit',
+];
 class StatePlayer extends PlayerBase {
   constructor({
     playerId = makeId(5),
@@ -101,12 +107,6 @@ class StatePlayer extends PlayerBase {
     
     this.bindState(playersArray);
   }
-  static controlActionTypes = [
-    'jump',
-    'crouch',
-    'fly',
-    'sit',
-  ]
   isBound() {
     return !!this.playersArray;
   }
@@ -472,7 +472,7 @@ class StatePlayer extends PlayerBase {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
       const action = actions.get(i);
-      const isControlAction = Player.controlActionTypes.includes(action.type);
+      const isControlAction = controlActionTypes.includes(action.type);
       if (isControlAction) {
         actions.delete(i);
         i--;
