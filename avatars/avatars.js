@@ -5,7 +5,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-// import {world} from '../world.js';
+import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 // import skeletonString from './skeleton.js';
@@ -28,7 +28,423 @@ import {
   // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
-}  from './util.mjs';
+  animationBoneToModelBone,
+} from './util.mjs';
+import {scene, getRenderer} from '../renderer.js';
+
+const outlineMaterial = (() => {
+  var wVertex = THREE.ShaderLib["standard"].vertexShader;
+  var wFragment = THREE.ShaderLib["standard"].fragmentShader;
+  var wUniforms = THREE.ShaderLib["standard"].uniforms;
+  wVertex =
+    `
+
+          attribute vec3 offset;
+          attribute vec4 orientation;
+
+          vec3 applyQuaternionToVector( vec4 q, vec3 v ){
+              return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
+          }
+
+        ` + wVertex;
+
+  wVertex = wVertex.replace(
+    "#include <project_vertex>",
+    `
+          vec3 vPosition = applyQuaternionToVector( orientation, transformed );
+    
+          vec4 mvPosition = modelViewMatrix * vec4( vPosition, 1.0 );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 );
+          
+        `
+  );
+  wFragment = `\
+    void main() {
+      gl_FragColor = vec4(1., 0., 0., 1.);
+    }
+  `;
+
+  var instanceMaterial = new THREE.ShaderMaterial({
+    uniforms: wUniforms,
+    vertexShader: wVertex,
+    fragmentShader: wFragment,
+    lights: true,
+    // depthPacking: THREE.RGBADepthPacking,
+    name: "detail-material",
+    // fog: true,
+    extensions: {
+      derivatives: true,
+    },
+    side: THREE.BackSide,
+  });
+  instanceMaterial.onBeforeCompile = () => {
+    console.log('before compile');
+  };
+  return instanceMaterial;
+})();
+
+const mmdCanvases = [];
+const mmdCanvasContexts = [];
+const animationFileNames = `\
+'Running' by CorruptedDestiny/2.vpd
+'Running' by CorruptedDestiny/3.vpd
+'Running' by CorruptedDestiny/4.vpd
+'Running' by CorruptedDestiny/5.vpd
+'Running' by CorruptedDestiny/6.vpd
+'Running' by CorruptedDestiny/First step.vpd
+'The Random Factor' by CorruptedDestiny/Jump, YEAH.vpd
+'The Random Factor' by CorruptedDestiny/Peace up dude.vpd
+'The Random Factor' by CorruptedDestiny/Randomness.vpd
+'To Lie' by CorruptedDestiny/Fetal Position.vpd
+'To Lie' by CorruptedDestiny/Semi Fetal Position.vpd
+'To Lie' by CorruptedDestiny/Sleeping on Back Open.vpd
+'To Lie' by CorruptedDestiny/Sleeping on Back.vpd
+'To Lie' by CorruptedDestiny/Sleeping on Stomach.vpd
+Floating Pose Pack - Snorlaxin/1.vpd
+Floating Pose Pack - Snorlaxin/10.vpd
+Floating Pose Pack - Snorlaxin/11.vpd
+Floating Pose Pack - Snorlaxin/12.vpd
+Floating Pose Pack - Snorlaxin/2.vpd
+Floating Pose Pack - Snorlaxin/3.vpd
+Floating Pose Pack - Snorlaxin/4.vpd
+Floating Pose Pack - Snorlaxin/5-ver2.vpd
+Floating Pose Pack - Snorlaxin/5.vpd
+Floating Pose Pack - Snorlaxin/6.vpd
+Floating Pose Pack - Snorlaxin/7.vpd
+Floating Pose Pack - Snorlaxin/8.vpd
+Floating Pose Pack - Snorlaxin/9.vpd
+General Poses 1/Casting.vpd
+General Poses 1/Cross my heart.vpd
+General Poses 1/Drawing 1.vpd
+General Poses 1/Drawing 2.vpd
+General Poses 1/Drawing Pose Reference 1.vpd
+General Poses 1/Drawing Pose Reference 2.vpd
+General Poses 1/Element Bending.vpd
+General Poses 1/Frankenstocking 2-1.vpd
+General Poses 1/Frankenstocking 2-2.vpd
+General Poses 1/Heaven knows, I tried.vpd
+General Poses 1/Here I stand in the light of day.vpd
+General Poses 1/I'm Devious.vpd
+General Poses 1/Look Ma No Hands.vpd
+General Poses 1/Magical Girl.vpd
+General Poses 1/Monster Girl 2 1.vpd
+General Poses 1/Monster Girl 2 2.vpd
+General Poses 1/Monster Girl.vpd
+General Poses 1/No No 1.vpd
+General Poses 1/No No 2.vpd
+General Poses 1/Number 1.vpd
+General Poses 1/Offer Up 1.vpd
+General Poses 1/Offer Up 2.vpd
+General Poses 1/Peace.vpd
+General Poses 1/Rawr 1.vpd
+General Poses 1/Rawr 2.vpd
+General Poses 1/Rawr 3.vpd
+General Poses 1/Red Purse 1.vpd
+General Poses 1/Red Purse 2.vpd
+General Poses 1/Sky's Falling 1.vpd
+General Poses 1/Sky's Falling 2.vpd
+General Poses 1/Sneaking Around 1.vpd
+General Poses 1/Sneaking Around 2.vpd
+General Poses 1/Sneaking Around 3.vpd
+General Poses 1/ssppooonn.vpd
+General Poses 1/Start Somthing 1.vpd
+General Poses 1/Start Somthing 2.vpd
+General Poses 1/Start Somthing 3.vpd
+General Poses 1/Turn away and slam the door.vpd
+General Poses 1/Witch Brew 1.vpd
+General Poses 1/Witch Brew 2.vpd
+General Poses 1/Witch Brew 3.vpd
+General Poses 1/Witch Brew 4.vpd
+General Poses 1/Witch Brew 5.vpd
+General Poses 1/Witch Brew 6.vpd
+General Poses 1/Witch Brew 7.vpd
+General Poses 1/Witch Brew 8.vpd
+General Poses 1/With Wings Pose 1.vpd
+General Poses 1/With Wings Pose 2.vpd
+JuuRenka's Ultimate Pose Pack/R1.vpd
+JuuRenka's Ultimate Pose Pack/R10.vpd
+JuuRenka's Ultimate Pose Pack/R11.vpd
+JuuRenka's Ultimate Pose Pack/R12.vpd
+JuuRenka's Ultimate Pose Pack/R13.vpd
+JuuRenka's Ultimate Pose Pack/R14.vpd
+JuuRenka's Ultimate Pose Pack/R15.vpd
+JuuRenka's Ultimate Pose Pack/R16.vpd
+JuuRenka's Ultimate Pose Pack/R17.vpd
+JuuRenka's Ultimate Pose Pack/R18.vpd
+JuuRenka's Ultimate Pose Pack/R19.vpd
+JuuRenka's Ultimate Pose Pack/R2.vpd
+JuuRenka's Ultimate Pose Pack/R20.vpd
+JuuRenka's Ultimate Pose Pack/R21.vpd
+JuuRenka's Ultimate Pose Pack/R22.vpd
+JuuRenka's Ultimate Pose Pack/R23.vpd
+JuuRenka's Ultimate Pose Pack/R24.vpd
+JuuRenka's Ultimate Pose Pack/R25.vpd
+JuuRenka's Ultimate Pose Pack/R26.vpd
+JuuRenka's Ultimate Pose Pack/R27.vpd
+JuuRenka's Ultimate Pose Pack/R28.vpd
+JuuRenka's Ultimate Pose Pack/R29.vpd
+JuuRenka's Ultimate Pose Pack/R3.vpd
+JuuRenka's Ultimate Pose Pack/R30.vpd
+JuuRenka's Ultimate Pose Pack/R31.vpd
+JuuRenka's Ultimate Pose Pack/R32.vpd
+JuuRenka's Ultimate Pose Pack/R33.vpd
+JuuRenka's Ultimate Pose Pack/R34.vpd
+JuuRenka's Ultimate Pose Pack/R35.vpd
+JuuRenka's Ultimate Pose Pack/R4.vpd
+JuuRenka's Ultimate Pose Pack/R5.vpd
+JuuRenka's Ultimate Pose Pack/R6.vpd
+JuuRenka's Ultimate Pose Pack/R7.vpd
+JuuRenka's Ultimate Pose Pack/R8.vpd
+JuuRenka's Ultimate Pose Pack/R9.vpd
+Pose Pack 2 by OzzWalcito/1.vpd
+Pose Pack 2 by OzzWalcito/10.vpd
+Pose Pack 2 by OzzWalcito/11.vpd
+Pose Pack 2 by OzzWalcito/12.vpd
+Pose Pack 2 by OzzWalcito/13.vpd
+Pose Pack 2 by OzzWalcito/14.vpd
+Pose Pack 2 by OzzWalcito/15.vpd
+Pose Pack 2 by OzzWalcito/16.vpd
+Pose Pack 2 by OzzWalcito/17.vpd
+Pose Pack 2 by OzzWalcito/18.vpd
+Pose Pack 2 by OzzWalcito/19.vpd
+Pose Pack 2 by OzzWalcito/2.vpd
+Pose Pack 2 by OzzWalcito/20.vpd
+Pose Pack 2 by OzzWalcito/21.vpd
+Pose Pack 2 by OzzWalcito/22.vpd
+Pose Pack 2 by OzzWalcito/23_1.vpd
+Pose Pack 2 by OzzWalcito/23_2.vpd
+Pose Pack 2 by OzzWalcito/24.vpd
+Pose Pack 2 by OzzWalcito/25.vpd
+Pose Pack 2 by OzzWalcito/26.vpd
+Pose Pack 2 by OzzWalcito/27.vpd
+Pose Pack 2 by OzzWalcito/28.vpd
+Pose Pack 2 by OzzWalcito/29.vpd
+Pose Pack 2 by OzzWalcito/3.vpd
+Pose Pack 2 by OzzWalcito/30.vpd
+Pose Pack 2 by OzzWalcito/4.vpd
+Pose Pack 2 by OzzWalcito/5.vpd
+Pose Pack 2 by OzzWalcito/6.vpd
+Pose Pack 2 by OzzWalcito/7.vpd
+Pose Pack 2 by OzzWalcito/8.vpd
+Pose Pack 2 by OzzWalcito/9.vpd
+Pose Pack 6 - Snorlaxin/1.vpd
+Pose Pack 6 - Snorlaxin/10.vpd
+Pose Pack 6 - Snorlaxin/2.vpd
+Pose Pack 6 - Snorlaxin/3.vpd
+Pose Pack 6 - Snorlaxin/4.vpd
+Pose Pack 6 - Snorlaxin/5.vpd
+Pose Pack 6 - Snorlaxin/6.vpd
+Pose Pack 6 - Snorlaxin/7.vpd
+Pose Pack 6 - Snorlaxin/8.vpd
+Pose Pack 6 - Snorlaxin/9.vpd
+Resting Pose Pack - Snorlaxin/1.vpd
+Resting Pose Pack - Snorlaxin/10.vpd
+Resting Pose Pack - Snorlaxin/11.vpd
+Resting Pose Pack - Snorlaxin/12.vpd
+Resting Pose Pack - Snorlaxin/13.vpd
+Resting Pose Pack - Snorlaxin/14.vpd
+Resting Pose Pack - Snorlaxin/2.vpd
+Resting Pose Pack - Snorlaxin/3.vpd
+Resting Pose Pack - Snorlaxin/4.vpd
+Resting Pose Pack - Snorlaxin/5.vpd
+Resting Pose Pack - Snorlaxin/6.vpd
+Resting Pose Pack - Snorlaxin/7.vpd
+Resting Pose Pack - Snorlaxin/8.vpd
+Resting Pose Pack - Snorlaxin/9.vpd
+Seated Poses/1.vpd
+Seated Poses/2.vpd
+Seated Poses/3.vpd
+Seated Poses/4.vpd
+ThatOneBun Posepack/1.vpd
+ThatOneBun Posepack/10.vpd
+ThatOneBun Posepack/11.vpd
+ThatOneBun Posepack/12.vpd
+ThatOneBun Posepack/13.vpd
+ThatOneBun Posepack/14.vpd
+ThatOneBun Posepack/15.vpd
+ThatOneBun Posepack/16.vpd
+ThatOneBun Posepack/17.vpd
+ThatOneBun Posepack/18.vpd
+ThatOneBun Posepack/19.vpd
+ThatOneBun Posepack/2.vpd
+ThatOneBun Posepack/20.vpd
+ThatOneBun Posepack/21.vpd
+ThatOneBun Posepack/22.vpd
+ThatOneBun Posepack/23.vpd
+ThatOneBun Posepack/24.vpd
+ThatOneBun Posepack/25.vpd
+ThatOneBun Posepack/26.vpd
+ThatOneBun Posepack/27.vpd
+ThatOneBun Posepack/28.vpd
+ThatOneBun Posepack/29.vpd
+ThatOneBun Posepack/3.vpd
+ThatOneBun Posepack/30.vpd
+ThatOneBun Posepack/31.vpd
+ThatOneBun Posepack/32.vpd
+ThatOneBun Posepack/33.vpd
+ThatOneBun Posepack/34.vpd
+ThatOneBun Posepack/35.vpd
+ThatOneBun Posepack/36.vpd
+ThatOneBun Posepack/37.vpd
+ThatOneBun Posepack/38.vpd
+ThatOneBun Posepack/39.vpd
+ThatOneBun Posepack/4.vpd
+ThatOneBun Posepack/40.vpd
+ThatOneBun Posepack/41.vpd
+ThatOneBun Posepack/42.vpd
+ThatOneBun Posepack/43.vpd
+ThatOneBun Posepack/5.vpd
+ThatOneBun Posepack/6.vpd
+ThatOneBun Posepack/7.vpd
+ThatOneBun Posepack/8.vpd
+ThatOneBun Posepack/9.vpd
+ThatOneBun Posepack/Scoot's pick/Darinka.vpd
+ThatOneBun Posepack/Scoot's pick/Frizerka.vpd
+ThatOneBun Posepack/Scoot's pick/Jebac.vpd
+ThatOneBun Posepack/Scoot's pick/Snezana.vpd
+ThatOneBun Posepack/Scoot's pick/Spizdi.vpd
+ThatOneBun Posepack/Scoot's pick/Strina.vpd
+ThatOneBun Posepack/Scoot's pick/Vesna.vpd
+Trust Me Pose Pack/1.vpd
+Trust Me Pose Pack/10.vpd
+Trust Me Pose Pack/11 (Boy).vpd
+Trust Me Pose Pack/12 (Girl).vpd
+Trust Me Pose Pack/13.vpd
+Trust Me Pose Pack/14.vpd
+Trust Me Pose Pack/15 (Final Pose).vpd
+Trust Me Pose Pack/2.vpd
+Trust Me Pose Pack/3.vpd
+Trust Me Pose Pack/4.vpd
+Trust Me Pose Pack/5.vpd
+Trust Me Pose Pack/6.vpd
+Trust Me Pose Pack/7 (Left).vpd
+Trust Me Pose Pack/8 (Right).vpd
+Trust Me Pose Pack/9.vpd
+Twins/Twins.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 1.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 10.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 11.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 12.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 13.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 14.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 15.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 2.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 3.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 4.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 5.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 6.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 7.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 8.vpd
+Yoga Pose Pack - Snorlaxin/Yoga Pose 9.vpd`.split('\n');
+
+let mmdAnimation = null;
+import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
+const mmdLoader = new MMDLoader();
+mmdLoader.load(
+	// path to PMD/PMX file
+	'/avatars/Miku_Hatsune_Ver2.pmd',
+  function(mesh) {
+    console.log('got', mesh);
+    mesh.position.set(0, 0, 0);
+    mesh.scale.setScalar(0.07);
+    mesh.updateMatrixWorld();
+		scene.add(mesh);
+
+    mmdLoader.loadVPD('/poses/' + animationFileNames[30], false, o => {
+      console.log('got animation', o);
+      
+      for (const bone of o.bones) {
+        const {name, translation, quaternion} = bone;
+        const targetBone = mesh.skeleton.bones.find(b => b.name === name);
+        if (targetBone) {
+          // targetBone.position.fromArray(translation);
+          targetBone.quaternion.fromArray(quaternion);
+          // targetBone.updateMatrixWorld();
+        } else {
+          //console.warn('no bone', name);
+        }
+      }
+      mesh.updateMatrixWorld();
+
+      const _getBone = name => mesh.skeleton.bones.find(b => b.name === name);
+      mmdAnimation = {
+        Root: _getBone('センター'),
+    
+        Hips: _getBone('下半身'),
+        /* Spine,
+        Chest, */
+        Chest: _getBone('上半身'),
+        Neck: _getBone('首'),
+        Head: _getBone('頭'),
+        Eye_L: _getBone('左目'),
+        Eye_R: _getBone('右目'),
+
+        Left_shoulder: _getBone('左肩'),
+        Left_arm: _getBone('左腕'),
+        Left_elbow: _getBone('左ひじ'),
+        Left_wrist: _getBone('左手首'),
+        Left_thumb2: _getBone('左親指２'),
+        Left_thumb1: _getBone('左親指１'),
+        // Left_thumb0,
+        Left_indexFinger3: _getBone('左人指３'),
+        Left_indexFinger2: _getBone('左人指２'),
+        Left_indexFinger1: _getBone('左人指１'),
+        Left_middleFinger3: _getBone('左中指３'),
+        Left_middleFinger2: _getBone('左中指２'),
+        Left_middleFinger1: _getBone('左中指１'),
+        Left_ringFinger3: _getBone('左薬指３'),
+        Left_ringFinger2: _getBone('左薬指２'),
+        Left_ringFinger1: _getBone('左薬指１'),
+        Left_littleFinger3: _getBone('左小指３'),
+        Left_littleFinger2: _getBone('左小指２'),
+        Left_littleFinger1: _getBone('左小指１'),
+        Left_leg: _getBone('左足'),
+        Left_knee: _getBone('左ひざ'),
+        Left_ankle: _getBone('左足首'),
+    
+        Right_shoulder: _getBone('右肩'),
+        Right_arm: _getBone('右腕'),
+        Right_elbow: _getBone('右ひじ'),
+        Right_wrist: _getBone('右手首'),
+        Right_thumb2: _getBone('右親指２'),
+        Right_thumb1: _getBone('右親指１'),
+        // Right_thumb0,
+        Right_indexFinger3: _getBone('右人指３'),
+        Right_indexFinger2: _getBone('右人指２'),
+        Right_indexFinger1: _getBone('右人指１'),
+        Right_middleFinger3: _getBone('右中指３'),
+        Right_middleFinger2: _getBone('右中指２'),
+        Right_middleFinger1: _getBone('右中指１'),
+        Right_ringFinger3: _getBone('右薬指３'),
+        Right_ringFinger2: _getBone('右薬指２'),
+        Right_ringFinger1: _getBone('右薬指１'),
+        Right_littleFinger3: _getBone('右小指３'),
+        Right_littleFinger2: _getBone('右小指２'),
+        Right_littleFinger1: _getBone('右小指１'),
+        Right_leg: _getBone('右足'),
+        Right_knee: _getBone('右ひざ'),
+        Right_ankle: _getBone('右足首'),
+        Left_toe: _getBone('左つま先'),
+        Right_toe: _getBone('右つま先'),
+      };
+      for (const k in mmdAnimation) {
+        if (!mmdAnimation[k]) {
+          console.warn('no bone', k);
+        }
+      }
+    }, function onprogress() {}, function(error) {
+      console.warn('animation load fail', error);
+    });
+	},
+	// called when loading is in progresses
+	function (xhr) {
+		// console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+	},
+	// called when loading has errors
+	function(error) {
+		console.warn('An error happened', error);
+	}
+);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1907,14 +2323,18 @@ class Avatar {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
+          target.fromArray(v3);
           if (isPosition) {
+            // target.x = 0;
+            // target.z = 0;
+
             localQuaternion4.x = 0;
             localQuaternion4.z = 0;
           }
 
           lerpFn
             .call(
-              target.fromArray(v3),
+              target,
               localQuaternion4,
               idleWalkFactor
             );
@@ -2404,6 +2824,9 @@ class Avatar {
               );
         }
       };
+      /* const _blendNoise = spec => {
+        
+      }; */
 
       for (const spec of this.animationMappings) {
         const {
@@ -2414,6 +2837,7 @@ class Avatar {
         } = spec;
         
         applyFn(spec);
+        // _blendNoise(spec);
         _blendFly(spec);
         _blendActivateAction(spec);
         
@@ -2430,6 +2854,135 @@ class Avatar {
       }
     };
     _applyAnimation();
+
+    const noiseAnimation = animations.find(a => a.name === 't-pose_rot.fbx');
+    const noiseTime = (now/1000) % noiseAnimation.duration;
+    const _overwritePose = pose => {
+      for (const spec of this.animationMappings) {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        const boneName = animationBoneToModelBone[spec.animationTrackName.replace(/\.[\s\S]*$/, '')];
+        const srcBone = pose[boneName];
+        if (srcBone) {
+          if (isPosition) {
+            dst.x = 0;
+            dst.z = 0;
+          } else {
+            dst.copy(srcBone.quaternion);
+          }
+        } else {
+          // console.log('no source bone', boneName);
+          if (isPosition) {
+            dst.set(0, 0, 0);
+          } else {
+            dst.set(0, 0, 0, 1);
+          }
+        }
+
+        if (!isPosition) {
+          const src2 = noiseAnimation.interpolants[k];
+          const v2 = src2.evaluate(noiseTime);
+          dst.multiply(localQuaternion.fromArray(v2));
+        }
+      }
+
+      /* this.modelBoneOutputs.Left_arm.quaternion.multiply(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          -Math.PI * 0.25
+        )
+      );
+      this.modelBoneOutputs.Right_arm.quaternion.multiply(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          Math.PI * 0.25 
+        )
+      ); */
+    };
+    if (mmdAnimation && this.object.asset.generator === 'UniGLTF-1.28') {
+      _overwritePose(mmdAnimation);
+
+      const renderer = getRenderer();
+      const size = renderer.getSize(new THREE.Vector2());
+      // a Vector2 representing the largest power of two less than or equal to the current canvas size
+      const sizePowerOfTwo = new THREE.Vector2(
+        Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
+        Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
+      );
+      const sideSize = 512;
+      if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
+        throw new Error('renderer is too small');
+      }
+
+      // push old state
+      const oldParent = this.model.parent;
+      const oldViewport = renderer.getViewport(new THREE.Vector4());
+      const oldWorldLightParent = world.lights.parent;
+
+      // setup
+      const sideScene = new THREE.Scene();
+      sideScene.overrideMaterial = outlineMaterial;
+      sideScene.add(this.model);
+      sideScene.add(world.lights);
+
+      const sideCamera = new THREE.PerspectiveCamera();
+      sideCamera.position.y = 1.2;
+      sideCamera.position.z = 2;
+      sideCamera.updateMatrixWorld();
+
+      // console.log('got object', this.object, this.model);
+
+      // render
+      for (let i = 0; i < 4; i++) {
+        const x = i % sideSize;
+        const y = Math.floor(i / sideSize);
+        const dx = x * sideSize;
+        const dy = y * sideSize;
+        
+        let mmdCanvas = mmdCanvases[i];
+        let ctx = mmdCanvasContexts[i];
+        if (!mmdCanvas) {
+          mmdCanvas = document.createElement('canvas');
+          mmdCanvas.width = sideSize;
+          mmdCanvas.height = sideSize;
+          mmdCanvas.style.cssText = `\
+            position: absolute;
+            top: ${dy.toFixed(8)}px;
+            left: ${dx.toFixed(8)}px;
+          `;
+          ctx = mmdCanvas.getContext('2d');
+          mmdCanvases[i] = mmdCanvas;
+          mmdCanvasContexts[i] = ctx;
+
+          document.body.appendChild(mmdCanvas);
+        }
+
+        renderer.setViewport(0, 0, sideSize, sideSize);
+        renderer.clear();
+        renderer.render(sideScene, sideCamera);
+
+        ctx.clearRect(0, 0, sideSize, sideSize);
+        ctx.drawImage(renderer.domElement, 0, sideSize, sideSize, sideSize, 0, 0, sideSize, sideSize);
+      }
+
+      // pop old state
+      if (oldParent) {
+        oldParent.add(this.model);
+      } else {
+        this.model.parent.remove(this.model);
+      }
+      if (oldWorldLightParent) {
+        oldWorldLightParent.add(world.lights);
+      } else {
+        world.lights.parent.remove(world.lights);
+      }
+      renderer.setViewport(oldViewport);
+    }
 
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -2739,7 +3292,12 @@ class Avatar {
     if (microphoneMediaStream) {
       this.volume = 0;
      
-      const audioContext = new AudioContext();
+      const audioContext = getAudioContext();
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      // console.log('got context', audioContext);
+      // window.audioContext = audioContext;
       {
         options.audioContext = audioContext;
         options.emitVolume = true;
