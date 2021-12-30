@@ -353,26 +353,40 @@ export default class Webaverse extends EventTarget {
   }
 }
 
-/* window.addEventListener('keydown', e => {
+window.addEventListener('keydown', e => {
   if (e.which === 219) { // [
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
-      const audioUrl = '/sounds/pissbaby.mp3';
-      // const audioUrl = '/sounds/Scillia_Lines_Narrative.wav';
-      // const audioUrl = '/sounds/narrative2.mp3';
+      (async () => {
+        const audioUrl = '/sounds/vocals.mp3';
+        const audioUrl2 = '/sounds/music.mp3';
 
-      const audio = new Audio(audioUrl);
-      audio.addEventListener('canplaythrough', async e => {
-        localPlayer.avatar.say(audio);
-      }, {once: true});
-      audio.addEventListener('error', e => {
-        console.log('load error', e);
-      });
-      audio.addEventListener('ended', e => {
-        localPlayer.avatar.setMicrophoneMediaStream(null);
-      });
-      // audio.play();
-      // audioContext.resume();
+        const _loadAudio = u => new Promise((accept, reject) => {
+          const audio = new Audio(u);
+          audio.addEventListener('canplaythrough', async e => {
+            accept(audio);
+          }, {once: true});
+          audio.addEventListener('error', e => {
+            reject(e);
+          });
+          // audio.play();
+          // audioContext.resume();
+        });
+
+        const audios = await Promise.all([
+          _loadAudio(audioUrl),
+          _loadAudio(audioUrl2),
+        ]);
+        localPlayer.avatar.say(audios[0]);
+        await localPlayer.avatar.microphoneWorker.waitForLoad();
+
+        audios[0].play();
+        audios[1].play();
+        
+        audios[0].addEventListener('ended', e => {
+          localPlayer.avatar.setMicrophoneMediaStream(null);
+        });
+      })();
     }
   }
-}); */
+});
