@@ -53,31 +53,52 @@ const bgFragmentShader = `\
   #define PI 3.1415926535897932384626433832795
 
   void main() {
-      // if (pixel.a <= outline_threshold) {
-          // ivec2 sizeInt = textureSize(t0, 0);
-          // vec2 size = vec2(sizeInt.x, sizeInt.y);
+    /* float sum = 0.0;
+    int passes = 64;
+    float passesFloat = float(passes);
+    float step = outline_thickness / passesFloat;
+    // top
+    for (int i = 0; i < passes; ++i) {
+      float n = float(i);
+      vec2 uv = tex_coords + vec2(-outline_thickness*0.5 + step * n, outline_thickness);
+      sum += texture(t0, uv).a;
+    }
+    // bottom
+    for (int i = 0; i < passes; ++i) {
+      float n = float(i);
+      vec2 uv = tex_coords + vec2(-outline_thickness*0.5 + step * n, -outline_thickness);
+      sum += texture(t0, uv).a;
+    }
+    // left
+    for (int i = 0; i < passes; ++i) {
+      float n = float(i);
+      vec2 uv = tex_coords + vec2(-outline_thickness, -outline_thickness*0.5 + step * n);
+      sum += texture(t0, uv).a;
+    }
+    // right
+    for (int i = 0; i < passes; ++i) {
+      float n = float(i);
+      vec2 uv = tex_coords + vec2(outline_thickness, -outline_thickness*0.5 + step * n);
+      sum += texture(t0, uv).a;
+    } */
 
-          // float uv_x = tex_coords.x * size.x;
-          // float uv_y = tex_coords.y * size.y;
+    float sum = 0.0;
+    int passes = 32;
+    float passesFloat = float(passes);
+    float angleStep = 2.0 * PI / passesFloat;
+    for (int i = 0; i < passes; ++i) {
+        float n = float(i);
+        float angle = angleStep * n;
 
-          float sum = 0.0;
-          int passes = 64;
-          float passesFloat = float(passes);
-          float angleStep = 2.0 * PI / passesFloat;
-          for (int i = 0; i < passes; ++i) {
-              float n = float(i);
-              float angle = angleStep * n;
+        vec2 uv = tex_coords + vec2(cos(angle), sin(angle)) * outline_thickness;
+        sum += texture(t0, uv).a; // / passesFloat;
+    }
 
-              vec2 uv = tex_coords + vec2(cos(angle), sin(angle)) * outline_thickness;
-              sum += texture(t0, uv).a; // / passesFloat;
-          }
-
-          if (sum > 0.) {
-              pixel = vec4(outline_colour, 1);
-          } else {
-            pixel = texture(t0, tex_coords);
-          }
-      // }
+    if (sum > 0.) {
+      pixel = vec4(outline_colour, 1);
+    } else {
+      pixel = texture(t0, tex_coords);
+    }
   }
 
   /* void main() {
