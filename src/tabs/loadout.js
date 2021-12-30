@@ -27,7 +27,9 @@ export const Loadout = () => {
       }}>
         <img src='/images/loadout-down.svg'></img>
       </div>
-      <div className={classnames(styles.loadout)}>
+      <div style={{
+        backgroundImage: '/images/lower.svg'
+      }} className={classnames(styles.loadout)}>
         {(() => {
           const numItems = 8;
           const items = Array(numItems);

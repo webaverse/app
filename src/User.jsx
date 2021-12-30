@@ -77,9 +77,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
     var f = async (event) => {
       if (event.origin !== walletHost) { return; }
       if (event.data.pk) {
+        console.log('memonic', event.data.pk);
         const data = await pullUserObject(event.data.pk);
         const {address} = data;
         if (address) {
+          console.log('User Data',data);
           setAddress(address);
           setShow(false);
           setUserData(data);
@@ -111,6 +113,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setUserData}) => 
       const data = await handleDiscordLogin(code, id);
       const {address, error, mnemonic} = data;
       if (address) {
+        console.log('User Data',data);
         setAddress(address);
         sendData('pk', mnemonic);
         setShow(false);

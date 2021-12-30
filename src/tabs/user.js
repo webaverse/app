@@ -52,7 +52,7 @@ export class UserX extends React.Component {
   }
 
   render() {
-    console.log('Render Loop Called Previews are:', this.state.previews);
+    console.log('-------User-------', this.props.user);
     return (
       this.props.user
         ? <Tab
@@ -72,8 +72,8 @@ export class UserX extends React.Component {
               <div className={newStyles['panel-header']}>
                 <h1>{this.props.user.name || 
                 <Tooltip 
-                  text={this.user.address.substring(0,10)}
-                  tooltip={this.user.address}
+                  text={this.props.user.address.substring(0,10)}
+                  tooltip={this.props.user.address}
                   position='top'
                 />}</h1>
               </div>
@@ -92,7 +92,7 @@ export class UserX extends React.Component {
                         key={i}
                       >
                         <div className={classnames(newStyles.label)} onClick={e => {
-                        // drop code comes here
+                        // drop code comes heres
                         }}>DROP</div>
                         <div className={newStyles.itemWrapper}>
                           <img src={this.state.previews[token.hash] || '/images/loader.gif'} />
