@@ -33,33 +33,88 @@ import {
 import {scene, getRenderer} from '../renderer.js';
 
 const bgVertexShader = `\
-  varying vec2 vUv;
+  varying vec2 tex_coords;
 
   void main() {
-    vUv = uv;
-    gl_Position = vec4(position, 1.);
+    tex_coords = uv;
+    gl_Position = vec4(position.xy, 1., 1.);
   }
 `;
 const bgFragmentShader = `\
-  varying vec2 vUv;
+  varying vec4 v_colour;
+  varying vec2 tex_coords;
+
+  uniform sampler2D t0;
+  uniform float outline_thickness;
+  uniform vec3 outline_colour;
+  uniform float outline_threshold;
+
+  #define pixel gl_FragColor
+  #define PI 3.1415926535897932384626433832795
 
   void main() {
-    gl_FragColor = vec4(vUv, 0., 1.);
+      // if (pixel.a <= outline_threshold) {
+          // ivec2 sizeInt = textureSize(t0, 0);
+          // vec2 size = vec2(sizeInt.x, sizeInt.y);
+
+          // float uv_x = tex_coords.x * size.x;
+          // float uv_y = tex_coords.y * size.y;
+
+          float sum = 0.0;
+          int passes = 64;
+          float passesFloat = float(passes);
+          float angleStep = 2.0 * PI / passesFloat;
+          for (int i = 0; i < passes; ++i) {
+              float n = float(i);
+              float angle = angleStep * n;
+
+              vec2 uv = tex_coords + vec2(cos(angle), sin(angle)) * outline_thickness;
+              sum += texture(t0, uv).a; // / passesFloat;
+          }
+
+          if (sum > 0.) {
+              pixel = vec4(outline_colour, 1);
+          } else {
+            pixel = texture(t0, tex_coords);
+          }
+      // }
   }
+
+  /* void main() {
+    gl_FragColor = vec4(vUv, 0., 1.);
+  } */
 `;
 const bgMesh1 = (() => {
   const quad = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
     new THREE.ShaderMaterial({
+      uniforms: {
+        t0: {
+          value: null,
+          needsUpdate: false,
+        },
+        outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        },
+        outline_colour: {
+          value: new THREE.Color(0, 0, 1),
+          needsUpdate: true,
+        },
+        outline_threshold: {
+          value: .5,
+          needsUpdate: true,
+        },
+      },
       vertexShader: bgVertexShader,
       fragmentShader: bgFragmentShader,
       depthWrite: false,
       depthTest: false,
     })
   );
-  quad.material.onBeforeCompile = shader => {
+  /* quad.material.onBeforeCompile = shader => {
     console.log('got full screen shader', shader);
-  };
+  }; */
   quad.frustumCulled = false;
   return quad;
 })();
@@ -116,6 +171,7 @@ const outlineMaterial = (() => {
 
 const mmdCanvases = [];
 const mmdCanvasContexts = [];
+const avatarRenderTargets = [];
 const animationFileNames = `\
 'Running' by CorruptedDestiny/2.vpd
 'Running' by CorruptedDestiny/3.vpd
@@ -2952,14 +3008,15 @@ class Avatar {
 
       // push old state
       const oldParent = this.model.parent;
+      const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(new THREE.Vector4());
       const oldWorldLightParent = world.lights.parent;
 
       // setup
+      const sideAvatarScene = new THREE.Scene();
+      sideAvatarScene.overrideMaterial = outlineMaterial;
+
       const sideScene = new THREE.Scene();
-      sideScene.overrideMaterial = outlineMaterial;
-      sideScene.add(this.model);
-      sideScene.add(world.lights);
       sideScene.add(bgMesh1);
 
       const sideCamera = new THREE.PerspectiveCamera();
@@ -2993,7 +3050,31 @@ class Avatar {
 
           document.body.appendChild(mmdCanvas);
         }
-
+        let avatarRenderTarget = avatarRenderTargets[i];
+        if (!avatarRenderTarget) {
+          const pixelRatio = renderer.getPixelRatio();
+          avatarRenderTarget = new THREE.WebGLRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+          });
+          avatarRenderTargets[i] = avatarRenderTarget;
+        }
+        // set up side avatar scene
+        sideAvatarScene.add(this.model);
+        sideAvatarScene.add(world.lights);
+        // render side avatar scene
+        renderer.setRenderTarget(avatarRenderTarget);
+        renderer.clear();
+        renderer.render(sideAvatarScene, sideCamera);
+        
+        // set up side scene
+        sideScene.add(this.model);
+        sideScene.add(world.lights);
+        bgMesh1.material.uniforms.t0.value = avatarRenderTarget.texture;
+        bgMesh1.material.uniforms.t0.needsUpdate = true;
+        // render side scene
+        renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(0, 0, sideSize, sideSize);
         renderer.clear();
         renderer.render(sideScene, sideCamera);
@@ -3013,6 +3094,7 @@ class Avatar {
       } else {
         world.lights.parent.remove(world.lights);
       }
+      // renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
     }
 
