@@ -34,6 +34,7 @@ import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
+import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
 
@@ -309,7 +310,6 @@ let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
-let sceneLoadedPromise = null;
 // const apps = [];
 metaversefile.setApi({
   // apps,
@@ -862,12 +862,10 @@ export default () => {
     return gradientMaps;
   },
   isSceneLoaded() {
-    return !sceneLoadedPromise;
+    return isSceneLoaded();
   },
   async waitForSceneLoaded() {
-    if (sceneLoadedPromise) {
-      await sceneLoadedPromise;
-    }
+    await waitForSceneLoaded();
   },
   async addModule(app, m) {
     currentAppRender = app;
@@ -881,9 +879,6 @@ export default () => {
           renderSpec = fn({
             waitUntil(p) {
               waitUntilPromise = p;
-              if(currentAppRender.appType === 'scn') {
-                sceneLoadedPromise = waitUntilPromise;
-              }
             },
           });
         } else {
@@ -901,9 +896,6 @@ export default () => {
 
     if (waitUntilPromise) {
       await waitUntilPromise;
-      if(app.appType === 'scn') {
-        sceneLoadedPromise = null;
-      }
     }
 
     const _bindDefaultComponents = app => {
