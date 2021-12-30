@@ -2191,7 +2191,7 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
-              //isTop,
+              isTop,
               isPosition
             } = spec;
 
@@ -2201,7 +2201,6 @@ class Avatar {
             if (!isPosition) {
             const idleAnimation = _getIdleAnimation('walk');
             
-            
             const src2 = landing.interpolants[k];
             const v2 = src2.evaluate(t2);
 
@@ -2209,10 +2208,19 @@ class Avatar {
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
             localQuaternion2
-            dst
-                  .premultiply(localQuaternion2.fromArray(v2))
-                  .premultiply(localQuaternion2.fromArray(v3).invert())
 
+            if(!isTop) {
+              dst
+              .premultiply(localQuaternion2.fromArray(v2))
+              .premultiply(localQuaternion2.fromArray(v3))
+              
+            }
+            else {
+              dst
+              .premultiply(localQuaternion2.fromArray(v2))
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+            }
+              
            
           } else {
             const src2 = landing.interpolants[k];
@@ -2226,9 +2234,6 @@ class Avatar {
             dst
               .sub(localVector2.fromArray(v3))
               .add(localVector2.fromArray(v2));
-
-          
-
           };
           return _handleDefault;
 
