@@ -34,6 +34,7 @@ import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
+import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
 
@@ -859,6 +860,12 @@ export default () => {
   },
   useGradientMapsInternal() {
     return gradientMaps;
+  },
+  isSceneLoaded() {
+    return isSceneLoaded();
+  },
+  async waitForSceneLoaded() {
+    await waitForSceneLoaded();
   },
   async addModule(app, m) {
     currentAppRender = app;
