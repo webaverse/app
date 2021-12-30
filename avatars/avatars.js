@@ -3294,7 +3294,9 @@ class Avatar {
      
       const audioContext = getAudioContext();
       if (audioContext.state === 'suspended') {
-        await audioContext.resume();
+        (async () => {
+          await audioContext.resume();
+        })();
       }
       // console.log('got context', audioContext);
       // window.audioContext = audioContext;
