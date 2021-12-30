@@ -32,6 +32,37 @@ import {
 } from './util.mjs';
 import {scene, getRenderer} from '../renderer.js';
 
+const bgVertexShader = `\
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position, 1.);
+  }
+`;
+const bgFragmentShader = `\
+  varying vec2 vUv;
+
+  void main() {
+    gl_FragColor = vec4(vUv, 0., 1.);
+  }
+`;
+const bgMesh1 = (() => {
+  const quad = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      vertexShader: bgVertexShader,
+      fragmentShader: bgFragmentShader,
+      depthWrite: false,
+      depthTest: false,
+    })
+  );
+  quad.material.onBeforeCompile = shader => {
+    console.log('got full screen shader', shader);
+  };
+  quad.frustumCulled = false;
+  return quad;
+})();
 const outlineMaterial = (() => {
   var wVertex = THREE.ShaderLib["standard"].vertexShader;
   var wFragment = THREE.ShaderLib["standard"].fragmentShader;
@@ -2929,6 +2960,7 @@ class Avatar {
       sideScene.overrideMaterial = outlineMaterial;
       sideScene.add(this.model);
       sideScene.add(world.lights);
+      sideScene.add(bgMesh1);
 
       const sideCamera = new THREE.PerspectiveCamera();
       sideCamera.position.y = 1.2;
