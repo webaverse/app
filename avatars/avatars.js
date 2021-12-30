@@ -2210,15 +2210,17 @@ class Avatar {
             localQuaternion2
 
             if(!isTop) {
+              console.log(dst)
               dst
               .premultiply(localQuaternion2.fromArray(v2))
               .premultiply(localQuaternion2.fromArray(v3))
-              
+              .premultiply(localQuaternion2.fromArray(v3).invert())
             }
             else {
               dst
               .premultiply(localQuaternion2.fromArray(v2))
               .premultiply(localQuaternion2.fromArray(v3).invert())
+              
             }
               
            
