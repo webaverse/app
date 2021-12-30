@@ -12,7 +12,7 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
-import {scene, postScene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+import {scene, sceneOrthographic, scenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
@@ -301,8 +301,11 @@ const _getBindSceneForRenderPriority = renderPriority => {
     case 'low': {
       return sceneLowPriority;
     }
-    case 'postScene': {
-      return postScene;
+    case 'perspectiveScene': {
+      return scenePerspective;
+    }
+    case 'orthographicScene': {
+      return sceneOrthographic;
     }
     default: {
       return scene;
