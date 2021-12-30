@@ -9,7 +9,7 @@ import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from './components/modal';
 
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) => {
   const [show, setShow] = useState(false);
 
   const showModal = async e => {
@@ -109,6 +109,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
           setShow(false);
+          setLoginFrom('metamask');
         } catch (err) {
           console.warn(err);
         } finally {
@@ -137,6 +138,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
       const {address, error, mnemonic} = await handleDiscordLogin(code, id);
       if (address) {
         setAddress(address);
+        setLoginFrom('discord');
         sendDataToWallet('privateKey', mnemonic);
         setShow(false);
       } else {

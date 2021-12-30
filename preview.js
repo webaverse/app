@@ -80,7 +80,7 @@ function isValidURL(string) {
   return (res !== null);
 }
 
-export const preview = async (url, ext, type, width, height, priority=10) => {
+export const preview = async (url, ext, type, width, height, priority = 10) => {
   return new Promise((resolve, reject) => {
     if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
       return reject('Undefined Extension');
@@ -89,7 +89,7 @@ export const preview = async (url, ext, type, width, height, priority=10) => {
       generatePreview(url, ext, type, width, height, resolve, reject);
     } else {
       queue.push({url, ext, type, width, height, resolve, reject, priority});
-      queue.sort((a, b) => a.priority - b.priority)
+      queue.sort((a, b) => a.priority - b.priority);
     }
   });
 };
