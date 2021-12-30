@@ -309,7 +309,7 @@ let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
-let sceneLoaded = false;
+let sceneLoadedPromise = null;
 // const apps = [];
 metaversefile.setApi({
   // apps,
@@ -862,7 +862,12 @@ export default () => {
     return gradientMaps;
   },
   isSceneLoaded() {
-    return sceneLoaded;
+    return !sceneLoadedPromise;
+  },
+  async waitForSceneLoaded() {
+    if (sceneLoadedPromise) {
+      await sceneLoadedPromise;
+    }
   },
   async addModule(app, m) {
     currentAppRender = app;
@@ -876,6 +881,9 @@ export default () => {
           renderSpec = fn({
             waitUntil(p) {
               waitUntilPromise = p;
+              if(currentAppRender.appType === 'scn') {
+                sceneLoadedPromise = waitUntilPromise;
+              }
             },
           });
         } else {
@@ -894,7 +902,7 @@ export default () => {
     if (waitUntilPromise) {
       await waitUntilPromise;
       if(app.appType === 'scn') {
-        sceneLoaded = true;
+        sceneLoadedPromise = null;
       }
     }
 
