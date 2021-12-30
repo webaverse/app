@@ -109,7 +109,8 @@ const _proxyUrl = (req, res, u) => {
     }
   });
 
-  const isHttps = !!certs.key && !!certs.cert;
+  // const isHttps = !!certs.key && !!certs.cert;
+  const isHttps = false;
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
@@ -118,11 +119,7 @@ const _proxyUrl = (req, res, u) => {
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
-      hmr: {
-        server: httpServer,
-        port,
-        overlay: false,
-      },
+      hmr: false,
     }
   });
   app.use(viteServer.middlewares);
