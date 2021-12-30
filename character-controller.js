@@ -58,7 +58,20 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class Player extends THREE.Object3D {
+class PlayerBase extends THREE.Object3D {
+  constructor() {
+    super();
+
+    this.leftHand = new PlayerHand();
+    this.rightHand = new PlayerHand();
+    this.hands = [
+      this.leftHand,
+      this.rightHand,
+    ];
+    this.avatar = null;
+  }
+}
+class StatePlayer extends PlayerBase {
   constructor({
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
@@ -80,16 +93,8 @@ class Player extends THREE.Object3D {
       const app = e.data;
       app.parent && app.parent.remove(app);
     });
-
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
-    this.hands = [
-      this.leftHand,
-      this.rightHand,
-    ];
     
     this.avatarEpoch = 0;
-    this.avatar = null;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
