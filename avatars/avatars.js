@@ -342,16 +342,113 @@ const emoteFragmentShader2 = `\
     mainImage(gl_FragColor, tex_coords);
   }
 `;
+// this function maps the speed histogram to a position, integrated up to the given timestamp
+const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
+  const {elements} = speedHistogram;
+  const totalDistance = speedHistogram.totalDistance();
+  // const totalDuration = speedHistogram.totalDuration();
+  // const totalDistance = this.totalDistance();
+  let currentTime = 0;
+  let currentDistance = 0;
+  for (let i = 0; i < elements.length; i++) {
+    const {speed, duration} = elements[i];
+    if (time < currentTime + duration) {
+      currentDistance += speed * (time - currentTime);
+      break;
+    } else {
+      currentTime += duration;
+      currentDistance += speed * duration;
+    }
+  }
+  return currentDistance / totalDistance;
+};
+// a container class that stores instantaneous speed changes over time
+class SpeedHistogram {
+  constructor() {
+    this.elements = [];
+  }
+  add(speed, duration) {
+    this.elements.push({speed, duration});
+  }
+  totalDuration() {
+    const {elements} = this;
+    let totalDuration = 0;
+    for (let i = 0; i < elements.length; i++) {
+      totalDuration += elements[i].duration;
+    }
+    return totalDuration;
+  }
+  totalDistance() {
+    const {elements} = this;
+    // const totalDuration = this.totalDuration();
+    let totalDistance = 0;
+    for (let i = 0; i < elements.length; i++) {
+      totalDistance += elements[i].speed * elements[i].duration;
+    }
+    return totalDistance;
+  }
+  fromArray(elements) {
+    this.elements = elements;
+    return this;
+  }
+  toArray(frameRate = 60, startTime = 0, endTime = this.totalDuration()) {
+    // const {elements} = this;
+    // const totalDuration = this.totalDuration();
+    // const totalDistance = this.totalDistance();
+    const startTimeSeconds = startTime / 1000;
+    const endTimeSeconds = endTime / 1000;
+    // const startPosition = mapTime(this, startTime);
+    // const endPosition = mapTime(this, endTime);
+    const frameCount = Math.ceil(endTimeSeconds - startTimeSeconds) * frameRate;
+    const positions = [];
+    for (let i = 0; i < frameCount; i++) {
+      const time = startTimeSeconds + i / frameRate;
+      const position = mapTime(this, time * 1000);
+      // const normalizedPosition = position / totalDistance;
+      positions.push(position);
+    }
+    return positions;
+  }
+}
+const histogram = new SpeedHistogram().fromArray([
+  {speed: 10, duration: 100},
+  {speed: 0.05, duration: 2000},
+  {speed: 10, duration: 100},
+]).toArray(60);
+// window.histogram = histogram;
+const labelAnimationRate = 3;
 const labelVertexShader = `\
   uniform float iTime;
   attribute vec3 color;
   varying vec2 tex_coords;
   varying vec3 vColor;
 
+  float frames[${histogram.length}] = float[${histogram.length}](${histogram.map(v => v.toFixed(8)).join(', ')});
+  float mapTime(float t) {
+    t /= ${labelAnimationRate.toFixed(8)};
+    t = mod(t, 1.);
+
+    const float l = ${histogram.length.toFixed(8)};
+    float frameIndexFloat = floor(min(t, 0.999) * l);
+    //return frameIndexFloat / l;
+
+    int frameIndex = int(frameIndexFloat);
+    float leftFrame = frames[frameIndex];
+    // return leftFrame;
+
+    float rightFrame = frames[frameIndex + 1];
+    float frameStartTime = frameIndexFloat / l;
+    float frameDuration = 1. / (l - 1.);
+    float factor = (t - frameStartTime) / frameDuration;
+    float frame = leftFrame*(1.-factor) + rightFrame*factor;
+    return frame;
+  }
+
   void main() {
     tex_coords = uv;
     vColor = color;
-    gl_Position = vec4(position.xy + vec2(-2. + mod(iTime, 2.) * 2., 0.) * position.z, -1., 1.);
+    float t = mapTime(iTime);
+    gl_Position = vec4(position.xy + vec2(-2. + t * 4., 0.) * position.z, -1., 1.);
   }
 `;
 const labelFragmentShader = `\
@@ -416,12 +513,34 @@ const textVertexShader = `\
   varying vec2 tex_coords;
   // varying vec3 vColor;
 
+  float frames[${histogram.length}] = float[${histogram.length}](${histogram.map(v => v.toFixed(8)).join(', ')});
+  float mapTime(float t) {
+    t /= ${labelAnimationRate.toFixed(8)};
+    t = mod(t, 1.);
+
+    const float l = ${histogram.length.toFixed(8)};
+    float frameIndexFloat = floor(min(t, 0.999) * l);
+    //return frameIndexFloat / l;
+
+    int frameIndex = int(frameIndexFloat);
+    float leftFrame = frames[frameIndex];
+    // return leftFrame;
+
+    float rightFrame = frames[frameIndex + 1];
+    float frameStartTime = frameIndexFloat / l;
+    float frameDuration = 1. / (l - 1.);
+    float factor = (t - frameStartTime) / frameDuration;
+    float frame = leftFrame*(1.-factor) + rightFrame*factor;
+    return frame;
+  }
+
   void main() {
     tex_coords = uv;
     // vColor = color;
 
     float iTime = uTroikaOutlineOpacity;
-    gl_Position = vec4(offset.xy + position.xy * scale + vec2(-2. + mod(iTime, 2.) * 2., 0.) * position.z, -1., 1.);
+    float t = mapTime(iTime);
+    gl_Position = vec4(offset.xy + position.xy * scale + vec2(-2. + t * 4., 0.) * position.z, -1., 1.);
   }
 `;
 const textFragmentShader = `\
@@ -577,9 +696,9 @@ const aspectRatio1 = 0.3;
 const p1 = new THREE.Vector3(0.45, -0.65, 0);
 const s2 = 0.5;
 const sk2 = 0.1;
-const speed2 = 1.2;
+const speed2 = 1.5;
 const aspectRatio2 = 0.15;
-const p2 = new THREE.Vector3(0.3, -0.8, 0);
+const p2 = new THREE.Vector3(0.35, -0.825, 0);
 const bgMesh4 = (() => {
   const planeGeometry = new THREE.PlaneGeometry(2, 2);
   const _decorateGeometry = (g, color, z) => {
