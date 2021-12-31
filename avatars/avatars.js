@@ -343,6 +343,7 @@ const emoteFragmentShader2 = `\
   }
 `;
 const labelVertexShader = `\
+  uniform float iTime;
   attribute vec3 color;
   varying vec2 tex_coords;
   varying vec3 vColor;
@@ -350,7 +351,7 @@ const labelVertexShader = `\
   void main() {
     tex_coords = uv;
     vColor = color;
-    gl_Position = vec4(position.xy, -1., 1.);
+    gl_Position = vec4(position.xy + vec2(mod(iTime, 1.), 0.), -1., 1.);
   }
 `;
 const labelFragmentShader = `\
@@ -408,6 +409,7 @@ const labelFragmentShader = `\
   }
 `;
 const textVertexShader = `\
+  uniform float uTroikaOutlineOpacity;
   // attribute vec3 color;
   attribute vec3 offset;
   attribute float scale;
@@ -417,7 +419,7 @@ const textVertexShader = `\
   void main() {
     tex_coords = uv;
     // vColor = color;
-    gl_Position = vec4(offset.xy + position.xy * scale, -1., 1.);
+    gl_Position = vec4(offset.xy + position.xy * scale + vec2(mod(uTroikaOutlineOpacity, 1.), 0.), -1., 1.);
   }
 `;
 const textFragmentShader = `\
@@ -619,11 +621,11 @@ const bgMesh4 = (() => {
     geometry,
     new THREE.ShaderMaterial({
       uniforms: {
-        /* t0: {
-          value: null,
+        iTime: {
+          value: 0,
           needsUpdate: false,
         },
-        outline_thickness: {
+        /* outline_thickness: {
           value: 0.02,
           needsUpdate: true,
         },
@@ -693,15 +695,19 @@ const bgMesh5 = (() => {
 const outlineMaterial = (() => {
   var wVertex = THREE.ShaderLib["standard"].vertexShader;
   var wFragment = THREE.ShaderLib["standard"].fragmentShader;
-  var wUniforms = THREE.ShaderLib["standard"].uniforms;
+  var wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
+  wUniforms.iTime = {
+    value: 0,
+    needsUpdate: false,
+  };
   wVertex =
     `
 
           attribute vec3 offset;
           attribute vec4 orientation;
 
-          vec3 applyQuaternionToVector( vec4 q, vec3 v ){
-              return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
+          vec3 applyQuaternionToVector(vec4 q, vec3 v){
+              return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
           }
 
         ` + wVertex;
@@ -709,10 +715,10 @@ const outlineMaterial = (() => {
   wVertex = wVertex.replace(
     "#include <project_vertex>",
     `
-          vec3 vPosition = applyQuaternionToVector( orientation, transformed );
+          vec3 vPosition = applyQuaternionToVector(orientation, transformed);
     
-          vec4 mvPosition = modelViewMatrix * vec4( vPosition, 1.0 );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 );
+          vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
           
         `
   );
@@ -721,7 +727,6 @@ const outlineMaterial = (() => {
       gl_FragColor = vec4(1., 0., 0., 1.);
     }
   `;
-
   var instanceMaterial = new THREE.ShaderMaterial({
     uniforms: wUniforms,
     vertexShader: wVertex,
@@ -3604,7 +3609,8 @@ class Avatar {
 
       // render
       const pixelRatio = renderer.getPixelRatio();
-      for (let i = 0; i < 4; i++) {
+      const numCanvases = 1;
+      for (let i = 0; i < numCanvases; i++) {
         const x = i % sideSize;
         const y = Math.floor(i / sideSize);
         const dx = x * sideSize;
@@ -3663,6 +3669,15 @@ class Avatar {
         
         bgMesh3.material.uniforms.t0.value = avatarRenderTarget.texture;
         bgMesh3.material.uniforms.t0.needsUpdate = true;
+
+        bgMesh4.material.uniforms.iTime.value = now / 1000;
+        bgMesh4.material.uniforms.iTime.needsUpdate = true;
+
+        for (const child of bgMesh5.children) {
+          // console.log('got child', child);
+          child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+          child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+        }
         
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
