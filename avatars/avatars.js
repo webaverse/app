@@ -6,6 +6,7 @@ import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import {world} from '../world.js';
+import {Text} from 'troika-three-text';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 // import skeletonString from './skeleton.js';
@@ -324,7 +325,7 @@ const emoteFragmentShader2 = `\
   //Main image.
   void mainImage( out vec4 fragColor, in vec2 fragCoord ){
       // vec2 uv = 2.2*(fragCoord-0.5*vec2(iResolution.xy))/iResolution.xx;
-      vec2 uv = 2.2 * ((fragCoord + vec2(0.15, 0.)) - 0.5);
+      vec2 uv = 2.2 * ((fragCoord + vec2(0., 0.)) - 0.5);
       float d = dot(uv,uv); //Squared distance
       float t = 0.5+atan(uv.y,uv.x)/6.28; //Normalized Angle
       float v = radialPerlinNoise(t,d);
@@ -406,6 +407,49 @@ const labelFragmentShader = `\
     gl_FragColor = vec4(c, 1.0);
   }
 `;
+const textVertexShader = `\
+  // attribute vec3 color;
+  attribute vec3 offset;
+  attribute float scale;
+  varying vec2 tex_coords;
+  // varying vec3 vColor;
+
+  void main() {
+    tex_coords = uv;
+    // vColor = color;
+    gl_Position = vec4(offset + position * scale, 1.);
+  }
+`;
+const textFragmentShader = `\
+  void main() {
+    gl_FragColor = vec4(vec3(1.), 1.);
+  }
+`;
+async function makeTextMesh(
+  text = '',
+  material = null,
+  font = './assets/fonts/Bangers.ttf',
+  fontSize = 1,
+  anchorX = 'left',
+  anchorY = 'middle',
+  color = 0x000000,
+) {
+  const textMesh = new Text();
+  textMesh.text = text;
+  if (material !== null) {
+    textMesh.material = material;
+  }
+  textMesh.font = font;
+  textMesh.fontSize = fontSize;
+  textMesh.color = color;
+  textMesh.anchorX = anchorX;
+  textMesh.anchorY = anchorY;
+  textMesh.frustumCulled = false;
+  await new Promise(accept => {
+    textMesh.sync(accept);
+  });
+  return textMesh;
+}
 const bgMesh1 = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -520,12 +564,16 @@ const bgMesh3 = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
+const s1 = 0.4;
+const sk1 = 0.3;
+const aspectRatio1 = 0.3;
+const p1 = new THREE.Vector3(0.45, -0.65, 0);
+const s2 = 0.5;
+const sk2 = 0.15;
+const aspectRatio2 = 0.15;
+const p2 = new THREE.Vector3(0.25, -0.8, 0);
 const bgMesh4 = (() => {
   const planeGeometry = new THREE.PlaneGeometry(2, 2);
-  const s1 = 0.3;
-  const aspectRatio1 = 0.25;
-  const s2 = 0.4;
-  const aspectRatio2 = 0.1;
   const _colorGeometry = (g, color) => {
     const colors = new Float32Array(g.attributes.position.count * 3);
     for (let i = 0; i < colors.length; i += 3) {
@@ -536,7 +584,7 @@ const bgMesh4 = (() => {
   const g1 = planeGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeShear(0, 0, s1, 0, 0, 0)
+        .makeShear(0, 0, sk1, 0, 0, 0)
     )
     .applyMatrix4(
       new THREE.Matrix4()
@@ -544,13 +592,13 @@ const bgMesh4 = (() => {
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeTranslation(-0.05, -0.4, 0)
+        .makeTranslation(p1.x, p1.y, p1.z)
     );
   _colorGeometry(g1, new THREE.Color(0xFFFFFF));
   const g2 = planeGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeShear(0, 0, s2 / 3, 0, 0, 0)
+        .makeShear(0, 0, sk2, 0, 0, 0)
     )
     .applyMatrix4(
       new THREE.Matrix4()
@@ -558,7 +606,7 @@ const bgMesh4 = (() => {
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeTranslation(-0.2, -0.5, 0)
+        .makeTranslation(p2.x, p2.y, p2.z)
     );
   _colorGeometry(g2, new THREE.Color(0x000000));
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -588,14 +636,8 @@ const bgMesh4 = (() => {
       },
       vertexShader: labelVertexShader,
       fragmentShader: labelFragmentShader,
-      // depthWrite: false,
-      // depthTest: false,
-      // alphaToCoverage: true,
     })
   );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
   quad.frustumCulled = false;
   return quad;
 })();
@@ -3511,6 +3553,7 @@ class Avatar {
       // console.log('got object', this.object, this.model);
 
       // render
+      const pixelRatio = renderer.getPixelRatio();
       for (let i = 0; i < 4; i++) {
         const x = i % sideSize;
         const y = Math.floor(i / sideSize);
@@ -3525,6 +3568,8 @@ class Avatar {
           mmdCanvas.height = sideSize;
           mmdCanvas.style.cssText = `\
             position: absolute;
+            width: ${sideSize}px;
+            height: ${sideSize}px;
             top: ${dy.toFixed(8)}px;
             left: ${dx.toFixed(8)}px;
           `;
@@ -3536,7 +3581,6 @@ class Avatar {
         }
         let avatarRenderTarget = avatarRenderTargets[i];
         if (!avatarRenderTarget) {
-          const pixelRatio = renderer.getPixelRatio();
           avatarRenderTarget = new THREE.WebGLRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio, {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.LinearFilter,
@@ -3577,7 +3621,7 @@ class Avatar {
         renderer.render(sideScene, sideCamera);
 
         ctx.clearRect(0, 0, sideSize, sideSize);
-        ctx.drawImage(renderer.domElement, 0, sideSize, sideSize, sideSize, 0, 0, sideSize, sideSize);
+        ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
       }
 
       // pop old state
