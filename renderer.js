@@ -88,10 +88,10 @@ sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-const sceneOrthographic = new THREE.Scene();
-sceneOrthographic.name = 'orthographic';
-const scenePerspective = new THREE.Scene();
-scenePerspective.name = 'perspective';
+const postSceneOrthographic = new THREE.Scene();
+postSceneOrthographic.name = 'postOrthographic';
+const postScenePerspective = new THREE.Scene();
+postScenePerspective.name = 'postPerspective';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
@@ -180,8 +180,8 @@ export {
   getComposer,
   scene,
   rootScene,
-  sceneOrthographic,
-  scenePerspective,
+  postSceneOrthographic,
+  postScenePerspective,
   // avatarScene,
   camera,
   orthographicCamera,
