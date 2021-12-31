@@ -20,7 +20,7 @@ init().then((ready) => {
   
 
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
-    var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
+    // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
     const mat4a = mat4.create();
     const mat4b = mat4.create();
