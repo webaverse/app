@@ -82,7 +82,7 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.position = 'absolute';
     rendererStats.domElement.style.left = '0px';
     rendererStats.domElement.style.bottom = '0px';
-    rendererStats.domElement.style.display = 'none';
+    // rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
 
     {
@@ -288,9 +288,9 @@ export default class Webaverse extends EventTarget {
     // equipmentRender.render();
 
     getComposer().render();
-    if(ioManager.debugMode) {
+    // if(ioManager.debugMode) {
       rendererStats.update(renderer);
-    }
+    // }
   }
   
   startLoop() {
