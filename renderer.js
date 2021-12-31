@@ -118,7 +118,7 @@ init().then((ready) => {
       // if (window.isLogAverageTime) {
       //   totalTime += performance.now() - startTime
       //   count += 1
-      //   averageTime = totalTime / count
+      //   averageTime = totalTime / count // todo: calc average in animate()
       //   window.domAverageTime.innerText = averageTime
       // }
 
