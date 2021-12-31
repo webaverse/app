@@ -7,6 +7,16 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
+import { init, vec3 } from 'glmw'
+init().then((ready) => {
+  // glmw is now ready and can be used anywhere
+
+  const a = vec3.create()
+  const b = vec3.fromValues(1.0, 2.0, 3.0)
+  vec3.add(a, a, b)
+  console.log(vec3.view(a)) // Float32Array(3) [1, 2, 3]
+})
+
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
