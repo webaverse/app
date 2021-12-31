@@ -26,52 +26,53 @@ init().then((ready) => {
     const mat4b = mat4.create();
     const mat4aView = mat4.view(mat4a);
     const mat4bView = mat4.view(mat4b);
-    let a;
-    let b;
+    let ae;
+    let be;
     // let c;
 
     return function () {
       // your code
+      // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
       // more of your code
-      a = arguments[0].elements;
-      b = arguments[1].elements;
+      ae = arguments[0].elements;
+      be = arguments[1].elements;
 
-      mat4aView[0] = a[0]
-      mat4aView[1] = a[1]
-      mat4aView[2] = a[2]
-      mat4aView[3] = a[3]
-      mat4aView[4] = a[4]
-      mat4aView[5] = a[5]
-      mat4aView[6] = a[6]
-      mat4aView[7] = a[7]
-      mat4aView[8] = a[8]
-      mat4aView[9] = a[9]
-      mat4aView[10] = a[10]
-      mat4aView[11] = a[11]
-      mat4aView[12] = a[12]
-      mat4aView[13] = a[13]
-      mat4aView[14] = a[14]
-      mat4aView[15] = a[15]
+      mat4aView[0] = ae[0]
+      mat4aView[1] = ae[1]
+      mat4aView[2] = ae[2]
+      mat4aView[3] = ae[3]
+      mat4aView[4] = ae[4]
+      mat4aView[5] = ae[5]
+      mat4aView[6] = ae[6]
+      mat4aView[7] = ae[7]
+      mat4aView[8] = ae[8]
+      mat4aView[9] = ae[9]
+      mat4aView[10] = ae[10]
+      mat4aView[11] = ae[11]
+      mat4aView[12] = ae[12]
+      mat4aView[13] = ae[13]
+      mat4aView[14] = ae[14]
+      mat4aView[15] = ae[15]
 
-      mat4bView[0] = b[0]
-      mat4bView[1] = b[1]
-      mat4bView[2] = b[2]
-      mat4bView[3] = b[3]
-      mat4bView[4] = b[4]
-      mat4bView[5] = b[5]
-      mat4bView[6] = b[6]
-      mat4bView[7] = b[7]
-      mat4bView[8] = b[8]
-      mat4bView[9] = b[9]
-      mat4bView[10] = b[10]
-      mat4bView[11] = b[11]
-      mat4bView[12] = b[12]
-      mat4bView[13] = b[13]
-      mat4bView[14] = b[14]
-      mat4bView[15] = b[15]
+      mat4bView[0] = be[0]
+      mat4bView[1] = be[1]
+      mat4bView[2] = be[2]
+      mat4bView[3] = be[3]
+      mat4bView[4] = be[4]
+      mat4bView[5] = be[5]
+      mat4bView[6] = be[6]
+      mat4bView[7] = be[7]
+      mat4bView[8] = be[8]
+      mat4bView[9] = be[9]
+      mat4bView[10] = be[10]
+      mat4bView[11] = be[11]
+      mat4bView[12] = be[12]
+      mat4bView[13] = be[13]
+      mat4bView[14] = be[14]
+      mat4bView[15] = be[15]
 
       mat4.multiply(mat4a, mat4a, mat4b)
       // // c = mat4.multiply(mat4a, mat4a, mat4b)
