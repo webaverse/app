@@ -137,6 +137,7 @@ init().then((ready) => {
 
       // this.elements = [...mat4cView] // poor perfromance
 
+      // if (!Array.isArray(this.elements)) mat4.free(this.elements)
       // this.elements = mat4cView
       // // geometry.wasm:0x12d641 Uncaught (in promise) RuntimeError: null function or function signature mismatch
       // //   at geometry.wasm:0x12d641
