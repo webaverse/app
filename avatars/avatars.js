@@ -407,6 +407,7 @@ const bgMesh2 = (() => {
       fragmentShader: emoteFragmentShader2,
       depthWrite: false,
       depthTest: false,
+      alphaToCoverage: true,
     })
   );
   /* quad.material.onBeforeCompile = shader => {
@@ -445,6 +446,7 @@ const bgMesh3 = (() => {
       fragmentShader: bgFragmentShader,
       depthWrite: false,
       depthTest: false,
+      alphaToCoverage: true,
     })
   );
   /* quad.material.onBeforeCompile = shader => {
