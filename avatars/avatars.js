@@ -3730,11 +3730,10 @@ class Avatar {
       /* sideCamera.position.y = 1.2;
       sideCamera.position.z = 2; */
       sideCamera.position.copy(localPlayer.position)
-        .add(localVector.set(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        .add(localVector.set(0.3, 0, -0.5).applyQuaternion(localPlayer.quaternion));
       sideCamera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
-          localVector.copy(localPlayer.position)
-            .add(localVector2.set(0.3, 0, -1).applyQuaternion(localPlayer.quaternion)),
+          sideCamera.position,
           localPlayer.position,
           localVector3.set(0, 1, 0)
         )
