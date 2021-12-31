@@ -32,6 +32,7 @@ import {
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -2051,6 +2052,12 @@ class Avatar {
           );
 
       };
+      const _clearXZ = (dst, isPosition) => {
+        if (isPosition) {
+          dst.x = 0;
+          dst.z = 0;
+        }
+      };
       const _getApplyFn = () => {
         if (this.jumpState) {
           return spec => {
@@ -2099,10 +2106,7 @@ class Avatar {
 
             dst.fromArray(v2);
 
-            if (isPosition) {
-              dst.x = 0;
-              dst.z = 0;
-            }
+            _clearXZ(dst, isPosition);
           };
         }
 
@@ -2284,15 +2288,18 @@ class Avatar {
             } else {
               const src2 = useAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
+              localVector2.fromArray(v2);
+              _clearXZ(localVector2, isPosition);
 
               const idleAnimation = _getIdleAnimation('walk');
               const t3 = 0;
               const src3 = idleAnimation.interpolants[k];
               const v3 = src3.evaluate(t3);
-
+              localVector3.fromArray(v3);
+              
               dst
-                .sub(localVector2.fromArray(v3))
-                .add(localVector2.fromArray(v2));
+                .sub(localVector3)
+                .add(localVector2);
             }
           };
         } else if (this.aimAnimation) {
