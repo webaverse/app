@@ -16,8 +16,8 @@ import {
   getRenderer,
   getComposer,
   rootScene,
-  sceneOrthographic,
-  scenePerspective,
+  postSceneOrthographic,
+  postScenePerspective,
   camera,
   orthographicCamera,
 } from './renderer.js';
@@ -253,13 +253,13 @@ function setPasses(rendersettings) {
       composer.addPass(bloomPass);
     }
     if (postPostProcessScene) {
-      const {perspectiveScene, orthographicScene} = postPostProcessScene;
-      if(perspectiveScene) {
-        const postRenderPass = new RenderPass(scenePerspective, camera);
+      const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
+      if(postPerspectiveScene) {
+        const postRenderPass = new RenderPass(postScenePerspective, camera);
         composer.addPass(postRenderPass);
       }
-      if(orthographicScene) {
-        const postRenderPass = new RenderPass(sceneOrthographic, orthographicCamera);
+      if(postOrthographicScene) {
+        const postRenderPass = new RenderPass(postSceneOrthographic, orthographicCamera);
         composer.addPass(postRenderPass);
       }
     }
