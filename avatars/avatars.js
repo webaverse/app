@@ -3707,6 +3707,7 @@ class Avatar {
       if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
         throw new Error('renderer is too small');
       }
+      const localPlayer = metaversefile.useLocalPlayer();
 
       // push old state
       const oldParent = this.model.parent;
@@ -3726,8 +3727,18 @@ class Avatar {
       sideScene.add(bgMesh5);
 
       const sideCamera = new THREE.PerspectiveCamera();
-      sideCamera.position.y = 1.2;
-      sideCamera.position.z = 2;
+      /* sideCamera.position.y = 1.2;
+      sideCamera.position.z = 2; */
+      sideCamera.position.copy(localPlayer.position)
+        .add(localVector.set(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+      sideCamera.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          localVector.copy(localPlayer.position)
+            .add(localVector2.set(0.3, 0, -1).applyQuaternion(localPlayer.quaternion)),
+          localPlayer.position,
+          localVector3.set(0, 1, 0)
+        )
+      );
       sideCamera.updateMatrixWorld();
 
       // console.log('got object', this.object, this.model);
