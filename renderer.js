@@ -18,7 +18,9 @@ init().then((ready) => {
   // vec3.add(a, a, b);
   // console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
   
-
+  let totalTime = 0
+  let averageTime = 0
+  let count = 0
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
     // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
@@ -30,8 +32,11 @@ init().then((ready) => {
     let be;
     // let c;
 
+    let startTime;
+
     return function () {
       // your code
+      startTime = performance.now()
       // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
@@ -101,6 +106,11 @@ init().then((ready) => {
       this.elements[13] = mat4aView[13]
       this.elements[14] = mat4aView[14]
       this.elements[15] = mat4aView[15]
+
+      totalTime += performance.now() - startTime
+      count += 1
+      averageTime = totalTime / count
+      window.domAverageTime.innerText = averageTime
 
       return this
     }
