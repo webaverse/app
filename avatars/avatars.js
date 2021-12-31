@@ -865,9 +865,9 @@ const outlineMaterial = (() => {
     },
     side: THREE.BackSide,
   });
-  instanceMaterial.onBeforeCompile = () => {
+  /* instanceMaterial.onBeforeCompile = () => {
     console.log('before compile');
-  };
+  }; */
   return instanceMaterial;
 })();
 
