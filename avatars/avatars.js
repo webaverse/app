@@ -351,7 +351,7 @@ const labelVertexShader = `\
   void main() {
     tex_coords = uv;
     vColor = color;
-    gl_Position = vec4(position.xy + vec2(-2. + mod(iTime, 2.) * 2., 0.), -1., 1.);
+    gl_Position = vec4(position.xy + vec2(-2. + mod(iTime, 2.) * 2., 0.) * position.z, -1., 1.);
   }
 `;
 const labelFragmentShader = `\
@@ -421,7 +421,7 @@ const textVertexShader = `\
     // vColor = color;
 
     float iTime = uTroikaOutlineOpacity;
-    gl_Position = vec4(offset.xy + position.xy * scale + vec2(-2. + mod(iTime, 2.) * 2., 0.), -1., 1.);
+    gl_Position = vec4(offset.xy + position.xy * scale + vec2(-2. + mod(iTime, 2.) * 2., 0.) * position.z, -1., 1.);
   }
 `;
 const textFragmentShader = `\
@@ -572,18 +572,21 @@ const bgMesh3 = (() => {
 })();
 const s1 = 0.4;
 const sk1 = 0.2;
+const speed1 = 1;
 const aspectRatio1 = 0.3;
 const p1 = new THREE.Vector3(0.45, -0.65, 0);
 const s2 = 0.5;
 const sk2 = 0.1;
+const speed2 = 1.2;
 const aspectRatio2 = 0.15;
 const p2 = new THREE.Vector3(0.3, -0.8, 0);
 const bgMesh4 = (() => {
   const planeGeometry = new THREE.PlaneGeometry(2, 2);
-  const _colorGeometry = (g, color) => {
+  const _decorateGeometry = (g, color, z) => {
     const colors = new Float32Array(g.attributes.position.count * 3);
     for (let i = 0; i < colors.length; i += 3) {
       color.toArray(colors, i);
+      g.attributes.position.array[i + 2] = z;
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   };
@@ -600,7 +603,7 @@ const bgMesh4 = (() => {
       new THREE.Matrix4()
         .makeTranslation(p1.x, p1.y, p1.z)
     );
-  _colorGeometry(g1, new THREE.Color(0xFFFFFF));
+  _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
   const g2 = planeGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
@@ -614,7 +617,7 @@ const bgMesh4 = (() => {
       new THREE.Matrix4()
         .makeTranslation(p2.x, p2.y, p2.z)
     );
-  _colorGeometry(g2, new THREE.Color(0x000000));
+  _decorateGeometry(g2, new THREE.Color(0x000000), speed2);
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
     g2,
     g1,
@@ -650,11 +653,12 @@ const bgMesh4 = (() => {
 const bgMesh5 = (() => {
   const o = new THREE.Object3D();
   
-  const _addGeometryOffsets = (g, offset, scale) => {
+  const _decorateGeometry = (g, offset, z, scale) => {
     const offsets = new Float32Array(g.attributes.position.array.length);
     const scales = new Float32Array(g.attributes.position.count);
     for (let i = 0; i < g.attributes.position.array.length; i += 3) {
       offset.toArray(offsets, i);
+      g.attributes.position.array[i + 2] = z;
       scales[i / 3] = scale;
     }
     g.setAttribute('offset', new THREE.BufferAttribute(offsets, 3));
@@ -675,7 +679,7 @@ const bgMesh5 = (() => {
       'middle',
       0xFFFFFF,
     );
-    _addGeometryOffsets(nameMesh.geometry, p1, s1 * aspectRatio1);
+    _decorateGeometry(nameMesh.geometry, p1, speed1, s1 * aspectRatio1);
     o.add(nameMesh);
   })();
   (async () => {
@@ -689,7 +693,7 @@ const bgMesh5 = (() => {
       'middle',
       0xFFFFFF,
     );
-    _addGeometryOffsets(labelMesh.geometry, p2, s2 * aspectRatio2);
+    _decorateGeometry(labelMesh.geometry, p2, speed2, s2 * aspectRatio2);
     o.add(labelMesh);
   })();
   return o;
