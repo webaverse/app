@@ -18,17 +18,17 @@ THREE.Matrix4.prototype.multiplyMatrices = (function () {
 
   return function () {
     // your code
-    if (window.isLogAverageTime) startTime = performance.now()
+    // if (window.isLogAverageTime) startTime = performance.now()
 
     var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
     // more of your code
-    if (window.isLogAverageTime) {
-      totalTime += performance.now() - startTime
-      count += 1
-      averageTime = totalTime / count
-      window.domAverageTime.innerText = averageTime
-    }
+    // if (window.isLogAverageTime) {
+    //   totalTime += performance.now() - startTime
+    //   count += 1
+    //   averageTime = totalTime / count
+    //   window.domAverageTime.innerText = averageTime
+    // }
 
     return result
   }
