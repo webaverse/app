@@ -428,8 +428,9 @@ const textFragmentShader = `\
 async function makeTextMesh(
   text = '',
   material = null,
-  font = './assets/fonts/Bangers.ttf',
+  font = '/fonts/Bangers-Regular.ttf',
   fontSize = 1,
+  letterSpacing = 0,
   anchorX = 'left',
   anchorY = 'middle',
   color = 0x000000,
@@ -441,6 +442,7 @@ async function makeTextMesh(
   }
   textMesh.font = font;
   textMesh.fontSize = fontSize;
+  textMesh.letterSpacing = letterSpacing;
   textMesh.color = color;
   textMesh.anchorX = anchorX;
   textMesh.anchorY = anchorY;
@@ -565,13 +567,13 @@ const bgMesh3 = (() => {
   return quad;
 })();
 const s1 = 0.4;
-const sk1 = 0.3;
+const sk1 = 0.2;
 const aspectRatio1 = 0.3;
 const p1 = new THREE.Vector3(0.45, -0.65, 0);
 const s2 = 0.5;
-const sk2 = 0.15;
+const sk2 = 0.1;
 const aspectRatio2 = 0.15;
-const p2 = new THREE.Vector3(0.25, -0.8, 0);
+const p2 = new THREE.Vector3(0.3, -0.8, 0);
 const bgMesh4 = (() => {
   const planeGeometry = new THREE.PlaneGeometry(2, 2);
   const _colorGeometry = (g, color) => {
@@ -640,6 +642,53 @@ const bgMesh4 = (() => {
   );
   quad.frustumCulled = false;
   return quad;
+})();
+const bgMesh5 = (() => {
+  const o = new THREE.Object3D();
+  
+  const _addGeometryOffsets = (g, offset, scale) => {
+    const offsets = new Float32Array(g.attributes.position.array.length);
+    const scales = new Float32Array(g.attributes.position.count);
+    for (let i = 0; i < g.attributes.position.array.length; i += 3) {
+      offset.toArray(offsets, i);
+      scales[i / 3] = scale;
+    }
+    g.setAttribute('offset', new THREE.BufferAttribute(offsets, 3));
+    g.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
+  };
+  const textMaterial = new THREE.ShaderMaterial({
+    vertexShader: textVertexShader,
+    fragmentShader: textFragmentShader,
+  });
+  (async () => {
+    const nameMesh = await makeTextMesh(
+      'Scillia',
+      textMaterial,
+      '/fonts/WinchesterCaps.ttf',
+      1.25,
+      0.05,
+      'center',
+      'middle',
+      0xFFFFFF,
+    );
+    _addGeometryOffsets(nameMesh.geometry, p1, s1 * aspectRatio1);
+    o.add(nameMesh);
+  })();
+  (async () => {
+    const labelMesh = await makeTextMesh(
+      'pledged to the lisk',
+      textMaterial,
+      '/fonts/Plaza Regular.ttf',
+      1,
+      0.02,
+      'center',
+      'middle',
+      0xFFFFFF,
+    );
+    _addGeometryOffsets(labelMesh.geometry, p2, s2 * aspectRatio2);
+    o.add(labelMesh);
+  })();
+  return o;
 })();
 const outlineMaterial = (() => {
   var wVertex = THREE.ShaderLib["standard"].vertexShader;
@@ -3544,6 +3593,7 @@ class Avatar {
       sideScene.add(bgMesh2);
       sideScene.add(bgMesh3);
       sideScene.add(bgMesh4);
+      sideScene.add(bgMesh5);
 
       const sideCamera = new THREE.PerspectiveCamera();
       sideCamera.position.y = 1.2;
