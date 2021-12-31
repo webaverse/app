@@ -1,9 +1,11 @@
 /* eslint-disable no-useless-escape */
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import {preview} from '../../preview.js';
+import {isValidURL} from '../../util';
 
 const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
 
@@ -15,7 +17,46 @@ const NumberInput = ({input}) => {
   }} />;
 };
 
+const normaliseName = name => {
+  function capitalizeFirst(string) {
+    string = string.trim();
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  if (isValidURL(name)) {
+    try {
+      name = new URL(name);
+      name = name.pathname;
+    } catch (e) {
+      // not a valid URL
+      // index.js or something like this is recieved
+    }
+  }
+
+  return capitalizeFirst(name.replace(/\-|\_|\/|\./g, ' '));
+};
+
 export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp, px, py, pz, rx, ry, rz, sx, sy, sz, panelsRef, setOpen, toggleOpen}) => {
+  const [previews, setPreviews] = useState({});
+
+  useEffect(() => {
+    if (apps) {
+      for (const app of apps) {
+        if (!previews[app.instanceId] && app.appType) {
+          previews[app.instanceId] = '/images/loader.gif';
+          preview(app.contentId, app.appType, 'png', 100, 100).then(res => {
+            const imageObjectURL = URL.createObjectURL(res.blob);
+            previews[app.instanceId] = imageObjectURL;
+            setPreviews(previews);
+          });
+        } else if (!previews[app.instanceId] && !app.appType) {
+          previews[app.instanceId] = '/images/object.jpg';
+        }
+      }
+      setPreviews(previews);
+    }
+  });
+
   return (
     <Tab
       type="world"
@@ -62,9 +103,9 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
                   // game.setMouseSelectedObject(null);
                 }}>
                   <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                  <img src="images/object.jpg" className={styles.img} />
+                  <img src={previews[app.instanceId]} className={styles.img} />
                   <div className={styles.wrap}>
-                    <div className={styles.name}>{app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')}</div>
+                    <div className={styles.name}>{normaliseName(decodeURI(app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')))}</div>
                   </div>
                 </div>
               );

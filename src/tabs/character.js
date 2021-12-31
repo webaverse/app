@@ -1,10 +1,53 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import {preview} from '../../preview.js';
 
-export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef, setOpen, toggleOpen}) => {
+export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen}) => {
+  const [previews, setPreviews] = useState({});
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+  useEffect(() => {
+    const localPlayer = metaversefile.useLocalPlayer();
+    localPlayer.addEventListener('avatarupdate', e => {
+      if (e.app && e.app.contentId !== avatarPreview) {
+        let u = e.app.contentId;
+        setAvatarPreview(u);
+        if (u) {
+          if (u.startsWith('.')) {
+            u = u.slice(1, u.length);
+          }
+        }
+        if (u.startsWith('/')) {
+          u = window.origin + u;
+        }
+        preview(u, e.app.appType, 'png', 400, 200, 1).then(res => {
+          const imageObjectURL = URL.createObjectURL(res.blob);
+          previews[e.app.contentId] = imageObjectURL;
+          setPreviews(previews);
+        });
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (wearActions) {
+      for (const app of wearActions) {
+        if (!previews[app.contentId]) {
+          previews[app.contentId] = 'images/flower.png';
+          preview(app.contentId, app.appType, 'png', 100, 100).then(res => {
+            const imageObjectURL = URL.createObjectURL(res.blob);
+            previews[app.contentId] = imageObjectURL;
+            setPreviews(previews);
+          });
+        }
+      }
+      setPreviews(previews);
+    }
+  }, [wearActions]);
+
   return (
     <Tab
       type="character"
@@ -19,10 +62,7 @@ export const Character = ({open, game, wearActions, previewCanvasRef, panelsRef,
       }
       panels={[
         (<div className={styles.panel} key="left">
-          <div className={styles['panel-header']}>
-            <h1>Sheila</h1>
-          </div>
-          <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
+          <img className={styles.avatar} src={ previews[avatarPreview] || '/images/loader.gif'} />
           {/* <div className={styles['panel-header']}>
               <h1>Equipment</h1>
             </div> */}
