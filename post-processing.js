@@ -16,8 +16,10 @@ import {
   getRenderer,
   getComposer,
   rootScene,
-  postScene,
+  postSceneOrthographic,
+  postScenePerspective,
   camera,
+  orthographicCamera,
 } from './renderer.js';
 // import {rigManager} from './rig.js';
 import {world} from './world.js';
@@ -228,7 +230,7 @@ function setPasses(rendersettings) {
   composer.addPass(webaverseRenderPass);
   
   if (rendersettings) {
-    const {ssao, dof, hdr, bloom, enablePostScene} = rendersettings;
+    const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
     // console.log('got', ssao, dof, hdr, bloom);
     
     if (ssao) {
@@ -250,9 +252,16 @@ function setPasses(rendersettings) {
       const bloomPass = makeBloomPass(bloom);
       composer.addPass(bloomPass);
     }
-    if (enablePostScene) {
-      const postRenderPass = new RenderPass(postScene, camera);
-      composer.addPass(postRenderPass);
+    if (postPostProcessScene) {
+      const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
+      if(postPerspectiveScene) {
+        const postRenderPass = new RenderPass(postScenePerspective, camera);
+        composer.addPass(postRenderPass);
+      }
+      if(postOrthographicScene) {
+        const postRenderPass = new RenderPass(postSceneOrthographic, orthographicCamera);
+        composer.addPass(postRenderPass);
+      }
     }
   }
   

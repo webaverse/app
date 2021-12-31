@@ -88,8 +88,10 @@ sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-const postScene = new THREE.Scene();
-postScene.name = 'postScene';
+const postSceneOrthographic = new THREE.Scene();
+postSceneOrthographic.name = 'postOrthographic';
+const postScenePerspective = new THREE.Scene();
+postScenePerspective.name = 'postPerspective';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
@@ -113,7 +115,7 @@ dolly.add(camera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 
-// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
 
 window.addEventListener('resize', e => {
@@ -178,10 +180,11 @@ export {
   getComposer,
   scene,
   rootScene,
-  postScene,
+  postSceneOrthographic,
+  postScenePerspective,
   // avatarScene,
   camera,
-  // orthographicCamera,
+  orthographicCamera,
   // avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/
