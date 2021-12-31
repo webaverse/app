@@ -7,6 +7,30 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
+let totalTime = 0
+let averageTime = 0
+let count = 0
+THREE.Matrix4.prototype.multiplyMatrices = (function () {
+  var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
+
+  let startTime;
+
+  return function () {
+    // your code
+    startTime = performance.now()
+
+    var result = cachedFunction.apply(this, arguments) // use .apply() to call it
+
+    // more of your code
+    totalTime += performance.now() - startTime
+    count += 1
+    averageTime = totalTime / count
+    window.domAverageTime.innerText = averageTime
+
+    return result
+  }
+})()
+
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
