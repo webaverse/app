@@ -341,6 +341,71 @@ const emoteFragmentShader2 = `\
     mainImage(gl_FragColor, tex_coords);
   }
 `;
+const labelVertexShader = `\
+  attribute vec3 color;
+  varying vec2 tex_coords;
+  varying vec3 vColor;
+
+  void main() {
+    tex_coords = uv;
+    vColor = color;
+    gl_Position = vec4(position, 1.);
+  }
+`;
+const labelFragmentShader = `\
+  varying vec2 tex_coords;
+  varying vec3 vColor;
+
+  vec2 rotateCCW(vec2 pos, float angle) { 
+    float ca = cos(angle),  sa = sin(angle);
+    return pos * mat2(ca, sa, -sa, ca);  
+  }
+
+  vec2 rotateCCW(vec2 pos, vec2 around, float angle) { 
+    pos -= around;
+    pos = rotateCCW(pos, angle);
+    pos += around;
+    return pos;
+  }
+
+  // return 1 if v inside the box, return 0 otherwise
+  bool insideAABB(vec2 v, vec2 bottomLeft, vec2 topRight) {
+      vec2 s = step(bottomLeft, v) - step(topRight, v);
+      return s.x * s.y > 0.;   
+  }
+
+  bool isPointInTriangle(vec2 point, vec2 a, vec2 b, vec2 c) {
+    vec2 v0 = c - a;
+    vec2 v1 = b - a;
+    vec2 v2 = point - a;
+
+    float dot00 = dot(v0, v0);
+    float dot01 = dot(v0, v1);
+    float dot02 = dot(v0, v2);
+    float dot11 = dot(v1, v1);
+    float dot12 = dot(v1, v2);
+
+    float invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0.) && (v >= 0.) && (u + v < 1.);
+  }
+
+  void main() {
+    vec3 c;
+    if (vColor.r > 0.) {
+      /* if (tex_coords.x <= 0.025 || tex_coords.x >= 0.975 || tex_coords.y <= 0.05 || tex_coords.y >= 0.95) {
+        c = vec3(0.2);
+      } else { */
+        c = vec3(0.1 + tex_coords.y * 0.1);
+      // }
+    } else {
+      c = vec3(0.);
+    }
+    gl_FragColor = vec4(c, 1.0);
+  }
+`;
 const bgMesh1 = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -447,6 +512,85 @@ const bgMesh3 = (() => {
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
+    })
+  );
+  /* quad.material.onBeforeCompile = shader => {
+    console.log('got full screen shader', shader);
+  }; */
+  quad.frustumCulled = false;
+  return quad;
+})();
+const bgMesh4 = (() => {
+  const planeGeometry = new THREE.PlaneGeometry(2, 2);
+  const s1 = 0.3;
+  const aspectRatio1 = 0.25;
+  const s2 = 0.4;
+  const aspectRatio2 = 0.1;
+  const _colorGeometry = (g, color) => {
+    const colors = new Float32Array(g.attributes.position.count * 3);
+    for (let i = 0; i < colors.length; i += 3) {
+      color.toArray(colors, i);
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  };
+  const g1 = planeGeometry.clone()
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeShear(0, 0, s1, 0, 0, 0)
+    )
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeScale(s1, s1 * aspectRatio1, 1)
+    )
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeTranslation(-0.05, -0.4, 0)
+    );
+  _colorGeometry(g1, new THREE.Color(0xFFFFFF));
+  const g2 = planeGeometry.clone()
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeShear(0, 0, s2 / 3, 0, 0, 0)
+    )
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeScale(s2, s2 * aspectRatio2, 1)
+    )
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeTranslation(-0.2, -0.5, 0)
+    );
+  _colorGeometry(g2, new THREE.Color(0x000000));
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    g2,
+    g1,
+  ]);
+  const quad = new THREE.Mesh(
+    geometry,
+    new THREE.ShaderMaterial({
+      uniforms: {
+        /* t0: {
+          value: null,
+          needsUpdate: false,
+        },
+        outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        },
+        outline_colour: {
+          value: new THREE.Color(0, 0, 1),
+          needsUpdate: true,
+        },
+        outline_threshold: {
+          value: .5,
+          needsUpdate: true,
+        }, */
+      },
+      vertexShader: labelVertexShader,
+      fragmentShader: labelFragmentShader,
+      // depthWrite: false,
+      // depthTest: false,
+      // alphaToCoverage: true,
     })
   );
   /* quad.material.onBeforeCompile = shader => {
@@ -3357,6 +3501,7 @@ class Avatar {
       sideScene.add(bgMesh1);
       sideScene.add(bgMesh2);
       sideScene.add(bgMesh3);
+      sideScene.add(bgMesh4);
 
       const sideCamera = new THREE.PerspectiveCamera();
       sideCamera.position.y = 1.2;
