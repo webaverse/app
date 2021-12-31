@@ -33,7 +33,7 @@ init().then((ready) => {
     return function () {
       // your code
 
-      var result = cachedFunction.apply(this, arguments) // use .apply() to call it
+      // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
       // more of your code
       a = arguments[0].elements;
@@ -74,17 +74,34 @@ init().then((ready) => {
       mat4bView[15] = b[15]
 
       mat4.multiply(mat4a, mat4a, mat4b)
-      // c = mat4.multiply(mat4a, mat4a, mat4b)
+      // // c = mat4.multiply(mat4a, mat4a, mat4b)
 
-      // console.log('result', result.elements)
-      console.log(result.elements)
-      // console.log('mat4a', mat4a)
-      // console.log('mat4a', mat4.view(mat4a))
-      console.log(mat4aView)
-      // console.log('c', c) // same as `a`
-      debugger
+      // // console.log('result', result.elements)
+      // console.log(result.elements)
+      // // console.log('mat4a', mat4a)
+      // // console.log('mat4a', mat4.view(mat4a))
+      // console.log(mat4aView)
+      // // console.log('c', c) // same as `a`
+      // debugger
 
-      return result
+      this.elements[0] = mat4aView[0]
+      this.elements[1] = mat4aView[1]
+      this.elements[2] = mat4aView[2]
+      this.elements[3] = mat4aView[3]
+      this.elements[4] = mat4aView[4]
+      this.elements[5] = mat4aView[5]
+      this.elements[6] = mat4aView[6]
+      this.elements[7] = mat4aView[7]
+      this.elements[8] = mat4aView[8]
+      this.elements[9] = mat4aView[9]
+      this.elements[10] = mat4aView[10]
+      this.elements[11] = mat4aView[11]
+      this.elements[12] = mat4aView[12]
+      this.elements[13] = mat4aView[13]
+      this.elements[14] = mat4aView[14]
+      this.elements[15] = mat4aView[15]
+
+      return this
     }
   })()
 });
