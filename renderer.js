@@ -6,15 +6,87 @@ the purpose of this file is to hold these objects and to make sure they are corr
 import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
+import {init, vec3, mat4 } from 'glmw';
 
-import {init, vec3} from 'glmw';
+window.THREE = THREE;
+
 init().then((ready) => {
   // glmw is now ready and can be used anywhere
 
-  const a = vec3.create();
-  const b = vec3.fromValues(1.0, 2.0, 3.0);
-  vec3.add(a, a, b);
-  console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
+  // const a = vec3.create();
+  // const b = vec3.fromValues(1.0, 2.0, 3.0);
+  // vec3.add(a, a, b);
+  // console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
+  
+
+  THREE.Matrix4.prototype.multiplyMatrices = (function () {
+    var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
+
+    const mat4a = mat4.create();
+    const mat4b = mat4.create();
+    const mat4aView = mat4.view(mat4a);
+    const mat4bView = mat4.view(mat4b);
+    let a;
+    let b;
+    // let c;
+
+    return function () {
+      // your code
+
+      var result = cachedFunction.apply(this, arguments) // use .apply() to call it
+
+      // more of your code
+      a = arguments[0].elements;
+      b = arguments[1].elements;
+
+      mat4aView[0] = a[0]
+      mat4aView[1] = a[1]
+      mat4aView[2] = a[2]
+      mat4aView[3] = a[3]
+      mat4aView[4] = a[4]
+      mat4aView[5] = a[5]
+      mat4aView[6] = a[6]
+      mat4aView[7] = a[7]
+      mat4aView[8] = a[8]
+      mat4aView[9] = a[9]
+      mat4aView[10] = a[10]
+      mat4aView[11] = a[11]
+      mat4aView[12] = a[12]
+      mat4aView[13] = a[13]
+      mat4aView[14] = a[14]
+      mat4aView[15] = a[15]
+
+      mat4bView[0] = b[0]
+      mat4bView[1] = b[1]
+      mat4bView[2] = b[2]
+      mat4bView[3] = b[3]
+      mat4bView[4] = b[4]
+      mat4bView[5] = b[5]
+      mat4bView[6] = b[6]
+      mat4bView[7] = b[7]
+      mat4bView[8] = b[8]
+      mat4bView[9] = b[9]
+      mat4bView[10] = b[10]
+      mat4bView[11] = b[11]
+      mat4bView[12] = b[12]
+      mat4bView[13] = b[13]
+      mat4bView[14] = b[14]
+      mat4bView[15] = b[15]
+
+      mat4.multiply(mat4a, mat4a, mat4b)
+      // c = mat4.multiply(mat4a, mat4a, mat4b)
+
+      // console.log('result', result.elements)
+      console.log(result.elements)
+      // console.log('mat4a', mat4a)
+      // console.log('mat4a', mat4.view(mat4a))
+      console.log(mat4aView)
+      // console.log('c', c) // same as `a`
+      debugger
+
+      return result
+    }
+  })()
 });
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
