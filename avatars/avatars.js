@@ -351,7 +351,7 @@ const labelVertexShader = `\
   void main() {
     tex_coords = uv;
     vColor = color;
-    gl_Position = vec4(position.xy + vec2(mod(iTime, 1.), 0.), -1., 1.);
+    gl_Position = vec4(position.xy + vec2(-2. + mod(iTime, 2.) * 2., 0.), -1., 1.);
   }
 `;
 const labelFragmentShader = `\
@@ -419,7 +419,9 @@ const textVertexShader = `\
   void main() {
     tex_coords = uv;
     // vColor = color;
-    gl_Position = vec4(offset.xy + position.xy * scale + vec2(mod(uTroikaOutlineOpacity, 1.), 0.), -1., 1.);
+
+    float iTime = uTroikaOutlineOpacity;
+    gl_Position = vec4(offset.xy + position.xy * scale + vec2(-2. + mod(iTime, 2.) * 2., 0.), -1., 1.);
   }
 `;
 const textFragmentShader = `\
