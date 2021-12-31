@@ -9,6 +9,7 @@ import {minFov} from './constants.js';
 import {init, vec3, mat4 } from 'glmw';
 
 window.THREE = THREE;
+window.mat4 = mat4
 
 init().then((ready) => {
   // glmw is now ready and can be used anywhere
@@ -39,7 +40,7 @@ init().then((ready) => {
 
     return function () {
       // your code
-      if (window.isLogAverageTime) startTime = performance.now()
+      // if (window.isLogAverageTime) startTime = performance.now()
       // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
@@ -114,12 +115,12 @@ init().then((ready) => {
       this.elements[15] = mat4cView[15]
       // this.elements = [...mat4cView] // poor perfromance
 
-      if (window.isLogAverageTime) {
-        totalTime += performance.now() - startTime
-        count += 1
-        averageTime = totalTime / count
-        window.domAverageTime.innerText = averageTime
-      }
+      // if (window.isLogAverageTime) {
+      //   totalTime += performance.now() - startTime
+      //   count += 1
+      //   averageTime = totalTime / count
+      //   window.domAverageTime.innerText = averageTime
+      // }
 
       return this
     }
