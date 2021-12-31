@@ -10,6 +10,7 @@ import {init, vec3, vec4, mat4} from 'glmw';
 // import * as glmw from 'glmw';
 
 window.THREE = THREE;
+window.vec3 = vec3
 window.mat4 = mat4
 // window.glmw = glmw
 
@@ -30,15 +31,15 @@ init().then((ready) => {
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
     // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
-    // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
-    // // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
-    // // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-    // const mat4a = mat4.create();
-    // const mat4b = mat4.create();
-    // const mat4c = mat4.create();
-    // const mat4aView = mat4.view(mat4a);
-    // const mat4bView = mat4.view(mat4b);
-    // const mat4cView = mat4.view(mat4c);
+    // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
+    // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
+    // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+    const mat4a = mat4.create();
+    const mat4b = mat4.create();
+    const mat4c = mat4.create();
+    const mat4aView = mat4.view(mat4a);
+    const mat4bView = mat4.view(mat4b);
+    const mat4cView = mat4.view(mat4c);
 
     let ae;
     let be;
@@ -49,15 +50,15 @@ init().then((ready) => {
     return function multiplyMatrices() {
       // your code
 
-      // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
-      // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
-      // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-      const mat4a = mat4.create();
-      const mat4b = mat4.create();
-      const mat4c = mat4.create();
-      const mat4aView = mat4.view(mat4a);
-      const mat4bView = mat4.view(mat4b);
-      const mat4cView = mat4.view(mat4c);
+      // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
+      // // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
+      // // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+      // const mat4a = mat4.create();
+      // const mat4b = mat4.create();
+      // const mat4c = mat4.create();
+      // const mat4aView = mat4.view(mat4a);
+      // const mat4bView = mat4.view(mat4b);
+      // const mat4cView = mat4.view(mat4c);
 
       // if (window.isLogAverageTime) startTime = performance.now()
       // return this
@@ -149,9 +150,9 @@ init().then((ready) => {
       // //   window.domAverageTime.innerText = averageTime
       // // }
 
-      mat4.free(mat4a)
-      mat4.free(mat4b)
-      mat4.free(mat4c)
+      // mat4.free(mat4a)
+      // mat4.free(mat4b)
+      // mat4.free(mat4c)
 
       return this
     }
@@ -160,16 +161,33 @@ init().then((ready) => {
   THREE.Matrix4.prototype.compose = (function () {
     // var cachedFunction = THREE.Matrix4.prototype.compose
 
+    const out = mat4.create();
+    const outView = mat4.view(out);
+    const q = vec4.create()
+    const qView = vec4.view(q)
+    const v = vec3.create()
+    const vView = vec3.view(v)
+    const s = vec3.create()
+    const sView = vec3.view(s)
+
     return function compose() {
       const position = arguments[0]
       const quaternion = arguments[1]
       const scale = arguments[2]
 
-      const out = mat4.create();
-      const outView = mat4.view(out);
-      const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
-      const v = vec3.fromValues(position.x, position.y, position.z)
-      const s = vec3.fromValues(scale.x, scale.y, scale.z)
+      // const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+      // const v = vec3.fromValues(position.x, position.y, position.z)
+      // const s = vec3.fromValues(scale.x, scale.y, scale.z)
+      qView[0] = quaternion.x
+      qView[1] = quaternion.y
+      qView[2] = quaternion.z
+      qView[3] = quaternion.w
+      vView[0] = position.x
+      vView[1] = position.y
+      vView[2] = position.z
+      sView[0] = scale.x
+      sView[1] = scale.y
+      sView[2] = scale.z
       mat4.fromRotationTranslationScale(out, q, v, s)
 
       this.elements[0] = outView[0]
@@ -191,10 +209,10 @@ init().then((ready) => {
 
       // this.elements = outView
 
-      mat4.free(out)
-      vec4.free(q)
-      vec3.free(v)
-      vec3.free(s)
+      // mat4.free(out)
+      // vec4.free(q)
+      // vec3.free(v)
+      // vec3.free(s)
 
       return this
     }
