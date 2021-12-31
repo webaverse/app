@@ -334,6 +334,7 @@ const emoteFragmentShader2 = `\
       v = mix(0.,v,intensityFactor*smoothstep(minRadius, maxRadius,d));
       //Colorize (palette remap )
       fragColor.rgb = colorize(v);
+      fragColor.a = v;
   }
 
   void main() {
