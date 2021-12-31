@@ -350,7 +350,7 @@ const labelVertexShader = `\
   void main() {
     tex_coords = uv;
     vColor = color;
-    gl_Position = vec4(position, 1.);
+    gl_Position = vec4(position.xy, -1., 1.);
   }
 `;
 const labelFragmentShader = `\
@@ -417,7 +417,7 @@ const textVertexShader = `\
   void main() {
     tex_coords = uv;
     // vColor = color;
-    gl_Position = vec4(offset + position * scale, 1.);
+    gl_Position = vec4(offset.xy + position.xy * scale, -1., 1.);
   }
 `;
 const textFragmentShader = `\
