@@ -18,6 +18,7 @@ init().then((ready) => {
   // vec3.add(a, a, b);
   // console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
   
+  window.isLogAverageTime = false
   let totalTime = 0
   let averageTime = 0
   let count = 0
@@ -26,8 +27,10 @@ init().then((ready) => {
 
     const mat4a = mat4.create();
     const mat4b = mat4.create();
+    const mat4c = mat4.create();
     const mat4aView = mat4.view(mat4a);
     const mat4bView = mat4.view(mat4b);
+    const mat4cView = mat4.view(mat4c);
     let ae;
     let be;
     // let c;
@@ -36,50 +39,53 @@ init().then((ready) => {
 
     return function () {
       // your code
-      startTime = performance.now()
+      if (window.isLogAverageTime) startTime = performance.now()
       // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
       // more of your code
-      ae = arguments[0].elements;
-      be = arguments[1].elements;
+      // ae = arguments[0].elements;
+      // be = arguments[1].elements;
+      mat4aView.set(arguments[0].elements)
+      mat4bView.set(arguments[1].elements)
 
-      mat4aView[0] = ae[0]
-      mat4aView[1] = ae[1]
-      mat4aView[2] = ae[2]
-      mat4aView[3] = ae[3]
-      mat4aView[4] = ae[4]
-      mat4aView[5] = ae[5]
-      mat4aView[6] = ae[6]
-      mat4aView[7] = ae[7]
-      mat4aView[8] = ae[8]
-      mat4aView[9] = ae[9]
-      mat4aView[10] = ae[10]
-      mat4aView[11] = ae[11]
-      mat4aView[12] = ae[12]
-      mat4aView[13] = ae[13]
-      mat4aView[14] = ae[14]
-      mat4aView[15] = ae[15]
+      // poor performance
+      // mat4aView[0] = ae[0]
+      // mat4aView[1] = ae[1]
+      // mat4aView[2] = ae[2]
+      // mat4aView[3] = ae[3]
+      // mat4aView[4] = ae[4]
+      // mat4aView[5] = ae[5]
+      // mat4aView[6] = ae[6]
+      // mat4aView[7] = ae[7]
+      // mat4aView[8] = ae[8]
+      // mat4aView[9] = ae[9]
+      // mat4aView[10] = ae[10]
+      // mat4aView[11] = ae[11]
+      // mat4aView[12] = ae[12]
+      // mat4aView[13] = ae[13]
+      // mat4aView[14] = ae[14]
+      // mat4aView[15] = ae[15]
 
-      mat4bView[0] = be[0]
-      mat4bView[1] = be[1]
-      mat4bView[2] = be[2]
-      mat4bView[3] = be[3]
-      mat4bView[4] = be[4]
-      mat4bView[5] = be[5]
-      mat4bView[6] = be[6]
-      mat4bView[7] = be[7]
-      mat4bView[8] = be[8]
-      mat4bView[9] = be[9]
-      mat4bView[10] = be[10]
-      mat4bView[11] = be[11]
-      mat4bView[12] = be[12]
-      mat4bView[13] = be[13]
-      mat4bView[14] = be[14]
-      mat4bView[15] = be[15]
+      // mat4bView[0] = be[0]
+      // mat4bView[1] = be[1]
+      // mat4bView[2] = be[2]
+      // mat4bView[3] = be[3]
+      // mat4bView[4] = be[4]
+      // mat4bView[5] = be[5]
+      // mat4bView[6] = be[6]
+      // mat4bView[7] = be[7]
+      // mat4bView[8] = be[8]
+      // mat4bView[9] = be[9]
+      // mat4bView[10] = be[10]
+      // mat4bView[11] = be[11]
+      // mat4bView[12] = be[12]
+      // mat4bView[13] = be[13]
+      // mat4bView[14] = be[14]
+      // mat4bView[15] = be[15]
 
-      mat4.multiply(mat4a, mat4a, mat4b)
+      mat4.multiply(mat4c, mat4a, mat4b)
       // // c = mat4.multiply(mat4a, mat4a, mat4b)
 
       // // console.log('result', result.elements)
@@ -90,27 +96,30 @@ init().then((ready) => {
       // // console.log('c', c) // same as `a`
       // debugger
 
-      this.elements[0] = mat4aView[0]
-      this.elements[1] = mat4aView[1]
-      this.elements[2] = mat4aView[2]
-      this.elements[3] = mat4aView[3]
-      this.elements[4] = mat4aView[4]
-      this.elements[5] = mat4aView[5]
-      this.elements[6] = mat4aView[6]
-      this.elements[7] = mat4aView[7]
-      this.elements[8] = mat4aView[8]
-      this.elements[9] = mat4aView[9]
-      this.elements[10] = mat4aView[10]
-      this.elements[11] = mat4aView[11]
-      this.elements[12] = mat4aView[12]
-      this.elements[13] = mat4aView[13]
-      this.elements[14] = mat4aView[14]
-      this.elements[15] = mat4aView[15]
+      this.elements[0] = mat4cView[0]
+      this.elements[1] = mat4cView[1]
+      this.elements[2] = mat4cView[2]
+      this.elements[3] = mat4cView[3]
+      this.elements[4] = mat4cView[4]
+      this.elements[5] = mat4cView[5]
+      this.elements[6] = mat4cView[6]
+      this.elements[7] = mat4cView[7]
+      this.elements[8] = mat4cView[8]
+      this.elements[9] = mat4cView[9]
+      this.elements[10] = mat4cView[10]
+      this.elements[11] = mat4cView[11]
+      this.elements[12] = mat4cView[12]
+      this.elements[13] = mat4cView[13]
+      this.elements[14] = mat4cView[14]
+      this.elements[15] = mat4cView[15]
+      // this.elements = [...mat4cView] // poor perfromance
 
-      totalTime += performance.now() - startTime
-      count += 1
-      averageTime = totalTime / count
-      window.domAverageTime.innerText = averageTime
+      if (window.isLogAverageTime) {
+        totalTime += performance.now() - startTime
+        count += 1
+        averageTime = totalTime / count
+        window.domAverageTime.innerText = averageTime
+      }
 
       return this
     }
