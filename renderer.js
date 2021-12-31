@@ -135,6 +135,8 @@ init().then((ready) => {
       this.elements[14] = mat4cView[14]
       this.elements[15] = mat4cView[15]
 
+      // this.elements = Array.from(mat4cView) // poor perfromance
+
       // this.elements = [...mat4cView] // poor perfromance
 
       // if (!Array.isArray(this.elements)) mat4.free(this.elements)
@@ -207,13 +209,6 @@ init().then((ready) => {
       this.elements[13] = outView[13]
       this.elements[14] = outView[14]
       this.elements[15] = outView[15]
-
-      // this.elements = outView
-
-      // mat4.free(out)
-      // vec4.free(q)
-      // vec3.free(v)
-      // vec3.free(s)
 
       return this
     }
