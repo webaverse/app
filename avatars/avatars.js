@@ -97,7 +97,8 @@ const bgFragmentShader = `\
     if (sum > 0.) {
       pixel = vec4(outline_colour, 1);
     } else {
-      pixel = texture(t0, tex_coords);
+      discard;
+      // pixel = texture(t0, tex_coords);
     }
   }
 
@@ -105,40 +106,6 @@ const bgFragmentShader = `\
     gl_FragColor = vec4(vUv, 0., 1.);
   } */
 `;
-const bgMesh1 = (() => {
-  const quad = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
-    new THREE.ShaderMaterial({
-      uniforms: {
-        t0: {
-          value: null,
-          needsUpdate: false,
-        },
-        outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        },
-        outline_colour: {
-          value: new THREE.Color(0, 0, 1),
-          needsUpdate: true,
-        },
-        outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: bgVertexShader,
-      fragmentShader: bgFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  quad.frustumCulled = false;
-  return quad;
-})();
 const emoteFragmentShader = `\
   uniform float iTime;
   uniform int iFrame;
@@ -295,7 +262,7 @@ const emoteFragmentShader = `\
     mainImage(gl_FragColor, tex_coords);
   }
 `;
-const bgMesh2 = (() => {
+const bgMesh1 = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
@@ -331,6 +298,40 @@ const bgMesh2 = (() => {
   quad.material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
   quad.material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
   quad.material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping;
+  quad.frustumCulled = false;
+  return quad;
+})();
+const bgMesh2 = (() => {
+  const quad = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        t0: {
+          value: null,
+          needsUpdate: false,
+        },
+        outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        },
+        outline_colour: {
+          value: new THREE.Color(0, 0, 1),
+          needsUpdate: true,
+        },
+        outline_threshold: {
+          value: .5,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: bgVertexShader,
+      fragmentShader: bgFragmentShader,
+      depthWrite: false,
+      depthTest: false,
+    })
+  );
+  /* quad.material.onBeforeCompile = shader => {
+    console.log('got full screen shader', shader);
+  }; */
   quad.frustumCulled = false;
   return quad;
 })();
@@ -3288,13 +3289,16 @@ class Avatar {
         // set up side scene
         sideScene.add(this.model);
         sideScene.add(world.lights);
-        bgMesh1.material.uniforms.t0.value = avatarRenderTarget.texture;
-        bgMesh1.material.uniforms.t0.needsUpdate = true;
+
         const now = performance.now();
-        bgMesh2.material.uniforms.iTime.value = now / 1000;
-        bgMesh2.material.uniforms.iTime.needsUpdate = true;
-        bgMesh2.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        bgMesh2.material.uniforms.iFrame.needsUpdate = true;
+        bgMesh1.material.uniforms.iTime.value = now / 1000;
+        bgMesh1.material.uniforms.iTime.needsUpdate = true;
+        bgMesh1.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+        bgMesh1.material.uniforms.iFrame.needsUpdate = true;
+        
+        bgMesh2.material.uniforms.t0.value = avatarRenderTarget.texture;
+        bgMesh2.material.uniforms.t0.needsUpdate = true;
+        
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(0, 0, sideSize, sideSize);
