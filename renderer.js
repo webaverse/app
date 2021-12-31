@@ -6,13 +6,17 @@ the purpose of this file is to hold these objects and to make sure they are corr
 import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
-import {init, vec3, mat4 } from 'glmw';
+import {init, vec3, vec4, mat4} from 'glmw';
+// import * as glmw from 'glmw';
 
 window.THREE = THREE;
 window.mat4 = mat4
+// window.glmw = glmw
 
 init().then((ready) => {
   // glmw is now ready and can be used anywhere
+
+  // THREE.AudioListener.prototype.updateMatrixWorld = function(){}
 
   // const a = vec3.create();
   // const b = vec3.fromValues(1.0, 2.0, 3.0);
@@ -26,20 +30,35 @@ init().then((ready) => {
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
     // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
-    const mat4a = mat4.create();
-    const mat4b = mat4.create();
-    const mat4c = mat4.create();
-    const mat4aView = mat4.view(mat4a);
-    const mat4bView = mat4.view(mat4b);
-    const mat4cView = mat4.view(mat4c);
+    // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
+    // // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
+    // // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+    // const mat4a = mat4.create();
+    // const mat4b = mat4.create();
+    // const mat4c = mat4.create();
+    // const mat4aView = mat4.view(mat4a);
+    // const mat4bView = mat4.view(mat4b);
+    // const mat4cView = mat4.view(mat4c);
+
     let ae;
     let be;
     // let c;
 
     let startTime;
 
-    return function () {
+    return function multiplyMatrices() {
       // your code
+
+      // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
+      // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
+      // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+      const mat4a = mat4.create();
+      const mat4b = mat4.create();
+      const mat4c = mat4.create();
+      const mat4aView = mat4.view(mat4a);
+      const mat4bView = mat4.view(mat4b);
+      const mat4cView = mat4.view(mat4c);
+
       // if (window.isLogAverageTime) startTime = performance.now()
       // return this
 
@@ -48,6 +67,7 @@ init().then((ready) => {
       // more of your code
       // ae = arguments[0].elements;
       // be = arguments[1].elements;
+      // if (!Array.isArray(arguments[0].elements)) debugger
       mat4aView.set(arguments[0].elements)
       mat4bView.set(arguments[1].elements)
 
@@ -113,14 +133,68 @@ init().then((ready) => {
       this.elements[13] = mat4cView[13]
       this.elements[14] = mat4cView[14]
       this.elements[15] = mat4cView[15]
+
       // this.elements = [...mat4cView] // poor perfromance
 
-      // if (window.isLogAverageTime) {
-      //   totalTime += performance.now() - startTime
-      //   count += 1
-      //   averageTime = totalTime / count // todo: calc average in animate()
-      //   window.domAverageTime.innerText = averageTime
-      // }
+      // this.elements = mat4cView
+      // // geometry.wasm:0x12d641 Uncaught (in promise) RuntimeError: null function or function signature mismatch
+      // //   at geometry.wasm:0x12d641
+      // // character-physics.js:81 Uncaught TypeError: Cannot read properties of undefined (reading 'position')
+      // //   at CharacterPhysics.applyAvatarPhysicsDetail (character-physics.js:81)
+
+      // // if (window.isLogAverageTime) {
+      // //   totalTime += performance.now() - startTime
+      // //   count += 1
+      // //   averageTime = totalTime / count // todo: calc average in animate()
+      // //   window.domAverageTime.innerText = averageTime
+      // // }
+
+      mat4.free(mat4a)
+      mat4.free(mat4b)
+      mat4.free(mat4c)
+
+      return this
+    }
+  })()
+  
+  THREE.Matrix4.prototype.compose = (function () {
+    // var cachedFunction = THREE.Matrix4.prototype.compose
+
+    return function compose() {
+      const position = arguments[0]
+      const quaternion = arguments[1]
+      const scale = arguments[2]
+
+      const out = mat4.create();
+      const outView = mat4.view(out);
+      const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+      const v = vec3.fromValues(position.x, position.y, position.z)
+      const s = vec3.fromValues(scale.x, scale.y, scale.z)
+      mat4.fromRotationTranslationScale(out, q, v, s)
+
+      this.elements[0] = outView[0]
+      this.elements[1] = outView[1]
+      this.elements[2] = outView[2]
+      this.elements[3] = outView[3]
+      this.elements[4] = outView[4]
+      this.elements[5] = outView[5]
+      this.elements[6] = outView[6]
+      this.elements[7] = outView[7]
+      this.elements[8] = outView[8]
+      this.elements[9] = outView[9]
+      this.elements[10] = outView[10]
+      this.elements[11] = outView[11]
+      this.elements[12] = outView[12]
+      this.elements[13] = outView[13]
+      this.elements[14] = outView[14]
+      this.elements[15] = outView[15]
+
+      // this.elements = outView
+
+      mat4.free(out)
+      vec4.free(q)
+      vec3.free(v)
+      vec3.free(s)
 
       return this
     }
