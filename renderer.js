@@ -165,13 +165,18 @@ init().then((ready) => {
     // var cachedFunction = THREE.Matrix4.prototype.compose
 
     const out = mat4.create();
-    const outView = mat4.view(out);
     const q = vec4.create()
-    const qView = vec4.view(q)
     const v = vec3.create()
-    const vView = vec3.view(v)
     const s = vec3.create()
+
+    const outView = mat4.view(out);
+    const qView = vec4.view(q)
+    const vView = vec3.view(v)
     const sView = vec3.view(s)
+
+    const qArr = []
+    const vArr = []
+    const sArr = []
 
     return function compose() {
       const position = arguments[0]
@@ -181,16 +186,23 @@ init().then((ready) => {
       // const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
       // const v = vec3.fromValues(position.x, position.y, position.z)
       // const s = vec3.fromValues(scale.x, scale.y, scale.z)
-      qView[0] = quaternion.x
-      qView[1] = quaternion.y
-      qView[2] = quaternion.z
-      qView[3] = quaternion.w
-      vView[0] = position.x
-      vView[1] = position.y
-      vView[2] = position.z
-      sView[0] = scale.x
-      sView[1] = scale.y
-      sView[2] = scale.z
+
+      // // poor performance
+      // qView[0] = quaternion.x
+      // qView[1] = quaternion.y
+      // qView[2] = quaternion.z
+      // qView[3] = quaternion.w
+      // vView[0] = position.x
+      // vView[1] = position.y
+      // vView[2] = position.z
+      // sView[0] = scale.x
+      // sView[1] = scale.y
+      // sView[2] = scale.z
+
+      qView.set(quaternion.toArray(qArr))
+      vView.set(position.toArray(vArr))
+      sView.set(scale.toArray(sArr))
+
       mat4.fromRotationTranslationScale(out, q, v, s)
 
       this.elements[0] = outView[0]
