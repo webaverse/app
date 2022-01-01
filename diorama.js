@@ -82,7 +82,7 @@ const bgFragmentShader = `\
     }
   }
 `;
-const emoteFragmentShader = `\
+const animeLightningFragmentShader = `\
   uniform float iTime;
   uniform int iFrame;
   uniform vec3 uColor1;
@@ -256,7 +256,7 @@ const emoteFragmentShader = `\
     mainImage(gl_FragColor, tex_coords);
   }
 `;
-const emoteFragmentShader2 = `\
+const animeRadialShader = `\
   uniform float iTime;
   uniform int iFrame;
   uniform sampler2D iChannel0;
@@ -541,6 +541,7 @@ const textFragmentShader = `\
     gl_FragColor = vec4(vec3(1.), 1.);
   }
 `;
+const planeGeometry = new THREE.PlaneGeometry(2, 2);
 async function makeTextMesh(
   text = '',
   material = null,
@@ -571,7 +572,7 @@ async function makeTextMesh(
 const bgMesh1 = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
+    planeGeometry,
     new THREE.ShaderMaterial({
       uniforms: {
         iTime: {
@@ -600,7 +601,7 @@ const bgMesh1 = (() => {
         },
       },
       vertexShader: bgVertexShader,
-      fragmentShader: emoteFragmentShader,
+      fragmentShader: animeLightningFragmentShader,
       depthWrite: false,
       depthTest: false,
     })
@@ -618,7 +619,7 @@ const bgMesh1 = (() => {
 const bgMesh2 = (() => {
   // const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
+    planeGeometry,
     new THREE.ShaderMaterial({
       uniforms: {
         iTime: {
@@ -639,7 +640,7 @@ const bgMesh2 = (() => {
         }, */
       },
       vertexShader: bgVertexShader,
-      fragmentShader: emoteFragmentShader2,
+      fragmentShader: animeRadialShader,
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
@@ -657,7 +658,7 @@ const bgMesh2 = (() => {
 })();
 const bgMesh3 = (() => {
   const quad = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
+    planeGeometry,
     new THREE.ShaderMaterial({
       uniforms: {
         t0: {
@@ -706,7 +707,6 @@ const speed2 = 1.5;
 const aspectRatio2 = 0.15;
 const p2 = new THREE.Vector3(0.35, -0.825, 0);
 const bgMesh4 = (() => {
-  const planeGeometry = new THREE.PlaneGeometry(2, 2);
   const _decorateGeometry = (g, color, z) => {
     const colors = new Float32Array(g.attributes.position.count * 3);
     for (let i = 0; i < colors.length; i += 3) {
@@ -823,7 +823,7 @@ const bgMesh5 = (() => {
   })();
   return o;
 })();
-const outlineMaterial = (() => {
+const skinnedRedMaterial = (() => {
   var wVertex = THREE.ShaderLib["standard"].vertexShader;
   var wFragment = THREE.ShaderLib["standard"].fragmentShader;
   var wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
@@ -836,7 +836,7 @@ const outlineMaterial = (() => {
     attribute vec4 orientation;
 
     vec3 applyQuaternionToVector(vec4 q, vec3 v){
-        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
     }
 
   ` + wVertex;
@@ -858,9 +858,9 @@ const outlineMaterial = (() => {
     uniforms: wUniforms,
     vertexShader: wVertex,
     fragmentShader: wFragment,
-    lights: true,
+    // lights: true,
     // depthPacking: THREE.RGBADepthPacking,
-    name: "detail-material",
+    // name: "detail-material",
     // fog: true,
     extensions: {
       derivatives: true,
@@ -899,7 +899,7 @@ const createPlayerDiorama = player => {
     
       // setup
       const sideAvatarScene = new THREE.Scene();
-      sideAvatarScene.overrideMaterial = outlineMaterial;
+      sideAvatarScene.overrideMaterial = skinnedRedMaterial;
     
       const sideScene = new THREE.Scene();
       sideScene.add(bgMesh1);
