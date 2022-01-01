@@ -928,27 +928,25 @@ const createPlayerDiorama = player => {
       const oldViewport = renderer.getViewport(localVector4D);
       const oldWorldLightParent = world.lights.parent;
     
-      // setup
-      /* sideCamera.position.y = 1.2;
-      sideCamera.position.z = 2; */
-      sideCamera.position.copy(player.position)
-        .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
-      sideCamera.quaternion.setFromRotationMatrix(
-        localMatrix.lookAt(
-          sideCamera.position,
-          player.position,
-          localVector3.set(0, 1, 0)
-        )
-      );
-      sideCamera.updateMatrixWorld();
-    
-      // render
+      const _render = () => {
       /* const numCanvases = 1;
       for (let i = 0; i < numCanvases; i++) {
         const x = i % sideSize;
         const y = Math.floor(i / sideSize);
         const dx = x * sideSize;
         const dy = y * sideSize; */
+
+        // set up side camera
+        sideCamera.position.copy(player.position)
+          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
+        sideCamera.quaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            sideCamera.position,
+            player.position,
+            localVector3.set(0, 1, 0)
+          )
+        );
+        sideCamera.updateMatrixWorld();
 
         // set up side avatar scene
         sideAvatarScene.add(player.avatar.model);
@@ -1001,8 +999,9 @@ const createPlayerDiorama = player => {
     
         ctx.clearRect(0, 0, sideSize, sideSize);
         ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
-      // }
-    
+      };
+      _render();
+
       // pop old state
       if (oldParent) {
         oldParent.add(player.avatar.model);
@@ -1014,7 +1013,7 @@ const createPlayerDiorama = player => {
       } else {
         world.lights.parent.remove(world.lights);
       }
-      // renderer.setRenderTarget(oldRenderTarget);
+      renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
     },
     destroy() {
