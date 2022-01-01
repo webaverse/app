@@ -8,6 +8,9 @@ import gradients from './gradients.json';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
 const bgVertexShader = `\
@@ -873,6 +876,18 @@ const skinnedRedMaterial = (() => {
   return instanceMaterial;
 })();
 
+const sideAvatarScene = new THREE.Scene();
+sideAvatarScene.overrideMaterial = skinnedRedMaterial;
+
+const sideScene = new THREE.Scene();
+sideScene.add(lightningMesh);
+// sideScene.add(radialMesh);
+sideScene.add(outlineMesh);
+sideScene.add(labelMesh);
+sideScene.add(textObject);
+
+const sideCamera = new THREE.PerspectiveCamera();
+
 const createPlayerDiorama = player => {
   const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
@@ -897,9 +912,9 @@ const createPlayerDiorama = player => {
 
   const diorama = {
     update(timestamp, timeDiff) {
-      const size = renderer.getSize(new THREE.Vector2());
+      const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
-      const sizePowerOfTwo = new THREE.Vector2(
+      const sizePowerOfTwo = localVector2D2.set(
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
@@ -910,21 +925,10 @@ const createPlayerDiorama = player => {
       // push old state
       const oldParent = player.avatar.model.parent;
       const oldRenderTarget = renderer.getRenderTarget();
-      const oldViewport = renderer.getViewport(new THREE.Vector4());
+      const oldViewport = renderer.getViewport(localVector4D);
       const oldWorldLightParent = world.lights.parent;
     
       // setup
-      const sideAvatarScene = new THREE.Scene();
-      sideAvatarScene.overrideMaterial = skinnedRedMaterial;
-    
-      const sideScene = new THREE.Scene();
-      sideScene.add(lightningMesh);
-      // sideScene.add(radialMesh);
-      sideScene.add(outlineMesh);
-      sideScene.add(labelMesh);
-      sideScene.add(textObject);
-    
-      const sideCamera = new THREE.PerspectiveCamera();
       /* sideCamera.position.y = 1.2;
       sideCamera.position.z = 2; */
       sideCamera.position.copy(player.position)
