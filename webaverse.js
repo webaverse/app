@@ -556,7 +556,7 @@ const _startHacks = () => {
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (localPlayer.avatar) {
         if (!diorama) {
-          diorama = dioramaManager.createDiorama(localPlayer);
+          diorama = dioramaManager.createPlayerDiorama(localPlayer);
         } else {
           diorama.destroy();
           diorama = null;
