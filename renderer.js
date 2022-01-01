@@ -200,78 +200,78 @@ init().then((ready) => {
     }
   })()
   
-  THREE.Matrix4.prototype.compose = (function () {
-    // var cachedFunction = THREE.Matrix4.prototype.compose
+  // THREE.Matrix4.prototype.compose = (function () {
+  //   // var cachedFunction = THREE.Matrix4.prototype.compose
 
-    const out = mat4.create();
-    const q = vec4.create()
-    const v = vec3.create()
-    const s = vec3.create()
+  //   const out = mat4.create();
+  //   const q = vec4.create()
+  //   const v = vec3.create()
+  //   const s = vec3.create()
 
-    const outView = mat4.view(out);
-    const qView = vec4.view(q)
-    const vView = vec3.view(v)
-    const sView = vec3.view(s)
+  //   const outView = mat4.view(out);
+  //   const qView = vec4.view(q)
+  //   const vView = vec3.view(v)
+  //   const sView = vec3.view(s)
 
-    const qArr = []
-    const vArr = []
-    const sArr = []
+  //   const qArr = []
+  //   const vArr = []
+  //   const sArr = []
 
-    return function compose() {
-      if (Array.isArray(this.elements)) {
-        this.elements = new Float32Array(this.elements)
-      } else if (this.elements instanceof Proxy) {
-        this.elements = new Float32Array(Object.values(this.elements))
-      }
+  //   return function compose() {
+  //     if (Array.isArray(this.elements)) {
+  //       this.elements = new Float32Array(this.elements)
+  //     } else if (this.elements instanceof Proxy) {
+  //       this.elements = new Float32Array(Object.values(this.elements))
+  //     }
 
-      const position = arguments[0]
-      const quaternion = arguments[1]
-      const scale = arguments[2]
+  //     const position = arguments[0]
+  //     const quaternion = arguments[1]
+  //     const scale = arguments[2]
 
-      // const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
-      // const v = vec3.fromValues(position.x, position.y, position.z)
-      // const s = vec3.fromValues(scale.x, scale.y, scale.z)
+  //     // const q = vec4.fromValues(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+  //     // const v = vec3.fromValues(position.x, position.y, position.z)
+  //     // const s = vec3.fromValues(scale.x, scale.y, scale.z)
 
-      // // poor performance
-      // qView[0] = quaternion.x
-      // qView[1] = quaternion.y
-      // qView[2] = quaternion.z
-      // qView[3] = quaternion.w
-      // vView[0] = position.x
-      // vView[1] = position.y
-      // vView[2] = position.z
-      // sView[0] = scale.x
-      // sView[1] = scale.y
-      // sView[2] = scale.z
+  //     // // poor performance
+  //     // qView[0] = quaternion.x
+  //     // qView[1] = quaternion.y
+  //     // qView[2] = quaternion.z
+  //     // qView[3] = quaternion.w
+  //     // vView[0] = position.x
+  //     // vView[1] = position.y
+  //     // vView[2] = position.z
+  //     // sView[0] = scale.x
+  //     // sView[1] = scale.y
+  //     // sView[2] = scale.z
 
-      qView.set(quaternion.toArray(qArr))
-      vView.set(position.toArray(vArr))
-      sView.set(scale.toArray(sArr))
+  //     qView.set(quaternion.toArray(qArr))
+  //     vView.set(position.toArray(vArr))
+  //     sView.set(scale.toArray(sArr))
 
-      mat4.fromRotationTranslationScale(out, q, v, s)
+  //     mat4.fromRotationTranslationScale(out, q, v, s)
 
-      // this.elements[0] = outView[0]
-      // this.elements[1] = outView[1]
-      // this.elements[2] = outView[2]
-      // this.elements[3] = outView[3]
-      // this.elements[4] = outView[4]
-      // this.elements[5] = outView[5]
-      // this.elements[6] = outView[6]
-      // this.elements[7] = outView[7]
-      // this.elements[8] = outView[8]
-      // this.elements[9] = outView[9]
-      // this.elements[10] = outView[10]
-      // this.elements[11] = outView[11]
-      // this.elements[12] = outView[12]
-      // this.elements[13] = outView[13]
-      // this.elements[14] = outView[14]
-      // this.elements[15] = outView[15]
+  //     // this.elements[0] = outView[0]
+  //     // this.elements[1] = outView[1]
+  //     // this.elements[2] = outView[2]
+  //     // this.elements[3] = outView[3]
+  //     // this.elements[4] = outView[4]
+  //     // this.elements[5] = outView[5]
+  //     // this.elements[6] = outView[6]
+  //     // this.elements[7] = outView[7]
+  //     // this.elements[8] = outView[8]
+  //     // this.elements[9] = outView[9]
+  //     // this.elements[10] = outView[10]
+  //     // this.elements[11] = outView[11]
+  //     // this.elements[12] = outView[12]
+  //     // this.elements[13] = outView[13]
+  //     // this.elements[14] = outView[14]
+  //     // this.elements[15] = outView[15]
 
-      this.elements.set(outView)
+  //     this.elements.set(outView)
 
-      return this
-    }
-  })()
+  //     return this
+  //   }
+  // })()
 });
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
