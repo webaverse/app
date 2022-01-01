@@ -7,6 +7,31 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
+// // https://stackoverflow.com/a/62544968/3596736
+//   // Adding 'support' for instanceof Proxy:
+// (() => {
+//   var proxyInstances = new WeakSet()
+  
+//   // Optionally save the original in global scope:
+//   let originalProxy = Proxy
+
+//   Proxy = new Proxy(Proxy, {
+//     construct(target, args) {
+//       var newProxy = new originalProxy(...args)
+//       proxyInstances.add(newProxy)
+//       return newProxy
+//     },
+//     get(obj, prop) {
+//       if (prop == Symbol.hasInstance) {
+//         return (instance) => {
+//           return proxyInstances.has(instance)
+//         }
+//       }
+//       return Reflect.get(...arguments)
+//     }
+//   })
+// })()
+
 window.isLogAverageTime = false
 let totalTime = 0
 let averageTime = 0
