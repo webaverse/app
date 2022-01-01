@@ -15,7 +15,7 @@ import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
 // import equipmentRender from './equipment-render.js';
-import * as characterController from './character-controller.js';
+// import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
