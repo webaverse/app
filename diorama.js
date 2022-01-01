@@ -1031,6 +1031,12 @@ const createDiorama = player => {
       // renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
     },
+    destroy() {
+      for (const mmdCanvas of mmdCanvases) {
+        mmdCanvas.parentNode.removeChild(mmdCanvas);
+      }
+      dioramas.splice(dioramas.indexOf(diorama), 1);
+    },
   };
   dioramas.push(diorama);
   return diorama;
