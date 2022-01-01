@@ -25,6 +25,7 @@
     "borc": "^3.0.0",
     "classnames": "^2.3.1",
     "dids": "^2.4.0",
+    "encoding-japanese": "^1.0.30",
     "express": "^4.17.1",
     "forever": "^4.0.1",
     "gpt-3-encoder": "^1.1.3",

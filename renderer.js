@@ -46,7 +46,7 @@ function bindCanvas(c) {
   if (!context) {
     context = renderer.getContext();
   }
-  context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  // context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 
   // initialize post-processing
