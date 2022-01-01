@@ -2803,7 +2803,8 @@ class Avatar {
 
     const noiseAnimation = animations.find(a => a.name === 't-pose_rot.fbx');
     const noiseTime = (now/1000) % noiseAnimation.duration;
-    const _overwritePose = pose => {
+    const _overwritePose = poseName => {
+      const poseAnimation = animations.find(a => a.name === poseName);
       for (const spec of this.animationMappings) {
         const {
           animationTrackName: k,
@@ -2812,28 +2813,10 @@ class Avatar {
           isPosition,
         } = spec;
 
-        const boneName = animationBoneToModelBone[spec.animationTrackName.replace(/\.[\s\S]*$/, '')];
-        const srcBone = pose[boneName];
-        if (srcBone) {
-          if (isPosition) {
-            dst.x = 0;
-            dst.z = 0;
-          } else {
-            dst.copy(srcBone.quaternion);
-          }
-        } else {
-          // console.log('no source bone', boneName);
-          if (isPosition) {
-            dst.set(0, 0, 0);
-          } else {
-            dst.set(0, 0, 0, 1);
-          }
-        }
-
         if (!isPosition) {
-          const src2 = noiseAnimation.interpolants[k];
-          const v2 = src2.evaluate(noiseTime);
-          dst.multiply(localQuaternion.fromArray(v2));
+          const src = poseAnimation.interpolants[k];
+          const v = src.evaluate(0);
+          dst.fromArray(v);
         }
       }
 
@@ -2850,8 +2833,8 @@ class Avatar {
         )
       ); */
     };
-    if (mmdAnimation && this.object.asset.generator === 'UniGLTF-1.28') {
-      _overwritePose(mmdAnimation);
+    if (this.object.asset.generator === 'UniGLTF-1.28') {
+      _overwritePose('Running by CorruptedDestiny/3.vpd');
     }
 
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
