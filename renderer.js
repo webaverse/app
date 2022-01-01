@@ -49,6 +49,9 @@ init().then((ready) => {
 
     return function multiplyMatrices() {
       // your code
+      if (Array.isArray(this.elements)) {
+        this.elements = new Float32Array(this.elements)
+      }
 
       // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
       // // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
@@ -69,8 +72,10 @@ init().then((ready) => {
       // ae = arguments[0].elements;
       // be = arguments[1].elements;
       // if (!Array.isArray(arguments[0].elements)) debugger
-      mat4aView.set(arguments[0].elements)
-      mat4bView.set(arguments[1].elements)
+      try {
+        mat4aView.set(arguments[0].elements)
+        mat4bView.set(arguments[1].elements)
+      } catch (e) {}
 
       // poor performance
       // mat4aView[0] = ae[0]
@@ -118,22 +123,28 @@ init().then((ready) => {
       // // console.log('c', c) // same as `a`
       // debugger
 
-      this.elements[0] = mat4cView[0]
-      this.elements[1] = mat4cView[1]
-      this.elements[2] = mat4cView[2]
-      this.elements[3] = mat4cView[3]
-      this.elements[4] = mat4cView[4]
-      this.elements[5] = mat4cView[5]
-      this.elements[6] = mat4cView[6]
-      this.elements[7] = mat4cView[7]
-      this.elements[8] = mat4cView[8]
-      this.elements[9] = mat4cView[9]
-      this.elements[10] = mat4cView[10]
-      this.elements[11] = mat4cView[11]
-      this.elements[12] = mat4cView[12]
-      this.elements[13] = mat4cView[13]
-      this.elements[14] = mat4cView[14]
-      this.elements[15] = mat4cView[15]
+      // this.elements[0] = mat4cView[0]
+      // this.elements[1] = mat4cView[1]
+      // this.elements[2] = mat4cView[2]
+      // this.elements[3] = mat4cView[3]
+      // this.elements[4] = mat4cView[4]
+      // this.elements[5] = mat4cView[5]
+      // this.elements[6] = mat4cView[6]
+      // this.elements[7] = mat4cView[7]
+      // this.elements[8] = mat4cView[8]
+      // this.elements[9] = mat4cView[9]
+      // this.elements[10] = mat4cView[10]
+      // this.elements[11] = mat4cView[11]
+      // this.elements[12] = mat4cView[12]
+      // this.elements[13] = mat4cView[13]
+      // this.elements[14] = mat4cView[14]
+      // this.elements[15] = mat4cView[15]
+
+      try {
+        this.elements.set(mat4cView)
+      } catch (e) {}
+      // TypeError: this is not a typed array.
+      // After loaded, elements become a Proxy, because of used React?
 
       // this.elements = Array.from(mat4cView) // poor perfromance
 
