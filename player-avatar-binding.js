@@ -135,7 +135,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-
+  rig.poseAnimation = player.getAction('pose')?.animation || null;
 }
 export function applyPlayerChatToAvatar(player, rig) {
   const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
