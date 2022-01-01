@@ -356,33 +356,32 @@ export default class Webaverse extends EventTarget {
   }
 }
 
-const lastEmoteKey = {
-  key: -1,
-  timestamp: 0,
-};
-const _emoteKey = key => {
-  const timestamp = performance.now();
-  if ((timestamp - lastEmoteKey.timestamp) < 1000) {
-    const key1 = lastEmoteKey.key;
-    const key2 = key;
-    const index = (key1 * 10) + key2;
-    game.addLocalEmote(index);
-    
-    lastEmoteKey.key = -1;
-    lastEmoteKey.timestamp = 0;
-  } else {
-    lastEmoteKey.key = key;
-    lastEmoteKey.timestamp = timestamp;
-  }
-};
-
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
   let diorama = null;
+  const lastEmoteKey = {
+    key: -1,
+    timestamp: 0,
+  };
   let poseAnimationIndex = -1;
+  const _emoteKey = key => {
+    const timestamp = performance.now();
+    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
+      const key1 = lastEmoteKey.key;
+      const key2 = key;
+      const index = (key1 * 10) + key2;
+      game.addLocalEmote(index);
+      
+      lastEmoteKey.key = -1;
+      lastEmoteKey.timestamp = 0;
+    } else {
+      lastEmoteKey.key = key;
+      lastEmoteKey.timestamp = timestamp;
+    }
+  };
   const _updatePoseAnimation = () => {
     poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
     
