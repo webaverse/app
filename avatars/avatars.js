@@ -48,7 +48,8 @@ const bgFragmentShader = `\
 
   uniform sampler2D t0;
   uniform float outline_thickness;
-  uniform vec3 outline_colour;
+  uniform vec3 uColor1;
+  uniform vec3 uColor2;
   uniform float outline_threshold;
 
   #define pixel gl_FragColor
@@ -97,16 +98,13 @@ const bgFragmentShader = `\
     }
 
     if (sum > 0.) {
-      pixel = vec4(outline_colour, 1);
+      vec3 c = mix(uColor1, uColor2, 1. - tex_coords.y) * 0.35;
+      pixel = vec4(c, 1);
     } else {
       discard;
       // pixel = texture(t0, tex_coords);
     }
   }
-
-  /* void main() {
-    gl_FragColor = vec4(vUv, 0., 1.);
-  } */
 `;
 const emoteFragmentShader = `\
   uniform float iTime;
@@ -236,7 +234,7 @@ const emoteFragmentShader = `\
     
     // vec2 n = vec2(-baseDir.y, baseDir.x);
     
-    result = mix(result, vec3(1.0) - result, Rythm(time));
+    // result = mix(result, vec3(1.0) - result, Rythm(time));
     
     float lines = texture(iChannel0, vec2(uv.x * 0.1, uv.y * 2.) + vec2(time * 1.35, 0.0)).r;
     result += lines * lines * .75 + lines * lines * lines * .35;    
@@ -694,8 +692,12 @@ const bgMesh3 = (() => {
           value: 0.02,
           needsUpdate: true,
         },
-        outline_colour: {
-          value: new THREE.Color(0, 0, 1),
+        uColor1: {
+          value: new THREE.Color(0x000000),
+          needsUpdate: true,
+        },
+        uColor2: {
+          value: new THREE.Color(0xFFFFFF),
           needsUpdate: true,
         },
         outline_threshold: {
@@ -3823,6 +3825,11 @@ class Avatar {
         bgMesh1.material.uniforms.iTime.needsUpdate = true;
         bgMesh1.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
         bgMesh1.material.uniforms.iFrame.needsUpdate = true;
+        const {colors} = gradients[Math.floor(bgMesh1.material.uniforms.iTime.value) % gradients.length];
+        bgMesh1.material.uniforms.uColor1.value.set(colors[0]);
+        bgMesh1.material.uniforms.uColor1.needsUpdate = true;
+        bgMesh1.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+        bgMesh1.material.uniforms.uColor2.needsUpdate = true;
 
         bgMesh2.material.uniforms.iTime.value = now / 1000;
         bgMesh2.material.uniforms.iTime.needsUpdate = true;
@@ -3831,6 +3838,10 @@ class Avatar {
         
         bgMesh3.material.uniforms.t0.value = avatarRenderTarget.texture;
         bgMesh3.material.uniforms.t0.needsUpdate = true;
+        bgMesh3.material.uniforms.uColor1.value.set(colors[0]);
+        bgMesh3.material.uniforms.uColor1.needsUpdate = true;
+        bgMesh3.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+        bgMesh3.material.uniforms.uColor2.needsUpdate = true;
 
         bgMesh4.material.uniforms.iTime.value = now / 1000;
         bgMesh4.material.uniforms.iTime.needsUpdate = true;
