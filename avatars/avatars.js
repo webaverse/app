@@ -1039,6 +1039,12 @@ const animationMappingConfig = [
   new AnimationMapping('mixamorigLeftFoot.quaternion', 'Left_ankle', false, false),
   new AnimationMapping('mixamorigLeftToeBase.quaternion', 'Left_toe', false, false),
 ];
+const _clearXZ = (dst, isPosition) => {
+  if (isPosition) {
+    dst.x = 0;
+    dst.z = 0;
+  }
+};
 
 class Avatar {
 	constructor(object, options = {}) {
@@ -2417,12 +2423,6 @@ class Avatar {
             crouchFactor
           );
 
-      };
-      const _clearXZ = (dst, isPosition) => {
-        if (isPosition) {
-          dst.x = 0;
-          dst.z = 0;
-        }
       };
       const _getApplyFn = () => {
         if (this.jumpState) {
