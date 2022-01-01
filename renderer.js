@@ -73,6 +73,8 @@ init().then((ready) => {
     let startTime;
 
     return function multiplyMatrices() {
+      if (window.isLogAverageTime) startTime = performance.now()
+
       // your code
       // if (!(this.elements instanceof Float32Array)) {
       if (Array.isArray(this.elements)) {
@@ -91,7 +93,6 @@ init().then((ready) => {
       // const mat4bView = mat4.view(mat4b);
       // const mat4cView = mat4.view(mat4c);
 
-      if (window.isLogAverageTime) startTime = performance.now()
       // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
@@ -185,15 +186,14 @@ init().then((ready) => {
       // // character-physics.js:81 Uncaught TypeError: Cannot read properties of undefined (reading 'position')
       // //   at CharacterPhysics.applyAvatarPhysicsDetail (character-physics.js:81)
 
-      if (window.isLogAverageTime) {
-        window.totalTime += performance.now() - startTime
-        window.count += 1
-      }
-
       // mat4.free(mat4a)
       // mat4.free(mat4b)
       // mat4.free(mat4c)
 
+      if (window.isLogAverageTime) {
+        window.totalTime += performance.now() - startTime
+        window.count += 1
+      }
       return this
     }
   })()
