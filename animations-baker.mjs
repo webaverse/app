@@ -304,7 +304,6 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     app.listen(9999);
     const animationFileNames = fs.readdirSync('public/animations');
     const fbxFileNames = animationFileNames.filter(name => /\.fbx$/.test(name)).map(name => 'animations/' + name);
-    console.log('got ', fbxFileNames);
     const vpdFileNames = findFilesWithExtension('public', 'poses', 'vpd');
     const animationsCborFileName = 'public/animations/animations.cbor';
     await baker('http://localhost:9999/', fbxFileNames, vpdFileNames, animationsCborFileName).catch((e) => {
