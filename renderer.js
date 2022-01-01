@@ -50,9 +50,9 @@ init().then((ready) => {
   // console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
   
   window.isLogAverageTime = false
-  let totalTime = 0
-  let averageTime = 0
-  let count = 0
+  window.totalTime = 0
+  window.averageTime = 0
+  window.count = 0
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
     // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
@@ -91,7 +91,7 @@ init().then((ready) => {
       // const mat4bView = mat4.view(mat4b);
       // const mat4cView = mat4.view(mat4c);
 
-      // if (window.isLogAverageTime) startTime = performance.now()
+      if (window.isLogAverageTime) startTime = performance.now()
       // return this
 
       // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
@@ -185,12 +185,10 @@ init().then((ready) => {
       // // character-physics.js:81 Uncaught TypeError: Cannot read properties of undefined (reading 'position')
       // //   at CharacterPhysics.applyAvatarPhysicsDetail (character-physics.js:81)
 
-      // // if (window.isLogAverageTime) {
-      // //   totalTime += performance.now() - startTime
-      // //   count += 1
-      // //   averageTime = totalTime / count // todo: calc average in animate()
-      // //   window.domAverageTime.innerText = averageTime
-      // // }
+      if (window.isLogAverageTime) {
+        window.totalTime += performance.now() - startTime
+        window.count += 1
+      }
 
       // mat4.free(mat4a)
       // mat4.free(mat4b)
