@@ -72,10 +72,10 @@ init().then((ready) => {
       // ae = arguments[0].elements;
       // be = arguments[1].elements;
       // if (!Array.isArray(arguments[0].elements)) debugger
-      try {
+      // try {
         mat4aView.set(arguments[0].elements)
         mat4bView.set(arguments[1].elements)
-      } catch (e) {}
+      // } catch (e) {}
 
       // poor performance
       // mat4aView[0] = ae[0]
@@ -140,9 +140,9 @@ init().then((ready) => {
       // this.elements[14] = mat4cView[14]
       // this.elements[15] = mat4cView[15]
 
-      try {
+      // try {
         this.elements.set(mat4cView)
-      } catch (e) {}
+      // } catch (e) {}
       // TypeError: this is not a typed array.
       // After loaded, elements become a Proxy, because of used React?
 
