@@ -1116,6 +1116,7 @@ class Avatar {
     this.flipLeg = flipLeg;
     // this.retargetedAnimations = retargetedAnimations;
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
+    this.poseAnimation = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -2808,7 +2809,7 @@ class Avatar {
     // const noiseTime = (now/1000) % noiseAnimation.duration;
     
     const _overwritePose = poseName => {
-      const poseAnimation = animations.find(a => a.name === poseName);
+      const poseAnimation = animations.index[poseName];
       for (const spec of this.animationMappings) {
         const {
           animationTrackName: k,
@@ -2837,8 +2838,8 @@ class Avatar {
         )
       ); */
     };
-    if (this.object.asset.generator === 'UniGLTF-1.28') {
-      _overwritePose('Running by CorruptedDestiny/3.vpd');
+    if (this.poseAnimation) {
+      _overwritePose(this.poseAnimation);
     }
 
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
