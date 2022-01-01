@@ -10,9 +10,34 @@ import {init, vec3, vec4, mat4} from 'glmw';
 // import * as glmw from 'glmw';
 
 window.THREE = THREE;
-window.vec3 = vec3
-window.mat4 = mat4
+// window.vec3 = vec3
+// window.mat4 = mat4
 // window.glmw = glmw
+
+// https://stackoverflow.com/a/62544968/3596736
+// Adding 'support' for instanceof Proxy:
+(() => {
+  var proxyInstances = new WeakSet()
+
+  // Optionally save the original in global scope:
+  window.OriginalProxy = Proxy
+
+  window.Proxy = new Proxy(Proxy, {
+    construct(target, args) {
+      var newProxy = new window.OriginalProxy(...args)
+      proxyInstances.add(newProxy)
+      return newProxy
+    },
+    get(obj, prop) {
+      if (prop === Symbol.hasInstance) {
+        return (instance) => {
+          return proxyInstances.has(instance)
+        }
+      }
+      return Reflect.get(...arguments)
+    }
+  })
+})()
 
 init().then((ready) => {
   // glmw is now ready and can be used anywhere
@@ -49,8 +74,11 @@ init().then((ready) => {
 
     return function multiplyMatrices() {
       // your code
+      // if (!(this.elements instanceof Float32Array)) {
       if (Array.isArray(this.elements)) {
         this.elements = new Float32Array(this.elements)
+      } else if (this.elements instanceof Proxy) {
+        this.elements = new Float32Array(Object.values(this.elements))
       }
 
       // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
@@ -190,6 +218,12 @@ init().then((ready) => {
     const sArr = []
 
     return function compose() {
+      if (Array.isArray(this.elements)) {
+        this.elements = new Float32Array(this.elements)
+      } else if (this.elements instanceof Proxy) {
+        this.elements = new Float32Array(Object.values(this.elements))
+      }
+
       const position = arguments[0]
       const quaternion = arguments[1]
       const scale = arguments[2]
@@ -216,22 +250,24 @@ init().then((ready) => {
 
       mat4.fromRotationTranslationScale(out, q, v, s)
 
-      this.elements[0] = outView[0]
-      this.elements[1] = outView[1]
-      this.elements[2] = outView[2]
-      this.elements[3] = outView[3]
-      this.elements[4] = outView[4]
-      this.elements[5] = outView[5]
-      this.elements[6] = outView[6]
-      this.elements[7] = outView[7]
-      this.elements[8] = outView[8]
-      this.elements[9] = outView[9]
-      this.elements[10] = outView[10]
-      this.elements[11] = outView[11]
-      this.elements[12] = outView[12]
-      this.elements[13] = outView[13]
-      this.elements[14] = outView[14]
-      this.elements[15] = outView[15]
+      // this.elements[0] = outView[0]
+      // this.elements[1] = outView[1]
+      // this.elements[2] = outView[2]
+      // this.elements[3] = outView[3]
+      // this.elements[4] = outView[4]
+      // this.elements[5] = outView[5]
+      // this.elements[6] = outView[6]
+      // this.elements[7] = outView[7]
+      // this.elements[8] = outView[8]
+      // this.elements[9] = outView[9]
+      // this.elements[10] = outView[10]
+      // this.elements[11] = outView[11]
+      // this.elements[12] = outView[12]
+      // this.elements[13] = outView[13]
+      // this.elements[14] = outView[14]
+      // this.elements[15] = outView[15]
+
+      this.elements.set(outView)
 
       return this
     }
