@@ -497,8 +497,6 @@ const _startHacks = () => {
         }
       } */
 
-      window.model = mikuModel;
-      window.animation = animation;
       for (const k in animation.interpolants) {
         const match = k.match(/^([\s\S]+?)\.(position|quaternion)$/);
         const boneName = match[1];
