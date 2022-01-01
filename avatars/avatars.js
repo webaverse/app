@@ -603,6 +603,10 @@ const loadPromise = (async () => {
       const arrayBuffer = await res.arrayBuffer();
       animations = CBOR.decode(arrayBuffer).animations
         .map(a => THREE.AnimationClip.parse(a));
+      animations.index = {};
+      for (const animation of animations) {
+        animations.index[animation.name] = animation;
+      }
     })(),
     (async () => {
       const srcUrl = '../animations/animations-skeleton.glb';
