@@ -2800,8 +2800,9 @@ class Avatar {
     };
     _applyAnimation();
 
-    const noiseAnimation = animations.find(a => a.name === 't-pose_rot.fbx');
-    const noiseTime = (now/1000) % noiseAnimation.duration;
+    // const noiseAnimation = animations.find(a => a.name === 't-pose_rot.fbx');
+    // const noiseTime = (now/1000) % noiseAnimation.duration;
+    
     const _overwritePose = poseName => {
       const poseAnimation = animations.find(a => a.name === poseName);
       for (const spec of this.animationMappings) {
