@@ -18,7 +18,7 @@ const bgVertexShader = `\
     gl_Position = vec4(position.xy, 1., 1.);
   }
 `;
-const bgFragmentShader = `\
+const outlineShader = `\
   varying vec4 v_colour;
   varying vec2 tex_coords;
 
@@ -569,7 +569,7 @@ async function makeTextMesh(
   });
   return textMesh;
 }
-const bgMesh1 = (() => {
+const lightningMesh = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
     planeGeometry,
@@ -616,7 +616,7 @@ const bgMesh1 = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const bgMesh2 = (() => {
+const radialMesh = (() => {
   // const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
     planeGeometry,
@@ -656,7 +656,7 @@ const bgMesh2 = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const bgMesh3 = (() => {
+const outlineMesh = (() => {
   const quad = new THREE.Mesh(
     planeGeometry,
     new THREE.ShaderMaterial({
@@ -683,7 +683,7 @@ const bgMesh3 = (() => {
         },
       },
       vertexShader: bgVertexShader,
-      fragmentShader: bgFragmentShader,
+      fragmentShader: outlineShader,
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
@@ -706,7 +706,7 @@ const sk2 = 0.1;
 const speed2 = 1.5;
 const aspectRatio2 = 0.15;
 const p2 = new THREE.Vector3(0.35, -0.825, 0);
-const bgMesh4 = (() => {
+const labelMesh = (() => {
   const _decorateGeometry = (g, color, z) => {
     const colors = new Float32Array(g.attributes.position.count * 3);
     for (let i = 0; i < colors.length; i += 3) {
@@ -775,7 +775,7 @@ const bgMesh4 = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const bgMesh5 = (() => {
+const textObject = (() => {
   const o = new THREE.Object3D();
   
   const _decorateGeometry = (g, offset, z, scale) => {
@@ -902,11 +902,11 @@ const createPlayerDiorama = player => {
       sideAvatarScene.overrideMaterial = skinnedRedMaterial;
     
       const sideScene = new THREE.Scene();
-      sideScene.add(bgMesh1);
-      // sideScene.add(bgMesh2);
-      sideScene.add(bgMesh3);
-      sideScene.add(bgMesh4);
-      sideScene.add(bgMesh5);
+      sideScene.add(lightningMesh);
+      // sideScene.add(radialMesh);
+      sideScene.add(outlineMesh);
+      sideScene.add(labelMesh);
+      sideScene.add(textObject);
     
       const sideCamera = new THREE.PerspectiveCamera();
       /* sideCamera.position.y = 1.2;
@@ -972,33 +972,32 @@ const createPlayerDiorama = player => {
         sideScene.add(world.lights);
     
         const now = performance.now();
-        bgMesh1.material.uniforms.iTime.value = now / 1000;
-        bgMesh1.material.uniforms.iTime.needsUpdate = true;
-        bgMesh1.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        bgMesh1.material.uniforms.iFrame.needsUpdate = true;
-        const {colors} = gradients[Math.floor(bgMesh1.material.uniforms.iTime.value) % gradients.length];
-        bgMesh1.material.uniforms.uColor1.value.set(colors[0]);
-        bgMesh1.material.uniforms.uColor1.needsUpdate = true;
-        bgMesh1.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        bgMesh1.material.uniforms.uColor2.needsUpdate = true;
+        lightningMesh.material.uniforms.iTime.value = now / 1000;
+        lightningMesh.material.uniforms.iTime.needsUpdate = true;
+        lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+        lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
+        lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+        lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+        lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+        lightningMesh.material.uniforms.uColor2.needsUpdate = true;
     
-        bgMesh2.material.uniforms.iTime.value = now / 1000;
-        bgMesh2.material.uniforms.iTime.needsUpdate = true;
-        bgMesh2.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        bgMesh2.material.uniforms.iFrame.needsUpdate = true;
+        radialMesh.material.uniforms.iTime.value = now / 1000;
+        radialMesh.material.uniforms.iTime.needsUpdate = true;
+        radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+        radialMesh.material.uniforms.iFrame.needsUpdate = true;
         
-        bgMesh3.material.uniforms.t0.value = avatarRenderTarget.texture;
-        bgMesh3.material.uniforms.t0.needsUpdate = true;
-        bgMesh3.material.uniforms.uColor1.value.set(colors[0]);
-        bgMesh3.material.uniforms.uColor1.needsUpdate = true;
-        bgMesh3.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        bgMesh3.material.uniforms.uColor2.needsUpdate = true;
+        outlineMesh.material.uniforms.t0.value = avatarRenderTarget.texture;
+        outlineMesh.material.uniforms.t0.needsUpdate = true;
+        outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+        outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+        outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+        outlineMesh.material.uniforms.uColor2.needsUpdate = true;
     
-        bgMesh4.material.uniforms.iTime.value = now / 1000;
-        bgMesh4.material.uniforms.iTime.needsUpdate = true;
+        labelMesh.material.uniforms.iTime.value = now / 1000;
+        labelMesh.material.uniforms.iTime.needsUpdate = true;
     
-        for (const child of bgMesh5.children) {
-          // console.log('got child', child);
+        for (const child of textObject.children) {
           child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
           child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
         }
