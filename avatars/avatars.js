@@ -18,6 +18,7 @@ import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
 import metaversefile from 'metaversefile';
+import gradients from './gradients.json';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -110,6 +111,8 @@ const bgFragmentShader = `\
 const emoteFragmentShader = `\
   uniform float iTime;
   uniform int iFrame;
+  uniform vec3 uColor1;
+  uniform vec3 uColor2;
   uniform sampler2D iChannel0;
   uniform sampler2D iChannel1;
   varying vec2 tex_coords;
@@ -227,19 +230,35 @@ const emoteFragmentShader = `\
       return baseColor * (1.0 + glow * (Rythm(time * 16.0) * .05 + .025)) + vec3(ray) * intensity;
   }
 
+  vec3 Background2(vec2 uv, float time) {
+    // uv = uv * vec2(.75, .75);
+    vec3 result = mix(uColor1, uColor2, 1. - uv.y);
+    
+    // vec2 n = vec2(-baseDir.y, baseDir.x);
+    
+    result = mix(result, vec3(1.0) - result, Rythm(time));
+    
+    float lines = texture(iChannel0, vec2(uv.x * 0.1, uv.y * 2.) + vec2(time * 1.35, 0.0)).r;
+    result += lines * lines * .75 + lines * lines * lines * .35;    
+    // result *= smoothstep(.5, .0, abs(dot(uv, n)));
+    
+    return result;
+  }
+
   void mainImage( out vec4 fragColor, in vec2 fragCoord )
   {
       float time = -.25 + floor(iTime * 1.1 * 24.0) / 24.0;
-      float intro = 1.; // smoothstep(12.85, 13.15, time);
+      // float intro = 1.; // smoothstep(12.85, 13.15, time);
       // vec2 uv = fragCoord/iResolution.xy;
       vec2 uv = fragCoord;
       
       uv.y -= .075;
       uv.x -= sin(time*4.0) * .2;
       
-      vec2 baseDir = normalize(vec2(1., 0.));
+      vec2 baseDir = vec2(1., 0.);
       
-      vec3 col = Background(uv, baseDir, time) * intro;
+      // vec3 col = Background(uv, baseDir, time);
+      vec3 col = Background2(uv, time);
       
       float spread = .35 + (sin(time * 10.0) * .5 + .5);
       float freq = .6 - (sin(time * 4.0) * .5 + .5) * .2;
@@ -596,6 +615,14 @@ const bgMesh1 = (() => {
         iChannel1: {
           value: textureLoader.load('/textures/noise.png'),
           // needsUpdate: true,
+        },
+        uColor1: {
+          value: new THREE.Color(0x000000),
+          needsUpdate: true,
+        },
+        uColor2: {
+          value: new THREE.Color(0xFFFFFF),
+          needsUpdate: true,
         },
       },
       vertexShader: bgVertexShader,
