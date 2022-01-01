@@ -1106,7 +1106,7 @@ const createAppDiorama = app => {
         lightningMesh.material.uniforms.uColor1.needsUpdate = true;
         lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
         lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-        lightningMesh.visible = false;
+        lightningMesh.visible = true;
     
         outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
         outlineMesh.material.uniforms.t0.needsUpdate = true;
@@ -1114,7 +1114,7 @@ const createAppDiorama = app => {
         outlineMesh.material.uniforms.uColor1.needsUpdate = true;
         outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
         outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-        outlineMesh.visible = false;
+        outlineMesh.visible = true;
 
         radialMesh.visible = false;
         labelMesh.visible = false;
