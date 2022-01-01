@@ -354,6 +354,7 @@ export default class Webaverse extends EventTarget {
   }
 }
 
+let diorama = null;
 window.addEventListener('keydown', e => {
   if (e.which === 219) { // [
     const localPlayer = metaversefileApi.useLocalPlayer();
@@ -392,7 +393,12 @@ window.addEventListener('keydown', e => {
   } else if (e.which === 221) { // ]
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
-      dioramaManager.createDiorama(localPlayer);
+      if (!diorama) {
+        diorama = dioramaManager.createDiorama(localPlayer);
+      } else {
+        diorama.destroy();
+        diorama = null;
+      }
     }
   }
 });
