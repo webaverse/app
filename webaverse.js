@@ -564,11 +564,25 @@ const _startHacks = () => {
         }
       }
     } else if (e.which === 220) { // \\
-      const apps = world.appManager.getApps();
-      const swordApp = apps.find(a => /sword/i.test(a.contentId));
-      if (!appDiorama) {
+      const targetApp = (() => {
+        const worldApps = world.appManager.getApps();
+        const swordApp = worldApps.find(a => /sword/i.test(a.contentId));
         if (swordApp) {
-          appDiorama = dioramaManager.createAppDiorama(swordApp);
+          return swordApp;
+        } else {
+          const wearAction = localPlayer.getAction('wear');
+          if (wearAction) {
+            const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
+            return app;
+          } else {
+            return null;
+          }
+        }
+      })();
+
+      if (!appDiorama) {
+        if (targetApp) {
+          appDiorama = dioramaManager.createAppDiorama(targetApp);
         } else {
           console.warn('no sword app');
         }
