@@ -351,54 +351,235 @@ export default class Webaverse extends EventTarget {
 
     }
     renderer.setAnimationLoop(animate);
+
+    _startHacks();
   }
 }
 
-let diorama = null;
-window.addEventListener('keydown', e => {
-  if (e.which === 219) { // [
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.avatar) {
-      (async () => {
-        const audioUrl = '/sounds/vocals.mp3';
-        const audioUrl2 = '/sounds/music.mp3';
+const lastEmoteKey = {
+  key: -1,
+  timestamp: 0,
+};
+const _emoteKey = key => {
+  const timestamp = performance.now();
+  if ((timestamp - lastEmoteKey.timestamp) < 1000) {
+    const key1 = lastEmoteKey.key;
+    const key2 = key;
+    const index = (key1 * 10) + key2;
+    game.addLocalEmote(index);
+    
+    lastEmoteKey.key = -1;
+    lastEmoteKey.timestamp = 0;
+  } else {
+    lastEmoteKey.key = key;
+    lastEmoteKey.timestamp = timestamp;
+  }
+};
 
-        const _loadAudio = u => new Promise((accept, reject) => {
-          const audio = new Audio(u);
-          audio.addEventListener('canplaythrough', async e => {
-            accept(audio);
-          }, {once: true});
-          audio.addEventListener('error', e => {
-            reject(e);
-          });
-          // audio.play();
-          // audioContext.resume();
-        });
+import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
+const _startHacks = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-        const audios = await Promise.all([
-          _loadAudio(audioUrl),
-          _loadAudio(audioUrl2),
-        ]);
-        localPlayer.avatar.say(audios[0]);
-        await localPlayer.avatar.microphoneWorker.waitForLoad();
-
-        audios[0].play();
-        audios[1].play();
-        
-        audios[0].addEventListener('ended', e => {
-          localPlayer.avatar.setMicrophoneMediaStream(null);
-        });
-      })();
+  let diorama = null;
+  let poseAnimationIndex = -1;
+  let mikuModel = null;
+  let mikuLoaded = false;
+  const _updatePoseAnimation = () => {
+    poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
+    
+    localPlayer.removeAction('pose');
+    if (poseAnimationIndex !== -1) {
+      const animation = vpdAnimations[poseAnimationIndex];
+      const poseAction = {
+        type: 'pose',
+        animation: animation.name,
+      };
+      localPlayer.addAction(poseAction);
     }
-  } else if (e.which === 221) { // ]
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.avatar) {
-      if (!diorama) {
-        diorama = dioramaManager.createDiorama(localPlayer);
-      } else {
-        diorama.destroy();
-        diorama = null;
+  };
+  const _ensureMikuModel = () => {
+    if (!mikuLoaded) {
+      mikuLoaded = true;
+
+      const mmdLoader = new MMDLoader();
+      mmdLoader.load(
+        // path to PMD/PMX file
+        '/avatars/Miku_Hatsune_Ver2.pmd',
+        function(mesh) {
+          mikuModel = mesh;
+          mikuModel.position.set(0, 0, 0);
+          mikuModel.scale.setScalar(0.07);
+          mikuModel.updateMatrixWorld();
+          scene.add(mikuModel);
+
+          _updateMikuModel();
+        },
+        // called when loading is in progresses
+        function (xhr) {
+          // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function(error) {
+          console.warn('An error happened', error);
+        }
+      );
+    }
+  };
+  const _updateMikuModel = () => {
+    if (mikuModel) {
+      const animation = vpdAnimations[poseAnimationIndex];
+
+      const _getBone = name => mikuModel.skeleton.bones.find(b => b.name === name);
+      const mmdBones = {
+        // Root: _getBone('センター'), // deliberately excluded
+
+        mixamorigHips: _getBone('下半身'),
+        // mixamorigSpine: _makeFakeBone(), // not present in mmd
+        mixamorigSpine1: _getBone('上半身'),
+        // mixamorigSpine2: _makeFakeBone(), // not present in mmd
+        mixamorigNeck: _getBone('首'),
+        mixamorigHead: _getBone('頭'),
+        // Eye_L: _getBone('左目'), // deliberately excluded
+        // Eye_R: _getBone('右目'), // deliberately excluded
+
+        mixamorigLeftShoulder: _getBone('左肩'),
+        mixamorigLeftArm: _getBone('左腕'),
+        mixamorigLeftForeArm: _getBone('左ひじ'),
+        mixamorigLeftHand: _getBone('左手首'),
+        mixamorigLeftHandThumb2: _getBone('左親指２'),
+        mixamorigLeftHandThumb1: _getBone('左親指１'),
+        // mixamorigLeftHandThumb0: _makeFakeBone(), // not present in mmd
+        mixamorigLeftHandIndex3: _getBone('左人指３'),
+        mixamorigLeftHandIndex2: _getBone('左人指２'),
+        mixamorigLeftHandIndex1: _getBone('左人指１'),
+        mixamorigLeftHandMiddle3: _getBone('左中指３'),
+        mixamorigLeftHandMiddle2: _getBone('左中指２'),
+        mixamorigLeftHandMiddle1: _getBone('左中指１'),
+        mixamorigLeftHandRing3: _getBone('左薬指３'),
+        mixamorigLeftHandRing2: _getBone('左薬指２'),
+        mixamorigLeftHandRing1: _getBone('左薬指１'),
+        mixamorigLeftHandPinky3: _getBone('左小指３'),
+        mixamorigLeftHandPinky2: _getBone('左小指２'),
+        mixamorigLeftHandPinky1: _getBone('左小指１'),
+        mixamorigLeftUpLeg: _getBone('左足'),
+        mixamorigLeftLeg: _getBone('左ひざ'),
+        mixamorigLeftFoot: _getBone('左足首'),
+
+        mixamorigRightShoulder: _getBone('右肩'),
+        mixamorigRightArm: _getBone('右腕'),
+        mixamorigRightForeArm: _getBone('右ひじ'),
+        mixamorigRightHand: _getBone('右手首'),
+        mixamorigRightHandThumb2: _getBone('右親指２'),
+        mixamorigRightHandThumb1: _getBone('右親指１'),
+        // mixamorigRightHandThumb0: _makeFakeBone(), // not present in mmd
+        mixamorigRightHandIndex3: _getBone('右人指３'),
+        mixamorigRightHandIndex2: _getBone('右人指２'),
+        mixamorigRightHandIndex1: _getBone('右人指１'),
+        mixamorigRightHandMiddle3: _getBone('右中指３'),
+        mixamorigRightHandMiddle2: _getBone('右中指２'),
+        mixamorigRightHandMiddle1: _getBone('右中指１'),
+        mixamorigRightHandRing3: _getBone('右薬指３'),
+        mixamorigRightHandRing2: _getBone('右薬指２'),
+        mixamorigRightHandRing1: _getBone('右薬指１'),
+        mixamorigRightHandPinky3: _getBone('右小指３'),
+        mixamorigRightHandPinky2: _getBone('右小指２'),
+        mixamorigRightHandPinky1: _getBone('右小指１'),
+        mixamorigRightUpLeg: _getBone('右足'),
+        mixamorigRightLeg: _getBone('右ひざ'),
+        mixamorigRightFoot: _getBone('右足首'),
+        mixamorigLeftToeBase: _getBone('左つま先'),
+        mixamorigRightToeBase: _getBone('右つま先'),
+      };
+      /* for (const k in mmdAnimation) {
+        if (!mmdAnimation[k]) {
+          console.warn('no bone', k);
+        }
+      } */
+
+      window.model = mikuModel;
+      window.animation = animation;
+      for (const k in animation.interpolants) {
+        const match = k.match(/^([\s\S]+?)\.(position|quaternion)$/);
+        const boneName = match[1];
+        const isPosition = match[2] === 'position';
+
+        const bone = mmdBones[boneName];
+        if (bone) {
+          const src = animation.interpolants[k];
+          const v = src.evaluate(0);
+          if (isPosition) {
+            // bone.position.fromArray(v);
+          } else {
+            bone.quaternion.fromArray(v);
+          }
+        }
+      }
+      mikuModel.updateMatrixWorld();
+    }
+  };
+  window.addEventListener('keydown', e => {
+    if (e.which === 219) { // [
+      if (localPlayer.avatar) {
+        (async () => {
+          const audioUrl = '/sounds/vocals.mp3';
+          const audioUrl2 = '/sounds/music.mp3';
+
+          const _loadAudio = u => new Promise((accept, reject) => {
+            const audio = new Audio(u);
+            audio.addEventListener('canplaythrough', async e => {
+              accept(audio);
+            }, {once: true});
+            audio.addEventListener('error', e => {
+              reject(e);
+            });
+            // audio.play();
+            // audioContext.resume();
+          });
+
+          const audios = await Promise.all([
+            _loadAudio(audioUrl),
+            _loadAudio(audioUrl2),
+          ]);
+          localPlayer.avatar.say(audios[0]);
+          await localPlayer.avatar.microphoneWorker.waitForLoad();
+
+          audios[0].play();
+          audios[1].play();
+          
+          audios[0].addEventListener('ended', e => {
+            localPlayer.avatar.setMicrophoneMediaStream(null);
+          });
+        })();
+      }
+    } else if (e.which === 221) { // ]
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      if (localPlayer.avatar) {
+        if (!diorama) {
+          diorama = dioramaManager.createDiorama(localPlayer);
+        } else {
+          diorama.destroy();
+          diorama = null;
+        }
+      }
+    } else if (e.which === 107) { // +
+      poseAnimationIndex++;
+      _updatePoseAnimation();
+    
+      _ensureMikuModel();
+      _updateMikuModel();
+    } else if (e.which === 109) { // -
+      poseAnimationIndex--;
+      _updatePoseAnimation();
+
+      _ensureMikuModel();
+      _updateMikuModel();
+    } else {
+      const match = e.code.match(/^Numpad([0-9])$/);
+      if (match) {
+        const key = parseInt(match[1], 10);
+        _emoteKey(key);
       }
     }
-  }
-});
+  });
+};
