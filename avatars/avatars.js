@@ -268,17 +268,17 @@ const loadPromise = (async () => {
   for (const k in animationsAngleArrays) {
     const as = animationsAngleArrays[k];
     for (const a of as) {
-      a.animation = animations.find(animation => animation.name === a.name);
+      a.animation = animations.index[a.name];
     }
   }
   for (const k in animationsAngleArraysMirror) {
     const as = animationsAngleArraysMirror[k];
     for (const a of as) {
-      a.animation = animations.find(animation => animation.name === a.name);
+      a.animation = animations.index[a.name];
     }
   }
   for (const k in animationsIdleArrays) {
-    animationsIdleArrays[k].animation = animations.find(animation => animation.name === animationsIdleArrays[k].name);
+    animationsIdleArrays[k].animation = animations.index[animationsIdleArrays[k].name];
   }
 
   const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
@@ -299,37 +299,37 @@ const loadPromise = (async () => {
     `walking.fbx`,
     `left strafe walking.fbx`,
     `right strafe walking.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
   const walkingBackwardAnimations = [
     `walking backwards.fbx`,
     `left strafe walking reverse.fbx`,
     `right strafe walking reverse.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
   const runningAnimations = [
     `Fast Run.fbx`,
     `left strafe.fbx`,
     `right strafe.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
   const runningBackwardAnimations = [
     `running backwards.fbx`,
     `left strafe reverse.fbx`,
     `right strafe reverse.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
   const crouchingForwardAnimations = [
     `Sneaking Forward.fbx`,
     `Crouched Sneaking Left.fbx`,
     `Crouched Sneaking Right.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0], 0.5);
   const crouchingBackwardAnimations = [
     `Sneaking Forward reverse.fbx`,
     `Crouched Sneaking Left reverse.fbx`,
     `Crouched Sneaking Right reverse.fbx`,
-  ].map(name => animations.find(a => a.name === name));
+  ].map(name => animations.index[name]);
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
   for (const animation of animations) {
     decorateAnimation(animation);
@@ -365,13 +365,13 @@ const loadPromise = (async () => {
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
-    swordSideIdle: animations.find(a => a.name === 'sword_idle_side.fbx'),
-    swordSideIdleStatic: animations.find(a => a.name === 'sword_idle_side_static.fbx'),
-    swordSideSlash: animations.find(a => a.name === 'sword_side_slash.fbx'),
-    swordSideSlashStep: animations.find(a => a.name === 'sword_side_slash_step.fbx'),
-    swordTopDownSlash: animations.find(a => a.name === 'sword_topdown_slash.fbx'),
-    swordTopDownSlashStep: animations.find(a => a.name === 'sword_topdown_slash_step.fbx'),
-    swordUndraw: animations.find(a => a.name === 'sword_undraw.fbx'),
+    swordSideIdle: animations.index['sword_idle_side.fbx'],
+    swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
+    swordSideSlash: animations.index['sword_side_slash.fbx'],
+    swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
+    swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
+    swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
+    swordUndraw: animations.index['sword_undraw.fbx'],
   };
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
@@ -396,11 +396,11 @@ const loadPromise = (async () => {
     crouch: animations.find(a => a.isCrouch),
   }; */
   activateAnimations = {
-    grab_forward: {animation:animations.find(a => a.name === 'grab_forward.fbx'), speedFactor: 1.2},
-    grab_down: {animation:animations.find(a => a.name === 'grab_down.fbx'), speedFactor: 1.7},
-    grab_up: {animation:animations.find(a => a.name === 'grab_up.fbx'), speedFactor: 1.2},
-    grab_left: {animation:animations.find(a => a.name === 'grab_left.fbx'), speedFactor: 1.2},
-    grab_right: {animation:animations.find(a => a.name === 'grab_right.fbx'), speedFactor: 1.2},
+    grab_forward: {animation:animations.index['grab_forward.fbx'], speedFactor: 1.2},
+    grab_down: {animation:animations.index['grab_down.fbx'], speedFactor: 1.7},
+    grab_up: {animation:animations.index['grab_up.fbx'], speedFactor: 1.2},
+    grab_left: {animation:animations.index['grab_left.fbx'], speedFactor: 1.2},
+    grab_right: {animation:animations.index['grab_right.fbx'], speedFactor: 1.2},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -2413,9 +2413,6 @@ class Avatar {
               );
         }
       };
-      /* const _blendNoise = spec => {
-        
-      }; */
 
       for (const spec of this.animationMappings) {
         const {
@@ -2444,7 +2441,7 @@ class Avatar {
     };
     _applyAnimation();
 
-    // const noiseAnimation = animations.find(a => a.name === 't-pose_rot.fbx');
+    // const noiseAnimation = animations.index['t-pose_rot.fbx'];
     // const noiseTime = (now/1000) % noiseAnimation.duration;
     
     const _overwritePose = poseName => {
