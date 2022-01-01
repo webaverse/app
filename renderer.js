@@ -44,8 +44,11 @@ init().then(() => {
 
     return function multiplyMatrices() {
       if (Array.isArray(this.elements)) {
+        // NOTE: Replace the ordinary array with Float32Array to support the direct overall assignment by calling the `set` method, instead of assigning the 16 elements one by one.
         this.elements = new Float32Array(this.elements);
       } else if (this.elements instanceof Proxy) {
+        // NOTE: `localPlayer.avatar.modelBones.Root.matrixWorld.elements` will be replaced with `Proxy` after loading is complete, causing an error in calling the `set` method.
+        // I guess it is React's binding mechanism that generates the `Proxy`. After removing the `Proxy` in the following way, the main game part seems to still work normally, but I am not sure what effect it will have on the UI logic.
         this.elements = new Float32Array(Object.values(this.elements));
       }
 
