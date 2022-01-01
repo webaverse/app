@@ -602,6 +602,13 @@ export const animationBoneToModelBone = {
   'mixamorigLeftFoot': 'Left_ankle',
   'mixamorigLeftToeBase': 'Left_toe',
 };
+export const modelBoneToAnimationBone = (() => {
+  const result = {};
+  for (const key in animationBoneToModelBone) {
+    result[animationBoneToModelBone[key]] = key;
+  }
+  return result;
+})();
 /* const _setSkeletonToAnimationFrame = (modelBones, animation, frame) => {
   for (const track of animation.tracks) {
     const match = track.name.match(/^(mixamorig.+)\.(position|quaternion)/);
