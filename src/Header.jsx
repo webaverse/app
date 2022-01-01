@@ -425,26 +425,6 @@ export default function Header({
     }
   }, [selectedApp, panelsRef.current]);
   
-  const lastEmoteKey = {
-    key: -1,
-    timestamp: 0,
-  };
-  const _emoteKey = key => {
-    const timestamp = performance.now();
-    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
-      const key1 = lastEmoteKey.key;
-      const key2 = key;
-      const index = (key1 * 10) + key2;
-      game.addLocalEmote(index);
-      
-      lastEmoteKey.key = -1;
-      lastEmoteKey.timestamp = 0;
-    } else {
-      lastEmoteKey.key = key;
-      lastEmoteKey.timestamp = timestamp;
-    }
-  };
-  
   const _handleNonInputKey = e => {
     switch (e.which) {
       case 13: { // enter
@@ -485,12 +465,6 @@ export default function Header({
         }
         return true;
       }
-    }
-    const match = e.code.match(/^Numpad([0-9])$/);
-    if (match) {
-      const key = parseInt(match[1], 10);
-      _emoteKey(key);
-      return true;
     }
     return false;
   };
