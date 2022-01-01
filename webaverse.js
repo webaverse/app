@@ -393,36 +393,6 @@ window.addEventListener('keydown', e => {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
       dioramaManager.createDiorama(localPlayer);
-      /* (async () => {
-        const audioUrl = '/sounds/vocals.mp3';
-        const audioUrl2 = '/sounds/music.mp3';
-
-        const _loadAudio = u => new Promise((accept, reject) => {
-          const audio = new Audio(u);
-          audio.addEventListener('canplaythrough', async e => {
-            accept(audio);
-          }, {once: true});
-          audio.addEventListener('error', e => {
-            reject(e);
-          });
-          // audio.play();
-          // audioContext.resume();
-        });
-
-        const audios = await Promise.all([
-          _loadAudio(audioUrl),
-          _loadAudio(audioUrl2),
-        ]);
-        localPlayer.avatar.say(audios[0]);
-        await localPlayer.avatar.microphoneWorker.waitForLoad();
-
-        audios[0].play();
-        audios[1].play();
-        
-        audios[0].addEventListener('ended', e => {
-          localPlayer.avatar.setMicrophoneMediaStream(null);
-        });
-      })(); */
     }
   }
 });
