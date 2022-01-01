@@ -361,7 +361,8 @@ const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-  let diorama = null;
+  let playerDiorama = null;
+  let appDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -555,12 +556,25 @@ const _startHacks = () => {
     } else if (e.which === 221) { // ]
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (localPlayer.avatar) {
-        if (!diorama) {
-          diorama = dioramaManager.createPlayerDiorama(localPlayer);
+        if (!playerDiorama) {
+          playerDiorama = dioramaManager.createPlayerDiorama(localPlayer);
         } else {
-          diorama.destroy();
-          diorama = null;
+          playerDiorama.destroy();
+          playerDiorama = null;
         }
+      }
+    } else if (e.which === 220) { // \\
+      const apps = world.appManager.getApps();
+      const swordApp = apps.find(a => /sword/i.test(a.contentId));
+      if (!appDiorama) {
+        if (swordApp) {
+          appDiorama = dioramaManager.createAppDiorama(swordApp);
+        } else {
+          console.warn('no sword app');
+        }
+      } else {
+        appDiorama.destroy();
+        appDiorama = null;
       }
     } else if (e.which === 46) { // .
       emoteIndex = -1;
