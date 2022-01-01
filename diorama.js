@@ -877,7 +877,7 @@ const outlineMaterial = (() => {
   return instanceMaterial;
 })();
 
-const createDiorama = player => {
+const createPlayerDiorama = player => {
   const mmdCanvases = [];
   const mmdCanvasContexts = [];
   const avatarRenderTargets = [];
@@ -1044,7 +1044,7 @@ const createDiorama = player => {
 
 const dioramas = [];
 const dioramaManager = {
-  createDiorama,
+  createPlayerDiorama,
   update(timestamp, timeDiff) {
     for (const diorama of dioramas) {
       diorama.update(timestamp, timeDiff);
