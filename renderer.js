@@ -63,43 +63,43 @@ init().then(() => {
     };
   })();
 
-  THREE.Matrix4.prototype.compose = (function() {
-    const out = mat4.create();
-    const q = vec4.create();
-    const v = vec3.create();
-    const s = vec3.create();
+  // THREE.Matrix4.prototype.compose = (function() {
+  //   const out = mat4.create();
+  //   const q = vec4.create();
+  //   const v = vec3.create();
+  //   const s = vec3.create();
 
-    const outView = mat4.view(out);
-    const qView = vec4.view(q);
-    const vView = vec3.view(v);
-    const sView = vec3.view(s);
+  //   const outView = mat4.view(out);
+  //   const qView = vec4.view(q);
+  //   const vView = vec3.view(v);
+  //   const sView = vec3.view(s);
 
-    const qArr = [];
-    const vArr = [];
-    const sArr = [];
+  //   const qArr = [];
+  //   const vArr = [];
+  //   const sArr = [];
 
-    return function compose() {
-      if (Array.isArray(this.elements)) {
-        this.elements = new Float32Array(this.elements);
-      } else if (this.elements instanceof Proxy) {
-        this.elements = new Float32Array(Object.values(this.elements));
-      }
+  //   return function compose() {
+  //     if (Array.isArray(this.elements)) {
+  //       this.elements = new Float32Array(this.elements);
+  //     } else if (this.elements instanceof Proxy) {
+  //       this.elements = new Float32Array(Object.values(this.elements));
+  //     }
 
-      const position = arguments[0];
-      const quaternion = arguments[1];
-      const scale = arguments[2];
+  //     const position = arguments[0];
+  //     const quaternion = arguments[1];
+  //     const scale = arguments[2];
 
-      qView.set(quaternion.toArray(qArr));
-      vView.set(position.toArray(vArr));
-      sView.set(scale.toArray(sArr));
+  //     qView.set(quaternion.toArray(qArr));
+  //     vView.set(position.toArray(vArr));
+  //     sView.set(scale.toArray(sArr));
 
-      mat4.fromRotationTranslationScale(out, q, v, s);
+  //     mat4.fromRotationTranslationScale(out, q, v, s);
 
-      this.elements.set(outView);
+  //     this.elements.set(outView);
 
-      return this;
-    };
-  })();
+  //     return this;
+  //   };
+  // })();
 });
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
