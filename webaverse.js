@@ -348,6 +348,12 @@ export default class Webaverse extends EventTarget {
         
       this.render(timestamp, timeDiffCapped);
 
+      
+      if (window.isLogAverageTime) {
+        window.averageTime = window.totalTime / window.count
+        window.domAverageTime.innerText = window.averageTime
+      }
+
     }
     renderer.setAnimationLoop(animate);
   }

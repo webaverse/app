@@ -33,9 +33,9 @@ import {minFov} from './constants.js';
 // })()
 
 window.isLogAverageTime = false
-let totalTime = 0
-let averageTime = 0
-let count = 0
+window.totalTime = 0
+window.averageTime = 0
+window.count = 0
 THREE.Matrix4.prototype.multiplyMatrices = (function () {
   var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
@@ -43,17 +43,15 @@ THREE.Matrix4.prototype.multiplyMatrices = (function () {
 
   return function () {
     // your code
-    // if (window.isLogAverageTime) startTime = performance.now()
+    if (window.isLogAverageTime) startTime = performance.now()
 
     var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
     // more of your code
-    // if (window.isLogAverageTime) {
-    //   totalTime += performance.now() - startTime
-    //   count += 1
-    //   averageTime = totalTime / count
-    //   window.domAverageTime.innerText = averageTime
-    // }
+    if (window.isLogAverageTime) {
+      window.totalTime += performance.now() - startTime
+      window.count += 1
+    }
 
     return result
   }
