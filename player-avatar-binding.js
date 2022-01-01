@@ -97,6 +97,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  const emoteAction = player.getAction('emote');
+  const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
@@ -135,7 +137,25 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-  rig.poseAnimation = player.getAction('pose')?.animation || null;
+
+  // emote
+  if (emoteAction) {
+    const {index} = emoteAction;
+    if (!(player.avatar.emotes.length === 1 && player.avatar.emotes[0].index === index)) {
+      player.avatar.emotes.length = 0;
+
+      const newEmote = {
+        index,
+        value: 1,
+      };
+      player.avatar.emotes.push(newEmote);
+    }
+  } else {
+    player.avatar.emotes.length = 0;
+  }
+
+  // pose
+  rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerChatToAvatar(player, rig) {
   const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
