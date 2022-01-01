@@ -874,13 +874,29 @@ const skinnedRedMaterial = (() => {
 })();
 
 const createPlayerDiorama = player => {
-  const mmdCanvases = [];
-  const mmdCanvasContexts = [];
-  const avatarRenderTargets = [];
+  const renderer = getRenderer();
+  const pixelRatio = renderer.getPixelRatio();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = sideSize;
+  canvas.height = sideSize;
+  canvas.style.cssText = `\
+    position: absolute;
+    width: ${sideSize}px;
+    height: ${sideSize}px;
+    top: 0px;
+    left: 0px;
+  `;
+  const ctx = canvas.getContext('2d');
+  const avatarRenderTarget = new THREE.WebGLRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+  });
+  document.body.appendChild(canvas);
 
   const diorama = {
     update(timestamp, timeDiff) {
-      const renderer = getRenderer();
       const size = renderer.getSize(new THREE.Vector2());
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = new THREE.Vector2(
@@ -923,42 +939,13 @@ const createPlayerDiorama = player => {
       sideCamera.updateMatrixWorld();
     
       // render
-      const pixelRatio = renderer.getPixelRatio();
-      const numCanvases = 1;
+      /* const numCanvases = 1;
       for (let i = 0; i < numCanvases; i++) {
         const x = i % sideSize;
         const y = Math.floor(i / sideSize);
         const dx = x * sideSize;
-        const dy = y * sideSize;
-        
-        let mmdCanvas = mmdCanvases[i];
-        let ctx = mmdCanvasContexts[i];
-        if (!mmdCanvas) {
-          mmdCanvas = document.createElement('canvas');
-          mmdCanvas.width = sideSize;
-          mmdCanvas.height = sideSize;
-          mmdCanvas.style.cssText = `\
-            position: absolute;
-            width: ${sideSize}px;
-            height: ${sideSize}px;
-            top: ${dy.toFixed(8)}px;
-            left: ${dx.toFixed(8)}px;
-          `;
-          ctx = mmdCanvas.getContext('2d');
-          mmdCanvases[i] = mmdCanvas;
-          mmdCanvasContexts[i] = ctx;
-    
-          document.body.appendChild(mmdCanvas);
-        }
-        let avatarRenderTarget = avatarRenderTargets[i];
-        if (!avatarRenderTarget) {
-          avatarRenderTarget = new THREE.WebGLRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio, {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-          });
-          avatarRenderTargets[i] = avatarRenderTarget;
-        }
+        const dy = y * sideSize; */
+
         // set up side avatar scene
         sideAvatarScene.add(player.avatar.model);
         sideAvatarScene.add(world.lights);
@@ -1010,7 +997,7 @@ const createPlayerDiorama = player => {
     
         ctx.clearRect(0, 0, sideSize, sideSize);
         ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
-      }
+      // }
     
       // pop old state
       if (oldParent) {
@@ -1027,9 +1014,7 @@ const createPlayerDiorama = player => {
       renderer.setViewport(oldViewport);
     },
     destroy() {
-      for (const mmdCanvas of mmdCanvases) {
-        mmdCanvas.parentNode.removeChild(mmdCanvas);
-      }
+      canvas.parentNode.removeChild(canvas);
       dioramas.splice(dioramas.indexOf(diorama), 1);
     },
   };
