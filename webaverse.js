@@ -376,15 +376,13 @@ const _emoteKey = key => {
   }
 };
 
-import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
+// import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
   let diorama = null;
   let poseAnimationIndex = -1;
-  let mikuModel = null;
-  let mikuLoaded = false;
   const _updatePoseAnimation = () => {
     poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
     
@@ -398,6 +396,8 @@ const _startHacks = () => {
       localPlayer.addAction(poseAction);
     }
   };
+  /* let mikuModel = null;
+  let mikuLoaded = false;
   const _ensureMikuModel = () => {
     if (!mikuLoaded) {
       mikuLoaded = true;
@@ -491,11 +491,6 @@ const _startHacks = () => {
         mixamorigLeftToeBase: _getBone('左つま先'),
         mixamorigRightToeBase: _getBone('右つま先'),
       };
-      /* for (const k in mmdAnimation) {
-        if (!mmdAnimation[k]) {
-          console.warn('no bone', k);
-        }
-      } */
 
       for (const k in animation.interpolants) {
         const match = k.match(/^([\s\S]+?)\.(position|quaternion)$/);
@@ -515,7 +510,7 @@ const _startHacks = () => {
       }
       mikuModel.updateMatrixWorld();
     }
-  };
+  }; */
   window.addEventListener('keydown', e => {
     if (e.which === 219) { // [
       if (localPlayer.avatar) {
@@ -564,14 +559,14 @@ const _startHacks = () => {
       poseAnimationIndex++;
       _updatePoseAnimation();
     
-      _ensureMikuModel();
-      _updateMikuModel();
+      // _ensureMikuModel();
+      // _updateMikuModel();
     } else if (e.which === 109) { // -
       poseAnimationIndex--;
       _updatePoseAnimation();
 
-      _ensureMikuModel();
-      _updateMikuModel();
+      // _ensureMikuModel();
+      // _updateMikuModel();
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
