@@ -732,6 +732,29 @@ metaversefile.setApi({
     app.type = type;
     app.contentId = start_url;
     // app.components = components;
+
+    // if (name.indexOf('J_Adj_L_FaceEye') >= 0) {
+    //   window.eyeL = app
+    // } else if (name.indexOf('J_Adj_R_FaceEye') >= 0) {
+    //   window.eyeR = app
+    // }
+
+    if (name.indexOf('sakura') >= 0) {
+      // debugger
+      window.sakura = app
+
+      let childsCount = 0
+      app.traverse(child => childsCount++)
+      console.log('- sakura childsCount', childsCount)
+    } else if (name.indexOf('model49') >= 0) {
+      // debugger
+      window.model49 = app
+
+      let childsCount = 0
+      app.traverse(child => childsCount++)
+      console.log('- model49 childsCount', childsCount)
+    }
+
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);

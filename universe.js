@@ -18,6 +18,7 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
   
   const localPlayer = metaversefile.useLocalPlayer();
+  window.localPlayer = localPlayer
   /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
     relation: 'float',
   }); */
