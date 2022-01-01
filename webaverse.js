@@ -584,7 +584,7 @@ const _startHacks = () => {
         if (targetApp) {
           appDiorama = dioramaManager.createAppDiorama(targetApp);
         } else {
-          console.warn('no sword app');
+          console.warn('no target app');
         }
       } else {
         appDiorama.destroy();
