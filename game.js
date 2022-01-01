@@ -1682,7 +1682,7 @@ const gameManager = {
     }
   },
   menuUpload: _upload,
-  addLocalEmote(index) {
+  /* addLocalEmote(index) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
       const timestamp = performance.now();
@@ -1714,7 +1714,7 @@ const gameManager = {
       };
       world.appManager.addEventListener('frame', frame);
     }
-  },
+  }, */
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   },
