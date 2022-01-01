@@ -33,6 +33,7 @@ import {
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
+import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -337,7 +338,7 @@ export default class Webaverse extends EventTarget {
       game.pushPlayerUpdates();
 
       soundManager.update(timeDiffCapped);
-      
+      dioramaManager.update(timestamp, timeDiffCapped);
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
@@ -387,6 +388,41 @@ window.addEventListener('keydown', e => {
           localPlayer.avatar.setMicrophoneMediaStream(null);
         });
       })();
+    }
+  } else if (e.which === 221) { // ]
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    if (localPlayer.avatar) {
+      dioramaManager.createDiorama(localPlayer);
+      /* (async () => {
+        const audioUrl = '/sounds/vocals.mp3';
+        const audioUrl2 = '/sounds/music.mp3';
+
+        const _loadAudio = u => new Promise((accept, reject) => {
+          const audio = new Audio(u);
+          audio.addEventListener('canplaythrough', async e => {
+            accept(audio);
+          }, {once: true});
+          audio.addEventListener('error', e => {
+            reject(e);
+          });
+          // audio.play();
+          // audioContext.resume();
+        });
+
+        const audios = await Promise.all([
+          _loadAudio(audioUrl),
+          _loadAudio(audioUrl2),
+        ]);
+        localPlayer.avatar.say(audios[0]);
+        await localPlayer.avatar.microphoneWorker.waitForLoad();
+
+        audios[0].play();
+        audios[1].play();
+        
+        audios[0].addEventListener('ended', e => {
+          localPlayer.avatar.setMicrophoneMediaStream(null);
+        });
+      })(); */
     }
   }
 });
