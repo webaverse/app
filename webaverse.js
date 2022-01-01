@@ -366,14 +366,14 @@ const _startHacks = () => {
     key: -1,
     timestamp: 0,
   };
+  let emoteIndex = -1;
   let poseAnimationIndex = -1;
   const _emoteKey = key => {
     const timestamp = performance.now();
     if ((timestamp - lastEmoteKey.timestamp) < 1000) {
       const key1 = lastEmoteKey.key;
       const key2 = key;
-      const index = (key1 * 10) + key2;
-      game.addLocalEmote(index);
+      emoteIndex = (key1 * 10) + key2;
       
       lastEmoteKey.key = -1;
       lastEmoteKey.timestamp = 0;
@@ -382,9 +382,17 @@ const _startHacks = () => {
       lastEmoteKey.timestamp = timestamp;
     }
   };
+  const _updateEmote = () => {
+    localPlayer.removeAction('emote');
+    if (emoteIndex !== -1) {
+      const emoteAction = {
+        type: 'emote',
+        index: emoteIndex,
+      };
+      localPlayer.addAction(emoteAction);
+    }
+  };
   const _updatePoseAnimation = () => {
-    poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
-    
     localPlayer.removeAction('pose');
     if (poseAnimationIndex !== -1) {
       const animation = vpdAnimations[poseAnimationIndex];
@@ -554,14 +562,19 @@ const _startHacks = () => {
           diorama = null;
         }
       }
+    } else if (e.which === 46) { // .
+      emoteIndex = -1;
+      _updateEmote();
     } else if (e.which === 107) { // +
       poseAnimationIndex++;
+      poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePoseAnimation();
     
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
       poseAnimationIndex--;
+      poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePoseAnimation();
 
       // _ensureMikuModel();
@@ -571,6 +584,7 @@ const _startHacks = () => {
       if (match) {
         const key = parseInt(match[1], 10);
         _emoteKey(key);
+        _updateEmote();
       }
     }
   });
