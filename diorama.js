@@ -831,28 +831,24 @@ const outlineMaterial = (() => {
     value: 0,
     needsUpdate: false,
   };
-  wVertex =
-    `
+  wVertex = `\
+    attribute vec3 offset;
+    attribute vec4 orientation;
 
-          attribute vec3 offset;
-          attribute vec4 orientation;
+    vec3 applyQuaternionToVector(vec4 q, vec3 v){
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+    }
 
-          vec3 applyQuaternionToVector(vec4 q, vec3 v){
-              return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-          }
+  ` + wVertex;
 
-        ` + wVertex;
+  wVertex = wVertex.replace(`\
+    #include <project_vertex>
+    vec3 vPosition = applyQuaternionToVector(orientation, transformed);
 
-  wVertex = wVertex.replace(
-    "#include <project_vertex>",
-    `
-          vec3 vPosition = applyQuaternionToVector(orientation, transformed);
+    vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
     
-          vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
-          
-        `
-  );
+  `);
   wFragment = `\
     void main() {
       gl_FragColor = vec4(1., 0., 0., 1.);
