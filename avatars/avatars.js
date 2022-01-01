@@ -585,15 +585,15 @@ let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let throwAnimations;
-let crouchAnimations;
+// let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
-let jumpAnimationSegments;
-let chargeJump;
-let standCharge;
+// let jumpAnimationSegments;
+// let chargeJump;
+// let standCharge;
 let fallLoop;
-let swordSideSlash;
-let swordTopDownSlash;
+// let swordSideSlash;
+// let swordTopDownSlash;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -692,19 +692,18 @@ const loadPromise = (async () => {
     decorateAnimation(animation);
   }
 
-
-  jumpAnimationSegments = {
+  /* jumpAnimationSegments = {
     chargeJump: animations.find(a => a.isChargeJump),
     chargeJumpFall: animations.find(a => a.isChargeJumpFall),
     isFallLoop: animations.find(a => a.isFallLoop),
     isLanding: animations.find(a => a.isLanding)
-  }
+  }; */
 
-  chargeJump = animations.find(a => a.isChargeJump);
-  standCharge = animations.find(a => a.isStandCharge);
+  // chargeJump = animations.find(a => a.isChargeJump);
+  // standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
-  swordSideSlash = animations.find(a => a.isSwordSideSlash);
-  swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
+  // swordSideSlash = animations.find(a => a.isSwordSideSlash);
+  // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   function mergeAnimations(a, b) {
     const o = {};
@@ -750,9 +749,9 @@ const loadPromise = (async () => {
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
   };
-  crouchAnimations = {
+  /* crouchAnimations = {
     crouch: animations.find(a => a.isCrouch),
-  };
+  }; */
   activateAnimations = {
     grab_forward: {animation:animations.find(a => a.name === 'grab_forward.fbx'), speedFactor: 1.2},
     grab_down: {animation:animations.find(a => a.name === 'grab_down.fbx'), speedFactor: 1.7},
