@@ -2423,7 +2423,6 @@ class Avatar {
         } = spec;
         
         applyFn(spec);
-        // _blendNoise(spec);
         _blendFly(spec);
         _blendActivateAction(spec);
         
@@ -2440,12 +2439,11 @@ class Avatar {
       }
     };
     _applyAnimation();
-
-    // const noiseAnimation = animations.index['t-pose_rot.fbx'];
-    // const noiseTime = (now/1000) % noiseAnimation.duration;
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
+      // const noiseAnimation = animations.index['t-pose_rot.fbx'];
+      // const noiseTime = (now/1000) % noiseAnimation.duration;
       for (const spec of this.animationMappings) {
         const {
           animationTrackName: k,
