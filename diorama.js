@@ -911,10 +911,10 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
 
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
+    document.body.appendChild(canvas);
   }
   const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
-  document.body.appendChild(canvas);
   const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
@@ -1048,10 +1048,10 @@ const createAppDiorama = (app, {canvas} = {}) => {
 
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
+    document.body.appendChild(canvas);
   }
   const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
-  document.body.appendChild(canvas);
   const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
