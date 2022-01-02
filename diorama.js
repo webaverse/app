@@ -899,27 +899,27 @@ const _makeCanvas = (w, h) => {
     top: 0px;
     left: 0px;
   `;
-  const ctx = canvas.getContext('2d');
-  return {
-    canvas,
-    ctx,
-  }
+  return canvas;
 };
 const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
 });
-const createPlayerDiorama = player => {
-  const renderer = getRenderer();
-  const pixelRatio = renderer.getPixelRatio();
+const createPlayerDiorama = (player, {canvas} = {}) => {
+  const {devicePixelRatio: pixelRatio} = window;
 
-  const {canvas, ctx} = _makeCanvas(sideSize, sideSize);
+  if (!canvas) {
+    canvas = _makeCanvas(sideSize, sideSize);
+  }
+  const ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
   const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
 
   const diorama = {
+    enabled: true,
     update(timestamp, timeDiff) {
+      const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
@@ -929,105 +929,107 @@ const createPlayerDiorama = player => {
       if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
         throw new Error('renderer is too small');
       }
-    
-      // push old state
-      const oldParent = player.avatar.model.parent;
-      const oldRenderTarget = renderer.getRenderTarget();
-      const oldViewport = renderer.getViewport(localVector4D);
-      const oldWorldLightParent = world.lights.parent;
-    
-      const _render = () => {
-      /* const numCanvases = 1;
-      for (let i = 0; i < numCanvases; i++) {
-        const x = i % sideSize;
-        const y = Math.floor(i / sideSize);
-        const dx = x * sideSize;
-        const dy = y * sideSize; */
 
-        // set up side camera
-        sideCamera.position.copy(player.position)
-          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
-        sideCamera.quaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            sideCamera.position,
-            player.position,
-            localVector3.set(0, 1, 0)
-          )
-        );
-        sideCamera.updateMatrixWorld();
+      if (player.avatar) {
+        // push old state
+        const oldParent = player.avatar.model.parent;
+        const oldRenderTarget = renderer.getRenderTarget();
+        const oldViewport = renderer.getViewport(localVector4D);
+        const oldWorldLightParent = world.lights.parent;
+      
+        const _render = () => {
+        /* const numCanvases = 1;
+        for (let i = 0; i < numCanvases; i++) {
+          const x = i % sideSize;
+          const y = Math.floor(i / sideSize);
+          const dx = x * sideSize;
+          const dy = y * sideSize; */
 
-        // set up side avatar scene
-        sideAvatarScene.add(player.avatar.model);
-        sideAvatarScene.add(world.lights);
-        // render side avatar scene
-        renderer.setRenderTarget(outlineRenderTarget);
-        renderer.clear();
-        renderer.render(sideAvatarScene, sideCamera);
-        
-        // set up side scene
-        sideScene.add(player.avatar.model);
-        sideScene.add(world.lights);
-    
-        const now = performance.now();
-        lightningMesh.material.uniforms.iTime.value = now / 1000;
-        lightningMesh.material.uniforms.iTime.needsUpdate = true;
-        lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-        lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-        lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-        lightningMesh.visible = true;
+          // set up side camera
+          sideCamera.position.copy(player.position)
+            .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
+          sideCamera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              sideCamera.position,
+              player.position,
+              localVector3.set(0, 1, 0)
+            )
+          );
+          sideCamera.updateMatrixWorld();
 
-        radialMesh.material.uniforms.iTime.value = now / 1000;
-        radialMesh.material.uniforms.iTime.needsUpdate = true;
-        radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        radialMesh.material.uniforms.iFrame.needsUpdate = true;
-        radialMesh.visible = false;
-        
-        outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-        outlineMesh.material.uniforms.t0.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-        outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-        outlineMesh.visible = true;
-    
-        labelMesh.material.uniforms.iTime.value = now / 1000;
-        labelMesh.material.uniforms.iTime.needsUpdate = true;
-        labelMesh.visible = true;
+          // set up side avatar scene
+          sideAvatarScene.add(player.avatar.model);
+          sideAvatarScene.add(world.lights);
+          // render side avatar scene
+          renderer.setRenderTarget(outlineRenderTarget);
+          renderer.clear();
+          renderer.render(sideAvatarScene, sideCamera);
+          
+          // set up side scene
+          sideScene.add(player.avatar.model);
+          sideScene.add(world.lights);
+      
+          const now = performance.now();
+          lightningMesh.material.uniforms.iTime.value = now / 1000;
+          lightningMesh.material.uniforms.iTime.needsUpdate = true;
+          lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+          const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
+          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+          lightningMesh.visible = true;
 
-        for (const child of textObject.children) {
-          child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
-          child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          radialMesh.material.uniforms.iTime.value = now / 1000;
+          radialMesh.material.uniforms.iTime.needsUpdate = true;
+          radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          radialMesh.material.uniforms.iFrame.needsUpdate = true;
+          radialMesh.visible = false;
+          
+          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+          outlineMesh.material.uniforms.t0.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+          outlineMesh.visible = true;
+      
+          labelMesh.material.uniforms.iTime.value = now / 1000;
+          labelMesh.material.uniforms.iTime.needsUpdate = true;
+          labelMesh.visible = true;
+
+          for (const child of textObject.children) {
+            child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          }
+          textObject.visible = true;
+          
+          // render side scene
+          renderer.setRenderTarget(oldRenderTarget);
+          renderer.setViewport(0, 0, sideSize, sideSize);
+          renderer.clear();
+          renderer.render(sideScene, sideCamera);
+      
+          ctx.clearRect(0, 0, sideSize, sideSize);
+          ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
+        };
+        _render();
+
+        // pop old state
+        if (oldParent) {
+          oldParent.add(player.avatar.model);
+        } else {
+          player.avatar.model.parent.remove(player.avatar.model);
         }
-        textObject.visible = true;
-        
-        // render side scene
+        if (oldWorldLightParent) {
+          oldWorldLightParent.add(world.lights);
+        } else {
+          world.lights.parent.remove(world.lights);
+        }
         renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, sideSize, sideSize);
-        renderer.clear();
-        renderer.render(sideScene, sideCamera);
-    
-        ctx.clearRect(0, 0, sideSize, sideSize);
-        ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
-      };
-      _render();
-
-      // pop old state
-      if (oldParent) {
-        oldParent.add(player.avatar.model);
-      } else {
-        player.avatar.model.parent.remove(player.avatar.model);
+        renderer.setViewport(oldViewport);
       }
-      if (oldWorldLightParent) {
-        oldWorldLightParent.add(world.lights);
-      } else {
-        world.lights.parent.remove(world.lights);
-      }
-      renderer.setRenderTarget(oldRenderTarget);
-      renderer.setViewport(oldViewport);
     },
     destroy() {
       canvas.parentNode.removeChild(canvas);
@@ -1037,18 +1039,20 @@ const createPlayerDiorama = player => {
   dioramas.push(diorama);
   return diorama;
 };
-const createAppDiorama = app => {
-  console.log('create app diorama', app);
-  
-  const renderer = getRenderer();
-  const pixelRatio = renderer.getPixelRatio();
+const createAppDiorama = (app, {canvas} = {}) => {
+  const {devicePixelRatio: pixelRatio} = window;
 
-  const {canvas, ctx} = _makeCanvas(sideSize, sideSize);
+  if (!canvas) {
+    canvas = _makeCanvas(sideSize, sideSize);
+  }
+  const ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
   const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
 
   const diorama = {
+    enabled: true,
     update(timestamp, timeDiff) {
+      const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
@@ -1160,7 +1164,9 @@ const dioramaManager = {
   createAppDiorama,
   update(timestamp, timeDiff) {
     for (const diorama of dioramas) {
-      diorama.update(timestamp, timeDiff);
+      if (diorama.enabled) {
+        diorama.update(timestamp, timeDiff);
+      }
     }
   }
 };
