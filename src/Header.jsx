@@ -297,6 +297,8 @@ export default function Header({
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
   
+  const sideSize = 400;
+
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
   };
@@ -348,6 +350,9 @@ export default function Header({
   useEffect(() => {
     if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
+    }
+    if (game.playerDiorama) {
+      game.playerDiorama.enabled = !!open;
     }
   }, [open]);
   useEffect(() => {
@@ -415,7 +420,7 @@ export default function Header({
     };
   }, [claims]);
   useEffect(() => {
-    if (previewCanvasRef.current) {
+    if (previewCanvasRef.current && !game.playerDiorama) {
       app.bindPreviewCanvas(previewCanvasRef.current);
     }
   }, [previewCanvasRef.current]);
@@ -603,10 +608,22 @@ export default function Header({
               }
               panels={[
                 (<div className={styles.panel} key="left">
+                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
                   <div className={styles['panel-header']}>
-                    <h1>Sheila</h1>
+                    <div className={styles['panel-section']}>
+                      <h1>Scillia</h1>
+                    </div>
+                    <div className={styles['panel-section']}>
+                      <div className={styles['panel-row']}>
+                        <h2>HP</h2>
+                        <progress value={61} />
+                      </div>
+                      <div className={styles['panel-row']}>
+                        <h2>MP</h2>
+                        <progress value={83} />
+                      </div>
+                    </div>
                   </div>
-                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
                   {/* <div className={styles['panel-header']}>
                     <h1>Equipment</h1>
                   </div> */}

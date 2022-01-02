@@ -5,12 +5,16 @@ the purpose of this file is to hold these objects and to make sure they are corr
 
 import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import {makePromise} from './util.js';
 import {minFov} from './constants.js';
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
 let canvas = null, context = null, renderer = null, composer = null;
+
+let waitPromise = makePromise();
+const waitForLoad = () => waitPromise;
 
 function bindCanvas(c) {
   // initialize renderer
@@ -63,6 +67,8 @@ function bindCanvas(c) {
     renderTarget.samples = context.MAX_SAMPLES;
     composer = new EffectComposer(renderer, renderTarget);
   }
+
+  waitPromise.accept();
 }
 
 function getRenderer() {
@@ -173,6 +179,7 @@ if (canvas.parentNode) {
 } */
 
 export {
+  waitForLoad,
   // AppManager,
   bindCanvas,
   getRenderer,

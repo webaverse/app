@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer} from './renderer.js';
+import {getRenderer, camera} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {world} from './world.js';
 import {Text} from 'troika-three-text';
@@ -544,6 +544,575 @@ const textFragmentShader = `\
     gl_FragColor = vec4(vec3(1.), 1.);
   }
 `;
+const grassFragmentShader = `\
+uniform sampler2D iChannel0;
+uniform float iTime;
+varying vec2 tex_coords;
+
+// Quick and dirty line experiment to generate electric bolts :)
+
+const float PI = 3.1415926535897932384626433832795;
+
+float randStart = 0.;
+float rand(float n){
+  n = randStart + n*1000.;
+  randStart += 1000.;
+  return fract(sin(n) * 43758.5453123);
+}
+
+float noise(float p){
+	float fl = floor(p);
+  float fc = fract(p);
+	return mix(rand(fl), rand(fl + 1.0), fc);
+}
+
+// http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
+float R1seq(int n)
+{
+	return fract(float(n) * 0.618033988749894848204586834365641218413556121186522017520);
+}
+
+vec2 R2seq(int n)
+{
+	return fract(vec2(n) * vec2(0.754877666246692760049508896358532874940835564978799543103, 0.569840290998053265911399958119574964216147658520394151385));
+}
+
+// modified iq's segment: https://www.shadertoy.com/view/ldj3Wh
+vec2 Line(vec2 a, vec2 b, vec2 p, vec2 identity, float sa, float sb)
+{
+    vec2 pa = p - a;
+    vec2 pb = p - b;
+	vec2 ba = b - a;
+	float t = clamp(dot(pa,ba)/dot(ba,ba), 0.0, 1.0);    
+    vec2 pp = a + ba * t;
+    vec2 y = vec2(-identity.y, identity.x);
+    float cutoff = max(dot(pb, identity), dot(pa, -identity));
+    float s = mix(sa, sb, t);
+    return vec2(max(cutoff - .005, abs(dot(y, p - pp)) - s), t);
+}
+
+float Rythm(float x)
+{
+    x = x * 6.28318 * 10.0 / 60.0;
+	x = smoothstep(-1.0, 1.0, (x));
+	x = smoothstep(0.0, 1.0, x);
+	x = smoothstep(0.0, 1.0, x);
+	x = smoothstep(0.0, 1.0, x);
+	x = smoothstep(0.0, 1.0, x);
+	return x;
+}
+
+const vec3 mainColor = vec3(1.0) - vec3(0.91, 0.56, 0.02);
+vec3 Background(vec2 uv, vec2 baseDir, float time)
+{
+    uv = uv * vec2(.75, .75);
+	vec3 result = mainColor;
+    
+    vec2 n = vec2(-baseDir.y, baseDir.x);
+    
+    // result = mix(result, vec3(1.0) - result, Rythm(time));
+    
+    float lines = texture(iChannel0, vec2(uv.y * 0.1, uv.x *  2.) + vec2(time * 1.35, 0.0)).r;
+    result += lines * lines * .75 + lines * lines * lines * .35;
+    float amount = smoothstep(.75, .0, abs(dot(uv, n)));
+    result = mix(mainColor * 0.25, result, amount);
+    
+    return result;
+}
+
+vec2 rotateCCW(vec2 pos, float angle) { 
+    float ca = cos(angle),  sa = sin(angle);
+    return pos * mat2(ca, sa, -sa, ca);  
+  }
+
+  vec2 rotateCCW(vec2 pos, vec2 around, float angle) { 
+    pos -= around;
+    pos = rotateCCW(pos, angle);
+    pos += around;
+    return pos;
+  }
+
+  // return 1 if v inside the box, return 0 otherwise
+  bool insideAABB(vec2 v, vec2 bottomLeft, vec2 topRight) {
+      vec2 s = step(bottomLeft, v) - step(topRight, v);
+      return s.x * s.y > 0.;   
+  }
+
+  bool isPointInTriangle(vec2 point, vec2 a, vec2 b, vec2 c) {
+    vec2 v0 = c - a;
+    vec2 v1 = b - a;
+    vec2 v2 = point - a;
+
+    float dot00 = dot(v0, v0);
+    float dot01 = dot(v0, v1);
+    float dot02 = dot(v0, v2);
+    float dot11 = dot(v1, v1);
+    float dot12 = dot(v1, v2);
+
+    float invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0.) && (v >= 0.) && (u + v < 1.);
+  }
+  
+float closestPointToPointParameter(vec2 start, vec2 end, vec2 point, bool clampToLine) {
+
+    vec2 _startP = point - start;
+    vec2 _startEnd = end - start;
+
+    float startEnd2 = dot(_startEnd, _startEnd);
+    float startEnd_startP = dot(_startEnd, _startP);
+
+    float t = startEnd_startP / startEnd2;
+
+    if (clampToLine) {
+        t = clamp(t, 0., 1.);
+    }
+
+    return t;
+
+}
+vec2 closestPointToPointParameter2(vec2 start, vec2 end, float t) {
+  vec2 delta = end - start;
+  return delta * t + start;
+}
+vec2 closestPointToPoint( vec2 start, vec2 end, vec2 point, bool clampToLine ) {
+    float t = closestPointToPointParameter(start, end, point, clampToLine);
+    return closestPointToPointParameter2(start, end, t);
+}
+
+vec2 getOffset(float fi, float fj, float fnumBlades, float fnumSegments) {
+    return (vec2(
+      (noise(fi/fnumBlades*1000.) + noise(fj/fnumSegments)) * 0.5,
+      (noise(fi/fnumBlades) + noise(fj/fnumSegments)) * 0.5
+    ) - 0.5) * 2.;
+}
+vec2 getOffset2(float fi, float fj, float fnumBlades, float fnumSegments) {
+    vec2 offset = getOffset(fi, fj, fnumBlades, fnumSegments);
+    float timeOffset = (noise(fi) + noise(fj))*0.5;
+    float speed = 0.5 + ((noise(fi) + noise(fj))*0.5)*0.5;
+    offset = rotateCCW(offset, vec2(0.), sin((timeOffset + iTime * speed) * PI * 2.));
+    return offset;
+}
+void mainImage( out vec4 fragColor, in vec2 mainUv )
+{
+    float time = iTime; // -.25 + floor(iTime * 1.1 * 24.0) / 24.0;
+    float intro = 1.; // smoothstep(12.85, 13.15, time);
+    // vec2 mainUv = fragCoord/iResolution.xy;
+    
+    vec2 uv = mainUv;
+    float frameRate = 24.; // floor((3. + sin(time)) * 3. * 10.) / 10.;
+    time = max(floor(time * frameRate)/frameRate, 0.01);
+    
+    uv.y -= .075;
+    uv.x -= sin(time*30.0) * .4;
+    
+    vec2 baseDir = normalize(vec2(1., 0.));
+    vec2 baseDir2 = normalize(vec2(0., 1.));
+    
+    vec3 col = Background(uv, baseDir, time) * intro;
+    
+    float spread = .35 + (sin(time * 10.0) * .5 + .5);
+    float freq = .6 - (sin(time * 4.0) * .5 + .5) * .2;
+    
+    
+    float offset = 1.0 - (smoothstep(5.0, 7.0, time) * smoothstep( 14.0, 13.0, time));
+    
+    spread *= offset;
+    
+   	/* col = Magic(.5, col, uv + vec2(.4, .1) * offset, baseDir2, time, .2, .35, 1.0);
+    col = Magic(3.0, col, uv + vec2(.2, .0) * offset, baseDir2, time, .05, .15, .55);
+    col = Magic(8.0, col, uv + vec2(.2, -.25) * offset, baseDir2, time, .05, .15, .35);
+    col = Magic(10.0, col, uv + vec2(-.15, -.35) * offset, baseDir2, time, .04, .05, .75);
+    col = Magic(11.0, col, uv + vec2(-.3, -.15) * offset, baseDir2, time, .04, .05, .75);
+    col = Magic(12.0, col, uv, baseDir2, time, spread * .75, freq, 1.0); */
+    
+    const int numBlades = 20;
+    const float fnumBlades = float(numBlades);
+    const float w = 0.01;    
+    for (int i = 0; i < numBlades; i++) {
+      float fi = float(i);
+      vec2 c = vec2(noise(fi/fnumBlades), 0.);
+      float size = (0.5 + noise(fi/fnumBlades)*0.5) * 0.03;
+      float segmentLength = 0.1 + noise(fi/fnumBlades)*0.05;
+      float lx = c.x - size*0.5;
+      float rx = c.x + size*0.5;
+      
+      float colorFactor = (0.5 + noise(fi)*0.5) * (0.5 + (1.0 - uv.y) * 0.5);
+      colorFactor *= 0.8;
+      // vec3 localColor = mix(mainColor * colorFactor, mainColor * 2., max(noise(iTime*2.) - 0.9, 0.)/(1. - 0.9));
+      vec3 localColor = mainColor * colorFactor;
+      // float alpha = 0.5 + noise(fi)*0.5;
+      // vec3 mixColor = mix(col, localColor, alpha);
+      vec3 mixColor = localColor;
+      
+      int numSegments = int(3. + noise(fi/fnumBlades) * 5.);
+      float fnumSegments = float(numSegments);
+      vec2 bladePermOffset = getOffset2(0., -2., fnumBlades, fnumSegments) * 0.1;
+      // float bladeLength = fnumSegments * segmentLength;
+      vec2 direction = normalize(vec2(0., 1.) + getOffset2(fi, -1., fnumBlades, fnumSegments) * 0.1) + bladePermOffset;
+      vec2 nextC = c + direction * segmentLength;
+      for (int j = 0; j < numSegments; j++) {
+        float fj = float(j);
+        
+        vec2 delta = nextC - c;
+        float deltaLength = length(delta);
+        
+        float t0 = closestPointToPointParameter(c, nextC, mainUv, true);
+        float completeFactor = (fj + t0) / fnumSegments;
+        completeFactor = clamp(pow(completeFactor, 5.), 0., 1.);
+        float currentW = w * (1. - completeFactor);
+        
+        vec2 ac = c - delta * currentW;
+        vec2 anextC = nextC + delta * currentW;
+        
+        float tUncapped = closestPointToPointParameter(ac, anextC, mainUv, false);
+        float t = clamp(tUncapped, 0., 1.);
+        vec2 cp = closestPointToPointParameter2(ac, anextC, t);
+        float cpDistance = length(mainUv - cp);
+        if (cpDistance < currentW) {
+          /* vec2 cpUncapped = closestPointToPointParameter2(ac, anextC, tUncapped);
+          float cpUncappedXDistance = mainUv.x - cpUncapped.x;
+          if (cpUncappedXDistance >= currentW*0.5) {
+              col = mixColor * 1.2;
+          } else { */
+              col = mixColor;
+          // }
+        }
+        
+        vec2 offset = getOffset2(fi, fj, fnumBlades, fnumSegments) * 0.4;
+        direction = normalize(direction + offset + bladePermOffset);
+        
+        c = nextC;
+        nextC = c + direction * segmentLength;
+      }
+      
+      /* vec2 normal = vec2(direction.y, -direction.x);
+      if (isPointInTriangle(mainUv, c - normal * w, c + normal * w, nextC)) {
+        col = mixColor;
+      } */
+    }
+    
+    float distanceToCenter = length(vec2(((mainUv.x-0.5)*2.)+0.5, mainUv.y) - 0.5);
+    col.rgb += (0.5-distanceToCenter)*0.5;
+    
+    float light = noise(iTime);
+    float lightPower = clamp(pow(1.0 - mainUv.y, 2.), 0., 1.);
+    col = col*(1.-light) + col*lightPower*light;
+
+    fragColor = vec4(col,1.0);
+}
+void main() {
+    mainImage(gl_FragColor, tex_coords);
+}
+`;
+const glyphFragmentShader = `\
+uniform float iTime;
+uniform sampler2D iChannel0;
+varying vec2 tex_coords;
+/*
+
+	draw letter shapes after subdividing uv space randomly
+
+*/
+
+#define PI 3.1415926535
+
+// const vec3 mainColor = vec3(1.0) - vec3(0.91, 0.56, 0.02);
+const vec3 mainColor1 = vec3(0.863,1.,0.741);
+const vec3 mainColor2 = vec3(0.8,0.525,0.82);
+// "#DCFFBD", "#CC86D1"
+
+#define HorizontalAmplitude		0.30
+#define VerticleAmplitude		0.20
+#define HorizontalSpeed			0.90
+#define VerticleSpeed			1.50
+#define ParticleMinSize			1.76
+#define ParticleMaxSize			1.61
+#define ParticleBreathingSpeed		0.30
+#define ParticleColorChangeSpeed	0.70
+#define ParticleCount			2.0
+#define ParticleColor1			mainColor1
+#define ParticleColor2			mainColor2
+
+
+float hash( float x )
+{
+    return fract( sin( x ) * 43758.5453 );
+}
+
+float noise( vec2 uv )  // Thanks Inigo Quilez
+{
+    vec3 x = vec3( uv.xy, 0.0 );
+    
+    vec3 p = floor( x );
+    vec3 f = fract( x );
+    
+    f = f*f*(3.0 - 2.0*f);
+    
+    float offset = 57.0;
+    
+    float n = dot( p, vec3(1.0, offset, offset*2.0) );
+    
+    return mix(	mix(	mix( hash( n + 0.0 ), 		hash( n + 1.0 ), f.x ),
+        				mix( hash( n + offset), 	hash( n + offset+1.0), f.x ), f.y ),
+				mix(	mix( hash( n + offset*2.0), hash( n + offset*2.0+1.0), f.x),
+                    	mix( hash( n + offset*3.0), hash( n + offset*3.0+1.0), f.x), f.y), f.z);
+}
+
+float snoise( vec2 uv )
+{
+    return noise( uv ) * 2.0 - 1.0;
+}
+
+
+float perlinNoise( vec2 uv )
+{   
+    float n = 		noise( uv * 1.0 ) 	* 128.0 +
+        		noise( uv * 2.0 ) 	* 64.0 +
+        		noise( uv * 4.0 ) 	* 32.0 +
+        		noise( uv * 8.0 ) 	* 16.0 +
+        		noise( uv * 16.0 ) 	* 8.0 +
+        		noise( uv * 32.0 ) 	* 4.0 +
+        		noise( uv * 64.0 ) 	* 2.0 +
+        		noise( uv * 128.0 ) * 1.0;
+    
+    float noiseVal = n / ( 1.0 + 2.0 + 4.0 + 8.0 + 16.0 + 32.0 + 64.0 + 128.0 );
+    noiseVal = abs(noiseVal * 2.0 - 1.0);
+	
+    return 	noiseVal;
+}
+
+float fBm( vec2 uv, float lacunarity, float gain )
+{
+    float sum = 0.0;
+    float amp = 10.0;
+    
+    for( int i = 0; i < 2; ++i )
+    {
+        sum += ( perlinNoise( uv ) ) * amp;
+        amp *= gain;
+        uv *= lacunarity;
+    }
+    
+    return sum;
+}
+
+vec3 particles( vec2 pos )
+{
+	
+	vec3 c = vec3( 0, 0, 0 );
+	
+	float noiseFactor = fBm( pos, 0.01, 0.1);
+	
+	for( float i = 1.0; i < ParticleCount+1.0; ++i )
+	{
+		float cs = cos( iTime * HorizontalSpeed * (i/ParticleCount) + noiseFactor ) * HorizontalAmplitude;
+		float ss = sin( iTime * VerticleSpeed   * (i/ParticleCount) + noiseFactor ) * VerticleAmplitude;
+		vec2 origin = vec2( cs , ss );
+		
+		float t = sin( iTime * ParticleBreathingSpeed * i ) * 0.5 + 0.5;
+		float particleSize = mix( ParticleMinSize, ParticleMaxSize, t );
+		float d = clamp( sin( length( pos - origin )  + particleSize ), 0.0, particleSize);
+		
+		float t2 = sin( iTime * ParticleColorChangeSpeed * i ) * 0.5 + 0.5;
+		vec3 color = mix( ParticleColor1, ParticleColor2, t2 );
+		c += color * pow( d, 10.0 );
+	}
+	
+	return c;
+}
+vec3 particles2(vec2 uv) {
+  uv = uv * 2.0 - 1.0;
+  uv.y += 1.;
+  uv /= 2.;
+  // uv.x *= ( Resolution.x / Resolution.y );
+  return particles( sin( abs(uv) ) );
+}
+
+float random2d(vec2 n) { 
+    return fract(sin(dot(n, vec2(129.9898, 4.1414))) * 2398.5453);
+}
+
+vec2 getCellIJ(vec2 uv, float gridDims){
+    return floor(uv * gridDims)/ gridDims;
+}
+
+vec2 rotate2D(vec2 position, float theta)
+{
+    mat2 m = mat2( cos(theta), -sin(theta), sin(theta), cos(theta) );
+    return m * position;
+}
+
+//from https://github.com/keijiro/ShaderSketches/blob/master/Text.glsl
+float letter(vec2 coord, float size)
+{
+    vec2 gp = floor(coord / size * 7.); // global
+    vec2 rp = floor(fract(coord / size) * 7.); // repeated
+    vec2 odd = fract(rp * 0.5) * 2.;
+    float rnd = random2d(gp);
+    float c = max(odd.x, odd.y) * step(0.5, rnd); // random lines
+    c += min(odd.x, odd.y); // fill corner and center points
+    c *= rp.x * (6. - rp.x); // cropping
+    c *= rp.y * (6. - rp.y);
+    return clamp(c, 0., 1.);
+}
+
+/* vec3 sphere(vec2 p) {
+    float t = iTime;
+    vec2 r = iResolution.xy;
+
+    vec3 c;
+    float l,z=t;
+    for(int i=0;i<3;i++) {
+        vec2 uv;
+        p-=.5;
+        p.x*=r.x/r.y;
+        uv=p;
+        l=length(p);
+        uv+=p/l*abs(sin(l*7.-z*2.));
+        uv *= smoothstep(0.2, 0.1, l);
+        c.x=.1/length(uv);
+        c.y=.1/length(uv);
+        c.z=.1/length(uv);
+    }
+    return c;
+} */
+
+float avg(vec3 c) {
+  return (c.r + c.g + c.b) / 3.;
+}
+
+void mainImage( out vec4 fragColor, in vec2 originalUv )
+{
+
+    // vec2 originalUv = fragCoord.xy / iResolution.xy;    
+    //correct aspect ratio
+    // uv.x *= iResolution.x/iResolution.y;
+    vec2 mainUv = originalUv;
+    mainUv.y = ((mainUv.y-0.5) * (0.8 + mainUv.x*0.3)) + 0.5;
+    
+    vec3 mainColor = mix(mainColor2, mainColor1, mainUv.y);
+
+    float t = iTime;
+    float scrollSpeed = 0.5;
+    float alphaTest = 0.;
+    float offsetSpeed = 0.1 + hash(floor(mainUv.x*6.)/6. * 1000.) * 0.15;
+    float yOffset = -iTime * offsetSpeed;
+    // float offsetColor = 0.5 + hash(floor(mainUv.x*6.)/6. * 2000.) * 1.;
+    float offsetColor = 1.;
+    float shadowFactor = 0.7;
+    
+    vec3 col = vec3(0.);
+    // small
+    {
+        float dims = 3.0;
+        int maxSubdivisions = 3;
+    
+        vec2 uv = mainUv;
+        // uv = rotate2D(uv,PI/12.0);
+        uv.y -= floor(iTime * scrollSpeed);
+        uv.y += yOffset;
+
+        float cellRand;
+        vec2 ij;
+        float light = 0.;
+
+        for(int i = 0; i <= maxSubdivisions; i++) { 
+            ij = getCellIJ(uv, dims);
+            cellRand = random2d(ij);
+            dims *= 2.0;
+            //decide whether to subdivide cells again
+            float cellRand2 = random2d(ij * floor(iTime*3.)/3. + 454.4543);
+            light = max(cellRand2 - 0.9, 0.)/(1. - 0.9);
+            if (cellRand2 > 0.3) {
+                break; 
+            }
+        }
+
+        //draw letters    
+        float b = letter(uv, 1.0 / (dims));
+        
+        float distanceToCenter = length(mainUv - vec2(0.5, 0.));
+        b *= (1.-distanceToCenter) * 2.;
+        
+        if (b > alphaTest) {
+            col = vec3(avg(texture(iChannel0, mainUv + vec2(0., yOffset)).rgb) * 0.1);
+            col += b * mainColor * (1. + light * 3.) * offsetColor * 0.15;
+        }
+    }
+    // shadow
+    {
+        int count = 0;
+        for (float dx = -1.; dx <= 1.; dx++) {
+          for (float dy = -1.; dy <= 1.; dy++) {
+            float dims = 0.5;
+
+            vec2 shadowOffset = vec2(0.01) * vec2(-1., 1.);
+            vec2 uv = mainUv + vec2(dx, dy)*0.001 + shadowOffset;
+            // uv = rotate2D(uv,PI/12.0);
+            uv.y -= floor(iTime * scrollSpeed * 4.);
+
+            vec2 ij = getCellIJ(uv, dims);
+            dims *= 2.0;
+
+            //draw letters    
+            float b = letter(uv, 1.0 / (dims));
+
+            // b *= 0.5 + texture(iChannel0, mainUv * 0.1 + vec2(0., iTime * 4.)).r * 0.5;
+
+            if (b > alphaTest) {
+                count++;
+            }
+          }
+        }
+        if (count >= 4) {
+            col = mainColor * shadowFactor;
+        }
+    }
+    // main
+    {
+        int count = 0;
+        for (float dx = -1.; dx <= 1.; dx++) {
+          for (float dy = -1.; dy <= 1.; dy++) {
+            float dims = 0.5;
+
+            vec2 uv = mainUv + vec2(dx, dy)*0.001;
+            // uv = rotate2D(uv,PI/12.0);
+            uv.y -= floor(iTime * scrollSpeed * 4.);
+
+            vec2 ij = getCellIJ(uv, dims);
+            dims *= 2.0;
+
+            //draw letters    
+            float b = letter(uv, 1.0 / (dims));
+
+            // b *= 0.5 + texture(iChannel0, mainUv * 0.1 + vec2(0., iTime * 4.)).r * 0.5;
+
+            if (b > alphaTest) {
+                count++;
+            }
+          }
+        }
+        if (count >= 4) {
+          col = mainColor;
+        }
+    }
+    
+    // col *= sphere(mainUv);
+    
+    float distanceToCenter = length(mainUv - 0.5);
+    col *= 0.9 + (1.-distanceToCenter) * 0.1;
+    
+    // col += speed_lines(mainUv);
+    
+    fragColor = vec4(col, 1.0);
+}
+void main() {
+    mainImage(gl_FragColor, tex_coords);
+}
+`;
 const planeGeometry = new THREE.PlaneGeometry(2, 2);
 async function makeTextMesh(
   text = '',
@@ -778,6 +1347,96 @@ const labelMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
+const grassMesh = (() => {
+  const textureLoader = new THREE.TextureLoader();
+  const quad = new THREE.Mesh(
+    planeGeometry,
+    new THREE.ShaderMaterial({
+      uniforms: {
+        iTime: {
+          value: 0,
+          needsUpdate: false,
+        },
+        iChannel0: {
+          value: textureLoader.load('/textures/pebbles.png'),
+          // needsUpdate: true,
+        },
+        iChannel1: {
+          value: textureLoader.load('/textures/noise.png'),
+          // needsUpdate: true,
+        },
+        /* iFrame: {
+          value: 0,
+          needsUpdate: false,
+        }, */
+        /* outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        }, */
+        uColor1: {
+          value: new THREE.Color(0x000000),
+          needsUpdate: true,
+        },
+        uColor2: {
+          value: new THREE.Color(0xFFFFFF),
+          needsUpdate: true,
+        },
+        /* outline_threshold: {
+          value: .5,
+          needsUpdate: true,
+        }, */
+      },
+      vertexShader: bgVertexShader,
+      fragmentShader: grassFragmentShader,
+      depthWrite: false,
+      depthTest: false,
+      alphaToCoverage: true,
+    })
+  );
+  quad.frustumCulled = false;
+  return quad;
+})();
+const glyphMesh = (() => {
+  const textureLoader = new THREE.TextureLoader();
+  const quad = new THREE.Mesh(
+    planeGeometry,
+    new THREE.ShaderMaterial({
+      uniforms: {
+        iTime: {
+          value: 0,
+          // needsUpdate: true,
+        },
+        iChannel0: {
+          value: textureLoader.load('/textures/lichen.jpg'),
+          // needsUpdate: true,
+        },
+        /* outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        }, */
+        uColor1: {
+          value: new THREE.Color(0x000000),
+          needsUpdate: true,
+        },
+        uColor2: {
+          value: new THREE.Color(0xFFFFFF),
+          needsUpdate: true,
+        },
+        /* outline_threshold: {
+          value: .5,
+          needsUpdate: true,
+        }, */
+      },
+      vertexShader: bgVertexShader,
+      fragmentShader: glyphFragmentShader,
+      depthWrite: false,
+      depthTest: false,
+      alphaToCoverage: true,
+    })
+  );
+  quad.frustumCulled = false;
+  return quad;
+})();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
@@ -882,6 +1541,8 @@ sideAvatarScene.overrideMaterial = skinnedRedMaterial;
 const sideScene = new THREE.Scene();
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
+sideScene.add(grassMesh);
+sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
@@ -894,140 +1555,211 @@ const _makeCanvas = (w, h) => {
   canvas.height = h;
   canvas.style.cssText = `\
     position: absolute;
-    width: ${w}px;
-    height: ${h}px;
+    /* width: ${w}px;
+    height: ${h}px; */
     top: 0px;
     left: 0px;
   `;
-  const ctx = canvas.getContext('2d');
-  return {
-    canvas,
-    ctx,
-  }
+  return canvas;
 };
 const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
 });
-const createPlayerDiorama = player => {
-  const renderer = getRenderer();
-  const pixelRatio = renderer.getPixelRatio();
+const createPlayerDiorama = (player, {
+  canvas,
+  label = null,
+  outline = false,
+  lightningBackground = false,
+  radialBackground = false,
+  glyphBackground = false,
+  grassBackground = false,
+} = {}) => {
+  const {devicePixelRatio: pixelRatio} = window;
 
-  const {canvas, ctx} = _makeCanvas(sideSize, sideSize);
-  document.body.appendChild(canvas);
-  const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
+  const renderer = getRenderer();
+  sideCamera.position.set(0, 0, 10);
+  sideCamera.quaternion.identity();
+  sideCamera.updateMatrixWorld();
+  renderer.compile(sideScene, sideCamera);
+
+  if (!canvas) {
+    canvas = _makeCanvas(sideSize, sideSize);
+    document.body.appendChild(canvas);
+  }
+  const {width, height} = canvas;
+  const ctx = canvas.getContext('2d');
+  const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
+    enabled: true,
+    toggleShader() {
+      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      lightningBackground = false;
+      radialBackground = false;
+      glyphBackground = false;
+      grassBackground = false;
+      if (oldValues.lightningBackground) {
+        radialBackground = true;
+      } else if (oldValues.radialBackground) {
+        glyphBackground = true;
+      } else if (oldValues.glyphBackground) {
+        grassBackground = true;
+      } else if (oldValues.grassBackground) {
+        lightningBackground = true;
+      }
+    },
     update(timestamp, timeDiff) {
+      const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
-      if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
+      if (sizePowerOfTwo.x < width || sizePowerOfTwo.y < height) {
         throw new Error('renderer is too small');
       }
-    
-      // push old state
-      const oldParent = player.avatar.model.parent;
-      const oldRenderTarget = renderer.getRenderTarget();
-      const oldViewport = renderer.getViewport(localVector4D);
-      const oldWorldLightParent = world.lights.parent;
-    
-      const _render = () => {
-      /* const numCanvases = 1;
-      for (let i = 0; i < numCanvases; i++) {
-        const x = i % sideSize;
-        const y = Math.floor(i / sideSize);
-        const dx = x * sideSize;
-        const dy = y * sideSize; */
 
-        // set up side camera
-        sideCamera.position.copy(player.position)
-          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
-        sideCamera.quaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            sideCamera.position,
-            player.position,
-            localVector3.set(0, 1, 0)
-          )
-        );
-        sideCamera.updateMatrixWorld();
+      if (player.avatar) {
+        // push old state
+        const oldParent = player.avatar.model.parent;
+        const oldRenderTarget = renderer.getRenderTarget();
+        const oldViewport = renderer.getViewport(localVector4D);
+        const oldWorldLightParent = world.lights.parent;
+      
+        const _render = () => {
+          // set up side camera
+          sideCamera.position.copy(player.position)
+            .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
+          sideCamera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              sideCamera.position,
+              player.position,
+              localVector3.set(0, 1, 0)
+            )
+          );
+          sideCamera.updateMatrixWorld();
 
-        // set up side avatar scene
-        sideAvatarScene.add(player.avatar.model);
-        sideAvatarScene.add(world.lights);
-        // render side avatar scene
-        renderer.setRenderTarget(outlineRenderTarget);
-        renderer.clear();
-        renderer.render(sideAvatarScene, sideCamera);
-        
-        // set up side scene
-        sideScene.add(player.avatar.model);
-        sideScene.add(world.lights);
-    
-        const now = performance.now();
-        lightningMesh.material.uniforms.iTime.value = now / 1000;
-        lightningMesh.material.uniforms.iTime.needsUpdate = true;
-        lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-        lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-        lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-        lightningMesh.visible = true;
+          // set up side avatar scene
+          sideAvatarScene.add(player.avatar.model);
+          sideAvatarScene.add(world.lights);
+          // render side avatar scene
+          renderer.setRenderTarget(outlineRenderTarget);
+          renderer.clear();
+          renderer.render(sideAvatarScene, sideCamera);
+          
+          // set up side scene
+          sideScene.add(player.avatar.model);
+          sideScene.add(world.lights);
+      
+          const now = performance.now();
+          const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
+          if (lightningBackground) {
+            lightningMesh.material.uniforms.iTime.value = now / 1000;
+            lightningMesh.material.uniforms.iTime.needsUpdate = true;
+            lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+            lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+            lightningMesh.visible = true;
+          } else {
+            lightningMesh.visible = false;
+          }
+          if (radialBackground) {
+            radialMesh.material.uniforms.iTime.value = now / 1000;
+            radialMesh.material.uniforms.iTime.needsUpdate = true;
+            radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            radialMesh.material.uniforms.iFrame.needsUpdate = true;
+            radialMesh.visible = true;
+          } else {
+            radialMesh.visible = false;
+          }
+          if (grassBackground) {
+            grassMesh.material.uniforms.iTime.value = now / 1000;
+            grassMesh.material.uniforms.iTime.needsUpdate = true;
+            grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+            grassMesh.material.uniforms.uColor1.needsUpdate = true;
+            grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            grassMesh.material.uniforms.uColor2.needsUpdate = true;
+            grassMesh.visible = true;
+          } else {
+            grassMesh.visible = false;
+          }
+          if (glyphBackground) {
+            glyphMesh.material.uniforms.iTime.value = now / 1000;
+            glyphMesh.material.uniforms.iTime.needsUpdate = true;
+            glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
+            glyphMesh.material.uniforms.uColor1.needsUpdate = true;
+            glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+            glyphMesh.visible = true;
+          } else {
+            glyphMesh.visible = false;
+          }
+          if (outline) {
+            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+            outlineMesh.material.uniforms.t0.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+            outlineMesh.visible = true;
+          } else {
+            outlineMesh.visible = false;
+          }
+          if (label) {
+            labelMesh.material.uniforms.iTime.value = now / 1000;
+            labelMesh.material.uniforms.iTime.needsUpdate = true;
+            labelMesh.visible = true;
+            for (const child of textObject.children) {
+              child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+            }
+            textObject.visible = true;
+          } else {
+            labelMesh.visible = false;
+            textObject.visible = false;
+          }
+          
+          // render side scene
+          renderer.setRenderTarget(oldRenderTarget);
+          renderer.setViewport(0, 0, width, height);
+          renderer.clear();
+          renderer.render(sideScene, sideCamera);
+      
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(
+            renderer.domElement,
+            0,
+            size.y * pixelRatio - height * pixelRatio,
+            width * pixelRatio,
+            height * pixelRatio,
+            0,
+            0,
+            width,
+            height
+          );
+        };
+        _render();
 
-        radialMesh.material.uniforms.iTime.value = now / 1000;
-        radialMesh.material.uniforms.iTime.needsUpdate = true;
-        radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        radialMesh.material.uniforms.iFrame.needsUpdate = true;
-        radialMesh.visible = false;
-        
-        outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-        outlineMesh.material.uniforms.t0.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-        outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-        outlineMesh.visible = true;
-    
-        labelMesh.material.uniforms.iTime.value = now / 1000;
-        labelMesh.material.uniforms.iTime.needsUpdate = true;
-        labelMesh.visible = true;
-
-        for (const child of textObject.children) {
-          child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
-          child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+        // pop old state
+        if (oldParent) {
+          oldParent.add(player.avatar.model);
+        } else {
+          player.avatar.model.parent.remove(player.avatar.model);
         }
-        textObject.visible = true;
-        
-        // render side scene
+        if (oldWorldLightParent) {
+          oldWorldLightParent.add(world.lights);
+        } else {
+          world.lights.parent.remove(world.lights);
+        }
         renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, sideSize, sideSize);
-        renderer.clear();
-        renderer.render(sideScene, sideCamera);
-    
-        ctx.clearRect(0, 0, sideSize, sideSize);
-        ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
-      };
-      _render();
-
-      // pop old state
-      if (oldParent) {
-        oldParent.add(player.avatar.model);
-      } else {
-        player.avatar.model.parent.remove(player.avatar.model);
+        renderer.setViewport(oldViewport);
       }
-      if (oldWorldLightParent) {
-        oldWorldLightParent.add(world.lights);
-      } else {
-        world.lights.parent.remove(world.lights);
-      }
-      renderer.setRenderTarget(oldRenderTarget);
-      renderer.setViewport(oldViewport);
     },
     destroy() {
       canvas.parentNode.removeChild(canvas);
@@ -1037,25 +1769,58 @@ const createPlayerDiorama = player => {
   dioramas.push(diorama);
   return diorama;
 };
-const createAppDiorama = app => {
-  console.log('create app diorama', app);
-  
-  const renderer = getRenderer();
-  const pixelRatio = renderer.getPixelRatio();
+const createAppDiorama = (app, {
+  canvas,
+  label = null,
+  outline = false,
+  lightningBackground = false,
+  radialBackground = false,
+  grassBackground = false,
+  glyphBackground = false,
+} = {}) => {
+  const {devicePixelRatio: pixelRatio} = window;
 
-  const {canvas, ctx} = _makeCanvas(sideSize, sideSize);
-  document.body.appendChild(canvas);
-  const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
+  const renderer = getRenderer();
+  sideCamera.position.set(0, 0, 10);
+  sideCamera.quaternion.identity();
+  sideCamera.updateMatrixWorld();
+  renderer.compile(sideScene, sideCamera);
+
+  if (!canvas) {
+    canvas = _makeCanvas(sideSize, sideSize);
+    document.body.appendChild(canvas);
+  }
+  const {width, height} = canvas;
+  const ctx = canvas.getContext('2d');
+  const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
+    enabled: true,
+    toggleShader() {
+      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      lightningBackground = false;
+      radialBackground = false;
+      glyphBackground = false;
+      grassBackground = false;
+      if (oldValues.lightningBackground) {
+        radialBackground = true;
+      } else if (oldValues.radialBackground) {
+        glyphBackground = true;
+      } else if (oldValues.glyphBackground) {
+        grassBackground = true;
+      } else if (oldValues.grassBackground) {
+        lightningBackground = true;
+      }
+    },
     update(timestamp, timeDiff) {
+      const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
-      if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
+      if (sizePowerOfTwo.x < width || sizePowerOfTwo.y < height) {
         throw new Error('renderer is too small');
       }
     
@@ -1097,37 +1862,94 @@ const createAppDiorama = app => {
         sideScene.add(world.lights);
     
         const now = performance.now();
-        lightningMesh.material.uniforms.iTime.value = now / 1000;
-        lightningMesh.material.uniforms.iTime.needsUpdate = true;
-        lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        lightningMesh.material.uniforms.iFrame.needsUpdate = true;
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-        lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-        lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-        lightningMesh.visible = true;
-    
-        outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-        outlineMesh.material.uniforms.t0.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-        outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-        outlineMesh.visible = true;
-
-        radialMesh.visible = false;
-        labelMesh.visible = false;
-        textObject.visible = false;
+        if (lightningBackground) {
+          lightningMesh.material.uniforms.iTime.value = now / 1000;
+          lightningMesh.material.uniforms.iTime.needsUpdate = true;
+          lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+          lightningMesh.visible = true;
+        } else {
+          lightningMesh.visible = false;
+        }
+        if (radialBackground) {
+          radialMesh.material.uniforms.iTime.value = now / 1000;
+          radialMesh.material.uniforms.iTime.needsUpdate = true;
+          radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          radialMesh.material.uniforms.iFrame.needsUpdate = true;
+          radialMesh.visible = true;
+        } else {
+          radialMesh.visible = false;
+        }
+        if (grassBackground) {
+          grassMesh.material.uniforms.iTime.value = now / 1000;
+          grassMesh.material.uniforms.iTime.needsUpdate = true;
+          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+          grassMesh.material.uniforms.uColor1.needsUpdate = true;
+          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          grassMesh.material.uniforms.uColor2.needsUpdate = true;
+          grassMesh.visible = true;
+        } else {
+          grassMesh.visible = false;
+        }
+        if (glyphBackground) {
+          glyphMesh.material.uniforms.iTime.value = now / 1000;
+          glyphMesh.material.uniforms.iTime.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
+          glyphMesh.material.uniforms.uColor1.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+          glyphMesh.visible = true;
+        } else {
+          glyphMesh.visible = false;
+        }
+        if (outline) {
+          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+          outlineMesh.material.uniforms.t0.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+          outlineMesh.visible = true;
+        } else {
+          outlineMesh.visible = false;
+        }
+        if (label) {
+          labelMesh.material.uniforms.iTime.value = now / 1000;
+          labelMesh.material.uniforms.iTime.needsUpdate = true;
+          labelMesh.visible = true;
+          for (const child of textObject.children) {
+            child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          }
+          textObject.visible = true;
+        } else {
+          labelMesh.visible = false;
+          textObject.visible = false;
+        }
         
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, sideSize, sideSize);
+        renderer.setViewport(0, 0, width, height);
         renderer.clear();
         renderer.render(sideScene, sideCamera);
     
-        ctx.clearRect(0, 0, sideSize, sideSize);
-        ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(
+          renderer.domElement,
+          0,
+          size.y * pixelRatio - height * pixelRatio,
+          width * pixelRatio,
+          height * pixelRatio,
+          0,
+          0,
+          width,
+          height
+        );
       };
       _render();
 
@@ -1160,7 +1982,9 @@ const dioramaManager = {
   createAppDiorama,
   update(timestamp, timeDiff) {
     for (const diorama of dioramas) {
-      diorama.update(timestamp, timeDiff);
+      if (diorama.enabled) {
+        diorama.update(timestamp, timeDiff);
+      }
     }
   }
 };
