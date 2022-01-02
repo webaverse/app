@@ -894,8 +894,8 @@ const _makeCanvas = (w, h) => {
   canvas.height = h;
   canvas.style.cssText = `\
     position: absolute;
-    width: ${w}px;
-    height: ${h}px;
+    /* width: ${w}px;
+    height: ${h}px; */
     top: 0px;
     left: 0px;
   `;
@@ -912,9 +912,10 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
   }
+  const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
-  const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
+  const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
     enabled: true,
@@ -926,7 +927,7 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
-      if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
+      if (sizePowerOfTwo.x < width || sizePowerOfTwo.y < height) {
         throw new Error('renderer is too small');
       }
 
@@ -938,13 +939,6 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
         const oldWorldLightParent = world.lights.parent;
       
         const _render = () => {
-        /* const numCanvases = 1;
-        for (let i = 0; i < numCanvases; i++) {
-          const x = i % sideSize;
-          const y = Math.floor(i / sideSize);
-          const dx = x * sideSize;
-          const dy = y * sideSize; */
-
           // set up side camera
           sideCamera.position.copy(player.position)
             .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
@@ -1007,12 +1001,22 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
           
           // render side scene
           renderer.setRenderTarget(oldRenderTarget);
-          renderer.setViewport(0, 0, sideSize, sideSize);
+          renderer.setViewport(0, 0, width, height);
           renderer.clear();
           renderer.render(sideScene, sideCamera);
       
-          ctx.clearRect(0, 0, sideSize, sideSize);
-          ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(
+            renderer.domElement,
+            0,
+            size.y * pixelRatio - height * pixelRatio,
+            width * pixelRatio,
+            height * pixelRatio,
+            0,
+            0,
+            width,
+            height
+          );
         };
         _render();
 
@@ -1045,9 +1049,10 @@ const createAppDiorama = (app, {canvas} = {}) => {
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
   }
+  const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
-  const outlineRenderTarget = _makeOutlineRenderTarget(sideSize * pixelRatio, sideSize * pixelRatio);
+  const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
 
   const diorama = {
     enabled: true,
@@ -1059,7 +1064,7 @@ const createAppDiorama = (app, {canvas} = {}) => {
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
-      if (sizePowerOfTwo.x < sideSize || sizePowerOfTwo.y < sideSize) {
+      if (sizePowerOfTwo.x < width || sizePowerOfTwo.y < height) {
         throw new Error('renderer is too small');
       }
     
@@ -1126,12 +1131,22 @@ const createAppDiorama = (app, {canvas} = {}) => {
         
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, sideSize, sideSize);
+        renderer.setViewport(0, 0, width, height);
         renderer.clear();
         renderer.render(sideScene, sideCamera);
     
-        ctx.clearRect(0, 0, sideSize, sideSize);
-        ctx.drawImage(renderer.domElement, 0, size.y * pixelRatio - sideSize * pixelRatio, sideSize * pixelRatio, sideSize * pixelRatio, 0, 0, sideSize, sideSize);
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(
+          renderer.domElement,
+          0,
+          size.y * pixelRatio - height * pixelRatio,
+          width * pixelRatio,
+          height * pixelRatio,
+          0,
+          0,
+          width,
+          height
+        );
       };
       _render();
 
