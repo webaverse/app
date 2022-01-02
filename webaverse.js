@@ -302,6 +302,9 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => { 
+      window.totalTime = 0
+      window.count = 0
+
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
@@ -348,11 +351,7 @@ export default class Webaverse extends EventTarget {
         
       this.render(timestamp, timeDiffCapped);
 
-      
-      if (window.isLogAverageTime) {
-        window.averageTime = window.totalTime / window.count
-        window.domAverageTime.innerText = window.averageTime
-      }
+      window.domAverageTime.innerText = `${window.count} | ${window.totalTime / window.count}`
 
     }
     renderer.setAnimationLoop(animate);
