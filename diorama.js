@@ -1588,6 +1588,22 @@ const createPlayerDiorama = (player, {
 
   const diorama = {
     enabled: true,
+    toggleShader() {
+      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      lightningBackground = false;
+      radialBackground = false;
+      glyphBackground = false;
+      grassBackground = false;
+      if (oldValues.lightningBackground) {
+        radialBackground = true;
+      } else if (oldValues.radialBackground) {
+        glyphBackground = true;
+      } else if (oldValues.glyphBackground) {
+        grassBackground = true;
+      } else if (oldValues.grassBackground) {
+        lightningBackground = true;
+      }
+    },
     update(timestamp, timeDiff) {
       const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
@@ -1768,6 +1784,22 @@ const createAppDiorama = (app, {
 
   const diorama = {
     enabled: true,
+    toggleShader() {
+      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      lightningBackground = false;
+      radialBackground = false;
+      glyphBackground = false;
+      grassBackground = false;
+      if (oldValues.lightningBackground) {
+        radialBackground = true;
+      } else if (oldValues.radialBackground) {
+        glyphBackground = true;
+      } else if (oldValues.glyphBackground) {
+        grassBackground = true;
+      } else if (oldValues.grassBackground) {
+        lightningBackground = true;
+      }
+    },
     update(timestamp, timeDiff) {
       const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);

@@ -142,7 +142,11 @@ export default class Webaverse extends EventTarget {
       canvas,
       // label: true,
       outline: true,
-      lightningBackground: true,
+      grassBackground: true,
+      // glyphBackground: true,
+    });
+    canvas.addEventListener('click', e => {
+      previewDiorama.toggleShader();
     });
     return previewDiorama;
   }
