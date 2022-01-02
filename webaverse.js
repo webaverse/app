@@ -137,7 +137,6 @@ export default class Webaverse extends EventTarget {
     postProcessing.bindCanvas();
   }
   bindPreviewCanvas(canvas) {
-    // equipmentRender.bindPreviewCanvas(previewCanvas);
     const localPlayer = metaversefileApi.useLocalPlayer();
     const previewDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
       canvas,
