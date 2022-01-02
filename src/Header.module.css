@@ -254,7 +254,7 @@ body {
 .header .tab.open .panels {
   background-color: #000;
   color: #FFF;
-  padding-top: 36px;
+  /* padding-top: 36px; */
 }
 .header .tab.top.left.open {
   transform: translateX(400px);
@@ -461,9 +461,8 @@ body {
 	content: '';
 }
 .header .avatar {
-  width: 100%;
-  padding: 10px;
-  height: 200px;
+  width: 400px;
+  height: 400px;
 }
 
 .location {
