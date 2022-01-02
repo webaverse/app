@@ -18,7 +18,7 @@ import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
+import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
@@ -1907,7 +1907,9 @@ const gameManager = {
     localPlayer.removeAction('activate');
   },
   playerDiorama: null,
-  bindPreviewCanvas(canvas) {
+  async bindPreviewCanvas(canvas) {
+    await rendererWaitForLoad();
+
     const localPlayer = metaversefileApi.useLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
       canvas,

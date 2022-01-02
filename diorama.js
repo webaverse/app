@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer} from './renderer.js';
+import {getRenderer, camera} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {world} from './world.js';
 import {Text} from 'troika-three-text';
@@ -1578,6 +1578,12 @@ const createPlayerDiorama = (player, {
 } = {}) => {
   const {devicePixelRatio: pixelRatio} = window;
 
+  const renderer = getRenderer();
+  sideCamera.position.set(0, 0, 10);
+  sideCamera.quaternion.identity();
+  sideCamera.updateMatrixWorld();
+  renderer.compile(sideScene, sideCamera);
+
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
     document.body.appendChild(canvas);
@@ -1773,6 +1779,12 @@ const createAppDiorama = (app, {
   glyphBackground = false,
 } = {}) => {
   const {devicePixelRatio: pixelRatio} = window;
+
+  const renderer = getRenderer();
+  sideCamera.position.set(0, 0, 10);
+  sideCamera.quaternion.identity();
+  sideCamera.updateMatrixWorld();
+  renderer.compile(sideScene, sideCamera);
 
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
