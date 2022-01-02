@@ -140,6 +140,9 @@ export default class Webaverse extends EventTarget {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const previewDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
       canvas,
+      // label: true,
+      outline: true,
+      lightningBackground: true,
     });
     return previewDiorama;
   }
@@ -561,7 +564,11 @@ const _startHacks = () => {
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (localPlayer.avatar) {
         if (!playerDiorama) {
-          playerDiorama = dioramaManager.createPlayerDiorama(localPlayer);
+          playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
+            label: true,
+            outline: true,
+            lightningBackground: true,
+          });
         } else {
           playerDiorama.destroy();
           playerDiorama = null;
@@ -586,7 +593,12 @@ const _startHacks = () => {
 
       if (!appDiorama) {
         if (targetApp) {
-          appDiorama = dioramaManager.createAppDiorama(targetApp);
+          appDiorama = dioramaManager.createAppDiorama(targetApp, {
+            // canvas,
+            // label: true,
+            outline: true,
+            radialBackground: true,
+          });
         } else {
           console.warn('no target app');
         }
