@@ -1541,9 +1541,9 @@ sideAvatarScene.overrideMaterial = skinnedRedMaterial;
 const sideScene = new THREE.Scene();
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
-sideScene.add(outlineMesh);
 sideScene.add(grassMesh);
 sideScene.add(glyphMesh);
+sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
 
@@ -1656,17 +1656,6 @@ const createPlayerDiorama = (player, {
           } else {
             radialMesh.visible = false;
           }
-          if (outline) {
-            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-            outlineMesh.material.uniforms.t0.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-            outlineMesh.visible = true;
-          } else {
-            outlineMesh.visible = false;
-          }
           if (grassBackground) {
             grassMesh.material.uniforms.iTime.value = now / 1000;
             grassMesh.material.uniforms.iTime.needsUpdate = true;
@@ -1688,6 +1677,17 @@ const createPlayerDiorama = (player, {
             glyphMesh.visible = true;
           } else {
             glyphMesh.visible = false;
+          }
+          if (outline) {
+            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+            outlineMesh.material.uniforms.t0.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+            outlineMesh.visible = true;
+          } else {
+            outlineMesh.visible = false;
           }
           if (label) {
             labelMesh.material.uniforms.iTime.value = now / 1000;
@@ -1841,17 +1841,6 @@ const createAppDiorama = (app, {
         } else {
           radialMesh.visible = false;
         }
-        if (outline) {
-          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-          outlineMesh.material.uniforms.t0.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-          outlineMesh.visible = true;
-        } else {
-          outlineMesh.visible = false;
-        }
         if (grassBackground) {
           grassMesh.material.uniforms.iTime.value = now / 1000;
           grassMesh.material.uniforms.iTime.needsUpdate = true;
@@ -1873,6 +1862,17 @@ const createAppDiorama = (app, {
           glyphMesh.visible = true;
         } else {
           glyphMesh.visible = false;
+        }
+        if (outline) {
+          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+          outlineMesh.material.uniforms.t0.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+          outlineMesh.visible = true;
+        } else {
+          outlineMesh.visible = false;
         }
         if (label) {
           labelMesh.material.uniforms.iTime.value = now / 1000;
