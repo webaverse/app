@@ -137,18 +137,7 @@ export default class Webaverse extends EventTarget {
     postProcessing.bindCanvas();
   }
   bindPreviewCanvas(canvas) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const previewDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
-      canvas,
-      // label: true,
-      outline: true,
-      grassBackground: true,
-      // glyphBackground: true,
-    });
-    canvas.addEventListener('click', e => {
-      previewDiorama.toggleShader();
-    });
-    return previewDiorama;
+    game.bindPreviewCanvas(canvas);
   }
   async isXrSupported() {
     if (navigator.xr) {

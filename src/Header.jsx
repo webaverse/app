@@ -351,6 +351,9 @@ export default function Header({
     if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
     }
+    if (game.playerDiorama) {
+      game.playerDiorama.enabled = !!open;
+    }
   }, [open]);
   useEffect(() => {
     if (address && !nfts) {
@@ -417,7 +420,7 @@ export default function Header({
     };
   }, [claims]);
   useEffect(() => {
-    if (previewCanvasRef.current) {
+    if (previewCanvasRef.current && !game.playerDiorama) {
       app.bindPreviewCanvas(previewCanvasRef.current);
     }
   }, [previewCanvasRef.current]);
