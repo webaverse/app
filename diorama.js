@@ -906,7 +906,13 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
 });
-const createPlayerDiorama = (player, {canvas} = {}) => {
+const createPlayerDiorama = (player, {
+  canvas,
+  label = null,
+  outline = false,
+  lightningBackground = false,
+  radialBackground = false,
+} = {}) => {
   const {devicePixelRatio: pixelRatio} = window;
 
   if (!canvas) {
@@ -964,40 +970,53 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
           sideScene.add(world.lights);
       
           const now = performance.now();
-          lightningMesh.material.uniforms.iTime.value = now / 1000;
-          lightningMesh.material.uniforms.iTime.needsUpdate = true;
-          lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
           const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-          lightningMesh.visible = true;
-
-          radialMesh.material.uniforms.iTime.value = now / 1000;
-          radialMesh.material.uniforms.iTime.needsUpdate = true;
-          radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-          radialMesh.material.uniforms.iFrame.needsUpdate = true;
-          radialMesh.visible = false;
-          
-          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-          outlineMesh.material.uniforms.t0.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-          outlineMesh.visible = true;
-      
-          labelMesh.material.uniforms.iTime.value = now / 1000;
-          labelMesh.material.uniforms.iTime.needsUpdate = true;
-          labelMesh.visible = true;
-
-          for (const child of textObject.children) {
-            child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
-            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          if (lightningBackground) {
+            lightningMesh.material.uniforms.iTime.value = now / 1000;
+            lightningMesh.material.uniforms.iTime.needsUpdate = true;
+            lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+            lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+            lightningMesh.visible = true;
+          } else {
+            lightningMesh.visible = false;
           }
-          textObject.visible = true;
+          if (radialBackground) {
+            radialMesh.material.uniforms.iTime.value = now / 1000;
+            radialMesh.material.uniforms.iTime.needsUpdate = true;
+            radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            radialMesh.material.uniforms.iFrame.needsUpdate = true;
+            radialMesh.visible = true;
+          } else {
+            radialMesh.visible = false;
+          }
+          if (outline) {
+            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+            outlineMesh.material.uniforms.t0.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+            outlineMesh.visible = true;
+          } else {
+            outlineMesh.visible = false;
+          }
+          if (label) {
+            labelMesh.material.uniforms.iTime.value = now / 1000;
+            labelMesh.material.uniforms.iTime.needsUpdate = true;
+            labelMesh.visible = true;
+            for (const child of textObject.children) {
+              child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+            }
+            textObject.visible = true;
+          } else {
+            labelMesh.visible = false;
+            textObject.visible = false;
+          }
           
           // render side scene
           renderer.setRenderTarget(oldRenderTarget);
@@ -1043,7 +1062,13 @@ const createPlayerDiorama = (player, {canvas} = {}) => {
   dioramas.push(diorama);
   return diorama;
 };
-const createAppDiorama = (app, {canvas} = {}) => {
+const createAppDiorama = (app, {
+  canvas,
+  label = null,
+  outline = false,
+  lightningBackground = false,
+  radialBackground = false,
+} = {}) => {
   const {devicePixelRatio: pixelRatio} = window;
 
   if (!canvas) {
@@ -1106,28 +1131,53 @@ const createAppDiorama = (app, {canvas} = {}) => {
         sideScene.add(world.lights);
     
         const now = performance.now();
-        lightningMesh.material.uniforms.iTime.value = now / 1000;
-        lightningMesh.material.uniforms.iTime.needsUpdate = true;
-        lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
-        lightningMesh.material.uniforms.iFrame.needsUpdate = true;
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-        lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-        lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-        lightningMesh.visible = true;
-    
-        outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-        outlineMesh.material.uniforms.t0.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-        outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-        outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-        outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-        outlineMesh.visible = true;
-
-        radialMesh.visible = false;
-        labelMesh.visible = false;
-        textObject.visible = false;
+        if (lightningBackground) {
+          lightningMesh.material.uniforms.iTime.value = now / 1000;
+          lightningMesh.material.uniforms.iTime.needsUpdate = true;
+          lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+          lightningMesh.visible = true;
+        } else {
+          lightningMesh.visible = false;
+        }
+        if (radialBackground) {
+          radialMesh.material.uniforms.iTime.value = now / 1000;
+          radialMesh.material.uniforms.iTime.needsUpdate = true;
+          radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          radialMesh.material.uniforms.iFrame.needsUpdate = true;
+          radialMesh.visible = true;
+        } else {
+          radialMesh.visible = false;
+        }
+        if (outline) {
+          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+          outlineMesh.material.uniforms.t0.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+          outlineMesh.visible = true;
+        } else {
+          outlineMesh.visible = false;
+        }
+        if (label) {
+          labelMesh.material.uniforms.iTime.value = now / 1000;
+          labelMesh.material.uniforms.iTime.needsUpdate = true;
+          labelMesh.visible = true;
+          for (const child of textObject.children) {
+            child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          }
+          textObject.visible = true;
+        } else {
+          labelMesh.visible = false;
+          textObject.visible = false;
+        }
         
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
