@@ -1753,6 +1753,8 @@ const createAppDiorama = (app, {
   outline = false,
   lightningBackground = false,
   radialBackground = false,
+  grassBackground = false,
+  glyphBackground = false,
 } = {}) => {
   const {devicePixelRatio: pixelRatio} = window;
 
@@ -1849,6 +1851,28 @@ const createAppDiorama = (app, {
           outlineMesh.visible = true;
         } else {
           outlineMesh.visible = false;
+        }
+        if (grassBackground) {
+          grassMesh.material.uniforms.iTime.value = now / 1000;
+          grassMesh.material.uniforms.iTime.needsUpdate = true;
+          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+          grassMesh.material.uniforms.uColor1.needsUpdate = true;
+          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          grassMesh.material.uniforms.uColor2.needsUpdate = true;
+          grassMesh.visible = true;
+        } else {
+          grassMesh.visible = false;
+        }
+        if (glyphBackground) {
+          glyphMesh.material.uniforms.iTime.value = now / 1000;
+          glyphMesh.material.uniforms.iTime.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
+          glyphMesh.material.uniforms.uColor1.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+          glyphMesh.visible = true;
+        } else {
+          glyphMesh.visible = false;
         }
         if (label) {
           labelMesh.material.uniforms.iTime.value = now / 1000;
