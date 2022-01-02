@@ -4,6 +4,7 @@ the purpose of this file is to hold these objects and to make sure they are corr
 */
 
 import * as THREE from 'three';
+window.THREE = THREE
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
 
