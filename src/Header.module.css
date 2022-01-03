@@ -136,9 +136,27 @@ body {
   display: flex;
   flex: 1;
 }
-.header .panel-header > .panel-section:not(.main-stats) {
+.header .panel-header > .panel-section.name {
+  position: relative;
   justify-content: center;
+  font-family: 'WinchesterCaps';
   /* padding: 0 10px; */
+}
+.header .panel-header > .panel-section.main-stats {
+  font-family: 'PlazaRegular';
+}
+.header .panel-header > .panel-section.name::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom,#111111, #222222);
+  transform: skew(-30deg);
+  content: '';
+}
+.header .panel-header > .panel-section.name h1 {
+ position: relative;
 }
 .header .panel-header > .panel-section > .panel-row {
   display: flex;
