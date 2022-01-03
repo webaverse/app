@@ -39,7 +39,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
         iframe.src = walletHost;
       } else {
         resolve();
-        console.log('...........Resolving...............');
+        // console.log('...........Resolving...............');
       }
       const t = setTimeout(() => {
         reject('Failed to load wallet in 30 seconds');
@@ -48,7 +48,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
       const f = event => {
         if (`${event.origin}` !== walletHost) { return; }
         if (event.data.method === 'wallet_launched') {
-          console.log('...........Resolving...............');
+          // console.log('...........Resolving...............');
           window.removeEventListener('message', f, false);
           clearTimeout(t);
           resolve();
@@ -59,7 +59,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
   };
 
   const fetchWalletData = async key => {
-    console.log('About to fetch the wallet data');
+    // console.log('About to fetch the wallet data');
     // check for existing iframe
     await launchWallet();
     getKeys(key);
@@ -75,11 +75,11 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
     var f = async event => {
       if (event.origin !== walletHost) { return; }
       if (event.data.pk) {
-        console.log('memonic', event.data.pk);
+        // console.log('memonic', event.data.pk);
         const data = await pullUserObject(event.data.pk);
         const {address, error} = data;
         if (address) {
-          console.log('User Data', data);
+          // console.log('User Data', data);
           setAddress(address);
           setShow(false);
         } else {
