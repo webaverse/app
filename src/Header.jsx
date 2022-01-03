@@ -97,7 +97,6 @@ export default function Header({
   const worldOpen = open === 'world';
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
-  const sideSize = 400;
 
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);

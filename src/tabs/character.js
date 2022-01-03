@@ -8,7 +8,8 @@ import {preview} from '../../preview.js';
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen}) => {
   const [previews, setPreviews] = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
-
+  const sideSize = 400;
+  
   useEffect(() => {
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.addEventListener('avatarupdate', e => {
@@ -62,6 +63,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       }
       panels={[
         (<div className={styles.panel} key="left">
+          {/* <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} /> */}
           <img className={styles.avatar} src={ previews[avatarPreview] || '/images/loader.gif'} />
               <div className={styles['panel-header']}>
                 <div className={classnames(styles['panel-section'], styles['name'])}>
