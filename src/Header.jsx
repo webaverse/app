@@ -610,7 +610,7 @@ export default function Header({
                 (<div className={styles.panel} key="left">
                   <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
                   <div className={styles['panel-header']}>
-                    <div className={styles['panel-section']}>
+                    <div className={classnames(styles['panel-section'], styles['name'])}>
                       <h1>Scillia</h1>
                     </div>
                     <div className={classnames(styles['panel-section'], styles['main-stats'])}>
