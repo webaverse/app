@@ -1776,10 +1776,6 @@ const createPlayerDiorama = (player, {
   return diorama;
 };
 function fitCameraToBoundingBox(camera, box, fitOffset = 1.2) {
-  // const box = new THREE.Box3();
-  
-  // for( const object of selection ) box.expandByObject( object );
-  
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   
@@ -1801,18 +1797,6 @@ function fitCameraToBoundingBox(camera, box, fitOffset = 1.2) {
       camera.up,
     )
   );
-
-  // controls.maxDistance = distance * 10;
-  // controls.target.copy(center);
-  
-  // camera.near = distance / 100;
-  // camera.far = distance * 100;
-  // camera.updateProjectionMatrix();
-
-  // camera.position.copy(controls.target).sub(direction);
-  // camera.updateMatrixWorld();
-  
-  // controls.update();
 }
 
 const createAppDiorama = (app, {
