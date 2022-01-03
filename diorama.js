@@ -1775,6 +1775,46 @@ const createPlayerDiorama = (player, {
   dioramas.push(diorama);
   return diorama;
 };
+function fitCameraToBoundingBox(camera, box, fitOffset = 1.2) {
+  // const box = new THREE.Box3();
+  
+  // for( const object of selection ) box.expandByObject( object );
+  
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  
+  const maxSize = Math.max( size.x, size.y, size.z );
+  const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
+  
+  const direction = center.clone()
+    .sub(camera.position)
+    .normalize()
+    .multiplyScalar(distance);
+
+  camera.position.copy(center).add(direction);
+  camera.quaternion.setFromRotationMatrix(
+    new THREE.Matrix4().lookAt(
+      camera.position,
+      center,
+      camera.up,
+    )
+  );
+
+  // controls.maxDistance = distance * 10;
+  // controls.target.copy(center);
+  
+  // camera.near = distance / 100;
+  // camera.far = distance * 100;
+  // camera.updateProjectionMatrix();
+
+  // camera.position.copy(controls.target).sub(direction);
+  // camera.updateMatrixWorld();
+  
+  // controls.update();
+}
+
 const createAppDiorama = (app, {
   canvas,
   label = null,
