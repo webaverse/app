@@ -1892,19 +1892,27 @@ const createAppDiorama = (app, {
               .applyQuaternion(app.quaternion)
               .multiplyScalar(2)
           );
-        // console.log('got position', sideCamera.position.toArray().join(','));
-        sideCamera.quaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            sideCamera.position,
-            app.position,
-            localVector3.set(0, 1, 0)
-          )
-        );
+
+        const physicsObjects = app.getPhysicsObjects();
+        if (physicsObjects.length > 0) {
+          const physicsObject = physicsObjects[0];
+          const {physicsMesh} = physicsObject;
+          fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox);
+        } else {
+          sideCamera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              sideCamera.position,
+              app.position,
+              localVector3.set(0, 1, 0)
+            )
+          );
+        }
         sideCamera.updateMatrixWorld();
 
         // set up side avatar scene
         sideAvatarScene.add(app);
         sideAvatarScene.add(world.lights);
+
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.clear();
