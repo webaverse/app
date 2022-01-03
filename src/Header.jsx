@@ -9,6 +9,7 @@ import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
 import game from '../game.js'
+import dioramaManager from '../diorama.js'
 import * as universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
@@ -245,6 +246,50 @@ const NumberInput = ({input}) => {
   }} />
 };
 
+const WearAction = ({wearAction}) => {
+  const previewCanvasRef = useRef();
+
+  useEffect(() => {
+    const wearApp = metaversefile.getAppByInstanceId(wearAction.instanceId);
+    const canvas = previewCanvasRef.current;
+    const wearAppDiorama = dioramaManager.createAppDiorama(wearApp, {
+      canvas,
+      // label: null,
+      // outline: false,
+      // lightningBackground: false,
+      // radialBackground: false,
+      // glyphBackground: false,
+      grassBackground: true,
+    });
+  }, [previewCanvasRef]);
+
+  return (
+    <div
+      className={styles.equipment}
+      onMouseEnter={e => {
+        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+        game.setMouseHoverObject(null);
+        const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+        game.setMouseDomEquipmentHoverObject(app, physicsId);
+      }}
+      onMouseLeave={e => {
+        game.setMouseDomEquipmentHoverObject(null);
+      }}
+    >
+      {/* <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} /> */}
+      <canvas width={100} height={100} className={styles.canvas} ref={previewCanvasRef} />
+      <div className={styles.name}>{wearAction.instanceId}</div>
+      <button className={styles.button} onClick={e => {
+        const localPlayer = metaversefile.useLocalPlayer();
+        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+        localPlayer.unwear(app);
+      }}>
+        <img src="images/remove.svg" />
+      </button>
+      <div className={styles.background2} />
+    </div>
+  );
+};
 export default function Header({
   app,
 }) {
@@ -630,31 +675,7 @@ export default function Header({
                   </div> */}
                   {wearActions.map((wearAction, i) => {
                     return (
-                      <div
-                        className={styles.equipment}
-                        key={i}
-                        onMouseEnter={e => {
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                          game.setMouseHoverObject(null);
-                          const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                          game.setMouseDomEquipmentHoverObject(app, physicsId);
-                        }}
-                        onMouseLeave={e => {
-                          game.setMouseDomEquipmentHoverObject(null);
-                        }}
-                      >
-                        <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                        <img src="images/flower.png" className={styles.icon} />
-                        <div className={styles.name}>{wearAction.instanceId}</div>
-                        <button className={styles.button} onClick={e => {
-                          const localPlayer = metaversefile.useLocalPlayer();
-                          const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                          localPlayer.unwear(app);
-                        }}>
-                          <img src="images/remove.svg" />
-                        </button>
-                        <div className={styles.background2} />
-                      </div>
+                      <WearAction wearAction={wearAction} key={i} />
                     );
                   })}
                 </div>)
