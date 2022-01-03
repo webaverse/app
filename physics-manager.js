@@ -44,11 +44,13 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
 };
 const _extractPhysicsGeometryForId = physicsId => {
   const physicsGeometry = physicsManager.getGeometryForPhysicsId(physicsId);
+  const {positions, indices, bounds} = physicsGeometry;
   let geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(physicsGeometry.positions, 3));
-  geometry.setIndex(new THREE.BufferAttribute(physicsGeometry.indices, 1));
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   geometry = geometry.toNonIndexed();
   geometry.computeVertexNormals();
+  geometry.boundingBox = new THREE.Box3(new THREE.Vector3().fromArray(bounds, 0), new THREE.Vector3().fromArray(bounds, 3));
   return geometry;
 };
 
@@ -63,6 +65,8 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsMesh.updateMatrixWorld();
+  const {bounds} = physicsManager.getGeometryForPhysicsId(physicsId);
+  physicsMesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3().fromArray(bounds, 0), new THREE.Vector3().fromArray(bounds, 3));
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
@@ -79,6 +83,8 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   physicsMesh.visible = false;
   physicsObject.add(physicsMesh);
   physicsObject.updateMatrixWorld();
+  const {bounds} = physicsManager.getGeometryForPhysicsId(physicsId);
+  physicsMesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3().fromArray(bounds, 0), new THREE.Vector3().fromArray(bounds, 3));
   physicsObject.physicsMesh = physicsMesh;
   return physicsObject;
 };
