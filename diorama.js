@@ -1589,13 +1589,24 @@ const createPlayerDiorama = (player, {
     canvas = _makeCanvas(sideSize, sideSize);
     document.body.appendChild(canvas);
   }
-  const {width, height} = canvas;
-  const ctx = canvas.getContext('2d');
-  const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
+  const canvases = [];
+  let outlineRenderTarget = null
   let lastDisabledTime = 0;
 
   const diorama = {
+    width: 0,
+    height: 0,
     enabled: true,
+    addCanvas(canvas) {
+      const {width, height} = canvas;
+      this.width = Math.max(this.width, width);
+      this.height = Math.max(this.height, height);
+
+      const ctx = canvas.getContext('2d');
+      canvas.ctx = ctx;
+
+      canvases.push(canvas);
+    },
     toggleShader() {
       const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
       lightningBackground = false;
@@ -1626,8 +1637,12 @@ const createPlayerDiorama = (player, {
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
-      if (sizePowerOfTwo.x < width || sizePowerOfTwo.y < height) {
+      if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
         throw new Error('renderer is too small');
+      }
+
+      if (!outlineRenderTarget || (outlineRenderTarget.width !== this.width * pixelRatio) || (outlineRenderTarget.height !== this.height * pixelRatio)) {
+        outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
       }
 
       if (player.avatar) {
@@ -1734,22 +1749,25 @@ const createPlayerDiorama = (player, {
           
           // render side scene
           renderer.setRenderTarget(oldRenderTarget);
-          renderer.setViewport(0, 0, width, height);
+          renderer.setViewport(0, 0, this.width, this.height);
           renderer.clear();
           renderer.render(sideScene, sideCamera);
       
-          ctx.clearRect(0, 0, width, height);
-          ctx.drawImage(
-            renderer.domElement,
-            0,
-            size.y * pixelRatio - height * pixelRatio,
-            width * pixelRatio,
-            height * pixelRatio,
-            0,
-            0,
-            width,
-            height
-          );
+          for (const canvas of canvases) {
+            const {width, height, ctx} = canvas;
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(
+              renderer.domElement,
+              0,
+              size.y * pixelRatio - this.height * pixelRatio,
+              this.width * pixelRatio,
+              this.height * pixelRatio,
+              0,
+              0,
+              width,
+              height
+            );
+          }
         };
         _render();
 
@@ -1769,10 +1787,13 @@ const createPlayerDiorama = (player, {
       }
     },
     destroy() {
-      canvas.parentNode.removeChild(canvas);
+      for (const canvas of canvases) {
+        canvas.parentNode.removeChild(canvas);
+      }
       dioramas.splice(dioramas.indexOf(diorama), 1);
     },
   };
+  diorama.addCanvas(canvas);
   dioramas.push(diorama);
   return diorama;
 };
