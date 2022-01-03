@@ -14,10 +14,10 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
   const [fetchPromises, setFetchPromises] = useState([]);
 
   useEffect(() => {
-    console.log('Login From', loginFrom);
+    // console.log('Login From', loginFrom);
     if (address && !nfts && loginFrom) {
       setNfts([]);
-      console.log('Setting NFTS');
+      // console.log('Setting NFTS');
       (async () => {
         if (loginFrom === 'metamask') {
           const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
@@ -32,7 +32,7 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
         } else if (loginFrom === 'discord') {
           const res = await fetch(`${tokensHost}/${address}`);
           let j = await res.json();
-          console.log(j);
+          // console.log(j);
           j = j.map(j => {
             j.image_preview_url = j.hash;
             return j;
