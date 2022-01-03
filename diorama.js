@@ -1591,6 +1591,7 @@ const createPlayerDiorama = (player, {
   const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
   const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
+  let lastDisabledTime = 0;
 
   const diorama = {
     enabled: true,
@@ -1611,6 +1612,12 @@ const createPlayerDiorama = (player, {
       }
     },
     update(timestamp, timeDiff) {
+      if (!this.enabled) {
+        lastDisabledTime = timestamp;
+        return;
+      }
+      const timeOffset = timestamp - lastDisabledTime;
+
       const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
@@ -1654,12 +1661,11 @@ const createPlayerDiorama = (player, {
           sideScene.add(player.avatar.model);
           sideScene.add(world.lights);
       
-          const now = performance.now();
           const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
           if (lightningBackground) {
-            lightningMesh.material.uniforms.iTime.value = now / 1000;
+            lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
             lightningMesh.material.uniforms.iTime.needsUpdate = true;
-            lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
             lightningMesh.material.uniforms.iFrame.needsUpdate = true;
             lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
             lightningMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1670,16 +1676,16 @@ const createPlayerDiorama = (player, {
             lightningMesh.visible = false;
           }
           if (radialBackground) {
-            radialMesh.material.uniforms.iTime.value = now / 1000;
+            radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
             radialMesh.material.uniforms.iTime.needsUpdate = true;
-            radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+            radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
             radialMesh.material.uniforms.iFrame.needsUpdate = true;
             radialMesh.visible = true;
           } else {
             radialMesh.visible = false;
           }
           if (grassBackground) {
-            grassMesh.material.uniforms.iTime.value = now / 1000;
+            grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
             grassMesh.material.uniforms.iTime.needsUpdate = true;
             grassMesh.material.uniforms.uColor1.value.set(colors[0]);
             grassMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1690,7 +1696,7 @@ const createPlayerDiorama = (player, {
             grassMesh.visible = false;
           }
           if (glyphBackground) {
-            glyphMesh.material.uniforms.iTime.value = now / 1000;
+            glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
             glyphMesh.material.uniforms.iTime.needsUpdate = true;
             glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
             glyphMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1712,11 +1718,11 @@ const createPlayerDiorama = (player, {
             outlineMesh.visible = false;
           }
           if (label) {
-            labelMesh.material.uniforms.iTime.value = now / 1000;
+            labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
             labelMesh.material.uniforms.iTime.needsUpdate = true;
             labelMesh.visible = true;
             for (const child of textObject.children) {
-              child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
               child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
             }
             textObject.visible = true;
@@ -1793,6 +1799,7 @@ const createAppDiorama = (app, {
   const {width, height} = canvas;
   const ctx = canvas.getContext('2d');
   const outlineRenderTarget = _makeOutlineRenderTarget(width * pixelRatio, height * pixelRatio);
+  let lastDisabledTime = 0;
 
   const diorama = {
     enabled: true,
@@ -1813,6 +1820,12 @@ const createAppDiorama = (app, {
       }
     },
     update(timestamp, timeDiff) {
+      if (!this.enabled) {
+        lastDisabledTime = timestamp;
+        return;
+      }
+      const timeOffset = timestamp - lastDisabledTime;
+
       const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
@@ -1832,7 +1845,7 @@ const createAppDiorama = (app, {
     
       const _render = () => {
         // set up side camera
-        const angle = ((timestamp / 3000) % 1) * Math.PI * 2;
+        const angle = ((timeOffset / 3000) % 1) * Math.PI * 2;
         sideCamera.position.copy(app.position)
           .add(
             localVector.set(Math.cos(angle), 0, Math.sin(angle))
@@ -1861,12 +1874,11 @@ const createAppDiorama = (app, {
         sideScene.add(app);
         sideScene.add(world.lights);
     
-        const now = performance.now();
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
         if (lightningBackground) {
-          lightningMesh.material.uniforms.iTime.value = now / 1000;
+          lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
           lightningMesh.material.uniforms.iTime.needsUpdate = true;
-          lightningMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
           lightningMesh.material.uniforms.iFrame.needsUpdate = true;
           lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
           lightningMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1877,16 +1889,16 @@ const createAppDiorama = (app, {
           lightningMesh.visible = false;
         }
         if (radialBackground) {
-          radialMesh.material.uniforms.iTime.value = now / 1000;
+          radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
           radialMesh.material.uniforms.iTime.needsUpdate = true;
-          radialMesh.material.uniforms.iFrame.value = Math.floor(now / 1000 * 60);
+          radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
           radialMesh.material.uniforms.iFrame.needsUpdate = true;
           radialMesh.visible = true;
         } else {
           radialMesh.visible = false;
         }
         if (grassBackground) {
-          grassMesh.material.uniforms.iTime.value = now / 1000;
+          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
           grassMesh.material.uniforms.iTime.needsUpdate = true;
           grassMesh.material.uniforms.uColor1.value.set(colors[0]);
           grassMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1897,7 +1909,7 @@ const createAppDiorama = (app, {
           grassMesh.visible = false;
         }
         if (glyphBackground) {
-          glyphMesh.material.uniforms.iTime.value = now / 1000;
+          glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
           glyphMesh.material.uniforms.iTime.needsUpdate = true;
           glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
           glyphMesh.material.uniforms.uColor1.needsUpdate = true;
@@ -1919,11 +1931,11 @@ const createAppDiorama = (app, {
           outlineMesh.visible = false;
         }
         if (label) {
-          labelMesh.material.uniforms.iTime.value = now / 1000;
+          labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
           labelMesh.material.uniforms.iTime.needsUpdate = true;
           labelMesh.visible = true;
           for (const child of textObject.children) {
-            child.material.uniforms.uTroikaOutlineOpacity.value = now / 1000;
+            child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
             child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
           }
           textObject.visible = true;
@@ -1982,9 +1994,7 @@ const dioramaManager = {
   createAppDiorama,
   update(timestamp, timeDiff) {
     for (const diorama of dioramas) {
-      if (diorama.enabled) {
-        diorama.update(timestamp, timeDiff);
-      }
+      diorama.update(timestamp, timeDiff);
     }
   }
 };
