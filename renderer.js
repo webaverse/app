@@ -11,7 +11,6 @@ import {init, vec3, vec4, mat4} from 'glmw';
 
 window.THREE = THREE;
 // window.vec3 = vec3
-// window.mat4 = mat4
 // window.glmw = glmw
 
 // https://stackoverflow.com/a/62544968/3596736
@@ -39,8 +38,19 @@ window.THREE = THREE;
   })
 })()
 
+
+window.glmwInited = false
 init().then((ready) => {
   // glmw is now ready and can be used anywhere
+  
+  window.mat4 = mat4
+  window.matrix4s.forEach((matrix4,i)=>{
+    matrix4._elementsPointer = mat4.create()
+    mat4.view(matrix4._elementsPointer).set(matrix4.elements)
+  })
+  
+  window.glmwInited = true
+  window.matrix4s = null
 
   // THREE.AudioListener.prototype.updateMatrixWorld = function(){}
 
@@ -49,151 +59,21 @@ init().then((ready) => {
   // vec3.add(a, a, b);
   // console.log(vec3.view(a)); // Float32Array(3) [1, 2, 3]
   
-  window.isLogAverageTime = false
-  window.totalTime = 0
-  window.averageTime = 0
-  window.count = 0
+  // window.isLogAverageTime = false
+  // window.totalTime = 0
+  // window.averageTime = 0
+  // window.count = 0
   THREE.Matrix4.prototype.multiplyMatrices = (function () {
-    // var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
-    // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
-    // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
-    // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-    const mat4a = mat4.create();
-    const mat4b = mat4.create();
-    const mat4c = mat4.create();
-    const mat4aView = mat4.view(mat4a);
-    const mat4bView = mat4.view(mat4b);
-    const mat4cView = mat4.view(mat4c);
-
-    let ae;
-    let be;
-    // let c;
-
-    let startTime;
+    // let startTime;
 
     return function multiplyMatrices() {
-      if (window.isLogAverageTime) startTime = performance.now()
+      // startTime = performance.now()
 
-      // your code
-      // if (!(this.elements instanceof Float32Array)) {
-      if (Array.isArray(this.elements)) {
-        this.elements = new Float32Array(this.elements)
-      } else if (this.elements instanceof Proxy) {
-        this.elements = new Float32Array(Object.values(this.elements))
-      }
+      mat4.multiply(this._elementsPointer, arguments[0]._elementsPointer, arguments[1]._elementsPointer)
 
-      // // TypeError: Cannot perform %TypedArray%.prototype.set on a detached
-      // // To avoid such a problem, you can't save references to buffer (or typed arrays on it) over calls that might grow memory. Just make a new array view right before using it.
-      // // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-      // const mat4a = mat4.create();
-      // const mat4b = mat4.create();
-      // const mat4c = mat4.create();
-      // const mat4aView = mat4.view(mat4a);
-      // const mat4bView = mat4.view(mat4b);
-      // const mat4cView = mat4.view(mat4c);
-
-      // return this
-
-      // var result = cachedFunction.apply(this, arguments) // use .apply() to call it
-
-      // more of your code
-      // ae = arguments[0].elements;
-      // be = arguments[1].elements;
-      // if (!Array.isArray(arguments[0].elements)) debugger
-      // try {
-        mat4aView.set(arguments[0].elements)
-        mat4bView.set(arguments[1].elements)
-      // } catch (e) {}
-
-      // poor performance
-      // mat4aView[0] = ae[0]
-      // mat4aView[1] = ae[1]
-      // mat4aView[2] = ae[2]
-      // mat4aView[3] = ae[3]
-      // mat4aView[4] = ae[4]
-      // mat4aView[5] = ae[5]
-      // mat4aView[6] = ae[6]
-      // mat4aView[7] = ae[7]
-      // mat4aView[8] = ae[8]
-      // mat4aView[9] = ae[9]
-      // mat4aView[10] = ae[10]
-      // mat4aView[11] = ae[11]
-      // mat4aView[12] = ae[12]
-      // mat4aView[13] = ae[13]
-      // mat4aView[14] = ae[14]
-      // mat4aView[15] = ae[15]
-
-      // mat4bView[0] = be[0]
-      // mat4bView[1] = be[1]
-      // mat4bView[2] = be[2]
-      // mat4bView[3] = be[3]
-      // mat4bView[4] = be[4]
-      // mat4bView[5] = be[5]
-      // mat4bView[6] = be[6]
-      // mat4bView[7] = be[7]
-      // mat4bView[8] = be[8]
-      // mat4bView[9] = be[9]
-      // mat4bView[10] = be[10]
-      // mat4bView[11] = be[11]
-      // mat4bView[12] = be[12]
-      // mat4bView[13] = be[13]
-      // mat4bView[14] = be[14]
-      // mat4bView[15] = be[15]
-
-      mat4.multiply(mat4c, mat4a, mat4b)
-      // // c = mat4.multiply(mat4a, mat4a, mat4b)
-
-      // // console.log('result', result.elements)
-      // console.log(result.elements)
-      // // console.log('mat4a', mat4a)
-      // // console.log('mat4a', mat4.view(mat4a))
-      // console.log(mat4aView)
-      // // console.log('c', c) // same as `a`
-      // debugger
-
-      // this.elements[0] = mat4cView[0]
-      // this.elements[1] = mat4cView[1]
-      // this.elements[2] = mat4cView[2]
-      // this.elements[3] = mat4cView[3]
-      // this.elements[4] = mat4cView[4]
-      // this.elements[5] = mat4cView[5]
-      // this.elements[6] = mat4cView[6]
-      // this.elements[7] = mat4cView[7]
-      // this.elements[8] = mat4cView[8]
-      // this.elements[9] = mat4cView[9]
-      // this.elements[10] = mat4cView[10]
-      // this.elements[11] = mat4cView[11]
-      // this.elements[12] = mat4cView[12]
-      // this.elements[13] = mat4cView[13]
-      // this.elements[14] = mat4cView[14]
-      // this.elements[15] = mat4cView[15]
-
-      // try {
-        this.elements.set(mat4cView)
-      // } catch (e) {}
-      // TypeError: this is not a typed array.
-      // After loaded, elements become a Proxy, because of used React?
-
-      // this.elements = Array.from(mat4cView) // poor perfromance
-
-      // this.elements = [...mat4cView] // poor perfromance
-
-      // if (!Array.isArray(this.elements)) mat4.free(this.elements)
-      // this.elements = mat4cView
-      // // geometry.wasm:0x12d641 Uncaught (in promise) RuntimeError: null function or function signature mismatch
-      // //   at geometry.wasm:0x12d641
-      // // character-physics.js:81 Uncaught TypeError: Cannot read properties of undefined (reading 'position')
-      // //   at CharacterPhysics.applyAvatarPhysicsDetail (character-physics.js:81)
-
-      // mat4.free(mat4a)
-      // mat4.free(mat4b)
-      // mat4.free(mat4c)
-
-      if (window.isLogAverageTime) {
-        window.totalTime += performance.now() - startTime
-        window.count += 1
-      }
+      // window.totalTime += performance.now() - startTime
+      // window.count += 1
       return this
     }
   })()
