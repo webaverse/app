@@ -82,7 +82,7 @@ function isValidURL(string) {
 
 export const preview = async (url, ext, type, width, height, priority=10) => {
   return new Promise((resolve, reject) => {
-    if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
+    if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif', 'image'].includes(ext)) {
       return reject('Undefined Extension');
     }
     if (!running) {
