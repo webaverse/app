@@ -20,7 +20,7 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
       console.log('Setting NFTS');
       (async () => {
         if (loginFrom === 'metamask') {
-          const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=0x08e242bb06d85073e69222af8273af419d19e4f6&limit=${50}`, {
+          const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
             headers: {
               'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046',
             },
