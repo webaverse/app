@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {world} from './world.js';
+import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import gradients from './gradients.json';
 
@@ -1775,29 +1776,6 @@ const createPlayerDiorama = (player, {
   dioramas.push(diorama);
   return diorama;
 };
-function fitCameraToBoundingBox(camera, box, fitOffset = 1.2) {
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  
-  const maxSize = Math.max( size.x, size.y, size.z );
-  const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
-  const fitWidthDistance = fitHeightDistance / camera.aspect;
-  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
-  
-  const direction = center.clone()
-    .sub(camera.position)
-    .normalize()
-    .multiplyScalar(distance);
-
-  camera.position.copy(center).add(direction);
-  camera.quaternion.setFromRotationMatrix(
-    new THREE.Matrix4().lookAt(
-      camera.position,
-      center,
-      camera.up,
-    )
-  );
-}
 
 const createAppDiorama = (app, {
   canvas,
@@ -1881,7 +1859,7 @@ const createAppDiorama = (app, {
         if (physicsObjects.length > 0) {
           const physicsObject = physicsObjects[0];
           const {physicsMesh} = physicsObject;
-          fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox);
+          fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
         } else {
           sideCamera.quaternion.setFromRotationMatrix(
             localMatrix.lookAt(
