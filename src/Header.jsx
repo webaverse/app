@@ -613,6 +613,7 @@ export default function Header({
                     <div className={classnames(styles['panel-section'], styles['name'])}>
                       <h1>Scillia</h1>
                     </div>
+                    <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
                     <div className={classnames(styles['panel-section'], styles['main-stats'])}>
                       <div className={styles['panel-row']}>
                         <h2>HP</h2>

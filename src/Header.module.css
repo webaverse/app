@@ -130,6 +130,7 @@ body {
 }
 .header .panel-header {
   display: flex;
+  position: relative;
   /* padding: 0 10px; */
 }
 .header .panel-header > .panel-section {
@@ -137,10 +138,15 @@ body {
   flex: 1;
 }
 .header .panel-header > .panel-section.name {
-  position: relative;
+  position: absolute;
   justify-content: center;
   font-family: 'WinchesterCaps';
-  /* padding: 0 10px; */
+  top: -30px;
+  left: -25px;
+  width: 50%;
+  height: 85px;
+  letter-spacing: 3px;
+  font-size: 16px;
 }
 .header .panel-header > .panel-section.main-stats {
   font-family: 'PlazaRegular';
@@ -151,7 +157,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background-image: linear-gradient(to bottom,#111111, #222222);
+  background-image: linear-gradient(to bottom,#222222, #000000);
   transform: skew(-30deg);
   content: '';
 }
