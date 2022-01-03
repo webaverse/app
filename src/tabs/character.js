@@ -63,6 +63,22 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       panels={[
         (<div className={styles.panel} key="left">
           <img className={styles.avatar} src={ previews[avatarPreview] || '/images/loader.gif'} />
+              <div className={styles['panel-header']}>
+                <div className={classnames(styles['panel-section'], styles['name'])}>
+                  <h1>Scillia</h1>
+                </div>
+                <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
+                <div className={classnames(styles['panel-section'], styles['main-stats'])}>
+                  <div className={styles['panel-row']}>
+                    <h2>HP</h2>
+                    <progress value={61} />
+                  </div>
+                  <div className={styles['panel-row']}>
+                    <h2>MP</h2>
+                    <progress value={83} />
+                  </div>
+                </div>
+              </div>
           {/* <div className={styles['panel-header']}>
               <h1>Equipment</h1>
             </div> */}
