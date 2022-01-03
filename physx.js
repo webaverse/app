@@ -989,6 +989,7 @@ const physxWorker = (() => {
     const numPositions = allocator.alloc(Uint32Array, 1);
     const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024 * 2);
     const numIndices = allocator.alloc(Uint32Array, 1);
+    const boundsBuffer = allocator.alloc(Float32Array, 6);
 
     const ok = moduleInstance._getGeometryPhysics(
       physics,
@@ -997,22 +998,43 @@ const physxWorker = (() => {
       numPositions.byteOffset,
       indicesBuffer.byteOffset,
       numIndices.byteOffset,
+      boundsBuffer.byteOffset,
     );
-    /* const objectId = scratchStack.u32[21];
-    const faceIndex = scratchStack.u32[22];
-    const objectPosition = scratchStack.f32.slice(23, 26);
-    const objectQuaternion = scratchStack.f32.slice(26, 30); */
 
     if (ok) {
       const positions = positionsBuffer.slice(0, numPositions[0]);
       const indices = indicesBuffer.slice(0, numIndices[0]);
+      const bounds = boundsBuffer.slice();
 
       allocator.freeAll();
 
       return {
         positions,
         indices,
+        bounds,
       };
+    } else {
+      allocator.freeAll();
+      return null;
+    }
+  };
+  w.getBoundsPhysics = (physics, id, box) => {
+    const allocator = new Allocator();
+    const boundsBuffer = allocator.alloc(Float32Array, 6);
+
+    const ok = moduleInstance._getBoundsPhysics(
+      physics,
+      id,
+      boundsBuffer.byteOffset,
+    );
+
+    if (ok) {
+      box.min.fromArray(boundsBuffer, 0);
+      box.max.fromArray(boundsBuffer, 3);
+
+      allocator.freeAll();
+
+      return box;
     } else {
       allocator.freeAll();
       return null;
