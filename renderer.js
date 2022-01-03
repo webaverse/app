@@ -33,31 +33,20 @@ import {init, vec3, vec4, mat4} from 'glmw';
   });
 })();
 
+window.glmwInited = false;
 init().then(() => {
+  window.mat4 = mat4;
+
+  window.matrix4s.forEach((matrix4, i) => {
+    matrix4._elementsPointer = mat4.create();
+    mat4.view(matrix4._elementsPointer).set(matrix4.elements);
+  });
+
+  window.glmwInited = true;
+  window.matrix4s = null;
   THREE.Matrix4.prototype.multiplyMatrices = (function() {
-    const mat4a = mat4.create();
-    const mat4b = mat4.create();
-    const mat4c = mat4.create();
-    const mat4aView = mat4.view(mat4a);
-    const mat4bView = mat4.view(mat4b);
-    const mat4cView = mat4.view(mat4c);
-
     return function multiplyMatrices() {
-      if (Array.isArray(this.elements)) {
-        // NOTE: Replace the ordinary array with Float32Array to support the direct overall assignment by calling the `set` method, instead of assigning the 16 elements one by one.
-        this.elements = new Float32Array(this.elements);
-      } else if (this.elements instanceof Proxy) {
-        // NOTE: `localPlayer.avatar.modelBones.Root.matrixWorld.elements` will be replaced with `Proxy` after loading is complete, causing an error in calling the `set` method.
-        // I guess it is React's binding mechanism that generates the `Proxy`. After removing the `Proxy` in the following way, the main game part seems to still work normally, but I am not sure what effect it will have on the UI logic.
-        this.elements = new Float32Array(Object.values(this.elements));
-      }
-
-      mat4aView.set(arguments[0].elements);
-      mat4bView.set(arguments[1].elements);
-
-      mat4.multiply(mat4c, mat4a, mat4b);
-
-      this.elements.set(mat4cView);
+      mat4.multiply(this._elementsPointer, arguments[0]._elementsPointer, arguments[1]._elementsPointer);
 
       return this;
     };
