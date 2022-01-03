@@ -613,7 +613,7 @@ export default function Header({
                     <div className={styles['panel-section']}>
                       <h1>Scillia</h1>
                     </div>
-                    <div className={styles['panel-section']}>
+                    <div className={classnames(styles['panel-section'], styles['main-stats'])}>
                       <div className={styles['panel-row']}>
                         <h2>HP</h2>
                         <progress value={61} />
