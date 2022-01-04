@@ -2,7 +2,9 @@ import React, {useState, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 
-export const Location = ({universe, Z, world, _makeName, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
+const _makeName = (N = 8) => (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
+
+export const Location = ({universe, Z, world, sceneName, sceneNames, setSceneName, roomName, setRoomName, open, setOpen, toggleOpen, multiplayerConnected, micOn, toggleMic}) => {
   const [rooms, setRooms] = useState([]);
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';

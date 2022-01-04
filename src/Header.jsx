@@ -29,7 +29,7 @@ const localEuler = new THREE.Euler();
 
 // console.log('index 1');
 
-const _makeName = (N = 8) => (Math.random().toString(36)+'00000000000000000').slice(2, N+2);
+
 const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
