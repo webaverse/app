@@ -44,13 +44,14 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
       for (const app of apps) {
         if (!previews[app.instanceId] && app.appType) {
           if(['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif', 'image'].includes(app.appType)){
-            previews[app.instanceId] = '/images/loader.gif';
-            let c = app.contentId.replace('.metaversefile',''); //remove .etaversefile extension from content id
-            preview(c, app.appType, 'png', 100, 100).then(res => {
-              const imageObjectURL = URL.createObjectURL(res.blob);
-              previews[app.instanceId] = imageObjectURL;
-              setPreviews(previews);
-            });
+            previews[app.instanceId] = '/images/object.jpg';
+            let c = app.contentId.replace('.metaversefile',''); //remove .metaversefile extension from content id
+            // preview(c, app.appType, 'png', 100, 100).then(res => {
+            //   const imageObjectURL = URL.createObjectURL(res.blob);
+            //   previews[app.instanceId] = imageObjectURL;
+            //   setPreviews(previews);
+            // });
+            setPreviews(previews);
         }
         } else if (!previews[app.instanceId] && !app.appType) {
           previews[app.instanceId] = '/images/object.jpg';

@@ -48,7 +48,7 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
     if (nfts) {
       for (const nft of nfts) {
         if (!nftPreviews[nft.image_preview_url]) {
-          nftPreviews[nft.image_preview_url] = 'images/loader.gif';
+          nftPreviews[nft.image_preview_url] = 'images/object.jpg';
           if (loginFrom === 'metamask') {
             fetch(nft.image_preview_url).then(response => response.blob())
               .then(imageBlob => {
@@ -57,11 +57,11 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
                 setNftPreviews(nftPreviews);
               });
           } else if (loginFrom === 'discord') {
-            preview(nft.image_preview_url, nft.ext, 'png', 100, 100).then(res => {
-              const imageObjectURL = URL.createObjectURL(res.blob);
-              nftPreviews[nft.image_preview_url] = imageObjectURL;
-              setNftPreviews(nftPreviews);
-            });
+            // preview(nft.image_preview_url, nft.ext, 'png', 100, 100).then(res => {
+            //   const imageObjectURL = URL.createObjectURL(res.blob);
+            //   nftPreviews[nft.image_preview_url] = imageObjectURL;
+            //   setNftPreviews(nftPreviews);
+            // });
           }
         }
       }

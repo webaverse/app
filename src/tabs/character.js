@@ -5,7 +5,7 @@ import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 import {preview} from '../../preview.js';
 
-export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen}) => {
+export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, previewCanvasRef}) => {
   const [previews, setPreviews] = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
   const sideSize = 400;
@@ -24,11 +24,11 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
         if (u.startsWith('/')) {
           u = window.origin + u;
         }
-        preview(u, e.app.appType, 'png', 400, 200, 1).then(res => {
-          const imageObjectURL = URL.createObjectURL(res.blob);
-          previews[e.app.contentId] = imageObjectURL;
-          setPreviews(previews);
-        });
+        // preview(u, e.app.appType, 'png', 400, 200, 1).then(res => {
+        //   const imageObjectURL = URL.createObjectURL(res.blob);
+        //   previews[e.app.contentId] = imageObjectURL;
+        //   setPreviews(previews);
+        // });
       }
     });
   }, []);
@@ -38,11 +38,11 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       for (const app of wearActions) {
         if (!previews[app.contentId]) {
           previews[app.contentId] = 'images/flower.png';
-          preview(app.contentId, app.appType, 'png', 100, 100).then(res => {
-            const imageObjectURL = URL.createObjectURL(res.blob);
-            previews[app.contentId] = imageObjectURL;
-            setPreviews(previews);
-          });
+          // preview(app.contentId, app.appType, 'png', 100, 100).then(res => {
+          //   const imageObjectURL = URL.createObjectURL(res.blob);
+          //   previews[app.contentId] = imageObjectURL;
+          //   setPreviews(previews);
+          // });
         }
       }
       setPreviews(previews);
@@ -63,8 +63,8 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       }
       panels={[
         (<div className={styles.panel} key="left">
-          {/* <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} /> */}
-          <img className={styles.avatar} src={ previews[avatarPreview] || '/images/loader.gif'} />
+          <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
+          {/* <img className={styles.avatar} src={ previews[avatarPreview] || '/images/loader.gif'} /> */}
               <div className={styles['panel-header']}>
                 <div className={classnames(styles['panel-section'], styles['name'])}>
                   <h1>Scillia</h1>
