@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import gradients from './gradients.json';
@@ -1547,6 +1547,16 @@ sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
+const _addPreviewLights = scene => {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  scene.add(ambientLight);
+  
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  directionalLight.position.set(1, 2, 3);
+  directionalLight.updateMatrixWorld();
+  scene.add(directionalLight);
+};
+_addPreviewLights(sideScene);
 
 const sideCamera = new THREE.PerspectiveCamera();
 
@@ -1650,7 +1660,7 @@ const createPlayerDiorama = (player, {
         const oldParent = player.avatar.model.parent;
         const oldRenderTarget = renderer.getRenderTarget();
         const oldViewport = renderer.getViewport(localVector4D);
-        const oldWorldLightParent = world.lights.parent;
+        // const oldWorldLightParent = world.lights.parent;
       
         const _render = () => {
           // set up side camera
@@ -1667,7 +1677,7 @@ const createPlayerDiorama = (player, {
 
           // set up side avatar scene
           sideAvatarScene.add(player.avatar.model);
-          sideAvatarScene.add(world.lights);
+          // sideAvatarScene.add(world.lights);
           // render side avatar scene
           renderer.setRenderTarget(outlineRenderTarget);
           renderer.clear();
@@ -1675,7 +1685,7 @@ const createPlayerDiorama = (player, {
           
           // set up side scene
           sideScene.add(player.avatar.model);
-          sideScene.add(world.lights);
+          // sideScene.add(world.lights);
       
           const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
           if (lightningBackground) {
@@ -1777,11 +1787,11 @@ const createPlayerDiorama = (player, {
         } else {
           player.avatar.model.parent.remove(player.avatar.model);
         }
-        if (oldWorldLightParent) {
+        /* if (oldWorldLightParent) {
           oldWorldLightParent.add(world.lights);
         } else {
           world.lights.parent.remove(world.lights);
-        }
+        } */
         renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(oldViewport);
       }
@@ -1879,7 +1889,7 @@ const createAppDiorama = (app, {
       const oldParent = app.parent;
       const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(localVector4D);
-      const oldWorldLightParent = world.lights.parent;
+      // const oldWorldLightParent = world.lights.parent;
     
       const _render = () => {
         // set up side camera
@@ -1909,7 +1919,7 @@ const createAppDiorama = (app, {
 
         // set up side avatar scene
         sideAvatarScene.add(app);
-        sideAvatarScene.add(world.lights);
+        // sideAvatarScene.add(world.lights);
 
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
@@ -1918,7 +1928,7 @@ const createAppDiorama = (app, {
         
         // set up side scene
         sideScene.add(app);
-        sideScene.add(world.lights);
+        // sideScene.add(world.lights);
     
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
         if (lightningBackground) {
@@ -2020,11 +2030,11 @@ const createAppDiorama = (app, {
       } else {
         app.parent.remove(app);
       }
-      if (oldWorldLightParent) {
+      /* if (oldWorldLightParent) {
         oldWorldLightParent.add(world.lights);
       } else {
         world.lights.parent.remove(world.lights);
-      }
+      } */
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
     },
