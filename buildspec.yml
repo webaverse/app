@@ -6,9 +6,8 @@ phases:
       nodejs: latest
     commands:
       - echo Entered the install phase...
-      - apt update -y
-      - sudo npm install forever -g
-      - npm install -y
+      - git submodule init
+      - git submodule update
   pre_build:
     commands:
       - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
@@ -20,7 +19,7 @@ phases:
       - echo Building the Docker image...
       - echo Logging in to Docker Hub...
       - echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-      - docker build -t $REPOSITORY_URI:latest .
+      - docker build -t $REPOSITORY_URI:latest --build-arg pm2_secret_key=${PM2_SECRET_KEY} .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:

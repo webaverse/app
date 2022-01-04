@@ -32,7 +32,6 @@ const enterWorld = async worldSpec => {
     // world.clear();
 
     const promises = [];
-
     const {src, room} = worldSpec;
     if (!room) {
       const state = new Z.Doc();
@@ -53,7 +52,9 @@ const enterWorld = async worldSpec => {
       promises.push(p);
     }
     
-    await Promise.all(promises);
+    sceneLoadedPromise = Promise.all(promises).then(() => {});
+    await sceneLoadedPromise;
+    sceneLoadedPromise = null;
   };
   await _doLoad().catch(err => {
     console.warn(err);
@@ -78,10 +79,20 @@ const handleUrlUpdate = async () => {
   await enterWorld(q);
 };
 
+let sceneLoadedPromise = null;
+const isSceneLoaded = () => !sceneLoadedPromise;
+const waitForSceneLoaded = async () => {
+  if (sceneLoadedPromise) {
+    await sceneLoadedPromise;
+  }
+};
+
 export {
   enterWorld,
   reload,
   getWorldsHost,
   pushUrl,
   handleUrlUpdate,
+  isSceneLoaded,
+  waitForSceneLoaded,
 };

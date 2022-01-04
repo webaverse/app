@@ -12,10 +12,13 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
-import {scene, postScene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
+import * as metaverseModules from './metaverse-modules.js';
+
+const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
@@ -24,7 +27,6 @@ const appManager = new AppManager({
   appsMap: null,
 });
 world.appManager = appManager;
-
 
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
@@ -57,7 +59,7 @@ world.enableMic = async () => {
   
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.setMicMediaStream(mediaStream, {
-    audioContext: WSRTC.getAudioContext(),
+    // audioContext: WSRTC.getAudioContext(),
   });
 };
 world.disableMic = () => {
@@ -299,8 +301,11 @@ const _getBindSceneForRenderPriority = renderPriority => {
     case 'low': {
       return sceneLowPriority;
     }
-    case 'postScene': {
-      return postScene;
+    case 'postPerspectiveScene': {
+      return postScenePerspective;
+    }
+    case 'postOrthographicScene': {
+      return postSceneOrthographic;
     }
     default: {
       return scene;
@@ -336,15 +341,35 @@ const _bindHitTracker = app => {
     const result = hitTracker.hit(damage);
     const {hit, died} = result;
     if (hit) {
-      const {collisionId, hitDirection} = opts;
-      if (collisionId) {
+      const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
+      if (willDie) {
         hpManager.triggerDamageAnimation(collisionId);
+      }
+
+      {
+        const damageMeshApp = metaversefileApi.createApp();
+        (async () => {
+          await metaverseModules.waitForLoad();
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['damageMesh'];
+          await damageMeshApp.addModule(m);
+        })();
+        damageMeshApp.position.copy(hitPosition);
+        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        damageMeshApp.quaternion.setFromEuler(localEuler);
+        damageMeshApp.updateMatrixWorld();
+        scene.add(damageMeshApp);
       }
       
       app.dispatchEvent({
         type: 'hit',
         collisionId,
+        hitPosition,
         hitDirection,
+        hitQuaternion,
+        willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });

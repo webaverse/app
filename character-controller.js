@@ -4,12 +4,13 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import physx from './physx.js';
+import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -29,7 +30,7 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterSfx} from './character-sfx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {makeId, clone} from './util.js';
+import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -59,7 +60,26 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class Player extends THREE.Object3D {
+class PlayerBase extends THREE.Object3D {
+  constructor() {
+    super();
+
+    this.leftHand = new PlayerHand();
+    this.rightHand = new PlayerHand();
+    this.hands = [
+      this.leftHand,
+      this.rightHand,
+    ];
+    this.avatar = null;
+  }
+}
+const controlActionTypes = [
+  'jump',
+  'crouch',
+  'fly',
+  'sit',
+];
+class StatePlayer extends PlayerBase {
   constructor({
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
@@ -81,27 +101,13 @@ class Player extends THREE.Object3D {
       const app = e.data;
       app.parent && app.parent.remove(app);
     });
-
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
-    this.hands = [
-      this.leftHand,
-      this.rightHand,
-    ];
     
     this.avatarEpoch = 0;
-    this.avatar = null;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
     this.bindState(playersArray);
   }
-  static controlActionTypes = [
-    'jump',
-    'crouch',
-    'fly',
-    'sit',
-  ]
   isBound() {
     return !!this.playersArray;
   }
@@ -232,9 +238,11 @@ class Player extends THREE.Object3D {
         this.avatar = nextAvatar;
         
         const avatarHeight = this.avatar.height;
-        const contactOffset = 0.1;
-        const radius = 0.3/1.6 * avatarHeight;
-        const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
+        const heightFactor = 1.6;
+        const contactOffset = 0.1/heightFactor * avatarHeight;
+        const stepOffset = 0.5/heightFactor * avatarHeight;
+        const radius = 0.3/heightFactor * avatarHeight;
+        // const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
         const position = this.position.clone()
           .add(new THREE.Vector3(0, -avatarHeight/2, 0));
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
@@ -269,6 +277,7 @@ class Player extends THREE.Object3D {
             radius - contactOffset,
             avatarHeight - radius*2,
             contactOffset,
+            stepOffset,
             position,
             physicsMaterial
           );
@@ -335,13 +344,15 @@ class Player extends THREE.Object3D {
     
     this.syncAvatarCancelFn = null;
   }
+  getActions() {
+    return this.getActionsState();
+  }
   getActionsState() {
     let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
     }
-
     return actionsArray;
   }
   getActionsArray() {
@@ -462,7 +473,7 @@ class Player extends THREE.Object3D {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
       const action = actions.get(i);
-      const isControlAction = Player.controlActionTypes.includes(action.type);
+      const isControlAction = controlActionTypes.includes(action.type);
       if (isControlAction) {
         actions.delete(i);
         i--;
@@ -544,7 +555,7 @@ class Player extends THREE.Object3D {
     this.appManager.destroy();
   }
 }
-class InterpolatedPlayer extends Player {
+class InterpolatedPlayer extends StatePlayer {
   constructor(opts) {
     super(opts);
     
@@ -634,10 +645,13 @@ class InterpolatedPlayer extends Player {
     }
   }
 }
-class UninterpolatedPlayer extends Player {
+class UninterpolatedPlayer extends StatePlayer {
   constructor(opts) {
     super(opts);
     
+    UninterpolatedPlayer.init.apply(this, arguments)
+  }
+  static init() {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
@@ -648,11 +662,11 @@ class UninterpolatedPlayer extends Player {
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
-      chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
-      standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
+      // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
+      // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
-      swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
-      swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
+      // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
+      // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
 
@@ -846,6 +860,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
+
+    app.dispatchEvent({
+      type: 'grabupdate',
+      grab: true,
+    });
   }
   ungrab() {
     const actions = Array.from(this.getActionsState());
@@ -861,6 +880,11 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
+
+        app.dispatchEvent({
+          type: 'grabupdate',
+          grab: false,
+        });
       }
     }
   }
@@ -979,6 +1003,101 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
+class StaticInterpolatedPlayer extends PlayerBase {
+  constructor(opts) {
+    super(opts);
+
+    UninterpolatedPlayer.init.apply(this, arguments);
+
+    this.actions = [];
+  }
+  getActions() {
+    return this.actions;
+  }
+  getAction(type) {
+    return this.actions.find(action => action.type === type);
+  }
+  hasAction(type) {
+    return this.actions.some(a => a.type === type);
+  }
+  addAction(action) {
+    this.actions.push(action);
+  }
+  removeAction(type) {
+    for (let i = 0; i < this.actions.length; i++) {
+      const action = this.actions[i];
+      if (action.type === type) {
+        this.actions.splice(i, 1);
+        break;
+      }
+    }
+  }
+  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
+}
+class NpcPlayer extends StaticInterpolatedPlayer {
+  constructor(opts) {
+    super(opts);
+  }
+  async setAvatarAppAsync(app) {
+    await app.setSkinning(true);
+    
+    const {skinnedVrm} = app;
+    const avatar = new Avatar(skinnedVrm, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: false,
+    });
+  
+    unFrustumCull(app);
+    enableShadows(app);
+  
+    this.avatar = avatar;
+  }
+  updateAvatar(timestamp, timeDiff) {
+    if (this.avatar) {
+      // this.updateInterpolation(timeDiff);
+      
+      // const renderer = getRenderer();
+      // const session = renderer.xr.getSession();
+      applyPlayerToAvatar(this, null, this.avatar);
+
+      this.avatar.update(timeDiff);
+    }
+
+    // this.characterPhysics.updateCamera(timeDiff);
+  }
+  /* detachState() {
+    return null;
+  }
+  attachState(oldState) {
+    let index = -1;
+    for (let i = 0; i < this.playersArray.length; i++) {
+      const player = this.playersArray.get(i, Z.Map);
+      if (player.get('playerId') === this.playerId) {
+        index = i;
+        break;
+      }
+    }
+    if (index !== -1) {
+      this.playerMap = this.playersArray.get(index, Z.Map);
+    } else {
+      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
+    }
+    
+    const observePlayerFn = e => {
+      this.position.fromArray(this.playerMap.get('position'));
+      this.quaternion.fromArray(this.playerMap.get('quaternion'));
+    };
+    this.playerMap.observe(observePlayerFn);
+    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
+    
+    this.appManager.bindState(this.getAppsState());
+    this.appManager.syncApps();
+    
+    this.syncAvatar();
+  } */
+}
 
 function getPlayerCrouchFactor(player) {
   let factor = 1;
@@ -987,17 +1106,18 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-function updateAvatar(timestamp, timeDiff) {
+/* function updateAvatar(timestamp, timeDiff) {
   metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
 }
 function updatePhysics(now, timeDiff) {
   metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
-}
+} */
 
 export {
   LocalPlayer,
   RemotePlayer,
+  NpcPlayer,
   getPlayerCrouchFactor,
-  updateAvatar,
-  updatePhysics,
+  // updateAvatar,
+  // updatePhysics,
 };

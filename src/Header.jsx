@@ -297,6 +297,8 @@ export default function Header({
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
   
+  const sideSize = 400;
+
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
   };
@@ -348,6 +350,9 @@ export default function Header({
   useEffect(() => {
     if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
+    }
+    if (game.playerDiorama) {
+      game.playerDiorama.enabled = !!open;
     }
   }, [open]);
   useEffect(() => {
@@ -415,7 +420,7 @@ export default function Header({
     };
   }, [claims]);
   useEffect(() => {
-    if (previewCanvasRef.current) {
+    if (previewCanvasRef.current && !game.playerDiorama) {
       app.bindPreviewCanvas(previewCanvasRef.current);
     }
   }, [previewCanvasRef.current]);
@@ -424,26 +429,6 @@ export default function Header({
       panelsRef.current.scrollTo(0, 0);
     }
   }, [selectedApp, panelsRef.current]);
-  
-  const lastEmoteKey = {
-    key: -1,
-    timestamp: 0,
-  };
-  const _emoteKey = key => {
-    const timestamp = performance.now();
-    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
-      const key1 = lastEmoteKey.key;
-      const key2 = key;
-      const index = (key1 * 10) + key2;
-      game.addLocalEmote(index);
-      
-      lastEmoteKey.key = -1;
-      lastEmoteKey.timestamp = 0;
-    } else {
-      lastEmoteKey.key = key;
-      lastEmoteKey.timestamp = timestamp;
-    }
-  };
   
   const _handleNonInputKey = e => {
     switch (e.which) {
@@ -485,12 +470,6 @@ export default function Header({
         }
         return true;
       }
-    }
-    const match = e.code.match(/^Numpad([0-9])$/);
-    if (match) {
-      const key = parseInt(match[1], 10);
-      _emoteKey(key);
-      return true;
     }
     return false;
   };
@@ -629,10 +608,23 @@ export default function Header({
               }
               panels={[
                 (<div className={styles.panel} key="left">
+                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
                   <div className={styles['panel-header']}>
-                    <h1>Sheila</h1>
+                    <div className={classnames(styles['panel-section'], styles['name'])}>
+                      <h1>Scillia</h1>
+                    </div>
+                    <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
+                    <div className={classnames(styles['panel-section'], styles['main-stats'])}>
+                      <div className={styles['panel-row']}>
+                        <h2>HP</h2>
+                        <progress value={61} />
+                      </div>
+                      <div className={styles['panel-row']}>
+                        <h2>MP</h2>
+                        <progress value={83} />
+                      </div>
+                    </div>
                   </div>
-                  <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} />
                   {/* <div className={styles['panel-header']}>
                     <h1>Equipment</h1>
                   </div> */}

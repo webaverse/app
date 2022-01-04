@@ -12,11 +12,10 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import {glowMaterial} from './shaders.js';
 // import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -25,30 +24,26 @@ import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
-import easing from './easing.js';
-import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import {componentTemplates} from './metaverse-components.js';
+import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
-import {rarityColors, initialPosY} from './constants.js';
+import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
+import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
-const defaultScale = new THREE.Vector3(1, 1, 1);
-
-const cubicBezier = easing(0, 1, 0, 1);
-const cubicBezier2 = easing(0, 1, 1, 1);
-const gracePickupTime = 1000;
-const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 
 class App extends THREE.Object3D {
   constructor() {
@@ -131,9 +126,9 @@ class App extends THREE.Object3D {
       totalHp: 100,
     });
   } */
-  willDieFrom(damage) {
+  /* willDieFrom(damage) {
     return false;
-  }
+  } */
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -144,120 +139,6 @@ class App extends THREE.Object3D {
 const defaultModules = {
   moduleUrls,
   modules,
-};
-const defaultComponents = {
-  drop(app) {
-    const dropComponent = app.getComponent('drop');
-    if (dropComponent) {
-      const glowHeight = 5;
-      const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
-      const colors = new Float32Array(glowGeometry.attributes.position.array.length);
-      glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      const color = new THREE.Color(rarityColorsArray[Math.floor(Math.random() * rarityColorsArray.length)]);
-      for (let i = 0; i < glowGeometry.attributes.color.array.length; i += 3) {
-        color.toArray(glowGeometry.attributes.color.array, i);
-      }
-      const material = glowMaterial.clone();
-      const glowMesh = new THREE.Mesh(glowGeometry, material);
-      app.add(glowMesh);
-
-      const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
-      const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
-      let grounded = false;
-      const startTime = performance.now();
-      let animation = null;
-      const timeOffset = Math.random() * 10;
-      metaversefile.useFrame(e => {
-        const {timestamp, timeDiff} = e;
-        const timeDiffS = timeDiff/1000;
-        const dropComponent = app.getComponent('drop');
-        if (!grounded) {
-          app.position
-            .add(
-              localVector.copy(velocity)
-                .multiplyScalar(timeDiffS)
-            );
-          velocity.add(
-            localVector.copy(physicsManager.getGravity())
-              .multiplyScalar(timeDiffS)
-          );
-          
-          const groundHeight = 0.1;
-          if (app.position.y <= groundHeight) {
-            app.position.y = groundHeight;
-            const newDrop = JSON.parse(JSON.stringify(dropComponent));
-            velocity.set(0, 0, 0);
-            newDrop.velocity = velocity.toArray();
-            app.setComponent('drop', newDrop);
-            grounded = true;
-          }
-        }
-        // if (grounded) {
-          app.rotation.y += angularVelocity.y * timeDiff;
-        // }
-        
-        glowMesh.visible = !animation;
-        if (!animation) {
-          localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
-          localVector.y = 0;
-          const distance = localVector.distanceTo(app.position);
-          if (distance < 1) {
-            // console.log('check 1');
-            const timeSinceStart = timestamp - startTime;
-            if (timeSinceStart > gracePickupTime) {
-              // console.log('check 2');
-              animation = {
-                startPosition: app.position.clone(),
-                startTime: timestamp,
-                endTime: timestamp + 1000,
-              };
-            }
-          }
-        }
-        if (animation) {
-          const headOffset = 0.5;
-          const bodyOffset = -0.3;
-          const tailTimeFactorCutoff = 0.8;
-          const timeDiff = timestamp - animation.startTime;
-          const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
-          if (timeFactor < 1) {
-            if (timeFactor < tailTimeFactorCutoff) {
-              const f = cubicBezier(timeFactor);
-              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                .add(localVector2.set(0, headOffset, 0));
-              app.position.copy(animation.startPosition).lerp(localVector, f);
-            } else {
-              {
-                const f = cubicBezier(tailTimeFactorCutoff);
-                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                  .add(localVector2.set(0, headOffset, 0));
-                app.position.copy(animation.startPosition).lerp(localVector, f);
-              }
-              {
-                const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
-                const f = cubicBezier2(tailTimeFactor);
-                localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                  .add(localVector2.set(0, bodyOffset, 0));
-                app.position.lerp(localVector, f);
-                app.scale.copy(defaultScale).multiplyScalar(1 - tailTimeFactor);
-              }
-            }
-          } else {
-            world.appManager.dispatchEvent(new MessageEvent('pickup', {
-              data: {
-                app,
-              },
-            }));
-            world.appManager.removeApp(app);
-            app.destroy();
-          }
-        }
-        
-        app.updateMatrixWorld();
-      });
-    }
-  },
 };
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),
@@ -466,11 +347,15 @@ metaversefile.setApi({
   useScene() {
     return scene;
   },
-  usePostScene() {
-    return postScene;
+  usePostOrthographicScene() {
+    return postSceneOrthographic;
+  },
+  usePostPerspectiveScene() {
+    return postScenePerspective;
   },
   useWorld() {
     return {
+      appManager: world.appManager,
       /* addObject() {
         return world.appManager.addObject.apply(world.appManager, arguments);
       },
@@ -504,12 +389,25 @@ metaversefile.setApi({
         fn(e.data);
       };
       world.appManager.addEventListener('frame', frame);
-      app.addEventListener('destroy', () => {
+      const destroy = () => {
+        cleanup();
+      };
+      app.addEventListener('destroy', destroy);
+      
+      const cleanup = () => {
         world.appManager.removeEventListener('frame', frame);
-      });
+        app.removeEventListener('destroy', destroy);
+      };
+      
+      return {
+        cleanup,
+      };
     } else {
       throw new Error('useFrame cannot be called outside of render()');
     }
+  },
+  clearFrame(frame) {
+    frame.cleanup();
   },
   useBeforeRender() {
     recursion++;
@@ -564,10 +462,10 @@ metaversefile.setApi({
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
       }
-      const localVector = new THREE.Vector3();
+      /* const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
-      const localMatrix = new THREE.Matrix4();
+      const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
       physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
@@ -581,21 +479,21 @@ metaversefile.setApi({
         position = localVector;
         quaternion = localQuaternion;
         size = localVector2; */
-        
+
         const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
         
-        /* const {physicsMesh} = physicsObject;
-        physicsMesh.position.copy(basePosition);
-        physicsMesh.quaternion.copy(baseQuaternion);
-        physicsMesh.scale.copy(baseScale);
+        // const {physicsMesh} = physicsObject;
+        // physicsMesh.position.copy(position);
+        // physicsMesh.quaternion.copy(quaternion);
+        // physicsMesh.scale.copy(size);
         // app.add(physicsObject);
-        physicsObject.updateMatrixWorld(); */
-        
+        // physicsObject.updateMatrixWorld();
+
         app.physicsObjects.push(physicsObject);
-        // physicsManager.pushUpdate(app, physicsObject);
+
         return physicsObject;
       })(physics.addBoxGeometry);
       physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
@@ -767,9 +665,6 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useDefaultComponents() {
-    return defaultComponents;
-  },
   useWeb3() {
     return web3.mainnet;
   },
@@ -843,6 +738,8 @@ metaversefile.setApi({
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
+      app.updateMatrixWorld();
+      app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
       (async () => {
@@ -939,7 +836,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postScene,
+      postSceneOrthographic,
+      postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
@@ -951,6 +849,9 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
+  },
+  useNpcPlayerInternal() {
+    return NpcPlayer;
   },
   useTextInternal() {
     return Text;
@@ -967,14 +868,20 @@ export default () => {
   useGradientMapsInternal() {
     return gradientMaps;
   },
+  isSceneLoaded() {
+    return isSceneLoaded();
+  },
+  async waitForSceneLoaded() {
+    await waitForSceneLoaded();
+  },
   async addModule(app, m) {
     currentAppRender = app;
 
     let renderSpec = null;
     let waitUntilPromise = null;
-    const fn = m.default;
-    (() => {
+    const _tickModule = () => {
       try {
+        const fn = m.default;
         if (typeof fn === 'function') {
           renderSpec = fn({
             waitUntil(p) {
@@ -989,22 +896,55 @@ export default () => {
         console.warn(err);
         return null;
       }
-    })();
-    currentAppRender = null
-    
-    /* const loaded = renderSpec?.loaded;
-    if (loaded instanceof Promise) {
-      await loaded;
-    } */
+    };
+    _tickModule();
+
+    currentAppRender = null;
+
     if (waitUntilPromise) {
       await waitUntilPromise;
     }
 
-    // console.log('gor react', React, ReactAll);
+    const _bindDefaultComponents = app => {
+      // console.log('bind default components', app); // XXX
+      
+      currentAppRender = app;
+
+      // component handlers
+      const componentHandlers = {};
+      for (const {key, value} of app.components) {
+        const componentHandlerTemplate = componentTemplates[key];
+        if (componentHandlerTemplate) {
+          componentHandlers[key] = componentHandlerTemplate(app, value);
+        }
+      }
+      app.addEventListener('componentupdate', e => {
+        const {key, value} = e;
+
+        currentAppRender = app;
+
+        const componentHandler = componentHandlers[key];
+        if (!componentHandler && value !== undefined) {
+          const componentHandlerTemplate = componentTemplates[key];
+          if (componentHandlerTemplate) {
+            componentHandlers[key] = componentHandlerTemplate(app, value);
+          }
+        } else if (componentHandler && value === undefined) {
+          componentHandler.remove();
+          delete componentHandlers[key];
+        }
+
+        currentAppRender = null;
+      });
+
+      currentAppRender = null;
+    };
+
     if (renderSpec instanceof THREE.Object3D) {
       const o = renderSpec;
       if (o !== app) {
         app.add(o);
+        o.updateMatrixWorld();
       }
       
       app.addEventListener('destroy', () => {
@@ -1012,6 +952,8 @@ export default () => {
           app.remove(o);
         }
       });
+
+      _bindDefaultComponents(app);
       
       return app;
     } else if (React.isValidElement(renderSpec)) {
@@ -1123,9 +1065,11 @@ export default () => {
           });
         }
       });
+
+      _bindDefaultComponents(app);
       
       return app;
-    } else if (renderSpec === null || renderSpec === undefined) {
+    } else if (renderSpec === false || renderSpec === null || renderSpec === undefined) {
       app.destroy();
       return null;
     } else if (renderSpec === true) {

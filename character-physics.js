@@ -200,7 +200,7 @@ class CharacterPhysics {
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
-      localVector.add(localOffset2);
+      // localVector.add(localOffset2);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
@@ -335,23 +335,25 @@ class CharacterPhysics {
 
     switch (cameraMode) {
       case 'firstperson': {
-
         if (this.player.avatar) {
-
           const boneNeck = this.player.avatar.foundModelBones['Neck'];
-          const boneEyeR = this.player.avatar.foundModelBones['Eye_R'];
           const boneEyeL = this.player.avatar.foundModelBones['Eye_L'];
+          const boneEyeR = this.player.avatar.foundModelBones['Eye_R'];
+          const boneHead = this.player.avatar.foundModelBones['Head'];
 
-          boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5,0.6), 0, 0, 'XYZ'));
+          boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
           boneNeck.updateMatrixWorld();
     
-          boneEyeR.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-          boneEyeL.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
-                
-          localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
-
-        }
-        else {
+          if (boneEyeL && boneEyeR) {
+            boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+            boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+            localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+          } else {
+            boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+            localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+            localVector3.copy(localVector);
+          }
+        } else {
           localVector3.copy(this.player.position);
         }
 

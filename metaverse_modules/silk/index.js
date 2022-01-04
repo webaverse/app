@@ -9,22 +9,22 @@ const simplex = new Simplex('lol');
 export default () => {
   const app = useApp();
   
-  const components = useDefaultComponents();
-  components.drop(app);
+  // const components = useDefaultComponents();
+  // components.drop(app);
 
   const silkMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
   silkMesh.scale.copy(defaultScale);
   app.add(silkMesh);
 
-  const startTime = Date.now();
+  /* const startTime = Date.now();
   let lastTimestamp = startTime;
-  let animation = null;
+  let animation = null; */
   const timeOffset = Math.random() * 10;
   useFrame(() => {
-    const now = Date.now();
+    /* const now = Date.now();
     const timeDiff = (now - lastTimestamp) / 1000;
-    lastTimestamp = now;
+    lastTimestamp = now; */
 
     const time = timeOffset + performance.now() * 0.002;
     const k = 1;

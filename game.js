@@ -11,13 +11,14 @@ import cameraManager from './camera-manager.js';
 // import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 // import {loginManager} from './login.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
+import dioramaManager from './diorama.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
+import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
@@ -39,6 +40,7 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -586,6 +588,7 @@ const hitRadius = 1;
 const hitHeight = 0.2;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
+const damageMeshOffsetDistance = 1.5;
 /* const cylinderMesh = (() => {
   const radius = 1;
   const height = 0.2;
@@ -1013,16 +1016,28 @@ const _gameUpdate = (timestamp, timeDiff) => {
               const lastHitTime = lastHitTimes.get(object) ?? 0;
               const timeDiff = now - lastHitTime;
               if (timeDiff > 1000) {
-                // const worldPosition = object.getWorldPosition(localVector);
                 const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
                 const hitDirection = object.position.clone()
                   .sub(localPlayer.position);
                 hitDirection.y = 0;
                 hitDirection.normalize();
-                
+
+                const hitPosition = localVector.copy(localPlayer.position)
+                  .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
+                  .clone();
+                localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+                localEuler.x = 0;
+                localEuler.z = 0;
+                const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+
+                const willDie = object.willDieFrom(damage);
                 object.hit(damage, {
                   collisionId,
+                  // collisionId,
+                  hitPosition,
+                  hitQuaternion,
                   hitDirection,
+                  willDie,
                 });
               
                 lastHitTimes.set(object, now);
@@ -1509,6 +1524,15 @@ const gameManager = {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   },
+  drop() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const wearActions = localPlayer.getActionsArray().filter(action => action.type === 'wear');
+    if (wearActions.length > 0) {
+      const wearAction = wearActions[0];
+      const app = metaversefileApi.getAppByInstanceId(wearAction.instanceId);
+      localPlayer.unwear(app);
+    }
+  },
   canPush() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
@@ -1575,18 +1599,20 @@ const gameManager = {
   menuBUp() {
     // physicsManager.setThrowState(null);
   },
-  menuDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const narutoRunAction = localPlayer.getAction('narutoRun');
-    if (!narutoRunAction) {
-      const newNarutoRunAction = {
-        type: 'narutoRun',
-        // time: 0,
-      };
-      localPlayer.addAction(newNarutoRunAction);
+  menuDoubleTap() {
+    if (!this.isCrouched()) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const narutoRunAction = localPlayer.getAction('narutoRun');
+      if (!narutoRunAction) {
+        const newNarutoRunAction = {
+          type: 'narutoRun',
+          // time: 0,
+        };
+        localPlayer.addAction(newNarutoRunAction);
+      }
     }
   },
-  menuUnDoubleShift() {
+  menuUnDoubleTap() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
@@ -1657,7 +1683,7 @@ const gameManager = {
     }
   },
   menuUpload: _upload,
-  addLocalEmote(index) {
+  /* addLocalEmote(index) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
       const timestamp = performance.now();
@@ -1689,7 +1715,7 @@ const gameManager = {
       };
       world.appManager.addEventListener('frame', frame);
     }
-  },
+  }, */
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   },
@@ -1713,6 +1739,11 @@ const gameManager = {
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
+    
+      // if (!this.isFlying()) {
+        // play sound
+        soundManager.play('jump');
+      // }
     }
   },
 
@@ -1724,11 +1755,6 @@ const gameManager = {
     // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.characterPhysics.velocity.y += 6;
-    
-    if (!this.isFlying()) {
-      // play sound
-      soundManager.play('jump');
-    }
   },
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
@@ -1826,7 +1852,7 @@ const gameManager = {
     }
     
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
-      (ioManager.keys.doubleShift ? 20 : 3)
+      (ioManager.keys.doubleTap ? 20 : 3)
     :
       1;
     speed *= sprintMultiplier;
@@ -1880,6 +1906,23 @@ const gameManager = {
   menuActivateUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('activate');
+  },
+  playerDiorama: null,
+  async bindPreviewCanvas(canvas) {
+    await rendererWaitForLoad();
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    this.playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
+      canvas,
+      // label: true,
+      outline: true,
+      grassBackground: true,
+      // glyphBackground: true,
+    });
+    this.playerDiorama.enabled = false;
+    canvas.addEventListener('click', e => {
+      this.playerDiorama.toggleShader();
+    });
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
