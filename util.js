@@ -655,7 +655,7 @@ export const handleDiscordLogin = async (code, id) => {
 };
 
 export const isValidURL = (string) => {
-  var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+  var res = string.match(/((http(s)?:\/\/.)|(@proxy)).*/g);
   return (res !== null);
 }
 
