@@ -45,7 +45,7 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
         if (!previews[app.instanceId] && app.appType) {
           if(['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif', 'image'].includes(app.appType)){
             previews[app.instanceId] = '/images/object.jpg';
-            let c = app.contentId.replace('.metaversefile',''); //remove .metaversefile extension from content id
+            //let c = app.contentId.replace('.metaversefile',''); //remove .metaversefile extension from content id
             // preview(c, app.appType, 'png', 100, 100).then(res => {
             //   const imageObjectURL = URL.createObjectURL(res.blob);
             //   previews[app.instanceId] = imageObjectURL;
@@ -107,7 +107,7 @@ export const World = ({open, game, apps, selectedApp, selectApp, setSelectedApp,
                   // game.setMouseSelectedObject(null);
                 }}>
                   <img src="images/webpencil.svg" className={classnames(styles['background-inner'], styles.lime)} />
-                  <img src={previews[app.instanceId]} className={styles.img} />
+                  <img src={previews[app.instanceId] || '/images/object.jpg'} className={styles.img} />
                   <div className={styles.wrap}>
                     <div className={styles.name}>{normaliseName(decodeURI(app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1')))}</div>
                   </div>
