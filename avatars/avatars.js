@@ -379,6 +379,7 @@ const loadPromise = (async () => {
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),
     magic: animations.find(a => a.isMagic),
+    eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
   }, aimAnimations);
   sitAnimations = {
