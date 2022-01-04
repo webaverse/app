@@ -12,6 +12,7 @@ import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
+import { HealthControl } from './avatars/healthControl.js';
 import {
   actionsMapName,
   avatarMapName,
@@ -685,6 +686,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     super(opts);
 
     this.characterPhysics = new CharacterPhysics(this);
+    this.healthControl = new HealthControl();
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
