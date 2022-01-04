@@ -37,7 +37,7 @@ export const getEyePosition = (() => {
   // const localVector2 = new THREE.Vector3();
   return function(modelBones) {
     // const vrmExtension = object?.parser?.json?.extensions?.VRM;
-    return modelBones.Head.getWorldPosition(localVector)
+    return localVector.setFromMatrixPosition(modelBones.Head.matrixWorld);
       // .add(localVector2.set(0, 0.06, 0));
   }
 })();
