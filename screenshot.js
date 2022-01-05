@@ -13,6 +13,8 @@ const defaultHeight = 512;
 // const cameraTarget = new THREE.Vector3(0, 0, 0);
 const FPS = 60;
 
+const localVector = new THREE.Vector3();
+
 /* const _makePromise = () => {
   let accept, reject;
   const p = new Promise((a, r) => {
@@ -301,7 +303,9 @@ const _getType = id => {
   };
   const _lookAt = (camera, boundingBox) => {
     boundingBox.getCenter(camera.position);
+    const size = boundingBox.getSize(localVector);
 
+    camera.position.y = size.y;
     if (appType === 'vrm') {
       camera.position.z -= 1;
     } else {
