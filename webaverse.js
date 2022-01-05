@@ -19,6 +19,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import * as postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
+import {makePromise} from './util.js';
 import {
   getRenderer,
   scene,
@@ -626,4 +627,107 @@ const _startHacks = () => {
       }
     }
   });
+};
+
+function weightedRandom(weights) {
+	var totalWeight = 0,
+		i, random;
+
+	for (i = 0; i < weights.length; i++) {
+		totalWeight += weights[i];
+	}
+
+	random = Math.random() * totalWeight;
+
+	for (i = 0; i < weights.length; i++) {
+		if (random < weights[i]) {
+			return i;
+		}
+
+		random -= weights[i];
+	}
+
+	return -1;
+}
+const voiceFiles = ``.split('\n');
+const voices = [];
+const promises = [];
+// (async () => {
+  for (const voiceFile of voiceFiles) {
+    const audio = new Audio(`shishi-voicepack/vocalizations/${voiceFile}`);
+    const p = makePromise();
+    audio.addEventListener('canplaythrough', () => {
+      p.accept();
+    });
+    audio.addEventListener('error', err => {
+      p.reject();
+    });
+    voices.push(audio);
+  }
+// })();
+const loadPromise = Promise.all(promises).then(() => {
+  console.log('voice pack loaded');
+});
+class Voicer {
+  constructor(voices) {
+    this.voices = voices.map(voice => {
+      return {
+        voice,
+        nonce: 0,
+      };
+    });
+    this.nonce = 0;
+  }
+  selectVoice() {
+    // the weight of each voice is proportional to the inverse of the number of times it has been used
+    const maxNonce = this.voices.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+    const weights = this.voices.map(({nonce}) => {
+      return 1 - (nonce / (maxNonce + 1));
+    });
+    const selectionIndex = weightedRandom(weights);
+    const voiceSpec = this.voices[selectionIndex];
+    voiceSpec.nonce++;
+    while (this.voices.every(voice => voice.nonce > 0)) {
+      for (const voiceSpec of this.voices) {
+        voiceSpec.nonce--;
+      }
+    }
+    return voiceSpec.voice;
+  }
+}
+const voicer = new Voicer(voices);
+window.playVoice = async () => {
+  await loadPromise;
+
+  // play a random audio file, wait for it to finish, then recurse to play another
+  const _recurse = async () => {
+    const audio = voicer.selectVoice(); // voices[Math.floor(Math.random() * voices.length)];
+    if (audio.silencingInterval) {
+      clearInterval(audio.silencingInterval);
+      audio.silencingInterval = null;
+    }
+    audio.currentTime = 0;
+    audio.volume = 1;
+    if (audio.paused) {
+      await audio.play();
+    }
+    const audioTimeout = audio.duration * 1000;
+    setTimeout(async () => {
+      // await audio.pause();
+
+      audio.silencingInterval = setInterval(() => {
+        audio.volume = Math.max(audio.volume - 0.1, 0);
+        if (audio.volume === 0) {
+          clearInterval(audio.silencingInterval);
+          audio.silencingInterval = null;
+        }
+      }, 10);
+
+      _recurse();
+    }, audioTimeout);
+    /* audio.addEventListener('ended', async () => {
+      
+    }, {once: true}); */
+  };
+  _recurse();
 };
