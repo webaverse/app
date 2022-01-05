@@ -732,7 +732,7 @@ metaversefile.setApi({
     // app.name = name;
     app._name = start_url;
     if(start_url){
-      debugger
+      // debugger
       console.log(222, start_url)  
     }
     app.type = type;
