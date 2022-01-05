@@ -37,7 +37,7 @@ export const getEyePosition = (() => {
   // const localVector2 = new THREE.Vector3();
   return function(modelBones) {
     // const vrmExtension = object?.parser?.json?.extensions?.VRM;
-    return modelBones.Head.getWorldPosition(localVector)
+    return localVector.setFromMatrixPosition(modelBones.Head.matrixWorld);
       // .add(localVector2.set(0, 0.06, 0));
   }
 })();
@@ -521,6 +521,7 @@ export const decorateAnimation = animation => {
   animation.isSkateboarding = /skateboarding/i.test(animation.name);
   animation.isThrow = /throw/i.test(animation.name);
   animation.isDancing = /dancing/i.test(animation.name);
+  animation.isEating = /eating/i.test(animation.name);
   animation.isDrinking = /drinking/i.test(animation.name);
   animation.isCrouch = /crouch|sneak/i.test(animation.name);
   animation.isForward = /forward/i.test(animation.name);

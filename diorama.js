@@ -1648,7 +1648,8 @@ const createPlayerDiorama = (player, {
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
       if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
-        throw new Error('renderer is too small');
+        console.warn('renderer is too small');
+        return;
       }
 
       if (!outlineRenderTarget || (outlineRenderTarget.width !== this.width * pixelRatio) || (outlineRenderTarget.height !== this.height * pixelRatio)) {
@@ -1882,7 +1883,8 @@ const createAppDiorama = (app, {
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
       );
       if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
-        throw new Error('renderer is too small');
+        console.warn('renderer is too small');
+        return;
       }
     
       // push old state

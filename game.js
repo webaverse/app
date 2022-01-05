@@ -808,7 +808,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
       const radius = 1;
       const halfHeight = 0.1;
-      const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
+      const collision = physx.physxWorker.getCollisionObjectPhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
@@ -1001,13 +1001,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localVector.copy(localPlayer.position)
             .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
 
-          const collision = physx.physxWorker.collidePhysics(
+          const collision = physx.physxWorker.getCollisionObjectPhysics(
             physx.physics,
             hitRadius,
             hitHalfHeight,
             localVector,
             localPlayer.quaternion,
-            1
           );
           if (collision) {
             const collisionId = collision.objectId;
