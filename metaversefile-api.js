@@ -332,7 +332,7 @@ metaversefile.setApi({
   },
   async load(u) {
     const m = await metaversefile.import(u);
-    const app = metaversefile.createApp({start_url: u});
+    const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
     return app;
   },
@@ -728,13 +728,7 @@ metaversefile.setApi({
   },
   createApp({/* name = '', */start_url = '', type = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
-    // debugger
     // app.name = name;
-    app._name = start_url;
-    if(start_url){
-      // debugger
-      console.log(222, start_url)  
-    }
     app.type = type;
     app.contentId = start_url;
     // app.components = components;
