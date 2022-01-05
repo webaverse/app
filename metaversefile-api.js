@@ -12,7 +12,7 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -25,7 +25,7 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
 import * as postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
@@ -347,8 +347,11 @@ metaversefile.setApi({
   useScene() {
     return scene;
   },
-  usePostScene() {
-    return postScene;
+  usePostOrthographicScene() {
+    return postSceneOrthographic;
+  },
+  usePostPerspectiveScene() {
+    return postScenePerspective;
   },
   useWorld() {
     return {
@@ -856,7 +859,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postScene,
+      postSceneOrthographic,
+      postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
@@ -868,6 +872,9 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
+  },
+  useNpcPlayerInternal() {
+    return NpcPlayer;
   },
   useTextInternal() {
     return Text;

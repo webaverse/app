@@ -672,7 +672,7 @@ export function getPlayerPrefix(playerId) {
   return playersMapName + '.' + playerId;
 }
 
-export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
+/* export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   const center = boundingBox.getCenter(localVector);
   const size = boundingBox.getSize(localVector2);
 
@@ -684,8 +684,31 @@ export function fitCameraToBox(camera, boundingBox, fitOffset = 1) {
   camera.position.z = distance;
   // camera.lookAt(center);
   camera.updateMatrixWorld();
-}
+} */
 
+export function fitCameraToBoundingBox(camera, box, fitOffset = 1) {
+  const size = box.getSize(localVector);
+  const center = box.getCenter(localVector2);
+  
+  const maxSize = Math.max( size.x, size.y, size.z );
+  const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
+  
+  const direction = center.clone()
+    .sub(camera.position)
+    .normalize()
+    .multiplyScalar(distance);
+
+  camera.position.copy(center).add(direction);
+  camera.quaternion.setFromRotationMatrix(
+    localMatrix.lookAt(
+      camera.position,
+      center,
+      camera.up,
+    )
+  );
+}
 
 export function applyVelocity(position, velocity, timeDiffS) {
   position.add(localVector.copy(velocity).multiplyScalar(timeDiffS));

@@ -15,6 +15,14 @@
   font-family: 'GeoSans';
   src: url('GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
 }
+@font-face {
+  font-family: 'PlazaRegular';
+  src:  url('../public/fonts/Plaza\ Regular.ttf');
+}
+@font-face {
+  font-family: 'WinchesterCaps';
+  src:  url('../public/fonts/WinchesterCaps.ttf');
+}
 
 body {
   margin: 0;

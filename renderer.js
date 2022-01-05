@@ -6,6 +6,7 @@ the purpose of this file is to hold these objects and to make sure they are corr
 import * as THREE from 'three';
 window.THREE = THREE
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import {makePromise} from './util.js';
 import {minFov} from './constants.js';
 
 // // https://stackoverflow.com/a/62544968/3596736
@@ -54,6 +55,9 @@ import {minFov} from './constants.js';
 
 let canvas = null, context = null, renderer = null, composer = null;
 
+let waitPromise = makePromise();
+const waitForLoad = () => waitPromise;
+
 function bindCanvas(c) {
   // initialize renderer
   canvas = c;
@@ -88,7 +92,7 @@ function bindCanvas(c) {
   if (!context) {
     context = renderer.getContext();
   }
-  context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+  // context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 
   // initialize post-processing
@@ -105,6 +109,8 @@ function bindCanvas(c) {
     renderTarget.samples = context.MAX_SAMPLES;
     composer = new EffectComposer(renderer, renderTarget);
   }
+
+  waitPromise.accept();
 }
 
 function getRenderer() {
@@ -131,8 +137,10 @@ const rootScene = new THREE.Scene();
 window.rootScene = rootScene
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-const postScene = new THREE.Scene();
-postScene.name = 'postScene';
+const postSceneOrthographic = new THREE.Scene();
+postSceneOrthographic.name = 'postOrthographic';
+const postScenePerspective = new THREE.Scene();
+postScenePerspective.name = 'postPerspective';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
@@ -156,7 +164,7 @@ dolly.add(camera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 
-// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
 
 window.addEventListener('resize', e => {
@@ -214,6 +222,7 @@ if (canvas.parentNode) {
 } */
 
 export {
+  waitForLoad,
   // AppManager,
   bindCanvas,
   getRenderer,
@@ -221,10 +230,11 @@ export {
   getComposer,
   scene,
   rootScene,
-  postScene,
+  postSceneOrthographic,
+  postScenePerspective,
   // avatarScene,
   camera,
-  // orthographicCamera,
+  orthographicCamera,
   // avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/

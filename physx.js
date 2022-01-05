@@ -741,28 +741,6 @@ const physxWorker = (() => {
     const groundedOffset = scratchStack.f32.byteOffset + 18 * Float32Array.BYTES_PER_ELEMENT;
     const idOffset = scratchStack.f32.byteOffset + 19 * Float32Array.BYTES_PER_ELEMENT;
 
-    /* const collideArgs = {
-      position: allocator.alloc(Float32Array, 3),
-      quaternion: allocator.alloc(Float32Array, 4),
-      meshPosition: allocator.alloc(Float32Array, 3),
-      meshQuaternion: allocator.alloc(Float32Array, 4),
-      hit: allocator.alloc(Uint32Array, 1),
-      direction: allocator.alloc(Float32Array, 3),
-      grounded: allocator.alloc(Uint32Array, 1),
-    }; */
-    
-    /* console.log('collide physics', [physics,
-      radius,
-      halfHeight,
-      positionOffset,
-      quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset,
-      maxIter,
-      hitOffset,
-      directionOffset,
-      groundedOffset]); */
-
     moduleInstance._collidePhysics(
       physics,
       radius,
@@ -782,6 +760,38 @@ const physxWorker = (() => {
       direction: scratchStack.f32.slice(15, 18),
       grounded: !!scratchStack.u32[18],
       objectId: scratchStack.u32[19],
+    } : null;
+  };
+  w.getCollisionObjectPhysics = (physics, radius, halfHeight, p, q) => {
+    p.toArray(scratchStack.f32, 0);
+    localQuaternion.copy(q)
+      .premultiply(capsuleUpQuaternion)
+      .toArray(scratchStack.f32, 3);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
+
+    const positionOffset = scratchStack.f32.byteOffset;
+    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
+    const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const idOffset = scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT;
+
+    moduleInstance._getCollisionObjectPhysics(
+      physics,
+      radius,
+      halfHeight,
+      positionOffset,
+      quaternionOffset,
+      meshPositionOffset,
+      meshQuaternionOffset,
+      hitOffset,
+      idOffset,
+    );
+
+    return scratchStack.u32[14] ? {
+      objectId: scratchStack.u32[15],
     } : null;
   };
 
@@ -989,6 +999,7 @@ const physxWorker = (() => {
     const numPositions = allocator.alloc(Uint32Array, 1);
     const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024 * 2);
     const numIndices = allocator.alloc(Uint32Array, 1);
+    const boundsBuffer = allocator.alloc(Float32Array, 6);
 
     const ok = moduleInstance._getGeometryPhysics(
       physics,
@@ -997,22 +1008,43 @@ const physxWorker = (() => {
       numPositions.byteOffset,
       indicesBuffer.byteOffset,
       numIndices.byteOffset,
+      boundsBuffer.byteOffset,
     );
-    /* const objectId = scratchStack.u32[21];
-    const faceIndex = scratchStack.u32[22];
-    const objectPosition = scratchStack.f32.slice(23, 26);
-    const objectQuaternion = scratchStack.f32.slice(26, 30); */
 
     if (ok) {
       const positions = positionsBuffer.slice(0, numPositions[0]);
       const indices = indicesBuffer.slice(0, numIndices[0]);
+      const bounds = boundsBuffer.slice();
 
       allocator.freeAll();
 
       return {
         positions,
         indices,
+        bounds,
       };
+    } else {
+      allocator.freeAll();
+      return null;
+    }
+  };
+  w.getBoundsPhysics = (physics, id, box) => {
+    const allocator = new Allocator();
+    const boundsBuffer = allocator.alloc(Float32Array, 6);
+
+    const ok = moduleInstance._getBoundsPhysics(
+      physics,
+      id,
+      boundsBuffer.byteOffset,
+    );
+
+    if (ok) {
+      box.min.fromArray(boundsBuffer, 0);
+      box.max.fromArray(boundsBuffer, 3);
+
+      allocator.freeAll();
+
+      return box;
     } else {
       allocator.freeAll();
       return null;
