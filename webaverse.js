@@ -654,7 +654,7 @@ const voices = [];
 const promises = [];
 // (async () => {
   for (const voiceFile of voiceFiles) {
-    const audio = new Audio(`shishi-voicepack/vocalizations/${voiceFile}`);
+    const audio = new Audio(`https://webaverse.github.io/shishi-voicepack/shishi-voicepack/vocalizations/${voiceFile}`);
     const p = makePromise();
     audio.addEventListener('canplaythrough', () => {
       p.accept();
