@@ -5,11 +5,11 @@ const queue = [];
 let running = false;
 let f;
 
-const next = ()=>{
+const next = () => {
   /** Unshift the queue to generate the next preview */
   const {url, ext, type, width, height, resolve, reject} = queue.shift();
   generatePreview(url, ext, type, width, height, resolve, reject);
-}
+};
 
 export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
   const previewHost = inappPreviewHost;
@@ -27,7 +27,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
 
   // check either first param is url or hash
   if (!isValidURL(url)) {
-    url = `${storageHost}/ipfs/${url}`;
+    url = `${storageHost}/${url}/preview.${ext}`;
   }
 
   // create URL
@@ -47,7 +47,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
     }
   }, 30 * 1000);
 
-  f = (event) => {
+  f = event => {
     if (event.data.method === 'result') {
       window.removeEventListener('message', f, false);
       let blob;
@@ -80,12 +80,16 @@ function isValidURL(string) {
   return (res !== null);
 }
 
-export const preview = async (url, ext, type, width, height) => {
+export const preview = async (url, ext, type, width, height, priority=10) => {
   return new Promise((resolve, reject) => {
+    if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
+      return reject('Undefined Extension');
+    }
     if (!running) {
       generatePreview(url, ext, type, width, height, resolve, reject);
     } else {
-      queue.push({url, ext, type, width, height, resolve, reject});
+      queue.push({url, ext, type, width, height, resolve, reject, priority});
+      queue.sort((a, b) => a.priority - b.priority)
     }
   });
 };

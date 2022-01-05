@@ -25,7 +25,7 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
 export function applyPlayerModesToAvatar(player, session, rig) {
   const aimAction = player.getAction('aim');
   const aimComponent = (() => {
-    for (const action of player.getActionsState()) {
+    for (const action of player.getActions()) {
       if (action.type === 'wear') {
         const app = player.appManager.getAppByInstanceId(action.instanceId);
         if (!app) {
@@ -87,16 +87,18 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
-  const chargeJump = player.getAction('chargeJump');
-  const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
-  const standCharge = player.getAction('standCharge');
-  const standChargeAnimation = standCharge ? standCharge.animation : '';
+  // const chargeJump = player.getAction('chargeJump');
+  // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
+  // const standCharge = player.getAction('standCharge');
+  // const standChargeAnimation = standCharge ? standCharge.animation : '';
   const fallLoop = player.getAction('fallLoop');
   const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
-  const swordSideSlash = player.getAction('swordSideSlash');
-  const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
-  const swordTopDownSlash = player.getAction('swordTopDownSlash');
-  const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  // const swordSideSlash = player.getAction('swordSideSlash');
+  // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
+  // const swordTopDownSlash = player.getAction('swordTopDownSlash');
+  // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  const emoteAction = player.getAction('emote');
+  const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
@@ -120,25 +122,43 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.throwState = !!throwAction;
   rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
-  rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
-  rig.chargeAnimation = chargeJumpAnimation;
-  rig.chargeJumpState = !!chargeJump;
-  rig.standChargeTime = player.actionInterpolants.standCharge.get();
-  rig.standChargeAnimation = standChargeAnimation;
-  rig.standChargeState = !!standCharge;
+  // rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
+  // rig.chargeAnimation = chargeJumpAnimation;
+  // rig.chargeJumpState = !!chargeJump;
+  // rig.standChargeTime = player.actionInterpolants.standCharge.get();
+  // rig.standChargeAnimation = standChargeAnimation;
+  // rig.standChargeState = !!standCharge;
   rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoop;
-  rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
-  rig.swordSideSlashAnimation = swordSideSlashAnimation;
-  rig.swordSideSlashState = !!swordSideSlash;
-  rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
-  rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
-  rig.swordTopDownSlashState = !!swordTopDownSlash;
+  // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
+  // rig.swordSideSlashAnimation = swordSideSlashAnimation;
+  // rig.swordSideSlashState = !!swordSideSlash;
+  // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
+  // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
+  // rig.swordTopDownSlashState = !!swordTopDownSlash;
 
+  // emote
+  if (emoteAction) {
+    const {index} = emoteAction;
+    if (!(player.avatar.emotes.length === 1 && player.avatar.emotes[0].index === index)) {
+      player.avatar.emotes.length = 0;
+
+      const newEmote = {
+        index,
+        value: 1,
+      };
+      player.avatar.emotes.push(newEmote);
+    }
+  } else {
+    player.avatar.emotes.length = 0;
+  }
+
+  // pose
+  rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerChatToAvatar(player, rig) {
-  const localPlayerChatActions = Array.from(player.getActionsState()).filter(action => action.type === 'chat');
+  const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
   const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
   const _applyChatEmote = message => {
     const localPlayerEmotion = message?.emotion;
