@@ -701,7 +701,8 @@ window.playVoice = async () => {
 
   // play a random audio file, wait for it to finish, then recurse to play another
   const _recurse = async () => {
-    const audio = voicer.selectVoice(); // voices[Math.floor(Math.random() * voices.length)];
+    // XXX this needs to be played by the player object
+    const audio = voicer.selectVoice();
     if (audio.silencingInterval) {
       clearInterval(audio.silencingInterval);
       audio.silencingInterval = null;
