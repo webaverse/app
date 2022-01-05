@@ -6,6 +6,7 @@ import metaversefile from '../../metaversefile-api.js';
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, previewCanvasRef}) => {
   const sideSize = 400;
+  const healthControl = metaversefile.useLocalPlayer().healthControl;
 
   return (
     <Tab
@@ -29,11 +30,11 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
             <div className={classnames(styles['panel-section'], styles['main-stats'])}>
               <div className={styles['panel-row']}>
-                <h2>HP</h2>
+                <h2 id = "healthDisplay">HP </h2>
                 <progress value={61} />
               </div>
               <div className={styles['panel-row']}>
-                <h2>MP</h2>
+                <h2 id = "manaDisplay">MP</h2>
                 <progress value={83} />
               </div>
             </div>
