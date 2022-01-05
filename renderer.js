@@ -33,21 +33,21 @@ import {minFov} from './constants.js';
 //   })
 // })()
 
-THREE.Matrix4.prototype.multiplyMatrices = (function () {
-  var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
+// THREE.Matrix4.prototype.multiplyMatrices = (function () {
+//   var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
 
-  let startTime;
+//   let startTime;
 
-  return function () {
-    startTime = performance.now()
+//   return function () {
+//     startTime = performance.now()
 
-    var result = cachedFunction.apply(this, arguments) // use .apply() to call it
+//     var result = cachedFunction.apply(this, arguments) // use .apply() to call it
 
-    window.totalTime += performance.now() - startTime
-    window.count += 1
-    return result
-  }
-})()
+//     window.totalTime += performance.now() - startTime
+//     window.count += 1
+//     return result
+//   }
+// })()
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
