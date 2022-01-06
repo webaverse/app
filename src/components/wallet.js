@@ -163,6 +163,5 @@ class Wallet {
 }
 
 const WebaWallet = new Wallet();
-window.WebaWallet = WebaWallet;
 
 export default WebaWallet;
