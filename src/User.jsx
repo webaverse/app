@@ -9,7 +9,7 @@ import {contracts, getAddressFromMnemonic} from '../blockchain.js';
 import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
 import Modal from "./components/modal";
 
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) => {
 
   const [show, setShow] = useState(false);
 
@@ -150,6 +150,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
 
           const {address, profile} = await ceramicApi.login();
           setAddress(address);
+          setLoginFrom('metamask');
           setShow(false);
 
         } catch (err) {
@@ -159,12 +160,6 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
         }
       }
     }
-  }
-
-  const discordLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoginButtons(false);
   } 
   
   useEffect(async () => {
@@ -184,6 +179,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
           setAddress(address);
           sendDataToWallet('privateKey', mnemonic)
           setShow(false);
+          setLoginFrom('discord');
         }
         else {
           setLoginError(String(error).toLocaleUpperCase());
