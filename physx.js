@@ -15,7 +15,7 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Ve
 // const textEncoder = new TextEncoder();
 // const textDecoder = new TextDecoder();
 
-const scratchStackSize = 1024*1024;
+const scratchStackSize = 1024 * 1024;
 const maxNumUpdates = 256;
 
 const physx = {};
@@ -53,73 +53,89 @@ const physxWorker = (() => {
     Int32Array.BYTES_PER_ELEMENT + // id
     Int32Array.BYTES_PER_ELEMENT + // method
     Int32Array.BYTES_PER_ELEMENT + // priority
-    maxNumMessageArgs*Uint32Array.BYTES_PER_ELEMENT; // args
+    maxNumMessageArgs * Uint32Array.BYTES_PER_ELEMENT; // args
   const maxNumMessages = 1024;
   const callStackSize = maxNumMessages * messageSize;
   class CallStackMessage {
     constructor(ptr) {
       this.dataView = new DataView(moduleInstance.HEAP8.buffer, ptr, messageSize);
-      this.offset = 3*Uint32Array.BYTES_PER_ELEMENT;
+      this.offset = 3 * Uint32Array.BYTES_PER_ELEMENT;
     }
+
     getId() {
       return this.dataView.getInt32(0, true);
     }
+
     getMethod() {
       return this.dataView.getInt32(Uint32Array.BYTES_PER_ELEMENT, true);
     }
+
     getPriority() {
-      return this.dataView.getInt32(2*Uint32Array.BYTES_PER_ELEMENT, true);
+      return this.dataView.getInt32(2 * Uint32Array.BYTES_PER_ELEMENT, true);
     }
+
     setId(v) {
       this.dataView.setInt32(0, v, true);
     }
+
     setMethod(v) {
       this.dataView.setInt32(Uint32Array.BYTES_PER_ELEMENT, v, true);
     }
+
     setPriority(v) {
-      this.dataView.setInt32(2*Uint32Array.BYTES_PER_ELEMENT, v, true);
+      this.dataView.setInt32(2 * Uint32Array.BYTES_PER_ELEMENT, v, true);
     }
+
     pullU8Array(length) {
       const {offset} = this;
       this.offset += length;
-      return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);;
+      return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
     }
+
     pullF32Array(length) {
       const {offset} = this;
-      this.offset += length*Float32Array.BYTES_PER_ELEMENT;
+      this.offset += length * Float32Array.BYTES_PER_ELEMENT;
       return new Float32Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
     }
+
     pullI32() {
       const {offset} = this;
       this.offset += Int32Array.BYTES_PER_ELEMENT;
-      return this.dataView.getInt32(offset, true);;
+      return this.dataView.getInt32(offset, true);
     }
+
     pullU32() {
       const {offset} = this;
       this.offset += Uint32Array.BYTES_PER_ELEMENT;
-      return this.dataView.getUint32(offset, true);;
+      return this.dataView.getUint32(offset, true);
     }
+
     pullF32() {
       const {offset} = this;
       this.offset += Float32Array.BYTES_PER_ELEMENT;
       return this.dataView.getFloat32(offset, true);
     }
+
     pushU8Array(uint8Array) {
       new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, uint8Array.length).set(uint8Array);
       this.offset += uint8Array.byteLength;
     }
+
     pushF32Array(float32Array) {
       new Float32Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, float32Array.length).set(float32Array);
       this.offset += float32Array.byteLength;
     }
+
     pushI32(v) {
       this.dataView.setInt32(this.offset, v, true);
       this.offset += Int32Array.BYTES_PER_ELEMENT;
     }
+
     pushU32(v) {
       this.dataView.setUint32(this.offset, v, true);
       this.offset += Uint32Array.BYTES_PER_ELEMENT;
     }
+
     pushF32(v) {
       this.dataView.setFloat32(this.offset, v, true);
       this.offset += Float32Array.BYTES_PER_ELEMENT;
@@ -234,7 +250,7 @@ const physxWorker = (() => {
       startMessage.setId(id);
       startMessage.setMethod(method);
       startMessage.setPriority(+prio);
-      
+
       startCb(startMessage);
       cbIndex.set(id, endCb);
     }
@@ -248,12 +264,12 @@ const physxWorker = (() => {
       this.ptr = moduleInstance._malloc(scratchStackSize);
 
       this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize/4);
+      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize / 4);
+      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize / 4);
+      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, scratchStackSize / 4);
     }
   }
-  
+
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
   const WASM_PAGE_SIZE = 65536;
@@ -264,7 +280,7 @@ const physxWorker = (() => {
   }); */
   let moduleInstance = null;
   let scratchStack;
-  
+
   (async () => {
     await Module.waitForLoad();
 
@@ -273,7 +289,7 @@ const physxWorker = (() => {
     physx.physics = physxWorker.makePhysics();
   })();
 
-  let methodIndex = 0;
+  const methodIndex = 0;
   const cbIndex = new Map();
   const w = {};
   w.alloc = (constructor, count) => {
@@ -343,7 +359,7 @@ const physxWorker = (() => {
     const numUvs = scratchStack.u32[4];
     const numIndices = scratchStack.u32[5];
     const aabbOffset = scratchStack.u32[6];
- 
+
     const boundingBox = new THREE.Box3(
       new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3)),
       new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 6)),
@@ -361,19 +377,19 @@ const physxWorker = (() => {
     renderer.geometries.update(geometry);
 
     geometry.boundingBox = boundingBox;
-    
+
     w.free(dstNameUint8Array.byteOffset);
-    
+
     return geometry;
   };
   w.requestGetGeometries = (geometrySet, geometryRequests) => new Promise((accept, reject) => {
     let geometryRequestsOffset;
     callStack.allocRequest(METHODS.getGeometries, true, m => {
       m.pushU32(geometrySet);
-      
+
       const geometryRequestSize = MAX_NAME_LENGTH + 10*Float32Array.BYTES_PER_ELEMENT;
       geometryRequestsOffset = moduleInstance._malloc(geometryRequestSize * geometryRequests.length);
-      
+
       for (let i = 0; i < geometryRequests.length; i++) {
         const geometryRequest = geometryRequests[i];
         const {name, position, quaternion, scale} = geometryRequest;
@@ -388,7 +404,7 @@ const physxWorker = (() => {
         quaternion.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
         scale.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 7);
       }
-      
+
       m.pushU32(geometryRequestsOffset);
       m.pushU32(geometryRequests.length);
     }, m => {
@@ -428,7 +444,7 @@ const physxWorker = (() => {
     }, m => {
       const namesOffset = m.pullU32();
       const numNames = m.pullU32();
-      
+
       const result = [];
       for (let i = 0; i < numNames; i++) {
         const nameOffset = namesOffset + i*MAX_NAME_LENGTH;
@@ -506,21 +522,21 @@ const physxWorker = (() => {
     let index = 0;
     const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
     index += maxNumUpdates;
-    const positions = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*3;
-    const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
-    index += maxNumUpdates*4;
-    const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-    index += maxNumUpdates*3;
+    const positions = scratchStack.f32.subarray(index, index + maxNumUpdates * 3);
+    index += maxNumUpdates * 3;
+    const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates * 4);
+    index += maxNumUpdates * 4;
+    const scales = scratchStack.f32.subarray(index, index + maxNumUpdates * 3);
+    index += maxNumUpdates * 3;
     const bitfields = scratchStack.u32.subarray(index, index + maxNumUpdates);
     index += maxNumUpdates;
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
       ids[i] = update.id;
-      update.position.toArray(positions, i*3);
-      update.quaternion.toArray(quaternions, i*4);
-      update.scale.toArray(scales, i*3);
+      update.position.toArray(positions, i * 3);
+      update.quaternion.toArray(quaternions, i * 4);
+      update.scale.toArray(scales, i * 3);
     }
 
     /* console.log('simulate', {
@@ -541,16 +557,16 @@ const physxWorker = (() => {
       scales.byteOffset,
       bitfields.byteOffset,
       updates.length,
-      elapsedTime
+      elapsedTime,
     );
-    
+
     const newUpdates = Array(numNewUpdates);
     for (let i = 0; i < numNewUpdates; i++) {
       newUpdates[i] = {
         id: ids[i],
-        position: new THREE.Vector3().fromArray(positions, i*3),
-        quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
-        scale: new THREE.Vector3().fromArray(scales, i*3),
+        position: new THREE.Vector3().fromArray(positions, i * 3),
+        quaternion: new THREE.Quaternion().fromArray(quaternions, i * 4),
+        scale: new THREE.Vector3().fromArray(scales, i * 3),
         collided: !!(bitfields[i] & 0x1),
         grounded: !!(bitfields[i] & 0x2),
       };
@@ -558,7 +574,7 @@ const physxWorker = (() => {
     /* if (updates.length > 0) {
       console.log('updates', updates.slice());
     } */
-    
+
     return newUpdates;
   };
   w.raycastPhysics = (physics, p, q) => {
@@ -632,21 +648,20 @@ const physxWorker = (() => {
   };
   w.raycastPhysicsArray = (physics, p, q, n) => {
     if (physics && (n > 0 && n < 1000)) {
-
       const positions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset, n * 3);
       const directions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 3 * 4), n * 3);
       const meshPositions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 6 * 4), n * 3);
       const meshQuaternions = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + (n * 9 * 4), n * 4);
 
       // Input parameters
-      for(let i=0;i<n;i++) {
+      for (let i = 0; i < n; i++) {
         // Position
         p[i].toArray(positions, (i * 3));
 
         // Directions
         localVector.set(0, 0, -1)
-        .applyQuaternion(q[i])
-        .toArray(directions, (i * 3));
+          .applyQuaternion(q[i])
+          .toArray(directions, (i * 3));
 
         // meshPosition
         localVector.set(0, 0, 0).toArray(meshPositions, (i * 3));
@@ -654,7 +669,7 @@ const physxWorker = (() => {
         // meshQuaternion
         localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternions, (i * 4));
       }
-      
+
       // Output
       const originOffset = scratchStack.f32.byteOffset;
       const directionOffset = scratchStack.f32.byteOffset + (3 * Float32Array.BYTES_PER_ELEMENT) * n;
@@ -687,7 +702,6 @@ const physxWorker = (() => {
         quaternionOffset,
       );
 
-
       return {
         hit: scratchStack.u32.slice(13 * n, 14 * n),
         distance: scratchStack.f32.slice(20 * n, 21 * n),
@@ -697,10 +711,9 @@ const physxWorker = (() => {
         objectId: scratchStack.u32.slice(21 * n, 22 * n),
         faceIndex: scratchStack.u32.slice(22 * n, 23 * n),
         objectPosition: scratchStack.f32.slice(23 * n, 26 * n),
-        objectQuaternion: scratchStack.f32.slice(26 * n, 30 * n)
-      }
-    }
-    else {
+        objectQuaternion: scratchStack.f32.slice(26 * n, 30 * n),
+      };
+    } else {
       throw new Error('raycastPhysicsArray error');
     }
   };
@@ -710,7 +723,7 @@ const physxWorker = (() => {
       physicsId,
       x,
       y,
-      z
+      z,
     );
   };
   w.setAngularLockFlags = (physics, physicsId, x, y, z) => {
@@ -719,7 +732,7 @@ const physxWorker = (() => {
       physicsId,
       x,
       y,
-      z
+      z,
     );
   };
   w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
@@ -811,7 +824,7 @@ const physxWorker = (() => {
       indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
     );
     allocator.freeAll();
 
@@ -829,7 +842,7 @@ const physxWorker = (() => {
     mat[0] = physicsMaterial[0];
     mat[1] = physicsMaterial[1];
     mat[2] = physicsMaterial[2];
-    
+
     moduleInstance._addGeometryPhysics(
       physics,
       dataPtr,
@@ -859,7 +872,7 @@ const physxWorker = (() => {
       indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
     );
 
     const dataPtr = scratchStack.u32[0];
@@ -913,7 +926,7 @@ const physxWorker = (() => {
       indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
     );
     allocator.freeAll();
 
@@ -938,7 +951,7 @@ const physxWorker = (() => {
       id,
       streamPtr,
     );
-  };  
+  };
   w.cookConvexGeometryPhysics = (physics, mesh) => {
     mesh.updateMatrixWorld();
     const {geometry} = mesh;
@@ -956,13 +969,13 @@ const physxWorker = (() => {
       indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
     );
 
     const dataPtr = scratchStack.u32[0];
     const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
-    
+
     const result = new Uint8Array(dataLength);
     result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength));
     allocator.freeAll();
@@ -1067,7 +1080,7 @@ const physxWorker = (() => {
     const allocator = new Allocator();
     const inrt = allocator.alloc(Float32Array, 3);
     inertia.toArray(inrt);
-   
+
     moduleInstance._setMassAndInertiaPhysics(physics, id, mass, inrt);
     allocator.freeAll();
   };
@@ -1080,9 +1093,9 @@ const physxWorker = (() => {
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
-   
+
     moduleInstance._getVelocityPhysics(physics, id, v.byteOffset);
-    
+
     velocity.fromArray(v);
 
     allocator.freeAll();
@@ -1091,7 +1104,7 @@ const physxWorker = (() => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
-   
+
     autoWake = autoWake ?? false;
 
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
@@ -1101,7 +1114,7 @@ const physxWorker = (() => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
-   
+
     autoWake = autoWake ?? false;
 
     physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
@@ -1123,52 +1136,52 @@ const physxWorker = (() => {
     allocator.freeAll();
   };
   w.getTransformPhysics = (physics, updates) => {
-     if (updates.length > maxNumUpdates) {
-       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
-     }
+    if (updates.length > maxNumUpdates) {
+      throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
+    }
 
-     let index = 0;
-     const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
-     index += maxNumUpdates;
-     const positions = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-     index += maxNumUpdates*3;
-     const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
-     index += maxNumUpdates*4;
-     const scales = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
-     index += maxNumUpdates*3;
+    let index = 0;
+    const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
+    index += maxNumUpdates;
+    const positions = scratchStack.f32.subarray(index, index + maxNumUpdates * 3);
+    index += maxNumUpdates * 3;
+    const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates * 4);
+    index += maxNumUpdates * 4;
+    const scales = scratchStack.f32.subarray(index, index + maxNumUpdates * 3);
+    index += maxNumUpdates * 3;
 
-     //console.log(updates);
+    // console.log(updates);
 
-     for (let i = 0; i < updates.length; i++) {
-       const update = updates[i];
-       ids[i] = update.id;
-       update.position.toArray(positions, i*3);
-       update.quaternion.toArray(quaternions, i*4);
-       update.scale.toArray(scales, i*3);
-     }
+    for (let i = 0; i < updates.length; i++) {
+      const update = updates[i];
+      ids[i] = update.id;
+      update.position.toArray(positions, i * 3);
+      update.quaternion.toArray(quaternions, i * 4);
+      update.scale.toArray(scales, i * 3);
+    }
 
     const numNewUpdates = moduleInstance._getTransformPhysics(
-       physics,
-       ids.byteOffset,
-       positions.byteOffset,
-       quaternions.byteOffset,
-       scales.byteOffset,
+      physics,
+      ids.byteOffset,
+      positions.byteOffset,
+      quaternions.byteOffset,
+      scales.byteOffset,
     );
-    
-     const newUpdates = Array(numNewUpdates);
-     //console.log(numNewUpdates);
-     for (let i = 0; i < numNewUpdates; i++) {
-       newUpdates[i] = {
-         id: ids[i],
-         position: new THREE.Vector3().fromArray(positions, i*3),
-         quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
-         scale: new THREE.Vector3().fromArray(scales, i*3),
-       };
-     }
+
+    const newUpdates = Array(numNewUpdates);
+    // console.log(numNewUpdates);
+    for (let i = 0; i < numNewUpdates; i++) {
+      newUpdates[i] = {
+        id: ids[i],
+        position: new THREE.Vector3().fromArray(positions, i * 3),
+        quaternion: new THREE.Quaternion().fromArray(quaternions, i * 4),
+        scale: new THREE.Vector3().fromArray(scales, i * 3),
+      };
+    }
 
     // console.log(newUpdates, "new ID");
-    
-    //console.log(newUpdates);
+
+    // console.log(newUpdates);
     return newUpdates;
   };
   w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled = false) => {
@@ -1180,7 +1193,7 @@ const physxWorker = (() => {
     position.toArray(p);
     quaternion.toArray(q);
     physicsMaterial.toArray(mat);
-    
+
     moduleInstance._addCapsuleGeometryPhysics(
       physics,
       p.byteOffset,
@@ -1198,11 +1211,11 @@ const physxWorker = (() => {
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
     const s = allocator.alloc(Float32Array, 3);
-    
+
     position.toArray(p);
     quaternion.toArray(q);
     size.toArray(s);
-    
+
     moduleInstance._addBoxGeometryPhysics(
       physics,
       p.byteOffset,
@@ -1217,9 +1230,9 @@ const physxWorker = (() => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const m = allocator.alloc(Float32Array, 3);
-    
+
     position.toArray(p);
-    mat.toArray(m)
+    mat.toArray(m);
 
     const characterController = moduleInstance._createCharacterControllerPhysics(
       physics,
@@ -1228,10 +1241,10 @@ const physxWorker = (() => {
       contactOffset,
       stepOffset,
       p.byteOffset,
-      m.byteOffset
+      m.byteOffset,
     );
     allocator.freeAll();
-  
+
     return characterController;
   };
   w.destroyCharacterControllerPhysics = (physics, characterController) => {
@@ -1241,7 +1254,7 @@ const physxWorker = (() => {
     const allocator = new Allocator();
     const disp = allocator.alloc(Float32Array, 3);
     const outPositions = allocator.alloc(Float32Array, 3);
-    
+
     displacement.toArray(disp);
 
     const flags = moduleInstance._moveCharacterControllerPhysics(
@@ -1250,12 +1263,12 @@ const physxWorker = (() => {
       disp.byteOffset,
       minDist,
       elapsedTime,
-      outPositions.byteOffset
+      outPositions.byteOffset,
     );
     outPosition.fromArray(outPositions);
 
     // console.log('got flags', flags);
-    
+
     allocator.freeAll();
 
     return flags;
@@ -1263,13 +1276,13 @@ const physxWorker = (() => {
   w.setCharacterControllerPositionPhysics = (physics, characterController, position) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
-    
+
     position.toArray(p);
 
     moduleInstance._setCharacterControllerPositionPhysics(
       physics,
       characterController,
-      p.byteOffset
+      p.byteOffset,
     );
     allocator.freeAll();
   };
@@ -1279,7 +1292,7 @@ physx.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update();
-  
+
   physxWorker.update();
 };
 physx.update = _updateGeometry;
