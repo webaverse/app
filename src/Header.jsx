@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import styles from './Header.module.css';
 import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
+import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
 import * as Z from 'zjs';
 // import {Color} from './Color.js';
@@ -347,6 +348,7 @@ export default function Header({
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
 			<Chat open={open} setOpen={setOpen} />
+      <CharacterHups />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
 				<header className={styles.header}>
