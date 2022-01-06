@@ -412,6 +412,17 @@ class StatePlayer extends PlayerBase {
     }
     return null;
   }
+  getActionByActionId(actionId) {
+    if (this.isBound()) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (action.actionId === actionId) {
+          return action;
+        }
+      }
+    }
+    return null;
+  }
   getActionIndex(type) {
     if (this.isBound()) {
       const actions = this.getActionsState();
