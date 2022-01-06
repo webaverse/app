@@ -1025,6 +1025,9 @@ class StaticInterpolatedPlayer extends PlayerBase {
   getAction(type) {
     return this.actions.find(action => action.type === type);
   }
+  getActionByActionId(actionId) {
+    return this.actions.find(action => action.actionId === actionId);
+  }
   hasAction(type) {
     return this.actions.some(a => a.type === type);
   }
