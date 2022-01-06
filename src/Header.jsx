@@ -66,7 +66,8 @@ export default function Header({
   const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
-  
+  const [loginFrom, setLoginFrom] = useState('');
+
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
@@ -373,6 +374,7 @@ export default function Header({
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
+              setLoginFrom={setLoginFrom}
             />
           </div>
 				</header>
@@ -429,6 +431,7 @@ export default function Header({
           hacks={hacks}
           address={address}
           setNfts={setNfts}
+          loginFrom={loginFrom}
         />
       </div>
     </div>
