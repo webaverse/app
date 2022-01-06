@@ -654,7 +654,7 @@ const voices = [];
 const promises = [];
 // (async () => {
   for (const voiceFile of voiceFiles) {
-    const audio = new Audio(`https://webaverse.github.io/shishi-voicepack/shishi-voicepack/vocalizations/${voiceFile}`);
+    const audio = new Audio(`/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`);
     const p = makePromise();
     audio.addEventListener('canplaythrough', () => {
       p.accept();
@@ -666,69 +666,12 @@ const promises = [];
   }
 // })();
 const loadPromise = Promise.all(promises).then(() => {
-  console.log('voice pack loaded');
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.characterHups.setVocalizationsPack(voices);
 });
-class Voicer {
-  constructor(voices) {
-    this.voices = voices.map(voice => {
-      return {
-        voice,
-        nonce: 0,
-      };
-    });
-    this.nonce = 0;
-  }
-  selectVoice() {
-    // the weight of each voice is proportional to the inverse of the number of times it has been used
-    const maxNonce = this.voices.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-    const weights = this.voices.map(({nonce}) => {
-      return 1 - (nonce / (maxNonce + 1));
-    });
-    const selectionIndex = weightedRandom(weights);
-    const voiceSpec = this.voices[selectionIndex];
-    voiceSpec.nonce++;
-    while (this.voices.every(voice => voice.nonce > 0)) {
-      for (const voiceSpec of this.voices) {
-        voiceSpec.nonce--;
-      }
-    }
-    return voiceSpec.voice;
-  }
-}
-const voicer = new Voicer(voices);
-window.playVoice = async () => {
+window.testHup = async () => {
   await loadPromise;
 
-  // play a random audio file, wait for it to finish, then recurse to play another
-  const _recurse = async () => {
-    // XXX this needs to be played by the player object
-    const audio = voicer.selectVoice();
-    if (audio.silencingInterval) {
-      clearInterval(audio.silencingInterval);
-      audio.silencingInterval = null;
-    }
-    audio.currentTime = 0;
-    audio.volume = 1;
-    if (audio.paused) {
-      await audio.play();
-    }
-    const audioTimeout = audio.duration * 1000;
-    setTimeout(async () => {
-      // await audio.pause();
-
-      audio.silencingInterval = setInterval(() => {
-        audio.volume = Math.max(audio.volume - 0.1, 0);
-        if (audio.volume === 0) {
-          clearInterval(audio.silencingInterval);
-          audio.silencingInterval = null;
-        }
-      }, 10);
-
-      _recurse();
-    }, audioTimeout);
-    /* audio.addEventListener('ended', async () => {
-      
-    }, {once: true}); */
-  };
-  _recurse();
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.characterHups.addTextHup('Leave it to the wind. It will all work itself out. That\'s what losers say!');
 };

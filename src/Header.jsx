@@ -30,7 +30,6 @@ const localEuler = new THREE.Euler();
 
 // console.log('index 1');
 
-
 const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
@@ -44,7 +43,6 @@ const _getCurrentRoom = () => {
   const {room} = q;
   return room || '';
 };
-
 
 export default function Header({
   app,

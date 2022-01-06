@@ -17,37 +17,109 @@ const localMatrix = new THREE.Matrix4();
 const localOffset2 = new THREE.Vector3();
 
 // const localArray = [];
-const localVelocity = new THREE.Vector3();
+// const localVelocity = new THREE.Vector3();
 
 // const zeroVector = new THREE.Vector3();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
-const _makeHupFromAction = (action) => {
-  switch (action.type) {
-    case 'chat': {
+class Vocalizer {
+  constructor(voices) {
+    this.voices = voices.map(voice => {
       return {
-        type: 'chat',
-        actionId: action.actionId,
-        value: action.value,
+        voice,
+        nonce: 0,
       };
-    }
-    case 'script': {
-      return {
-        type: 'chat',
-        actionId: action.actionId,
-        value: action.value,
-      };
-    }
-    case 'emote': {
-      return {
-        type: 'chat',
-        actionId: action.actionId,
-        value: action.value,
-      };
-    }
-    default: 
+    });
+    this.nonce = 0;
   }
+  selectVoice() {
+    // the weight of each voice is proportional to the inverse of the number of times it has been used
+    const maxNonce = this.voices.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+    const weights = this.voices.map(({nonce}) => {
+      return 1 - (nonce / (maxNonce + 1));
+    });
+    const selectionIndex = weightedRandom(weights);
+    const voiceSpec = this.voices[selectionIndex];
+    voiceSpec.nonce++;
+    while (this.voices.every(voice => voice.nonce > 0)) {
+      for (const voiceSpec of this.voices) {
+        voiceSpec.nonce--;
+      }
+    }
+    return voiceSpec.voice;
+  }
+}
+window.playVoice = async () => {
+  await loadPromise;
+
+  // play a random audio file, wait for it to finish, then recurse to play another
+  const _recurse = async () => {
+    // XXX this needs to be played by the player object
+    const audio = voicer.selectVoice();
+    if (audio.silencingInterval) {
+      clearInterval(audio.silencingInterval);
+      audio.silencingInterval = null;
+    }
+    audio.currentTime = 0;
+    audio.volume = 1;
+    if (audio.paused) {
+      await audio.play();
+    }
+    const audioTimeout = audio.duration * 1000;
+    setTimeout(async () => {
+      // await audio.pause();
+
+      audio.silencingInterval = setInterval(() => {
+        audio.volume = Math.max(audio.volume - 0.1, 0);
+        if (audio.volume === 0) {
+          clearInterval(audio.silencingInterval);
+          audio.silencingInterval = null;
+        }
+      }, 10);
+
+      _recurse();
+    }, audioTimeout);
+    /* audio.addEventListener('ended', async () => {
+      
+    }, {once: true}); */
+  };
+  _recurse();
 };
+
+class Hup extends EventTarget {
+  constructor(parent, actionId) {
+    super();
+    
+    this.parent = parent;
+    this.actionId = actionId;
+
+    this.fullText = '';
+    this.emote = null;
+    this.lastTimestamp = 0;
+  }
+  static isHupAction(action) {
+    return action.type === 'chat';
+  }
+  mergeAction(action) {
+    const {text, emote} = action;
+    if (text) {
+      this.fullText += text;
+    }
+    this.emote = emote ?? null;
+    this.lastTimestamp = performance.now();
+  
+    this.dispatchEvent(new MessageEvent('update'));
+  }
+  /* update(timestamp) {
+    const timeDiff = timestamp - this.lastTimestamp;
+    if (timeDiff >= 3000) {
+      
+    }
+  } */
+  destroy() {
+    // console.warn('destroy hup', this);
+  }
+}
 
 class CharacterHups extends EventTarget {
   constructor(player) {
@@ -56,39 +128,64 @@ class CharacterHups extends EventTarget {
     this.player = player;
 
     this.hups = [];
-    this.updateHups();
+    this.voices = [];
+
+    this.update();
   }
-  updateHups() {
-    let hups = [];
+  update() {
+    // let hups = [];
     const player = this.player;
     const actions = player.getActions();
-    for (const action of actions) {
-      const oldHup = this.hups.find(hup => hup.actionId === action.actionId);
-      if (!oldHup) {
-        const newHup = _makeHupFromAction(action);
-        if (newHup) { // successfully created
-          this.hups.push(newHup);
-          this.dispatchEvent(new MessageEvent('hupadd', {data: {newHup}}));
-        } else {
-          // not a hup action
+
+    // remove old hups
+    // console.log('hups remove old 1', this.hups.length, actions.length);
+    this.hups = this.hups.filter(hup => {
+      let hupAction = null;
+      for (const action of actions) {
+        // console.log('check action id', action.actionId, hup.actionId, action.actionId === hup.actionId);
+        if (action.actionId === hup.actionId) {
+          hupAction = action;
+          break;
         }
       }
-    }
-    hups = hups.filter(hup => {
-      if (actions.find(action => action.actionId === hup.actionId)) { // action still there
+      if (hupAction) { // action still there
         return true;
       } else { // action gone, was removed
-        this.dispatchEvent(new MessageEvent('hupremove', {data: {hup}}));
+        hup.destroy();
+        this.dispatchEvent(new MessageEvent('hupremove', {
+          data: {
+            hup,
+          },
+        }));
         return false;
       }
     });
-    this.hups = hups;
+    // console.log('hups remove old 2', this.hups.length);
+
+    // add new hups
+    for (const action of actions) {
+      // console.log('hups update 0', action.actionId);
+      const oldHup = this.hups.find(hup => hup.actionId === action.actionId);
+      if (oldHup) {
+        // console.log('hups update 1', action.actionId, this.hups.map(hup => hup.actionId));
+        oldHup.mergeAction(action);
+      } else {
+        // console.log('hups update 2', action.actionId, this.hups.map(hup => hup.actionId));
+        if (Hup.isHupAction(action)) {
+          const newHup = new Hup(this, action.actionId);
+          newHup.mergeAction(action);
+          this.hups.push(newHup);
+          this.dispatchEvent(new MessageEvent('hupadd', {
+            data: {
+              hup: newHup,
+            },
+          }));
+        }
+      }
+    }
   }
-  addScriptHupAction(script) {
-    this.player.addAction({
-      type: 'script',
-      script,
-    });
+  setVocalizationsPack(voices) {
+    this.vocalizer = new Vocalizer(voices);
   }
   addChatHupAction(text) {
     this.player.addAction({
