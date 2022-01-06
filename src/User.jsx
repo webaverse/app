@@ -34,7 +34,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
           setAddress(address);
           setLoginFrom('metamask');
           setShow(false);
-          // setLoginFrom('metamask');
+          setLoginFrom('metamask');
         } catch (err) {
           console.warn(err);
         } finally {
@@ -62,7 +62,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
 
         if (address) {
           setAddress(address);
-          // setLoginFrom('discord');
+          setLoginFrom('discord');
           setShow(false);
         } else if (error) {
           setLoginError(String(error).toLocaleUpperCase());
@@ -75,7 +75,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
 
         if (address) {
           setAddress(address);
-          // setLoginFrom('discord');
+          setLoginFrom('discord');
           setShow(false);
         } else if (error) {
           setLoginError(String(error).toLocaleUpperCase());
