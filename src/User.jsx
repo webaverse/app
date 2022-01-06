@@ -34,7 +34,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
           setAddress(address);
           setLoginFrom('metamask');
           setShow(false);
-          setLoginFrom('metamask');
+          // setLoginFrom('metamask');
         } catch (err) {
           console.warn(err);
         } finally {
@@ -52,28 +52,33 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
       play,
       realmId,
       twitter: arrivingFromTwitter,
-    } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
-    await WebaWallet.launch();
-    if (code) {
-      const {address, error} = await WebaWallet.loginDiscord(code, id);
-
-      if (address) {
-        setAddress(address);
-        setLoginFrom('discord');
-        setShow(false);
-      } else if (error) {
-        setLoginError(String(error).toLocaleUpperCase());
-      }
-    } else if (!autoLoginRequestMade) {
+    } = parseQuery(window.location.search);
+    if (!autoLoginRequestMade) {
       setAutoLoginRequestMade(true);
-      const {address, error} = await WebaWallet.autoLogin();
+      if (code) {
+        setLoggingIn(true);
+        await WebaWallet.waitForLoad(); // it may occur that wallet loading is in progress already
+        const {address, error} = await WebaWallet.loginDiscord(code, id);
 
-      if (address) {
-        setAddress(address);
-        // setLoginFrom('discord');
-        setShow(false);
-      } else if (error) {
-        setLoginError(String(error).toLocaleUpperCase());
+        if (address) {
+          setAddress(address);
+          // setLoginFrom('discord');
+          setShow(false);
+        } else if (error) {
+          setLoginError(String(error).toLocaleUpperCase());
+        }
+        setLoggingIn(false);
+      } else {
+        await WebaWallet.waitForLoad(); // it may occur that wallet loading is in progress already
+        const {address, error} = await WebaWallet.autoLogin();
+
+        if (address) {
+          setAddress(address);
+          // setLoginFrom('discord');
+          setShow(false);
+        } else if (error) {
+          setLoginError(String(error).toLocaleUpperCase());
+        }
       }
     }
   }, [address, setAddress]);
