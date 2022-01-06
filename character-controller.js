@@ -557,6 +557,8 @@ class StatePlayer extends PlayerBase {
     }
 
     this.characterPhysics.updateCamera(timeDiff);
+
+    this.characterHups.update(/* timestamp, timeDiff */);
   }
   destroy() {
     this.unbindState();
@@ -1074,7 +1076,6 @@ class NpcPlayer extends StaticInterpolatedPlayer {
       // const renderer = getRenderer();
       // const session = renderer.xr.getSession();
       applyPlayerToAvatar(this, null, this.avatar);
-
       this.avatar.update(timeDiff);
     }
 
