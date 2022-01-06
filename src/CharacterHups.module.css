@@ -1,0 +1,12 @@
+.character-hups {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  z-index: 1;
+}
+.character-hups > .character-hup {
+  
+}
