@@ -67,6 +67,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
         } else if (error) {
           setLoginError(String(error).toLocaleUpperCase());
         }
+        window.history.pushState({}, '', window.location.origin);
         setLoggingIn(false);
       } else {
         await WebaWallet.waitForLoad(); // it may occur that wallet loading is in progress already
