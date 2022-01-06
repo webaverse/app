@@ -27,6 +27,7 @@ import {
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
+import {CharacterHups} from './character-hups.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -696,6 +697,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     super(opts);
 
     this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
