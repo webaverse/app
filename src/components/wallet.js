@@ -40,25 +40,11 @@ class Wallet {
           new Promise((resolve, reject) => { reject(); });
         }
       } else {
-        await new Promise((resolve, reject) => {
-          let t;
-          const i = setInterval(() => {
-            if (self.launched) {
-              clearInterval(i);
-              clearTimeout(t);
-              return resolve();
-            }
-          }, 1000);
-          t = setTimeout(() => {
-            clearInterval(i);
-            return reject(new Error('Failed to load wallet in 30 seconds'));
-          }, 30 * 1000);
-        });
         return resolve();
       }
-      const t = setTimeout(() => {
-        reject(new Error('Failed to load wallet in 30 seconds'));
-      }, 30 * 1000);
+
+      /** Resolve the promsie so scene loading wont be clogged */
+      resolve();
 
       const f = event => {
         if (`${event.origin}` !== walletHost) { return; }
@@ -76,10 +62,28 @@ class Wallet {
             /** Empty reject halts the execution without stacktrace */
             new Promise((resolve, reject) => { reject(); });
           }
-          resolve();
         }
       };
       window.addEventListener('message', f);
+    }).catch(e => {
+      console.warn(e);
+    });
+  }
+
+  async waitForLaunch() {
+    return await new Promise((resolve, reject) => {
+      let t;
+      const i = setInterval(() => {
+        if (self.launched) {
+          clearInterval(i);
+          clearTimeout(t);
+          return resolve();
+        }
+      }, 1000);
+      t = setTimeout(() => {
+        clearInterval(i);
+        return reject('Failed to load wallet in 30 seconds');
+      }, 30 * 1000);
     }).catch(e => {
       console.warn(e);
     });
@@ -111,7 +115,7 @@ class Wallet {
 
       const t = setTimeout(() => {
         window.removeEventListener('message', f, false);
-        reject(new Error(`Failed to process ${action} in ${timeOutPromise} seconds`));
+        reject(`Failed to process ${action} in ${timeOutPromise} seconds`);
       }, timeOutPromise * 1000);
 
       f = event => {
@@ -124,6 +128,8 @@ class Wallet {
       };
 
       window.addEventListener('message', f);
+    }).catch(e => {
+      console.warn(e);
     });
   }
 
