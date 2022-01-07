@@ -110,6 +110,11 @@ class Hup extends EventTarget {
   
     this.dispatchEvent(new MessageEvent('update'));
   }
+  /* unmergeAction(action) {
+    this.actionIds.splice(this.actionIds.indexOf(action.actionId), 1);
+
+    this.dispatchEvent(new MessageEvent('update'));
+  } */
   /* update(timestamp) {
     const timeDiff = timestamp - this.lastTimestamp;
     if (timeDiff >= 3000) {
