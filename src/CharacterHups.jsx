@@ -24,6 +24,7 @@ function CharacterHup(props) {
       const player = hup.parent.player;
       const diorama = dioramaManager.createPlayerDiorama(player, {
         canvas,
+        grassBackground: true,
       });
 
       return () => {
