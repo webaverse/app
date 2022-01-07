@@ -54,7 +54,7 @@ class Wallet {
           }
         } else if (event.data.method === 'wallet_registered') {
           window.removeEventListener('message', f, false);
-          clearTimeout(t);
+          // clearTimeout(t);
           self.launched = true;
           if (nativeStrings.freeze === Object.freeze.toString()) {
             Object.freeze(self);
