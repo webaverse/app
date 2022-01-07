@@ -1517,7 +1517,7 @@ const skinnedRedMaterial = (() => {
       gl_FragColor = vec4(1., 0., 0., 1.);
     }
   `;
-  var instanceMaterial = new THREE.ShaderMaterial({
+  const material = new THREE.ShaderMaterial({
     uniforms: wUniforms,
     vertexShader: wVertex,
     fragmentShader: wFragment,
@@ -1530,10 +1530,7 @@ const skinnedRedMaterial = (() => {
     },
     side: THREE.BackSide,
   });
-  /* instanceMaterial.onBeforeCompile = () => {
-    console.log('before compile');
-  }; */
-  return instanceMaterial;
+  return material;
 })();
 
 const sideAvatarScene = new THREE.Scene();
