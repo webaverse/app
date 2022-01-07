@@ -41,17 +41,18 @@ class Wallet {
         }
       } else {
         await new Promise((resolve, reject) => {
+          let t;
           const i = setInterval(() => {
-            const t = setTimeout(() => {
-              clearInterval(i);
-              return reject(new Error('Failed to load wallet in 30 seconds'));
-            }, 30 * 1000);
             if (self.launched) {
               clearInterval(i);
               clearTimeout(t);
               return resolve();
             }
           }, 1000);
+          t = setTimeout(() => {
+            clearInterval(i);
+            return reject(new Error('Failed to load wallet in 30 seconds'));
+          }, 30 * 1000);
         });
         return resolve();
       }
