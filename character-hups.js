@@ -86,17 +86,21 @@ window.playVoice = async () => {
   _recurse();
 };
 
+let nextHupId = 0;
 class Hup extends EventTarget {
   constructor(type, parent) {
     super();
     
     this.type = type;
     this.parent = parent;
-    this.actionIds = [];
+    this.hupId = ++nextHupId;
 
+    this.actionIds = [];
     this.fullText = '';
     this.emote = null;
     this.lastTimestamp = 0;
+
+    this.open = false;
   }
   static isHupAction(action) {
     return action.type === 'chat';
@@ -113,17 +117,14 @@ class Hup extends EventTarget {
 
     this.dispatchEvent(new MessageEvent('update'));
   }
-  /* unmergeAction(action) {
-    this.actionIds.splice(this.actionIds.indexOf(action.actionId), 1);
-
-    this.dispatchEvent(new MessageEvent('update'));
-  } */
-  /* update(timestamp) {
-    const timeDiff = timestamp - this.lastTimestamp;
-    if (timeDiff >= 3000) {
-      
-    }
-  } */
+  setOpen(open) {
+    this.open = open;
+    this.dispatchEvent(new MessageEvent('open', {
+      data: {
+        open,
+      },
+    }));
+  }
   destroy() {
     // console.warn('destroy hup', this);
   }
