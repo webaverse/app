@@ -649,7 +649,53 @@ function weightedRandom(weights) {
 
 	return -1;
 }
-const voiceFiles = ``.split('\n');
+const voiceFiles = `\
+B6_somnium_65_01 - Part_1.wav
+B6_somnium_66_01 - Part_1.wav
+D5-begin20_10_09_03 - Part_1.wav
+D5-begin20_10_09_03 - Part_2.wav
+D5-begin20_10_09_09 - Part_1.wav
+D5-begin20_10_09_10 - Part_1.wav
+D5-begin20_10_09_10 - Part_2.wav
+D5-begin20_10_09_10 - Part_3.wav
+D5-begin20_10_09_11 - Part_1.wav
+D5-begin20_10_09_14 - Part_1.wav
+E5-begin40_10_04_05 - Part_1.wav
+E5-begin40_10_04_06 - Part_1.wav
+E5-begin40_10_04_07 - Part_1.wav
+E5-begin40_10_04_07 - Part_2.wav
+E5-begin40_10_04_09 - Part_1.wav
+E5-begin40_10_05_01 - Part_1.wav
+E5-begin40_10_06_02 - Part_1.wav
+E5-begin40_10_06_05 - Part_1.wav
+E5-begin40_10_06_07 - Part_1.wav
+E5-begin40_10_07_24 - Part_1.wav
+E5-begin40_10_08_01 - Part_1.wav
+E5-begin40_10_08_01 - Part_2.wav
+E5-begin40_10_08_02 - Part_1.wav
+E5-begin40_10_08_03 - Part_1.wav
+E5-begin40_10_08_03 - Part_2.wav
+E5-begin40_10_08_04 - Part_1.wav
+E5-begin40_10_08_04 - Part_2.wav
+E5-begin40_10_08_05 - Part_1.wav
+E5-begin40_10_08_06 - Part_1.wav
+E5-begin40_10_08_07 - Part_1.wav
+E5-begin40_10_08_07 - Part_2.wav
+E5-begin40_10_08_10 - Part_1.wav
+E5-begin40_10_08_10 - Part_2.wav
+E5-begin40_10_08_10 - Part_3.wav
+E5-begin40_10_08_10 - Part_4.wav
+E5-begin40_10_08_12 - Part_1.wav
+E5-begin40_10_08_13 - Part_1.wav
+E5-begin40_10_10_02 - Part_1.wav
+E5-begin40_10_12_02 - Part_1.wav
+E5-begin40_10_14_11 - Part_1.wav
+E5-begin40_10_14_15 - Part_1.wav
+E5-begin40_10_14_15 - Part_2.wav
+E6-wrap_74_10_05_02 - Part_1.wav
+E6-wrap_74_10_19_03 - Part_1.wav
+E6-wrap_74_10_19_21 - Part_1.wav
+E6-wrap_74_10_19_29 - Part_1.wav`.split('\n');
 const voices = [];
 const promises = [];
 // (async () => {
