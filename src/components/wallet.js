@@ -71,6 +71,7 @@ class Wallet {
   }
 
   async waitForLaunch() {
+    const self = this;
     return await new Promise((resolve, reject) => {
       let t;
       const i = setInterval(() => {
