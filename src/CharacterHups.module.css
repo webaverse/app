@@ -8,5 +8,12 @@
   z-index: 1;
 }
 .character-hups > .character-hup {
-  
+  transition: transform 3s cubic-bezier(0, 1, 0, 1);
+}
+.character-hups > .character-hup:not(.open) {
+  transform: translateX(-100%);
+  /* transition: transform 1s ease-out; */
+}
+.character-hups > .character-hup.open {
+  /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
 }
