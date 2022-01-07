@@ -44,7 +44,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
     }
   };
 
-  useEffect(async () => {
+  useEffect(() => {
     const {
       error,
       code,
@@ -57,29 +57,30 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
       setAutoLoginRequestMade(true);
       if (code) {
         setLoggingIn(true);
-        await WebaWallet.waitForLoad(); // it may occur that wallet loading is in progress already
-        const {address, error} = await WebaWallet.loginDiscord(code, id);
+        WebaWallet.waitForLaunch().then(async ()=>{
+          const {address, error} = await WebaWallet.loginDiscord(code, id);
 
-        if (address) {
-          setAddress(address);
-          setLoginFrom('discord');
-          setShow(false);
-        } else if (error) {
-          setLoginError(String(error).toLocaleUpperCase());
-        }
-        window.history.pushState({}, '', window.location.origin);
-        setLoggingIn(false);
+          if (address) {
+            setAddress(address);
+            setLoginFrom('discord');
+            setShow(false);
+          } else if (error) {
+            setLoginError(String(error).toLocaleUpperCase());
+          }
+          window.history.pushState({}, '', window.location.origin);
+          setLoggingIn(false);
+        }); // it may occur that wallet loading is in progress already
       } else {
-        await WebaWallet.waitForLoad(); // it may occur that wallet loading is in progress already
-        const {address, error} = await WebaWallet.autoLogin();
-
-        if (address) {
-          setAddress(address);
-          setLoginFrom('discord');
-          setShow(false);
-        } else if (error) {
-          setLoginError(String(error).toLocaleUpperCase());
-        }
+        WebaWallet.waitForLaunch().then(async ()=>{
+          const {address, error} = await WebaWallet.autoLogin();
+          if (address) {
+            setAddress(address);
+            setLoginFrom('discord');
+            setShow(false);
+          } else if (error) {
+            setLoginError(String(error).toLocaleUpperCase());
+          }
+        }) // it may occur that wallet loading is in progress already
       }
     }
   }, [address, setAddress]);
