@@ -65,7 +65,6 @@ function CharacterHup(props) {
     });
   }, []);
 
-  console.log('render open', localOpen);
   return (
     <div className={classnames(styles['character-hup'], localOpen ? styles['open'] : null)} ref={hupRef}>
       <canvas width={defaultHupSize} height={defaultHupSize} ref={canvasRef} />
