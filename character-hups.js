@@ -87,11 +87,12 @@ window.playVoice = async () => {
 };
 
 class Hup extends EventTarget {
-  constructor(parent, actionId) {
+  constructor(type, parent) {
     super();
     
+    this.type = type;
     this.parent = parent;
-    this.actionId = actionId;
+    this.actionIds = [];
 
     this.fullText = '';
     this.emote = null;
@@ -108,6 +109,8 @@ class Hup extends EventTarget {
     this.emote = emote ?? null;
     this.lastTimestamp = performance.now();
   
+    this.actionIds.push(action.actionId);
+
     this.dispatchEvent(new MessageEvent('update'));
   }
   /* unmergeAction(action) {
@@ -145,39 +148,42 @@ class CharacterHups extends EventTarget {
     // remove old hups
     // console.log('hups remove old 1', this.hups.length, actions.length);
     this.hups = this.hups.filter(hup => {
-      let hupAction = null;
-      for (const action of actions) {
-        // console.log('check action id', action.actionId, hup.actionId, action.actionId === hup.actionId);
-        if (action.actionId === hup.actionId) {
-          hupAction = action;
-          break;
+      hup.actionIds = hup.actionIds.filter(actionId => {
+        for (const action of actions) {
+          if (action.actionId === actionId) {
+            return true;
+          }
         }
-      }
-      if (hupAction) { // action still there
+        return false;
+      });
+
+      if (hup.actionIds.length > 0) {
         return true;
-      } else { // action gone, was removed
+      } else {
         hup.destroy();
         this.dispatchEvent(new MessageEvent('hupremove', {
           data: {
             hup,
           },
         }));
-        return false;
       }
+      return false;
     });
     // console.log('hups remove old 2', this.hups.length);
 
     // add new hups
     for (const action of actions) {
       // console.log('hups update 0', action.actionId);
-      const oldHup = this.hups.find(hup => hup.actionId === action.actionId);
+      const oldHup = this.hups.find(hup => hup.type === action.type);
       if (oldHup) {
         // console.log('hups update 1', action.actionId, this.hups.map(hup => hup.actionId));
-        oldHup.mergeAction(action);
+        if (!oldHup.actionIds.includes(action.actionId)) {
+          oldHup.mergeAction(action);
+        }
       } else {
         // console.log('hups update 2', action.actionId, this.hups.map(hup => hup.actionId));
         if (Hup.isHupAction(action)) {
-          const newHup = new Hup(this, action.actionId);
+          const newHup = new Hup(action.type, this);
           newHup.mergeAction(action);
           this.hups.push(newHup);
           this.dispatchEvent(new MessageEvent('hupadd', {
