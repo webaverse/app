@@ -1,5 +1,5 @@
 import React from "react";
-import "./modal.css";
+import "../styles/modal.css";
 
 export default class Modal extends React.Component {
   onClose = e => {
