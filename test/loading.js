@@ -21,7 +21,7 @@ export default () => {
     return app;
 };`;
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || PORT;
 
 async function setTestCase() {
   var cPath = path.join(__dirname, '..', 'public', 'testCase.mjs');
@@ -34,7 +34,7 @@ async function setTestCase() {
     const data2 = fs.readFileSync(scenePath);
 
     var scene = JSON.parse(data2.toString());
-    var check = scene.objects.find(key => key.start_url === `http://localhost:${3000}/testCase.mjs`);
+    var check = scene.objects.find(key => key.start_url === `http://localhost:${PORT}/testCase.mjs`);
 
     if (!check) {
       var data = {
@@ -43,7 +43,7 @@ async function setTestCase() {
           0,
           -30,
         ],
-        start_url: `http://localhost:${3000}/testCase.mjs`,
+        start_url: `http://localhost:${PORT}/testCase.mjs`,
       };
       scene.objects.push(data);
       fs.writeFileSync(scenePath, JSON.stringify(scene));
@@ -57,7 +57,7 @@ describe('Running Pupeeteer', function() {
       let error = false;
       const appTester = new LoadTester({
         slowMo: 0,
-        host: `http://localhost:${3000}`,
+        host: `http://localhost:${PORT}`,
       });
 
       require('child_process').exec('git rev-parse HEAD', function(_err, stdout) {
