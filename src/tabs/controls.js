@@ -1,15 +1,15 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import styles from '../Footer.module.css';
-import styles_ from '../styles/controls.module.css';
+// import styles from '../Footer.module.css';
+import styles from '../styles/controls.module.css';
 
 export const Controls = () => {
   const [controlsOpen, setControlsOpen] = useState(false);
 
   return (
     <>
-      <div className={classnames(styles.helper, styles.right, !controlsOpen ? styles_.hide : null)}>
-        <div className={styles_.closed} onClick={e => {
+      <div className={classnames(styles.helper, styles.right, !controlsOpen ? styles.hide : null)}>
+        <div className={styles.closed} onClick={e => {
           e.preventDefault();
           e.stopPropagation();
           setControlsOpen(false);
@@ -73,13 +73,13 @@ export const Controls = () => {
         </div>
       </div>
 
-      <div className={classnames(styles_.item, controlsOpen ? styles_.hide : null)} onClick={e => {
+      <div className={classnames(styles.item, controlsOpen ? styles.hide : null)} onClick={e => {
         e.preventDefault();
         e.stopPropagation();
         setControlsOpen(true);
       }}>
         <img src='/images/controls.svg'></img>
-        <div className={styles_.label}>Show<br/>Controls</div>
+        <div className={styles.label}>Show<br/>Controls</div>
       </div>
     </>
   );

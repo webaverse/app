@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import styles from '../Footer.module.css';
-import styles_ from '../styles/loadout.module.css';
+import styles from '../styles/loadout.module.css';
 import {Button} from '../components/button';
 
 export const Loadout = () => {
@@ -32,14 +31,14 @@ export const Loadout = () => {
           }
           return items;
         })()}
-        <div className={styles_.loadOutRight}>
-          <div className={styles_.item}>
-            <div className={styles_.label}>M</div>
+        <div className={styles.loadOutRight}>
+          <div className={styles.item}>
+            <div className={styles.label}>M</div>
             <img src='/images/micoff.svg'></img>
           </div>
 
-          <div className={styles_.item}>
-            <div className={classnames(styles_.label)}>ENTER</div>
+          <div className={styles.item}>
+            <div className={classnames(styles.label)}>ENTER</div>
             <img src='/images/message.svg'></img>
           </div>
 

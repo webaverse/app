@@ -2825,56 +2825,6 @@ progress::-webkit-progress-value {
   background-color: #9ccc65;
 }
 
-.chat {
-  --height: calc(100vh - 50px - 80px);
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 300px;
-  height: var(--height);
-  color: #FFF;
-  font-size: 13px;
-}
-.chat .input {
-  padding: 5px;
-  background-color: #263238;
-  border: 1px solid #FFFFFF20;
-  border-radius: 5px;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  outline: none;
-}
-.chat .input:not(.open) {
-  visibility: hidden;
-}
-.chat .messages {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  justify-content: flex-end;
-}
-.chat .messages .message {
-  display: flex;
-  padding: 5px;
-  margin-bottom: 5px;
-  line-height: 1.6;
-  background-color: #111;
-  border-radius: 5px;
-  white-space: pre-wrap;
-  text-overflow: ellipsis;
-}
-.chat .messages .message .name {
-  font-weight: 600;
-}
-.chat .messages .message .text {
-  color: #CCC;
-  word-break: break-all;
-}
-
 #network-name {
   text-transform: capitalize;
 }

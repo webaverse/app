@@ -67,7 +67,8 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
-
+  const [userData, setUserData] = useState(null);
+  
   const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
@@ -367,6 +368,7 @@ export default function Header({
               toggleMic={toggleMic}
               universe={universe}
               sceneNames={sceneNames}
+              user={userData}
             />
             <User
               address={address}
@@ -375,6 +377,7 @@ export default function Header({
               setOpen={setOpen}
               toggleOpen={toggleOpen}
               setLoginFrom={setLoginFrom}
+              setUserData={setUserData}
             />
           </div>
 				</header>

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import styles from './popup.module.css';
+import styles from '../styles/popup.module.css';
 import {preview} from '../../preview.js';
 
 export const Popup = ({header, options = [], anchor, scroll}) => {
