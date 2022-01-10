@@ -61,7 +61,7 @@ class WebaverseShaderMaterial extends THREE.ShaderMaterial {
 class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
   constructor(opts = {}) {
     opts.vertexShader = formatVertexShader(opts.vertexShader);
-    opts.vertexShader = opts.vertexShader.replace('#define EPSILON 1e-6', '#define EPSILON 1e-6\n#define USE_LOGDEPTHBUF 1');
+    // opts.vertexShader = opts.vertexShader.replace('#define EPSILON 1e-6', '#define EPSILON 1e-6\n#define USE_LOGDEPTHBUF 1');
     opts.fragmentShader = formatFragmentShader(opts.fragmentShader);
     super(opts);
   }
