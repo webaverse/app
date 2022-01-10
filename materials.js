@@ -58,6 +58,14 @@ class WebaverseShaderMaterial extends THREE.ShaderMaterial {
     super(opts);
   }
 }
+class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
+  constructor(opts = {}) {
+    opts.vertexShader = formatVertexShader(opts.vertexShader);
+    opts.fragmentShader = formatFragmentShader(opts.fragmentShader);
+    super(opts);
+  }
+}
 export {
   WebaverseShaderMaterial,
+  WebaverseRawShaderMaterial,
 };
