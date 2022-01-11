@@ -21,9 +21,7 @@ export default () => {
     return app;
 };`;
 
-const PORT = process.env.PORT || PORT;
-
-async function setTestCase() {
+async function setTestCase(url) {
   var cPath = path.join(__dirname, '..', 'public', 'testCase.mjs');
   await fs.writeFileSync(cPath, content);
 
@@ -34,7 +32,7 @@ async function setTestCase() {
     const data2 = fs.readFileSync(scenePath);
 
     var scene = JSON.parse(data2.toString());
-    var check = scene.objects.find(key => key.start_url === `http://localhost:${PORT}/testCase.mjs`);
+    var check = scene.objects.find(key => key.start_url === `${url}/testCase.mjs`);
 
     if (!check) {
       var data = {
@@ -43,7 +41,7 @@ async function setTestCase() {
           0,
           -30,
         ],
-        start_url: `http://localhost:${PORT}/testCase.mjs`,
+        start_url: `${url}/testCase.mjs`,
       };
       scene.objects.push(data);
       fs.writeFileSync(scenePath, JSON.stringify(scene));
@@ -55,9 +53,10 @@ describe('Running Pupeeteer', function() {
   describe('Loading Test Suite', function() {
     it('Checking Scenes', async done => {
       let error = false;
+      let url = process.env.URL || `http://localhost:${process.env.PORT || 3000}`;
       const appTester = new LoadTester({
         slowMo: 0,
-        host: `http://localhost:${PORT}`,
+        host: url,
       });
 
       require('child_process').exec('git rev-parse HEAD', function(_err, stdout) {
@@ -65,41 +64,47 @@ describe('Running Pupeeteer', function() {
         appTester.addStatErr('HASH', stdout);
       });
 
-      await setTestCase();
-      process.chdir('..');
+      await appTester.init().then(e => {
+        process.exit(0);
+      }).catch(async e => {
+        url = `https://localhost:${process.env.PORT || 3000}`;
+        /** Server don't exitst create one */
+        await setTestCase(url);
+        process.chdir('..');
 
-      const testProcess = spawn('node', ['index.mjs']);
+        const testProcess = spawn('node', ['index.mjs']);
 
-      testProcess.stdout.on('data', data => {
-        console.log(`stdout: ${data}`);
-      });
+        testProcess.stdout.on('data', data => {
+          console.log(`stdout: ${data}`);
+        });
 
-      testProcess.stderr.on('data', data => {
-        appTester.addStatErr('ERROR', data);
-        // console.log(`stderr: ${data}`);
-      });
+        testProcess.stderr.on('data', data => {
+          appTester.addStatErr('ERROR', data);
+          // console.log(`stderr: ${data}`);
+        });
 
-      testProcess.on('close', code => {
-        assert.equal(error, false);
-      });
+        testProcess.on('close', code => {
+          assert.equal(error, false);
+        });
 
-      testProcess.on('exit', code => {
-        assert.equal(error, false);
-      });
+        testProcess.on('exit', code => {
+          assert.equal(error, false);
+        });
 
-      testProcess.on('spawn', async function() {
-        appTester.MochaIntercept = () => {
-          error = true;
-        };
+        testProcess.on('spawn', async function() {
+          appTester.MochaIntercept = () => {
+            error = true;
+          };
 
-        try {
-          await appTester.run();
-        } catch (e) {
-          mlog.log(e);
-          // digest pupeteer crash error that comes up very rare.
-        }
+          try {
+            await appTester.run();
+          } catch (e) {
+            mlog.log(e);
+            // digest pupeteer crash error that comes up very rare.
+          }
 
-        testProcess.kill('SIGINT');
+          testProcess.kill('SIGINT');
+        });
       });
     });
   });
