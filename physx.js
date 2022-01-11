@@ -706,13 +706,18 @@ const physxWorker = (() => {
   };
   
   w.doCut = (positions,numPositions,faces,numFaces,position,quaternion,scale) => {
+    const allocator = new Allocator();
 
     let currOffset = 0;
-    const positionsArray = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset, numPositions);
+    // const positionsArray = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset, numPositions);
+    const positionsArray = allocator.alloc(Float32Array, numPositions);
+    positionsArray.set(positions);
     const positionsOffset = scratchStack.f32.byteOffset;
     currOffset += numPositions * 4;
 
-    const facesArray = new Uint32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + currOffset, numFaces);
+    // const facesArray = new Uint32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + currOffset, numFaces);
+    const facesArray = allocator.alloc(Uint32Array, numFaces)
+    facesArray.set(faces);
     const facesOffset = scratchStack.f32.byteOffset + currOffset;
     currOffset += numFaces * 4;
 
@@ -729,13 +734,13 @@ const physxWorker = (() => {
     currOffset += 3 * 4;
 
 
-    for(let i=0;i<numPositions;i++) {
-      positionsArray[i] = positions[i];
-    }
+    // for(let i=0;i<numPositions;i++) {
+    //   positionsArray[i] = positions[i];
+    // }
 
-    for(let i=0;i<numFaces;i++) {
-      facesArray[i] = faces[i];
-    }
+    // for(let i=0;i<numFaces;i++) {
+    //   facesArray[i] = faces[i];
+    // }
 
     position.toArray(positionParam, 0);
     quaternion.toArray(quaternionParam, 0);
@@ -748,9 +753,9 @@ const physxWorker = (() => {
     const outFacesOffset = scratchStack.u32.byteOffset + (scratchStackSize * 0.5);
 
     moduleInstance._doCut(
-      positionsOffset,
+      positionsArray.byteOffset,
       numPositions,
-      facesOffset,
+      facesArray.byteOffset,
       numFaces,
       positionParamOffset,
       quaternionParamOffset,
