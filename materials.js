@@ -61,6 +61,18 @@ class WebaverseShaderMaterial extends THREE.ShaderMaterial {
 class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
   constructor(opts = {}) {
     opts.vertexShader = formatVertexShader(opts.vertexShader);
+    const lines = opts.vertexShader.split('\n');
+    let firstNonPrecisionLine = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (!lines[i].trim().startsWith('precision')) {
+        firstNonPrecisionLine = i;
+        break;
+      }
+    }
+    if (firstNonPrecisionLine !== -1 && !lines.some(l => l.trim().startsWith('#define USE_LOGDEPTHBUF'))) {
+      lines.splice(firstNonPrecisionLine, 0, '#define USE_LOGDEPTHBUF');
+      opts.vertexShader = lines.join('\n');
+    }
     // opts.vertexShader = opts.vertexShader.replace('#define EPSILON 1e-6', '#define EPSILON 1e-6\n#define USE_LOGDEPTHBUF 1');
     opts.fragmentShader = formatFragmentShader(opts.fragmentShader);
     super(opts);
