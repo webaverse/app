@@ -1,15 +1,23 @@
 import {
 	Color,
+	MeshBasicMaterial,
 	MeshDepthMaterial,
 	NearestFilter,
 	NoBlending,
 	RGBADepthPacking,
 	ShaderMaterial,
 	UniformsUtils,
-	WebGLRenderTarget
+	WebGLRenderTarget,
+	Scene,
+	DepthTexture,
+	UnsignedShortType,
+	FloatType,
+	RGBAFormat,
 } from 'three';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
-import { BokehShader } from '../shaders/BokehShader.js';
+import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import { BokehShader } from './BokehShader.js';
+
+const _nop = () => {};
 
 /**
  * Depth-of-field post-process with bokeh shader
@@ -22,6 +30,7 @@ class BokehPass extends Pass {
 		super();
 
 		this.scene = scene;
+		this.customScene = new Scene();
 		this.camera = camera;
 
 		const focus = ( params.focus !== undefined ) ? params.focus : 1.0;
@@ -34,16 +43,22 @@ class BokehPass extends Pass {
 		const width = params.width || window.innerWidth || 1;
 		const height = params.height || window.innerHeight || 1;
 
-		this.renderTargetDepth = new WebGLRenderTarget( width, height, {
+		const depthTexture = new DepthTexture();
+		// depthTexture.type = UnsignedShortType;
+		depthTexture.minFilter = NearestFilter;
+		depthTexture.magFilter = NearestFilter;
+		this.normalRenderTarget = new WebGLRenderTarget( width, height, {
 			minFilter: NearestFilter,
-			magFilter: NearestFilter
+			magFilter: NearestFilter,
+			// type: FloatType,
+			// format: RGBAFormat,
+			depthTexture: depthTexture
 		} );
-
-		this.renderTargetDepth.texture.name = 'BokehPass.depth';
+		this.normalRenderTarget.texture.name = 'BokehPass.depth';
 
 		// depth material
 
-		this.materialDepth = new MeshDepthMaterial();
+		this.materialDepth = new MeshBasicMaterial();
 		this.materialDepth.depthPacking = RGBADepthPacking;
 		this.materialDepth.blending = NoBlending;
 
@@ -58,7 +73,7 @@ class BokehPass extends Pass {
 		const bokehShader = BokehShader;
 		const bokehUniforms = UniformsUtils.clone( bokehShader.uniforms );
 
-		bokehUniforms[ 'tDepth' ].value = this.renderTargetDepth.texture;
+		bokehUniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
 
 		bokehUniforms[ 'focus' ].value = focus;
 		bokehUniforms[ 'aspect' ].value = aspect;
@@ -84,7 +99,6 @@ class BokehPass extends Pass {
 	}
 
 	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive*/ ) {
-
 		// Render depth into texture
 
 		this.scene.overrideMaterial = this.materialDepth;
@@ -96,8 +110,33 @@ class BokehPass extends Pass {
 
 		renderer.setClearColor( 0xffffff );
 		renderer.setClearAlpha( 1.0 );
-		renderer.setRenderTarget( this.renderTargetDepth );
+		renderer.setRenderTarget( this.normalRenderTarget );
 		renderer.clear();
+
+		const _recurse = o => {
+			if (o.isMesh && o.customDepthMaterial) {
+        o.originalParent = o.parent;
+				o.originalMaterial = o.material;
+				o.material = o.customDepthMaterial;
+        o.originalUpdateMatrix = o.updateMatrix;
+        o.originalUpdateMatrixWorld = o.updateMatrixWorld;
+				o.updateMatrix = _nop;
+				o.updateMatrixWorld = _nop;
+				this.customScene.add(o);
+			}
+      for (const child of o.children) {
+				_recurse(child);
+			}
+		};
+		_recurse(this.scene);
+		renderer.render( this.customScene, this.camera );
+		for (const child of this.customScene.children) {
+			child.originalParent.add(child);
+			child.material = child.originalMaterial;
+			child.updateMatrix = child.originalUpdateMatrix;
+			child.updateMatrixWorld = child.originalUpdateMatrixWorld;
+		}
+
 		renderer.render( this.scene, this.camera );
 
 		// Render bokeh composite
