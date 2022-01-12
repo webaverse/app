@@ -9,7 +9,7 @@ import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
+import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
 import {RenderPass} from './RenderPass';
 import {
@@ -233,14 +233,10 @@ function setPasses(rendersettings) {
   
   if (rendersettings) {
     const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
-    // console.log('got', ssao, dof, hdr, bloom);
     
     if (ssao) {
       const ssaoRenderPass = makeSsaoRenderPass(ssao);
       webaverseRenderPass.internalRenderPass = ssaoRenderPass;
-      
-      // const webaverseRenderPass = new WebaverseRenderPass(ssaoRenderPass);
-      // composer.addPass(webaverseRenderPass);
     }
     if (dof) {
       const dofPass = makeDofPass(dof);
