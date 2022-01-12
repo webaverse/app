@@ -233,14 +233,10 @@ function setPasses(rendersettings) {
   
   if (rendersettings) {
     const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
-    // console.log('got', ssao, dof, hdr, bloom);
     
     if (ssao) {
       const ssaoRenderPass = makeSsaoRenderPass(ssao);
       webaverseRenderPass.internalRenderPass = ssaoRenderPass;
-      
-      // const webaverseRenderPass = new WebaverseRenderPass(ssaoRenderPass);
-      // composer.addPass(webaverseRenderPass);
     }
     if (dof) {
       const dofPass = makeDofPass(dof);
