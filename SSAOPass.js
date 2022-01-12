@@ -19,7 +19,8 @@ import {
 	UnsignedShortType,
 	Vector3,
 	WebGLRenderTarget,
-	ZeroFactor
+	ZeroFactor,
+	Scene,
 } from 'three';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
@@ -27,6 +28,8 @@ import { SSAOShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { SSAOBlurShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+
+const _nop = () => {};
 
 class SSAOPass extends Pass {
 
@@ -41,6 +44,7 @@ class SSAOPass extends Pass {
 
 		this.camera = camera;
 		this.scene = scene;
+		this.customScene = new Scene();
 
 		this.kernelRadius = 8;
 		this.kernelSize = 32;
@@ -61,7 +65,7 @@ class SSAOPass extends Pass {
 		// beauty render target
 
 		const depthTexture = new DepthTexture();
-		depthTexture.type = UnsignedShortType;
+		// depthTexture.type = UnsignedShortType;
 
 		this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
@@ -133,7 +137,7 @@ class SSAOPass extends Pass {
 
 		// material for rendering the depth
 
-		this.depthRenderMaterial = new ShaderMaterial( {
+		/* this.depthRenderMaterial = new ShaderMaterial( {
 			defines: Object.assign( {}, SSAODepthShader.defines ),
 			uniforms: UniformsUtils.clone( SSAODepthShader.uniforms ),
 			vertexShader: SSAODepthShader.vertexShader,
@@ -142,7 +146,7 @@ class SSAOPass extends Pass {
 		} );
 		this.depthRenderMaterial.uniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
 		this.depthRenderMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.depthRenderMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
+		this.depthRenderMaterial.uniforms[ 'cameraFar' ].value = this.camera.far; */
 
 		// material for rendering the content of a render target
 
@@ -181,7 +185,7 @@ class SSAOPass extends Pass {
 		this.normalMaterial.dispose();
 		this.blurMaterial.dispose();
 		this.copyMaterial.dispose();
-		this.depthRenderMaterial.dispose();
+		// this.depthRenderMaterial.dispose();
 
 		// dipsose full screen quad
 
@@ -322,6 +326,30 @@ class SSAOPass extends Pass {
 			renderer.setClearAlpha( clearAlpha || 0.0 );
 			renderer.clear();
 
+		}
+
+    const _recurse = o => {
+			if (o.isMesh && o.customDepthMaterial) {
+        o.originalParent = o.parent;
+				o.originalMaterial = o.material;
+				o.material = o.customDepthMaterial;
+        o.originalUpdateMatrix = o.updateMatrix;
+        o.originalUpdateMatrixWorld = o.updateMatrixWorld;
+				o.updateMatrix = _nop;
+				o.updateMatrixWorld = _nop;
+				this.customScene.add(o);
+			}
+      for (const child of o.children) {
+				_recurse(child);
+			}
+		};
+		_recurse(this.scene);
+		renderer.render( this.customScene, this.camera );
+		for (const child of this.customScene.children) {
+			child.originalParent.add(child);
+			child.material = child.originalMaterial;
+			child.updateMatrix = child.originalUpdateMatrix;
+			child.updateMatrixWorld = child.originalUpdateMatrixWorld;
 		}
 
 		this.scene.overrideMaterial = overrideMaterial;
