@@ -87,6 +87,7 @@ function bindCanvas() {
 }
 
 function makeSsaoRenderPass({
+  kernelSize = 8,
   kernelRadius = 16,
   minDistance = 0.005,
   maxDistance = 0.1,
@@ -96,6 +97,7 @@ function makeSsaoRenderPass({
     .multiplyScalar(renderer.getPixelRatio());
 
   const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
+  ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
   ssaoRenderPass.maxDistance = maxDistance;
