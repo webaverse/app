@@ -741,9 +741,9 @@ const physxWorker = (() => {
     const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutFacesTypedArray = allocator.alloc(Uint32Array, 2);
 
-    const outPositionsTypedArray = allocator.alloc(Float32Array, 9);
-    const outNormalsTypedArray = allocator.alloc(Float32Array, 9);
-    const outFacesTypedArray = allocator.alloc(Uint32Array, 3);
+    const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions);
+    const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals);
+    const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces);
 
     moduleInstance._doCut(
       positionsTypedArray.byteOffset,
