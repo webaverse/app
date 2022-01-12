@@ -223,8 +223,11 @@ physicsManager.cutMesh = (
   numPositions,
   normals,
   numNormals,
+  uvs,
+  numUvs,
   faces,
   numFaces,
+
   position,
   quaternion,
   scale,
@@ -233,8 +236,11 @@ physicsManager.cutMesh = (
   numPositions,
   normals,
   numNormals,
+  uvs,
+  numUvs,
   faces,
   numFaces,
+
   position,
   quaternion,
   scale,

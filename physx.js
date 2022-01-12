@@ -710,6 +710,8 @@ const physxWorker = (() => {
     numPositions,
     normals,
     numNormals,
+    uvs,
+    numUvs,
     faces,
     numFaces,
 
@@ -725,6 +727,9 @@ const physxWorker = (() => {
     const normalsTypedArray = allocator.alloc(Float32Array, numNormals);
     normalsTypedArray.set(normals);
 
+    const uvsTypedArray = allocator.alloc(Float32Array, numUvs);
+    uvsTypedArray.set(uvs);
+
     const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
     facesTypedArray.set(faces);
 
@@ -739,6 +744,7 @@ const physxWorker = (() => {
 
     const numOutPositionsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
+    const numOutUvsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutFacesTypedArray = allocator.alloc(Uint32Array, 2);
 
     // output lenght may bigger than input length?
@@ -747,6 +753,7 @@ const physxWorker = (() => {
     // whether this tut has solution?
     const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions * 2);
     const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals * 2);
+    const outUvsTypedArray = allocator.alloc(Float32Array, numUvs * 2);
     const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces * 2);
 
     moduleInstance._doCut(
@@ -754,6 +761,8 @@ const physxWorker = (() => {
       numPositions,
       normalsTypedArray.byteOffset,
       numNormals,
+      uvsTypedArray.byteOffset,
+      numUvs,
       facesTypedArray.byteOffset,
       numFaces,
 
@@ -765,6 +774,8 @@ const physxWorker = (() => {
       numOutPositionsTypedArray.byteOffset,
       outNormalsTypedArray.byteOffset,
       numOutNormalsTypedArray.byteOffset,
+      outUvsTypedArray.byteOffset,
+      numOutUvsTypedArray.byteOffset,
       outFacesTypedArray.byteOffset,
       numOutFacesTypedArray.byteOffset,
     );
@@ -774,6 +785,8 @@ const physxWorker = (() => {
       numOutPositions: numOutPositionsTypedArray,
       outNormals: outNormalsTypedArray,
       numOutNormals: numOutNormalsTypedArray,
+      outUvs: outUvsTypedArray,
+      numOutUvs: numOutUvsTypedArray,
       outFaces: outFacesTypedArray,
       numOutFaces: numOutFacesTypedArray,
     }
