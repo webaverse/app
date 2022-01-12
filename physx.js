@@ -704,12 +704,26 @@ const physxWorker = (() => {
       throw new Error('raycastPhysicsArray error');
     }
   };
-  
-  w.doCut = (positions,numPositions,faces,numFaces,position,quaternion,scale) => {
+
+  w.doCut = (
+    positions,
+    numPositions,
+    normals,
+    numNormals,
+    faces,
+    numFaces,
+
+    position,
+    quaternion,
+    scale,
+  ) => {
     const allocator = new Allocator();
 
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
     positionsTypedArray.set(positions);
+
+    const normalsTypedArray = allocator.alloc(Float32Array, numNormals);
+    normalsTypedArray.set(normals);
 
     const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
     facesTypedArray.set(faces);
@@ -723,39 +737,44 @@ const physxWorker = (() => {
     const scaleTypedArray = allocator.alloc(Float32Array, 3)
     scaleTypedArray.set(scale);
 
-    const numOutPositionsOffset = scratchStack.u32.byteOffset;
-    const numOutFacesOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 2);
-    const outPositionsOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 4);
-    const outFacesOffset = scratchStack.u32.byteOffset + (scratchStackSize * 0.5); // todo: not stable?
+    const numOutPositionsTypedArray = allocator.alloc(Uint32Array, 2);
+    const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
+    const numOutFacesTypedArray = allocator.alloc(Uint32Array, 2);
+
+    const outPositionsTypedArray = allocator.alloc(Float32Array, 9);
+    const outNormalsTypedArray = allocator.alloc(Float32Array, 9);
+    const outFacesTypedArray = allocator.alloc(Uint32Array, 3);
 
     moduleInstance._doCut(
       positionsTypedArray.byteOffset,
       numPositions,
+      normalsTypedArray.byteOffset,
+      numNormals,
       facesTypedArray.byteOffset,
       numFaces,
+
       positionTypedArray.byteOffset,
       quaternionTypedArray.byteOffset,
       scaleTypedArray.byteOffset,
-      outPositionsOffset,
-      numOutPositionsOffset,
-      outFacesOffset,
-      numOutFacesOffset
+
+      outPositionsTypedArray.byteOffset,
+      numOutPositionsTypedArray.byteOffset,
+      outNormalsTypedArray.byteOffset,
+      numOutNormalsTypedArray.byteOffset,
+      outFacesTypedArray.byteOffset,
+      numOutFacesTypedArray.byteOffset,
     );
 
-    const numOutPositions = scratchStack.u32.slice(0, 2);
-    const numOutFaces = scratchStack.u32.slice(2, 4);
-
-    const outFacesStart = ((scratchStackSize * 0.5) / Float32Array.BYTES_PER_ELEMENT);
-    
     const result = {
-      numOutPositions: scratchStack.u32.slice(0, 2),
-      numOutFaces: scratchStack.u32.slice(2, 4),
-      outPositions: scratchStack.f32.slice(4, (4 + numOutPositions[0] + numOutPositions[1])),
-      outFaces: scratchStack.u32.slice(outFacesStart, outFacesStart + (numOutFaces[0] + numOutFaces[1]))
+      outPositions: outPositionsTypedArray,
+      numOutPositions: numOutPositionsTypedArray,
+      outNormals: outNormalsTypedArray,
+      numOutNormals: numOutNormalsTypedArray,
+      outFaces: outFacesTypedArray,
+      numOutFaces: numOutFacesTypedArray,
     }
     return result
-
-  };  
+  };
   w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setLinearLockFlagsPhysics(
       physics,
