@@ -704,18 +704,32 @@ const physxWorker = (() => {
       throw new Error('raycastPhysicsArray error');
     }
   };
-  
-  w.doCut = (positions,numPositions,faces,numFaces,position,quaternion,scale) => {
+
+  w.doCut = (
+    positions,
+    numPositions,
+    normals,
+    numNormals,
+    faces,
+    numFaces,
+    position,
+    quaternion,
+    scale,
+  ) => {
     const allocator = new Allocator();
+    debugger
 
     let currOffset = 0;
-    // const positionsArray = new Float32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset, numPositions);
     const positionsArray = allocator.alloc(Float32Array, numPositions);
     positionsArray.set(positions);
     const positionsOffset = scratchStack.f32.byteOffset;
     currOffset += numPositions * 4;
 
-    // const facesArray = new Uint32Array(scratchStack.f32.buffer, scratchStack.f32.byteOffset + currOffset, numFaces);
+    const normalsArray = allocator.alloc(Float32Array, numNormals);
+    normalsArray.set(normals);
+    const normalsOffset = scratchStack.f32.byteOffset;
+    currOffset += numNormals * 4;
+
     const facesArray = allocator.alloc(Uint32Array, numFaces)
     facesArray.set(faces);
     const facesOffset = scratchStack.f32.byteOffset + currOffset;
@@ -733,28 +747,23 @@ const physxWorker = (() => {
     const scaleParamOffset = scratchStack.f32.byteOffset + currOffset;
     currOffset += 3 * 4;
 
-
-    // for(let i=0;i<numPositions;i++) {
-    //   positionsArray[i] = positions[i];
-    // }
-
-    // for(let i=0;i<numFaces;i++) {
-    //   facesArray[i] = faces[i];
-    // }
-
     position.toArray(positionParam, 0);
     quaternion.toArray(quaternionParam, 0);
     scale.toArray(scaleParam, 0);
 
     
     const numOutPositionsOffset = scratchStack.u32.byteOffset;
-    const numOutFacesOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 2);
-    const outPositionsOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 4);
+    const numOutNormalsOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 2);
+    const numOutFacesOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 3);
+    const outPositionsOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 6);
+    const outNormalsOffset = scratchStack.u32.byteOffset + (Float32Array.BYTES_PER_ELEMENT * 9);
     const outFacesOffset = scratchStack.u32.byteOffset + (scratchStackSize * 0.5);
 
     moduleInstance._doCut(
       positionsArray.byteOffset,
       numPositions,
+      normalsArray.byteOffset,
+      numNormals,
       facesArray.byteOffset,
       numFaces,
       positionParamOffset,
@@ -762,21 +771,26 @@ const physxWorker = (() => {
       scaleParamOffset,
       outPositionsOffset,
       numOutPositionsOffset,
+      outNormalsOffset,
+      numOutNormalsOffset,
       outFacesOffset,
       numOutFacesOffset
     );
 
     const numOutPositions = scratchStack.u32.slice(0, 2);
-    const numOutFaces = scratchStack.u32.slice(2, 4);
+    const numOutNormals = scratchStack.u32.slice(2, 4);
+    const numOutFaces = scratchStack.u32.slice(4, 6);
 
 
     const outFacesStart = ((scratchStackSize * 0.5) / Float32Array.BYTES_PER_ELEMENT);
     
     return {
       numOutPositions: scratchStack.u32.slice(0, 2),
-      numOutFaces: scratchStack.u32.slice(2, 4),
-      outPositions: scratchStack.f32.slice(4, (4 + numOutPositions[0] + numOutPositions[1])),
-      outFaces: scratchStack.u32.slice(outFacesStart, outFacesStart + (numOutFaces[0] + numOutFaces[1]))
+      numOutNormals: scratchStack.u32.slice(2, 4),
+      numOutFaces: scratchStack.u32.slice(4, 6),
+      outPositions: scratchStack.f32.slice(6, (4 + numOutPositions[0] + numOutPositions[1])),
+      outNormals: scratchStack.f32.slice(6 + (4 + numOutPositions[0] + numOutPositions[1]), (4 + numOutNormals[0] + numOutNormals[1])),
+      outFaces: scratchStack.u32.slice(outFacesStart, outFacesStart + (numOutFaces[0] + numOutFaces[1])),
     }
 
   };  
