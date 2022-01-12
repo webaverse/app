@@ -23,27 +23,15 @@
           "args": [[255, 255, 255], 0.01]
         },
         "ssao": {
+          "kernelSize": 1024,
           "kernelRadius": 16,
-          "minDistance": 0.005,
-          "maxDistance": 0.1
+          "minDistance": 0.001,
+          "maxDistance": 2
         },
         "dof": {
-          "focus": 3.0,
-          "aperture": 0.00002,
-          "maxblur": 0.005
-        },
-        "hdr": {
-          "adaptive": true,
-          "resolution": 256,
-          "adaptionRate": 100,
-          "maxLuminance": 10,
-          "minLuminance": 0,
-          "middleGrey": 3
-        },
-        "bloom": {
-          "strength": 0.2,
-          "radius": 0.5,
-          "threshold": 0.8
+          "focus": 1.5,
+          "aperture": 0.0004,
+          "maxblur": 0.01
         }
       }
     },
@@ -53,7 +41,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/floor/"
+      "start_url": "../floor/"
     },
     {
       "position": [
@@ -61,7 +49,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/grass-anime/"
+      "start_url": "../grass-anime/"
     }
   ]
 }
