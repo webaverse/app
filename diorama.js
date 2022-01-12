@@ -1587,10 +1587,10 @@ const createPlayerDiorama = (player, {
   const {devicePixelRatio: pixelRatio} = window;
 
   const renderer = getRenderer();
-  sideCamera.position.set(0, 0, 10);
+  /* sideCamera.position.set(0, 0, 10);
   sideCamera.quaternion.identity();
   sideCamera.updateMatrixWorld();
-  renderer.compile(sideScene, sideCamera);
+  renderer.compile(sideScene, sideCamera); */
 
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
@@ -1604,6 +1604,8 @@ const createPlayerDiorama = (player, {
     width: 0,
     height: 0,
     enabled: true,
+    loadingTriggered: false,
+    loaded: false,
     addCanvas(canvas) {
       const {width, height} = canvas;
       this.width = Math.max(this.width, width);
@@ -1630,14 +1632,40 @@ const createPlayerDiorama = (player, {
         lightningBackground = true;
       }
     },
+    triggerLoad() {
+      this.loadingTriggered = true;
+      
+      const oldParent = player.avatar.model.parent;
+      Promise.all([
+        (async () => {
+          sideAvatarScene.add(player.avatar.model);
+          await renderer.compileAsync(sideAvatarScene);
+        })(),
+        (async () => {
+          sideScene.add(player.avatar.model);
+          await renderer.compileAsync(sideScene);
+        })(),
+      ]).then(() => {
+        this.loaded = true;
+      });
+      
+      if (oldParent) {
+        oldParent.add(player.avatar.model);
+      } else {
+        player.avatar.model.parent.remove(player.avatar.model);
+      }
+    },
     update(timestamp, timeDiff) {
-      if (!this.enabled) {
+      const renderer = getRenderer();
+      if (this.enabled && !this.loadingTriggered && player.avatar) {
+        this.triggerLoad();
+      }
+      if (!this.enabled || !this.loaded) {
         lastDisabledTime = timestamp;
         return;
       }
       const timeOffset = timestamp - lastDisabledTime;
 
-      const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
       // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
