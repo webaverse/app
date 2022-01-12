@@ -741,6 +741,10 @@ const physxWorker = (() => {
     const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutFacesTypedArray = allocator.alloc(Uint32Array, 2);
 
+    // output lenght may bigger than input length?
+    // todo: how to pass unknonwn length output from wasm to js?
+    // see https://rob-blackbourn.github.io/blog/webassembly/wasm/array/arrays/javascript/c/2020/06/07/wasm-arrays.html #Passing output arrays to wasm
+    // whether this tut has solution?
     const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions);
     const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals);
     const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces);
