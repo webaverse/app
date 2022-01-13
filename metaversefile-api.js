@@ -26,7 +26,7 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
-import * as postProcessing from './post-processing.js';
+import postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
