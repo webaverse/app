@@ -34,12 +34,13 @@ const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
 
-	constructor( scene, camera, width, height ) {
+	constructor( scene, camera, width, height, depthPass ) {
 
 		super();
 
 		this.width = ( width !== undefined ) ? width : 512;
 		this.height = ( height !== undefined ) ? height : 512;
+		this.depthPass = depthPass;
 
 		this.clear = true;
 
@@ -77,12 +78,12 @@ class SSAOPass extends Pass {
 
 		// normal render target with depth buffer
 
-		this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
+		/* this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: NearestFilter,
 			magFilter: NearestFilter,
 			format: RGBAFormat,
 			depthTexture: depthTexture
-		} );
+		} ); */
 
 		// ssao render target
 
@@ -111,8 +112,8 @@ class SSAOPass extends Pass {
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-		this.ssaoMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
-		this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
+		this.ssaoMaterial.uniforms[ 'tNormal' ].value = this.depthPass.normalRenderTarget.texture;
+		this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.depthPass.normalRenderTarget.depthTexture;
 		this.ssaoMaterial.uniforms[ 'tNoise' ].value = this.noiseTexture;
 		this.ssaoMaterial.uniforms[ 'kernel' ].value = this.kernel;
 		this.ssaoMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
@@ -178,7 +179,7 @@ class SSAOPass extends Pass {
 		// dispose render targets
 
 		this.beautyRenderTarget.dispose();
-		this.normalRenderTarget.dispose();
+		// this.normalRenderTarget.dispose();
 		this.ssaoRenderTarget.dispose();
 		this.blurRenderTarget.dispose();
 
@@ -205,9 +206,9 @@ class SSAOPass extends Pass {
 
 		// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
-		this.overrideVisibility();
+		/* this.overrideVisibility();
 		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
-		this.restoreVisibility();
+		this.restoreVisibility(); */
 
 		// render SSAO
 
@@ -371,7 +372,7 @@ class SSAOPass extends Pass {
 
 		this.beautyRenderTarget.setSize( width, height );
 		this.ssaoRenderTarget.setSize( width, height );
-		this.normalRenderTarget.setSize( width, height );
+		// this.normalRenderTarget.setSize( width, height );
 		this.blurRenderTarget.setSize( width, height );
 
 		this.ssaoMaterial.uniforms[ 'resolution' ].value.set( width, height );
