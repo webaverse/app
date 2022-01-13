@@ -1822,9 +1822,9 @@ const createPlayerDiorama = (player, {
   };
 
   if (player.avatar) {
-    diorama.triggerLoad(player.avatar);
+    diorama.triggerLoad();
   } else {
-    function avatarchange(e) {
+    function avatarchange() {
       if (player.avatar) {
         diorama.triggerLoad();
         player.removeEventListener('avatarchange', avatarchange);
