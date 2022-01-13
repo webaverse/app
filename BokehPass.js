@@ -26,14 +26,15 @@ const oldMaterialCache = new WeakMap();
 
 class BokehPass extends Pass {
 
-	constructor( scene, camera, params ) {
+	constructor( scene, camera, params, depthPass ) {
 
 		super();
 
 		this.scene = scene;
-		this.customScene = new Scene();
-		this.customScene.autoUpdate = false;
+		// this.customScene = new Scene();
+		// this.customScene.autoUpdate = false;
 		this.camera = camera;
+		this.depthPass = depthPass;
 
 		const focus = ( params.focus !== undefined ) ? params.focus : 1.0;
 		const aspect = ( params.aspect !== undefined ) ? params.aspect : camera.aspect;
@@ -42,27 +43,14 @@ class BokehPass extends Pass {
 
 		// render targets
 
-		const width = params.width || window.innerWidth || 1;
-		const height = params.height || window.innerHeight || 1;
-
-		const depthTexture = new DepthTexture();
-		// depthTexture.type = UnsignedShortType;
-		depthTexture.minFilter = NearestFilter;
-		depthTexture.magFilter = NearestFilter;
-		this.normalRenderTarget = new WebGLRenderTarget( width, height, {
-			minFilter: NearestFilter,
-			magFilter: NearestFilter,
-			// type: FloatType,
-			// format: RGBAFormat,
-			depthTexture: depthTexture
-		} );
-		this.normalRenderTarget.texture.name = 'BokehPass.depth';
+		// const width = params.width || window.innerWidth || 1;
+		// const height = params.height || window.innerHeight || 1;
 
 		// depth material
 
-		this.materialDepth = new MeshBasicMaterial();
+		/* this.materialDepth = new MeshBasicMaterial();
 		this.materialDepth.depthPacking = RGBADepthPacking;
-		this.materialDepth.blending = NoBlending;
+		this.materialDepth.blending = NoBlending; */
 
 		// bokeh material
 
@@ -75,7 +63,7 @@ class BokehPass extends Pass {
 		const bokehShader = BokehShader;
 		const bokehUniforms = UniformsUtils.clone( bokehShader.uniforms );
 
-		bokehUniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
+		bokehUniforms[ 'tDepth' ].value = this.depthPass.normalRenderTarget.depthTexture;
 
 		bokehUniforms[ 'focus' ].value = focus;
 		bokehUniforms[ 'aspect' ].value = aspect;
@@ -101,43 +89,13 @@ class BokehPass extends Pass {
 	}
 
 	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive*/ ) {
-		// Render depth into texture
-
-		this.scene.overrideMaterial = this.materialDepth;
-
-		renderer.getClearColor( this._oldClearColor );
+    renderer.getClearColor( this._oldClearColor );
 		const oldClearAlpha = renderer.getClearAlpha();
 		const oldAutoClear = renderer.autoClear;
 		renderer.autoClear = false;
 
 		renderer.setClearColor( 0xffffff );
 		renderer.setClearAlpha( 1.0 );
-		renderer.setRenderTarget( this.normalRenderTarget );
-		renderer.clear();
-
-		const _recurse = o => {
-			if (o.isMesh && o.customPostMaterial) {
-				oldParentCache.set(o, o.parent);
-				oldMaterialCache.set(o, o.material);
-
-				o.material = o.customPostMaterial;
-				this.customScene.add(o);
-			}
-      for (const child of o.children) {
-				_recurse(child);
-			}
-		};
-		_recurse(this.scene);
-		renderer.render( this.customScene, this.camera );
-		for (const child of this.customScene.children) {
-			oldParentCache.get(child).add(child);
-			child.material = oldMaterialCache.get(child);
-
-			oldParentCache.delete(child);
-			oldMaterialCache.delete(child);
-		}
-
-		renderer.render( this.scene, this.camera );
 
 		// Render bokeh composite
 
@@ -158,7 +116,7 @@ class BokehPass extends Pass {
 
 		}
 
-		this.scene.overrideMaterial = null;
+		// this.scene.overrideMaterial = null;
 		renderer.setClearColor( this._oldClearColor );
 		renderer.setClearAlpha( oldClearAlpha );
 		renderer.autoClear = oldAutoClear;
