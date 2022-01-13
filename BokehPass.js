@@ -31,6 +31,7 @@ class BokehPass extends Pass {
 
 		this.scene = scene;
 		this.customScene = new Scene();
+		this.customScene.autoUpdate = false;
 		this.camera = camera;
 
 		const focus = ( params.focus !== undefined ) ? params.focus : 1.0;
@@ -114,14 +115,10 @@ class BokehPass extends Pass {
 		renderer.clear();
 
 		const _recurse = o => {
-			if (o.isMesh && o.customDepthMaterial) {
+			if (o.isMesh && o.customPostMaterial) {
         o.originalParent = o.parent;
 				o.originalMaterial = o.material;
-				o.material = o.customDepthMaterial;
-        o.originalUpdateMatrix = o.updateMatrix;
-        o.originalUpdateMatrixWorld = o.updateMatrixWorld;
-				o.updateMatrix = _nop;
-				o.updateMatrixWorld = _nop;
+				o.material = o.customPostMaterial;
 				this.customScene.add(o);
 			}
       for (const child of o.children) {
@@ -133,8 +130,6 @@ class BokehPass extends Pass {
 		for (const child of this.customScene.children) {
 			child.originalParent.add(child);
 			child.material = child.originalMaterial;
-			child.updateMatrix = child.originalUpdateMatrix;
-			child.updateMatrixWorld = child.originalUpdateMatrixWorld;
 		}
 
 		renderer.render( this.scene, this.camera );
