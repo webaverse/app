@@ -269,7 +269,6 @@ class PostProcessing extends EventTarget {
     
     composer.addPass(encodingPass);
 
-    console.log('post processing trigger update');
     this.dispatchEvent(new MessageEvent('update'));
   }
 }
