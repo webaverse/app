@@ -66,26 +66,6 @@ const localVector2D = new THREE.Vector2();
   }
 }; */
 
-function bindCanvas() {
-  /* const renderer = getRenderer();
-  const size = renderer.getSize(new THREE.Vector2())
-    .multiplyScalar(renderer.getPixelRatio()); */
-  
-  setPasses(null);
-
-  /* document.addEventListener('keydown', e => { // XXX move to io manager
-    if (e.key === 'h') {
-      webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : ssaoRenderPass;
-    } else if (e.key === 'j') {
-      bokehPass.enabled = !bokehPass.enabled;
-    } else if (e.key === 'k') {
-      adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
-    } else if (e.key === 'l') {
-      unrealBloomPass.enabled = !unrealBloomPass.enabled;
-    }
-  }); */
-}
-
 function makeSsaoRenderPass({
   kernelSize = 8,
   kernelRadius = 16,
@@ -221,60 +201,77 @@ webaverseRenderPass.onAfterRender = () => {
   }
 };
 const encodingPass = makeEncodingPass();
-function setPasses(rendersettings) {
-  const composer = getComposer();
-  const oldPasses = composer.passes.slice();
-  for (let i = oldPasses.length - 1; i >= 0; i--) {
-    const oldPass = oldPasses[i];
-    composer.removePass(oldPass);
-  }
-  
-  composer.addPass(webaverseRenderPass);
-  
-  if (rendersettings) {
-    const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
-    
-    if (ssao) {
-      const ssaoRenderPass = makeSsaoRenderPass(ssao);
-      webaverseRenderPass.internalRenderPass = ssaoRenderPass;
-    }
-    if (dof) {
-      const dofPass = makeDofPass(dof);
-      composer.addPass(dofPass);
-    }
-    if (hdr) {
-      const hdrPass = makeHdrPass(hdr);
-      composer.addPass(hdrPass);
-    }
-    if (bloom) {
-      const bloomPass = makeBloomPass(bloom);
-      composer.addPass(bloomPass);
-    }
-    if (postPostProcessScene) {
-      const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
-      if(postPerspectiveScene) {
-        const postRenderPass = new RenderPass(postScenePerspective, camera);
-        composer.addPass(postRenderPass);
-      }
-      if(postOrthographicScene) {
-        const postRenderPass = new RenderPass(postSceneOrthographic, orthographicCamera);
-        composer.addPass(postRenderPass);
-      }
-    }
-  }
-  
-  composer.addPass(encodingPass);
-  
-  window.passes = composer.passes;
-}
 
-export {
-  // WebaverseRenderPass,
-  bindCanvas,
-  // makeSsaoRenderPass,
-  // makeDofPass,
-  // makeHdrPass,
-  // makeBloomPass,
-  // makeEncodingPass,
-  setPasses,
-};
+class PostProcessing extends EventTarget {
+  constructor() {
+    super();
+  }
+  bindCanvas() {
+    /* const renderer = getRenderer();
+    const size = renderer.getSize(new THREE.Vector2())
+      .multiplyScalar(renderer.getPixelRatio()); */
+    
+    this.setPasses(null);
+  
+    /* document.addEventListener('keydown', e => { // XXX move to io manager
+      if (e.key === 'h') {
+        webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : ssaoRenderPass;
+      } else if (e.key === 'j') {
+        bokehPass.enabled = !bokehPass.enabled;
+      } else if (e.key === 'k') {
+        adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
+      } else if (e.key === 'l') {
+        unrealBloomPass.enabled = !unrealBloomPass.enabled;
+      }
+    }); */
+  }
+  setPasses(rendersettings) {
+    const composer = getComposer();
+    const oldPasses = composer.passes.slice();
+    for (let i = oldPasses.length - 1; i >= 0; i--) {
+      const oldPass = oldPasses[i];
+      composer.removePass(oldPass);
+    }
+    
+    composer.addPass(webaverseRenderPass);
+    
+    if (rendersettings) {
+      const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
+      
+      if (ssao) {
+        const ssaoRenderPass = makeSsaoRenderPass(ssao);
+        webaverseRenderPass.internalRenderPass = ssaoRenderPass;
+      }
+      if (dof) {
+        const dofPass = makeDofPass(dof);
+        composer.addPass(dofPass);
+      }
+      if (hdr) {
+        const hdrPass = makeHdrPass(hdr);
+        composer.addPass(hdrPass);
+      }
+      if (bloom) {
+        const bloomPass = makeBloomPass(bloom);
+        composer.addPass(bloomPass);
+      }
+      if (postPostProcessScene) {
+        const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
+        if(postPerspectiveScene) {
+          const postRenderPass = new RenderPass(postScenePerspective, camera);
+          composer.addPass(postRenderPass);
+        }
+        if(postOrthographicScene) {
+          const postRenderPass = new RenderPass(postSceneOrthographic, orthographicCamera);
+          composer.addPass(postRenderPass);
+        }
+      }
+    }
+    
+    composer.addPass(encodingPass);
+
+    console.log('post processing trigger update');
+    this.dispatchEvent(new MessageEvent('update'));
+  }
+}
+const postProcessing = new PostProcessing();
+export default postProcessing;
