@@ -29,7 +29,8 @@ import { SSAOBlurShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
-const _nop = () => {};
+const oldParentCache = new WeakMap();
+const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
 
@@ -45,6 +46,7 @@ class SSAOPass extends Pass {
 		this.camera = camera;
 		this.scene = scene;
 		this.customScene = new Scene();
+		this.customScene.autoUpdate = false;
 
 		this.kernelRadius = 8;
 		this.kernelSize = 32;
@@ -329,14 +331,11 @@ class SSAOPass extends Pass {
 		}
 
     const _recurse = o => {
-			if (o.isMesh && o.customDepthMaterial) {
-        o.originalParent = o.parent;
-				o.originalMaterial = o.material;
-				o.material = o.customDepthMaterial;
-        o.originalUpdateMatrix = o.updateMatrix;
-        o.originalUpdateMatrixWorld = o.updateMatrixWorld;
-				o.updateMatrix = _nop;
-				o.updateMatrixWorld = _nop;
+			if (o.isMesh && o.customPostMaterial) {
+				oldParentCache.set(o, o.parent);
+				oldMaterialCache.set(o, o.material);
+
+				o.material = o.customPostMaterial;
 				this.customScene.add(o);
 			}
       for (const child of o.children) {
@@ -346,10 +345,11 @@ class SSAOPass extends Pass {
 		_recurse(this.scene);
 		renderer.render( this.customScene, this.camera );
 		for (const child of this.customScene.children) {
-			child.originalParent.add(child);
-			child.material = child.originalMaterial;
-			child.updateMatrix = child.originalUpdateMatrix;
-			child.updateMatrixWorld = child.originalUpdateMatrixWorld;
+			oldParentCache.get(child).add(child);
+			child.material = oldMaterialCache.get(child);
+
+			oldParentCache.delete(child);
+			oldMaterialCache.delete(child);
 		}
 
 		this.scene.overrideMaterial = overrideMaterial;
