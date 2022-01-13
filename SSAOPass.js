@@ -29,7 +29,8 @@ import { SSAOBlurShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
-const _nop = () => {};
+const oldParentCache = new WeakMap();
+const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
 
@@ -331,8 +332,9 @@ class SSAOPass extends Pass {
 
     const _recurse = o => {
 			if (o.isMesh && o.customPostMaterial) {
-				o.originalParent = o.parent;
-				o.originalMaterial = o.material;
+				oldParentCache.set(o, o.parent);
+				oldMaterialCache.set(o, o.material);
+
 				o.material = o.customPostMaterial;
 				this.customScene.add(o);
 			}
@@ -343,8 +345,11 @@ class SSAOPass extends Pass {
 		_recurse(this.scene);
 		renderer.render( this.customScene, this.camera );
 		for (const child of this.customScene.children) {
-			child.originalParent.add(child);
-			child.material = child.originalMaterial;
+			oldParentCache.get(child).add(child);
+			child.material = oldMaterialCache.get(child);
+
+			oldParentCache.delete(child);
+			oldMaterialCache.delete(child);
 		}
 
 		this.scene.overrideMaterial = overrideMaterial;
