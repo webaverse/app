@@ -2095,6 +2095,9 @@ const createAppDiorama = (app, {
       dioramas.splice(dioramas.indexOf(diorama), 1);
     },
   };
+
+  diorama.triggerLoad(app);
+
   diorama.addCanvas(canvas);
   dioramas.push(diorama);
   return diorama;
