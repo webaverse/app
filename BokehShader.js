@@ -103,7 +103,7 @@
 
 			float viewZ = getViewZ( getDepth( vUv ) );
 
-			if (viewZ < -100.) {
+			if (viewZ < -30000.) {
         gl_FragColor = texture2D( tColor, vUv.xy );
 				gl_FragColor.a = 1.;
 			} else {
