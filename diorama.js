@@ -2096,7 +2096,7 @@ const createAppDiorama = (app, {
     },
   };
 
-  diorama.triggerLoad(app);
+  diorama.triggerLoad();
 
   diorama.addCanvas(canvas);
   dioramas.push(diorama);
