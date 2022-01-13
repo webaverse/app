@@ -4,6 +4,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
+import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
 
 const localVector = new THREE.Vector3();
