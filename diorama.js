@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera} from './renderer.js';
+import {getRenderer, scene} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
