@@ -11,7 +11,8 @@ import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/Adaptiv
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
-import {RenderPass} from './RenderPass';
+import {RenderPass} from './RenderPass.js';
+import {DepthPass} from './DepthPass.js';
 import {
   getRenderer,
   getComposer,
@@ -66,17 +67,27 @@ const localVector2D = new THREE.Vector2();
   }
 }; */
 
+function makeDepthPass({ssao, hdr}) {
+  const renderer = getRenderer();
+  const size = renderer.getSize(localVector2D)
+    .multiplyScalar(renderer.getPixelRatio());
+
+  const depthPass = new DepthPass(rootScene, camera, {width: size.x, height: size.y});
+  depthPass.needsSwap = false;
+  // depthPass.enabled = hqDefault;
+  return depthPass;
+}
 function makeSsaoRenderPass({
   kernelSize = 8,
   kernelRadius = 16,
   minDistance = 0.005,
   maxDistance = 0.1,
-}) {
+}, depthPass) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
+  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, depthPass);
   ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
@@ -88,7 +99,7 @@ function makeDofPass({
   focus = 3.0,
   aperture = 0.00002,
   maxblur = 0.005,
-}) {
+}, depthPass) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
@@ -99,7 +110,7 @@ function makeDofPass({
     maxblur,
     width: size.x,
     height: size.y,
-  });
+  }, depthPass);
   bokehPass.needsSwap = true;
   // bokehPass.enabled = hqDefault;
   return bokehPass;
@@ -238,12 +249,16 @@ class PostProcessing extends EventTarget {
     if (rendersettings) {
       const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
       
+      if (ssao || dof) {
+        const depthPass = makeDepthPass({ssao, dof});
+        webaverseRenderPass.internalDepthPass = depthPass;
+      }
       if (ssao) {
-        const ssaoRenderPass = makeSsaoRenderPass(ssao);
+        const ssaoRenderPass = makeSsaoRenderPass(ssao, webaverseRenderPass.internalDepthPass);
         webaverseRenderPass.internalRenderPass = ssaoRenderPass;
       }
       if (dof) {
-        const dofPass = makeDofPass(dof);
+        const dofPass = makeDofPass(dof, webaverseRenderPass.internalDepthPass);
         composer.addPass(dofPass);
       }
       if (hdr) {
