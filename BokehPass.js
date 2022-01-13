@@ -17,7 +17,8 @@ import {
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { BokehShader } from './BokehShader.js';
 
-const _nop = () => {};
+const oldParentCache = new WeakMap();
+const oldMaterialCache = new WeakMap();
 
 /**
  * Depth-of-field post-process with bokeh shader
@@ -116,8 +117,9 @@ class BokehPass extends Pass {
 
 		const _recurse = o => {
 			if (o.isMesh && o.customPostMaterial) {
-        o.originalParent = o.parent;
-				o.originalMaterial = o.material;
+				oldParentCache.set(o, o.parent);
+				oldMaterialCache.set(o, o.material);
+
 				o.material = o.customPostMaterial;
 				this.customScene.add(o);
 			}
@@ -128,8 +130,11 @@ class BokehPass extends Pass {
 		_recurse(this.scene);
 		renderer.render( this.customScene, this.camera );
 		for (const child of this.customScene.children) {
-			child.originalParent.add(child);
-			child.material = child.originalMaterial;
+			oldParentCache.get(child).add(child);
+			child.material = oldMaterialCache.get(child);
+
+			oldParentCache.delete(child);
+			oldMaterialCache.delete(child);
 		}
 
 		renderer.render( this.scene, this.camera );
