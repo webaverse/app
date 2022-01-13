@@ -1893,6 +1893,25 @@ const createAppDiorama = (app, {
         lightningBackground = true;
       }
     },
+    triggerLoad() {
+      const oldParent = app.parent;
+      Promise.all([
+        (async () => {
+          sideAvatarScene.add(app);
+          await renderer.compileAsync(sideAvatarScene);
+        })(),
+        (async () => {
+          sideScene.add(app);
+          await renderer.compileAsync(sideScene);
+        })(),
+      ]);
+      
+      if (oldParent) {
+        oldParent.add(app);
+      } else {
+        app.parent.remove(app);
+      }
+    },
     update(timestamp, timeDiff) {
       if (!this.enabled) {
         lastDisabledTime = timestamp;
