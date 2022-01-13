@@ -235,6 +235,11 @@ class StatePlayer extends PlayerBase {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+
+        this.dispatchEvent({
+          type: 'avatarchange',
+          app,
+        });
         
         const avatarHeight = this.avatar.height;
         const heightFactor = 1.6;
