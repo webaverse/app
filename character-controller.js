@@ -38,6 +38,10 @@ window.MaxRectsPacker = MaxRectsPacker;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
+const localVector4D2 = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
@@ -1199,58 +1203,77 @@ const crunchAvatarModel = model => {
   const textures = {
     map: [],
     emissiveMap: [],
+    normalMap: [],
   };
   const textureTypes = Object.keys(textures);
   const skeletons = [];
   const canvasSize = 4096;
   const startAtlasSize = 512;
-  const _pushMaterial = material => {
+  const _pushMaterial = (material, startIndex, count) => {
     materials.push(material);
     for (const k of textureTypes) {
-      if (material[k]) {
-        if (!textures[k].includes(material[k])) {
-          textures[k].push(material[k]);
+      const texture = material[k];
+      if (texture) {
+        const texturesOfType = textures[k];
+        if (!texturesOfType.includes(texture)) {
+          texturesOfType.push(texture);
         }
+        if (!texture.groups) {
+          texture.groups = [];
+        }
+        texture.groups.push({
+          startIndex,
+          count,
+        });
       }
     }
   };
-  model.traverse(node => {
-    if (node.isMesh && !node.parent?.isBone) {
-      meshes.push(node);
+  {
+    let indexIndex = 0;
+    model.traverse(node => {
+      if (node.isMesh && !node.parent?.isBone) {
+        meshes.push(node);
 
-      const geometry = node.geometry;
-      geometries.push(geometry);
+        const geometry = node.geometry;
+        geometries.push(geometry);
 
-      let material = node.material;
-      if (Array.isArray(material)) {
-        for (let i = 0; i < material.length; i++) {
-          _pushMaterial(material[i]);
+        let material = node.material;
+        if (Array.isArray(material)) {
+          for (let i = 0; i < material.length; i++) {
+            _pushMaterial(material[i], indexIndex, geometry.index.count);
+          }
+        } else {
+          _pushMaterial(material, indexIndex, geometry.index.count);
         }
-      } else {
-        _pushMaterial(material);
-      }
 
-      if (node.skeleton) {
-        if (!skeletons.includes(node.skeleton)) {
-          skeletons.push(node.skeleton);
+        if (node.skeleton) {
+          if (!skeletons.includes(node.skeleton)) {
+            skeletons.push(node.skeleton);
+          }
         }
+
+        indexIndex += geometry.index.count;
       }
-    }
-  });
+    });
+  }
 
   const _packAtlases = () => {
     const _attempt = (k, atlasSize) => {
-      const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize);
+      const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
       maxRectsPacker.addArray(textures[k].map(t => {
         const w = t.image.width;
         const h = t.image.height;
         return {
           width: w,
           height: h,
-          data: t.image,
+          data: {
+            image: t.image,
+            groups: t.groups,
+          },
         };
       }));
-      let oversized = false;
+      // maxRectsPacker.repacsk();
+      let oversized = maxRectsPacker.bins.length !== 1;
       maxRectsPacker.bins.forEach(bin => {
         bin.rects.forEach(rect => {
           if (rect.oversized) {
@@ -1279,44 +1302,6 @@ const crunchAvatarModel = model => {
   const atlases = _packAtlases();
   // const atlasScale = atlas.rect.w / canvasSize;
   // console.log('got atlases', atlases);
-
-  const _mergeAtlas = atlas => {
-    // console.log('merge atlas', atlas);
-    const atlasScale = atlas.width / canvasSize;
-    const canvas = document.createElement('canvas');
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
-    // window.lolCanvas = canvas;
-    const ctx = canvas.getContext('2d');
-
-    atlas.bins.forEach(bin => {
-      // console.log('got rects', bin.rects);
-      bin.rects.forEach(rect => {
-        const {x, y, width: w, height: h, data: image} = rect;
-        ctx.drawImage(image, x, y, w, h, x/atlasScale, y/atlasScale, w/atlasScale, h/atlasScale);
-      });
-    });
-    
-    return canvas;
-  };
-  {
-    let canvasIndex = 0;
-    for (const k of textureTypes) {
-      const atlas = atlases[k];
-      const canvas = _mergeAtlas(atlas);
-      const displaySize = 256;
-      canvas.style.cssText = `\
-        position: fixed;
-        top: 0;
-        left: ${canvasIndex * displaySize}px;
-        width: ${displaySize}px;
-        height: ${displaySize}px;
-        z-index: 10;
-      `;
-      document.body.appendChild(canvas);
-      canvasIndex++;
-    }
-  }
 
   // build and validate attribute layouts
   const attributeLayouts = _makeAttributeLayoutsFromGeometry(geometries[0]);
@@ -1444,6 +1429,14 @@ const crunchAvatarModel = model => {
   // console.log('got final geometry', geometry);
   geometry.morphTargetsRelative = true;
 
+  const uv3Data = new Float32Array(geometry.attributes.uv.count * 4);
+  const uv3 = new THREE.BufferAttribute(uv3Data, 4);
+  geometry.setAttribute('uv3', uv3);
+
+  const uv4Data = new Float32Array(geometry.attributes.uv.count * 4);
+  const uv4 = new THREE.BufferAttribute(uv4Data, 4);
+  geometry.setAttribute('uv4', uv4);
+
   // verify
   for (const layout of attributeLayouts) {
     if (layout.index !== layout.count) {
@@ -1454,8 +1447,148 @@ const crunchAvatarModel = model => {
     console.log('bad index count', indexOffset, indexCount);
   }
 
+  const seenUvIndexes = {};
+  const _drawAtlases = () => {
+    const _drawAtlas = atlas => {
+      // console.log('merge atlas', atlas);
+      const canvas = document.createElement('canvas');
+      canvas.width = atlas.width;
+      canvas.height = atlas.height;
+      // window.lolCanvas = canvas;
+      const ctx = canvas.getContext('2d');
+
+      // console.log('atlas scale', atlas.width);
+
+      atlas.bins.forEach(bin => {
+        // console.log('got rects', bin.rects);
+        bin.rects.forEach(rect => {
+          const {x, y, width: w, height: h, data: {image, groups}} = rect;
+          // draw the image in the correct box on the canvas
+          ctx.drawImage(image, 0, 0, image.width, image.height, x, y, w, h);
+
+          /* ctx.drawImage(image,
+            0, 0, image.width, image.height,
+            x/atlas.width*canvasSize, y/atlas.height*canvasSize, w/atlas.width*canvasSize, h/atlas.height*canvasSize); */
+          // the above code is wrong; we need to make sure that each individual subimage is flipped in the y direction
+
+          const testUv = new THREE.Vector2(Math.random(), Math.random());
+          for (const group of groups) {
+            const {startIndex, count} = group;
+            for (let i = 0; i < count; i++) {
+              const uvIndex = geometry.index.array[startIndex + i];
+              if (!seenUvIndexes[uvIndex]) {
+                seenUvIndexes[uvIndex] = true;
+
+                // localVector4D.fromArray(geometry.attributes.uv.array, uvIndex * 4);
+                localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
+                localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4);
+                // console.log('set', localVector4D.toArray().join(', '));
+                localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
+                localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4);
+                
+                /* localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                localVector2D.multiply(
+                  localVector2D2.set(w/atlas.width, h/atlas.height),
+                );
+                localVector2D.add(
+                  localVector2D2.set(x/atlas.width, y/atlas.height),
+                );
+                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+                // testUv.toArray(geometry.attributes.uv.array, uvIndex * 2); */
+              }
+            }
+          }
+        });
+      });
+      atlas.image = canvas;
+      
+      return atlas;
+    };
+    const result = {};
+    {
+      let canvasIndex = 0;
+      for (const k of textureTypes) {
+        const atlas = atlases[k];
+        const atlas2 = _drawAtlas(atlas);
+        const {image} = atlas2;
+        
+        const displaySize = 256;
+        image.style.cssText = `\
+          position: fixed;
+          top: 0;
+          left: ${canvasIndex * displaySize}px;
+          width: ${displaySize}px;
+          height: ${displaySize}px;
+          z-index: 10;
+        `;
+        document.body.appendChild(image);
+
+        result[k] = atlas2;
+
+        canvasIndex++;
+      }
+    }
+    return result;
+  };
+  const textureAtlases = _drawAtlases();
+
   // return mesh
   const material = new THREE.MeshNormalMaterial();
+  material.onBeforeCompile = shader => {
+    for (const k of textureTypes) {
+      const t = new THREE.Texture(textureAtlases[k].image);
+      t.flipY = false;
+      t.needsUpdate = true;
+      // console.log('got k', shader.uniforms, k);
+      shader.uniforms[k] = {
+        value: t,
+        needsUpdate: true,
+      };
+      // shader.uniforms[k].needsUpdate = true;
+    }
+    shader.vertexShader = `\
+      attribute vec4 uv3;  
+      attribute vec4 uv4;  
+      varying vec2 vUv;
+      varying vec4 vUv3;
+      varying vec4 vUv4;
+    ` + shader.vertexShader.replace(
+      '}',
+      `\
+        vUv = uv;
+        vUv3 = uv3;
+        vUv4 = uv4;
+      ` + '}'
+    );
+    shader.fragmentShader = `\
+      uniform sampler2D map;
+      uniform sampler2D emissiveMap;
+      uniform sampler2D normalMap;
+      varying vec2 vUv;
+      varying vec4 vUv3;
+      varying vec4 vUv4;
+    ` + shader.fragmentShader.replace(
+      `gl_FragColor = vec4( packNormalToRGB( normal ), opacity );`,
+      `\
+        vec2 localUv = vUv;
+        vec2 localUv2 = vUv3.xy + localUv * vUv3.zw;
+        vec2 localUv3 = localUv2; // vec2(localUv2.x, 1.0 - localUv2.y);
+        // localUv = vec2(localUv.x, 1.0 - localUv.y);
+        // vec2 localUv2 = vec2(localUv.x, 1.0 - localUv.y);
+        vec4 c = texture2D(map, localUv3);
+        // vec3 e = texture2D(normalMap, localUv2).rgb;
+        gl_FragColor = c;
+        if (gl_FragColor.a < 0.1) {
+          discard;
+        }
+        // gl_FragColor = vec4(c, 1.0);
+        // gl_FragColor.rg += vUv4.xy * 0.2;
+      `
+    );
+    console.log('got normal shader', shader);
+    // shader.uniforms.map.value = ;
+  };
+  material.transparent = true;
   const crunchedModel = new THREE.SkinnedMesh(geometry, material);
   crunchedModel.skeleton = skeletons[0];
   const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
