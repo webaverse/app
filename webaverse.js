@@ -82,7 +82,7 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.position = 'absolute';
     rendererStats.domElement.style.left = '0px';
     rendererStats.domElement.style.bottom = '0px';
-    // rendererStats.domElement.style.display = 'none';
+    rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
 
     {
@@ -288,9 +288,9 @@ export default class Webaverse extends EventTarget {
     // equipmentRender.render();
 
     getComposer().render();
-    // if(ioManager.debugMode) {
+    if(ioManager.debugMode) {
       rendererStats.update(renderer);
-    // }
+    }
   }
   
   startLoop() {
@@ -302,9 +302,6 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => { 
-      // window.totalTime = 0
-      // window.count = 0
-
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
@@ -350,8 +347,6 @@ export default class Webaverse extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
         
       this.render(timestamp, timeDiffCapped);
-
-      // window.domAverageTime.innerText = `${window.count} | ${window.totalTime / window.count}`
 
     }
     renderer.setAnimationLoop(animate);

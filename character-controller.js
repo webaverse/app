@@ -74,7 +74,6 @@ class Player extends THREE.Object3D {
     });
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
-      app.name = 'app'
       scene.add(app);
     });
     this.appManager.addEventListener('appremove', e => {

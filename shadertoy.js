@@ -98,7 +98,6 @@ class ShaderToyPass {
     );
     this.scene = new THREE.Scene();
     this.scene.autoUpdate = false;
-    this.mesh.name = 'meshOfShadertoyJs'
     this.scene.add(this.mesh);
     
     this._copyBuffer = _makeRenderTarget(renderTarget.width, renderTarget.height);

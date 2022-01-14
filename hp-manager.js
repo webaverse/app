@@ -21,7 +21,6 @@ const _makeDamagePhysicsMesh = () => {
 
 const damagePhysicsMesh = _makeDamagePhysicsMesh();
 damagePhysicsMesh.visible = false;
-damagePhysicsMesh.name = 'damagePhysicsMesh'
 scene.add(damagePhysicsMesh);
 
 const hitAnimationLength = 300;
