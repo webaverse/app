@@ -30,11 +30,11 @@ import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
-import atlaspack from 'atlaspack';
+// import atlaspack from 'atlaspack';
 import {MaxRectsPacker} from 'maxrects-packer';
 
-window.atlaspack = atlaspack;
-window.MaxRectsPacker = atlaspack;
+// window.atlaspack = atlaspack;
+window.MaxRectsPacker = MaxRectsPacker;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
