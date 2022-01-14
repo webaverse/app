@@ -1115,6 +1115,244 @@ function updatePhysics(now, timeDiff) {
   metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
 } */
 
+function arrayEquals(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+class AttributeLayout {
+  constructor(name, TypedArrayConstructor, itemSize) {
+    this.name = name;
+    this.TypedArrayConstructor = TypedArrayConstructor;
+    this.itemSize = itemSize;
+    this.index = 0;
+    this.count = 0;
+    this.depth = 0;
+  }
+}
+
+window.useLocalPlayer = () => metaversefile.useLocalPlayer();
+const crunchAvatarModel = model => {
+  const _makeAttributeLayoutsFromGeometry = geometry => {
+    const attributes = geometry.attributes;
+    const attributeLayouts = [];
+    for (const attributeName in attributes) {
+      const attribute = attributes[attributeName];
+      const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
+      attributeLayouts.push(layout);
+    }
+    return attributeLayouts;
+  };
+  const _makeMorphAttributeLayoutsFromGeometries = geometries => {
+    // create morph layouts
+    const morphAttributeLayouts = [];
+    for (const geometry of geometries) {
+      const morphAttributes = geometry.morphAttributes;
+      for (const morphAttributeName in morphAttributes) {
+        const morphAttribute = morphAttributes[morphAttributeName];
+        let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
+        if (!morphLayout) {
+          morphLayout = new AttributeLayout(morphAttributeName, morphAttribute[0].array.constructor, morphAttribute[0].itemSize);
+          morphLayout.depth = morphAttribute.length;
+          morphAttributeLayouts.push(morphLayout);
+        }
+      }
+    }
+
+    // compute morph layouts sizes
+    for (const morphLayout of morphAttributeLayouts) {
+      for (const g of geometries) {
+        const morphAttribute = g.morphAttributes[morphLayout.name];
+        if (morphAttribute) {
+          morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
+          // console.log('morph layout add 1', morphLayout.count, morphAttribute[0].count, morphAttribute[0].itemSize);
+        } else {
+          const matchingGeometryAttribute = g.attributes[morphLayout.name];
+          if (matchingGeometryAttribute) {
+            morphLayout.count += matchingGeometryAttribute.count * matchingGeometryAttribute.itemSize;
+            // console.log('morph layout add 2', morphLayout.count, matchingGeometryAttribute.count, matchingGeometryAttribute.itemSize);
+          } else {
+            console.warn('geometry  attributes desynced with morph attributes', g.attributes, morphAttribute);
+          }
+        }
+      }
+    }
+    return morphAttributeLayouts;
+  };
+
+  // collect objects
+  const meshes = [];
+  const geometries = [];
+  const materials = [];
+  const skeletons = [];
+  model.traverse(node => {
+    if (node.isMesh && !node.parent?.isBone) {
+      meshes.push(node);
+
+      const geometry = node.geometry;
+      geometries.push(geometry);
+
+      let material = node.material;
+      if (Array.isArray(material)) {
+        for (let i = 0; i < material.length; i++) {
+          materials.push(material[i]);
+        }
+      } else {
+        materials.push(material);
+      }
+
+      if (node.skeleton) {
+        if (!skeletons.includes(node.skeleton)) {
+          skeletons.push(node.skeleton);
+        }
+      }
+    }
+  });
+
+  // build and validate attribute layouts
+  const attributeLayouts = _makeAttributeLayoutsFromGeometry(geometries[0]);
+  const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
+  let indexCount = 0;
+  for (let i = 0; i < meshes.length; i++) {
+    const mesh = meshes[i];
+    const geometry = mesh.geometry;
+    const attributes = geometry.attributes;
+    const attributeNamesArray = Object.keys(attributes);
+
+    if (attributeNamesArray.length !== attributeLayouts.length) {
+      console.log('bad attributes length', mesh, attributeLayouts.length, attributeNamesArray.length, attributeLayouts, attributeNamesArray);
+    }
+    if (!geometry.index) {
+      console.log('no index', mesh);
+    }
+    
+    if (!mesh.skeleton) {
+      console.log('no skeleton', mesh);;
+    }
+  }
+  if (skeletons.length !== 1) {
+    console.log('did not have single skeleton', skeletons);
+  }
+
+  for (const layout of attributeLayouts) {
+    for (const g of geometries) {
+      const gAttribute = g.attributes[layout.name];
+      layout.count += gAttribute.count * gAttribute.itemSize;
+    }
+    
+  }
+  for (const g of geometries) {
+    indexCount += g.index.count;
+  }
+
+  console.log('got avatar breakout', meshes, geometries, materials, skeletons, morphAttributeLayouts);
+  
+  // build geometry
+  const geometry = new THREE.BufferGeometry();
+  for (const layout of attributeLayouts) {
+    const attributeData = new layout.TypedArrayConstructor(layout.count);
+    const attribute = new THREE.BufferAttribute(attributeData, layout.itemSize);
+    for (const g of geometries) {
+      const gAttribute = g.attributes[layout.name];
+      attributeData.set(gAttribute.array, layout.index);
+      layout.index += gAttribute.count * gAttribute.itemSize;
+    }
+    geometry.setAttribute(layout.name, attribute);
+  }
+  for (const morphLayout of morphAttributeLayouts) {
+    const morphsArray = Array(morphLayout.depth);
+    for (let i = 0; i < morphLayout.depth; i++) {
+      const morphData = new morphLayout.TypedArrayConstructor(morphLayout.count);
+      let morphDataIndex = 0;
+      const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
+      morphsArray[i] = morphAttribute;
+      for (const g of geometries) {
+        /* if (morphDataIndex >= morphLayout.count) {
+          debugger;
+        } */
+        
+        // console.log('got morph attribute', g.morphAttributes[morphLayout.name], g.morphAttributes[morphLayout.name] && g.morphAttributes[morphLayout.name][i]);
+        
+        let gMorphAttribute = g.morphAttributes[morphLayout.name];
+        gMorphAttribute = gMorphAttribute && gMorphAttribute[i];
+        if (gMorphAttribute) {
+          morphData.set(gMorphAttribute.array, morphDataIndex);
+          morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
+          // console.log('new index 1', morphLayout.name, gMorphAttribute.array.some(n => n !== 0), morphDataIndex, gMorphAttribute.count, gMorphAttribute.itemSize);
+        } else {
+          const matchingAttribute = g.attributes[morphLayout.name];
+          morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
+          // console.log('new index 2', g, morphDataIndex, matchingAttribute.count, matchingAttribute.itemSize);
+        }
+      }
+      if (morphDataIndex !== morphLayout.count) {
+        console.warn('desynced morph data', morphLayout.name, morphDataIndex, morphLayout.count);
+      }
+    }
+    geometry.morphAttributes[morphLayout.name] = morphsArray;
+  }
+  const indexData = new Uint32Array(indexCount);
+  let positionOffset = 0;
+  let indexOffset = 0;
+  // const positionAttributeLayout = attributeLayouts.find(layout => layout.name === 'position');
+  for (const g of geometries) {
+    const srcIndexData = g.index.array;
+    // const dstIndexData = indexData.subarray(indexOffset, indexOffset + srcIndexData.length);
+    for (let i = 0; i < srcIndexData.length; i++) {
+      indexData[indexOffset++] = srcIndexData[i] + positionOffset;
+    }
+    positionOffset += g.attributes.position.count;
+  }
+  geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
+  // console.log('got final geometry', geometry);
+  geometry.morphTargetsRelative = true;
+
+  // verify
+  for (const layout of attributeLayouts) {
+    if (layout.index !== layout.count) {
+      console.log('bad layout count', layout.index, layout.count);
+    }
+  }
+  if (indexOffset !== indexCount) {
+    console.log('bad index count', indexOffset, indexCount);
+  }
+
+  // return mesh
+  const material = new THREE.MeshNormalMaterial();
+  const crunchedModel = new THREE.SkinnedMesh(geometry, material);
+  crunchedModel.skeleton = skeletons[0];
+  const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
+  // console.log('deepestMorphMesh', deepestMorphMesh);
+  crunchedModel.morphTargetDictionary = deepestMorphMesh.morphTargetDictionary;
+  crunchedModel.morphTargetInfluences = deepestMorphMesh.morphTargetInfluences;
+
+  // console.log('dicts', meshes.map(m => m.morphTargetDictionary));
+
+  // crunchedModel.updateMorphTargets();
+  return crunchedModel;
+};
+window.compileAvatar = () => {
+  const localPlayer = metaversefile.useLocalPlayer();
+  if (localPlayer.avatar) {
+    const model = localPlayer.avatar.model;
+    const crunchedModel = crunchAvatarModel(model);
+    crunchedModel.position.set(0, 1, -2);
+    crunchedModel.frustumCulled = false;
+    scene.add(crunchedModel);
+    localPlayer.avatar.model.visible = false;
+    return crunchedModel;
+  } else {
+    return null;
+  }
+};
+
 export {
   LocalPlayer,
   RemotePlayer,
