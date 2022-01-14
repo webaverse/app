@@ -115,7 +115,6 @@ camera.up.set(0, 0, -1);
     
     const extentMesh = new THREE.Mesh(geometry, material);
     extentMesh.position.set(extents.min.x, 0, extents.min.z)
-    extentMesh.name = 'extentMesh'
     scene.add(extentMesh);
   }
 

@@ -254,8 +254,6 @@ class AppManager extends EventTarget {
         app.lastMatrix.copy(app.matrixWorld);
 
         app.contentId = contentId;
-        // debugger
-        console.log(111,contentId)
         app.instanceId = instanceId;
         app.setComponent('physics', true);
         if (Array.isArray(m.components)) {

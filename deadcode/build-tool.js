@@ -134,7 +134,6 @@ const modeMeshes = {
 for (const k in modeMeshes) {
   const mesh = modeMeshes[k];
   mesh.visible = false;
-  mesh.name = 'meshOfbuildToolJs'
   scene.add(mesh);
 }
 

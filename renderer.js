@@ -4,50 +4,8 @@ the purpose of this file is to hold these objects and to make sure they are corr
 */
 
 import * as THREE from 'three';
-window.THREE = THREE
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {minFov} from './constants.js';
-
-// // https://stackoverflow.com/a/62544968/3596736
-//   // Adding 'support' for instanceof Proxy:
-// (() => {
-//   var proxyInstances = new WeakSet()
-  
-//   // Optionally save the original in global scope:
-//   let originalProxy = Proxy
-
-//   Proxy = new Proxy(Proxy, {
-//     construct(target, args) {
-//       var newProxy = new originalProxy(...args)
-//       proxyInstances.add(newProxy)
-//       return newProxy
-//     },
-//     get(obj, prop) {
-//       if (prop == Symbol.hasInstance) {
-//         return (instance) => {
-//           return proxyInstances.has(instance)
-//         }
-//       }
-//       return Reflect.get(...arguments)
-//     }
-//   })
-// })()
-
-// THREE.Matrix4.prototype.multiplyMatrices = (function () {
-//   var cachedFunction = THREE.Matrix4.prototype.multiplyMatrices
-
-//   let startTime;
-
-//   return function () {
-//     startTime = performance.now()
-
-//     var result = cachedFunction.apply(this, arguments) // use .apply() to call it
-
-//     window.totalTime += performance.now() - startTime
-//     window.count += 1
-//     return result
-//   }
-// })()
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
@@ -128,7 +86,6 @@ sceneHighPriority.name = 'highPriorioty';
 const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
-window.rootScene = rootScene
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
 const postScene = new THREE.Scene();
@@ -154,7 +111,6 @@ const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
 // dolly.add(avatarCamera);
-dolly.name = 'dolly'
 scene.add(dolly);
 
 // const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
