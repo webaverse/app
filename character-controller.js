@@ -30,6 +30,11 @@ import {CharacterPhysics} from './character-physics.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
+import atlaspack from 'atlaspack';
+import {MaxRectsPacker} from 'maxrects-packer';
+
+window.atlaspack = atlaspack;
+window.MaxRectsPacker = atlaspack;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1191,7 +1196,24 @@ const crunchAvatarModel = model => {
   const meshes = [];
   const geometries = [];
   const materials = [];
+  const textures = {
+    map: [],
+    emissiveMap: [],
+  };
+  const textureTypes = Object.keys(textures);
   const skeletons = [];
+  const canvasSize = 4096;
+  const startAtlasSize = 512;
+  const _pushMaterial = material => {
+    materials.push(material);
+    for (const k of textureTypes) {
+      if (material[k]) {
+        if (!textures[k].includes(material[k])) {
+          textures[k].push(material[k]);
+        }
+      }
+    }
+  };
   model.traverse(node => {
     if (node.isMesh && !node.parent?.isBone) {
       meshes.push(node);
@@ -1202,10 +1224,10 @@ const crunchAvatarModel = model => {
       let material = node.material;
       if (Array.isArray(material)) {
         for (let i = 0; i < material.length; i++) {
-          materials.push(material[i]);
+          _pushMaterial(material[i]);
         }
       } else {
-        materials.push(material);
+        _pushMaterial(material);
       }
 
       if (node.skeleton) {
@@ -1215,6 +1237,86 @@ const crunchAvatarModel = model => {
       }
     }
   });
+
+  const _packAtlases = () => {
+    const _attempt = (k, atlasSize) => {
+      const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize);
+      maxRectsPacker.addArray(textures[k].map(t => {
+        const w = t.image.width;
+        const h = t.image.height;
+        return {
+          width: w,
+          height: h,
+          data: t.image,
+        };
+      }));
+      let oversized = false;
+      maxRectsPacker.bins.forEach(bin => {
+        bin.rects.forEach(rect => {
+          if (rect.oversized) {
+            oversized = true;
+          }
+        });
+      });
+      if (!oversized) {
+        return maxRectsPacker;
+      } else {
+        return null;
+      }
+    };
+
+    const atlases = {};
+    for (const k of textureTypes) {
+      let atlas;
+      let atlasSize = startAtlasSize;
+      while (!(atlas = _attempt(k, atlasSize))) {
+        atlasSize *= 2;
+      }
+      atlases[k] = atlas;
+    }
+    return atlases;
+  };
+  const atlases = _packAtlases();
+  // const atlasScale = atlas.rect.w / canvasSize;
+  // console.log('got atlases', atlases);
+
+  const _mergeAtlas = atlas => {
+    // console.log('merge atlas', atlas);
+    const atlasScale = atlas.width / canvasSize;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+    // window.lolCanvas = canvas;
+    const ctx = canvas.getContext('2d');
+
+    atlas.bins.forEach(bin => {
+      // console.log('got rects', bin.rects);
+      bin.rects.forEach(rect => {
+        const {x, y, width: w, height: h, data: image} = rect;
+        ctx.drawImage(image, x, y, w, h, x/atlasScale, y/atlasScale, w/atlasScale, h/atlasScale);
+      });
+    });
+    
+    return canvas;
+  };
+  {
+    let canvasIndex = 0;
+    for (const k of textureTypes) {
+      const atlas = atlases[k];
+      const canvas = _mergeAtlas(atlas);
+      const displaySize = 256;
+      canvas.style.cssText = `\
+        position: fixed;
+        top: 0;
+        left: ${canvasIndex * displaySize}px;
+        width: ${displaySize}px;
+        height: ${displaySize}px;
+        z-index: 10;
+      `;
+      document.body.appendChild(canvas);
+      canvasIndex++;
+    }
+  }
 
   // build and validate attribute layouts
   const attributeLayouts = _makeAttributeLayoutsFromGeometry(geometries[0]);
@@ -1252,7 +1354,35 @@ const crunchAvatarModel = model => {
     indexCount += g.index.count;
   }
 
-  console.log('got avatar breakout', meshes, geometries, materials, skeletons, morphAttributeLayouts);
+  /* {
+    let canvasOffsetX = 0;
+    let canvasOffsetY = 0;
+    for (const texture of textures.map) {
+      // copy the texture to canvas and attach it to the DOM
+      const canvas = document.createElement('canvas');
+      canvas.width = texture.image.width;
+      canvas.height = texture.image.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(texture.image, 0, 0);
+      const displaySize = texture.image.width / 16;
+      canvas.style.cssText = `\
+        position: fixed;
+        top: ${canvasOffsetY}px;
+        left: ${canvasOffsetX}px;
+        width: ${displaySize}px;
+        height: ${displaySize}px;
+        z-index: 10;
+      `;
+      document.body.appendChild(canvas);
+      canvasOffsetX += displaySize;
+      if (canvasOffsetX >= 256) {
+        canvasOffsetX = 0;
+        canvasOffsetY += 128;
+      }
+    }
+  } */
+
+  console.log('got avatar breakout', meshes, geometries, materials, textures, skeletons, morphAttributeLayouts);
   
   // build geometry
   const geometry = new THREE.BufferGeometry();
