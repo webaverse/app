@@ -10,9 +10,9 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
       onclick={async e => {
         toggleOpen('options')
       }}
-      bottom
+      top
       right
-      index={0}
+      index={1}
       label={
         <div className={styles.label}>
           <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
