@@ -745,18 +745,17 @@ const physxWorker = (() => {
     const numOutPositionsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutUvsTypedArray = allocator.alloc(Uint32Array, 2);
-    const numOutFacesTypedArray = allocator.alloc(Uint32Array, 2);
 
-    // output lenght may bigger than input length?
-    // todo: how to pass unknonwn length output from wasm to js?
-    // see https://rob-blackbourn.github.io/blog/webassembly/wasm/array/arrays/javascript/c/2020/06/07/wasm-arrays.html #Passing output arrays to wasm
-    // whether this tut has solution?
-    const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions * 10); // todo: do not hard code alloc length.
-    const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals * 10); // todo: do not hard code alloc length.
-    const outUvsTypedArray = allocator.alloc(Float32Array, numUvs * 10); // todo: do not hard code alloc length.
-    const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces * 10); // todo: do not hard code alloc length.
+    // // output lenght may bigger than input length? yes, will.
+    // // todo: how to pass unknonwn length output from wasm to js?
+    // // see https://rob-blackbourn.github.io/blog/webassembly/wasm/array/arrays/javascript/c/2020/06/07/wasm-arrays.html #Passing output arrays to wasm
+    // // whether this tut has solution?
+    // const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions * 10); // todo: do not hard code alloc length.
+    // const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals * 10); // todo: do not hard code alloc length.
+    // const outUvsTypedArray = allocator.alloc(Float32Array, numUvs * 10); // todo: do not hard code alloc length.
+    // const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces * 10); // todo: do not hard code alloc length.
 
-    moduleInstance._doCut(
+    const outputBuffer = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
       numPositions,
       normalsTypedArray.byteOffset,
@@ -770,27 +769,35 @@ const physxWorker = (() => {
       quaternionTypedArray.byteOffset,
       scaleTypedArray.byteOffset,
 
-      outPositionsTypedArray.byteOffset,
       numOutPositionsTypedArray.byteOffset,
-      outNormalsTypedArray.byteOffset,
       numOutNormalsTypedArray.byteOffset,
-      outUvsTypedArray.byteOffset,
       numOutUvsTypedArray.byteOffset,
-      outFacesTypedArray.byteOffset,
-      numOutFacesTypedArray.byteOffset,
     );
 
-    const result = {
-      outPositions: outPositionsTypedArray,
+    // const a = new Float32Array(moduleInstance.buffer, outputBuffer, 3) // poor performance?
+    // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 3) // ok
+
+    // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 252)
+    // debugger
+
+    const output = {
       numOutPositions: numOutPositionsTypedArray,
-      outNormals: outNormalsTypedArray,
+      outPositions: moduleInstance.HEAPF32.subarray(
+        outputBuffer / 4,
+        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1])
+      ),
       numOutNormals: numOutNormalsTypedArray,
-      outUvs: outUvsTypedArray,
+      outNormals: moduleInstance.HEAPF32.subarray(
+        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]),
+        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1])
+      ),
       numOutUvs: numOutUvsTypedArray,
-      outFaces: outFacesTypedArray,
-      numOutFaces: numOutFacesTypedArray,
+      outUvs: moduleInstance.HEAPF32.subarray(
+        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]),
+        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]) + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
+      ),
     }
-    return result
+    return output
   };
   w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setLinearLockFlagsPhysics(
