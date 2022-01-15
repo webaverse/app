@@ -235,7 +235,9 @@ body {
   top: -50px;
   left: -400px;
 }
-.header .tab.top.right .panels {
+.header .tab.top.right .panels,
+.header .tab.bottom.right.index-0 .panels
+{
   top: -100px;
   left: 100%;
   height: 100vh;
@@ -334,6 +336,9 @@ body {
 .header .tab.top.right.open {
   transform: translateX(-400px);
 }
+.header .tab.bottom.right.index-0.open {
+  transform: translateX(-400px) translateY(-55px);
+}
 .header .tab .label .background {
   position: absolute;
   top: 0;
@@ -380,6 +385,9 @@ body {
 .header .tab.bottom.right:not(.disabled):hover .background,
 .header .tab.bottom.right.open .background {
   transform: translateX(50px);
+}
+.header .tab.bottom.right.index-0 {
+  transform: translateY(-55px);
 }
 .header .tab.bottom.left:not(.disabled):hover .background,
 .header .tab.bottom.left.open .background {
