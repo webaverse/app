@@ -33,10 +33,6 @@ import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
-const localVector4D = new THREE.Vector4();
-const localVector4D2 = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
