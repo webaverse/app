@@ -341,6 +341,11 @@ const crunchAvatarModel = (model, options = {}) => {
             const {startIndex, count} = group;
             for (let i = 0; i < count; i++) {
               const uvIndex = geometry.index.array[startIndex + i];
+
+              // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
+              // that means that the different maps might get the wrong uv.
+              // the diffuse map takes priority so it looks ok.
+              // the right way to do this is to have a separate uv map for each map.
               if (!seenUvIndexes.get(uvIndex)) {
                 seenUvIndexes.set(uvIndex, true);
 
