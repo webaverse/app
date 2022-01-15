@@ -6,6 +6,7 @@ import {Tab} from '../components/tab';
 
 export const Options = ({app, open, toggleOpen, panelsRef}) => {
   const [avatarStyle, setAvatarStyle] = useState(4);
+  const [avatarStyleCurrent, setAvatarStyleCurrent] = useState(4);
 
   return (
     <Tab
@@ -42,7 +43,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 2: {
                     return (<>
                       <b>2 - Optimized avatar</b>
-                      <span>Squash algorithm. One draw call w/atlas uv! Maybe loses some shade (눈_눈)</span>
+                      <span>Avatar squished into one draw call w/atlas uv! Maybe loses shading (눈_눈)</span>
                     </>);
                   }
                   case 3: {
@@ -54,7 +55,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 4: {
                     return (<>
                       <b>4 - VRM MToon avatar</b>
-                      <span>The highest level to aspire. Full MToon effects enabled blows the Unreal Engine Phyonx™!</span>
+                      <span>The highest level to aspire.<br/>MToon effect enabled will blow the other engine!</span>
                     </>);
                   }
                   default:
@@ -63,6 +64,14 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
               })()
             }
           </p>
+          {(avatarStyle !== avatarStyleCurrent) ? (
+            <button className={classnames(styles.big, styles['mint-button'])} onClick={e => {
+              setAvatarStyleCurrent(avatarStyle);
+            }}>
+              <div className={styles['button-background']} />
+              <span>Switch style</span>
+            </button>
+          ) : null}
         </div>),
         /* (selectedApp ? <div className={styles.panel} key="right">
           <div className={styles['panel-header']}>
