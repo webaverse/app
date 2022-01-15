@@ -201,6 +201,30 @@ body {
   overflow: hidden;
   align-items: center;
 }
+.header p
+{
+  display: block;
+  border-radius: 10px;
+  background-color: #333;
+  box-shadow: inset 0 10px 20px -10px #111;
+  /* background-image: linear-gradient(to bottom,#222222, #000000 20px); */
+  margin: 20px;
+  padding: 20px;
+  font-family: 'PlazaRegular';
+  /* font-family: 'WinchesterCaps'; */
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+.header p b,
+.header p span
+{
+  display: block;
+  text-align: left;
+}
+.header p b {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
 .header input[type=range] {
   margin: 0 10px;
 }

@@ -1,9 +1,12 @@
 import React from 'react';
+import {useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 
 export const Options = ({app, open, toggleOpen, panelsRef}) => {
+  const [avatarStyle, setAvatarStyle] = useState(4);
+
   return (
     <Tab
       type="options"
@@ -25,8 +28,41 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
             <h1>Options</h1>
           </div>
           <h2>Avatar style</h2>
-          <input type="range" min={1} max={4} step={1} className={styles['slider']} />
-          <p className={styles['description']}></p>
+          <input type="range" min={1} max={4} step={1} value={avatarStyle} onChange={e => setAvatarStyle(parseInt(e.target.value, 10))} className={styles['slider']} />
+          <p className={styles['description']}>
+            {
+              (() => {
+                switch (avatarStyle) {
+                  case 1: {
+                    return (<>
+                      <b>1 - Sprite sheet</b>
+                      <span>Pixels on a plane. A fast style of avatar! One draw call, one texture.<br/>|ʘ‿ʘ)╯</span>
+                    </>);
+                  }
+                  case 2: {
+                    return (<>
+                      <b>2 - Optimized avatar</b>
+                      <span>Squash algorithm. One draw call w/atlas uv! Maybe loses some shade (눈_눈)</span>
+                    </>);
+                  }
+                  case 3: {
+                    return (<>
+                      <b>3 - Standard avatar</b>
+                      <span>Standard GLB avatar render. High quality materials if u wk hard<br/>__〆(￣ー￣ )</span>
+                    </>);
+                  }
+                  case 4: {
+                    return (<>
+                      <b>4 - VRM MToon avatar</b>
+                      <span>The highest level to aspire. Full MToon effects enabled blows the Unreal Engine Phyonx™!</span>
+                    </>);
+                  }
+                  default:
+                    return null;
+                }
+              })()
+            }
+          </p>
         </div>),
         /* (selectedApp ? <div className={styles.panel} key="right">
           <div className={styles['panel-header']}>
