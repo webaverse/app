@@ -1,9 +1,10 @@
 import * as THREE from 'three';
+import {MaxRectsPacker} from 'maxrects-packer';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
-const localVector4D = new THREE.Vector4();
-const localVector4D2 = new THREE.Vector4();
+// const localVector4D = new THREE.Vector4();
+// const localVector4D2 = new THREE.Vector4();
 
 class AttributeLayout {
   constructor(name, TypedArrayConstructor, itemSize) {
@@ -230,7 +231,7 @@ const crunchAvatarModel = model => {
     }
   } */
 
-  console.log('got avatar breakout', meshes, geometries, materials, textures, skeletons, morphAttributeLayouts);
+  // console.log('got avatar breakout', meshes, geometries, materials, textures, skeletons, morphAttributeLayouts);
   
   // build geometry
   const geometry = new THREE.BufferGeometry();
