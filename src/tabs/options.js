@@ -37,7 +37,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 1: {
                     return (<>
                       <b>1 - Sprite sheet</b>
-                      <span>Pixels on a plane. A fast style of avatar! One draw call, one texture.<br/>人(_ _*)</span>
+                      <span>Pixels on a plane.<br/>Fast style of avatar! One draw call, one texture.<br/>人(_ _*)</span>
                     </>);
                   }
                   case 2: {
@@ -55,7 +55,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 4: {
                     return (<>
                       <b>4 - VRM MToon avatar</b>
-                      <span>Highest level to aspire.<br/>MToon effect enabled will blow your GPU!</span>
+                      <span>The highest level to aspire to.<br/>MToon effect enabled will blow your GPU!</span>
                     </>);
                   }
                   default:
