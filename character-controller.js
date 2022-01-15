@@ -1124,7 +1124,7 @@ function updatePhysics(now, timeDiff) {
   metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
 } */
 
-function arrayEquals(a, b) {
+/* function arrayEquals(a, b) {
   if (a.length !== b.length) {
     return false;
   }
@@ -1134,7 +1134,7 @@ function arrayEquals(a, b) {
     }
   }
   return true;
-}
+} */
 
 class AttributeLayout {
   constructor(name, TypedArrayConstructor, itemSize) {
