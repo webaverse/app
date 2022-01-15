@@ -87,7 +87,7 @@ const crunchAvatarModel = (model, options = {}) => {
     emissiveMap: [],
     normalMap: [],
   };
-  const textureGroupsMap = new WeakMap();
+  let textureGroupsMap = new WeakMap();
   const textureTypes = Object.keys(textures);
   const skeletons = [];
   {
@@ -315,7 +315,8 @@ const crunchAvatarModel = (model, options = {}) => {
     console.log('bad final index', indexOffset, indexCount);
   }
 
-  const seenUvIndexes = {};
+  // draw the atlas
+  const seenUvIndexes = new Map();
   const _drawAtlases = () => {
     const _drawAtlas = atlas => {
       const canvas = document.createElement('canvas');
@@ -340,8 +341,8 @@ const crunchAvatarModel = (model, options = {}) => {
             const {startIndex, count} = group;
             for (let i = 0; i < count; i++) {
               const uvIndex = geometry.index.array[startIndex + i];
-              if (!seenUvIndexes[uvIndex]) {
-                seenUvIndexes[uvIndex] = true;
+              if (!seenUvIndexes.get(uvIndex)) {
+                seenUvIndexes.set(uvIndex, true);
 
                 localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
                 localVector2D.multiply(
@@ -364,16 +365,17 @@ const crunchAvatarModel = (model, options = {}) => {
       
       return atlas;
     };
+
+    // generate atlas for each map; they are all separate
     const result = {};
     {
       let canvasIndex = 0;
       for (const k of textureTypes) {
         const atlas = atlases[k];
         const atlas2 = _drawAtlas(atlas);
-        const {image} = atlas2;
         
         /* const displaySize = 256;
-        image.style.cssText = `\
+        atlas2.image.style.cssText = `\
           position: fixed;
           top: 0;
           left: ${canvasIndex * displaySize}px;
@@ -381,7 +383,7 @@ const crunchAvatarModel = (model, options = {}) => {
           height: ${displaySize}px;
           z-index: 10;
         `;
-        document.body.appendChild(image); */
+        document.body.appendChild(atlas2.image); */
 
         result[k] = atlas2;
 
@@ -392,7 +394,7 @@ const crunchAvatarModel = (model, options = {}) => {
   };
   const textureAtlases = _drawAtlases();
 
-  // return mesh
+  // create material
   // const material = new THREE.MeshStandardMaterial();
   const material = new THREE.MeshBasicMaterial();
   for (const k of textureTypes) {
@@ -404,6 +406,8 @@ const crunchAvatarModel = (model, options = {}) => {
   material.roughness = 1;
   material.alphaTest = 0.1;
   material.transparent = true;
+
+  // create mesh
   const crunchedModel = new THREE.SkinnedMesh(geometry, material);
   crunchedModel.skeleton = skeletons[0];
   const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
