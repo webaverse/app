@@ -49,13 +49,13 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 3: {
                     return (<>
                       <b>3 - Standard avatar</b>
-                      <span>Standard GLB avatar render. High quality materials if u wk hard<br/>__〆(￣ー￣ )</span>
+                      <span>Standard GLB avatar render. High quality materials if u work hard<br/>__〆(￣ー￣ )</span>
                     </>);
                   }
                   case 4: {
                     return (<>
                       <b>4 - VRM MToon avatar</b>
-                      <span>The highest level to aspire.<br/>MToon effect enabled will blow the GPU!</span>
+                      <span>Highest level to aspire.<br/>MToon effect enabled will blow your GPU!</span>
                     </>);
                   }
                   default:
