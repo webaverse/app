@@ -55,7 +55,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 4: {
                     return (<>
                       <b>4 - VRM MToon avatar</b>
-                      <span>The highest level to aspire.<br/>MToon effect enabled will blow the other engine!</span>
+                      <span>The highest level to aspire.<br/>MToon effect enabled will blow the GPU!</span>
                     </>);
                   }
                   default:
