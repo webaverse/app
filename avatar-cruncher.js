@@ -81,27 +81,6 @@ const crunchAvatarModel = (model, options = {}) => {
   const textureGroupsMap = new WeakMap();
   const textureTypes = Object.keys(textures);
   const skeletons = [];
-  const _pushMaterial = (material, startIndex, count) => {
-    materials.push(material);
-    for (const k of textureTypes) {
-      const texture = material[k];
-      if (texture) {
-        const texturesOfType = textures[k];
-        if (!texturesOfType.includes(texture)) {
-          texturesOfType.push(texture);
-        }
-        let textureGroups = textureGroupsMap.get(texture);
-        if (!textureGroups) {
-          textureGroups = [];
-          textureGroupsMap.set(texture, textureGroups);
-        }
-        textureGroups.push({
-          startIndex,
-          count,
-        });
-      }
-    }
-  };
   {
     let indexIndex = 0;
     model.traverse(node => {
@@ -111,13 +90,37 @@ const crunchAvatarModel = (model, options = {}) => {
         const geometry = node.geometry;
         geometries.push(geometry);
 
+        const startIndex = indexIndex;
+        const count = geometry.index.count;
+        const _pushMaterial = material => {
+          materials.push(material);
+          for (const k of textureTypes) {
+            const texture = material[k];
+            if (texture) {
+              const texturesOfType = textures[k];
+              if (!texturesOfType.includes(texture)) {
+                texturesOfType.push(texture);
+              }
+              let textureGroups = textureGroupsMap.get(texture);
+              if (!textureGroups) {
+                textureGroups = [];
+                textureGroupsMap.set(texture, textureGroups);
+              }
+              textureGroups.push({
+                startIndex,
+                count,
+              });
+            }
+          }
+        };
+
         let material = node.material;
         if (Array.isArray(material)) {
           for (let i = 0; i < material.length; i++) {
-            _pushMaterial(material[i], indexIndex, geometry.index.count);
+            _pushMaterial(material[i]);
           }
         } else {
-          _pushMaterial(material, indexIndex, geometry.index.count);
+          _pushMaterial(material);
         }
 
         if (node.skeleton) {
