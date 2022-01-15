@@ -1507,7 +1507,8 @@ const crunchAvatarModel = model => {
   const textureAtlases = _drawAtlases();
 
   // return mesh
-  const material = new THREE.MeshStandardMaterial();
+  // const material = new THREE.MeshStandardMaterial();
+  const material = new THREE.MeshBasicMaterial();
   for (const k of textureTypes) {
     const t = new THREE.Texture(textureAtlases[k].image);
     t.flipY = false;
