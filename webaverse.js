@@ -34,6 +34,7 @@ import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
 import dioramaManager from './diorama.js';
+import {crunchAvatarModel} from './avatar-cruncher.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -617,6 +618,18 @@ const _startHacks = () => {
 
       // _ensureMikuModel();
       // _updateMikuModel();
+    } else if (e.which === 222) { // '
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      if (localPlayer.avatar) {
+        const model = localPlayer.avatar.model;
+        const crunchedModel = crunchAvatarModel(model);
+        crunchedModel.position.set(0, 1, -2);
+        crunchedModel.frustumCulled = false;
+        scene.add(crunchedModel);
+        localPlayer.avatar.model.visible = false;
+      } else {
+        console.warn('player is not wearing an avatar');
+      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
