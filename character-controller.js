@@ -1420,9 +1420,10 @@ const crunchAvatarModel = model => {
   const uv3 = new THREE.BufferAttribute(uv3Data, 4);
   geometry.setAttribute('uv3', uv3); */
 
+  /* // these uvs can be used to color code the mesh by material or texture
   const uv4Data = new Float32Array(geometry.attributes.uv.count * 4);
   const uv4 = new THREE.BufferAttribute(uv4Data, 4);
-  geometry.setAttribute('uv4', uv4);
+  geometry.setAttribute('uv4', uv4); */
 
   // verify
   for (const layout of attributeLayouts) {
@@ -1443,13 +1444,12 @@ const crunchAvatarModel = model => {
       const ctx = canvas.getContext('2d');
 
       atlas.bins.forEach(bin => {
-        // console.log('got rects', bin.rects);
         bin.rects.forEach(rect => {
           const {x, y, width: w, height: h, data: {image, groups}} = rect;
           // draw the image in the correct box on the canvas
           ctx.drawImage(image, 0, 0, image.width, image.height, x, y, w, h);
 
-          const testUv = new THREE.Vector2(Math.random(), Math.random());
+          // const testUv = new THREE.Vector2(Math.random(), Math.random());
           for (const group of groups) {
             const {startIndex, count} = group;
             for (let i = 0; i < count; i++) {
@@ -1467,8 +1467,8 @@ const crunchAvatarModel = model => {
 
                 /* localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
                 localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4); */
-                localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
-                localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4);
+                /* localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
+                localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4); */
               }
             }
           }
@@ -1507,58 +1507,15 @@ const crunchAvatarModel = model => {
   const textureAtlases = _drawAtlases();
 
   // return mesh
-  const material = new THREE.MeshNormalMaterial();
-  material.onBeforeCompile = shader => {
-    for (const k of textureTypes) {
-      const t = new THREE.Texture(textureAtlases[k].image);
-      t.flipY = false;
-      t.needsUpdate = true;
-      shader.uniforms[k] = {
-        value: t,
-        needsUpdate: true,
-      };
-    }
-    shader.vertexShader = `\
-      attribute vec4 uv3;  
-      attribute vec4 uv4;  
-      varying vec2 vUv;
-      varying vec4 vUv3;
-      varying vec4 vUv4;
-    ` + shader.vertexShader.replace(
-      '}',
-      `\
-        vUv = uv;
-        vUv3 = uv3;
-        vUv4 = uv4;
-      ` + '}'
-    );
-    shader.fragmentShader = `\
-      uniform sampler2D map;
-      uniform sampler2D emissiveMap;
-      uniform sampler2D normalMap;
-      varying vec2 vUv;
-      varying vec4 vUv3;
-      varying vec4 vUv4;
-    ` + shader.fragmentShader.replace(
-      `gl_FragColor = vec4( packNormalToRGB( normal ), opacity );`,
-      `\
-        // vec2 localUv = vUv;
-        // vec2 localUv2 = vUv3.xy + localUv * vUv3.zw;
-        vec2 localUv3 = vUv; // vec2(localUv2.x, 1.0 - localUv2.y);
-        // localUv = vec2(localUv.x, 1.0 - localUv.y);
-        // vec2 localUv2 = vec2(localUv.x, 1.0 - localUv.y);
-        vec4 c = texture2D(map, localUv3);
-        // vec3 e = texture2D(normalMap, localUv2).rgb;
-        gl_FragColor = c;
-        if (gl_FragColor.a < 0.1) {
-          discard;
-        }
-        // gl_FragColor = vec4(c, 1.0);
-        // gl_FragColor.rg += vUv4.xy * 0.2;
-      `
-    );
-    console.log('got normal shader', shader);
-  };
+  const material = new THREE.MeshStandardMaterial();
+  for (const k of textureTypes) {
+    const t = new THREE.Texture(textureAtlases[k].image);
+    t.flipY = false;
+    t.needsUpdate = true;
+    material[k] = t;
+  }
+  material.roughness = 1;
+  material.alphaTest = 0.1;
   material.transparent = true;
   const crunchedModel = new THREE.SkinnedMesh(geometry, material);
   crunchedModel.skeleton = skeletons[0];
