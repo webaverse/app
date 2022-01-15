@@ -24,7 +24,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
           <div className={styles['panel-header']}>
             <h1>Options</h1>
           </div>
-          <h1>Avatar style</h1>
+          <h2>Avatar style</h2>
           <input type="range" min={1} max={4} step={1} className={styles['slider']} />
           <p className={styles['description']}></p>
         </div>),
