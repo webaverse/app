@@ -162,7 +162,7 @@ body {
   content: '';
 }
 .header .panel-header > .panel-section.name h1 {
- position: relative;
+  position: relative;
 }
 .header .panel-header > .panel-section > .panel-row {
   display: flex;
@@ -235,14 +235,17 @@ body {
   top: -50px;
   left: -400px;
 }
-.header .tab.top.right .panels,
-.header .tab.bottom.right.index-0 .panels
+.header .tab.top.right .panels
 {
   top: -100px;
   left: 100%;
   height: 100vh;
   overflow-y: scroll;
   overflow-x: hidden;
+}
+.header .tab.top.right.index-1 .panels {
+  top: -155px;
+  overflow: visible;
 }
 .header .tab .objects .object {
   position: relative;
@@ -336,8 +339,8 @@ body {
 .header .tab.top.right.open {
   transform: translateX(-400px);
 }
-.header .tab.bottom.right.index-0.open {
-  transform: translateX(-400px) translateY(-55px);
+.header .tab.top.right.index-1.open {
+  transform: translateX(-400px) translateY(55px);
 }
 .header .tab .label .background {
   position: absolute;
@@ -386,8 +389,8 @@ body {
 .header .tab.bottom.right.open .background {
   transform: translateX(50px);
 }
-.header .tab.bottom.right.index-0 {
-  transform: translateY(-55px);
+.header .tab.top.right.index-1 {
+  transform: translateY(55px);
 }
 .header .tab.bottom.left:not(.disabled):hover .background,
 .header .tab.bottom.left.open .background {
