@@ -16,7 +16,9 @@ class AttributeLayout {
     this.depth = 0;
   }
 }
-const crunchAvatarModel = model => {
+const crunchAvatarModel = (model, options = {}) => {
+  const textureSize = options.textureSize ?? 4096;
+
   const _makeAttributeLayoutsFromGeometry = geometry => {
     const attributes = geometry.attributes;
     const attributeLayouts = [];
@@ -307,15 +309,21 @@ const crunchAvatarModel = model => {
   const _drawAtlases = () => {
     const _drawAtlas = atlas => {
       const canvas = document.createElement('canvas');
-      canvas.width = atlas.width;
-      canvas.height = atlas.height;
+      const canvasSize = Math.min(atlas.width, textureSize);
+      const canvasScale = canvasSize / atlas.width;
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
       const ctx = canvas.getContext('2d');
 
       atlas.bins.forEach(bin => {
         bin.rects.forEach(rect => {
           const {x, y, width: w, height: h, data: {image, groups}} = rect;
           // draw the image in the correct box on the canvas
-          ctx.drawImage(image, 0, 0, image.width, image.height, x, y, w, h);
+          const tx = x * canvasScale;
+          const ty = y * canvasScale;
+          const tw = w * canvasScale;
+          const th = h * canvasScale;
+          ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
 
           // const testUv = new THREE.Vector2(Math.random(), Math.random());
           for (const group of groups) {
@@ -327,9 +335,9 @@ const crunchAvatarModel = model => {
 
                 localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
                 localVector2D.multiply(
-                  localVector2D2.set(w/atlas.width, h/atlas.height)
+                  localVector2D2.set(tw/canvasSize, th/canvasSize)
                 ).add(
-                  localVector2D2.set(x/atlas.width, y/atlas.height)
+                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
                 );
                 localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
 
