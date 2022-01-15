@@ -1207,7 +1207,6 @@ const crunchAvatarModel = model => {
   };
   const textureTypes = Object.keys(textures);
   const skeletons = [];
-  const canvasSize = 4096;
   const startAtlasSize = 512;
   const _pushMaterial = (material, startIndex, count) => {
     materials.push(material);
