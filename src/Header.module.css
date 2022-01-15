@@ -175,7 +175,7 @@ body {
   /* margin-top: 20px; */
 }
 .header .tab.top.right .panel-header {
-  margin-top: 40px;
+  margin-top: 60px;
 }
 .header .panel-header .button {
   cursor: pointer;
@@ -190,7 +190,9 @@ body {
 .header .panel-header .button:hover .img {
   filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
-.header .panel-header  h1 {
+.header h1,
+.header h2
+{
   display: flex;
   margin: 0;
   padding-bottom: 5px;
