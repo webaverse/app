@@ -75,6 +75,7 @@ const crunchAvatarModel = (model, options = {}) => {
     emissiveMap: [],
     normalMap: [],
   };
+  const textureGroupsMap = new WeakMap();
   const textureTypes = Object.keys(textures);
   const skeletons = [];
   const startAtlasSize = 512;
@@ -87,10 +88,12 @@ const crunchAvatarModel = (model, options = {}) => {
         if (!texturesOfType.includes(texture)) {
           texturesOfType.push(texture);
         }
-        if (!texture.groups) {
-          texture.groups = [];
+        let textureGroups = textureGroupsMap.get(texture);
+        if (!textureGroups) {
+          textureGroups = [];
+          textureGroupsMap.set(texture, textureGroups);
         }
-        texture.groups.push({
+        textureGroups.push({
           startIndex,
           count,
         });
@@ -132,12 +135,14 @@ const crunchAvatarModel = (model, options = {}) => {
       maxRectsPacker.addArray(textures[k].map(t => {
         const w = t.image.width;
         const h = t.image.height;
+        const image = t.image;
+        const groups = textureGroupsMap.get(t);
         return {
           width: w,
           height: h,
           data: {
-            image: t.image,
-            groups: t.groups,
+            image,
+            groups,
           },
         };
       }));
