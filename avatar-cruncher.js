@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
 
+const defaultTextureSize = 4096;
+const startAtlasSize = 512;
+
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 // const localVector4D = new THREE.Vector4();
@@ -17,7 +20,7 @@ class AttributeLayout {
   }
 }
 const crunchAvatarModel = (model, options = {}) => {
-  const textureSize = options.textureSize ?? 4096;
+  const textureSize = options.textureSize ?? defaultTextureSize;
 
   const _makeAttributeLayoutsFromGeometry = geometry => {
     const attributes = geometry.attributes;
@@ -78,7 +81,6 @@ const crunchAvatarModel = (model, options = {}) => {
   const textureGroupsMap = new WeakMap();
   const textureTypes = Object.keys(textures);
   const skeletons = [];
-  const startAtlasSize = 512;
   const _pushMaterial = (material, startIndex, count) => {
     materials.push(material);
     for (const k of textureTypes) {
@@ -180,19 +182,13 @@ const crunchAvatarModel = (model, options = {}) => {
   let indexCount = 0;
   for (let i = 0; i < meshes.length; i++) {
     const mesh = meshes[i];
-    const geometry = mesh.geometry;
-    const attributes = geometry.attributes;
-    const attributeNamesArray = Object.keys(attributes);
+    /* if (!mesh.skeleton) {
+      console.log('no skeleton', mesh);;
+    } */
 
-    if (attributeNamesArray.length !== attributeLayouts.length) {
-      console.log('bad attributes length', mesh, attributeLayouts.length, attributeNamesArray.length, attributeLayouts, attributeNamesArray);
-    }
+    const geometry = mesh.geometry;
     if (!geometry.index) {
       console.log('no index', mesh);
-    }
-    
-    if (!mesh.skeleton) {
-      console.log('no skeleton', mesh);;
     }
   }
   if (skeletons.length !== 1) {
@@ -307,7 +303,7 @@ const crunchAvatarModel = (model, options = {}) => {
     }
   }
   if (indexOffset !== indexCount) {
-    console.log('bad index count', indexOffset, indexCount);
+    console.log('bad final index', indexOffset, indexCount);
   }
 
   const seenUvIndexes = {};
