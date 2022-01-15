@@ -354,7 +354,7 @@ const crunchAvatarModel = model => {
         const atlas2 = _drawAtlas(atlas);
         const {image} = atlas2;
         
-        const displaySize = 256;
+        /* const displaySize = 256;
         image.style.cssText = `\
           position: fixed;
           top: 0;
@@ -363,7 +363,7 @@ const crunchAvatarModel = model => {
           height: ${displaySize}px;
           z-index: 10;
         `;
-        document.body.appendChild(image);
+        document.body.appendChild(image); */
 
         result[k] = atlas2;
 
