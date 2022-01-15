@@ -1108,18 +1108,9 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-/* function updateAvatar(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
-}
-function updatePhysics(now, timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
-} */
-
 export {
   LocalPlayer,
   RemotePlayer,
   NpcPlayer,
   getPlayerCrouchFactor,
-  // updateAvatar,
-  // updatePhysics,
 };
