@@ -22,127 +22,151 @@ class AttributeLayout {
 const crunchAvatarModel = (model, options = {}) => {
   const textureSize = options.textureSize ?? defaultTextureSize;
 
-  const _makeAttributeLayoutsFromGeometries = geometries => {
-    const geometry = geometries[0];
-    const attributes = geometry.attributes;
-    const attributeLayouts = [];
-    for (const attributeName in attributes) {
-      const attribute = attributes[attributeName];
-      const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
-      attributeLayouts.push(layout);
-    }
-    
-    for (const layout of attributeLayouts) {
-      for (const g of geometries) {
-        const gAttribute = g.attributes[layout.name];
-        layout.count += gAttribute.count * gAttribute.itemSize;
-      }
-    }
+  const textureTypes = [
+    'map',
+    'emissiveMap',
+    'normalMap',
+  ];
 
-    return attributeLayouts;
-  };
-  const _makeMorphAttributeLayoutsFromGeometries = geometries => {
-    // create morph layouts
-    const morphAttributeLayouts = [];
-    for (const geometry of geometries) {
-      const morphAttributes = geometry.morphAttributes;
-      for (const morphAttributeName in morphAttributes) {
-        const morphAttribute = morphAttributes[morphAttributeName];
-        let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
-        if (!morphLayout) {
-          morphLayout = new AttributeLayout(morphAttributeName, morphAttribute[0].array.constructor, morphAttribute[0].itemSize);
-          morphLayout.depth = morphAttribute.length;
-          morphAttributeLayouts.push(morphLayout);
+  const _collectObjects = () => {
+    const _makeAttributeLayoutsFromGeometries = geometries => {
+      const geometry = geometries[0];
+      const attributes = geometry.attributes;
+      const attributeLayouts = [];
+      for (const attributeName in attributes) {
+        const attribute = attributes[attributeName];
+        const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
+        attributeLayouts.push(layout);
+      }
+      
+      for (const layout of attributeLayouts) {
+        for (const g of geometries) {
+          const gAttribute = g.attributes[layout.name];
+          layout.count += gAttribute.count * gAttribute.itemSize;
         }
       }
-    }
-
-    // compute morph layouts sizes
-    for (const morphLayout of morphAttributeLayouts) {
-      for (const g of geometries) {
-        const morphAttribute = g.morphAttributes[morphLayout.name];
-        if (morphAttribute) {
-          morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
-          // console.log('morph layout add 1', morphLayout.count, morphAttribute[0].count, morphAttribute[0].itemSize);
-        } else {
-          const matchingGeometryAttribute = g.attributes[morphLayout.name];
-          if (matchingGeometryAttribute) {
-            morphLayout.count += matchingGeometryAttribute.count * matchingGeometryAttribute.itemSize;
-            // console.log('morph layout add 2', morphLayout.count, matchingGeometryAttribute.count, matchingGeometryAttribute.itemSize);
-          } else {
-            console.warn('geometry  attributes desynced with morph attributes', g.attributes, morphAttribute);
+  
+      return attributeLayouts;
+    };
+    const _makeMorphAttributeLayoutsFromGeometries = geometries => {
+      // create morph layouts
+      const morphAttributeLayouts = [];
+      for (const geometry of geometries) {
+        const morphAttributes = geometry.morphAttributes;
+        for (const morphAttributeName in morphAttributes) {
+          const morphAttribute = morphAttributes[morphAttributeName];
+          let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
+          if (!morphLayout) {
+            morphLayout = new AttributeLayout(morphAttributeName, morphAttribute[0].array.constructor, morphAttribute[0].itemSize);
+            morphLayout.depth = morphAttribute.length;
+            morphAttributeLayouts.push(morphLayout);
           }
         }
       }
+  
+      // compute morph layouts sizes
+      for (const morphLayout of morphAttributeLayouts) {
+        for (const g of geometries) {
+          const morphAttribute = g.morphAttributes[morphLayout.name];
+          if (morphAttribute) {
+            morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
+            // console.log('morph layout add 1', morphLayout.count, morphAttribute[0].count, morphAttribute[0].itemSize);
+          } else {
+            const matchingGeometryAttribute = g.attributes[morphLayout.name];
+            if (matchingGeometryAttribute) {
+              morphLayout.count += matchingGeometryAttribute.count * matchingGeometryAttribute.itemSize;
+              // console.log('morph layout add 2', morphLayout.count, matchingGeometryAttribute.count, matchingGeometryAttribute.itemSize);
+            } else {
+              console.warn('geometry  attributes desynced with morph attributes', g.attributes, morphAttribute);
+            }
+          }
+        }
+      }
+      return morphAttributeLayouts;
+    };
+
+    const meshes = [];
+    const geometries = [];
+    const materials = [];
+    const textures = {};
+    for (const textureType of textureTypes) {
+      textures[textureType] = [];
     }
-    return morphAttributeLayouts;
+    let textureGroupsMap = new WeakMap();
+    const skeletons = [];
+    {
+      let indexIndex = 0;
+      model.traverse(node => {
+        if (node.isMesh && !node.parent?.isBone) {
+          meshes.push(node);
+  
+          const geometry = node.geometry;
+          geometries.push(geometry);
+  
+          const startIndex = indexIndex;
+          const count = geometry.index.count;
+          const _pushMaterial = material => {
+            materials.push(material);
+            for (const k of textureTypes) {
+              const texture = material[k];
+              if (texture) {
+                const texturesOfType = textures[k];
+                if (!texturesOfType.includes(texture)) {
+                  texturesOfType.push(texture);
+                }
+                let textureGroups = textureGroupsMap.get(texture);
+                if (!textureGroups) {
+                  textureGroups = [];
+                  textureGroupsMap.set(texture, textureGroups);
+                }
+                textureGroups.push({
+                  startIndex,
+                  count,
+                });
+              }
+            }
+          };
+  
+          let material = node.material;
+          if (Array.isArray(material)) {
+            for (let i = 0; i < material.length; i++) {
+              _pushMaterial(material[i]);
+            }
+          } else {
+            _pushMaterial(material);
+          }
+  
+          if (node.skeleton) {
+            if (!skeletons.includes(node.skeleton)) {
+              skeletons.push(node.skeleton);
+            }
+          }
+  
+          indexIndex += geometry.index.count;
+        }
+      });
+    }
+    return {
+      meshes,
+      geometries,
+      materials,
+      textures,
+      textureGroupsMap,
+      skeletons,
+    };
   };
 
   // collect objects
-  const meshes = [];
-  const geometries = [];
-  const materials = [];
-  const textures = {
-    map: [],
-    emissiveMap: [],
-    normalMap: [],
-  };
-  let textureGroupsMap = new WeakMap();
-  const textureTypes = Object.keys(textures);
-  const skeletons = [];
-  {
-    let indexIndex = 0;
-    model.traverse(node => {
-      if (node.isMesh && !node.parent?.isBone) {
-        meshes.push(node);
+  const {
+    meshes,
+    geometries,
+    materials,
+    textures,
+    textureGroupsMap,
+    skeletons,
+  } = _collectObjects();
 
-        const geometry = node.geometry;
-        geometries.push(geometry);
-
-        const startIndex = indexIndex;
-        const count = geometry.index.count;
-        const _pushMaterial = material => {
-          materials.push(material);
-          for (const k of textureTypes) {
-            const texture = material[k];
-            if (texture) {
-              const texturesOfType = textures[k];
-              if (!texturesOfType.includes(texture)) {
-                texturesOfType.push(texture);
-              }
-              let textureGroups = textureGroupsMap.get(texture);
-              if (!textureGroups) {
-                textureGroups = [];
-                textureGroupsMap.set(texture, textureGroups);
-              }
-              textureGroups.push({
-                startIndex,
-                count,
-              });
-            }
-          }
-        };
-
-        let material = node.material;
-        if (Array.isArray(material)) {
-          for (let i = 0; i < material.length; i++) {
-            _pushMaterial(material[i]);
-          }
-        } else {
-          _pushMaterial(material);
-        }
-
-        if (node.skeleton) {
-          if (!skeletons.includes(node.skeleton)) {
-            skeletons.push(node.skeleton);
-          }
-        }
-
-        indexIndex += geometry.index.count;
-      }
-    });
-  }
-
+  // generate atlas layouts
   const _packAtlases = () => {
     const _attempt = (k, atlasSize) => {
       const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
