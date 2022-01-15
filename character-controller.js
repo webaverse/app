@@ -1272,7 +1272,6 @@ const crunchAvatarModel = model => {
           },
         };
       }));
-      // maxRectsPacker.repacsk();
       let oversized = maxRectsPacker.bins.length !== 1;
       maxRectsPacker.bins.forEach(bin => {
         bin.rects.forEach(rect => {
@@ -1300,8 +1299,6 @@ const crunchAvatarModel = model => {
     return atlases;
   };
   const atlases = _packAtlases();
-  // const atlasScale = atlas.rect.w / canvasSize;
-  // console.log('got atlases', atlases);
 
   // build and validate attribute layouts
   const attributeLayouts = _makeAttributeLayoutsFromGeometry(geometries[0]);
@@ -1389,12 +1386,6 @@ const crunchAvatarModel = model => {
       const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
       morphsArray[i] = morphAttribute;
       for (const g of geometries) {
-        /* if (morphDataIndex >= morphLayout.count) {
-          debugger;
-        } */
-        
-        // console.log('got morph attribute', g.morphAttributes[morphLayout.name], g.morphAttributes[morphLayout.name] && g.morphAttributes[morphLayout.name][i]);
-        
         let gMorphAttribute = g.morphAttributes[morphLayout.name];
         gMorphAttribute = gMorphAttribute && gMorphAttribute[i];
         if (gMorphAttribute) {
@@ -1416,17 +1407,14 @@ const crunchAvatarModel = model => {
   const indexData = new Uint32Array(indexCount);
   let positionOffset = 0;
   let indexOffset = 0;
-  // const positionAttributeLayout = attributeLayouts.find(layout => layout.name === 'position');
   for (const g of geometries) {
     const srcIndexData = g.index.array;
-    // const dstIndexData = indexData.subarray(indexOffset, indexOffset + srcIndexData.length);
     for (let i = 0; i < srcIndexData.length; i++) {
       indexData[indexOffset++] = srcIndexData[i] + positionOffset;
     }
     positionOffset += g.attributes.position.count;
   }
   geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
-  // console.log('got final geometry', geometry);
   geometry.morphTargetsRelative = true;
 
   const uv3Data = new Float32Array(geometry.attributes.uv.count * 4);
@@ -1450,14 +1438,10 @@ const crunchAvatarModel = model => {
   const seenUvIndexes = {};
   const _drawAtlases = () => {
     const _drawAtlas = atlas => {
-      // console.log('merge atlas', atlas);
       const canvas = document.createElement('canvas');
       canvas.width = atlas.width;
       canvas.height = atlas.height;
-      // window.lolCanvas = canvas;
       const ctx = canvas.getContext('2d');
-
-      // console.log('atlas scale', atlas.width);
 
       atlas.bins.forEach(bin => {
         // console.log('got rects', bin.rects);
@@ -1465,11 +1449,6 @@ const crunchAvatarModel = model => {
           const {x, y, width: w, height: h, data: {image, groups}} = rect;
           // draw the image in the correct box on the canvas
           ctx.drawImage(image, 0, 0, image.width, image.height, x, y, w, h);
-
-          /* ctx.drawImage(image,
-            0, 0, image.width, image.height,
-            x/atlas.width*canvasSize, y/atlas.height*canvasSize, w/atlas.width*canvasSize, h/atlas.height*canvasSize); */
-          // the above code is wrong; we need to make sure that each individual subimage is flipped in the y direction
 
           const testUv = new THREE.Vector2(Math.random(), Math.random());
           for (const group of groups) {
@@ -1479,22 +1458,10 @@ const crunchAvatarModel = model => {
               if (!seenUvIndexes[uvIndex]) {
                 seenUvIndexes[uvIndex] = true;
 
-                // localVector4D.fromArray(geometry.attributes.uv.array, uvIndex * 4);
                 localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
                 localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4);
-                // console.log('set', localVector4D.toArray().join(', '));
                 localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
                 localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4);
-                
-                /* localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                localVector2D.multiply(
-                  localVector2D2.set(w/atlas.width, h/atlas.height),
-                );
-                localVector2D.add(
-                  localVector2D2.set(x/atlas.width, y/atlas.height),
-                );
-                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
-                // testUv.toArray(geometry.attributes.uv.array, uvIndex * 2); */
               }
             }
           }
@@ -1539,12 +1506,10 @@ const crunchAvatarModel = model => {
       const t = new THREE.Texture(textureAtlases[k].image);
       t.flipY = false;
       t.needsUpdate = true;
-      // console.log('got k', shader.uniforms, k);
       shader.uniforms[k] = {
         value: t,
         needsUpdate: true,
       };
-      // shader.uniforms[k].needsUpdate = true;
     }
     shader.vertexShader = `\
       attribute vec4 uv3;  
@@ -1586,19 +1551,14 @@ const crunchAvatarModel = model => {
       `
     );
     console.log('got normal shader', shader);
-    // shader.uniforms.map.value = ;
   };
   material.transparent = true;
   const crunchedModel = new THREE.SkinnedMesh(geometry, material);
   crunchedModel.skeleton = skeletons[0];
   const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
-  // console.log('deepestMorphMesh', deepestMorphMesh);
   crunchedModel.morphTargetDictionary = deepestMorphMesh.morphTargetDictionary;
   crunchedModel.morphTargetInfluences = deepestMorphMesh.morphTargetInfluences;
 
-  // console.log('dicts', meshes.map(m => m.morphTargetDictionary));
-
-  // crunchedModel.updateMorphTargets();
   return crunchedModel;
 };
 window.compileAvatar = () => {
@@ -1621,6 +1581,4 @@ export {
   RemotePlayer,
   NpcPlayer,
   getPlayerCrouchFactor,
-  // updateAvatar,
-  // updatePhysics,
 };
