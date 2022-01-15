@@ -1416,9 +1416,9 @@ const crunchAvatarModel = model => {
   geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
   geometry.morphTargetsRelative = true;
 
-  const uv3Data = new Float32Array(geometry.attributes.uv.count * 4);
+  /* const uv3Data = new Float32Array(geometry.attributes.uv.count * 4);
   const uv3 = new THREE.BufferAttribute(uv3Data, 4);
-  geometry.setAttribute('uv3', uv3);
+  geometry.setAttribute('uv3', uv3); */
 
   const uv4Data = new Float32Array(geometry.attributes.uv.count * 4);
   const uv4 = new THREE.BufferAttribute(uv4Data, 4);
@@ -1457,8 +1457,16 @@ const crunchAvatarModel = model => {
               if (!seenUvIndexes[uvIndex]) {
                 seenUvIndexes[uvIndex] = true;
 
-                localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
-                localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4);
+                localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                localVector2D.multiply(
+                  localVector2D2.set(w/atlas.width, h/atlas.height)
+                ).add(
+                  localVector2D2.set(x/atlas.width, y/atlas.height)
+                );
+                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+
+                /* localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
+                localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4); */
                 localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
                 localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4);
               }
@@ -1534,9 +1542,9 @@ const crunchAvatarModel = model => {
     ` + shader.fragmentShader.replace(
       `gl_FragColor = vec4( packNormalToRGB( normal ), opacity );`,
       `\
-        vec2 localUv = vUv;
-        vec2 localUv2 = vUv3.xy + localUv * vUv3.zw;
-        vec2 localUv3 = localUv2; // vec2(localUv2.x, 1.0 - localUv2.y);
+        // vec2 localUv = vUv;
+        // vec2 localUv2 = vUv3.xy + localUv * vUv3.zw;
+        vec2 localUv3 = vUv; // vec2(localUv2.x, 1.0 - localUv2.y);
         // localUv = vec2(localUv.x, 1.0 - localUv.y);
         // vec2 localUv2 = vec2(localUv.x, 1.0 - localUv.y);
         vec4 c = texture2D(map, localUv3);
