@@ -20,6 +20,7 @@ class AttributeLayout {
   }
 }
 const crunchAvatarModel = (model, options = {}) => {
+  const atlasTextures = !!(options.textures ?? true);
   const textureSize = options.textureSize ?? defaultTextureSize;
 
   const textureTypes = [
@@ -154,7 +155,7 @@ const crunchAvatarModel = (model, options = {}) => {
     }
     return atlases;
   };
-  const atlases = _packAtlases();
+  const atlases = atlasTextures ? _packAtlases() : null;
 
   // build attribute layouts
   const _makeAttributeLayoutsFromGeometries = geometries => {
@@ -420,16 +421,18 @@ const crunchAvatarModel = (model, options = {}) => {
     }
     return result;
   };
-  const textureAtlases = _drawAtlases();
+  const textureAtlases = atlasTextures ? _drawAtlases() : null;
 
   // create material
   // const material = new THREE.MeshStandardMaterial();
   const material = new THREE.MeshBasicMaterial();
-  for (const k of textureTypes) {
-    const t = new THREE.Texture(textureAtlases[k].image);
-    t.flipY = false;
-    t.needsUpdate = true;
-    material[k] = t;
+  if (atlasTextures) {
+    for (const k of textureTypes) {
+      const t = new THREE.Texture(textureAtlases[k].image);
+      t.flipY = false;
+      t.needsUpdate = true;
+      material[k] = t;
+    }
   }
   material.roughness = 1;
   material.alphaTest = 0.1;
