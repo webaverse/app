@@ -29,62 +29,6 @@ const crunchAvatarModel = (model, options = {}) => {
   ];
 
   const _collectObjects = () => {
-    const _makeAttributeLayoutsFromGeometries = geometries => {
-      const geometry = geometries[0];
-      const attributes = geometry.attributes;
-      const attributeLayouts = [];
-      for (const attributeName in attributes) {
-        const attribute = attributes[attributeName];
-        const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
-        attributeLayouts.push(layout);
-      }
-      
-      for (const layout of attributeLayouts) {
-        for (const g of geometries) {
-          const gAttribute = g.attributes[layout.name];
-          layout.count += gAttribute.count * gAttribute.itemSize;
-        }
-      }
-  
-      return attributeLayouts;
-    };
-    const _makeMorphAttributeLayoutsFromGeometries = geometries => {
-      // create morph layouts
-      const morphAttributeLayouts = [];
-      for (const geometry of geometries) {
-        const morphAttributes = geometry.morphAttributes;
-        for (const morphAttributeName in morphAttributes) {
-          const morphAttribute = morphAttributes[morphAttributeName];
-          let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
-          if (!morphLayout) {
-            morphLayout = new AttributeLayout(morphAttributeName, morphAttribute[0].array.constructor, morphAttribute[0].itemSize);
-            morphLayout.depth = morphAttribute.length;
-            morphAttributeLayouts.push(morphLayout);
-          }
-        }
-      }
-  
-      // compute morph layouts sizes
-      for (const morphLayout of morphAttributeLayouts) {
-        for (const g of geometries) {
-          const morphAttribute = g.morphAttributes[morphLayout.name];
-          if (morphAttribute) {
-            morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
-            // console.log('morph layout add 1', morphLayout.count, morphAttribute[0].count, morphAttribute[0].itemSize);
-          } else {
-            const matchingGeometryAttribute = g.attributes[morphLayout.name];
-            if (matchingGeometryAttribute) {
-              morphLayout.count += matchingGeometryAttribute.count * matchingGeometryAttribute.itemSize;
-              // console.log('morph layout add 2', morphLayout.count, matchingGeometryAttribute.count, matchingGeometryAttribute.itemSize);
-            } else {
-              console.warn('geometry  attributes desynced with morph attributes', g.attributes, morphAttribute);
-            }
-          }
-        }
-      }
-      return morphAttributeLayouts;
-    };
-
     const meshes = [];
     const geometries = [];
     const materials = [];
@@ -213,6 +157,61 @@ const crunchAvatarModel = (model, options = {}) => {
   const atlases = _packAtlases();
 
   // build attribute layouts
+  const _makeAttributeLayoutsFromGeometries = geometries => {
+    const geometry = geometries[0];
+    const attributes = geometry.attributes;
+    const attributeLayouts = [];
+    for (const attributeName in attributes) {
+      const attribute = attributes[attributeName];
+      const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
+      attributeLayouts.push(layout);
+    }
+    
+    for (const layout of attributeLayouts) {
+      for (const g of geometries) {
+        const gAttribute = g.attributes[layout.name];
+        layout.count += gAttribute.count * gAttribute.itemSize;
+      }
+    }
+
+    return attributeLayouts;
+  };
+  const _makeMorphAttributeLayoutsFromGeometries = geometries => {
+    // create morph layouts
+    const morphAttributeLayouts = [];
+    for (const geometry of geometries) {
+      const morphAttributes = geometry.morphAttributes;
+      for (const morphAttributeName in morphAttributes) {
+        const morphAttribute = morphAttributes[morphAttributeName];
+        let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
+        if (!morphLayout) {
+          morphLayout = new AttributeLayout(morphAttributeName, morphAttribute[0].array.constructor, morphAttribute[0].itemSize);
+          morphLayout.depth = morphAttribute.length;
+          morphAttributeLayouts.push(morphLayout);
+        }
+      }
+    }
+
+    // compute morph layouts sizes
+    for (const morphLayout of morphAttributeLayouts) {
+      for (const g of geometries) {
+        const morphAttribute = g.morphAttributes[morphLayout.name];
+        if (morphAttribute) {
+          morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
+          // console.log('morph layout add 1', morphLayout.count, morphAttribute[0].count, morphAttribute[0].itemSize);
+        } else {
+          const matchingGeometryAttribute = g.attributes[morphLayout.name];
+          if (matchingGeometryAttribute) {
+            morphLayout.count += matchingGeometryAttribute.count * matchingGeometryAttribute.itemSize;
+            // console.log('morph layout add 2', morphLayout.count, matchingGeometryAttribute.count, matchingGeometryAttribute.itemSize);
+          } else {
+            console.warn('geometry  attributes desynced with morph attributes', g.attributes, morphAttribute);
+          }
+        }
+      }
+    }
+    return morphAttributeLayouts;
+  };
   const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
   const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
 
