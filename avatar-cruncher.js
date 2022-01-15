@@ -22,7 +22,8 @@ class AttributeLayout {
 const crunchAvatarModel = (model, options = {}) => {
   const textureSize = options.textureSize ?? defaultTextureSize;
 
-  const _makeAttributeLayoutsFromGeometry = geometry => {
+  const _makeAttributeLayoutsFromGeometries = geometries => {
+    const geometry = geometries[0];
     const attributes = geometry.attributes;
     const attributeLayouts = [];
     for (const attributeName in attributes) {
@@ -30,6 +31,14 @@ const crunchAvatarModel = (model, options = {}) => {
       const layout = new AttributeLayout(attributeName, attribute.array.constructor, attribute.itemSize);
       attributeLayouts.push(layout);
     }
+    
+    for (const layout of attributeLayouts) {
+      for (const g of geometries) {
+        const gAttribute = g.attributes[layout.name];
+        layout.count += gAttribute.count * gAttribute.itemSize;
+      }
+    }
+
     return attributeLayouts;
   };
   const _makeMorphAttributeLayoutsFromGeometries = geometries => {
@@ -179,10 +188,11 @@ const crunchAvatarModel = (model, options = {}) => {
   };
   const atlases = _packAtlases();
 
-  // build and validate attribute layouts
-  const attributeLayouts = _makeAttributeLayoutsFromGeometry(geometries[0]);
+  // build attribute layouts
+  const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
   const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
-  let indexCount = 0;
+
+  // validate attribute layouts
   for (let i = 0; i < meshes.length; i++) {
     const mesh = meshes[i];
     /* if (!mesh.skeleton) {
@@ -196,17 +206,6 @@ const crunchAvatarModel = (model, options = {}) => {
   }
   if (skeletons.length !== 1) {
     console.log('did not have single skeleton', skeletons);
-  }
-
-  for (const layout of attributeLayouts) {
-    for (const g of geometries) {
-      const gAttribute = g.attributes[layout.name];
-      layout.count += gAttribute.count * gAttribute.itemSize;
-    }
-    
-  }
-  for (const g of geometries) {
-    indexCount += g.index.count;
   }
 
   /* {
@@ -241,6 +240,7 @@ const crunchAvatarModel = (model, options = {}) => {
   
   // build geometry
   const geometry = new THREE.BufferGeometry();
+  // attributes
   for (const layout of attributeLayouts) {
     const attributeData = new layout.TypedArrayConstructor(layout.count);
     const attribute = new THREE.BufferAttribute(attributeData, layout.itemSize);
@@ -251,6 +251,7 @@ const crunchAvatarModel = (model, options = {}) => {
     }
     geometry.setAttribute(layout.name, attribute);
   }
+  // morph attributes
   for (const morphLayout of morphAttributeLayouts) {
     const morphsArray = Array(morphLayout.depth);
     for (let i = 0; i < morphLayout.depth; i++) {
@@ -276,6 +277,11 @@ const crunchAvatarModel = (model, options = {}) => {
       }
     }
     geometry.morphAttributes[morphLayout.name] = morphsArray;
+  }
+  // index
+  let indexCount = 0;
+  for (const g of geometries) {
+    indexCount += g.index.count;
   }
   const indexData = new Uint32Array(indexCount);
   let positionOffset = 0;
