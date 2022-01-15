@@ -339,8 +339,8 @@ const crunchAvatarModel = (model, options = {}) => {
   }
 
   // draw the atlas
-  const seenUvIndexes = new Map();
   const _drawAtlases = () => {
+    const seenUvIndexes = new Map();
     const _drawAtlas = atlas => {
       const canvas = document.createElement('canvas');
       const canvasSize = Math.min(atlas.width, textureSize);
