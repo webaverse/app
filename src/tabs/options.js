@@ -36,7 +36,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
                   case 1: {
                     return (<>
                       <b>1 - Sprite sheet</b>
-                      <span>Pixels on a plane. A fast style of avatar! One draw call, one texture.<br/>|ʘ‿ʘ)╯</span>
+                      <span>Pixels on a plane. A fast style of avatar! One draw call, one texture.<br/>(^_~)</span>
                     </>);
                   }
                   case 2: {
