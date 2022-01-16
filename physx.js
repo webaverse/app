@@ -746,15 +746,6 @@ const physxWorker = (() => {
     const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
     const numOutUvsTypedArray = allocator.alloc(Uint32Array, 2);
 
-    // // output lenght may bigger than input length? yes, will.
-    // // todo: how to pass unknonwn length output from wasm to js?
-    // // see https://rob-blackbourn.github.io/blog/webassembly/wasm/array/arrays/javascript/c/2020/06/07/wasm-arrays.html #Passing output arrays to wasm
-    // // whether this tut has solution?
-    // const outPositionsTypedArray = allocator.alloc(Float32Array, numPositions * 10); // todo: do not hard code alloc length.
-    // const outNormalsTypedArray = allocator.alloc(Float32Array, numNormals * 10); // todo: do not hard code alloc length.
-    // const outUvsTypedArray = allocator.alloc(Float32Array, numUvs * 10); // todo: do not hard code alloc length.
-    // const outFacesTypedArray = allocator.alloc(Uint32Array, numFaces * 10); // todo: do not hard code alloc length.
-
     const outputBuffer = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
       numPositions,
@@ -780,22 +771,23 @@ const physxWorker = (() => {
     // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 252)
     // debugger
 
+    let head = outputBuffer / 4;
+    let tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
+    const outPositions = moduleInstance.HEAPF32.subarray(head, tail);
+    head = tail;
+    tail = head + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]);
+    const outNormals = moduleInstance.HEAPF32.subarray(head, tail);
+    head = tail;
+    tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1]);
+    const outUvs = moduleInstance.HEAPF32.subarray(head, tail);
+
     const output = {
       numOutPositions: numOutPositionsTypedArray,
-      outPositions: moduleInstance.HEAPF32.subarray(
-        outputBuffer / 4,
-        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1])
-      ),
+      outPositions,
       numOutNormals: numOutNormalsTypedArray,
-      outNormals: moduleInstance.HEAPF32.subarray(
-        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]),
-        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1])
-      ),
+      outNormals,
       numOutUvs: numOutUvsTypedArray,
-      outUvs: moduleInstance.HEAPF32.subarray(
-        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]),
-        outputBuffer / 4 + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]) + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]) + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
-      ),
+      outUvs,
     }
     return output
   };
