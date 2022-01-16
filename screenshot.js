@@ -1,19 +1,21 @@
 import * as THREE from 'three';
-import {getExt, makePromise, parseQuery, fitCameraToBox} from './util.js';
-import Avatar from './avatars/avatars.js';
-import * as icons from './icons.js';
-import GIF from './gif.js';
-import App from './webaverse';
 import metaversefileApi from './metaversefile-api.js';
+import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
+import Avatar from './avatars/avatars.js';
+// import * as icons from './icons.js';
+import GIF from './gif.js';
+// import App from './webaverse';
 // import {defaultRendererUrl} from './constants.js'
 import * as WebMWriter from 'webm-writer';
 const defaultWidth = 512;
 const defaultHeight = 512;
-const cameraPosition = new THREE.Vector3(0, 1, 2);
-const cameraTarget = new THREE.Vector3(0, 0, 0);
+// const cameraPosition = new THREE.Vector3(0, 1, 2);
+// const cameraTarget = new THREE.Vector3(0, 0, 0);
 const FPS = 60;
 
-const _makePromise = () => {
+const localVector = new THREE.Vector3();
+
+/* const _makePromise = () => {
   let accept, reject;
   const p = new Promise((a, r) => {
     accept = a;
@@ -22,7 +24,7 @@ const _makePromise = () => {
   p.accept = accept;
   p.reject = reject;
   return p;
-};
+}; */
 const _makeRenderer = (width, height) => {
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -300,18 +302,17 @@ const _getType = id => {
     }
   };
   const _lookAt = (camera, boundingBox) => {
-    const center = boundingBox.getCenter(new THREE.Vector3());
-    const size = boundingBox.getSize(new THREE.Vector3());
+    boundingBox.getCenter(camera.position);
+    const size = boundingBox.getSize(localVector);
 
+    camera.position.y = size.y;
     if (appType === 'vrm') {
-      camera.position.x = center.x;
-      camera.position.y = center.y;
+      camera.position.z -= 1;
     } else {
-      camera.position.x = center.x/2;
-      camera.position.y = center.y/2;
+      camera.position.z += 1;
     }
-    camera.position.z = size.z / 2;
-    fitCameraToBox(camera, boundingBox);
+
+    fitCameraToBoundingBox(camera, boundingBox);
   };
 
   try {

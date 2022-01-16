@@ -11,13 +11,14 @@ import cameraManager from './camera-manager.js';
 // import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 // import {loginManager} from './login.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
+import dioramaManager from './diorama.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
-import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
+import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
@@ -807,7 +808,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
       const radius = 1;
       const halfHeight = 0.1;
-      const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
+      const collision = physx.physxWorker.getCollisionObjectPhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
@@ -1000,13 +1001,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localVector.copy(localPlayer.position)
             .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
 
-          const collision = physx.physxWorker.collidePhysics(
+          const collision = physx.physxWorker.getCollisionObjectPhysics(
             physx.physics,
             hitRadius,
             hitHalfHeight,
             localVector,
             localPlayer.quaternion,
-            1
           );
           if (collision) {
             const collisionId = collision.objectId;
@@ -1682,7 +1682,7 @@ const gameManager = {
     }
   },
   menuUpload: _upload,
-  addLocalEmote(index) {
+  /* addLocalEmote(index) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
       const timestamp = performance.now();
@@ -1714,7 +1714,7 @@ const gameManager = {
       };
       world.appManager.addEventListener('frame', frame);
     }
-  },
+  }, */
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   },
@@ -1904,6 +1904,23 @@ const gameManager = {
   menuActivateUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('activate');
+  },
+  playerDiorama: null,
+  async bindPreviewCanvas(canvas) {
+    await rendererWaitForLoad();
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    this.playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
+      canvas,
+      // label: true,
+      outline: true,
+      grassBackground: true,
+      // glyphBackground: true,
+    });
+    this.playerDiorama.enabled = false;
+    canvas.addEventListener('click', e => {
+      this.playerDiorama.toggleShader();
+    });
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,

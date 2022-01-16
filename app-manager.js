@@ -567,6 +567,7 @@ class AppManager extends EventTarget {
                     }
 
                     physicsManager.setTransform(physicsObject);
+                    physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
                   }
                 }
               }

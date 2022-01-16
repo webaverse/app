@@ -13,7 +13,7 @@ const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
 
-const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|webm|mp4|mov)$/.test(p);
+const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
@@ -109,7 +109,7 @@ const _proxyUrl = (req, res, u) => {
     }
   });
 
-  const isHttps = !!certs.key && !!certs.cert;
+  const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
