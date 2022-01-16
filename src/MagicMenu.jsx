@@ -13,19 +13,10 @@ function parseQueryString(queryString) {
   }
   return query;
 }
-const openAiKey = (() => {
-  const q = parseQueryString(window.location.search);
-  if (q.openAiKey) {
-    localStorage.setItem('openAiKey', q.openAiKey);
-    window.location.search = '';
-  }
-  return localStorage.getItem('openAiKey') || null;
-})();
 
 // window.metaversefile = metaversefile; // XXX
 const makeAi = prompt => {
-  if (openAiKey) {
-    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}&a=${encodeURIComponent(openAiKey)}`);
+    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}`);
     let fullS = '';
     es.addEventListener('message', e => {
       const s = e.data;
@@ -50,9 +41,6 @@ const makeAi = prompt => {
       es.close();
     };
     return result;
-  } else {
-    throw new Error('no beta password found in query string');
-  }
 };
 
 function MagicMenu({open, setOpen}) {
