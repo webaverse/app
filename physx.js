@@ -758,12 +758,6 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
 
-    // const a = new Float32Array(moduleInstance.buffer, outputBuffer, 3) // poor performance?
-    // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 3) // ok
-
-    // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 252)
-    // debugger
-
     let head = outputBuffer / 4;
     let tail = head + 2;
     const numOutPositionsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
