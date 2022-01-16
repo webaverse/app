@@ -235,6 +235,11 @@ class StatePlayer extends PlayerBase {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+
+        this.dispatchEvent({
+          type: 'avatarchange',
+          app,
+        });
         
         const avatarHeight = this.avatar.height;
         const heightFactor = 1.6;
@@ -1103,18 +1108,9 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-/* function updateAvatar(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
-}
-function updatePhysics(now, timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
-} */
-
 export {
   LocalPlayer,
   RemotePlayer,
   NpcPlayer,
   getPlayerCrouchFactor,
-  // updateAvatar,
-  // updatePhysics,
 };

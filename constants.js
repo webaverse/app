@@ -70,3 +70,5 @@ export const flyFriction = 0.5;
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;
+
+export const defaultAvatarUrl = './avatars/citrine.vrm';
