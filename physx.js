@@ -756,6 +756,7 @@ const physxWorker = (() => {
       quaternionTypedArray.byteOffset,
       scaleTypedArray.byteOffset,
     );
+    allocator.freeAll();
 
     // const a = new Float32Array(moduleInstance.buffer, outputBuffer, 3) // poor performance?
     // const a = moduleInstance.HEAPF32.subarray(outputBuffer / 4, outputBuffer / 4 + 3) // ok
