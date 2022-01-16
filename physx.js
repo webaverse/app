@@ -742,10 +742,6 @@ const physxWorker = (() => {
     const scaleTypedArray = allocator.alloc(Float32Array, 3)
     scaleTypedArray.set(scale);
 
-    const numOutPositionsTypedArray = allocator.alloc(Uint32Array, 2);
-    const numOutNormalsTypedArray = allocator.alloc(Uint32Array, 2);
-    const numOutUvsTypedArray = allocator.alloc(Uint32Array, 2);
-
     const outputBuffer = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
       numPositions,
@@ -759,10 +755,6 @@ const physxWorker = (() => {
       positionTypedArray.byteOffset,
       quaternionTypedArray.byteOffset,
       scaleTypedArray.byteOffset,
-
-      numOutPositionsTypedArray.byteOffset,
-      numOutNormalsTypedArray.byteOffset,
-      numOutUvsTypedArray.byteOffset,
     );
 
     // const a = new Float32Array(moduleInstance.buffer, outputBuffer, 3) // poor performance?
@@ -772,7 +764,16 @@ const physxWorker = (() => {
     // debugger
 
     let head = outputBuffer / 4;
-    let tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
+    let tail = head + 2;
+    const numOutPositionsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutNormalsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutUvsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    head = tail;
+    tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
     const outPositions = moduleInstance.HEAPF32.subarray(head, tail);
     head = tail;
     tail = head + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]);
