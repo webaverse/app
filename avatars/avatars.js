@@ -1274,7 +1274,7 @@ class Avatar {
     this.backwardAnimationSpec = null;
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
-    this.lastEyeTargetTime = 0;
+    this.lastEyeTargetTime = -Infinity;
   }
   static bindAvatar(object) {
     const model = object.scene;
