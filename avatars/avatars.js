@@ -1196,8 +1196,6 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = -1;
-    
-    this.now = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1685,8 +1683,8 @@ class Avatar {
     );
     return localEuler.y;
   }
-  update(timeDiff) {
-    const {now} = this;
+  update(timestamp, timeDiff) {
+    const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     
@@ -2766,8 +2764,6 @@ class Avatar {
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     } */
-    
-    this.now += timeDiff;
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
