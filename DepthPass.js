@@ -65,7 +65,6 @@ class DepthPass extends Pass {
 	}
 
   renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
-
     renderer.getClearColor( this.originalClearColor );
     const originalClearAlpha = renderer.getClearAlpha();
     const originalAutoClear = renderer.autoClear;
@@ -84,21 +83,31 @@ class DepthPass extends Pass {
 
     }
 
+    const cachedNodes = [];
     const _recurse = o => {
-      if (o.isMesh && o.customPostMaterial) {
-        oldParentCache.set(o, o.parent);
-        oldMaterialCache.set(o, o.material);
-
-        o.material = o.customPostMaterial;
-        this.customScene.add(o);
-      }
-      for (const child of o.children) {
-        _recurse(child);
-      }
-    };
+			if (o.isMesh && o.customPostMaterial) {
+				cachedNodes.push(o);
+			} else {
+				for (const child of o.children) {
+					_recurse(child);
+				}
+			}
+		};
     _recurse(this.scene);
+		for (const o of cachedNodes) {
+			oldParentCache.set(o, o.parent);
+			oldMaterialCache.set(o, o.material);
+
+			o.material = o.customPostMaterial;
+			this.customScene.add(o);
+		}
     renderer.render( this.customScene, this.camera );
-    for (const child of this.customScene.children) {
+
+    this.scene.overrideMaterial = overrideMaterial;
+    renderer.render( this.scene, this.camera );
+    this.scene.overrideMaterial = null;
+
+		for (const child of cachedNodes) {
       oldParentCache.get(child).add(child);
       child.material = oldMaterialCache.get(child);
 
@@ -106,16 +115,11 @@ class DepthPass extends Pass {
       oldMaterialCache.delete(child);
     }
 
-    this.scene.overrideMaterial = overrideMaterial;
-    renderer.render( this.scene, this.camera );
-    this.scene.overrideMaterial = null;
-
     // restore original state
 
     renderer.autoClear = originalAutoClear;
     renderer.setClearColor( this.originalClearColor );
     renderer.setClearAlpha( originalClearAlpha );
-
   }
 
 	render( renderer, writeBuffer /*, readBuffer, deltaTime, maskActive */ ) {
