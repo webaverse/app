@@ -28,11 +28,11 @@ export var Stats = function () {
 	msText.innerHTML= 'Renderer Stats';
 	msDiv.appendChild( msText );
 	
-	var msTexts	= [];
-	var nLines	= 8;
+	var msTexts = [];
+	var nLines = 10;
 	for(var i = 0; i < nLines; i++){
 		msTexts[i]	= document.createElement( 'div' );
-		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
+		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
 		msDiv.appendChild( msTexts[i] );		
 		msTexts[i].innerHTML= '-';
 	}
@@ -48,10 +48,12 @@ export var Stats = function () {
 			var i = 0;
 
 			// Update every frame
-			if(localPlayer) {
-				msTexts[i++].textContent = "X: " + localPlayer.position.x.toFixed( 2 );
-				msTexts[i++].textContent = "Y: " + localPlayer.position.y.toFixed( 2 );
-				msTexts[i++].textContent = "Z: " + localPlayer.position.z.toFixed( 2 );
+			if (localPlayer) {
+				msTexts[i++].textContent = "X: " + localPlayer.position.x.toFixed(2);
+				msTexts[i++].textContent = "Y: " + localPlayer.position.y.toFixed(2);
+				msTexts[i++].textContent = "Z: " + localPlayer.position.z.toFixed(2);
+				msTexts[i++].textContent = "Velocity: " + localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)).join(', ');
+				msTexts[i++].textContent = "Speed: " + localPlayer.characterPhysics.velocity.length().toFixed(2);
 			}
 			
 			// Only update once per second
