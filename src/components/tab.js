@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 
-export const Tab = ({className, type, left, right, top, bottom, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
+export const Tab = ({className, type, left, right, top, bottom, index, disabled, label, panels, before, after, open, toggleOpen, onclick, panelsRef}) => {
   if (!onclick) {
     onclick = e => {
       toggleOpen(type);
@@ -21,9 +21,9 @@ export const Tab = ({className, type, left, right, top, bottom, disabled, label,
       right ? styles.right : null,
       top ? styles.top : null,
       bottom ? styles.bottom : null,
+      index !== undefined ? styles['index-' + index] : null,
       disabled ? styles.disabled : null,
       open === type ? styles.open : null,
-
     )} onClick={onclick}>
       {left ? <>
         {before}

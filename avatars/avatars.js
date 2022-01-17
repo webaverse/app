@@ -1196,8 +1196,6 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = -1;
-    
-    this.now = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1274,7 +1272,7 @@ class Avatar {
     this.backwardAnimationSpec = null;
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
-    this.lastEyeTargetTime = 0;
+    this.lastEyeTargetTime = -Infinity;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1685,8 +1683,8 @@ class Avatar {
     );
     return localEuler.y;
   }
-  update(timeDiff) {
-    const {now} = this;
+  update(timestamp, timeDiff) {
+    const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     
@@ -2590,14 +2588,14 @@ class Avatar {
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
-        localMatrix.compose(localVector.set(0, 0, 0), this.startEyeTargetQuaternion, localVector2.set(1, 1, 1))
-          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(localVector, localQuaternion, localVector2);
-        localQuaternion
-          .slerp(localQuaternion2.identity(), cubicBezier(eyeTargetFactor));
-        this.modelBoneOutputs.Neck.quaternion.copy(localQuaternion);
+        if (eyeTargetFactor < 1) {
+          localQuaternion2.copy(this.startEyeTargetQuaternion)
+            .slerp(localQuaternion, cubicBezier(eyeTargetFactor));
+          localMatrix.compose(localVector.set(0, 0, 0), localQuaternion2, localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+            .decompose(localVector, localQuaternion, localVector2);
+        }
       }
-      
     };
     _updateEyeTarget();
     this.modelBoneOutputs.Root.updateMatrixWorld();
@@ -2766,8 +2764,6 @@ class Avatar {
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     } */
-    
-    this.now += timeDiff;
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
