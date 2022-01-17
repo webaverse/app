@@ -2590,14 +2590,14 @@ class Avatar {
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
-        localMatrix.compose(localVector.set(0, 0, 0), this.startEyeTargetQuaternion, localVector2.set(1, 1, 1))
-          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(localVector, localQuaternion, localVector2);
-        localQuaternion
-          .slerp(localQuaternion2.identity(), cubicBezier(eyeTargetFactor));
-        this.modelBoneOutputs.Neck.quaternion.copy(localQuaternion);
+        if (eyeTargetFactor < 1) {
+          localQuaternion2.copy(this.startEyeTargetQuaternion)
+            .slerp(localQuaternion, cubicBezier(eyeTargetFactor));
+          localMatrix.compose(localVector.set(0, 0, 0), localQuaternion2, localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+            .decompose(localVector, localQuaternion, localVector2);
+        }
       }
-      
     };
     _updateEyeTarget();
     this.modelBoneOutputs.Root.updateMatrixWorld();
