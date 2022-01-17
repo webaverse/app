@@ -311,7 +311,7 @@ class SSAOPass extends Pass {
 
 	}
 
-	renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
+	/* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
 
 		renderer.getClearColor( this.originalClearColor );
 		const originalClearAlpha = renderer.getClearAlpha();
@@ -363,7 +363,7 @@ class SSAOPass extends Pass {
 		renderer.setClearColor( this.originalClearColor );
 		renderer.setClearAlpha( originalClearAlpha );
 
-	}
+	} */
 
 	setSize( width, height ) {
 
