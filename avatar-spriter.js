@@ -1,14 +1,23 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
-import metaversefileApi from 'metaversefile';
-// const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, createAvatar, useAvatarAnimations, useInternals, useCleanup} = metaversefile;
+import metaversefile from 'metaversefile';
+const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {getRenderer, scene} from './renderer.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
 
-const preview = false; // whether to draw debug meshes
+const preview = true; // whether to draw debug meshes
+
+const cameraGeometry = new CameraGeometry();
+const cameraMaterial = new THREE.MeshBasicMaterial({
+  color: 0x333333,
+});
+const cameraMesh = new THREE.Mesh(
+  cameraGeometry,
+  cameraMaterial,
+);
+// scene.add(cameraMesh);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -41,16 +50,6 @@ const spriteFootFactor = 0.07; // offset down this factor in world space
 
 // opacity factor for sprites
 const alphaTest = 0.9;
-
-const cameraGeometry = new CameraGeometry();
-const cameraMaterial = new THREE.MeshBasicMaterial({
-  color: 0x333333,
-});
-const cameraMesh = new THREE.Mesh(
-  cameraGeometry,
-  cameraMaterial,
-);
-// scene.add(cameraMesh);
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
@@ -687,7 +686,7 @@ const animationAngles = [
   {name: 'backward', angle: Math.PI},
 ];
 const _getPlayerSide = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = metaversefile.useLocalPlayer();
   
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
@@ -1527,7 +1526,7 @@ const _renderSpriteImages = skinnedVrm => {
   })();
   const rootBone = skeleton.bones.find(b => b.name === 'Root');
 
-  const renderer = getRenderer();
+  const {renderer, scene} = metaversefile.useInternals();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
     const oldParent = skinnedModel.parent;
@@ -1606,9 +1605,6 @@ const _renderSpriteImages = skinnedVrm => {
           rootBone.position.set(0, 0, positionOffset - initialPositionOffset);
           rootBone.updateMatrixWorld();
 
-          if (!cameraMesh.parent) {
-            scene.add(cameraMesh);
-          }
           cameraMesh.position.copy(camera2.position);
           cameraMesh.position.z -= initialPositionOffset;
           cameraMesh.quaternion.copy(camera2.quaternion);
