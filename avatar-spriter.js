@@ -1482,7 +1482,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
 }
 
 const _renderSpriteImages = skinnedVrm => {
-  const localRig = createAvatar(skinnedVrm, {
+  const localRig = new Avatar(skinnedVrm, {
     fingers: true,
     hair: true,
     visemes: true,
