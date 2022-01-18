@@ -7,7 +7,7 @@ import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
 
-const preview = true; // whether to draw debug meshes
+const preview = false; // whether to draw debug meshes
 
 const cameraGeometry = new CameraGeometry();
 const cameraMaterial = new THREE.MeshBasicMaterial({
