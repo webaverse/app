@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import metaversefileApi from 'metaversefile';
 // const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, createAvatar, useAvatarAnimations, useInternals, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {getRenderer} from './renderer.js';
 import {DoubleSidedPlaneGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
@@ -1516,7 +1517,7 @@ const _renderSpriteImages = skinnedVrm => {
   })();
   const rootBone = skeleton.bones.find(b => b.name === 'Root');
 
-  const {renderer} = useInternals();
+  const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
     const oldParent = skinnedModel.parent;
