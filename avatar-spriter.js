@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
-import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, createAvatar, useAvatarAnimations, useInternals, useCleanup} = metaversefile;
+import metaversefileApi from 'metaversefile';
+// const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, createAvatar, useAvatarAnimations, useInternals, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
@@ -676,7 +676,7 @@ const animationAngles = [
   {name: 'backward', angle: Math.PI},
 ];
 const _getPlayerSide = () => {
-  const localPlayer = useLocalPlayer();
+  const localPlayer = metaversefileApi.useLocalPlayer();
   
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
