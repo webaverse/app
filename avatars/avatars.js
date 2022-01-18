@@ -4,12 +4,10 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-// import {world} from '../world.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-// import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
-// import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
@@ -31,7 +29,6 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
-// import {scene, getRenderer} from '../renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -759,6 +756,8 @@ class Avatar {
     // this.retargetedAnimations = retargetedAnimations;
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
+
+    this.spriteMegaAvatarMesh = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -1685,8 +1684,34 @@ class Avatar {
     );
     return localEuler.y;
   }
-  setQuality(quality) {
-    console.log('set avatar quality', quality);
+  async setQuality(quality) {
+    // console.log('set avatar quality', quality);
+    
+    switch (quality) {
+      case 1: {
+        const skinnedMesh = await this.object.cloneVrm();
+        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
+        scene.add(this.spriteMegaAvatarMesh);
+        this.model.visible = false;
+        break;
+      }
+      case 2: {
+        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
+        crunchedModel.frustumCulled = false;
+        scene.add(crunchedModel);
+        this.model.visible = false;
+        break;
+      }
+      case 3: {
+        break;
+      }
+      case 4: {
+        break;
+      }
+      default: {
+        throw new Error('unknown case');
+      }
+    }
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
@@ -2748,6 +2773,16 @@ class Avatar {
       }
     };
     this.options.visemes && _updateVisemes();
+
+    const _updateSubAvatars = () => {
+      if (this.spriteMegaAvatarMesh) {
+        this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
+          playerAvatar: this,
+          camera,
+        });
+      }
+    };
+    _updateSubAvatars();
 
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
