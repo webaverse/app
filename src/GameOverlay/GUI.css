@@ -1,0 +1,155 @@
+.column {
+  display: flex;
+  flex-flow: column;
+}
+
+.column-reverse {
+  display: flex;
+  flex-flow: column-reverse;
+}
+
+.row {
+  display: flex;
+  flex-flow: row;
+}
+
+.row-reverse {
+  display: flex;
+  flex-flow: row-reverse;
+}
+
+.visible {
+  opacity: 100%;
+  transition: opacity 0.2s;
+}
+
+.invisible {
+  transition: opacity 0.2s;
+  opacity: 0%;
+  pointer-events: none;
+}
+
+.click {
+  pointer-events: auto;
+}
+
+.no-click {
+  pointer-events: none;
+}
+
+.pointer {
+  cursor: pointer
+}
+
+.fixed {
+  position: fixed;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.justify-center {
+  transform: translate(-50%, -50%);
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.top {
+  top: 0%;
+}
+
+.left { 
+  left: 0%;
+}
+
+.bottom {
+  bottom: 0%;
+}
+
+.right {
+  right: 0%;
+}
+
+.fit-x {
+  width: 100%;
+}
+
+.fit-y {
+  height: 100%;
+}
+
+.fit {
+  width: 100%;
+  height: 100%;
+}
+
+.fit-screen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.black-tint {
+  background: #010101dd;  
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.around { 
+  justify-content: space-around;
+}
+
+.center {
+  justify-content: center;
+}
+
+.text-white {
+  color: white
+}
+
+.text-dull {
+  color: rgba(255,255,255,0.87)
+}
+
+@font-face {
+  font-family: NeutraBook;
+  src: url("./NeutraText-Book.otf");
+}
+
+@font-face {
+  font-family: NeutraBold;
+  src: url("./NeutraText-Bold.otf");
+}
+
+.neutra-book {
+  font-family: NeutraBook;
+}
+
+.neutra-bold {
+  font-family: NeutraBold;
+}
+
+
+.size-large {
+  font-size: 1.2rem;
+}
+
+.size-larger {
+  font-size: 1.4rem;
+}
+
+.size-small {
+  font-size: 0.8rem;
+}
+
+.size-2 {
+  font-size: 2.0rem;
+}

@@ -6,6 +6,7 @@ import styles from './App.module.css';
 import MagicMenu from './MagicMenu.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
+import GUI from './GameOverlay/GUI.jsx';
 
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
@@ -51,6 +52,7 @@ function RootNode() {
       <Header app={app} />
       <Crosshair />
       <canvas id="canvas" className={styles.canvas} ref={canvasRef} />
+      <GUI/>
       <Footer />
     </div>
   );
