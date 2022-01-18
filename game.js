@@ -1904,6 +1904,7 @@ const gameManager = {
     localPlayer.removeAction('activate');
   },
   setAvatarQuality(quality) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.avatar.setQuality(quality);
   },
   playerDiorama: null,
