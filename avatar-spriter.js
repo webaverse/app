@@ -475,9 +475,11 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     }
   }
   update(timestamp, timeDiff, {
-    player: localPlayer,
+    playerAvatar: avatar,
     camera,
   }) {
+    const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
+
     if (preview) {
       for (const planeSpriteMesh of planeSpriteMeshes) {
         const {duration} = planeSpriteMesh.spriteSpec;
@@ -527,8 +529,8 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     }
 
     // matrix transform
-    this.position.copy(localPlayer.position);
-    this.position.y -= localPlayer.avatar.height;
+    this.position.copy(avatar.inputs.hmd.position);
+    this.position.y -= avatar.height;
 
     localQuaternion
       .setFromRotationMatrix(
@@ -548,14 +550,14 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     // select the texture
     const spriteSpecName = (() => {
       const playerSide = _getPlayerSide();
-      const currentSpeed = localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z)
+      const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
         .length();
 
-      if (localPlayer.avatar.jumpState) {
+      if (avatar.jumpState) {
         return 'jump';
-      } else if (localPlayer.avatar.narutoRunState) {
+      } else if (avatar.narutoRunState) {
         return 'naruto run';
-      } else if (localPlayer.avatar.crouchTime === 0) {
+      } else if (avatar.crouchTime === 0) {
         const crouchIdleSpeedDistance = currentSpeed;
         const crouchSpeedDistance = Math.abs(crouchSpeed - currentSpeed);
         const speedDistances = [
@@ -585,7 +587,8 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           }
         }
       } else {
-        const currentSpeed = localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z).length();
+        const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
+          .length();
         const idleSpeedDistance = currentSpeed;
         const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
         const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
@@ -659,7 +662,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
         localEuler.x = 0;
         localEuler.z = 0;
 
-        localEuler2.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+        localEuler2.setFromQuaternion(avatar.inputs.hmd.quaternion, 'YXZ');
         localEuler2.x = 0;
         localEuler2.z = 0;
 
