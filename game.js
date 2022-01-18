@@ -27,7 +27,6 @@ import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import soundManager from './sound-manager.js';
 
-
 const {contractNames} = metaversefileConstants;
 
 const localVector = new THREE.Vector3();
