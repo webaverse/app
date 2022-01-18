@@ -1165,9 +1165,6 @@ let spriteSpecs;
       duration: jumpAnimation.duration,
       init({angle, avatar: localRig}) {
         let positionOffset = 0;
-        
-        // console.log('jump init', localPlayer.characterPhysics.velocity.toArray().join(', '));
-        // localPlayer.characterPhysics.velocity.y += 6;
   
         let jumpTime = -200;
         const jumpIncrementSpeed = 250;
@@ -1176,8 +1173,6 @@ let spriteSpecs;
           update(timestamp, timeDiff) {
             const timeDiffMs = timeDiff/1000;
             // positionOffset -= walkSpeed/1000 * timeDiffMs;
-  
-            // console.log('jump update', localPlayer.characterPhysics.velocity.toArray().join(', '));
             
             const euler = new THREE.Euler(0, angle, 0, 'YXZ');
             camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
