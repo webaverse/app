@@ -13,7 +13,7 @@ import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+import {CapsuleGeometry} from './geometries.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
