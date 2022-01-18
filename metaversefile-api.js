@@ -34,6 +34,8 @@ import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import soundManager from './sound-manager.js';
+import * as avatarCruncher from './avatar-cruncher.js';
+import * as avatarSpriter from './avatar-spriter.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
@@ -189,7 +191,7 @@ function createPointerEvents(store) {
     onPointerMove: 'pointermove',
     onPointerCancel: 'pointercancel',
     onLostPointerCapture: 'lostpointercapture',
-  }
+  };
 
   return {
     connected: false,
@@ -372,6 +374,12 @@ metaversefile.setApi({
   },
   useSoundManager() {
     return soundManager;
+  },
+  useAvatarCruncher() {
+    return avatarCruncher;
+  },
+  useAvatarSpriter() {
+    return avatarSpriter;
   },
   usePostProcessing() {
     return postProcessing;
