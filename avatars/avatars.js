@@ -1685,8 +1685,6 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-    // console.log('set avatar quality', quality);
-    
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
@@ -1703,13 +1701,15 @@ class Avatar {
         break;
       }
       case 3: {
+        console.log('not implemented'); // XXX
         break;
       }
       case 4: {
+        console.log('not implemented'); // XXX
         break;
       }
       default: {
-        throw new Error('unknown case');
+        throw new Error('unknown avatar quality: ' + quality);
       }
     }
   }
