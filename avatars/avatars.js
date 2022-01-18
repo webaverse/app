@@ -15,6 +15,8 @@ import CBOR from '../cbor.js';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
+import * as avatarCruncher from '../avatar-cruncher.js';
+import * as avatarSpriter from '../avatar-spriter.js';
 import metaversefile from 'metaversefile';
 import {
   getSkinnedMeshes,
@@ -27,9 +29,9 @@ import {
   // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
-  animationBoneToModelBone,
+  // animationBoneToModelBone,
 } from './util.mjs';
-import {scene, getRenderer} from '../renderer.js';
+// import {scene, getRenderer} from '../renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1682,6 +1684,9 @@ class Avatar {
       'YXZ'
     );
     return localEuler.y;
+  }
+  setQuality(quality) {
+    console.log('set avatar quality', quality);
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
