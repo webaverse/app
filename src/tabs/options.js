@@ -3,6 +3,7 @@ import {useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
+import game from '../../game.js';
 
 export const Options = ({app, open, toggleOpen, panelsRef}) => {
   const [avatarStyle, setAvatarStyle] = useState(4);
@@ -66,6 +67,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
           </p>
           {(avatarStyle !== avatarStyleCurrent) ? (
             <button className={classnames(styles.big, styles['mint-button'])} onClick={e => {
+              game.setAvatarQuality(avatarStyle);
               setAvatarStyleCurrent(avatarStyle);
             }}>
               <div className={styles['button-background']} />
