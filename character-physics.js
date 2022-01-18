@@ -21,6 +21,7 @@ const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 // const localOffset = new THREE.Vector3();
@@ -39,6 +40,10 @@ class CharacterPhysics {
     this.velocity = new THREE.Vector3();
     this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
+
+    this.computedVelocity = new THREE.Vector3();
+    this.computedDirection = new THREE.Vector3();
+    this.lastPosition = new THREE.Vector3();
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
@@ -225,24 +230,6 @@ class CharacterPhysics {
       }
     }
   }
-  /* dampen the velocity to make physical sense for the current avatar state */
-  applyVelocityDamping(velocity, timeDiff) {
-    if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    } else {
-      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
-    }
-
-    /* const {capsule} = this.player;
-    const {grounded} = capsule;
-    if (this.lastGrounded && !grounded && velocity.y > 0 && !this.player.hasAction('jump')) {
-      velocity.y = 0;
-    }
-    this.lastGrounded = grounded; */
-  }
   /* updateVelocity() {
     if(this.player.avatar && physicsManager.physicsEnabled) {
       if(this.rigidBody) {
@@ -384,11 +371,42 @@ class CharacterPhysics {
     const timeDiff = timeDiffS * 1000;
     this.applyVelocityDamping(this.velocity, timeDiff);
   }
+  /* dampen the velocity to make physical sense for the current avatar state */
+  applyVelocityDamping(velocity, timeDiff) {
+    if (this.player.hasAction('fly')) {
+      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+      velocity.multiplyScalar(factor);
+    } else {
+      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
+      velocity.x *= factor;
+      velocity.z *= factor;
+    }
+  }
+  updateComputeds(timeDiffS) {
+    const currentPosition = this.player.position;
+    const currentQuaternion = this.player.quaternion;
+    
+    const positionDiff = localVector.copy(this.lastPosition)
+      .sub(currentPosition)
+      .divideScalar(timeDiffS)
+      .multiplyScalar(0.1);
+    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y += Math.PI;
+    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+    positionDiff.applyEuler(localEuler2);
+
+    this.computedVelocity.copy(positionDiff);
+    this.computedDirection.copy(positionDiff).normalize();
+    this.lastPosition.copy(currentPosition);
+  }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
-    //this.updateCamera(timeDiffS); // This needs to be called after avatar update
+    // this.updateCamera(timeDiffS); // This needs to be called after avatar update
+    this.updateComputeds(timeDiffS);
   }
   reset() {
     if (this.player.avatar && physicsManager.physicsEnabled) {
