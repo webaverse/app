@@ -1699,29 +1699,12 @@ class Avatar {
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
-    const _updatePosition = () => {
-      const currentPosition = this.inputs.hmd.position;
-      const currentQuaternion = this.inputs.hmd.quaternion;
-      
-      const positionDiff = localVector.copy(this.lastPosition)
-        .sub(currentPosition)
-        .divideScalar(timeDiffS)
-        .multiplyScalar(0.1);
-      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-      positionDiff.applyEuler(localEuler2);
-      this.velocity.copy(positionDiff);
-      this.lastPosition.copy(currentPosition);
-      this.direction.copy(positionDiff).normalize();
-
+    const _updateLastMoveTime = () => {
       if (this.velocity.length() > maxIdleVelocity) {
         this.lastMoveTime = now;
       }
     };
-    _updatePosition();
+    _updateLastMoveTime();
     
     const _applyAnimation = () => {
       const runSpeed = 0.5;
