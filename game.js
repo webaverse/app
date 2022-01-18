@@ -1740,8 +1740,6 @@ const gameManager = {
       localPlayer.addAction(newJumpAction);
     }
   },
-
-
   jump() {
     // add jump action
     this.ensureJump();
