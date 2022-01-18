@@ -15,9 +15,6 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
-
-    rig.velocity.copy(player.characterPhysics.computedVelocity);
-    rig.direction.copy(player.characterPhysics.computedDirection);
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
