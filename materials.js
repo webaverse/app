@@ -38,18 +38,31 @@ const appendMain = (shaderText, postfixLine) => {
   }
 `; */
 
-const formatVertexShader = vertexShader => `\
+// memoize a function which takes a string and returns a string
+const _memoize = fn => {
+  const cache = new Map();
+  return s => {
+    let result = cache.get(s);
+    if (result === undefined) {
+      result = fn(s);
+      cache.set(s, result);
+    }
+    return result;
+  };
+}
+
+const formatVertexShader = _memoize(vertexShader => `\
 ${THREE.ShaderChunk.common}
 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
     
 ${appendMain(vertexShader, THREE.ShaderChunk.logdepthbuf_vertex)}
-`;
+`);
 
-const formatFragmentShader = fragmentShader => `\
+const formatFragmentShader = _memoize(fragmentShader => `\
 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
     
 ${appendMain(fragmentShader, THREE.ShaderChunk.logdepthbuf_fragment)}
-`;
+`);
 
 class WebaverseShaderMaterial extends THREE.ShaderMaterial {
   constructor(opts = {}) {
