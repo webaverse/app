@@ -4,7 +4,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {world} from '../world.js';
+// import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 // import skeletonString from './skeleton.js';
