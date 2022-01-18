@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import metaversefileApi from 'metaversefile';
 // const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, createAvatar, useAvatarAnimations, useInternals, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {getRenderer} from './renderer.js';
-import {DoubleSidedPlaneGeometry} from './geometries.js';
+import {getRenderer, scene} from './renderer.js';
+import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
 
@@ -41,6 +41,16 @@ const spriteFootFactor = 0.07; // offset down this factor in world space
 
 // opacity factor for sprites
 const alphaTest = 0.9;
+
+const cameraGeometry = new CameraGeometry();
+const cameraMaterial = new THREE.MeshBasicMaterial({
+  color: 0x333333,
+});
+const cameraMesh = new THREE.Mesh(
+  cameraGeometry,
+  cameraMaterial,
+);
+// scene.add(cameraMesh);
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
@@ -494,7 +504,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
                 localVector2.set(0, 1, 0)
               )
             )
-            .premultiply(app.quaternion.clone().invert());
+            // .premultiply(app.quaternion.clone().invert());
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
@@ -1596,6 +1606,9 @@ const _renderSpriteImages = skinnedVrm => {
           rootBone.position.set(0, 0, positionOffset - initialPositionOffset);
           rootBone.updateMatrixWorld();
 
+          if (!cameraMesh.parent) {
+            scene.add(cameraMesh);
+          }
           cameraMesh.position.copy(camera2.position);
           cameraMesh.position.z -= initialPositionOffset;
           cameraMesh.quaternion.copy(camera2.quaternion);
@@ -1621,7 +1634,7 @@ const _renderSpriteImages = skinnedVrm => {
         planeSpriteMesh.position.set(-canvasIndex*worldSize, 2, -canvasIndex2*worldSize);
         planeSpriteMesh.updateMatrixWorld();
         planeSpriteMesh.spriteSpec = spriteSpec;
-        app.add(planeSpriteMesh);
+        scene.add(planeSpriteMesh);
         planeSpriteMeshes.push(planeSpriteMesh);
       }
 
@@ -1639,7 +1652,7 @@ const _renderSpriteImages = skinnedVrm => {
       );
       spriteAvatarMesh.updateMatrixWorld();
       spriteAvatarMesh.spriteSpec = spriteSpec;
-      app.add(spriteAvatarMesh); 
+      scene.add(spriteAvatarMesh); 
       spriteAvatarMeshes.push(spriteAvatarMesh);
     }
     
