@@ -1600,10 +1600,6 @@ const createPlayerDiorama = (player, {
   const {devicePixelRatio: pixelRatio} = window;
 
   const renderer = getRenderer();
-  /* sideCamera.position.set(0, 0, 10);
-  sideCamera.quaternion.identity();
-  sideCamera.updateMatrixWorld();
-  renderer.compile(sideScene, sideCamera); */
 
   if (!canvas) {
     canvas = _makeCanvas(sideSize, sideSize);
