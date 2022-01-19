@@ -4,7 +4,7 @@
   "description": "",
   "main": "loading.js",
   "scripts": {
-    "test:ui": "mocha ./**/*.spec.js --timeout 0 2>&1  | tee report",
+    "test:ui": "mocha ./ui/**/*.spec.js --timeout 0 2>&1  | tee report",
     "test": "mocha . --timeout 0"
   },
   "dependencies": {

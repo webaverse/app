@@ -22,5 +22,6 @@ module.exports = class SeleniumDriver {
     driver = await new Builder().forBrowser('chrome')
       .setChromeOptions(new chrome.Options().addArguments(args).headless()).build();
     await driver.get(process.env.URL);
+    return driver;
   }
 };
