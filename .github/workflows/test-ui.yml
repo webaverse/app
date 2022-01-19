@@ -45,6 +45,6 @@ jobs:
       - name: Run Tests
         run: |
               cd test
-              npm run test:ui
+              sudo npm run test:ui
               echo "Exited with '$?'"
 
