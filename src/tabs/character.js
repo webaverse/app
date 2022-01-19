@@ -5,14 +5,44 @@ import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 import game from '../../game.js';
 import {getRenderer} from '../../renderer.js';
-import {generatePreview} from '../../preview.js';
+import {preview} from '../../preview.js';
 
 // export const generatePreview = async (url, type, width, height, _resolve, _reject) => {
 
+const size = 1024;
+const displaySize = 512;
+const texSize = 128;
+const numSlots = size / texSize;
+const numAngles = 64;
+const width = size;
+const height = size;
 const previewImgSize = 70;
+const loopTime = 2000;
+
+const _makeCanvasCopier = (result, canvas) => {
+  // console.log('make canvas copier', result, canvas);
+  const ctx = canvas.getContext('2d');
+  let lastFrameIndex = 0;
+  return {
+    update() {
+      const frameIndex = Math.floor((performance.now() % loopTime) / loopTime * numAngles);
+      if (frameIndex !== lastFrameIndex) {
+        const x = frameIndex % numSlots;
+        const y = (frameIndex - x) / numSlots;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          result,
+          x * texSize, y * texSize, texSize, texSize,
+          0, 0, canvas.width, canvas.height
+        );
+        lastFrameIndex = frameIndex;
+      }
+    },
+  };
+};
 
 const Equipment = ({wearAction}) => {
-  const world = metaversefile.useWorld();
+  // const world = metaversefile.useWorld();
   const localPlayer = metaversefile.useLocalPlayer();
 
   const previewRef = useRef();
@@ -23,11 +53,29 @@ const Equipment = ({wearAction}) => {
       const pixelRatio = renderer.getPixelRatio();
       // const app = world.appManager.getAppByInstanceId(wearAction.instanceId);
       const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
-      generatePreview(app.contentId, 'png', previewImgSize*pixelRatio, previewImgSize*pixelRatio, result => {
-        console.log('got preview', result);
-      }, err => {
-        console.warn('error generating preview', err);
+      
+      (async () => {
+        const result = await preview(app.contentId, '360-spritesheet', previewImgSize*pixelRatio, previewImgSize*pixelRatio);
+        // console.log('got result', result);
+        
+        if (live) {
+          const canvasCopier = _makeCanvasCopier(result, previewImg);
+          function frame() {
+            if (live) {
+              window.requestAnimationFrame(frame);
+              canvasCopier.update();
+            }
+          }
+          window.requestAnimationFrame(frame);
+        }
+      })().catch(err => {
+        console.warn(err);
       });
+
+      let live = true;
+      return () => {
+        live = false;
+      };
     }
   }, [previewRef.current]);
 
@@ -45,7 +93,7 @@ const Equipment = ({wearAction}) => {
       }}
     >
       <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-      <img className={styles.icon} ref={previewRef} />
+      <canvas width={previewImgSize} height={previewImgSize} className={styles.icon} ref={previewRef}></canvas>
       {/* <img src="images/flower.png" className={styles.icon} /> */}
       <div className={styles.name}>{wearAction.instanceId}</div>
       <button className={styles.button} onClick={e => {

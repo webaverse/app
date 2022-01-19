@@ -1,9 +1,12 @@
 /* eslint-disable no-useless-escape */
-import {storageHost, inappPreviewHost} from './constants';
+import {makeId} from './util.js';
+import {storageHost, inappPreviewHost} from './constants.js';
 
+let iframe = null;
 const queue = [];
 let running = false;
 let resolve, reject;
+let expectedRespond = '';
 let rejectionTimeout = null;
 
 const next = () => {
@@ -19,8 +22,6 @@ export const generatePreview = async (url, type, width, height, _resolve, _rejec
   const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
-  let iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
-
   // else create new iframe
   if (!iframe) {
     iframe = document.createElement('iframe');
@@ -36,15 +37,17 @@ export const generatePreview = async (url, type, width, height, _resolve, _rejec
   } */
 
   // create URL
-  const ssUrl = `${previewHost}/screenshot.html?url=${url}&type=${type}&width=${width}&height=${height}`;
+  const respond = makeId(5);
+  expectedRespond = respond;
+  const ssUrl = `${previewHost}/screenshot.html?url=${url}&type=${type}&width=${width}&height=${height}&respond=${respond}`;
 
   // set src attr for iframe
   iframe.src = ssUrl;
-  console.log('Preview generation in progress for ', ssUrl);
+  // console.log('Preview generation in progress for ', ssUrl);
 
   // event listener for postMessage from screenshot.js
   rejectionTimeout = setTimeout(() => {
-    reject('Preview Server Timed Out');
+    // reject('Preview Server Timed Out');
     running = false;
     if (queue.length > 0) {
       next();
@@ -53,8 +56,9 @@ export const generatePreview = async (url, type, width, height, _resolve, _rejec
 };
 
 window.addEventListener('message', event => {
-  if (event.data.method === 'result') {
-    let blob;
+  // console.log('got message', event.data, event.data?.id, expectedRespond);
+  if (event.data?.id === expectedRespond) {
+    /* let blob;
     if (type === 'webm') {
       blob = new Blob([event.data.result], {
         type: `video/${type}`,
@@ -63,12 +67,17 @@ window.addEventListener('message', event => {
       blob = new Blob([event.data.result], {
         type: `image/${type}`,
       });
+    } */
+
+    // console.log('end timeout');
+    clearTimeout(rejectionTimeout);
+    if (!event.data.error) {
+      // console.log('result', event.data.result);
+      resolve(event.data.result);
+    } else {
+      reject(event.data.error);
     }
-    clearTimeout(rejection);
-    resolve({
-      blob: blob,
-      url: URL.createObjectURL(blob),
-    });
+
     running = false;
     if (queue.length > 0) {
       next();
@@ -77,21 +86,21 @@ window.addEventListener('message', event => {
 });
 
 // URL validate function
-function isValidURL(string) {
+/* function isValidURL(string) {
   var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
   return (res !== null);
-}
+} */
 
-export const preview = async (url, ext, type, width, height, priority=10) => {
+export const preview = async (url, type, width, height, priority=10) => {
   return new Promise((resolve, reject) => {
-    if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
+    /* if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
       return reject('Undefined Extension');
-    }
+    } */
     if (!running) {
       generatePreview(url, type, width, height, resolve, reject);
     } else {
       queue.push({url, type, width, height, resolve, reject, priority});
-      queue.sort((a, b) => a.priority - b.priority)
+      queue.sort((a, b) => a.priority - b.priority);
     }
   });
 };

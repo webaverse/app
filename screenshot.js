@@ -8,11 +8,11 @@ import GIF from './gif.js';
 // import {defaultRendererUrl} from './constants.js'
 import * as WebMWriter from 'webm-writer';
 
-const size = 512;
+const size = 1024;
 const displaySize = 512;
 const texSize = 128;
 const numSlots = size / texSize;
-const numAngles = 8;
+const numAngles = 64;
 const width = size;
 const height = size;
 
@@ -76,26 +76,6 @@ const dataUrlRegex = /^data:([^;,]+)(?:;(charset=utf-8|base64))?,([\s\S]*)$/;
 // console.log('init screenshot.js');
 
 const _timeout = t => new Promise(resolve => {setTimeout(resolve, t);});
-const _respond = (err, result, {
-  type = 'application/octet-stream',
-}) => {
-  const value = err ?? result;
-  if (dst) {
-    fetch(dst, {
-      method: 'POST',
-      headers: {
-        'Content-Type': type,
-      },
-      body: value,
-    }).then(res => res.blob());
-  }
-
-  window.parent.postMessage({
-    method: err ? 'error' : 'result',
-    error: err,
-    result,
-  }, '*', result ? [result] : []);
-};
 const _makeCanvas = () => {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -151,7 +131,7 @@ const _render = async ({
 
     await renderer.compileAsync(app, scene);
 
-    const camera = new THREE.PerspectiveCamera(60, canvas.width/canvas.height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, canvas.width/canvas.height, 0.1, 1000);
     const _resetCamera = (euler = new THREE.Euler()) => {
       const physicsObjects = app.getPhysicsObjects();
       const physicsObject = physicsObjects.length > 0 ? physicsObjects[0] : app;
@@ -163,7 +143,6 @@ const _render = async ({
         );
       fitCameraToBoundingBox(camera, boundingBox);
     };
-    _resetCamera();
 
     const _renderScene = () => {
       renderer.render(scene, camera);
@@ -194,7 +173,8 @@ const _render = async ({
             x * texSize, y * texSize, texSize, texSize
           );
 
-          await _timeout(200);
+          // await _timeout(200);
+          // await _timeout(0);
         }
         return canvas2;
         break;
@@ -235,28 +215,31 @@ const _render = async ({
     }
   };
   const app = await _loadApp(url);
-  console.log('loaded app', app);
-
-  switch (app.appType) {
-    case 'glb':
-    case 'script': {
-      const result = await _renderApp(app, type, canvas);
-      // console.log('got result', result);
-      return result;
-      break;
+  // console.log('loaded app', app);
+  const result = await ((async () => {
+    switch (app.appType) {
+      case 'glb':
+      case 'vox':
+      case 'script': {
+        const result = await _renderApp(app, type, canvas);
+        // console.log('got result', result);
+        return result;
+        break;
+      }
+      case 'vrm': {
+        const result = await _renderAvatar(app, type, canvas);
+        // console.log('got result', result);
+        return result;
+        break;
+      }
+      default: {
+        console.warn('cannot render unknown app type', app.appType);
+        return null;
+        break;
+      }
     }
-    case 'vrm': {
-      const result = await _renderAvatar(app, type, canvas);
-      // console.log('got result', result);
-      return result;
-      break;
-    }
-    default: {
-      console.warn('cannot render unknown app type', app.appType);
-      return null;
-      break;
-    }
-  }
+  })());
+  return result;
 
 
 
@@ -630,16 +613,56 @@ const _render = async ({
   };
 };
 const _bootstrapInitialRender = async () => {
-  const q = parseQuery(decodeURIComponent(window.location.search));
-  if (q.url) {
-    const canvas = _makeCanvas(q.width ?? size, q.height ?? size);
-    document.body.appendChild(canvas);
-    q.canvas = canvas;
-    const canvas2 = await _render(q);
-    if (canvas2) {
-      document.body.removeChild(canvas);
-      document.body.appendChild(canvas2);
+  const _respond = async (err, result, {
+    type = 'application/octet-stream',
+  } = {}) => {
+    // console.log('respond', {err, result});
+
+    const {dst, respond} = q;
+    if (dst) {
+      const res = await fetch(dst, {
+        method: 'POST',
+        headers: {
+          'Content-Type': type,
+        },
+        body: err,
+      });
+      await res.blob();
     }
+    if (respond) {
+      if (result instanceof HTMLCanvasElement) {
+        result = await createImageBitmap(result);
+      } else {
+        console.warn('unknown result type', result);
+      }
+
+      window.parent.postMessage({
+        id: q.respond,
+        method: err ? 'error' : 'result',
+        error: err,
+        result,
+      }, '*', result ? [result] : []);
+    }
+  };
+
+  const q = parseQuery(decodeURIComponent(window.location.search));
+  try {
+    if (q.url) {
+      const canvas = _makeCanvas(q.width ?? size, q.height ?? size);
+      document.body.appendChild(canvas);
+      q.canvas = canvas;
+      const canvas2 = await _render(q);
+      if (canvas2) {
+        document.body.removeChild(canvas);
+        document.body.appendChild(canvas2);
+
+        _respond(null, canvas2);
+      } else {
+        _respond(null, canvas);
+      }
+    }
+  } catch (err) {
+    _respond(err);
   }
 };
 
