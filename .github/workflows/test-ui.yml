@@ -45,6 +45,11 @@ jobs:
               sudo apt -y update 
               sudo apt -y install google-chrome-stable 
               google-chrome --version 
+              wget https://chromedriver.storage.googleapis.com/94.0.4606.61/chromedriver_linux64.zip 
+              unzip chromedriver_linux64.zip 
+              sudo mv chromedriver /usr/bin/chromedriver 
+              sudo chown root:root /usr/bin/chromedriver 
+              sudo chmod +x /usr/bin/chromedriver 
       - name: Change to Tests Module
         run: npm run setup:test
       - name: Run Tests
