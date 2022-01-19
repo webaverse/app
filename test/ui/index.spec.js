@@ -36,7 +36,10 @@ before(() => {
       /** Server don't exitst create one */
       process.chdir('..');
       testProcess = spawn('node', ['index.mjs', '-p']);
-
+      testProcess.stderr.on('data', data => {
+        //appTester.addStatErr('ERROR', data);
+        console.log(`stderr: ${data}`);
+      });
       testProcess.on('spawn', async function() {
         appTester.MochaIntercept = () => {
           error = true;
