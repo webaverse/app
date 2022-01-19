@@ -19,6 +19,7 @@ const scratchStackSize = 1024*1024;
 const maxNumUpdates = 256;
 
 const physx = {};
+window.physx = physx;
 
 physx.waitForLoad = Module.waitForLoad;
 
