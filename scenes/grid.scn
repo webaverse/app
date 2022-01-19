@@ -63,6 +63,10 @@
       "physics": true,
       "start_url": "http://localhost/lib/webaverse_resource/grid/grid.glb",
       "dynamic": false
+    },
+    {
+      "position": [-3, 1, 0],
+      "start_url": "http://localhost/lib/webaverse_resource/my_test/monkey.glb"
     }
   ]
 }
