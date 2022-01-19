@@ -133,8 +133,11 @@ const _render = async ({
     `;
 
     const scene = new THREE.Scene();
-    scene.autoUpdate = false;
+    // scene.autoUpdate = false;
     const _buildScene = scene => {
+      // const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+      // ambientLight.position.set(2, 2, -2);
+      // scene.add(ambientLight);
       const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
       directionalLight.position.set(2, 2, -2);
       scene.add(directionalLight);
@@ -150,10 +153,12 @@ const _render = async ({
 
     const camera = new THREE.PerspectiveCamera(60, canvas.width/canvas.height, 0.1, 1000);
     const _resetCamera = (euler = new THREE.Euler()) => {
-      const boundingBox = new THREE.Box3().setFromObject(app); 
+      const physicsObjects = app.getPhysicsObjects();
+      const physicsObject = physicsObjects.length > 0 ? physicsObjects[0] : app;
+      const boundingBox = new THREE.Box3().setFromObject(physicsObject);
       boundingBox.getCenter(camera.position)
         .add(
-          localVector.set(0, 0, boundingBox.getSize(localVector2).z/2)
+          localVector.set(0, 0, 1)
             .applyEuler(euler)
         );
       fitCameraToBoundingBox(camera, boundingBox);
