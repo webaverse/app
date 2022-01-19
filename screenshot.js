@@ -15,6 +15,7 @@ const size = 512;
 const FPS = 60;
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 /* const _makeRenderer = (width, height) => {
   const renderer = new THREE.WebGLRenderer({
@@ -72,6 +73,7 @@ const dataUrlRegex = /^data:([^;,]+)(?:;(charset=utf-8|base64))?,([\s\S]*)$/;
 
 // console.log('init screenshot.js');
 
+const _timeout = t => new Promise(resolve => {setTimeout(resolve, t);});
 const _respond = (err, result, {
   type = 'application/octet-stream',
 }) => {
@@ -143,18 +145,46 @@ const _render = async ({
     await renderer.compileAsync(app, scene);
 
     const camera = new THREE.PerspectiveCamera(60, canvas.width/canvas.height, 0.1, 1000);
-    const _setCamera = () => {
+    const _resetCamera = (euler = new THREE.Euler()) => {
       const boundingBox = new THREE.Box3().setFromObject(app); 
       boundingBox.getCenter(camera.position)
-      camera.position.z += boundingBox.getSize(localVector).z/2;
+        .add(
+          localVector.set(0, 0, boundingBox.getSize(localVector2).z/2)
+            .applyEuler(euler)
+        );
       fitCameraToBoundingBox(camera, boundingBox);
     };
-    _setCamera();
+    _resetCamera();
 
     const _render = () => {
       renderer.render(scene, camera);
     };
-    _render();
+
+    switch (type) {
+      case 'gif': {
+        throw new Error('not implemented');
+        break;
+      }
+      case 'webm': {
+        throw new Error('not implemented');
+        break;
+      }
+      case '360-spritesheet': {
+        const numAngles = 8;
+        for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {
+          _resetCamera(new THREE.Euler(0, angle, 0, 'YXZ'));
+          _render();
+          await _timeout(200);
+        }
+        break;
+      }
+      case 'png':
+      default: {
+        _resetCamera();
+        _render();
+        break;
+      }
+    }
   };
   const _renderAvatar = (app, type, canvas) => {
     
@@ -572,6 +602,7 @@ const _bootstrapInitialRender = () => {
     const canvas = _makeCanvas(q.width ?? size, q.height ?? size);
     document.body.appendChild(canvas);
     q.canvas = canvas;
+    console.log('render spec', q);
     _render(q);
   }
 };
