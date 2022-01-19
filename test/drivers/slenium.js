@@ -1,6 +1,5 @@
 const {Builder} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const chromedriver = require('chromedriver');
 
 let driver;
 
@@ -18,11 +17,14 @@ module.exports = class SeleniumDriver {
   }
 
   async init(url) {
-    console.log('using chrome at ', chromedriver.path);
     driver = await new Builder().forBrowser('chrome')
       .setChromeOptions(new chrome.Options().addArguments(args).headless()).build();
-    console.log('driver created');
-    await driver.get(process.env.URL);
+    try {
+      await driver.get(process.env.URL);
+    } catch (e) {
+      // driver may timeout in linux
+    }
+
     return driver;
   }
 };
