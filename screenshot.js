@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import metaversefileApi from './metaversefile-api.js';
-import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
+import {parseQuery, fitCameraToBoundingBox} from './util.js';
 import Avatar from './avatars/avatars.js';
+import {NpcPlayer} from './character-controller.js';
 // import * as icons from './icons.js';
 import GIF from './gif.js';
 // import App from './webaverse';
@@ -18,6 +19,8 @@ const height = size;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localMatrix = new THREE.Matrix4();
 
 /* const _makeRenderer = (width, height) => {
   const renderer = new THREE.WebGLRenderer({
@@ -143,7 +146,6 @@ const _render = async ({
         );
       fitCameraToBoundingBox(camera, boundingBox);
     };
-
     const _renderScene = () => {
       renderer.render(scene, camera);
     };
@@ -188,7 +190,107 @@ const _render = async ({
     }
   };
   const _renderAvatar = async (app, type, canvas) => {
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setSize(width, height);
+    canvas.style.cssText = `\
+      width: ${displaySize}px;
+      height: ${displaySize}px;
+    `;
+
+    const scene = new THREE.Scene();
+    // scene.autoUpdate = false;
+    const _buildScene = scene => {
+      // const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+      // ambientLight.position.set(2, 2, -2);
+      // scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+      directionalLight.position.set(2, 2, -2);
+      scene.add(directionalLight);
+      const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+      directionalLight2.position.set(-2, 2, 2);
+      scene.add(directionalLight2);
     
+      scene.add(app);
+    };
+    _buildScene(scene);
+
+    await renderer.compileAsync(app, scene);
+
+    const camera = new THREE.PerspectiveCamera();
+    const _resetCamera = () => {
+      camera.position.copy(npcPlayer.position)
+        .add(localVector.set(0.3, 0, -0.5).applyQuaternion(npcPlayer.quaternion));
+        camera.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          camera.position,
+          npcPlayer.position,
+          localVector3.set(0, 1, 0)
+        )
+      );
+      camera.updateMatrixWorld();
+    };
+    
+    const newNpcPlayer = new NpcPlayer();
+    await newNpcPlayer.setAvatarAppAsync(app);
+    const npcPlayer = newNpcPlayer;
+    let timestamp = 0;
+    const timeDiff = 100;
+    const _updateNpcPlayer = () => {
+      // const f = timestamp / 5000;
+      // const s = Math.sin(f);
+      npcPlayer.position.set(0, npcPlayer.avatar.height, 0);
+      npcPlayer.updateAvatar(timestamp, timeDiff);
+
+      timestamp += timeDiff;
+    };
+    const _renderScene = () => {
+      renderer.render(scene, camera);
+    };
+
+    switch (type) {
+      /* case 'gif': {
+        throw new Error('not implemented');
+        break;
+      }
+      case 'webm': {
+        throw new Error('not implemented');
+        break;
+      } */
+      case '360-spritesheet': {
+        const canvas2 = _makeCanvas(width, height);
+        const ctx2 = canvas2.getContext('2d');
+
+        for (let angle = 0, angleIndex = 0; angleIndex < numAngles; angle += Math.PI*2/numAngles, angleIndex++) {
+          _updateNpcPlayer();
+          _resetCamera(new THREE.Euler(0, angle, 0, 'YXZ'));
+          _renderScene();
+
+          const x = angleIndex % numSlots;
+          const y = (angleIndex - x) / numSlots;
+          ctx2.drawImage(
+            renderer.domElement,
+            0, 0, renderer.domElement.width, renderer.domElement.height,
+            x * texSize, y * texSize, texSize, texSize
+          );
+
+          // await _timeout(200);
+          // await _timeout(0);
+        }
+        return canvas2;
+        break;
+      }
+      case 'png':
+      default: {
+        _updateNpcPlayer();
+        _resetCamera();
+        _renderScene();
+        break;
+      }
+    }
   };
   const _loadApp = async (url) => {
     try {
