@@ -45,8 +45,6 @@ jobs:
       - name: Run Tests
         run: |
               cd test
-              sudo apt-get install libcap2-bin
-              sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
-              sudo npm run test:ui
+              PORT=3000 HTTP_ONLY=true URL=http://localhost:3000 npm run test:ui
               echo "Exited with '$?'"
 
