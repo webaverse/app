@@ -738,10 +738,10 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', type = '', /*components = [], */in_front = false} = {}) {
+  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
     // app.name = name;
-    app.type = type;
+    // app.type = type;
     app.contentId = start_url;
     // app.components = components;
     if (in_front) {
