@@ -39,7 +39,12 @@ jobs:
         run: |
               # Install apt-transport-https
               # Use apt to install the Chrome dependencies
-              sudo apt-get install -y apt-transport-https && sudo apt-get install xvfb && sudo apt-get install -y libxcursor1 && sudo apt-get install -y libgtk-3-dev && sudo apt-get install -y libxss1 && sudo apt-get install -y libasound2 && sudo apt-get install -y libnspr4 && sudo apt-get install -y libnss3 && sudo apt-get install -y libx11-xcb1
+              sudo apt-get install -y apt-transport-https unzip xvfb libxi6 libgconf-2-4 && sudo apt-get install xvfb && sudo apt-get install -y libxcursor1 && sudo apt-get install -y libgtk-3-dev && sudo apt-get install -y libxss1 && sudo apt-get install -y libasound2 && sudo apt-get install -y libnspr4 && sudo apt-get install -y libnss3 && sudo apt-get install -y libx11-xcb1 && sudo apt-get install default-jdk
+              sudo curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add 
+              sudo bash -c "echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list.d/google-chrome.list" 
+              sudo apt -y update 
+              sudo apt -y install google-chrome-stable 
+              google-chrome --version 
       - name: Change to Tests Module
         run: npm run setup:test
       - name: Run Tests
