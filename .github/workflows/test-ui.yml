@@ -1,5 +1,5 @@
 
-name: Mocha Tests
+name: UI Tests
 'on':
   pull_request:
     types:
