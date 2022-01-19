@@ -187,19 +187,19 @@ const componentTemplates = {
       // const localPlayer = metaversefile.useLocalPlayer();
       if (wearSpec && localPlayer.avatar) {
         const {instanceId} = app;
-
+        const glb = app.glb || app.children[0].glb;
         // animations
-        if (app.glb) {
+        if (glb) {
           const appAimAction = Array.from(localPlayer.getActionsState())
             .find(action => action.type === 'aim' && action.instanceId === instanceId);
-          const {animations} = app.glb;
+          const {animations} = glb;
 
           const appAnimation = appAimAction?.appAnimation ? animations.find(a => a.name === appAimAction.appAnimation) : null;
           if (appAnimation && !appAimAnimationMixers) {
             const clip = animations.find(a => a.name === appAimAction.appAnimation);
             if (clip) {
               appAimAnimationMixers = [];
-              app.glb.scene.traverse(o => {
+              glb.scene.traverse(o => {
                 if (o.isMesh) {
                   const mixer = new THREE.AnimationMixer(o);
                   
