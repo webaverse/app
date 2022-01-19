@@ -54,6 +54,7 @@ class App extends THREE.Object3D {
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
+    this.appType = 'script';
     this.lastMatrix = new THREE.Matrix4();
   }
   getComponent(key) {
