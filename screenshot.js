@@ -663,5 +663,12 @@ formEl.addEventListener('submit', async event => {
     }
   }
 });
+const clearEl = document.getElementById('clear');
+clearEl.addEventListener('click', e => {
+  const canvases = document.querySelectorAll('canvas');
+  for (const canvas of canvases) {
+    document.body.removeChild(canvas);
+  }
+});
 
 _bootstrapInitialRender();
