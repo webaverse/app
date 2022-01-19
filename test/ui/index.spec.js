@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 const LoadTester = require('../loading/index');
 const mlog = require('mocha-logger');
 const {spawn} = require('child_process');
@@ -5,6 +6,8 @@ let {before, after, describe, it} = require('mocha');
 const SeleniumDriver = require('../drivers/slenium');
 const axios = require('axios');
 const {readFileSync} = require('fs');
+const {Builder, By, Key, until} = require('selenium-webdriver');
+const path = require('path');
 
 let error = false;
 const url = process.env.URL || 'https://local.webaverse.com/?src=.%2Fscenes%2Fgrid.scn';
@@ -44,7 +47,10 @@ before(() => {
         });
         driver = new SeleniumDriver();
         await appTester.finish();
-        driver.init().then(resolve).catch(e => {
+        driver.init().then(_driver => {
+          driver = _driver;
+          resolve();
+        }).catch(e => {
           testProcess.kill('SIGINT');
           process.exit(1);
         });
@@ -54,13 +60,13 @@ before(() => {
 });
 
 after(() => {
-  return new Promise(resolve => {
+  return new Promise(async resolve => {
     try {
-      driver.quit();
+      await driver.quit();
     } catch (e) {
-
+      console.log(e);
     }
     testProcess.kill('SIGINT');
-    axios.post(WEBHOOK_URL, {content: '@ahad#5843\n' + readFileSync('../report').toString()}).then(resolve).catch(() => process.exit(0));
+    axios.post(WEBHOOK_URL, {content: '\n' + readFileSync(path.resolve('./test/report')).toString()}).then(resolve).catch(() => process.exit(0));
   });
 });
