@@ -1,7 +1,6 @@
-const {Builder, ITimeouts} = require('selenium-webdriver');
+const {Builder} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const chromedriver = require('chromedriver');
-chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
 let driver;
 
