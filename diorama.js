@@ -1684,7 +1684,6 @@ const createPlayerDiorama = (player, {
         const oldParent = player.avatar.model.parent;
         const oldRenderTarget = renderer.getRenderTarget();
         const oldViewport = renderer.getViewport(localVector4D);
-        // const oldWorldLightParent = world.lights.parent;
       
         const _render = () => {
           // set up side camera
