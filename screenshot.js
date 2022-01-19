@@ -7,12 +7,14 @@ import GIF from './gif.js';
 // import App from './webaverse';
 // import {defaultRendererUrl} from './constants.js'
 import * as WebMWriter from 'webm-writer';
+
 const size = 512;
-// const defaultWidth = 512;
-// const defaultHeight = 512;
-// const cameraPosition = new THREE.Vector3(0, 1, 2);
-// const cameraTarget = new THREE.Vector3(0, 0, 0);
-const FPS = 60;
+const displaySize = 512;
+const texSize = 128;
+const numSlots = size / texSize;
+const numAngles = 8;
+const width = size;
+const height = size;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -94,10 +96,14 @@ const _respond = (err, result, {
     result,
   }, '*', result ? [result] : []);
 };
-const _makeCanvas = (w, h) => {
+const _makeCanvas = () => {
   const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = width;
+  canvas.height = height;
+  canvas.style.cssText = `\
+    width: ${displaySize}px;
+    height: ${displaySize}px;
+  `;
   return canvas;
 };
 const _render = async ({
@@ -109,24 +115,22 @@ const _render = async ({
   await Avatar.waitForLoad();
 
   const animations = metaversefileApi.useAvatarAnimations();
-  // const walkAnimation = animations.find(a => a.name === 'walking.fbx');
-  // const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
-  // const runAnimationDuration = runAnimation.duration * 1.5;
   const idleAnimation = animations.find(a => a.name === 'idle.fbx');
   const idleAnimationDuration = idleAnimation.duration;
 
-  // toggleElements(false);
-  // const screenshotResult = document.getElementById('screenshot-result');
-
-  const width = canvas.width;
-  const height = canvas.height;
+  const {width, height} = canvas;
 
   const _renderApp = async (app, type, canvas) => {
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
       antialias: true,
-    }); 
+    });
+    renderer.setSize(width, height);
+    canvas.style.cssText = `\
+      width: ${displaySize}px;
+      height: ${displaySize}px;
+    `;
 
     const scene = new THREE.Scene();
     scene.autoUpdate = false;
@@ -156,7 +160,7 @@ const _render = async ({
     };
     _resetCamera();
 
-    const _render = () => {
+    const _renderScene = () => {
       renderer.render(scene, camera);
     };
 
@@ -170,23 +174,35 @@ const _render = async ({
         break;
       }
       case '360-spritesheet': {
-        const numAngles = 8;
-        for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {
+        const canvas2 = _makeCanvas(width, height);
+        const ctx2 = canvas2.getContext('2d');
+
+        for (let angle = 0, angleIndex = 0; angleIndex < numAngles; angle += Math.PI*2/numAngles, angleIndex++) {
           _resetCamera(new THREE.Euler(0, angle, 0, 'YXZ'));
-          _render();
+          _renderScene();
+
+          const x = angleIndex % numSlots;
+          const y = (angleIndex - x) / numSlots;
+          ctx2.drawImage(
+            renderer.domElement,
+            0, 0, renderer.domElement.width, renderer.domElement.height,
+            x * texSize, y * texSize, texSize, texSize
+          );
+
           await _timeout(200);
         }
+        return canvas2;
         break;
       }
       case 'png':
       default: {
         _resetCamera();
-        _render();
+        _renderScene();
         break;
       }
     }
   };
-  const _renderAvatar = (app, type, canvas) => {
+  const _renderAvatar = async (app, type, canvas) => {
     
   };
   const _loadApp = async (url) => {
@@ -219,20 +235,32 @@ const _render = async ({
   switch (app.appType) {
     case 'glb':
     case 'script': {
-      _renderApp(app, type, canvas);
+      const result = await _renderApp(app, type, canvas);
+      // console.log('got result', result);
+      return result;
       break;
     }
     case 'vrm': {
-      _renderAvatar(app, type, canvas);
+      const result = await _renderAvatar(app, type, canvas);
+      // console.log('got result', result);
+      return result;
       break;
     }
     default: {
       console.warn('cannot render unknown app type', app.appType);
+      return null;
       break;
     }
   }
-  
 
+
+
+
+
+    
+
+
+  
 
 
 
@@ -596,14 +624,17 @@ const _render = async ({
     }
   };
 };
-const _bootstrapInitialRender = () => {
+const _bootstrapInitialRender = async () => {
   const q = parseQuery(decodeURIComponent(window.location.search));
   if (q.url) {
     const canvas = _makeCanvas(q.width ?? size, q.height ?? size);
     document.body.appendChild(canvas);
     q.canvas = canvas;
-    console.log('render spec', q);
-    _render(q);
+    const canvas2 = await _render(q);
+    if (canvas2) {
+      document.body.removeChild(canvas);
+      document.body.appendChild(canvas2);
+    }
   }
 };
 
@@ -611,20 +642,26 @@ const _bootstrapInitialRender = () => {
 const formEl = document.getElementById('form');
 const inputEl = document.getElementById('url');
 const typeEl = document.getElementById('type');
-formEl.addEventListener('submit', event => {
+formEl.addEventListener('submit', async event => {
   event.preventDefault();
 
   const url = inputEl.value;
-  const type = typeEl.value;
-  const width = size;
-  const height = size;
-  const canvas = _makeCanvas(width, height);
-  document.body.appendChild(canvas);
-  _render({
-    url,
-    type,
-    canvas,
-  });
+  if (url) {
+    const type = typeEl.value;
+    const width = size;
+    const height = size;
+    const canvas = _makeCanvas(width, height);
+    document.body.appendChild(canvas);
+    const canvas2 = await _render({
+      url,
+      type,
+      canvas,
+    });
+    if (canvas2) {
+      document.body.removeChild(canvas);
+      document.body.appendChild(canvas2);
+    }
+  }
 });
 
 _bootstrapInitialRender();
