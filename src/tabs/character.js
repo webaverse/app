@@ -1,8 +1,64 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import game from '../../game.js';
+import {getRenderer} from '../../renderer.js';
+import {generatePreview} from '../../preview.js';
+
+// export const generatePreview = async (url, type, width, height, _resolve, _reject) => {
+
+const previewImgSize = 70;
+
+const Equipment = ({wearAction}) => {
+  const world = metaversefile.useWorld();
+  const localPlayer = metaversefile.useLocalPlayer();
+
+  const previewRef = useRef();
+  useEffect(() => {
+    const previewImg = previewRef.current;
+    if (previewImg) {
+      const renderer = getRenderer();
+      const pixelRatio = renderer.getPixelRatio();
+      // const app = world.appManager.getAppByInstanceId(wearAction.instanceId);
+      const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
+      generatePreview(app.contentId, 'png', previewImgSize*pixelRatio, previewImgSize*pixelRatio, result => {
+        console.log('got preview', result);
+      }, err => {
+        console.warn('error generating preview', err);
+      });
+    }
+  }, [previewRef.current]);
+
+  return (
+    <div
+      className={styles.equipment}
+      onMouseEnter={e => {
+        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+        game.setMouseHoverObject(null);
+        const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+        game.setMouseDomEquipmentHoverObject(app, physicsId);
+      }}
+      onMouseLeave={e => {
+        game.setMouseDomEquipmentHoverObject(null);
+      }}
+    >
+      <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
+      <img className={styles.icon} ref={previewRef} />
+      {/* <img src="images/flower.png" className={styles.icon} /> */}
+      <div className={styles.name}>{wearAction.instanceId}</div>
+      <button className={styles.button} onClick={e => {
+        const localPlayer = metaversefile.useLocalPlayer();
+        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+        localPlayer.unwear(app);
+      }}>
+        <img src="images/remove.svg" />
+      </button>
+      <div className={styles.background2} />
+    </div>
+  );
+};
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, previewCanvasRef}) => {
   const sideSize = 400;
@@ -43,31 +99,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
         </div> */}
           {wearActions.map((wearAction, i) => {
             return (
-              <div
-                className={styles.equipment}
-                key={i}
-                onMouseEnter={e => {
-                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                  game.setMouseHoverObject(null);
-                  const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                  game.setMouseDomEquipmentHoverObject(app, physicsId);
-                }}
-                onMouseLeave={e => {
-                  game.setMouseDomEquipmentHoverObject(null);
-                }}
-              >
-                <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                <img src="images/flower.png" className={styles.icon} />
-                <div className={styles.name}>{wearAction.instanceId}</div>
-                <button className={styles.button} onClick={e => {
-                  const localPlayer = metaversefile.useLocalPlayer();
-                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-                  localPlayer.unwear(app);
-                }}>
-                  <img src="images/remove.svg" />
-                </button>
-                <div className={styles.background2} />
-              </div>
+              <Equipment wearAction={wearAction} key={i} />
             );
           })}
         </div>),
