@@ -16,6 +16,7 @@ const numSlots = size / texSize;
 const numAngles = 64;
 const width = size;
 const height = size;
+// const gifFps = 20;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -89,6 +90,28 @@ const _makeCanvas = () => {
   `;
   return canvas;
 };
+const _addCanvas = canvas => {
+  if (canvas instanceof HTMLCanvasElement) {
+    document.body.appendChild(canvas);
+  } else if (canvas instanceof Blob) {
+    const image = new Image();
+    image.crossOrigin = 'Anonymous';
+    image.onload = () => {
+      URL.revokeObjectURL(u);
+    };
+    image.onerror = err => {
+      console.warn('error loading result image', err);
+      URL.revokeObjectURL(u);
+    };
+    image.style.cssText = `\
+      width: ${displaySize}px;
+      height: ${displaySize}px;
+    `;
+    const u = URL.createObjectURL(canvas);
+    image.src = u;
+    document.body.appendChild(image);
+  }
+};
 const _render = async ({
   url,
   type,
@@ -114,6 +137,7 @@ const _render = async ({
       width: ${displaySize}px;
       height: ${displaySize}px;
     `;
+    renderer.setClearColor(new THREE.Color(0xFFFFFF), 0);
 
     const scene = new THREE.Scene();
     const _buildScene = scene => {
@@ -196,6 +220,7 @@ const _render = async ({
       width: ${displaySize}px;
       height: ${displaySize}px;
     `;
+    renderer.setClearColor(new THREE.Color(0xFFFFFF), 0);
 
     const scene = new THREE.Scene();
     const _buildScene = scene => {
@@ -213,10 +238,14 @@ const _render = async ({
     await renderer.compileAsync(app, scene);
 
     const camera = new THREE.PerspectiveCamera();
-    const _resetCamera = () => {
+    const _resetCamera = (euler = new THREE.Euler(0, 0, 0, 'YXZ')) => {
       camera.position.copy(npcPlayer.position)
-        .add(localVector.set(0.3, 0, -0.5).applyQuaternion(npcPlayer.quaternion));
-        camera.quaternion.setFromRotationMatrix(
+        .add(
+          localVector.set(0.3, 0, -0.5)
+            .applyQuaternion(npcPlayer.quaternion)
+            .applyEuler(euler)
+        );
+      camera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
           camera.position,
           npcPlayer.position,
@@ -230,7 +259,7 @@ const _render = async ({
     await newNpcPlayer.setAvatarAppAsync(app);
     const npcPlayer = newNpcPlayer;
     let timestamp = 0;
-    const timeDiff = 100;
+    const timeDiff = 1000 * idleAnimationDuration / numAngles;
     const _updateNpcPlayer = () => {
       // const f = timestamp / 5000;
       // const s = Math.sin(f);
@@ -244,11 +273,44 @@ const _render = async ({
     };
 
     switch (type) {
-      /* case 'gif': {
-        throw new Error('not implemented');
+      case 'gif': {
+        const gif = new GIF({
+          workers: 4,
+          quality: 10,
+        });
+
+        for (let angle = 0, angleIndex = 0; angleIndex < numAngles; angle += Math.PI*2/numAngles, angleIndex++) {
+          _updateNpcPlayer();
+          _resetCamera(new THREE.Euler(0, angle, 0, 'YXZ'));
+          _renderScene();
+
+          // read
+          const writeCanvas = document.createElement('canvas');
+          writeCanvas.width = width;
+          writeCanvas.height = height;
+          // draw
+          const writeCtx = writeCanvas.getContext('2d');
+          writeCtx.drawImage(renderer.domElement, 0, 0);
+
+          gif.addFrame(writeCanvas, {delay: 1000 * idleAnimationDuration / 100});
+
+          /* const x = angleIndex % numSlots;
+          const y = (angleIndex - x) / numSlots;
+          ctx2.drawImage(
+            renderer.domElement,
+            0, 0, renderer.domElement.width, renderer.domElement.height,
+            x * texSize, y * texSize, texSize, texSize
+          ); */
+        }
+        gif.render();
+
+        const blob = await new Promise((resolve, reject) => {
+          gif.on('finished', resolve);
+        });
+        return blob;
         break;
       }
-      case 'webm': {
+      /* case 'webm': {
         throw new Error('not implemented');
         break;
       } */
@@ -748,8 +810,7 @@ const _bootstrapInitialRender = async () => {
       const canvas2 = await _render(q);
       if (canvas2) {
         document.body.removeChild(canvas);
-        document.body.appendChild(canvas2);
-
+        _addCanvas(canvas2);
         _respond(null, canvas2);
       } else {
         _respond(null, canvas);
@@ -780,7 +841,7 @@ formEl.addEventListener('submit', async event => {
     });
     if (canvas2) {
       document.body.removeChild(canvas);
-      document.body.appendChild(canvas2);
+      _addCanvas(canvas2);
     }
   }
 });
