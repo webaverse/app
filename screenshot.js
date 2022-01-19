@@ -638,7 +638,6 @@ const _bootstrapInitialRender = async () => {
   }
 };
 
-
 const formEl = document.getElementById('form');
 const inputEl = document.getElementById('url');
 const typeEl = document.getElementById('type');
@@ -665,7 +664,7 @@ formEl.addEventListener('submit', async event => {
 });
 const clearEl = document.getElementById('clear');
 clearEl.addEventListener('click', e => {
-  const canvases = document.querySelectorAll('canvas');
+  const canvases = Array.from(document.querySelectorAll('canvas'));
   for (const canvas of canvases) {
     document.body.removeChild(canvas);
   }
