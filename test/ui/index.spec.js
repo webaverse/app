@@ -41,19 +41,15 @@ before(() => {
           error = true;
         };
         await appTester.init().catch(e => {
-          console.log('errored',e);
           testProcess.kill('SIGINT');
           process.exit(1);
         });
         driver = new SeleniumDriver();
         await appTester.finish();
-        console.log('app tester finish');
         driver.init().then(_driver => {
           driver = _driver;
-          console.log('driver init');
           resolve();
         }).catch(e => {
-          console.log('errored',e);
           testProcess.kill('SIGINT');
           process.exit(1);
         });
@@ -70,6 +66,6 @@ after(() => {
       console.log(e);
     }
     testProcess.kill('SIGINT');
-    //axios.post(WEBHOOK_URL, {content: '\n' + readFileSync(path.resolve('./test/report')).toString()}).then(resolve).catch(() => process.exit(0));
+    axios.post(WEBHOOK_URL, {content: '\n' + readFileSync(path.resolve('./test/report')).toString()}).then(resolve).catch(() => process.exit(0));
   });
 });
