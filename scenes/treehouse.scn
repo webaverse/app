@@ -21,7 +21,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
       "position": [
@@ -35,7 +35,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/ramp/"
+      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
     {
       "position": [
@@ -49,7 +49,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/fox/"
+      "start_url": "http://localhost/lib/webaverse_resource/fox/"
     }
   ]
 }
