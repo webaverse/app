@@ -18,6 +18,20 @@ import {worldMapName, appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
 
+setTimeout(()=>{
+  const effectApp = metaversefileApi.createApp();
+  (async () => {
+    await metaverseModules.waitForLoad();
+    const {modules} = metaversefileApi.useDefaultModules();
+    const m = modules['specialEffect'];
+    await effectApp.addModule(m);
+
+    effectApp.position.set(-2,2,-2)
+    effectApp.updateMatrixWorld();
+  })();
+
+  scene.add(effectApp);
+}, 10000)
 const localEuler = new THREE.Euler();
 
 // world
@@ -342,6 +356,7 @@ const _bindHitTracker = app => {
     const {hit, died} = result;
     if (hit) {
       const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
+
       if (willDie) {
         hpManager.triggerDamageAnimation(collisionId);
       }

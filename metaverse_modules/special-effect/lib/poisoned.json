@@ -1,0 +1,109 @@
+[
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [
+      {
+        "t": 0,
+        "v": [
+          0
+        ]
+      },
+      {
+        "t": 0.09,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 0.84,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0
+        ]
+      }
+    ],
+    "texture": "/assets/particles/circle_05.png",
+    "blending": "Additive",
+    "display": "Sprite",
+    "tone": false,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.5,
+    "depthWrite": 0,
+    "depthTest": true,
+    "alpha": 1,
+    "tint": [
+      0,
+      1,
+      0
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 2,
+    "burst": 1,
+    "limit": 30,
+    "rate": 0.2,
+    "shape": "Cylinder",
+    "uniform": false,
+    "minRadius": 0.5,
+    "radius": 0,
+    "minHeight": 0,
+    "height": 0.5,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      1,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 1,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 0,
+    "angle": {
+      "start": 0,
+      "noise": 3.14
+    },
+    "angularVelocity": {
+      "start": 0,
+      "noise": 3.14
+    },
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": 0.1,
+    "sizeVelocity": {
+      "start": 0,
+      "noise": 0.05
+    },
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  }
+]

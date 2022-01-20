@@ -1,0 +1,248 @@
+[
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [
+      {
+        "t": 0,
+        "v": [
+          0
+        ]
+      },
+      {
+        "t": 0.18,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0
+        ]
+      }
+    ],
+    "texture": "/assets/particles/flare.png",
+    "blending": "Normal",
+    "display": "Sprite",
+    "tone": false,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0,
+    "depthWrite": 0,
+    "depthTest": 1,
+    "alpha": 1,
+    "tint": [
+      1,
+      0,
+      0
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 1,
+    "burst": 1,
+    "limit": 30,
+    "rate": 0.2,
+    "shape": "Area",
+    "uniform": false,
+    "minRadius": 0,
+    "radius": 0,
+    "minHeight": 0,
+    "height": 0,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      1,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 0,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 0,
+    "angle": {
+      "mean": 0,
+      "delta": 3.14
+    },
+    "angularVelocity": 1,
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": {
+      "mean": 0.6,
+      "delta": 0.5
+    },
+    "sizeVelocity": 0,
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  },
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [
+      {
+        "t": 0,
+        "v": [
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "t": 0.45,
+        "v": [
+          1,
+          0.6470588235294118,
+          0
+        ]
+      },
+      {
+        "t": 0.6,
+        "v": [
+          0.2,
+          0.2,
+          0.2
+        ]
+      },
+      {
+        "t": 0.79,
+        "v": [
+          0.16,
+          0.16,
+          0.16
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0.16,
+          0.16,
+          0.16
+        ]
+      }
+    ],
+    "alphaLife": [
+      {
+        "t": 0,
+        "v": [
+          0
+        ]
+      },
+      {
+        "t": 0.12,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 0.6,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 0.79,
+        "v": [
+          0.5
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0
+        ]
+      }
+    ],
+    "texture": "/assets/particles/flare.png",
+    "blending": "Normal",
+    "display": "Sprite",
+    "tone": 0,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.1,
+    "depthWrite": 0,
+    "depthTest": 1,
+    "alpha": 0.2,
+    "tint": [
+      1,
+      1,
+      1
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 2,
+    "burst": 1,
+    "limit": 30,
+    "rate": 0.2,
+    "shape": "Area",
+    "uniform": false,
+    "minRadius": 0,
+    "radius": 0,
+    "minHeight": 0,
+    "height": 0,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      1,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 0,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 0,
+    "angle": 0,
+    "angularVelocity": 3,
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": {
+      "mean": 0.5,
+      "delta": 0.1
+    },
+    "sizeVelocity": 0,
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  }
+]

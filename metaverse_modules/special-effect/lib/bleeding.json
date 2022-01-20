@@ -1,0 +1,106 @@
+[
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [
+      {
+        "t": 0,
+        "v": [
+          0
+        ]
+      },
+      {
+        "t": 0.04,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 0.8,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0
+        ]
+      }
+    ],
+    "texture": "/assets/particles/smoke_03_alpha.png",
+    "blending": "Normal",
+    "display": "Sprite",
+    "tone": false,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.05,
+    "depthWrite": 0,
+    "depthTest": true,
+    "alpha": 1,
+    "tint": [
+      0.5,
+      0,
+      0
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 1,
+    "burst": 1,
+    "limit": 18,
+    "rate": 0.2,
+    "shape": "Cylinder",
+    "uniform": false,
+    "minRadius": 0.25,
+    "radius": 0,
+    "minHeight": 0,
+    "height": 0,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      0,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 0,
+    "acceleration": [
+      0,
+      -1,
+      0
+    ],
+    "gravity": 0,
+    "angle": {
+      "start": 0,
+      "noise": 90
+    },
+    "angularVelocity": 0,
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": {
+      "start": 0.2,
+      "noise": 0.3
+    },
+    "sizeVelocity": 0,
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  }
+]

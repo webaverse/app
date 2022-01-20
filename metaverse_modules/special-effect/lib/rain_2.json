@@ -1,0 +1,195 @@
+[
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [],
+    "texture": "/assets/textures/rain.png",
+    "blending": "Normal",
+    "display": "Wallpaper",
+    "tone": false,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.5,
+    "depthWrite": 0,
+    "depthTest": true,
+    "alpha": 0.25,
+    "tint": [
+      1,
+      1,
+      1
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 1.5,
+    "burst": 5,
+    "limit": 1000,
+    "rate": 0.9,
+    "shape": "Cylinder",
+    "uniform": 1,
+    "minRadius": 0,
+    "radius": 100,
+    "minHeight": 20,
+    "height": 5,
+    "area": {
+      "mean": [
+        0,
+        10,
+        0
+      ],
+      "delta": [
+        5,
+        0,
+        5
+      ]
+    },
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      -10,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 1,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 8,
+    "angle": 0,
+    "angularVelocity": 0,
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": 0.1,
+    "sizeVelocity": 0,
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  },
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [
+      {
+        "t": 0,
+        "v": [
+          0
+        ]
+      },
+      {
+        "t": 0.11,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 0.79,
+        "v": [
+          1
+        ]
+      },
+      {
+        "t": 1,
+        "v": [
+          0
+        ]
+      }
+    ],
+    "texture": "/assets/textures/smoke.png",
+    "blending": "Normal",
+    "display": "Sprite",
+    "tone": 0,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.1,
+    "depthWrite": 0,
+    "depthTest": 1,
+    "alpha": 0.05,
+    "tint": [
+      3,
+      3,
+      3
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 1,
+    "burst": 4,
+    "limit": 100,
+    "rate": 0.9,
+    "shape": "Cylinder",
+    "uniform": 1,
+    "minRadius": 0,
+    "radius": 200,
+    "minHeight": 20,
+    "height": 0,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0,
+      0,
+      0
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      -10,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 0,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 10,
+    "angle": {
+      "mean": 0,
+      "delta": 3
+    },
+    "angularVelocity": {
+      "mean": 0,
+      "delta": 3
+    },
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": {
+      "mean": 5,
+      "delta": 2
+    },
+    "sizeVelocity": {
+      "mean": 0,
+      "delta": 2
+    },
+    "sizeAcceleration": {
+      "mean": 0,
+      "delta": 2
+    },
+    "sizeDrag": 0
+  }
+]

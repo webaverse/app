@@ -1,0 +1,231 @@
+{
+  "tracks": [
+    {
+      "cluster": 40,
+      "rate": 0.1,
+      "particles": 1000,
+      "blending": 1,
+      "texture": "assets/textures/rain.png",
+      "attributes": {
+        "life": {
+          "start": 1,
+          "noise": 0
+        },
+        "size": {
+          "start": [
+            0.15,
+            0,
+            0,
+            0
+          ],
+          "noise": [
+            0.05,
+            0,
+            0,
+            0
+          ]
+        },
+        "velocity": {
+          "start": [
+            0,
+            -4,
+            0,
+            0
+          ],
+          "noise": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "translate": {
+          "start": [
+            -1,
+            2.3,
+            -1
+          ],
+          "noise": [
+            2,
+            0,
+            2
+          ]
+        },
+        "colour": {
+          "start": [
+            1,
+            1,
+            1,
+            0.1
+          ],
+          "noise": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "acceleration": {
+          "start": [
+            0,
+            -1,
+            0,
+            0
+          ],
+          "noise": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "rotation": {
+          "start": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "noise": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "overlife": {
+        "alpha": {
+          "0": {
+            "0": 0,
+            "time": 0
+          },
+          "1": {
+            "0": 0,
+            "time": 0.05
+          },
+          "2": {
+            "0": 1,
+            "time": 0.9
+          },
+          "3": {
+            "0": 0,
+            "time": 1
+          },
+          "keys": 3
+        },
+        "size": {},
+        "spin": {},
+        "grav": {},
+        "drag": {},
+        "acceleration": {},
+        "velocity": {},
+        "colour": {}
+      },
+      "animation": {},
+      "name": "Rain",
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "cluster": 4,
+      "rate": 0.1,
+      "particles": 120,
+      "blending": 1,
+      "texture": "assets/textures/smoke.png",
+      "attributes": {
+        "life": {
+          "start": 0.5,
+          "noise": 0
+        },
+        "size": {
+          "start": [
+            0.035,
+            0.05,
+            0,
+            0
+          ],
+          "noise": [
+            0.02,
+            0.05,
+            0,
+            0
+          ]
+        },
+        "translate": {
+          "start": [
+            -0.75,
+            0,
+            -0.75
+          ],
+          "noise": [
+            1.5,
+            0,
+            1.5
+          ]
+        },
+        "colour": {
+          "start": [
+            1,
+            1,
+            1,
+            0.5
+          ],
+          "noise": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "overlife": {
+        "alpha": {
+          "0": {
+            "0": 0,
+            "time": 0
+          },
+          "1": {
+            "0": 0.2,
+            "time": 0.05
+          },
+          "2": {
+            "0": 0.2,
+            "time": 0.525
+          },
+          "3": {
+            "0": 0,
+            "time": 1
+          },
+          "keys": 3
+        },
+        "size": {},
+        "spin": {},
+        "grav": {},
+        "drag": {},
+        "acceleration": {},
+        "velocity": {},
+        "colour": {
+          "0": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "time": 0
+          },
+          "1": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "time": 1
+          },
+          "keys": 1
+        }
+      },
+      "animation": {},
+      "name": "Impact"
+    }
+  ]
+}

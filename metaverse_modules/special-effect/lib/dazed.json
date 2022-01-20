@@ -1,0 +1,75 @@
+[
+  {
+    "accelerationLife": [],
+    "velocityLife": [],
+    "angleLife": [],
+    "sizeLife": [],
+    "colorLife": [],
+    "alphaLife": [],
+    "texture": "data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7",
+    "blending": "Additive",
+    "display": "Sprite",
+    "tone": false,
+    "fog": false,
+    "transparent": true,
+    "alphaTest": 0.5,
+    "depthWrite": 0,
+    "depthTest": 1,
+    "alpha": 1,
+    "tint": [
+      1,
+      1,
+      0
+    ],
+    "soft": 0,
+    "loop": 0,
+    "lifetime": 2,
+    "burst": 1,
+    "limit": 5,
+    "rate": 0.4,
+    "shape": "Area",
+    "uniform": false,
+    "minRadius": 0,
+    "radius": 0,
+    "minHeight": 0,
+    "height": 0,
+    "area": [
+      0,
+      0,
+      0
+    ],
+    "frames": 1,
+    "cells": 1,
+    "cycles": 1,
+    "offset": 0,
+    "centerX": 0.5,
+    "centerY": 0.5,
+    "orbit": [
+      0.35,
+      0,
+      0.35
+    ],
+    "orbitCycles": 1,
+    "velocity": [
+      0,
+      0,
+      0
+    ],
+    "velocityOrigin": 0,
+    "drag": 0,
+    "acceleration": [
+      0,
+      0,
+      0
+    ],
+    "gravity": 0,
+    "angle": 0,
+    "angularVelocity": 0,
+    "angularAcceleration": 0,
+    "angularDrag": 0,
+    "size": 0.35,
+    "sizeVelocity": 0,
+    "sizeAcceleration": 0,
+    "sizeDrag": 0
+  }
+]
