@@ -6,15 +6,15 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import {world} from '../world.js';
 import MicrophoneWorker from './microphone-worker.js';
-import {AudioRecognizer} from '../audio-recognizer.js';
+import {AudioRecognizer} from '../src/utils/audio-recognizer.js';
 // import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
 // import physicsManager from '../physics-manager.js';
-import easing from '../easing.js';
-import CBOR from '../cbor.js';
+import easing from '../src/utils/easing.js';
+import CBOR from '../src/utils/cbor.js';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
-import {FixedTimeStep} from '../interpolants.js';
+import {FixedTimeStep} from '../src/utils/interpolants.js';
 import metaversefile from 'metaversefile';
 import {
   getSkinnedMeshes,

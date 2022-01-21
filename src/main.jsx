@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import Error from './Error';
+import App from './react/App';
+import Error from './react/Error';
 
 const WebWorkerSupport = !navigator.userAgent.match(/(Firefox|MSIE)/);
 

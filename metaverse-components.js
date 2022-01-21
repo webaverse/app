@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import Avatar from './avatars/avatars.js';
-import {world} from './world.js';
+import {world} from './src/world.js';
 import physicsManager from './physics-manager.js';
-import {glowMaterial} from './shaders.js';
-import easing from './easing.js';
+import {glowMaterial} from './src/three/shaders.js';
+import easing from './src/utils/easing.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
