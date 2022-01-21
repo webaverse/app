@@ -759,6 +759,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
   }
   wear(app) {
+    // debugger
     app.dispatchEvent({
       type: 'wearupdate',
       wear: true,
@@ -773,6 +774,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
+      // vismark
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
     }
