@@ -254,6 +254,8 @@ class AppManager extends EventTarget {
             }
           })(),
         });
+        // if(contentId.indexOf('physicscube') >= 0 ) debugger
+        if (contentId.indexOf('physicscube') >= 0) window.physicscube = app;
 
         app.position.fromArray(position);
         app.quaternion.fromArray(quaternion);
