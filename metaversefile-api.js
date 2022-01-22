@@ -7,6 +7,7 @@ metaversfile can load many file types, including javascript.
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
@@ -238,10 +239,21 @@ const _dracoLoader = _memoize(() => {
   dracoLoader.setDecoderPath('/three/draco/');
   return dracoLoader;
 });
+const _ktx2Loader = _memoize(() => {
+  const ktx2Loader = new KTX2Loader();
+  ktx2Loader.setTranscoderPath('/three/basis/');
+  return ktx2Loader;
+});
 const _gltfLoader = _memoize(() => {
   const gltfLoader = new GLTFLoader();
-  const dracoLoader = _dracoLoader();
-  gltfLoader.setDRACOLoader(dracoLoader);
+  {
+    const dracoLoader = _dracoLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+  }
+  {
+    const ktx2Loader = _ktx2Loader();
+    gltfLoader.setKTX2Loader(ktx2Loader);
+  }
   return gltfLoader;
 });
 const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
