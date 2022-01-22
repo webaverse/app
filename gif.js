@@ -416,7 +416,9 @@ const module = {
                         return function(i) {
                             var worker;
                             _this.log("spawning worker " + i);
-                            worker = new Worker(_this.options.workerScript);
+                            worker = new Worker(_this.options.workerScript, {
+                              type: 'module',
+                            });
                             worker.onmessage = function(event) {
                                 _this.activeWorkers.splice(_this.activeWorkers.indexOf(worker), 1);
                                 _this.freeWorkers.push(worker);

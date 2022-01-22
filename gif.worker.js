@@ -387,6 +387,7 @@
                 for (var i = 0; i < hsize; ++i) htab[i] = -1
             }
 
+            let remaining, curPixel, n_bits;
             function compress(init_bits, outs) {
                 var fcode, c, i, ent, disp, hsize_reg, hshift;
                 g_init_bits = init_bits;
