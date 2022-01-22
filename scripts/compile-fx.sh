@@ -8,7 +8,7 @@ for f2 in *.webm; do
     convert "$f" -transparent '#494949' "$f"-transparent.png
   done;
   echo montage "$f2"
-  montage lol0*-transparent.png -tile 8x8 -geometry 512x512+0+0 spritesheet.png
+  montage lol0*-transparent.png -background none -tile 8x8 -geometry 512x512+0+0 spritesheet.png
   echo basisu "$f2"
   basisu -ktx2 spritesheet.png
   echo binplace "$f2"-spritesheet.ktx2
