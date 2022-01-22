@@ -1,16 +1,31 @@
-import * as CBOR from 'borc';
-import XMLHttpRequest from 'xhr2';
+const CBOR = require('borc');
+const XMLHttpRequest = require('xhr2');
 global.XMLHttpRequest = XMLHttpRequest;
-import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
-import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
-import {CharsetEncoder} from 'three/examples/jsm/libs/mmdparser.module.js';
-import {getHeight, modelBoneToAnimationBone} from './avatars/util.mjs';
-import encoding from 'encoding-japanese';
-// import * as THREE from 'three';
-import path from 'path';
-import fs from 'fs';
-import express from 'express';
+const encoding = require('encoding-japanese');
+const path = require('path');
+const fs = require('fs');
+const express = require('express');
+const THREE = require('three');
+global.THREE = THREE;
+const fflate = require('three/examples/js/libs/fflate.min.js');
+globalThis.fflate = fflate;
+require('three/examples/js/loaders/FBXLoader.js');
+require('three/examples/js/loaders/MMDLoader.js');
+const {FBXLoader, MMDLoader} = THREE;
+global.FBXLoader = FBXLoader;
+global.MMDLoader = MMDLoader;
+const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
+console.log('got CharsetEncoder', CharsetEncoder);
 
+(async () => {
+const nodeFetch = await import('node-fetch');
+globalThis.fetch = nodeFetch.default;
+const {Request, Response, Headers} = nodeFetch;
+globalThis.Request = Request;
+globalThis.Response = Response;
+globalThis.Headers = Headers;
+const {getHeight, modelBoneToAnimationBone} = await import('./avatars/util.mjs');
+  
 /* if (process.argv.length < 4) {
     console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animations-baker.mjs dir/files*.fbx ani.cbor\n\n`);
     process.exit();
@@ -313,3 +328,5 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
 })();
 
 // baker('http://localhost:3000/', ['falling.fbx']);
+
+})();
