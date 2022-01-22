@@ -65,14 +65,8 @@
       "dynamic": false
     },
     {
-      "position": [-5, 15, -10],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "http://localhost/lib/webaverse_avaer_github/physicscube/"
+      "position": [-3, 1, 0],
+      "start_url": "http://localhost/lib/webaverse_resource/my_test/monkey.glb"
     }
   ]
 }
