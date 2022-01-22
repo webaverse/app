@@ -5,7 +5,9 @@ for f2 in *.webm; do
   ffmpeg -i "$f2" -f image2 -vf fps=fps=24 lol%03d.png
   for f in lol0*.png; do
     echo alpha "$f"
-    convert "$f" -transparent "#000000" -transparent "#494949" -transparent "#225458" -transparent "#255225" "$f"-transparent.png
+    a=$(convert "$f" -format '#%[hex:u.p{0,0}]' info:-)
+    echo alpha detected "$a"
+    convert "$f" -transparent "$a" "$f"-transparent.png
   done;
   echo montage "$f2"
   montage lol0*-transparent.png -background none -tile 8x8 -geometry 512x512+0+0 spritesheet.png
