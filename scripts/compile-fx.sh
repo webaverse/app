@@ -3,10 +3,10 @@ for f2 in *.webm; do
   rm -f lol0*;
   echo extract frames "$f2"
   ffmpeg -i "$f2" -f image2 -vf fps=fps=24 lol%03d.png
+  a=$(convert "lol001.png" -format '#%[hex:u.p{0,0}]' info:-)
+  echo alpha detected "$a"
   for f in lol0*.png; do
     echo alpha "$f"
-    a=$(convert "$f" -format '#%[hex:u.p{0,0}]' info:-)
-    echo alpha detected "$a"
     convert "$f" -transparent "$a" "$f"-transparent.png
   done;
   echo montage "$f2"
