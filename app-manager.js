@@ -254,8 +254,24 @@ class AppManager extends EventTarget {
             }
           })(),
         });
-        // if(contentId.indexOf('physicscube') >= 0 ) debugger
-        if (contentId.indexOf('physicscube') >= 0) window.physicscube = app;
+        if (contentId.indexOf('physicscube') >= 0) {
+          // debugger
+          window.physicscube = app;
+          window.mesh = window.physicscube
+          // window.body = window.physicscube.physicsObjects[0]
+
+          window.mesh.physicsObjects = new Proxy(window.mesh.physicsObjects, {
+            set: (obj, prop, newVal) => {
+              // debugger
+              if (prop === '0') {
+                window.body = newVal;
+              }
+
+              obj[prop] = newVal;
+              return true;
+            }
+          })
+        }
 
         app.position.fromArray(position);
         app.quaternion.fromArray(quaternion);
@@ -572,36 +588,46 @@ class AppManager extends EventTarget {
   }
 
   pushAppUpdates() {
+    // console.log(222)
+
+    if (window.mesh && window.body) {
+      window.mesh.position.copy(window.body.position);
+      window.mesh.quaternion.copy(window.body.quaternion);
+      window.mesh.updateMatrixWorld();
+    }
+
     if (this.appsArray) {
       this.appsArray.doc.transact(() => {
         for (const app of this.apps) {
           if (this.hasTrackedApp(app.instanceId)) {
             if (!app.matrix.equals(app.lastMatrix)) {
+              // if (app === window.physicscube) debugger
               app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
               this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
               app.updateMatrixWorld();
 
-              // update attached physics objects with a relative transform
-              const physicsObjects = app.getPhysicsObjects();
-              if (physicsObjects.length > 0) {
-                const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+              // // update attached physics objects with a relative transform
+              // const physicsObjects = app.getPhysicsObjects();
+              // if (physicsObjects.length > 0) {
+              //   const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
 
-                for (const physicsObject of physicsObjects) {
-                  if (!physicsObject.detached) {
-                    physicsObject.matrix
-                      .premultiply(lastMatrixInverse)
-                      .premultiply(app.matrix)
-                      .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
-                    physicsObject.matrixWorld.copy(physicsObject.matrix);
-                    for (const child of physicsObject.children) {
-                      child.updateMatrixWorld();
-                    }
+              //   for (const physicsObject of physicsObjects) {
+              //     if (!physicsObject.detached) {
+              //       physicsObject.matrix
+              //         .premultiply(lastMatrixInverse)
+              //         .premultiply(app.matrix)
+              //         .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+              //       physicsObject.matrixWorld.copy(physicsObject.matrix);
+              //       for (const child of physicsObject.children) {
+              //         child.updateMatrixWorld();
+              //       }
 
-                    physicsManager.setTransform(physicsObject);
-                    physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
-                  }
-                }
-              }
+              //       // vismark
+              //       physicsManager.setTransform(physicsObject);
+              //       physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+              //     }
+              //   }
+              // }
 
               app.lastMatrix.copy(app.matrix);
             }

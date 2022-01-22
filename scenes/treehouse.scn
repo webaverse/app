@@ -27,7 +27,7 @@
       "position": [
         0,
         0,
-        6
+        -6
       ],
       "quaternion": [
         0,
@@ -41,7 +41,7 @@
       "position": [
         0,
         0.16,
-        2
+        -2
       ],
       "quaternion": [
         0,
@@ -49,6 +49,7 @@
         0,
         0.7071067811865475
       ],
+      "physics": false,
       "start_url": "http://localhost/lib/webaverse_resource/fox/"
     }
   ]
