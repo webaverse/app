@@ -1097,14 +1097,14 @@ const physxWorker = (() => {
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  w.setAngularVelocityPhysics = (physicsObject, velocity, autoWake) => {
+  w.setAngularVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
     autoWake = autoWake ?? false;
 
-    physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+    moduleInstance._setAngularVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
   w.setTransformPhysics = (physics, id, position, quaternion, scale, autoWake) => {
