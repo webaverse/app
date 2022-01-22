@@ -241,6 +241,14 @@ const _dracoLoader = _memoize(() => {
 });
 const _ktx2Loader = _memoize(() => {
   const ktx2Loader = new KTX2Loader();
+  ktx2Loader.load = (_load => function load() {
+    if (!this.workerConfig) {
+      const renderer = getRenderer();
+      this.detectSupport(renderer);
+      this.load = _load;
+    }
+    this.load.apply(this, arguments);
+  })(ktx2Loader.load);
   ktx2Loader.setTranscoderPath('/three/basis/');
   return ktx2Loader;
 });
