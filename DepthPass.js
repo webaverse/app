@@ -132,7 +132,7 @@ class DepthPass extends Pass {
 		// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
 		this.overrideVisibility();
-		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
+		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0xffffff, 1.0 );
 		this.restoreVisibility();
   }
 
