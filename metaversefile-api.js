@@ -265,6 +265,9 @@ const loaders = {
   get dracoLoader() {
     return _dracoLoader();
   },
+  get ktx2Loader() {
+    return _ktx2Loader();
+  },
   get gltfLoader() {
     return _gltfLoader();
   },
