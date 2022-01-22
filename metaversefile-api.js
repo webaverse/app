@@ -245,9 +245,8 @@ const _ktx2Loader = _memoize(() => {
     if (!this.workerConfig) {
       const renderer = getRenderer();
       this.detectSupport(renderer);
-      this.load = _load;
     }
-    this.load.apply(this, arguments);
+    return _load.apply(this, arguments);
   })(ktx2Loader.load);
   ktx2Loader.setTranscoderPath('/three/basis/');
   return ktx2Loader;
