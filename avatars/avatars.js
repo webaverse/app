@@ -9,7 +9,8 @@ import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
 import easing from '../easing.js';
-import CBOR from '../cbor.js';
+// import CBOR from '../cbor.js';
+import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
@@ -239,7 +240,9 @@ const loadPromise = (async () => {
     (async () => {
       const res = await fetch('../animations/animations.cbor');
       const arrayBuffer = await res.arrayBuffer();
-      animations = CBOR.decode(arrayBuffer).animations
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const animationsJson = zbdecode(uint8Array);
+      animations = animationsJson.animations
         .map(a => THREE.AnimationClip.parse(a));
       animations.index = {};
       for (const animation of animations) {
