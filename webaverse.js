@@ -349,6 +349,7 @@ export default class Webaverse extends EventTarget {
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffS = timeDiff / 1000;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
+      const timeDiffSCapped = timeDiffCapped / 1000;
       // const timeDiffCapped = timeDiff;
 
       ioManager.update(timeDiffCapped);
@@ -400,7 +401,7 @@ export default class Webaverse extends EventTarget {
       }
 
       if (window.isInitTestPhysxMesh) {
-        const speed = 3 * timeDiffS; // todo: Why moveCharacterController's timeDiffS/elapsedTime no effect? Need multiply here?
+        const speed = 3 * timeDiffSCapped; // todo: Why moveCharacterController's timeDiffSCapped/elapsedTime no effect? Need multiply here?
         const followDistance = 3;
         localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
         if (localVector.length() <= followDistance) {
@@ -416,7 +417,7 @@ export default class Webaverse extends EventTarget {
           window.characterController,
           localVector,
           minDist,
-          timeDiffS,
+          timeDiffSCapped,
           window.meshPhysx.position,
         );
         window.meshPhysx.updateMatrixWorld();
