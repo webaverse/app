@@ -2141,7 +2141,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime / 1000 * 4) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * 2) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
