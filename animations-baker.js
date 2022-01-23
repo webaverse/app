@@ -429,6 +429,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
       return {
         // leftFootYDeltas,
         // rightFootYDeltas,
+        name: animation.name,
         leftStepIndices,
         rightStepIndices,
       };
