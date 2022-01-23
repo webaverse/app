@@ -423,7 +423,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         const newRightStep = rightFootStepping && !rightLeftFootStepping;
         rightStepIndices[i] = newRightStep ? (++rightStepIndex) : rightStepIndex;
       }
-      console.log('got deltas', animation.name, leftStepIndex, rightStepIndex);
+      // console.log('got deltas', animation.name, leftStepIndex, rightStepIndex);
 
       return {
         leftFootYDeltas,
