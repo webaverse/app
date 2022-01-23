@@ -13,3 +13,12 @@ for f2 in *.webm; do
   cp spritesheet.png "$f2"-spritesheet.png
   cp spritesheet.ktx2 "$f2"-spritesheet.ktx2
 done;
+
+rm -f animation-frames.txt
+for f2 in *.webm; do
+  frameCount=$(ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of csv=p=0 "$f2")
+  if [ "$frameCount" -le 64 ]; then
+    echo "$frameCount" "$f2" | tee -a fx-files.txt
+  fi;
+done;
+node -e 'a = require("fs").readFileSync("./fx-files.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9]+) (.+)$/); numFrames = parseInt(m[1], 10); name = m[2]; return {name,numFrames};}); console.log(JSON.stringify(a, null, 2))' > fx-files.json
