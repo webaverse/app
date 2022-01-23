@@ -104,7 +104,7 @@ export default class Webaverse extends EventTarget {
     setTimeout(() => {
       if (!window.isInitTestPhysxMesh) {
         window.isInitTestPhysxMesh = true;
-        const geometry = new THREE.BoxGeometry();
+        const geometry = new THREE.SphereGeometry(0.5);
         const material = new THREE.MeshStandardMaterial({
           color: 'green',
         });
@@ -399,9 +399,10 @@ export default class Webaverse extends EventTarget {
       }
 
       if (window.isInitTestPhysxMesh) {
-        const speed = 0.01;
+        const speed = 0.03;
+        const followDistance = 3;
         localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
-        if (localVector.length() <= 6) {
+        if (localVector.length() <= followDistance) {
           localVector.set(0, 0, 0);
         } else {
           localVector.normalize().multiplyScalar(speed);
