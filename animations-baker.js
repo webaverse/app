@@ -1,4 +1,3 @@
-// const CBOR = require('borc');
 const XMLHttpRequest = require('xhr2');
 global.XMLHttpRequest = XMLHttpRequest;
 const encoding = require('encoding-japanese');
@@ -15,9 +14,9 @@ const {FBXLoader, MMDLoader} = THREE;
 global.FBXLoader = FBXLoader;
 global.MMDLoader = MMDLoader;
 const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
-// console.log('got CharsetEncoder', CharsetEncoder);
 
 (async () => {
+
 const nodeFetch = await import('node-fetch');
 globalThis.fetch = nodeFetch.default;
 const {Request, Response, Headers} = nodeFetch;
@@ -26,11 +25,6 @@ globalThis.Response = Response;
 globalThis.Headers = Headers;
 const {getHeight, animationBoneToModelBone, modelBoneToAnimationBone} = await import('./avatars/util.mjs');
 const {zbencode, zbdecode} = await import('zjs/encoding.mjs');
-
-/* if (process.argv.length < 4) {
-    console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animations-baker.mjs dir/files*.fbx ani.cbor\n\n`);
-    process.exit();
-} */
 
 const idleAnimationName = 'idle.fbx';
 const reversibleAnimationNames = [
@@ -513,7 +507,5 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     })
     process.exit();
 })();
-
-// baker('http://localhost:3000/', ['falling.fbx']);
 
 })();
