@@ -507,7 +507,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     const animationFileNames = fs.readdirSync('public/animations');
     const fbxFileNames = animationFileNames.filter(name => /\.fbx$/.test(name)).map(name => 'animations/' + name);
     const vpdFileNames = findFilesWithExtension('public', 'poses', 'vpd');
-    const animationsCborFileName = 'public/animations/animations.cbor';
+    const animationsCborFileName = 'public/animations/animations.z';
     await baker('http://localhost:9999/', fbxFileNames, vpdFileNames, animationsCborFileName).catch((e) => {
         console.warn('bake error', e);
     })
