@@ -134,6 +134,14 @@ sceneHighPriority.name = 'highPriorioty';
 const sceneLowPriority = new THREE.Object3D();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
+// rootScene.children = new Proxy(rootScene.children, {
+//   set: (obj, prop, newVal) => {
+//     if (newVal === window.mesh3) debugger
+
+//     obj[prop] = newVal;
+//     return true;
+//   }
+// })
 window.rootScene = rootScene
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
