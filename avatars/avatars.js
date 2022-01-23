@@ -337,6 +337,15 @@ const loadPromise = (async () => {
     decorateAnimation(animation);
   }
 
+  /* console.log('walking animations\n', [
+    walkingAnimations,
+    walkingBackwardAnimations,
+    runningAnimations,
+    runningBackwardAnimations,
+    crouchingForwardAnimations,
+    crouchingBackwardAnimations,
+  ].flat().map(a => a.name).join('\n')); */
+
   /* jumpAnimationSegments = {
     chargeJump: animations.find(a => a.isChargeJump),
     chargeJumpFall: animations.find(a => a.isChargeJumpFall),
