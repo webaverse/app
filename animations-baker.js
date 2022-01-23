@@ -476,6 +476,12 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     // format
     const animationsJson = animations.map(a => a.toJSON())
       .concat(mmdAnimationsJson);
+    for (const animation of animationsJson) {
+      for (const track of animation.tracks) {
+        track.times = Float32Array.from(track.times);
+        track.values = Float32Array.from(track.values);
+      }
+    }
     // console.log('got animations json', animationsJson[0], mmdAnimationsJson[0]);
     const animationsUint8Array = zbencode({
       animations: animationsJson,
