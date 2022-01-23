@@ -347,6 +347,7 @@ export default class Webaverse extends EventTarget {
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
+      const timeDiffS = timeDiff / 1000;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
       // const timeDiffCapped = timeDiff;
 
@@ -399,7 +400,7 @@ export default class Webaverse extends EventTarget {
       }
 
       if (window.isInitTestPhysxMesh) {
-        const speed = 0.03;
+        const speed = 3 * timeDiffS; // todo: Why moveCharacterController's timeDiffS/elapsedTime no effect? Need multiply here?
         const followDistance = 3;
         localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
         if (localVector.length() <= followDistance) {
@@ -411,7 +412,6 @@ export default class Webaverse extends EventTarget {
         // localVector.normalize();
         // localVector.multiplyScalar(0.01);
         const minDist = 0;
-        const timeDiffS = timestamp / 1000;
         const flags = physicsManager.moveCharacterController(
           window.characterController,
           localVector,
