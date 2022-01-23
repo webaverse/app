@@ -102,7 +102,7 @@ export default class Webaverse extends EventTarget {
     this.contentLoaded = false;
 
     setTimeout(() => {
-      if (!window.isInitTestPhysxMesh) {
+      if (false && !window.isInitTestPhysxMesh) {
         window.isInitTestPhysxMesh = true;
         const geometry = new THREE.SphereGeometry(0.5);
         const material = new THREE.MeshStandardMaterial({
@@ -400,7 +400,7 @@ export default class Webaverse extends EventTarget {
         physicsManager.setTransform(window.body);
       }
 
-      if (window.isInitTestPhysxMesh) {
+      if (false && window.isInitTestPhysxMesh) {
         const speed = 3 * timeDiffSCapped; // todo: Why moveCharacterController's timeDiffSCapped/elapsedTime no effect? Need multiply here?
         const followDistance = 3;
         localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
