@@ -104,7 +104,7 @@ export default class Webaverse extends EventTarget {
     setTimeout(() => {
       if (!window.isInitTestPhysxMesh) {
         window.isInitTestPhysxMesh = true;
-        const geometry = new THREE.BoxGeometry()
+        const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshStandardMaterial({
           color: 'green',
         });
@@ -118,8 +118,8 @@ export default class Webaverse extends EventTarget {
 
         const physicsMaterial = new THREE.Vector3(0, 0, 0);
         window.characterController = physicsManager.createCharacterController(
-          1,
-          1,
+          0.5,
+          0.01,
           0.1,
           0.5,
           window.meshPhysx.position,
@@ -399,12 +399,18 @@ export default class Webaverse extends EventTarget {
       }
 
       if (window.isInitTestPhysxMesh) {
+        const speed = 0.01;
+        localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
+        if (localVector.length() <= 6) {
+          localVector.set(0, 0, 0);
+        } else {
+          localVector.normalize().multiplyScalar(speed);
+        }
+        localVector.y += -0.98;
+        // localVector.normalize();
+        // localVector.multiplyScalar(0.01);
         const minDist = 0;
         const timeDiffS = timestamp / 1000;
-        localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
-        localVector.y = -0.98;
-        // localVector.normalize();
-        localVector.multiplyScalar(0.01);
         const flags = physicsManager.moveCharacterController(
           window.characterController,
           localVector,
