@@ -523,7 +523,7 @@ class Avatar {
     })();
     this.model = model;
     this.options = options;
-    
+    this.move = false;
     const vrmExtension = object?.parser?.json?.extensions?.VRM;
 
     const {
@@ -1423,10 +1423,9 @@ class Avatar {
       this.velocity.copy(positionDiff);
       this.lastPosition.copy(currentPosition);
       this.direction.copy(positionDiff).normalize();
-
-      if (this.velocity.length() > maxIdleVelocity) {
+      this.move = this.velocity.length() > maxIdleVelocity;
+      if (this.move) {
         this.lastMoveTime = now;
-        this.move = true;
       }
     };
     _updatePosition();
@@ -1977,11 +1976,11 @@ class Avatar {
             _handleDefault(spec);
             const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
             if (!isPosition) {
-              //if sword dont do it
+              //if sword dont do it but if pistol thats a diff
 
               if (aimAnimation) {
                 //aimAnimation here
-                if(k.includes("Leg") || k.includes("Foot") || k.includes("Toe")) {
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe")) {
                   return;
                 }
                 let src2 = aimAnimation.interpolants[k]; // first blend
