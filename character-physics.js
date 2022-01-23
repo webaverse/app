@@ -90,6 +90,7 @@ class CharacterPhysics {
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      // debugger
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
         localVector3,

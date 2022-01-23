@@ -29,6 +29,7 @@ import {
   dolly,
   bindCanvas,
   getComposer,
+  rootScene,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -99,6 +100,33 @@ export default class Webaverse extends EventTarget {
       ]);
     })();
     this.contentLoaded = false;
+
+    setTimeout(() => {
+      if (!window.isInitTestPhysxMesh) {
+        window.isInitTestPhysxMesh = true;
+        const geometry = new THREE.BoxGeometry()
+        const material = new THREE.MeshStandardMaterial({
+          color: 'green',
+        });
+        window.meshPhysx = new THREE.Mesh(geometry, material);
+        rootScene.add(window.meshPhysx);
+        // console.log(Math.random());
+        // debugger
+
+        window.meshPhysx.position.set(2, 2, 2);
+        window.meshPhysx.updateMatrixWorld();
+
+        const physicsMaterial = new THREE.Vector3(0, 0, 0);
+        window.characterController = physicsManager.createCharacterController(
+          1,
+          1,
+          0.1,
+          0.5,
+          window.meshPhysx.position,
+          physicsMaterial,
+        );
+      }
+    }, 3000);
   }
 
   waitForLoad() {
@@ -368,6 +396,25 @@ export default class Webaverse extends EventTarget {
         localVector.multiplyScalar(0.01);
         window.body.position.add(localVector);
         physicsManager.setTransform(window.body);
+      }
+
+      if (window.isInitTestPhysxMesh) {
+        const minDist = 0;
+        const timeDiffS = timestamp / 1000;
+        localVector.subVectors(window.localPlayer.position, window.meshPhysx.position);
+        localVector.y = -0.98;
+        // localVector.normalize();
+        localVector.multiplyScalar(0.01);
+        const flags = physicsManager.moveCharacterController(
+          window.characterController,
+          localVector,
+          minDist,
+          timeDiffS,
+          window.meshPhysx.position,
+        );
+        window.meshPhysx.updateMatrixWorld();
+        // const collided = flags !== 0;
+        const grounded = !!(flags & 0x1);
       }
 
       this.render(timestamp, timeDiffCapped);
