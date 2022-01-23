@@ -1977,7 +1977,7 @@ class Avatar {
       
       const idleAnimation = _getIdleAnimation('walk');
 
-      // walk sound effect
+      /* // walk sound effect
       {
         const soundManager = metaversefile.useSoundManager();
         const currAniTime = timeSeconds % idleAnimation.duration;
@@ -2016,7 +2016,7 @@ class Avatar {
               soundManager.playStepSound(9);
           }
         }
-      }
+      } */
       
       // crouch
       // const keyOther = _getAnimationKey(true);
