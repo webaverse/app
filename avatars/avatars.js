@@ -104,63 +104,7 @@ const defaultStandChargeAnimation = 'standCharge';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
-/* const animationsSelectMap = {
-  crouch: {
-    'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-    'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-    'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
-  },
-  stand: {
-    'idle.fbx': new THREE.Vector3(0, 0, 0),
-    'jump.fbx': new THREE.Vector3(0, 1, 0),
 
-    'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-    'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-    'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-    'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-
-    'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
-    'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-
-    'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-    'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
-
-    'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-    'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-  },
-};
-const animationsDistanceMap = {
-  'idle.fbx': new THREE.Vector3(0, 0, 0),
-  'jump.fbx': new THREE.Vector3(0, 1, 0),
-
-  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-
-  'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
-  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-
-  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
-
-  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
-  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
-  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
-  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
-  
-  'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-  'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
-  'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
-  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
-}; */
 const animationsAngleArrays = {
   walk: [
     {name: 'left strafe walking.fbx', angle: Math.PI/2},
@@ -243,7 +187,16 @@ const loadPromise = (async () => {
         .map(a => THREE.AnimationClip.parse(a));
       animations.index = {};
       for (const animation of animations) {
+        // if(animation.name.includes("sword_idle_side")) {
+        //   animation.tracks.forEach((anim, i) => {
+        //     if(anim.name.includes("mixamorigLeftUpLeg") || anim.name.includes("mixamorigRightUpLeg") || anim.name.includes("LeftFoot") || 
+        //     anim.name.includes("RightFoot") ||anim.name.includes("mixamorigRightToe") ||anim.name.includes("mixamorigLeftToe")) {
+        //       animation.tracks.splice(i, 1);
+        //     }
+        //   })
+        // }
         animations.index[animation.name] = animation;
+       
       }
     })(),
     (async () => {
@@ -334,13 +287,6 @@ const loadPromise = (async () => {
     decorateAnimation(animation);
   }
 
-  /* jumpAnimationSegments = {
-    chargeJump: animations.find(a => a.isChargeJump),
-    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
-    isFallLoop: animations.find(a => a.isFallLoop),
-    isLanding: animations.find(a => a.isLanding)
-  }; */
-
   // chargeJump = animations.find(a => a.isChargeJump);
   // standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
@@ -372,6 +318,8 @@ const loadPromise = (async () => {
     swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
     swordUndraw: animations.index['sword_undraw.fbx'],
   };
+
+
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
     slash: animations.find(a => a.isSlash),
@@ -465,116 +413,6 @@ const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
 const cubeGeometryPositions = cubeGeometry.attributes.position.array;
 const numCubeGeometryPositions = cubeGeometryPositions.length;
 const srcCubeGeometries = {};
-/* const _makeDebugMeshes = () => {
-  const geometries = [];
-  const _makeCubeMesh = (color, scale = 1) => {
-    color = new THREE.Color(color);
-
-    let srcGeometry = srcCubeGeometries[scale];
-    if (!srcGeometry) {
-      srcGeometry = cubeGeometry.clone()
-        .applyMatrix4(localMatrix.makeScale(scale, scale, scale));
-      srcCubeGeometries[scale] = srcGeometry;
-    }
-    const geometry = srcGeometry.clone();
-    const colors = new Float32Array(cubeGeometry.attributes.position.array.length);
-    for (let i = 0; i < colors.length; i += 3) {
-      color.toArray(colors, i);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const index = geometries.length;
-    geometries.push(geometry);
-    return [index, srcGeometry];
-  };
-  const fingerScale = 0.25;
-  const attributes = {
-    eyes: _makeCubeMesh(0xFF0000),
-    head: _makeCubeMesh(0xFF8080),
-
-    chest: _makeCubeMesh(0xFFFF00),
-    upperChest: _makeCubeMesh(0x808000),
-    leftShoulder: _makeCubeMesh(0x00FF00),
-    rightShoulder: _makeCubeMesh(0x008000),
-    leftUpperArm: _makeCubeMesh(0x00FFFF),
-    rightUpperArm: _makeCubeMesh(0x008080),
-    leftLowerArm: _makeCubeMesh(0x0000FF),
-    rightLowerArm: _makeCubeMesh(0x000080),
-    leftHand: _makeCubeMesh(0xFFFFFF),
-    rightHand: _makeCubeMesh(0x808080),
-
-    leftThumb2: _makeCubeMesh(0xFF0000, fingerScale),
-    leftThumb1: _makeCubeMesh(0x00FF00, fingerScale),
-    leftThumb0: _makeCubeMesh(0x0000FF, fingerScale),
-    leftIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftIndexFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftIndexFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftMiddleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftMiddleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftRingFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftRingFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftLittleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftLittleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightThumb2: _makeCubeMesh(0xFF0000, fingerScale),
-    rightThumb1: _makeCubeMesh(0x00FF00, fingerScale),
-    rightThumb0: _makeCubeMesh(0x0000FF, fingerScale),
-    rightIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightIndexFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightIndexFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightMiddleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightMiddleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightRingFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightRingFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightLittleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightLittleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-
-    hips: _makeCubeMesh(0xFF0000),
-    leftUpperLeg: _makeCubeMesh(0xFFFF00),
-    rightUpperLeg: _makeCubeMesh(0x808000),
-    leftLowerLeg: _makeCubeMesh(0x00FF00),
-    rightLowerLeg: _makeCubeMesh(0x008000),
-    leftFoot: _makeCubeMesh(0xFFFFFF),
-    rightFoot: _makeCubeMesh(0x808080),
-  };
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-  for (const k in attributes) {
-    const [index, srcGeometry] = attributes[k];
-    const attribute = new THREE.BufferAttribute(
-      new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*numCubeGeometryPositions*Float32Array.BYTES_PER_ELEMENT, numCubeGeometryPositions),
-      3
-    );
-    attribute.srcGeometry = srcGeometry;
-    attribute.visible = true;
-    attributes[k] = attribute;
-  }
-  const material = new THREE.MeshPhongMaterial({
-    flatShading: true,
-    vertexColors: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.attributes = attributes;
-  return mesh;
-}; */
-/* const _traverseChild = (bone, distance) => {
-  if (distance <= 0) {
-    return bone;
-  } else {
-    for (let i = 0; i < bone.children.length; i++) {
-      const child = bone.children[i];
-      const subchild = _traverseChild(child, distance - 1);
-      if (subchild !== null) {
-        return subchild;
-      }
-    }
-    return null;
-  }
-}; */
 const _findArmature = bone => {
   for (;; bone = bone.parent) {
     if (!bone.isBone) {
@@ -583,32 +421,6 @@ const _findArmature = bone => {
   }
   return null; // can't happen
 };
-
-/* const _exportBone = bone => {
-  return [bone.name, bone.position.toArray().concat(bone.quaternion.toArray()).concat(bone.scale.toArray()), bone.children.map(b => _exportBone(b))];
-};
-const _exportSkeleton = skeleton => {
-  const hips = _findHips(skeleton);
-  const armature = _findArmature(hips);
-  return JSON.stringify(_exportBone(armature));
-};
-const _importObject = (b, Cons, ChildCons) => {
-  const [name, array, children] = b;
-  const bone = new Cons();
-  bone.name = name;
-  bone.position.fromArray(array, 0);
-  bone.quaternion.fromArray(array, 3);
-  bone.scale.fromArray(array, 3+4);
-  for (let i = 0; i < children.length; i++) {
-    bone.add(_importObject(children[i], ChildCons, ChildCons));
-  }
-  return bone;
-};
-const _importArmature = b => _importObject(b, THREE.Object3D, THREE.Bone);
-const _importSkeleton = s => {
-  const armature = _importArmature(JSON.parse(s));
-  return new THREE.Skeleton(armature.children);
-}; */
 
 class AnimationMapping {
   constructor(animationTrackName, boneName, isTop, isPosition) {
@@ -707,24 +519,6 @@ class Avatar {
       if (o && !o.isMesh) {
         o = o.scene;
       }
-      /* if (!o) {
-        const scene = new THREE.Scene();
-
-        const skinnedMesh = new THREE.Object3D();
-        skinnedMesh.isSkinnedMesh = true;
-        skinnedMesh.skeleton = null;
-        skinnedMesh.bind = function(skeleton) {
-          this.skeleton = skeleton;
-        };
-        skinnedMesh.bind(_importSkeleton(skeletonString));
-        scene.add(skinnedMesh);
-
-        const hips = _findHips(skinnedMesh.skeleton);
-        const armature = _findArmature(hips);
-        scene.add(armature);
-
-        o = scene;
-      } */
       return o;
     })();
     this.model = model;
@@ -758,14 +552,6 @@ class Avatar {
     this.poseAnimation = null;
 
     this.spriteMegaAvatarMesh = null;
-
-    /* if (options.debug) {
-      const debugMeshes = _makeDebugMeshes();
-      this.model.add(debugMeshes);
-      this.debugMeshes = debugMeshes;
-    } else {
-      this.debugMeshes = null;
-    } */
 
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
@@ -823,18 +609,7 @@ class Avatar {
       ],
     };
     this.fingerBoneMap = fingerBoneMap;
-    
-    /* const allHairBones = [];
-    const _recurseAllHairBones = bones => {
-      for (let i = 0; i < bones.length; i++) {
-        const bone = bones[i];
-        if (/hair/i.test(bone.name)) {
-          allHairBones.push(bone);
-        }
-        _recurseAllHairBones(bone.children);
-      }
-    };
-    _recurseAllHairBones(skeleton.bones); */
+
     const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === modelBones.Head) {
@@ -858,48 +633,6 @@ class Avatar {
     let springBoneManagerPromise = null;
     if (options.hair) {
       new Promise((accept, reject) => {
-        /* if (!object.parser.json.extensions) {
-          object.parser.json.extensions = {};
-        }
-        if (!object.parser.json.extensions.VRM) {
-          object.parser.json.extensions.VRM = {
-            secondaryAnimation: {
-              boneGroups: this.hairBones.map(hairBone => {
-                const boneIndices = [];
-                const _recurse = bone => {
-                  boneIndices.push(this.allHairBones.indexOf(bone));
-                  if (bone.children.length > 0) {
-                    _recurse(bone.children[0]);
-                  }
-                };
-                _recurse(hairBone);
-                return {
-                  comment: hairBone.name,
-                  stiffiness: 0.5,
-                  gravityPower: 0.2,
-                  gravityDir: {
-                    x: 0,
-                    y: -1,
-                    z: 0
-                  },
-                  dragForce: 0.3,
-                  center: -1,
-                  hitRadius: 0.02,
-                  bones: boneIndices,
-                  colliderGroups: [],
-                };
-              }),
-            },
-          };
-          object.parser.getDependency = async (type, nodeIndex) => {
-            if (type === 'node') {
-              return this.allHairBones[nodeIndex];
-            } else {
-              throw new Error('unsupported type');
-            }
-          };
-        } */
-
         springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
@@ -1004,64 +737,7 @@ class Avatar {
     };
     this.sdkInputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
-		/* this.outputs = {
-			// eyes: this.shoulderTransforms.eyes,
-      eyel: this.shoulderTransforms.eyel,
-      eyer: this.shoulderTransforms.eyer,
-      head: this.shoulderTransforms.head,
-      hips: this.shoulderTransforms.hips,
-      root: this.shoulderTransforms.root,
-      spine: this.shoulderTransforms.spine,
-      chest: this.shoulderTransforms.chest,
-      upperChest: this.shoulderTransforms.chest,
-      neck: this.shoulderTransforms.neck,
-      leftShoulder: this.shoulderTransforms.leftShoulderAnchor,
-      leftUpperArm: this.shoulderTransforms.leftArm.upperArm,
-      leftLowerArm: this.shoulderTransforms.leftArm.lowerArm,
-      leftHand: this.shoulderTransforms.leftArm.hand,
-      rightShoulder: this.shoulderTransforms.rightShoulderAnchor,
-      rightUpperArm: this.shoulderTransforms.rightArm.upperArm,
-      rightLowerArm: this.shoulderTransforms.rightArm.lowerArm,
-      rightHand: this.shoulderTransforms.rightArm.hand,
-      leftUpperLeg: this.legsManager.leftLeg.upperLeg,
-      leftLowerLeg: this.legsManager.leftLeg.lowerLeg,
-      leftFoot: this.legsManager.leftLeg.foot,
-      leftToe: this.legsManager.leftLeg.toe,
-      rightUpperLeg: this.legsManager.rightLeg.upperLeg,
-      rightLowerLeg: this.legsManager.rightLeg.lowerLeg,
-      rightFoot: this.legsManager.rightLeg.foot,
-      rightToe: this.legsManager.rightLeg.toe,
-      leftThumb2: this.shoulderTransforms.rightArm.thumb2,
-      leftThumb1: this.shoulderTransforms.rightArm.thumb1,
-      leftThumb0: this.shoulderTransforms.rightArm.thumb0,
-      leftIndexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
-      leftIndexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
-      leftIndexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
-      leftMiddleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
-      leftMiddleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
-      leftMiddleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
-      leftRingFinger3: this.shoulderTransforms.rightArm.ringFinger3,
-      leftRingFinger2: this.shoulderTransforms.rightArm.ringFinger2,
-      leftRingFinger1: this.shoulderTransforms.rightArm.ringFinger1,
-      leftLittleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
-      leftLittleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
-      leftLittleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
-      rightThumb2: this.shoulderTransforms.leftArm.thumb2,
-      rightThumb1: this.shoulderTransforms.leftArm.thumb1,
-      rightThumb0: this.shoulderTransforms.leftArm.thumb0,
-      rightIndexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
-      rightIndexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
-      rightIndexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
-      rightMiddleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
-      rightMiddleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
-      rightMiddleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
-      rightRingFinger3: this.shoulderTransforms.leftArm.ringFinger3,
-      rightRingFinger2: this.shoulderTransforms.leftArm.ringFinger2,
-      rightRingFinger1: this.shoulderTransforms.leftArm.ringFinger1,
-      rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
-      rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
-      rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-		}; */
+
 		this.modelBoneOutputs = {
       Root: this.shoulderTransforms.root,
 
@@ -1509,11 +1185,12 @@ class Avatar {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
 
-      modelBone.position.copy(modelBoneOutput.position);
-      modelBone.quaternion.multiplyQuaternions(
-        modelBoneOutput.quaternion,
-        modelBone.initialQuaternion
-      );
+        modelBone.position.copy(modelBoneOutput.position);
+        modelBone.quaternion.multiplyQuaternions(
+          modelBoneOutput.quaternion,
+          modelBone.initialQuaternion
+        );
+
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
@@ -1749,6 +1426,7 @@ class Avatar {
 
       if (this.velocity.length() > maxIdleVelocity) {
         this.lastMoveTime = now;
+        this.move = true;
       }
     };
     _updatePosition();
@@ -1818,14 +1496,7 @@ class Avatar {
         }
       };
       const _getIdleAnimation = key => animationsIdleArrays[key].animation;
-      /* const _getIdleAnimation = key => {
-        if (key === 'walk' || key === 'run') {
-          const name = animationsIdleArrays[key].name;
-          return this.retargetedAnimations.find(a => a.name === name);
-        } else {
-          return animationsIdleArrays[key].animation;
-        }
-      }; */
+
       const _get7wayBlend = (
         horizontalWalkAnimationAngles,
         horizontalWalkAnimationAnglesMirror,
@@ -2106,11 +1777,11 @@ class Avatar {
             } = spec;
             // console.log('JumpState', spec)
 
-            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
-            const src2 = jumpAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
+            // const t2 = this.jumpTime/1000 * 0.6 + 0.7;
+            // const src2 = jumpAnimation.interpolants[k];
+            // const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            // dst.fromArray(v2);
           };
         }
         if (this.sitState) {
@@ -2147,7 +1818,6 @@ class Avatar {
             _clearXZ(dst, isPosition);
           };
         }
-
         if (this.danceState) {
           return spec => {
             const {
@@ -2164,52 +1834,6 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-
-        /* if (this.standChargeState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.standChargeTime/1000) ;
-            const src2 = standCharge.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordSideSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordSideSlashTime/1000) ;
-            const src2 = swordSideSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordTopDownSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordTopDownSlashTime/1000) ;
-            const src2 = swordTopDownSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
         if (this.fallLoopState) {
           return spec => {
             const {
@@ -2353,21 +1977,32 @@ class Avatar {
             _handleDefault(spec);
             const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
             if (!isPosition) {
-              if (aimAnimation) {
-                const src2 = aimAnimation.interpolants[k];
-                const v2 = src2.evaluate(t2);
+              //if sword dont do it
 
+              if (aimAnimation) {
+                //aimAnimation here
+                if(k.includes("Leg") || k.includes("Foot") || k.includes("Toe")) {
+                  return;
+                }
+                let src2 = aimAnimation.interpolants[k]; // first blend
+                // if(this.move) {
+                //   //lessen or remove influence from legs
+                //   src2 = aimAnimation.interpolants[k];
+                // }
+
+                const v2 = src2.evaluate(t2);
+                //forcing walk during sword?
+                //would we ever run with the sword aim = no
+                //don't use sword aim animation on lower body
                 const idleAnimation = _getIdleAnimation('walk');
                 const t3 = 0;
-                const src3 = idleAnimation.interpolants[k];
+                const src3 = idleAnimation.interpolants[k]; // second blend
                 const v3 = src3.evaluate(t3);
                 
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              } 
             } else {
               const src2 = aimAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
@@ -2488,18 +2123,6 @@ class Avatar {
         }
       }
 
-      /* this.modelBoneOutputs.Left_arm.quaternion.multiply(
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          -Math.PI * 0.25
-        )
-      );
-      this.modelBoneOutputs.Right_arm.quaternion.multiply(
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          Math.PI * 0.25 
-        )
-      ); */
     };
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
@@ -2563,7 +2186,7 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    // if (!this.getBottomEnabled()) {
+
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
@@ -2572,10 +2195,6 @@ class Avatar {
       
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
         .sub(localVector.set(0, this.height, 0));
-    // }
-    /* if (!this.getTopEnabled() && this.debugMeshes) {
-      this.modelBoneOutputs.Hips.updateMatrixWorld();
-    } */
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
@@ -2784,26 +2403,6 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    /* if (this.debugMeshes) {
-      if (this.getTopEnabled()) {
-        this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
-        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
-        this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
-        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
-      }
-
-      for (const k in this.debugMeshes.attributes) {
-        const attribute = this.debugMeshes.attributes[k];
-        if (attribute.visible) {
-          const output = this.modelBoneOutputs[k];
-          attribute.array.set(attribute.srcGeometry.attributes.position.array);
-          attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
-        } else {
-          attribute.array.fill(0);
-        }
-      }
-      this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    } */
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
