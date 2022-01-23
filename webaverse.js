@@ -32,7 +32,6 @@ import {
 } from './renderer.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
-import soundManager from './sound-manager.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
@@ -338,7 +337,6 @@ export default class Webaverse extends EventTarget {
       game.pushAppUpdates();
       game.pushPlayerUpdates();
 
-      soundManager.update(timeDiffCapped);
       dioramaManager.update(timestamp, timeDiffCapped);
 
       const session = renderer.xr.getSession();
