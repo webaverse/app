@@ -247,7 +247,9 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         // console.log('got height', height);
         const animation = o.animations[0];
         animation.name = name.slice('animations/'.length);
+        animation.object = o;
         
+        // scale position tracks by height
         for (const track of animation.tracks) {
           if (/\.position/.test(track.name)) {
             const values2 = new track.values.constructor(track.values.length);
@@ -263,7 +265,6 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           }
         }
 
-        animation.object = o;
         animations.push(animation);
     }
     const _reverseAnimation = animation => {
