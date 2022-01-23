@@ -52,17 +52,12 @@
       }
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "loadPriority": -1,
       "start_url": "https://webaverse.github.io/title-card/",
+      "loadPriority": -1,
       "components": [
         {
           "key": "boxHelper",
-          "value": true
+          "value": false
         },
         {
           "key": "renderPriority",
@@ -72,19 +67,23 @@
           "key": "zones",
           "value": [
             {
-              "heading": "Shadows",
-              "subHeading": "Dark Night",
-              "text": "Part 1",
-              "textColor": "0xFF0000",
-              "primaryColorOne": "0xFF0000",
-              "primaryColorTwo": "0xFF0000",
-              "arrowColor": "0xFF0000",
-              "headingBgWidth": 0.46,
-              "subHeadingBgWidth": 0.27,
-              "animationTime": 6.0,
+              "heading": "TREEHOUSE",
+              "textColor": "0xFFFFFF",
+              "primaryColor1": "0x00FF00",
+              "primaryColor2": "0xFFFF00",
+              "arrowColor": "0x404040",
+              "backgroundColor": "0x202020"
+            },
+            {
+              "heading": "TEMPLE",
+              "subHeading": "TREEHOUSE",
+              "textColor": "0xFF10FF",
+              "primaryColor1": "0xFF45FF",
+              "primaryColor2": "0xFFA5FF",
+              "arrowColor": "0xFF10FF",
               "dimensions": [
-                [-5, 0, 10],
-                [-1, 3, 13]
+                [-20, 0, -23],
+                [-8, 9, -8]
               ]
             }
           ]
