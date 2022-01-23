@@ -22,7 +22,6 @@
     "@pixiv/three-vrm": "./packages/three-vrm",
     "@react-three/fiber": "^7.0.6",
     "@shaderfrog/glsl-parser": "^0.1.20",
-    "borc": "^3.0.0",
     "classnames": "^2.3.1",
     "dids": "^2.4.0",
     "encoding-japanese": "^1.0.30",

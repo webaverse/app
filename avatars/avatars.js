@@ -4,17 +4,17 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {world} from '../world.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-// import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
-// import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
-import CBOR from '../cbor.js';
+import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
+import * as avatarCruncher from '../avatar-cruncher.js';
+import * as avatarSpriter from '../avatar-spriter.js';
 import metaversefile from 'metaversefile';
 import {
   getSkinnedMeshes,
@@ -27,9 +27,8 @@ import {
   // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
-  animationBoneToModelBone,
+  // animationBoneToModelBone,
 } from './util.mjs';
-import {scene, getRenderer} from '../renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -238,9 +237,11 @@ const loadPromise = (async () => {
   
   await Promise.all([
     (async () => {
-      const res = await fetch('../animations/animations.cbor');
+      const res = await fetch('../animations/animations.z');
       const arrayBuffer = await res.arrayBuffer();
-      animations = CBOR.decode(arrayBuffer).animations
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const animationsJson = zbdecode(uint8Array);
+      animations = animationsJson.animations
         .map(a => THREE.AnimationClip.parse(a));
       animations.index = {};
       for (const animation of animations) {
@@ -659,9 +660,9 @@ const animationMappingConfig = [
   new AnimationMapping('mixamorigRightHandMiddle1.quaternion', 'Right_middleFinger1', true, false),
   new AnimationMapping('mixamorigRightHandMiddle2.quaternion', 'Right_middleFinger2', true, false),
   new AnimationMapping('mixamorigRightHandMiddle3.quaternion', 'Right_middleFinger3', true, false),
-  new AnimationMapping('mixamorigRightHandThumb1.quaternion', 'Left_thumb0', true, false),
-  new AnimationMapping('mixamorigRightHandThumb2.quaternion', 'Left_thumb1', true, false),
-  new AnimationMapping('mixamorigRightHandThumb3.quaternion', 'Left_thumb2', true, false),
+  new AnimationMapping('mixamorigRightHandThumb1.quaternion', 'Right_thumb0', true, false),
+  new AnimationMapping('mixamorigRightHandThumb2.quaternion', 'Right_thumb1', true, false),
+  new AnimationMapping('mixamorigRightHandThumb3.quaternion', 'Right_thumb2', true, false),
   new AnimationMapping('mixamorigRightHandIndex1.quaternion', 'Right_indexFinger1', true, false),
   new AnimationMapping('mixamorigRightHandIndex2.quaternion', 'Right_indexFinger2', true, false),
   new AnimationMapping('mixamorigRightHandIndex3.quaternion', 'Right_indexFinger3', true, false),
@@ -757,6 +758,8 @@ class Avatar {
     // this.retargetedAnimations = retargetedAnimations;
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
+
+    this.spriteMegaAvatarMesh = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -1683,6 +1686,35 @@ class Avatar {
     );
     return localEuler.y;
   }
+  async setQuality(quality) {
+    switch (quality) {
+      case 1: {
+        const skinnedMesh = await this.object.cloneVrm();
+        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
+        scene.add(this.spriteMegaAvatarMesh);
+        this.model.visible = false;
+        break;
+      }
+      case 2: {
+        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
+        crunchedModel.frustumCulled = false;
+        scene.add(crunchedModel);
+        this.model.visible = false;
+        break;
+      }
+      case 3: {
+        console.log('not implemented'); // XXX
+        break;
+      }
+      case 4: {
+        console.log('not implemented'); // XXX
+        break;
+      }
+      default: {
+        throw new Error('unknown avatar quality: ' + quality);
+      }
+    }
+  }
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -2109,7 +2141,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime / 1000 * 4) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * 2) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
@@ -2743,6 +2775,16 @@ class Avatar {
       }
     };
     this.options.visemes && _updateVisemes();
+
+    const _updateSubAvatars = () => {
+      if (this.spriteMegaAvatarMesh) {
+        this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
+          playerAvatar: this,
+          camera,
+        });
+      }
+    };
+    _updateSubAvatars();
 
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
