@@ -313,6 +313,7 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
+      // console.log('animate');
       // window.totalTime = 0
       // window.count = 0
 
@@ -360,10 +361,20 @@ export default class Webaverse extends EventTarget {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
+      if (window.isStart && window.body) {
+        localVector.subVectors(window.localPlayer.position, window.body.position);
+        localVector.y = 0;
+        // localVector.normalize();
+        localVector.multiplyScalar(0.01);
+        window.body.position.add(localVector);
+        physicsManager.setTransform(window.body);
+      }
+
       this.render(timestamp, timeDiffCapped);
 
       // window.domAverageTime.innerText = `${window.count} | ${window.totalTime / window.count}`
     };
+
     renderer.setAnimationLoop(animate);
 
     _startHacks();
