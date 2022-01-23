@@ -100,7 +100,7 @@ export default class Webaverse extends EventTarget {
     })();
     this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -108,37 +108,46 @@ export default class Webaverse extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+
   getScene() {
     return scene;
   }
+
   getSceneHighPriority() {
     return sceneHighPriority;
   }
+
   getSceneLowPriority() {
     return sceneLowPriority;
   }
+
   getCamera() {
     return camera;
   }
-  
+
   setContentLoaded() {
     this.contentLoaded = true;
   }
+
   bindInput() {
     ioManager.bindInput();
   }
+
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
   }
+
   bindCanvas(c) {
     bindCanvas(c);
-    
+
     postProcessing.bindCanvas();
   }
+
   bindPreviewCanvas(canvas) {
     game.bindPreviewCanvas(canvas);
   }
+
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -152,6 +161,7 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
+
   /* toggleMic() {
     return world.toggleMic();
   } */
@@ -162,10 +172,10 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch(err) {
+      } catch (err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch(err) {
+        } catch (err) {
           console.warn(err);
         }
       }
@@ -182,7 +192,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-  
+
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -276,50 +286,50 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   render(timestamp, timeDiff) {
     const renderer = getRenderer();
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     // frameEvent.data.lastTimestamp = timestamp;
-    
+
     // equipment panel render
     // equipmentRender.previewScene.add(world.lights);
     // equipmentRender.render();
 
     getComposer().render();
     // if(ioManager.debugMode) {
-      rendererStats.update(renderer);
+    rendererStats.update(renderer);
     // }
   }
-  
+
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
-    
+
     let lastTimestamp = performance.now();
 
-    const animate = (timestamp, frame) => { 
+    const animate = (timestamp, frame) => {
       // window.totalTime = 0
       // window.count = 0
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
-      //const timeDiffCapped = timeDiff;
+      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
+      // const timeDiffCapped = timeDiff;
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
-      
+
       cameraManager.update(timeDiffCapped);
-      
+
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (this.contentLoaded) {
-        //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
-        physicsManager.simulatePhysics(timeDiffCapped); 
+        // if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
+        physicsManager.simulatePhysics(timeDiffCapped);
         localPlayer.updatePhysics(timestamp, timeDiffCapped);
       }
 
@@ -327,16 +337,16 @@ export default class Webaverse extends EventTarget {
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
-      
+
       localPlayer.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
-      
+
       world.appManager.tick(timestamp, timeDiffCapped, frame);
 
       hpManager.update(timestamp, timeDiffCapped);
 
       ioManager.updatePost();
-      
+
       game.pushAppUpdates();
       game.pushPlayerUpdates();
 
@@ -345,16 +355,15 @@ export default class Webaverse extends EventTarget {
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-        
+
       this.render(timestamp, timeDiffCapped);
 
       // window.domAverageTime.innerText = `${window.count} | ${window.totalTime / window.count}`
-
-    }
+    };
     renderer.setAnimationLoop(animate);
 
     _startHacks();
@@ -380,7 +389,7 @@ const _startHacks = () => {
       const key1 = lastEmoteKey.key;
       const key2 = key;
       emoteIndex = (key1 * 10) + key2;
-      
+
       lastEmoteKey.key = -1;
       lastEmoteKey.timestamp = 0;
     } else {
@@ -552,7 +561,7 @@ const _startHacks = () => {
 
           audios[0].play();
           audios[1].play();
-          
+
           audios[0].addEventListener('ended', e => {
             localPlayer.avatar.setMicrophoneMediaStream(null);
           });
@@ -611,7 +620,7 @@ const _startHacks = () => {
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePoseAnimation();
-    
+
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
