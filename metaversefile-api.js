@@ -34,7 +34,6 @@ import JSON6 from 'json-6';
 import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
-import soundManager from './sound-manager.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
@@ -394,9 +393,6 @@ metaversefile.setApi({
         return world.lights;
       },
     };
-  },
-  useSoundManager() {
-    return soundManager;
   },
   useAvatarCruncher() {
     return avatarCruncher;
