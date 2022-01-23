@@ -1,3 +1,8 @@
+# this script is used to compile effects pack video files
+# input: directory of webm files
+# output: KTX2 format (compressed texture) spritesheet for each video
+# note: texture is 8192x8192, sprite is 1024x1024, max number of frames is 8192*8192/(1024*1024) = 64; we filter files that are too large
+
 rm -f *-spritesheet.ktx2
 for f2 in *.webm; do
   rm -f lol0*;
