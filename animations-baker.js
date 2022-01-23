@@ -1,4 +1,4 @@
-const CBOR = require('borc');
+// const CBOR = require('borc');
 const XMLHttpRequest = require('xhr2');
 global.XMLHttpRequest = XMLHttpRequest;
 const encoding = require('encoding-japanese');
@@ -24,8 +24,9 @@ const {Request, Response, Headers} = nodeFetch;
 globalThis.Request = Request;
 globalThis.Response = Response;
 globalThis.Headers = Headers;
-const {getHeight, modelBoneToAnimationBone} = await import('./avatars/util.mjs');
-  
+const {getHeight, animationBoneToModelBone, modelBoneToAnimationBone} = await import('./avatars/util.mjs');
+const {zbencode, zbdecode} = await import('zjs/encoding.mjs');
+
 /* if (process.argv.length < 4) {
     console.log('\n\n\t\t\t[Invalid Args] Please use the tool as \n', `\t\t\tnode animations-baker.mjs dir/files*.fbx ani.cbor\n\n`);
     process.exit();
@@ -261,7 +262,8 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
             track.values = values2;
           }
         }
-        
+
+        animation.object = o;
         animations.push(animation);
     }
     const _reverseAnimation = animation => {
@@ -291,19 +293,195 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         const animation = animations.find(a => a.name === name);
         const reverseAnimation = _reverseAnimation(animation);
         reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+        reverseAnimation.object = animation.object;
         animations.push(reverseAnimation);
     }
+
+    const walkAnimationNames = [
+      'walking.fbx',
+      'left strafe walking.fbx',
+      'right strafe walking.fbx',
+      'walking backwards.fbx',
+      'left strafe walking reverse.fbx',
+      'right strafe walking reverse.fbx',
+      'Fast Run.fbx',
+      'left strafe.fbx',
+      'right strafe.fbx',
+      'running backwards.fbx',
+      'left strafe reverse.fbx',
+      'right strafe reverse.fbx',
+      'Sneaking Forward.fbx',
+      'Crouched Sneaking Left.fbx',
+      'Crouched Sneaking Right.fbx',
+      'Sneaking Forward reverse.fbx',
+      'Crouched Sneaking Left reverse.fbx',
+      'Crouched Sneaking Right reverse.fbx',
+    ];
+    const animationStepIndices = walkAnimationNames.map(walkAnimationName => {
+      const animation = animations.find(a => a.name === walkAnimationName);
+      const {tracks, object} = animation;
+      // console.log('got interpolants', object, animation.name);
+      const bones = [];
+      object.traverse(o => {
+        if (o.isBone) {
+          const bone = o;
+          bone.initialPosition = bone.position.clone();
+          bone.initialQuaternion = bone.quaternion.clone();
+          bones.push(bone);
+        }
+      });
+      // console.log('got bones', bones.map(b => b.name));
+      const rootBone = object; // not really a bone
+      const leftFootBone = bones.find(b => b.name === 'mixamorigLeftFoot');
+      const rightFootBone = bones.find(b => b.name === 'mixamorigRightFoot');
+
+      const bonePositionInterpolants = {};
+      const boneQuaternionInterpolants = {};
+      for (const track of tracks) {
+        if (/\.position$/.test(track.name)) {
+          const boneName = track.name.replace(/\.position$/, '');
+          // const bone = bones.find(b => b.name === boneName);
+          const boneInterpolant = new THREE.LinearInterpolant(track.times, track.values, track.getValueSize());
+          bonePositionInterpolants[boneName] = boneInterpolant;
+        } else if (/\.quaternion$/.test(track.name)) {
+          const boneName = track.name.replace(/\.quaternion$/, '');
+          // const bone = bones.find(b => b.name === boneName);
+          const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
+          boneQuaternionInterpolants[boneName] = boneInterpolant;
+        } else {
+          console.warn('unknown track name', track);
+        }
+      }
+
+      const walkBufferSize = 256;
+      const leftFootYDeltas = new Float32Array(walkBufferSize);
+      const rightFootYDeltas = new Float32Array(walkBufferSize);
+      for (let i = 0; i < walkBufferSize; i++) {
+        const f = i / (walkBufferSize - 1);
+        for (const bone of bones) {
+          const positionInterpolant = bonePositionInterpolants[bone.name];
+          const quaternionInterpolant = boneQuaternionInterpolants[bone.name];
+          if (positionInterpolant) {
+            const pv = positionInterpolant.evaluate(f);
+            bone.position.fromArray(pv);
+          } else {
+            bone.position.copy(bone.initialPosition);
+          }
+          if (quaternionInterpolant) {
+            const qv = quaternionInterpolant.evaluate(f);
+            bone.quaternion.fromArray(qv);
+          } else {
+            bone.quaternion.copy(bone.initialQuaternion);
+          }
+        }
+        rootBone.updateMatrixWorld(true);
+
+        const fbxScale = 100;
+        const rootY = new THREE.Vector3().setFromMatrixPosition(rootBone.matrixWorld).divideScalar(fbxScale).y;
+        const leftFootY = new THREE.Vector3().setFromMatrixPosition(leftFootBone.matrixWorld).divideScalar(fbxScale).y;
+        const rightFootY = new THREE.Vector3().setFromMatrixPosition(rightFootBone.matrixWorld).divideScalar(fbxScale).y
+
+        const leftFootYDelta = leftFootY - rootY;
+        const rightFootYDelta = rightFootY - rootY;
+
+        leftFootYDeltas[i] = leftFootYDelta;
+        rightFootYDeltas[i] = rightFootYDelta;
+      }
+
+      const range = 0.1;
+
+      let leftMin = Infinity;
+      let leftMax = -Infinity;
+      for (let i = 0; i < leftFootYDeltas.length; i++) {
+        const leftFootYDelta = leftFootYDeltas[i];
+        leftMin = Math.min(leftMin, leftFootYDelta);
+        leftMax = Math.max(leftMax, leftFootYDelta);
+      }
+      const leftYLimit = leftMin + range * (leftMax - leftMin);
+      let rightMin = Infinity;
+      let rightMax = -Infinity;
+      for (let i = 0; i < rightFootYDeltas.length; i++) {
+        const rightFootYDelta = rightFootYDeltas[i];
+        rightMin = Math.min(rightMin, rightFootYDelta);
+        rightMax = Math.max(rightMax, rightFootYDelta);
+      }
+      const rightYLimit = rightMin + range * (rightMax - rightMin);
+      
+      const leftStepIndices = new Uint8Array(walkBufferSize);
+      const rightStepIndices = new Uint8Array(walkBufferSize);
+      let leftStepIndex = 0;
+      let rightStepIndex = 0;
+      const _isFootYStepping = (y, stepYLimit) => y <= stepYLimit;
+      for (let i = 0; i < leftFootYDeltas.length; i++) {
+        const lastLeftFootStepping = _isFootYStepping(leftFootYDeltas[i === 0 ? (leftFootYDeltas.length - 1) : (i - 1)], leftYLimit);
+        const leftFootStepping = _isFootYStepping(leftFootYDeltas[i], leftYLimit);
+        const newLeftStep = leftFootStepping && !lastLeftFootStepping;
+        leftStepIndices[i] = newLeftStep ? (++leftStepIndex) : leftStepIndex;
+
+        const rightLeftFootStepping = _isFootYStepping(rightFootYDeltas[i === 0 ? (rightFootYDeltas.length - 1) : (i - 1)], rightYLimit);
+        const rightFootStepping = _isFootYStepping(rightFootYDeltas[i], rightYLimit);
+        const newRightStep = rightFootStepping && !rightLeftFootStepping;
+        rightStepIndices[i] = newRightStep ? (++rightStepIndex) : rightStepIndex;
+      }
+      console.log('got deltas', animation.name, leftStepIndex, rightStepIndex);
+
+      return {
+        leftFootYDeltas,
+        rightFootYDeltas,
+        leftStepIndices,
+        rightStepIndices,
+      };
+
+      /* if (
+        _isFootYStepping(leftFootYDeltas[0], leftYLimit) === _isFootYStepping(leftFootYDeltas[leftFootYDeltas.length-1], leftYLimit)
+      ) {
+        for (let i = leftFootYDeltas.length-1; i >= 0; i--) {
+          if (_isFootYStepping(leftFootYDeltas[i], leftYLimit)) {
+            leftStepIndices[i] = leftStepIndices[0];
+          } else {
+            break;
+          }
+        }
+        leftStepIndex--;
+      }
+      if (
+        _isFootYStepping(rightFootYDeltas[0], rightYLimit) === _isFootYStepping(rightFootYDeltas[rightFootYDeltas.length-1], rightYLimit)
+      ) {
+        for (let i = rightFootYDeltas.length-1; i >= 0; i--) {
+          if (_isFootYStepping(rightFootYDeltas[i], rightYLimit)) {
+            rightStepIndices[i] = rightStepIndices[0];
+          } else {
+            break;
+          }
+        }
+        rightStepIndex--;
+      } */
+
+      /*
+      AnimationClip {
+        name: 'right strafe.fbx',
+        tracks: [
+          VectorKeyframeTrack {
+            name: 'mixamorigHips.position',
+            times: [Float32Array],
+            values: [Float32Array],
+            createInterpolant: [Function: InterpolantFactoryMethodLinear]
+          },
+      */
+    });
+    // console.log('got animations', animations);
 
     // format
     const animationsJson = animations.map(a => a.toJSON())
       .concat(mmdAnimationsJson);
     // console.log('got animations json', animationsJson[0], mmdAnimationsJson[0]);
-    const animationsCborBuffer = CBOR.encode({
-        animations: animationsJson,
+    const animationsUint8Array = zbencode({
+      animations: animationsJson,
+      animationStepIndices,
     });
-    CBOR.decode(animationsCborBuffer);
+    zbdecode(animationsUint8Array);
     console.log('exporting animations');
-    fs.writeFileSync(outFile, Buffer.from(animationsCborBuffer));
+    fs.writeFileSync(outFile, Buffer.from(animationsUint8Array));
     console.log('exported animations at', outFile);
 }
 
