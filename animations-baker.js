@@ -15,7 +15,7 @@ const {FBXLoader, MMDLoader} = THREE;
 global.FBXLoader = FBXLoader;
 global.MMDLoader = MMDLoader;
 const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
-console.log('got CharsetEncoder', CharsetEncoder);
+// console.log('got CharsetEncoder', CharsetEncoder);
 
 (async () => {
 const nodeFetch = await import('node-fetch');
