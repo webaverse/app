@@ -426,8 +426,8 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
       // console.log('got deltas', animation.name, leftStepIndex, rightStepIndex);
 
       return {
-        leftFootYDeltas,
-        rightFootYDeltas,
+        // leftFootYDeltas,
+        // rightFootYDeltas,
         leftStepIndices,
         rightStepIndices,
       };
