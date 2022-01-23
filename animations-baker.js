@@ -383,7 +383,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         rightFootYDeltas[i] = rightFootYDelta;
       }
 
-      const range = 0.1;
+      const range = 0.0175;
 
       let leftMin = Infinity;
       let leftMax = -Infinity;
@@ -392,7 +392,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         leftMin = Math.min(leftMin, leftFootYDelta);
         leftMax = Math.max(leftMax, leftFootYDelta);
       }
-      const leftYLimit = leftMin + range * (leftMax - leftMin);
+      const leftYLimit = leftMin + range;
       let rightMin = Infinity;
       let rightMax = -Infinity;
       for (let i = 0; i < rightFootYDeltas.length; i++) {
@@ -400,7 +400,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         rightMin = Math.min(rightMin, rightFootYDelta);
         rightMax = Math.max(rightMax, rightFootYDelta);
       }
-      const rightYLimit = rightMin + range * (rightMax - rightMin);
+      const rightYLimit = rightMin + range;
       
       const leftStepIndices = new Uint8Array(walkBufferSize);
       const rightStepIndices = new Uint8Array(walkBufferSize);
