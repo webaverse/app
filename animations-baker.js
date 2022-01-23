@@ -198,15 +198,15 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           tracks.push({
             name: boneName + '.position',
             type: 'vector',
-            times: [0],
-            values: bone.translation,
+            times: Float32Array.from([0]),
+            values: Float32Array.from(bone.translation),
           });
         }
         tracks.push({
           name: boneName + '.quaternion',
           type: 'quaternion',
-          times: [0],
-          values: bone.quaternion,
+          times: Float32Array.from([0]),
+          values: Float32Array.from(bone.quaternion),
         });
       }
       const mmdAnimation = {
