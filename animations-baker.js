@@ -267,10 +267,11 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     const _reverseAnimation = animation => {
         animation = animation.clone();
         for (const track of animation.tracks) {
-            track.times.reverse();
+            const times2 = new track.times.constructor(track.times.length);
             for (let i = 0; i < track.times.length; i++) {
-                track.times[i] = animation.duration - track.times[i];
+                times2[i] = animation.duration - track.times[track.times.length - 1 - i];
             }
+            track.times = times2;
 
             const values2 = new track.values.constructor(track.values.length);
             const valueSize = track.getValueSize();
