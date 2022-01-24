@@ -2051,13 +2051,11 @@ class Avatar {
       const idleAnimation = _getIdleAnimation('walk');
 
       if (this.jumpState && !this.lastJumpState) {
-        console.log('jump state 1');
         const candidateAudios = jumpSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
         audio.paused && audio.play();
       } else if (this.lastJumpState && !this.jumpState) {
-        console.log('jump state 2');
         const candidateAudios = landSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
