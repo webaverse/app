@@ -2227,6 +2227,7 @@ class Avatar {
 
           // HACK: this is used to dynamically control the step offset for a particular animation
           // it is useful during development to adjust sync between animations and sound
+          // the key listener part of this is in io-manager.js
           if (typeof window.lol !== 'number') {
             window.lol = 0.06;
             window.lol2 = 0.18;
