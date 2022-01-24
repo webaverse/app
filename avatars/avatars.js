@@ -2182,13 +2182,14 @@ class Avatar {
           const {leftStepIndices, rightStepIndices} = animationIndices;
 
           if (typeof window.lol !== 'number') {
-            window.lol = 0;
+            window.lol = 0.06;
             window.lol2 = 0.18;
           }
 
           const sneakingOffset = -0.14;
           const walkingOffset = 0.13;
           const walkingBackwardOffset = 0.18;
+          const runningBackwardOffset = 0.06;
           const strafeWalkingOffset = 0.24;
           const offsets = {
             'Sneaking Forward.fbx': sneakingOffset, 
@@ -2197,6 +2198,7 @@ class Avatar {
             'Fast Run.fbx': 0,
             'left strafe walking.fbx': strafeWalkingOffset,
             'right strafe walking.fbx': strafeWalkingOffset,
+            'running backwards.fbx': runningBackwardOffset,
           };
           const offset = offsets[walkRunAnimationName] ?? window.lol;
           const _getStepIndex = timeSeconds => {
