@@ -314,6 +314,7 @@ const loadPromise = (async () => {
         });
         console.log('got src', `../sounds/${soundType}/${fileName}`);
         audio.src = `/sounds/${soundType}/${fileName}`;
+        audio.load();
         await p;
         // document.body.appendChild(audio);
         return audio;
