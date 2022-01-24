@@ -392,7 +392,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         leftMin = Math.min(leftMin, leftFootYDelta);
         leftMax = Math.max(leftMax, leftFootYDelta);
       }
-      const leftYLimit = leftMin + range;
+      const leftYLimit = leftMin + range * (leftMax - leftMin);
       let rightMin = Infinity;
       let rightMax = -Infinity;
       for (let i = 0; i < rightFootYDeltas.length; i++) {
@@ -400,29 +400,81 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         rightMin = Math.min(rightMin, rightFootYDelta);
         rightMax = Math.max(rightMax, rightFootYDelta);
       }
-      const rightYLimit = rightMin + range;
+      const rightYLimit = rightMin + range * (rightMax - rightMin);
       
       const leftStepIndices = new Uint8Array(walkBufferSize);
       const rightStepIndices = new Uint8Array(walkBufferSize);
-      let leftStepIndex = 0;
-      let rightStepIndex = 0;
+      let numLeft = 0;
+      let numRight = 0;
       const _isFootYStepping = (y, stepYLimit) => y <= stepYLimit;
       for (let i = 0; i < leftFootYDeltas.length; i++) {
         const lastLeftFootStepping = _isFootYStepping(leftFootYDeltas[i === 0 ? (leftFootYDeltas.length - 1) : (i - 1)], leftYLimit);
         const leftFootStepping = _isFootYStepping(leftFootYDeltas[i], leftYLimit);
         const newLeftStep = leftFootStepping && !lastLeftFootStepping;
-        leftStepIndices[i] = newLeftStep ? (++leftStepIndex) : leftStepIndex;
+        leftStepIndices[i] = newLeftStep ? 1 : 0;
+        numLeft += +newLeftStep;
 
-        const rightLeftFootStepping = _isFootYStepping(rightFootYDeltas[i === 0 ? (rightFootYDeltas.length - 1) : (i - 1)], rightYLimit);
-        const rightFootStepping = _isFootYStepping(rightFootYDeltas[i], rightYLimit);
-        const newRightStep = rightFootStepping && !rightLeftFootStepping;
-        rightStepIndices[i] = newRightStep ? (++rightStepIndex) : rightStepIndex;
+        const lastRightFootStepping = _isFootYStepping(rightFootYDeltas[i === 0 ? (rightFootYDeltas.length - 1) : (i - 1)], leftYLimit);
+        const rightFootStepping = _isFootYStepping(rightFootYDeltas[i], leftYLimit);
+        const newRightStep = rightFootStepping && !lastRightFootStepping;
+        rightStepIndices[i] = newRightStep ? 1 : 0;
+        numRight += +newRightStep;
       }
-      // console.log('got deltas', animation.name, leftStepIndex, rightStepIndex);
+      console.log(
+        'got deltas',
+        animation.name,
+        leftMin,
+        leftMax,
+        leftYLimit,
+        rightMin,
+        rightMax,
+        rightYLimit,
+        numLeft,
+        numRight,
+      );
+      /* if (numLeft === 2) {
+        for (let i = leftStepIndices.length - 1; i >= 0; i--) {
+          if (leftStepIndices[i]) { 
+            leftStepIndices[i] = 0;
+            break;
+          }
+        }
+      }
+      if (numRight === 2) {
+        for (let i = rightStepIndices.length - 1; i >= 0; i--) {
+          if (rightStepIndices[i]) { 
+            rightStepIndices[i] = 0;
+            break;
+          }
+        }
+      } */
+      /* if (_isFootYStepping(leftFootYDeltas[0], leftYLimit) === _isFootYStepping(leftFootYDeltas[leftFootYDeltas.length - 1], leftYLimit)) {
+        const endIndex = leftStepIndices[leftStepIndices.length - 1];
+        // console.log('end index', endIndex, leftStepIndices[0], leftStepIndices[leftStepIndices.length - 1]);
+        for (let i = leftStepIndices.length - 1; i >= 0 && leftStepIndices[i] === endIndex; i--) {
+          leftStepIndices[i] = leftStepIndices[0];
+        }
+      }
+      if (_isFootYStepping(rightFootYDeltas[0], rightYLimit) === _isFootYStepping(rightFootYDeltas[rightFootYDeltas.length - 1], rightYLimit)) {
+        const endIndex = rightStepIndices[rightStepIndices.length - 1];
+        for (let i = rightStepIndices.length - 1; i >= 0 && rightStepIndices[i] === endIndex; i--) {
+          rightStepIndices[i] = rightStepIndices[0];
+        }
+      } */
+      /* console.log(
+        'got deltas',
+        animation.name, leftStepIndex, rightStepIndex,
+        _isFootYStepping(rightFootYDeltas[0], rightYLimit),
+        _isFootYStepping(rightFootYDeltas[rightFootYDeltas.length - 1], rightYLimit),
+        _isFootYStepping(rightFootYDeltas[rightFootYDeltas.length - 2], rightYLimit),
+        _isFootYStepping(leftFootYDeltas[0], leftYLimit),
+        _isFootYStepping(leftFootYDeltas[leftFootYDeltas.length - 1], leftYLimit),
+        _isFootYStepping(leftFootYDeltas[leftFootYDeltas.length - 2], leftYLimit),
+      ); */
 
       return {
-        // leftFootYDeltas,
-        // rightFootYDeltas,
+        leftFootYDeltas,
+        rightFootYDeltas,
         name: animation.name,
         leftStepIndices,
         rightStepIndices,
