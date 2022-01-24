@@ -2249,7 +2249,8 @@ class Avatar {
           };
           const offset = offsets[walkRunAnimationName] ?? window.lol;
           const _getStepIndex = timeSeconds => {
-            const t1 = (timeSeconds + offset) % animation.duration;
+            const f = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
+            const t1 = (timeSeconds * f + offset) % animation.duration;
             const walkFactor1 = t1 / animation.duration;
             const stepIndex = Math.floor(mod(walkFactor1, 1) * leftStepIndices.length);
             return stepIndex;
