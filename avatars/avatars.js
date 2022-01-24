@@ -290,7 +290,7 @@ const loadPromise = (async () => {
       }
     })(),
     (async () => {
-      const srcUrl = '../animations/animations-skeleton.glb';
+      const srcUrl = '/animations/animations-skeleton.glb';
       
       let o;
       try {
@@ -304,6 +304,35 @@ const loadPromise = (async () => {
       if (o) {
         animationsBaseModel = o;
       }
+    })(),
+    (async () => {
+      const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
+        const audio = new Audio();
+        const p = new Promise((accept, reject) => {
+          audio.oncanplaythrough = accept;
+          audio.onerror = reject;
+        });
+        console.log('got src', `../sounds/${soundType}/${fileName}`);
+        audio.src = `/sounds/${soundType}/${fileName}`;
+        await p;
+        // document.body.appendChild(audio);
+        return audio;
+      }));
+      await Promise.all([
+        _loadSoundFiles(walkSoundFileNames, 'walk').then(as => {
+          walkSoundFiles = as;
+          window.walkSoundFiles = walkSoundFiles;
+        }),
+        _loadSoundFiles(runSoundFileNames, 'run').then(as => {
+          runSoundFiles = as;
+        }),
+        _loadSoundFiles(jumpSoundFileNames, 'jump').then(as => {
+          jumpSoundFiles = as;
+        }),
+        _loadSoundFiles(landSoundFileNames, 'land').then(as => {
+          landSoundFiles = as;
+        }),
+      ]);
     })(),
   ]);
 
