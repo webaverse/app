@@ -1833,6 +1833,7 @@ class Avatar {
     const idleSpeed = 0;
     const walkSpeed = 0.25;
     const runSpeed = 0.7;
+    const narutoRunTimeFactor = 2;
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
@@ -2361,7 +2362,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime / 1000 * 2) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
