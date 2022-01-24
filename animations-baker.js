@@ -383,7 +383,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         rightFootYDeltas[i] = rightFootYDelta;
       }
 
-      const range = /sneak/i.test(walkAnimationName) ? 0.3 : 0.05;
+      const range = /sneak/i.test(walkAnimationName) ? 0.3 : 0.06;
 
       let leftMin = Infinity;
       let leftMax = -Infinity;
