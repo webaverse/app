@@ -73,6 +73,19 @@ run9.wav
 run10.wav
 run11.wav
 run12.wav`.split('\n');
+const narutoRunSoundFileNames = `\
+narutoRun1.wav
+narutoRun2.wav
+narutoRun3.wav
+narutoRun4.wav
+narutoRun5.wav
+narutoRun6.wav
+narutoRun7.wav
+narutoRun8.wav
+narutoRun9.wav
+narutoRun10.wav
+narutoRun11.wav
+narutoRun12.wav`.split('\n');
 const jumpSoundFileNames = `\
 jump1.wav
 jump2.wav
@@ -275,6 +288,7 @@ let walkSoundFiles;
 let runSoundFiles;
 let jumpSoundFiles;
 let landSoundFiles;
+let narutoRunSoundFiles;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -338,7 +352,9 @@ const loadPromise = (async () => {
       await Promise.all([
         _loadSoundFiles(walkSoundFileNames, 'walk').then(as => {
           walkSoundFiles = as;
-          window.walkSoundFiles = walkSoundFiles;
+        }),
+        _loadSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
+          narutoRunSoundFiles = as;
         }),
         _loadSoundFiles(runSoundFileNames, 'run').then(as => {
           runSoundFiles = as;
