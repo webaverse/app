@@ -250,6 +250,7 @@ const animationsIdleArrays = {
 };
 
 let animations;
+let animationStepIndices;
 let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
@@ -267,17 +268,22 @@ let narutoRunAnimations;
 let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
+let walkSoundFiles;
+let runSoundFiles;
+let jumpSoundFiles;
+let landSoundFiles;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
   await Promise.all([
     (async () => {
-      const res = await fetch('../animations/animations.z');
+      const res = await fetch('/animations/animations.z');
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const animationsJson = zbdecode(uint8Array);
       animations = animationsJson.animations
         .map(a => THREE.AnimationClip.parse(a));
+      animationStepIndices = animationsJson.animationStepIndices;
       animations.index = {};
       for (const animation of animations) {
         animations.index[animation.name] = animation;
