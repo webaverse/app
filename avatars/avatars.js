@@ -2181,7 +2181,7 @@ class Avatar {
         }
 
         // step
-        if (idleWalkFactor > 0.7 && !this.jumpState) {
+        if (idleWalkFactor > 0.7 && !this.jumpState && !this.flyState) {
           const isRunning = walkRunFactor > 0.5;
           const isCrouching = crouchFactor > 0.5;
           const animationAngles = isCrouching ?
