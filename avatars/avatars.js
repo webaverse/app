@@ -2184,17 +2184,30 @@ class Avatar {
         if (idleWalkFactor > 0.7 && !this.jumpState && !this.flyState) {
           const isRunning = walkRunFactor > 0.5;
           const isCrouching = crouchFactor > 0.5;
-          const animationAngles = isCrouching ?
-            keyAnimationAnglesOther
-          :
-            (isRunning ? keyRunAnimationAngles : keyWalkAnimationAngles);
-          const walkRunAnimationName = animationAngles[0].name;
-
-          const soundFiles = isCrouching ?
-            walkSoundFiles
-          :
-            (isRunning ? runSoundFiles : walkSoundFiles);
-
+          const isNarutoRun = this.narutoRunState;
+          const walkRunAnimationName = (() => {
+            if (isNarutoRun) {
+              return 'naruto run.fbx';
+            } else {
+              const animationAngles = isCrouching ?
+                keyAnimationAnglesOther
+              :
+                (isRunning ? keyRunAnimationAngles : keyWalkAnimationAngles);
+              return animationAngles[0].name;
+            }
+          })();
+          const soundFiles = (() => {
+            if (isNarutoRun) {
+              return narutoRunSoundFiles;
+            } else if (isCrouching) {
+              return walkSoundFiles;
+            } else if (isRunning) {
+              return runSoundFiles;
+            } else {
+              return walkSoundFiles;
+            }
+          })();
+          const animation = animations.find(a => a.name === walkRunAnimationName);
           const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
           const {leftStepIndices, rightStepIndices} = animationIndices;
 
