@@ -470,7 +470,7 @@ metaversefile.setApi({
     return loaders;
   },
   usePhysics() {
-    console.log(111, 'usePhysics');
+    // console.log(111, 'usePhysics');
     const app = currentAppRender;
     if (app) {
       const physics = {};
