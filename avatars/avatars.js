@@ -2144,6 +2144,95 @@ class Avatar {
       }
       this.lastBackwardFactor = mirrorFactor;
 
+      const _updateSound = () => {
+        if (idleWalkFactor > 0.7 && !this.jumpState) {
+          const isRunning = walkRunFactor > 0.5;
+          const isCrouching = crouchFactor > 0.5;
+          const animationAngles = isCrouching ?
+            keyAnimationAnglesOther
+          :
+            (isRunning ? keyRunAnimationAngles : keyWalkAnimationAngles);
+          const walkRunAnimationName = animationAngles[0].name;
+
+          const soundFiles = isCrouching ?
+            walkSoundFiles
+          :
+            (isRunning ? runSoundFiles : walkSoundFiles);
+
+          const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
+          const {leftStepIndices, rightStepIndices} = animationIndices;
+
+          if (typeof window.lol !== 'number') {
+            window.lol = 0.18;
+            window.lol2 = 0.18;
+          }
+
+          const sneakingOffset = -0.14;
+          const walkingOffset = 0.13;
+          const walkingBackwardOffset = window.lol;
+          const strafeWalkingOffset = 0.24;
+          const offsets = {
+            'Sneaking Forward.fbx': sneakingOffset, 
+            'walking.fbx': walkingOffset,
+            'walking backwards.fbx': walkingBackwardOffset,
+            'Fast Run.fbx': 0,
+            'left strafe walking.fbx': strafeWalkingOffset,
+            'right strafe walking.fbx': strafeWalkingOffset,
+          };
+          const offset = offsets[walkRunAnimationName] ?? window.lol;
+          const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
+          const walkFactor1 = t1 / animationAngles[0].animation.duration;
+          // const walkFactor2 = t2 / animationAngles[1].animation.duration;
+          // console.log('animation angles', {walkRunAnimationName, animationIndices, isCrouching, keyWalkAnimationAngles, keyAnimationAnglesOther});
+          // console.log('got animation name', walkRunAnimationName);
+
+          const startIndex = Math.floor(this.lastWalkFactor * leftStepIndices.length);
+          const endIndex = Math.floor(walkFactor1 * leftStepIndices.length);
+          for (let i = startIndex;; i++) {
+            i = i % leftStepIndices.length;
+            // console.log('check', i, startIndex, endIndex);
+            if (i !== endIndex) {
+              if (leftStepIndices[i] && !this.lastStepped[0]) {
+                const candidateAudios = soundFiles//.filter(a => a.paused);
+                if (candidateAudios.length > 0) {
+                  /* for (const a of candidateAudios) {
+                    !a.paused && a.pause();
+                  } */
+                  
+                  const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+                  audio.currentTime = 0;
+                  audio.paused && audio.play();
+                  // break;
+                  // console.log('left');
+                }
+              }
+              this.lastStepped[0] = leftStepIndices[i];
+
+              if (rightStepIndices[i] && !this.lastStepped[1]) {
+                const candidateAudios = soundFiles// .filter(a => a.paused);
+                if (candidateAudios.length > 0) {
+                  /* for (const a of candidateAudios) {
+                    !a.paused && a.pause();
+                  } */
+
+                  const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+                  audio.currentTime = 0;
+                  audio.paused && audio.play();
+                  // break;
+                  // console.log('right');
+                }
+              }
+              this.lastStepped[1] = rightStepIndices[i];
+            } else {
+              break;
+            }
+          }
+
+          this.lastWalkFactor = walkFactor1;
+        }
+      };
+      _updateSound();
+
       const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
         _get7wayBlend(
           keyWalkAnimationAngles,
