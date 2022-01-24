@@ -357,13 +357,13 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           const positionInterpolant = bonePositionInterpolants[bone.name];
           const quaternionInterpolant = boneQuaternionInterpolants[bone.name];
           if (positionInterpolant) {
-            const pv = positionInterpolant.evaluate(f);
+            const pv = positionInterpolant.evaluate(f * animation.duration);
             bone.position.fromArray(pv);
           } else {
             bone.position.copy(bone.initialPosition);
           }
           if (quaternionInterpolant) {
-            const qv = quaternionInterpolant.evaluate(f);
+            const qv = quaternionInterpolant.evaluate(f * animation.duration);
             bone.quaternion.fromArray(qv);
           } else {
             bone.quaternion.copy(bone.initialQuaternion);
