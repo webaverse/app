@@ -2246,7 +2246,6 @@ class Avatar {
                   const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                   audio.currentTime = 0;
                   audio.paused && audio.play();
-                  // break;
                   // console.log('left');
                 }
               }
@@ -2262,7 +2261,6 @@ class Avatar {
                   const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                   audio.currentTime = 0;
                   audio.paused && audio.play();
-                  // break;
                   // console.log('right');
                 }
               }
