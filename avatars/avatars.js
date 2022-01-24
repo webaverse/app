@@ -309,11 +309,24 @@ const loadPromise = (async () => {
       }
     })(),
     (async () => {
+      const audioTimeoutTime = 5 * 1000;
       const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
         const audio = new Audio();
         const p = new Promise((accept, reject) => {
-          audio.oncanplaythrough = accept;
-          audio.onerror = reject;
+          const timeout = setTimeout(() => {
+            reject(new Error('audio load timed out'));
+          }, audioTimeoutTime);
+          const _cleanup = () => {
+            clearTimeout(timeout);
+          };
+          audio.oncanplaythrough = () => {
+            _cleanup();
+            accept();
+          };
+          audio.onerror = err => {
+            _cleanup();
+            reject(err);
+          };
         });
         // console.log('got src', `../sounds/${soundType}/${fileName}`);
         audio.src = `/sounds/${soundType}/${fileName}`;
