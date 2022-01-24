@@ -29,6 +29,9 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
+import {
+  mod,
+} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -312,7 +315,7 @@ const loadPromise = (async () => {
           audio.oncanplaythrough = accept;
           audio.onerror = reject;
         });
-        console.log('got src', `../sounds/${soundType}/${fileName}`);
+        // console.log('got src', `../sounds/${soundType}/${fileName}`);
         audio.src = `/sounds/${soundType}/${fileName}`;
         audio.load();
         await p;
@@ -1348,7 +1351,7 @@ class Avatar {
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
     this.lastStepped = [0, 0];
-    this.lastWalkFactor = 0;
+    this.lastWalkTime = 0;
     this.lastJumpState = false;
   }
   static bindAvatar(object) {
@@ -2051,19 +2054,6 @@ class Avatar {
       
       const idleAnimation = _getIdleAnimation('walk');
 
-      if (this.jumpState && !this.lastJumpState) {
-        const candidateAudios = jumpSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play();
-      } else if (this.lastJumpState && !this.jumpState) {
-        const candidateAudios = landSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play();
-      }
-      this.lastJumpState = this.jumpState;
-
       /* // walk sound effect
       {
         const soundManager = metaversefile.useSoundManager();
@@ -2144,6 +2134,23 @@ class Avatar {
       this.lastBackwardFactor = mirrorFactor;
 
       const _updateSound = () => {
+        // jump
+        {
+          if (this.jumpState && !this.lastJumpState) {
+            const candidateAudios = jumpSoundFiles;
+            const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+            audio.currentTime = 0;
+            audio.paused && audio.play();
+          } else if (this.lastJumpState && !this.jumpState) {
+            const candidateAudios = landSoundFiles;
+            const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+            audio.currentTime = 0;
+            audio.paused && audio.play();
+          }
+          this.lastJumpState = this.jumpState;
+        }
+
+        // step
         if (idleWalkFactor > 0.7 && !this.jumpState) {
           const isRunning = walkRunFactor > 0.5;
           const isCrouching = crouchFactor > 0.5;
@@ -2162,13 +2169,13 @@ class Avatar {
           const {leftStepIndices, rightStepIndices} = animationIndices;
 
           if (typeof window.lol !== 'number') {
-            window.lol = 0.18;
+            window.lol = 0;
             window.lol2 = 0.18;
           }
 
           const sneakingOffset = -0.14;
           const walkingOffset = 0.13;
-          const walkingBackwardOffset = window.lol;
+          const walkingBackwardOffset = 0.18;
           const strafeWalkingOffset = 0.24;
           const offsets = {
             'Sneaking Forward.fbx': sneakingOffset, 
@@ -2179,14 +2186,20 @@ class Avatar {
             'right strafe walking.fbx': strafeWalkingOffset,
           };
           const offset = offsets[walkRunAnimationName] ?? window.lol;
-          const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
-          const walkFactor1 = t1 / animationAngles[0].animation.duration;
+          const _getStepIndex = timeSeconds => {
+            const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
+            const walkFactor1 = t1 / animationAngles[0].animation.duration;
+            const stepIndex = Math.floor(mod(walkFactor1, 1) * leftStepIndices.length);
+            return stepIndex;
+          };
+          // const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
+          // const walkFactor1 = t1 / animationAngles[0].animation.duration;
           // const walkFactor2 = t2 / animationAngles[1].animation.duration;
           // console.log('animation angles', {walkRunAnimationName, animationIndices, isCrouching, keyWalkAnimationAngles, keyAnimationAnglesOther});
           // console.log('got animation name', walkRunAnimationName);
 
-          const startIndex = Math.floor(this.lastWalkFactor * leftStepIndices.length);
-          const endIndex = Math.floor(walkFactor1 * leftStepIndices.length);
+          const startIndex = _getStepIndex(this.lastWalkTime);
+          const endIndex = _getStepIndex(timeSeconds);
           for (let i = startIndex;; i++) {
             i = i % leftStepIndices.length;
             // console.log('check', i, startIndex, endIndex);
@@ -2227,7 +2240,7 @@ class Avatar {
             }
           }
 
-          this.lastWalkFactor = walkFactor1;
+          this.lastWalkTime = timeSeconds;
         }
       };
       _updateSound();
