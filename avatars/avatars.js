@@ -44,6 +44,41 @@ const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+const walkSoundFileNames = `\
+walk1.wav
+walk2.wav
+walk3.wav
+walk4.wav
+walk5.wav
+walk6.wav
+walk7.wav
+walk8.wav
+walk9.wav
+walk10.wav
+walk11.wav
+walk12.wav`.split('\n');
+const runSoundFileNames = `\
+run1.wav
+run2.wav
+run3.wav
+run4.wav
+run5.wav
+run6.wav
+run7.wav
+run8.wav
+run9.wav
+run10.wav
+run11.wav
+run12.wav`.split('\n');
+const jumpSoundFileNames = `\
+jump1.wav
+jump2.wav
+jump3.wav`.split('\n');
+const landSoundFileNames = `\
+land1.wav
+land2.wav
+land3.wav`.split('\n');
+
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
