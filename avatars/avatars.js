@@ -2211,6 +2211,8 @@ class Avatar {
           const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
           const {leftStepIndices, rightStepIndices} = animationIndices;
 
+          // HACK: this is used to dynamically control the step offset for a particular animation
+          // it is useful during development to adjust sync between animations and sound
           if (typeof window.lol !== 'number') {
             window.lol = 0.06;
             window.lol2 = 0.18;
