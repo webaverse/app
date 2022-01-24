@@ -305,6 +305,20 @@ const loadPromise = (async () => {
       for (const animation of animations) {
         animations.index[animation.name] = animation;
       }
+
+      /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
+      for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0xff0000}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.leftFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      }
+      for (let i = 0; i < animationIndices.rightFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0x0000ff}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.rightFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      } */
     })(),
     (async () => {
       const srcUrl = '/animations/animations-skeleton.glb';
