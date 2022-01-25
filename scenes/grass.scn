@@ -50,6 +50,20 @@
         0
       ],
       "start_url": "https://webaverse.github.io/grass-anime/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/particle-mesh/"
     }
   ]
 }
