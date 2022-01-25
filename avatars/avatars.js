@@ -2686,7 +2686,23 @@ class Avatar {
         const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
         const lookAtVerticalUpCurve = _importCurveMapperBone(lookAtVerticalUp);
 
-        function applyerLookAt(euler) {
+        function calculateTargetEuler(target, position) {
+          const headPosition = eyePosition;
+
+          // Look at direction in world coordinate
+          const lookAtDir = localVector.copy(headPosition).sub(position).normalize();
+      
+          // Transform the direction into local coordinate from the first person bone
+          lookAtDir.applyQuaternion(
+            localQuaternion.setFromRotationMatrix(head.matrixWorld)
+              .invert()
+          );
+      
+          // convert the direction into euler
+          target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
+          target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
+        }
+        function lookAtEuler(euler) {
           const srcX = euler.x;
           const srcY = euler.y;
       
@@ -2735,30 +2751,9 @@ class Avatar {
             rightEye.updateMatrix();
           }
         }
-
-        const _quat = new THREE.Quaternion();
-        function _calcEuler(target, position) {
-          const headPosition = eyePosition;
-
-          // Look at direction in world coordinate
-          const lookAtDir = localVector.copy(headPosition).sub(position).normalize();
-      
-          // Transform the direction into local coordinate from the first person bone
-          lookAtDir.applyQuaternion(
-            localQuaternion.setFromRotationMatrix(head.matrixWorld)
-              .invert()
-          );
-      
-          // convert the direction into euler
-          target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
-          target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
-      
-          return target;
-        }
         function lookAt(position) {
-          _calcEuler(localEuler, position);
-      
-          applyerLookAt(localEuler);
+          calculateTargetEuler(localEuler, position);
+          lookAtEuler(localEuler);
         }
 
         const head = this.modelBoneOutputs['Head'];
