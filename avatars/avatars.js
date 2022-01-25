@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
@@ -46,14 +46,15 @@ import {
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
 const localQuaternion5 = new THREE.Quaternion();
 const localQuaternion6 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
-const localEuler2 = new THREE.Euler();
+const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -88,6 +89,40 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     return bone;
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone);
+
+function getFirstPersonCurves(vrmExtension) {
+  if (vrmExtension) {
+    const {firstPerson} = vrmExtension;
+    const {
+      lookAtHorizontalInner,
+      lookAtHorizontalOuter,
+      lookAtVerticalDown,
+      lookAtVerticalUp,
+      // lookAtTypeName,
+    } = firstPerson;
+
+    const DEG2RAD = Math.PI / 180; // THREE.MathUtils.DEG2RAD;
+    function _importCurveMapperBone(map) {
+      return new VRMCurveMapper(
+        typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
+        typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
+        map.curve,
+      );
+    }
+    const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
+    const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
+    const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
+    const lookAtVerticalUpCurve = _importCurveMapperBone(lookAtVerticalUp);
+    return {
+      lookAtHorizontalInnerCurve,
+      lookAtHorizontalOuterCurve,
+      lookAtVerticalDownCurve,
+      lookAtVerticalUpCurve,
+    };
+  } else {
+    return null;
+  }
+}
 
 const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
@@ -771,7 +806,8 @@ class Avatar {
     this.model = model;
     this.options = options;
     
-    const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
     const {
       skinnedMeshes,
@@ -890,6 +926,8 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
+    this.eyeballTargetPlane = new THREE.Plane();
+    this.eyeballTargetEnabled = false;
 
     this.springBoneManager = null;
     this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
@@ -1168,7 +1206,7 @@ class Avatar {
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getBlendShapeIndexForPresetName = presetName => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -1181,7 +1219,7 @@ class Avatar {
         }
       };
       /* const _getBlendShapeIndexForName = name => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.name.toLowerCase() === name);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -2178,6 +2216,7 @@ class Avatar {
               animationTrackName: k,
               dst,
               // isTop,
+              isPosition,
             } = spec;
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
@@ -2186,6 +2225,8 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+
+            _clearXZ(dst, isPosition);
           };
         }
 
@@ -2652,6 +2693,112 @@ class Avatar {
       }
     };
     _updateEyeTarget();
+
+    const _updateEyeballTarget = () => {
+      const leftEye = this.modelBoneOutputs['Eye_L'];
+      const rightEye = this.modelBoneOutputs['Eye_R'];
+
+      if (this.eyeballTargetEnabled && this.firstPersonCurves) {
+        const {
+          lookAtHorizontalInnerCurve,
+          lookAtHorizontalOuterCurve,
+          lookAtVerticalDownCurve,
+          lookAtVerticalUpCurve,
+        } = this.firstPersonCurves;
+
+        function calculateTargetEuler(target, position) {
+          const headPosition = eyePosition;
+
+          // Look at direction in world coordinate
+          const lookAtDir = localVector2.copy(headPosition).sub(position).normalize();
+      
+          // Transform the direction into local coordinate from the first person bone
+          lookAtDir.applyQuaternion(
+            localQuaternion.setFromRotationMatrix(head.matrixWorld)
+              .invert()
+          );
+      
+          // convert the direction into euler
+          target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
+          target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
+          target.z = 0;
+          target.order = 'YXZ';
+        }
+        function lookAtEuler(euler) {
+          const srcX = euler.x;
+          const srcY = euler.y;
+      
+          const rotationFactor = Math.PI;
+          const rotationRange = Math.PI*0.1;
+
+          if (leftEye) {
+            if (srcX < 0.0) {
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+            } else {
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+            }
+      
+            if (srcY < 0.0) {
+              localEuler2.y = -lookAtHorizontalInnerCurve.map(-srcY);
+            } else {
+              localEuler2.y = lookAtHorizontalOuterCurve.map(srcY);
+            }
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
+      
+            leftEye.quaternion.setFromEuler(localEuler2);
+            leftEye.updateMatrix();
+          }
+      
+          if (rightEye) {
+            if (srcX < 0.0) {
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+            } else {
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+            }
+      
+            if (srcY < 0.0) {
+              localEuler2.y = -lookAtHorizontalOuterCurve.map(-srcY);
+            } else {
+              localEuler2.y = lookAtHorizontalInnerCurve.map(srcY);
+            }
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
+      
+            rightEye.quaternion.setFromEuler(localEuler2);
+            rightEye.updateMatrix();
+          }
+        }
+        function lookAt(position) {
+          calculateTargetEuler(localEuler, position);
+          lookAtEuler(localEuler);
+        }
+
+        const head = this.modelBoneOutputs['Head'];
+        const eyePosition = getEyePosition(this.modelBones);
+        this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
+        lookAt(localVector);
+      } else {
+        if (leftEye) {
+          leftEye.quaternion.identity();
+          leftEye.updateMatrix();
+        }
+        if (rightEye) {
+          rightEye.quaternion.identity();
+          rightEye.updateMatrix();
+        }
+      }
+    };
+    _updateEyeballTarget();
+
     this.modelBoneOutputs.Root.updateMatrixWorld();
     
     Avatar.applyModelBoneOutputs(

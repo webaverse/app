@@ -544,7 +544,8 @@ class StatePlayer extends PlayerBase {
       
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, session, this.avatar);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
     }
@@ -1064,7 +1065,8 @@ class NpcPlayer extends StaticInterpolatedPlayer {
       
       // const renderer = getRenderer();
       // const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, null, this.avatar);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
     }
