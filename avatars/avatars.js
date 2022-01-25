@@ -2696,48 +2696,47 @@ class Avatar {
           // left
           if (leftEye) {
             if (srcX < 0.0) {
-              _euler.x = -lookAtVerticalDownCurve.map(-srcX);
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
             } else {
-              _euler.x = lookAtVerticalUpCurve.map(srcX);
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
             }
       
             if (srcY < 0.0) {
-              _euler.y = -lookAtHorizontalInnerCurve.map(-srcY);
+              localEuler2.y = -lookAtHorizontalInnerCurve.map(-srcY);
             } else {
-              _euler.y = lookAtHorizontalOuterCurve.map(srcY);
+              localEuler2.y = lookAtHorizontalOuterCurve.map(srcY);
             }
-            _euler.x *= rotationFactor;
-            _euler.y *= rotationFactor;
-            _euler.y = Math.min(Math.max(_euler.y, -rotationRange), rotationRange);
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
       
-            leftEye.quaternion.setFromEuler(_euler);
+            leftEye.quaternion.setFromEuler(localEuler2);
             leftEye.updateMatrix();
           }
       
           // right
           if (rightEye) {
             if (srcX < 0.0) {
-              _euler.x = -lookAtVerticalDownCurve.map(-srcX);
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
             } else {
-              _euler.x = lookAtVerticalUpCurve.map(srcX);
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
             }
       
             if (srcY < 0.0) {
-              _euler.y = -lookAtHorizontalOuterCurve.map(-srcY);
+              localEuler2.y = -lookAtHorizontalOuterCurve.map(-srcY);
             } else {
-              _euler.y = lookAtHorizontalInnerCurve.map(srcY);
+              localEuler2.y = lookAtHorizontalInnerCurve.map(srcY);
             }
-            _euler.x *= rotationFactor;
-            _euler.y *= rotationFactor;
-            _euler.y = Math.min(Math.max(_euler.y, -rotationRange), rotationRange);
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
       
-            rightEye.quaternion.setFromEuler(_euler);
+            rightEye.quaternion.setFromEuler(localEuler2);
             rightEye.updateMatrix();
           }
         }
 
         const _v3C = new THREE.Vector3();
-        const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
         const _quat = new THREE.Quaternion();
         function _calcEuler(target, position) {
           const headPosition = eyePosition;
