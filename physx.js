@@ -1273,13 +1273,53 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
+
+  w.marchingCubes = (dims, potential, shift, scale) => {
+    let allocator = new Allocator();
+
+    const dimsTypedArray = allocator.alloc(Int32Array, 3);
+    dimsTypedArray.set(dims);
+
+    const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
+    potentialTypedArray.set(potential);
+
+    const shiftTypedArray = allocator.alloc(Float32Array, 3);
+    shiftTypedArray.set(shift);
+
+    const scaleTypedArray = allocator.alloc(Float32Array, 3);
+    scaleTypedArray.set(scale);
+
+    const outputBuffer = moduleInstance._doMarchingCubes(
+      dimsTypedArray.byteOffset,
+      potentialTypedArray.byteOffset,
+      shiftTypedArray.byteOffset,
+      shiftTypedArray.byteOffset
+    );
+
+    allocator.freeAll();
+
+    const head = outputBuffer / 4;
+
+    const positionCount = moduleInstance.HEAP32.subarray(head, head + 1)[0];
+    const faceCount = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
+    const positions = moduleInstance.HEAPF32.subarray(head + 2, head + 2 + positionCount);
+    const faces = moduleInstance.HEAP32.subarray(head + 2 + positionCount, head + 2 + positionCount +faceCount);
+
+    return {
+      positionCount: positionCount,
+      faceCount: faceCount,
+      positions: positions,
+      faces: faces
+    }
+  }
+
   return w;
 })();
 physx.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update();
-  
+
   physxWorker.update();
 };
 physx.update = _updateGeometry;
