@@ -71,12 +71,12 @@ let narutoRunSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
-  const audioTimeoutTime = 5 * 1000;
+  const audioTimeoutTime = 10 * 1000;
   const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
     const audio = new Audio();
     const p = new Promise((accept, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('audio load timed out'));
+        console.warn('audio load seems hung', audio);
       }, audioTimeoutTime);
       const _cleanup = () => {
         clearTimeout(timeout);
@@ -165,12 +165,12 @@ class CharacterSfx {
         const candidateAudios = jumpSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
-        audio.paused && audio.play();
+        audio.paused && audio.play().catch(err => {});
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const candidateAudios = landSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
-        audio.paused && audio.play();
+        audio.paused && audio.play().catch(err => {});
       }
       this.lastJumpState = this.player.avatar.jumpState;
     }
@@ -214,23 +214,17 @@ class CharacterSfx {
 
       const offset = offsets[walkRunAnimationName] ?? 0; // ?? window.lol;
       const _getStepIndex = timeSeconds => {
-        const f = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
-        const t1 = (timeSeconds * f + offset) % animation.duration;
-        const walkFactor1 = t1 / animation.duration;
-        const stepIndex = Math.floor(mod(walkFactor1, 1) * leftStepIndices.length);
+        const timeMultiplier = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
+        const walkTime = (timeSeconds * timeMultiplier + offset) % animation.duration;
+        const walkFactor = walkTime / animation.duration;
+        const stepIndex = Math.floor(mod(walkFactor, 1) * leftStepIndices.length);
         return stepIndex;
       };
-      // const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
-      // const walkFactor1 = t1 / animationAngles[0].animation.duration;
-      // const walkFactor2 = t2 / animationAngles[1].animation.duration;
-      // console.log('animation angles', {walkRunAnimationName, animationIndices, isCrouching, keyWalkAnimationAngles, keyAnimationAnglesOther});
-      // console.log('got animation name', walkRunAnimationName);
 
       const startIndex = _getStepIndex(this.lastWalkTime);
       const endIndex = _getStepIndex(timeSeconds);
       for (let i = startIndex;; i++) {
         i = i % leftStepIndices.length;
-        // console.log('check', i, startIndex, endIndex);
         if (i !== endIndex) {
           if (leftStepIndices[i] && !this.lastStepped[0]) {
             const candidateAudios = soundFiles//.filter(a => a.paused);
@@ -241,7 +235,7 @@ class CharacterSfx {
               
               const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
               audio.currentTime = 0;
-              audio.paused && audio.play();
+              audio.paused && audio.play().catch(err => {});
               // console.log('left');
             }
           }
@@ -256,7 +250,7 @@ class CharacterSfx {
 
               const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
               audio.currentTime = 0;
-              audio.paused && audio.play();
+              audio.paused && audio.play().catch(err => {});
               // console.log('right');
             }
           }
