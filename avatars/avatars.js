@@ -2736,17 +2736,18 @@ class Avatar {
           }
         }
 
-        const _v3C = new THREE.Vector3();
         const _quat = new THREE.Quaternion();
         function _calcEuler(target, position) {
           const headPosition = eyePosition;
 
           // Look at direction in world coordinate
-          const lookAtDir = _v3C.copy(headPosition).sub(position).normalize();
+          const lookAtDir = localVector.copy(headPosition).sub(position).normalize();
       
           // Transform the direction into local coordinate from the first person bone
-          _quat.setFromRotationMatrix(head.matrixWorld).invert();
-          lookAtDir.applyQuaternion(_quat);
+          lookAtDir.applyQuaternion(
+            localQuaternion.setFromRotationMatrix(head.matrixWorld)
+              .invert()
+          );
       
           // convert the direction into euler
           target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
