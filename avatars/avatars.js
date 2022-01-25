@@ -2690,7 +2690,8 @@ class Avatar {
           const srcX = euler.x;
           const srcY = euler.y;
       
-          const f = 3.5;
+          const rotationFactor = Math.PI;
+          const rotationRange = Math.PI*0.1;
 
           // left
           if (leftEye) {
@@ -2705,9 +2706,9 @@ class Avatar {
             } else {
               _euler.y = lookAtHorizontalOuterCurve.map(srcY);
             }
-            _euler.x *= f;
-            _euler.y *= f;
-            _euler.y = Math.min(Math.max(_euler.y, -Math.PI*0.1), Math.PI*0.1);
+            _euler.x *= rotationFactor;
+            _euler.y *= rotationFactor;
+            _euler.y = Math.min(Math.max(_euler.y, -rotationRange), rotationRange);
       
             leftEye.quaternion.setFromEuler(_euler);
             leftEye.updateMatrix();
@@ -2726,9 +2727,9 @@ class Avatar {
             } else {
               _euler.y = lookAtHorizontalInnerCurve.map(srcY);
             }
-            _euler.x *= f;
-            _euler.y *= f;
-            _euler.y = Math.min(Math.max(_euler.y, -Math.PI*0.1), Math.PI*0.1);
+            _euler.x *= rotationFactor;
+            _euler.y *= rotationFactor;
+            _euler.y = Math.min(Math.max(_euler.y, -rotationRange), rotationRange);
       
             rightEye.quaternion.setFromEuler(_euler);
             rightEye.updateMatrix();
