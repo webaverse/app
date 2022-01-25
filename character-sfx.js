@@ -165,12 +165,12 @@ class CharacterSfx {
         const candidateAudios = jumpSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
-        audio.paused && audio.play();
+        audio.paused && audio.play().catch(err => {});
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const candidateAudios = landSoundFiles;
         const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
         audio.currentTime = 0;
-        audio.paused && audio.play();
+        audio.paused && audio.play().catch(err => {});
       }
       this.lastJumpState = this.player.avatar.jumpState;
     }
@@ -241,7 +241,7 @@ class CharacterSfx {
               
               const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
               audio.currentTime = 0;
-              audio.paused && audio.play();
+              audio.paused && audio.play().catch(err => {});
               // console.log('left');
             }
           }
@@ -256,7 +256,7 @@ class CharacterSfx {
 
               const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
               audio.currentTime = 0;
-              audio.paused && audio.play();
+              audio.paused && audio.play().catch(err => {});
               // console.log('right');
             }
           }
