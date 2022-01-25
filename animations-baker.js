@@ -311,6 +311,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
       'Sneaking Forward reverse.fbx',
       'Crouched Sneaking Left reverse.fbx',
       'Crouched Sneaking Right reverse.fbx',
+      'naruto run.fbx',
     ];
     const animationStepIndices = walkAnimationNames.map(walkAnimationName => {
       const animation = animations.find(a => a.name === walkAnimationName);
@@ -383,7 +384,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
         rightFootYDeltas[i] = rightFootYDelta;
       }
 
-      const range = /sneak/i.test(walkAnimationName) ? 0.3 : 0.05;
+      const range = /sneak/i.test(walkAnimationName) ? 0.3 : 0.06;
 
       let leftMin = Infinity;
       let leftMax = -Infinity;

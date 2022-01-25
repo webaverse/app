@@ -11,7 +11,14 @@ import {angleDifference, getVelocityDampingFactor} from '../util.js';
 import easing from '../easing.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {
+  crouchMaxTime,
+  useMaxTime,
+  aimMaxTime,
+  avatarInterpolationFrameRate,
+  avatarInterpolationTimeDelay,
+  avatarInterpolationNumFrames,
+} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
@@ -85,6 +92,17 @@ const _makeSimplexes = numSimplexes => {
 };
 const simplexes = _makeSimplexes(5);
 
+const getClosest2AnimationAngles = (key, angle) => {
+  const animationAngleArray = animationsAngleArrays[key];
+  animationAngleArray.sort((a, b) => {
+    const aDistance = Math.abs(angleDifference(angle, a.angle));
+    const bDistance = Math.abs(angleDifference(angle, b.angle));
+    return aDistance - bDistance;
+  });
+  const closest2AnimationAngles = animationAngleArray.slice(0, 2);
+  return closest2AnimationAngles;
+};
+
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
@@ -100,7 +118,6 @@ const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 const defaultchargeJumpAnimation = 'chargeJump';
 const defaultStandChargeAnimation = 'standCharge';
-
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -215,6 +232,7 @@ const animationsIdleArrays = {
 };
 
 let animations;
+let animationStepIndices;
 let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
@@ -237,19 +255,34 @@ const loadPromise = (async () => {
   
   await Promise.all([
     (async () => {
-      const res = await fetch('../animations/animations.z');
+      const res = await fetch('/animations/animations.z');
       const arrayBuffer = await res.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const animationsJson = zbdecode(uint8Array);
       animations = animationsJson.animations
         .map(a => THREE.AnimationClip.parse(a));
+      animationStepIndices = animationsJson.animationStepIndices;
       animations.index = {};
       for (const animation of animations) {
         animations.index[animation.name] = animation;
       }
+
+      /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
+      for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0xff0000}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.leftFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      }
+      for (let i = 0; i < animationIndices.rightFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0x0000ff}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.rightFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      } */
     })(),
     (async () => {
-      const srcUrl = '../animations/animations-skeleton.glb';
+      const srcUrl = '/animations/animations-skeleton.glb';
       
       let o;
       try {
@@ -1276,6 +1309,9 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+    this.lastStepped = [0, 0];
+    this.lastWalkTime = 0;
+    this.lastJumpState = false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1727,8 +1763,10 @@ class Avatar {
     const idleSpeed = 0;
     const walkSpeed = 0.25;
     const runSpeed = 0.7;
+    const narutoRunTimeFactor = 2;
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updatePosition = () => {
@@ -1770,16 +1808,6 @@ class Avatar {
             return 'walk';
           }
         }
-      };
-      const _getClosest2AnimationAngles = key => {
-        const animationAngleArray = animationsAngleArrays[key];
-        animationAngleArray.sort((a, b) => {
-          const aDistance = Math.abs(angleDifference(angle, a.angle));
-          const bDistance = Math.abs(angleDifference(angle, b.angle));
-          return aDistance - bDistance;
-        });
-        const closest2AnimationAngles = animationAngleArray.slice(0, 2);
-        return closest2AnimationAngles;
       };
       const _getMirrorAnimationAngles = (animationAngles, key) => {
         const animations = animationAngles.map(({animation}) => animation);
@@ -1968,11 +1996,11 @@ class Avatar {
       };
       
       // stand
-      const key = _getAnimationKey(false);
-      const keyWalkAnimationAngles = _getClosest2AnimationAngles('walk');
+      // const key = _getAnimationKey(false);
+      const keyWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
       const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
 
-      const keyRunAnimationAngles = _getClosest2AnimationAngles('run');
+      const keyRunAnimationAngles = getClosest2AnimationAngles('run', angle);
       const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
       
       const idleAnimation = _getIdleAnimation('walk');
@@ -2020,14 +2048,13 @@ class Avatar {
       
       // crouch
       // const keyOther = _getAnimationKey(true);
-      const keyAnimationAnglesOther = _getClosest2AnimationAngles('crouch');
+      const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
       const idleAnimationOther = _getIdleAnimation('crouch');
       
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
       const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-      const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
       const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI*0.4;
       if (isBackward !== this.lastIsBackward) {
         this.backwardAnimationSpec = {
@@ -2141,7 +2168,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime / 1000 * 2) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
@@ -2924,6 +2951,7 @@ class Avatar {
 }
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
+Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;
 const getAudioContext = () => {
@@ -2936,4 +2964,5 @@ Avatar.getAudioContext = getAudioContext;
 Avatar.setAudioContext = newAvatarAudioContext => {
   avatarAudioContext = newAvatarAudioContext;
 };
+Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
 export default Avatar;
