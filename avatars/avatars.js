@@ -24,6 +24,12 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import metaversefile from 'metaversefile';
 import {
+  idleFactorSpeed,
+  walkFactorSpeed,
+  runFactorSpeed,
+  narutoRunTimeFactor,
+} from './constants.js';
+import {
   getSkinnedMeshes,
   getSkeleton,
   getEyePosition,
@@ -1753,16 +1759,8 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     
-    // walk = 0.29
-    // run = 0.88
-    // walk backward = 0.20
-    // run backward = 0.61
-    const idleSpeed = 0;
-    const walkSpeed = 0.25;
-    const runSpeed = 0.7;
-    const narutoRunTimeFactor = 2;
-    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
-    const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
