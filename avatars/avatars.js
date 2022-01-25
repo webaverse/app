@@ -90,6 +90,40 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone);
 
+function getFirstPersonCurves(vrmExtension) {
+  if (vrmExtension) {
+    const {firstPerson} = vrmExtension;
+    const {
+      lookAtHorizontalInner,
+      lookAtHorizontalOuter,
+      lookAtVerticalDown,
+      lookAtVerticalUp,
+      // lookAtTypeName,
+    } = firstPerson;
+
+    const DEG2RAD = Math.PI / 180; // THREE.MathUtils.DEG2RAD;
+    function _importCurveMapperBone(map) {
+      return new VRMCurveMapper(
+        typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
+        typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
+        map.curve,
+      );
+    }
+    const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
+    const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
+    const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
+    const lookAtVerticalUpCurve = _importCurveMapperBone(lookAtVerticalUp);
+    return {
+      lookAtHorizontalInnerCurve,
+      lookAtHorizontalOuterCurve,
+      lookAtVerticalDownCurve,
+      lookAtVerticalUpCurve,
+    };
+  } else {
+    return null;
+  }
+}
+
 const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
   for (let i = 0; i < numSimplexes; i++) {
@@ -773,6 +807,7 @@ class Avatar {
     this.options = options;
     
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
     const {
       skinnedMeshes,
@@ -2663,28 +2698,13 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      if (this.eyeballTargetEnabled && this.vrmExtension) {
-        const {firstPerson} = this.vrmExtension;
+      if (this.eyeballTargetEnabled && this.firstPersonCurves) {
         const {
-          lookAtHorizontalInner,
-          lookAtHorizontalOuter,
-          lookAtVerticalDown,
-          lookAtVerticalUp,
-          // lookAtTypeName,
-        } = firstPerson;
-
-        const DEG2RAD = Math.PI / 180; // THREE.MathUtils.DEG2RAD;
-        function _importCurveMapperBone(map) {
-          return new VRMCurveMapper(
-            typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
-            typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
-            map.curve,
-          );
-        }
-        const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
-        const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
-        const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
-        const lookAtVerticalUpCurve = _importCurveMapperBone(lookAtVerticalUp);
+          lookAtHorizontalInnerCurve,
+          lookAtHorizontalOuterCurve,
+          lookAtVerticalDownCurve,
+          lookAtVerticalUpCurve,
+        } = this.firstPersonCurves;
 
         function calculateTargetEuler(target, position) {
           const headPosition = eyePosition;
