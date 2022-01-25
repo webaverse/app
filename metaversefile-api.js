@@ -335,6 +335,7 @@ let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
+const mirrors = [];
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -376,6 +377,18 @@ metaversefile.setApi({
   },
   usePostPerspectiveScene() {
     return postScenePerspective;
+  },
+  getMirrors() {
+    return mirrors;
+  },
+  registerMirror(mirror) {
+    mirrors.push(mirror);
+  },
+  unregisterMirror(mirror) {
+    const index = mirrors.indexOf(mirror);
+    if (index !== -1) {
+      mirrors.splice(index, 1);
+    }
   },
   useWorld() {
     return {
