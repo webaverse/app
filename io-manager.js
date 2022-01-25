@@ -279,7 +279,8 @@ ioManager.keydown = e => {
     return;
   }
 
-  if (e.which === 74) {
+  // HACK: these keybindings control developer avatar animation offset settings in avatars.js
+  /* if (e.which === 74) {
     window.lol -= 0.01;
     console.log(window.lol);
   } else if (e.which === 75) {
@@ -291,7 +292,7 @@ ioManager.keydown = e => {
   } else if (e.which === 77) {
     window.lol2 += 0.01;
     console.log(window.lol2);
-  }
+  } */
 
   switch (e.which) {
     /* case 9: { // tab
