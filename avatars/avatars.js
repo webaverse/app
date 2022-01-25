@@ -1309,9 +1309,6 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
-    this.lastStepped = [0, 0];
-    this.lastWalkTime = 0;
-    this.lastJumpState = false;
   }
   static bindAvatar(object) {
     const model = object.scene;
