@@ -214,23 +214,17 @@ class CharacterSfx {
 
       const offset = offsets[walkRunAnimationName] ?? 0; // ?? window.lol;
       const _getStepIndex = timeSeconds => {
-        const f = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
-        const t1 = (timeSeconds * f + offset) % animation.duration;
-        const walkFactor1 = t1 / animation.duration;
-        const stepIndex = Math.floor(mod(walkFactor1, 1) * leftStepIndices.length);
+        const timeMultiplier = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
+        const walkTime = (timeSeconds * timeMultiplier + offset) % animation.duration;
+        const walkFactor = walkTime / animation.duration;
+        const stepIndex = Math.floor(mod(walkFactor, 1) * leftStepIndices.length);
         return stepIndex;
       };
-      // const t1 = (timeSeconds + offset) % animationAngles[0].animation.duration;
-      // const walkFactor1 = t1 / animationAngles[0].animation.duration;
-      // const walkFactor2 = t2 / animationAngles[1].animation.duration;
-      // console.log('animation angles', {walkRunAnimationName, animationIndices, isCrouching, keyWalkAnimationAngles, keyAnimationAnglesOther});
-      // console.log('got animation name', walkRunAnimationName);
 
       const startIndex = _getStepIndex(this.lastWalkTime);
       const endIndex = _getStepIndex(timeSeconds);
       for (let i = startIndex;; i++) {
         i = i % leftStepIndices.length;
-        // console.log('check', i, startIndex, endIndex);
         if (i !== endIndex) {
           if (leftStepIndices[i] && !this.lastStepped[0]) {
             const candidateAudios = soundFiles//.filter(a => a.paused);
