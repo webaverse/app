@@ -772,7 +772,7 @@ class Avatar {
     this.model = model;
     this.options = options;
     
-    const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.vrmExtension = object?.parser?.json?.extensions?.VRM;
 
     const {
       skinnedMeshes,
@@ -1171,7 +1171,7 @@ class Avatar {
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getBlendShapeIndexForPresetName = presetName => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -1184,7 +1184,7 @@ class Avatar {
         }
       };
       /* const _getBlendShapeIndexForName = name => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.name.toLowerCase() === name);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -2663,8 +2663,8 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      if (this.eyeballTargetEnabled && vrmExtension) {
-        const {firstPerson} = vrmExtension;
+      if (this.eyeballTargetEnabled && this.vrmExtension) {
+        const {firstPerson} = this.vrmExtension;
         const {
           lookAtHorizontalInner,
           lookAtHorizontalOuter,
@@ -2760,6 +2760,11 @@ class Avatar {
       
           applyerLookAt(localEuler);
         }
+
+        const head = this.modelBoneOutputs['Head'];
+        const eyePosition = getEyePosition(this.modelBones);
+        this.eyeballTargetPlane.projectPoint(eyePosition, localVector3);
+        lookAt(localVector3);
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
