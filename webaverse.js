@@ -100,33 +100,6 @@ export default class Webaverse extends EventTarget {
       ]);
     })();
     this.contentLoaded = false;
-
-    setTimeout(() => {
-      if (false && !window.isInitTestPhysxMesh) {
-        window.isInitTestPhysxMesh = true;
-        const geometry = new THREE.SphereGeometry(0.5);
-        const material = new THREE.MeshStandardMaterial({
-          color: 'green',
-        });
-        window.meshPhysx = new THREE.Mesh(geometry, material);
-        rootScene.add(window.meshPhysx);
-        // console.log(Math.random());
-        // debugger
-
-        window.meshPhysx.position.set(2, 2, 2);
-        window.meshPhysx.updateMatrixWorld();
-
-        const physicsMaterial = new THREE.Vector3(0, 0, 0);
-        window.characterController = physicsManager.createCharacterController(
-          0.5,
-          0.01,
-          0.1,
-          0.5,
-          window.meshPhysx.position,
-          physicsMaterial,
-        );
-      }
-    }, 3000);
   }
 
   waitForLoad() {
@@ -438,6 +411,33 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
+  setTimeout(() => {
+    if (false && !window.isInitTestPhysxMesh) {
+      window.isInitTestPhysxMesh = true;
+      const geometry = new THREE.SphereGeometry(0.5);
+      const material = new THREE.MeshStandardMaterial({
+        color: 'green',
+      });
+      window.meshPhysx = new THREE.Mesh(geometry, material);
+      rootScene.add(window.meshPhysx);
+      // console.log(Math.random());
+      // debugger
+
+      window.meshPhysx.position.set(2, 2, 2);
+      window.meshPhysx.updateMatrixWorld();
+
+      const physicsMaterial = new THREE.Vector3(0, 0, 0);
+      window.characterController = physicsManager.createCharacterController(
+        0.5,
+        0.01,
+        0.1,
+        0.5,
+        window.meshPhysx.position,
+        physicsMaterial,
+      );
+    }
+  }, 3000);
+
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
