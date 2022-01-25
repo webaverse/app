@@ -384,6 +384,12 @@ metaversefile.setApi({
   registerMirror(mirror) {
     mirrors.push(mirror);
   },
+  unregisterMirror(mirror) {
+    const index = mirrors.indexOf(mirror);
+    if (index !== -1) {
+      mirrors.splice(index, 1);
+    }
+  },
   useWorld() {
     return {
       appManager: world.appManager,
