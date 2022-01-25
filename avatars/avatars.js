@@ -2710,7 +2710,7 @@ class Avatar {
           const headPosition = eyePosition;
 
           // Look at direction in world coordinate
-          const lookAtDir = localVector.copy(headPosition).sub(position).normalize();
+          const lookAtDir = localVector2.copy(headPosition).sub(position).normalize();
       
           // Transform the direction into local coordinate from the first person bone
           lookAtDir.applyQuaternion(
@@ -2722,6 +2722,7 @@ class Avatar {
           target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
           target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
           target.z = 0;
+          target.order = 'YXZ';
         }
         function lookAtEuler(euler) {
           const srcX = euler.x;
@@ -2730,7 +2731,6 @@ class Avatar {
           const rotationFactor = Math.PI;
           const rotationRange = Math.PI*0.1;
 
-          // left
           if (leftEye) {
             if (srcX < 0.0) {
               localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
@@ -2748,12 +2748,12 @@ class Avatar {
             localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
 
             localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
       
             leftEye.quaternion.setFromEuler(localEuler2);
             leftEye.updateMatrix();
           }
       
-          // right
           if (rightEye) {
             if (srcX < 0.0) {
               localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
@@ -2771,6 +2771,7 @@ class Avatar {
             localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
 
             localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
       
             rightEye.quaternion.setFromEuler(localEuler2);
             rightEye.updateMatrix();
@@ -2783,8 +2784,8 @@ class Avatar {
 
         const head = this.modelBoneOutputs['Head'];
         const eyePosition = getEyePosition(this.modelBones);
-        this.eyeballTargetPlane.projectPoint(eyePosition, localVector3);
-        lookAt(localVector3);
+        this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
+        lookAt(localVector);
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
