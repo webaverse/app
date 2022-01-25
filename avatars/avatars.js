@@ -2663,7 +2663,7 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      if (this.eyeballTargetEnabled) {
+      if (this.eyeballTargetEnabled && vrmExtension) {
         const {firstPerson} = vrmExtension;
         const {
           lookAtHorizontalInner,
