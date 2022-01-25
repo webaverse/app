@@ -2721,6 +2721,7 @@ class Avatar {
           // convert the direction into euler
           target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
           target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
+          target.z = 0;
         }
         function lookAtEuler(euler) {
           const srcX = euler.x;
@@ -2745,6 +2746,8 @@ class Avatar {
             localEuler2.x *= rotationFactor;
             localEuler2.y *= rotationFactor;
             localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
       
             leftEye.quaternion.setFromEuler(localEuler2);
             leftEye.updateMatrix();
@@ -2766,6 +2769,8 @@ class Avatar {
             localEuler2.x *= rotationFactor;
             localEuler2.y *= rotationFactor;
             localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
       
             rightEye.quaternion.setFromEuler(localEuler2);
             rightEye.updateMatrix();
