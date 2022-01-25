@@ -2736,13 +2736,10 @@ class Avatar {
           }
         }
 
-        // const applyer = new VRMLookAtApplyer();
         const _v3C = new THREE.Vector3();
-        // const _v3B = new THREE.Vector3();
         const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
         const _quat = new THREE.Quaternion();
         function _calcEuler(target, position) {
-          // const headPosition = _v3B.setFromMatrixPosition(head.matrixWorld);
           const headPosition = eyePosition;
 
           // Look at direction in world coordinate
@@ -2763,101 +2760,6 @@ class Avatar {
       
           applyerLookAt(localEuler);
         }
-
-
-
-
-
-        
-        /* const globalQuaternion = localQuaternion2.setFromRotationMatrix(
-          localMatrix.lookAt(
-            eyePosition,
-            this.eyeballTarget,
-            upVector
-          )
-        ); */
-        // this.modelBoneOutputs.Root.updateMatrixWorld();
-        // this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-        const head = this.modelBoneOutputs['Head'];
-        // console.log('got bones', this);
-        // head.updateMatrixWorld();
-
-        const eyePosition = getEyePosition(this.modelBones);
-        this.eyeballTargetPlane.projectPoint(eyePosition, localVector3);
-        lookAt(localVector3);
-
-        /* if (!window.eyeMesh) {
-          const eyeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            depthTest: false,
-          }));
-          window.eyeMesh = eyeMesh;
-          scene.add(eyeMesh);
-        }
-
-        // localQuaternion.copy(this.startEyeTargetQuaternion)
-          // .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
-        for (const eye of [leftEye, rightEye]) {
-          eye.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-          this.eyeballTargetPlane.projectPoint(localVector, localVector3);
-          // console.log('got point', localVector3.toArray().join(','));
-          localQuaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              localVector3,
-              localVector,
-              upVector
-            )
-          );
-          eye.matrixWorld.compose(localVector, localQuaternion, localVector2);
-          eye.matrix.copy(eye.matrixWorld)
-            .premultiply(localMatrix2.copy(eye.parent.matrixWorld).invert())
-            .decompose(eye.position, eye.quaternion, localVector2);
-          // eye.quaternion.slerp(localQuaternion2.identity(), 0.5);
-        }
-
-        leftEye.matrixWorld.decompose(window.eyeMesh.position, window.eyeMesh.quaternion, window.eyeMesh.scale);
-        window.eyeMesh.updateMatrixWorld(); */
-
-
-
-
-
-
-
-      
-        /* this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
-        this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
-          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2); */
-
-        /* const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI*0.4;
-        if (needsEyeTarget && !this.lastNeedsEyeTarget) {
-          this.startEyeTargetQuaternion.copy(localQuaternion);
-          this.lastEyeTargetTime = now;
-        } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
-          this.startEyeTargetQuaternion.copy(localQuaternion);
-          this.lastEyeTargetTime = now;
-        }
-        this.lastNeedsEyeTarget = needsEyeTarget;
-
-        const eyeTargetFactor = Math.min(Math.max((now - this.lastEyeTargetTime) / maxEyeTargetTime, 0), 1);
-        if (needsEyeTarget) {
-          localQuaternion.copy(this.startEyeTargetQuaternion)
-            .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
-          this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
-          this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
-            .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-            .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
-        } else {
-          if (eyeTargetFactor < 1) {
-            localQuaternion2.copy(this.startEyeTargetQuaternion)
-              .slerp(localQuaternion, cubicBezier(eyeTargetFactor));
-            localMatrix.compose(localVector.set(0, 0, 0), localQuaternion2, localVector2.set(1, 1, 1))
-              .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-              .decompose(localVector, localQuaternion, localVector2);
-          }
-        } */
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
