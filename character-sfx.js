@@ -71,12 +71,12 @@ let narutoRunSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
-  const audioTimeoutTime = 5 * 1000;
+  const audioTimeoutTime = 10 * 1000;
   const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
     const audio = new Audio();
     const p = new Promise((accept, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('audio load timed out'));
+        console.warn('audio load seems hung', audio);
       }, audioTimeoutTime);
       const _cleanup = () => {
         clearTimeout(timeout);
