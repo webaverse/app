@@ -756,7 +756,13 @@ ioManager.click = e => {
     if (!game.hoverEnabled) {
       cameraManager.requestPointerLock();
     }
-    
+
+    if(transformControls.enable)
+    {
+      const mouseHoverObject = game.getMouseHoverObject();
+      const mouseHoverPhysicsId = game.getMouseHoverPhysicsId();  
+      game.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
+    }
     /* if (controlsManager.isPossessed()) {
       cameraManager.requestPointerLock();
     } else {
@@ -786,10 +792,7 @@ ioManager.mousedown = e => {
       game.menuAim();
     }
   } else {
-    
-    if (game.getMouseSelectedObject() !== transformControls.object) {
-      transformControls.enable = false;
-    }
+     
     const raycaster = _getMouseRaycaster(e, localRaycaster);
     transformControls.handleMouseDown(raycaster);
 

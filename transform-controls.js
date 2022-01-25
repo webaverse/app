@@ -1,7 +1,5 @@
-import * as THREE from 'three';
-import { camera, getRenderer, rootScene, scene, sceneLowPriority } from './renderer.js';
+import { camera, getRenderer, rootScene } from './renderer.js';
 import game from './game.js';
-import { capitalize } from './util.js';
 import { TransformControls } from './TransformControls.js';
 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -19,7 +17,14 @@ const loadGizmoModel = async () => {
   const gltf = await new Promise((resolve, reject) => {
     gltfLoader.load(transformGizmoUrl, (gltf) => {
       resolve(gltf);
-      transformControls.create(camera, getRenderer().domElement, cloneObject3D(gltf.scene));
+      const model = cloneObject3D(gltf.scene);
+      model.traverse(v => {
+        if (v.material) {
+          v.material.opacity *= 0.5;
+        }
+      })
+      transformControls.create(camera, getRenderer().domElement, model);
+      transformControls.controller.setSize(0.5);
     }, function onprogress() { }, reject);
   });
 
@@ -62,22 +67,31 @@ const transformControls = {
   },
 
   handleMouseMove(raycaster) {
+    if (!this.controller)
+      return;
+
     this.controller._onPointerHover(raycaster)
     this.controller._onPointerMove(raycaster)
   },
 
 
   update() {
-    const mouseSelectedObject = game.getMouseSelectedObject();
     this.controller.updateMatrixWorld(true);
-    if (this.controller.pointerDownHasAxis)
-      return
+    const mouseSelectedObject = game.getMouseSelectedObject();
 
-    this.enable = !!mouseSelectedObject && !game.contextMenu && this.controller;
-    if (!this.enable)
-      return
+    if (!mouseSelectedObject)
+      this.controller.detach();
 
-    if (mouseSelectedObject === this.object)
+    if (this.controller.visible && this.controller.pointerDownHasAxis)
+      return;
+
+    this.enable = !!mouseSelectedObject && !game.contextMenu && !!this.controller
+    if (!this.enable) {
+      this.controller.detach();
+      return
+    }
+
+    if (mouseSelectedObject === this.controller.object)
       return;
 
     this.controller.attach(mouseSelectedObject);
