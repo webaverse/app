@@ -29,9 +29,9 @@ class Hup extends EventTarget {
     return action.type === 'chat';
   }
   mergeAction(action) {
-    const {text, emote} = action;
-    if (text) {
-      this.fullText += text;
+    const {message, emote} = action;
+    if (message) {
+      this.fullText += message;
     }
     this.emote = emote ?? null;
     this.lastTimestamp = performance.now();
