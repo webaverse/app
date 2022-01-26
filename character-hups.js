@@ -2,31 +2,41 @@
 it controls the animated dioramas that happen when players perform actions. */
 
 import * as THREE from 'three';
+import Avatar from './avatars/avatars.js';
+import {loadAudio} from './util.js';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localVector5 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
+const syllableSoundFileNames = (() => {
+  const numFiles = 362;
+  const files = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`);
+  return files;
+})();
 
-// const localOffset = new THREE.Vector3();
-const localOffset2 = new THREE.Vector3();
+function weightedRandom(weights) {
+	var totalWeight = 0,
+		i, random;
 
-// const localArray = [];
-// const localVelocity = new THREE.Vector3();
+	for (i = 0; i < weights.length; i++) {
+		totalWeight += weights[i];
+	}
 
-// const zeroVector = new THREE.Vector3();
-// const upVector = new THREE.Vector3(0, 1, 0);
+	random = Math.random() * totalWeight;
 
-class Vocalizer {
-  constructor(voices) {
-    this.voices = voices.map(voice => {
+	for (i = 0; i < weights.length; i++) {
+		if (random < weights[i]) {
+			return i;
+		}
+
+		random -= weights[i];
+	}
+
+	return -1;
+}
+
+class Voicer {
+  constructor(audios) {
+    this.voices = audios.map(audio => {
       return {
-        voice,
+        audio,
         nonce: 0,
       };
     });
@@ -46,42 +56,71 @@ class Vocalizer {
         voiceSpec.nonce--;
       }
     }
-    return voiceSpec.voice;
+    return voiceSpec.audio;
   }
 }
+
+let syllableSoundFiles;
+const loadPromise = (async () => {
+  await Avatar.waitForLoad();
+
+  const _loadSoundFiles = getUrlFn => function(fileNames) {
+    return Promise.all(fileNames.map(fileName => loadAudio(getUrlFn(fileName))));
+  };
+  const _loadSyllableSoundFiles = _loadSoundFiles(fileName => {
+    return `https://webaverse.github.io/shishi-voicepack/syllables/${fileName}`;
+  });
+  await Promise.all([
+    _loadSyllableSoundFiles(syllableSoundFileNames).then(as => {
+      syllableSoundFiles = as;
+    }),
+  ]);
+})();
+const waitForLoad = () => loadPromise;
+
 window.playVoice = async () => {
   await loadPromise;
 
+  const voicer = new Voicer(syllableSoundFiles);
+  
+  const audioTime = 2000 + 5000 * Math.random();
+  const now = performance.now();
+  const endTime = now + audioTime;
+
   // play a random audio file, wait for it to finish, then recurse to play another
   const _recurse = async () => {
-    // XXX this needs to be played by the player object
-    const audio = voicer.selectVoice();
-    if (audio.silencingInterval) {
-      clearInterval(audio.silencingInterval);
-      audio.silencingInterval = null;
-    }
-    audio.currentTime = 0;
-    audio.volume = 1;
-    if (audio.paused) {
-      await audio.play();
-    }
-    const audioTimeout = audio.duration * 1000;
-    setTimeout(async () => {
-      // await audio.pause();
+    const now = performance.now();
+    if (now < endTime) {
+      const audio = voicer.selectVoice();
+      // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
+      if (audio.silencingInterval) {
+        clearInterval(audio.silencingInterval);
+        audio.silencingInterval = null;
+      }
+      audio.currentTime = 0;
+      audio.volume = 1;
+      if (audio.paused) {
+        await audio.play();
+      }
+      let audioTimeout = audio.duration * 1000;
+      audioTimeout *= 0.8 + 0.5 * Math.random();
+      setTimeout(async () => {
+        // await audio.pause();
 
-      audio.silencingInterval = setInterval(() => {
-        audio.volume = Math.max(audio.volume - 0.1, 0);
-        if (audio.volume === 0) {
-          clearInterval(audio.silencingInterval);
-          audio.silencingInterval = null;
-        }
-      }, 10);
+        audio.silencingInterval = setInterval(() => {
+          audio.volume = Math.max(audio.volume - 0.1, 0);
+          if (audio.volume === 0) {
+            clearInterval(audio.silencingInterval);
+            audio.silencingInterval = null;
+          }
+        }, 10);
 
-      _recurse();
-    }, audioTimeout);
-    /* audio.addEventListener('ended', async () => {
-      
-    }, {once: true}); */
+        _recurse();
+      }, audioTimeout);
+      /* audio.addEventListener('ended', async () => {
+        
+      }, {once: true}); */
+    }
   };
   _recurse();
 };
@@ -196,8 +235,8 @@ class CharacterHups extends EventTarget {
       }
     }
   }
-  setVocalizationsPack(voices) {
-    this.vocalizer = new Vocalizer(voices);
+  setVoicePack(voices) {
+    this.voicer = new Voicer(voices);
   }
   addChatHupAction(text) {
     this.player.addAction({
@@ -214,5 +253,6 @@ class CharacterHups extends EventTarget {
 }
 
 export {
+  waitForLoad,
   CharacterHups,
 };
