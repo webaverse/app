@@ -33,7 +33,7 @@ class MicrophoneWorker extends EventTarget {
               break;
             }
           default: {
-            console.warn('invalid microhpone worklet message', e.data);
+            console.warn('invalid microphone worklet message', e.data);
           }
         }
       };
