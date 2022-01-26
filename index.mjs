@@ -117,6 +117,7 @@ const _proxyUrl = (req, res, u) => {
   const httpServer = _makeHttpServer();
   const viteServer = await vite.createServer({
     server: {
+      force:true, //rebuild server if script is restarted to avoid cached code
       middlewareMode: 'html',
       hmr: {
         server: httpServer,
