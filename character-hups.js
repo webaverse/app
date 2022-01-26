@@ -103,7 +103,7 @@ window.playVoice = async () => {
         await audio.play();
       }
       let audioTimeout = audio.duration * 1000;
-      audioTimeout *= 0.8 + 0.5 * Math.random();
+      audioTimeout *= 0.8 + 0.4 * Math.random();
       setTimeout(async () => {
         // await audio.pause();
 
