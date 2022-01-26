@@ -56,6 +56,10 @@ class Hup extends EventTarget {
     this.lastTimestamp = 0;
 
     this.open = false;
+
+    if (this.parent.voicer) {
+      this.parent.voicer.start();
+    }
   }
   static isHupAction(action) {
     return action.type === 'chat';
@@ -82,6 +86,7 @@ class Hup extends EventTarget {
   }
   destroy() {
     // console.warn('destroy hup', this);
+    this.parent.voicer.stop();
   }
 }
 
