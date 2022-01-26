@@ -1933,13 +1933,22 @@ class Avatar {
             })();
             if (!isPosition) {
               if (useAnimation) {
-                const src2 = useAnimation.interpolants[k];
+                const idleAnimation = _getIdleAnimation('walk');
+                
+                let src2 = useAnimation.interpolants[k];
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                  src2 = idleAnimation.interpolants[k];
+                }
+
                 const v2 = src2.evaluate(t2);
 
-                const idleAnimation = _getIdleAnimation('walk');
+
+
                 const t3 = 0;
                 const src3 = idleAnimation.interpolants[k];
                 const v3 = src3.evaluate(t3);
+
+           
 
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
@@ -1948,17 +1957,23 @@ class Avatar {
                 _handleDefault(spec);
               } */
             } else {
-              const src2 = useAnimation.interpolants[k];
+              const idleAnimation = _getIdleAnimation('walk');
+              let src2 = useAnimation.interpolants[k];
+              if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                src2 = idleAnimation.interpolants[k];
+              }
               const v2 = src2.evaluate(t2);
               localVector2.fromArray(v2);
               _clearXZ(localVector2, isPosition);
 
-              const idleAnimation = _getIdleAnimation('walk');
+           
               const t3 = 0;
               const src3 = idleAnimation.interpolants[k];
               const v3 = src3.evaluate(t3);
               localVector3.fromArray(v3);
               
+
+
               dst
                 .sub(localVector3)
                 .add(localVector2);
@@ -1982,10 +1997,15 @@ class Avatar {
               if (aimAnimation) {
                 const idleAnimation = _getIdleAnimation('walk');
                 //aimAnimation here
+                console.log(k);
                 let src2 = aimAnimation.interpolants[k]; 
                 if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
                   src2 = idleAnimation.interpolants[k];
                 }
+
+                // if(this.move && k.includes("Spine") ) {
+                //   return;
+                // }
                 // first blend
                 // if(this.move) {
                 //   //lessen or remove influence from legs
