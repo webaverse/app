@@ -62,56 +62,74 @@ const landSoundFileNames = `\
 land1.wav
 land2.wav
 land3.wav`.split('\n');
+const syllableSoundFileNames = (() => {
+  const numFiles = 362;
+  const files = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`);
+  return files;
+})();
 
 let walkSoundFiles;
 let runSoundFiles;
 let jumpSoundFiles;
 let landSoundFiles;
 let narutoRunSoundFiles;
+let syllableSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
   const audioTimeoutTime = 10 * 1000;
-  const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
-    const audio = new Audio();
-    const p = new Promise((accept, reject) => {
-      const timeout = setTimeout(() => {
-        console.warn('audio load seems hung', audio);
-      }, audioTimeoutTime);
-      const _cleanup = () => {
-        clearTimeout(timeout);
-      };
-      audio.oncanplaythrough = () => {
-        _cleanup();
-        accept();
-      };
-      audio.onerror = err => {
-        _cleanup();
-        reject(err);
-      };
-    });
-    // console.log('got src', `../sounds/${soundType}/${fileName}`);
-    audio.src = `/sounds/${soundType}/${fileName}`;
-    audio.load();
-    await p;
-    // document.body.appendChild(audio);
-    return audio;
-  }));
+  const _loadSoundFiles = getUrlFn => function(fileNames) {
+    return Promise.all(fileNames.map(async fileName => {
+      const audio = new Audio();
+      const p = new Promise((accept, reject) => {
+        const timeout = setTimeout(() => {
+          console.warn('audio load seems hung', audio);
+        }, audioTimeoutTime);
+        const _cleanup = () => {
+          clearTimeout(timeout);
+        };
+        audio.oncanplaythrough = () => {
+          _cleanup();
+          accept();
+        };
+        audio.onerror = err => {
+          _cleanup();
+          reject(err);
+        };
+      });
+      // console.log('got src', `../sounds/${soundType}/${fileName}`);
+      audio.crossOrigin = 'Anonymous';
+      audio.src = getUrlFn(fileName);
+      audio.load();
+      await p;
+      // document.body.appendChild(audio);
+      return audio;
+    }));
+  };
+  const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
+    return `/sounds/${soundType}/${fileName}`;
+  })(fileNames);
+  const _loadSyllableSoundFiles = _loadSoundFiles(fileName => {
+    return `https://webaverse.github.io/shishi-voicepack/syllables/${fileName}`;
+  });
   await Promise.all([
-    _loadSoundFiles(walkSoundFileNames, 'walk').then(as => {
+    _loadFootstepSoundFiles(walkSoundFileNames, 'walk').then(as => {
       walkSoundFiles = as;
     }),
-    _loadSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
-      narutoRunSoundFiles = as;
-    }),
-    _loadSoundFiles(runSoundFileNames, 'run').then(as => {
+    _loadFootstepSoundFiles(runSoundFileNames, 'run').then(as => {
       runSoundFiles = as;
     }),
-    _loadSoundFiles(jumpSoundFileNames, 'jump').then(as => {
+    _loadFootstepSoundFiles(jumpSoundFileNames, 'jump').then(as => {
       jumpSoundFiles = as;
     }),
-    _loadSoundFiles(landSoundFileNames, 'land').then(as => {
+    _loadFootstepSoundFiles(landSoundFileNames, 'land').then(as => {
       landSoundFiles = as;
+    }),
+    _loadFootstepSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
+      narutoRunSoundFiles = as;
+    }),
+    _loadSyllableSoundFiles(syllableSoundFileNames).then(as => {
+      syllableSoundFiles = as;
     }),
   ]);
 })();
