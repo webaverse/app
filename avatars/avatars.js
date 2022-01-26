@@ -158,6 +158,7 @@ const animationsIdleArrays = {
   crouch: {name: 'Crouch Idle.fbx'},
 };
 
+let upperBodyAnims;
 let animations;
 let animationsBaseModel;
 let jumpAnimation;
@@ -1979,11 +1980,13 @@ class Avatar {
               //if sword dont do it but if pistol thats a diff
 
               if (aimAnimation) {
+                const idleAnimation = _getIdleAnimation('walk');
                 //aimAnimation here
-                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe")) {
-                  return;
+                let src2 = aimAnimation.interpolants[k]; 
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                  src2 = idleAnimation.interpolants[k];
                 }
-                let src2 = aimAnimation.interpolants[k]; // first blend
+                // first blend
                 // if(this.move) {
                 //   //lessen or remove influence from legs
                 //   src2 = aimAnimation.interpolants[k];
@@ -1993,7 +1996,7 @@ class Avatar {
                 //forcing walk during sword?
                 //would we ever run with the sword aim = no
                 //don't use sword aim animation on lower body
-                const idleAnimation = _getIdleAnimation('walk');
+                
                 const t3 = 0;
                 const src3 = idleAnimation.interpolants[k]; // second blend
                 const v3 = src3.evaluate(t3);
