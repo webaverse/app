@@ -8,6 +8,18 @@ export default defineConfig({
     metaversefilePlugin(),
     reactRefresh(),
   ],
+  optimizeDeps:{
+    entries: [
+      'src/*.js',
+      'src/*.jsx',
+      'avatars/*.js',
+      'avatars/vrarmik/*.js',
+      'src/components/*.js', 
+      'src/components/*.jsx', 
+      'src/tabs/*.jsx',
+      '*.js'
+    ],
+  },
   server: {
     fs: {
       strict: true,

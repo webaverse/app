@@ -117,6 +117,7 @@ const _proxyUrl = (req, res, u) => {
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
+      force:true,
       hmr: {
         server: httpServer,
         port,
