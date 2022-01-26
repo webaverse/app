@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import {defaultPlayerName} from '../../constants.js';
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, previewCanvasRef}) => {
   const sideSize = 400;
@@ -24,7 +25,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
           <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
           <div className={styles['panel-header']}>
             <div className={classnames(styles['panel-section'], styles.name)}>
-              <h1>Scillia</h1>
+              <h1>{defaultPlayerName}</h1>
             </div>
             <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
             <div className={classnames(styles['panel-section'], styles['main-stats'])}>
@@ -39,8 +40,8 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             </div>
           </div>
           {/* <div className={styles['panel-header']}>
-          <h1>Equipment</h1>
-        </div> */}
+            <h1>Equipment</h1>
+          </div> */}
           {wearActions.map((wearAction, i) => {
             return (
               <div

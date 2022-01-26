@@ -101,7 +101,7 @@ function ChatInput({open, setOpen}) {
     </div>
   )
 }
-function ChatMessages() {
+/* function ChatMessages() {
   const [messageGroups, setMessageGroups] = useState([]);
   const [epoch, setEpoch] = useState(0);
   
@@ -173,12 +173,12 @@ function ChatMessages() {
       })}
     </div>
   );
-}
+} */
 export default function Chat({open, setOpen}) {
   return (
     <>
       <ChatInput open={open} setOpen={setOpen} />
-      <ChatMessages />
+      {/* <ChatMessages /> */}
     </>
   );
 };

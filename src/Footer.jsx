@@ -23,10 +23,10 @@ export default () => {
         </div>
       </div>
       <div className={classnames(styles.helper, styles.right)}>
-        <div className={styles.chat} id="chat">
+        {/* <div className={styles.chat} id="chat">
           <div className={styles.messages} id="chat-messages"></div>
           <input type="text" className={styles.input} />
-        </div>
+        </div> */}
         <div className={styles.keys}>
           <div className={styles.label}>Move</div>
           <div className={styles.row}>

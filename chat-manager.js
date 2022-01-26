@@ -42,6 +42,7 @@ class ChatManager extends EventTarget {
     const m = {
       type: 'chat',
       chatId,
+      playerName: localPlayer.name,
       message,
       emotion,
       fakeSpeech,
