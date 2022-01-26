@@ -1,35 +1,10 @@
 class MicrophoneWorker extends EventTarget {
-  constructor(o, options = {}) {
+  constructor(options = {}) {
     super();
 
     this.live = true;
-    this.mediaStreamSource = null;
+    // this.mediaStreamSource = null;
     this.audioWorkletNode = null;
-
-    if (o instanceof MediaStream) {
-      const audio = document.createElement('audio');
-      audio.srcObject = o;
-      audio.muted = true;
-    } else {
-      /* const oldO = o;
-      oldO.play = (play => function() {
-        play.apply(oldO, arguments);
-        play.apply(o, arguments);
-      })(oldO.play);
-      oldO.pause = (pause => function() {
-        pause.apply(oldO, arguments);
-        pause.apply(o, arguments);
-      })(oldO.pause);
-      o = o.cloneNode(); */
-    }
-    const mediaStreamSource = (() => {
-      if (o instanceof MediaStream) {
-        return options.audioContext.createMediaStreamSource(o);
-      } else {
-        return options.audioContext.createMediaElementSource(o);
-      }
-    })();
-    this.mediaStreamSource = mediaStreamSource;
 
     // console.log('load module', options.microphoneWorkletUrl || 'avatars/microphone-worklet.js');
     this.loadPromise = (async () => {
@@ -63,21 +38,24 @@ class MicrophoneWorker extends EventTarget {
         }
       };
       // console.log('connect', mediaStreamSource);
-      mediaStreamSource.connect(audioWorkletNode).connect(options.audioContext.destination);
 
       this.audioWorkletNode = audioWorkletNode;
+      this.audioWorkletNode.connect(options.audioContext.destination);
     })();
+  }
+  getInput() {
+    return this.audioWorkletNode;
   }
   close() {
     this.live = false;
-    this.mediaStreamSource && this.mediaStreamSource.disconnect();
+    // this.mediaStreamSource && this.mediaStreamSource.disconnect();
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();
       this.audioWorkletNode.port.onmessage = null;
     }
   }
-  async waitForLoad() {
-    await this.loadPromise;
+  waitForLoad() {
+    return this.loadPromise;
   }
 }
 export default MicrophoneWorker;
