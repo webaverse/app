@@ -59,9 +59,7 @@ class Voicer {
       }
       audio.currentTime = 0;
       audio.volume = 1;
-      if (audio.paused) {
-        await audio.play();
-      }
+      audio.paused && audio.play().catch(err => {});
       let audioTimeout = audio.duration * 1000;
       audioTimeout *= 0.8 + 0.4 * Math.random();
       this.timeout = setTimeout(async () => {
