@@ -6,10 +6,11 @@ import styles from './CharacterHups.module.css';
 import metaversefile from 'metaversefile';
 const {useLocalPlayer} = metaversefile;
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 
 const defaultHupSize = 256;
+const pixelRatio = window.devicePixelRatio;
 
 function CharacterHup(props) {
   const {hup, hups, setHups} = props;
@@ -65,12 +66,27 @@ function CharacterHup(props) {
     });
   }, []);
 
+  // console.log('got hup', hup);
+
   return (
     <div className={classnames(styles['character-hup'], localOpen ? styles['open'] : null)} ref={hupRef}>
-      <canvas width={defaultHupSize} height={defaultHupSize} ref={canvasRef} />
+      <canvas width={defaultHupSize*pixelRatio} height={defaultHupSize*pixelRatio} ref={canvasRef} />
       <div className={styles.name}>
-        {props.actionId}
+        <div className={styles.bar} />
+        <h1>{hup.playerName}</h1>
+        <h2>Lv. 9</h2>
+        {/* <div className={styles.stats}>
+          <div className={styles.stat}>
+            <h3>HP</h3>
+            <progress value={61} />
+          </div>
+          <div className={styles.stat}>
+            <h3>MP</h3>
+            <progress value={83} />
+          </div>
+        </div> */}
       </div>
+      <div className={styles.message}>{hup.fullText}</div>
     </div>
   );
 }
@@ -81,19 +97,12 @@ export default function CharacterHups() {
   useEffect(() => {
     const localPlayer = useLocalPlayer();
     function hupadd(e) {
-      // console.log('hup add', e.data);
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
     function hupremove(e) {
-      // console.log('hup remove', e.data);
-      // const newHups = hups.slice();
-      // const hupIndex = hups.find(e.data.hup);
-      // newHups.splice(hupIndex, 1);
       e.data.hup.setOpen(false);
-      // setHups(hups);
     }
-    // console.log('bind hups', localPlayer.characterHups);
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
     localPlayer.characterHups.addEventListener('hupremove', hupremove);
 

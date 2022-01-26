@@ -15,6 +15,7 @@ class Hup extends EventTarget {
     this.hupId = ++nextHupId;
 
     this.actionIds = [];
+    this.playerName = '';
     this.fullText = '';
     this.emote = null;
     this.lastTimestamp = 0;
@@ -29,7 +30,10 @@ class Hup extends EventTarget {
     return action.type === 'chat';
   }
   mergeAction(action) {
-    const {message, emote} = action;
+    const {playerName, message, emote} = action;
+    if (playerName) {
+      this.playerName = playerName;
+    }
     if (message) {
       this.fullText += message;
     }

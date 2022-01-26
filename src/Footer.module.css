@@ -23,6 +23,14 @@
   font-family: 'WinchesterCaps';
   src:  url('../public/fonts/WinchesterCaps.ttf');
 }
+@font-face {
+  font-family: 'FastMonkRegular';
+  src:  url('../public/fonts/FastMonk-Regular.ttf');
+}
+@font-face {
+  font-family: 'FastMonkInkRegular';
+  src:  url('../public/fonts/FastMonk_Ink-Regular.ttf');
+}
 
 body {
   margin: 0;

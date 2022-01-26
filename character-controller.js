@@ -22,7 +22,8 @@ import {
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
-  groundFriction,
+  // groundFriction,
+  defaultPlayerName,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
@@ -704,6 +705,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.name = defaultPlayerName;
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
