@@ -43,19 +43,19 @@ import WebaWallet from './src/components/wallet.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-const localArray = Array(4);
-const localArray2 = Array(4);
-const localArray3 = Array(4);
-const localArray4 = Array(4);
+// const localArray = Array(4);
+// const localArray2 = Array(4);
+// const localArray3 = Array(4);
+// const localArray4 = Array(4);
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
@@ -96,7 +96,6 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        CharacterHupsModule.waitForLoad(),
         CharacterSfxModule.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
@@ -631,27 +630,7 @@ const _startHacks = () => {
   });
 };
 
-function weightedRandom(weights) {
-	var totalWeight = 0,
-		i, random;
-
-	for (i = 0; i < weights.length; i++) {
-		totalWeight += weights[i];
-	}
-
-	random = Math.random() * totalWeight;
-
-	for (i = 0; i < weights.length; i++) {
-		if (random < weights[i]) {
-			return i;
-		}
-
-		random -= weights[i];
-	}
-
-	return -1;
-}
-const voiceFiles = `\
+/* const voiceFiles = `\
 B6_somnium_65_01 - Part_1.wav
 B6_somnium_66_01 - Part_1.wav
 D5-begin20_10_09_03 - Part_1.wav
@@ -697,22 +676,26 @@ E5-begin40_10_14_15 - Part_2.wav
 E6-wrap_74_10_05_02 - Part_1.wav
 E6-wrap_74_10_19_03 - Part_1.wav
 E6-wrap_74_10_19_21 - Part_1.wav
-E6-wrap_74_10_19_29 - Part_1.wav`.split('\n');
+E6-wrap_74_10_19_29 - Part_1.wav`
+  .split('\n')
+  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
+const numFiles = 362;
+const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
+  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
+
 const voices = [];
 const promises = [];
-// (async () => {
-  for (const voiceFile of voiceFiles) {
-    const audio = new Audio(`/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`);
-    const p = makePromise();
-    audio.addEventListener('canplaythrough', () => {
-      p.accept();
-    });
-    audio.addEventListener('error', err => {
-      p.reject();
-    });
-    voices.push(audio);
-  }
-// })();
+for (const voiceFile of voiceFiles) {
+  const audio = new Audio(voiceFile);
+  const p = makePromise();
+  audio.addEventListener('canplaythrough', () => {
+    p.accept();
+  });
+  audio.addEventListener('error', err => {
+    p.reject();
+  });
+  voices.push(audio);
+}
 const loadPromise = Promise.all(promises).then(() => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.characterHups.setVoicePack(voices);

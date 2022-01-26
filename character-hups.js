@@ -4,43 +4,6 @@ the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
 import {Voicer} from './voicer.js';
-import Avatar from './avatars/avatars.js';
-import {loadAudio} from './util.js';
-
-const syllableSoundFileNames = (() => {
-  const numFiles = 362;
-  const files = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`);
-  return files;
-})();
-
-let syllableSoundFiles;
-const loadPromise = (async () => {
-  await Avatar.waitForLoad();
-
-  const _loadSoundFiles = getUrlFn => function(fileNames) {
-    return Promise.all(fileNames.map(fileName => loadAudio(getUrlFn(fileName))));
-  };
-  const _loadSyllableSoundFiles = _loadSoundFiles(fileName => {
-    return `https://webaverse.github.io/shishi-voicepack/syllables/${fileName}`;
-  });
-  await Promise.all([
-    _loadSyllableSoundFiles(syllableSoundFileNames).then(as => {
-      syllableSoundFiles = as;
-    }),
-  ]);
-})();
-const waitForLoad = () => loadPromise;
-
-window.playVoice = async () => {
-  await loadPromise;
-
-  const voicer = new Voicer(syllableSoundFiles);
-  voicer.start();
-  const audioTime = 2000 + 5000 * Math.random();
-  setTimeout(() => {
-    voicer.stop();
-  }, audioTime);
-};
 
 let nextHupId = 0;
 class Hup extends EventTarget {
@@ -174,6 +137,5 @@ class CharacterHups extends EventTarget {
 }
 
 export {
-  waitForLoad,
   CharacterHups,
 };
