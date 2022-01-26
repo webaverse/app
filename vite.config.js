@@ -15,7 +15,6 @@ export default defineConfig({
       'src/components/*.js', 
       'src/components/*.jsx', 
       'src/tabs/*.jsx',
-      'src/**/*.jsx',
       '*.js'
     ],
   },
