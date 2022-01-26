@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import {getRenderer, camera} from './renderer.js';
+import {getRenderer, scene} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import {defaultDioramaSize} from './constants.js';
+import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
 
 const localVector = new THREE.Vector3();
@@ -1533,10 +1534,12 @@ const skinnedRedMaterial = (() => {
   return material;
 })();
 
-const sideAvatarScene = new THREE.Scene();
-sideAvatarScene.overrideMaterial = skinnedRedMaterial;
+const outlineRenderScene = new THREE.Scene();
+outlineRenderScene.name = 'outlineRenderScene';
+outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
 const sideScene = new THREE.Scene();
+sideScene.name = 'sideScene';
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
@@ -1554,6 +1557,14 @@ const _addPreviewLights = scene => {
   scene.add(directionalLight);
 };
 _addPreviewLights(sideScene);
+/* let sideSceneCompiled = false;
+const _ensureSideSceneCompiled = () => {
+  if (!sideSceneCompiled) {
+    const renderer = getRenderer();
+    renderer.compileAsync(sideScene);
+    sideSceneCompiled = true;
+  }
+}; */
 
 const sideCamera = new THREE.PerspectiveCamera();
 
@@ -1584,13 +1595,15 @@ const createPlayerDiorama = (player, {
   glyphBackground = false,
   grassBackground = false,
 } = {}) => {
+  // _ensureSideSceneCompiled();
+
   const {devicePixelRatio: pixelRatio} = window;
 
   const renderer = getRenderer();
-  sideCamera.position.set(0, 0, 10);
+  /* sideCamera.position.set(0, 0, 10);
   sideCamera.quaternion.identity();
   sideCamera.updateMatrixWorld();
-  renderer.compile(sideScene, sideCamera);
+  renderer.compile(sideScene, sideCamera); */
 
   let locallyOwnedCanvas;
   if (canvas) {
@@ -1607,6 +1620,7 @@ const createPlayerDiorama = (player, {
   const diorama = {
     width: 0,
     height: 0,
+    loaded: false,
     enabled: true,
     addCanvas(canvas) {
       const {width, height} = canvas;
@@ -1634,8 +1648,20 @@ const createPlayerDiorama = (player, {
         lightningBackground = true;
       }
     },
+    triggerLoad() {
+      Promise.all([
+        (async () => {
+          await renderer.compileAsync(player.avatar.model, outlineRenderScene);
+        })(),
+        (async () => {
+          await renderer.compileAsync(player.avatar.model, sideScene);
+        })(),
+      ]).then(() => {
+        this.loaded = true;
+      });
+    },
     update(timestamp, timeDiff) {
-      if (!this.enabled) {
+      if (!this.loaded || !this.enabled) {
         lastDisabledTime = timestamp;
         return;
       }
@@ -1662,7 +1688,6 @@ const createPlayerDiorama = (player, {
         const oldParent = player.avatar.model.parent;
         const oldRenderTarget = renderer.getRenderTarget();
         const oldViewport = renderer.getViewport(localVector4D);
-        // const oldWorldLightParent = world.lights.parent;
       
         const _render = () => {
           // set up side camera
@@ -1678,12 +1703,12 @@ const createPlayerDiorama = (player, {
           sideCamera.updateMatrixWorld();
 
           // set up side avatar scene
-          sideAvatarScene.add(player.avatar.model);
-          // sideAvatarScene.add(world.lights);
+          outlineRenderScene.add(player.avatar.model);
+          // outlineRenderScene.add(world.lights);
           // render side avatar scene
           renderer.setRenderTarget(outlineRenderTarget);
           renderer.clear();
-          renderer.render(sideAvatarScene, sideCamera);
+          renderer.render(outlineRenderScene, sideCamera);
           
           // set up side scene
           sideScene.add(player.avatar.model);
@@ -1803,8 +1828,30 @@ const createPlayerDiorama = (player, {
         locallyOwnedCanvas.parentNode.removeChild(locallyOwnedCanvas);
       }
       dioramas.splice(dioramas.indexOf(diorama), 1);
+
+      postProcessing.removeEventListener('update', recompile);
     },
   };
+
+  function recompile() {
+    diorama.triggerLoad();
+  }
+  const compile = () => {
+    diorama.triggerLoad();
+    postProcessing.addEventListener('update', recompile);
+  }
+  if (player.avatar) {
+    compile();
+  } else {
+    function avatarchange() {
+      if (player.avatar) {
+        compile();
+        player.removeEventListener('avatarchange', avatarchange);
+      }
+    }
+    player.addEventListener('avatarchange', avatarchange);
+  }
+
   diorama.addCanvas(canvas);
   dioramas.push(diorama);
   return diorama;
@@ -1819,13 +1866,15 @@ const createAppDiorama = (app, {
   grassBackground = false,
   glyphBackground = false,
 } = {}) => {
+  // _ensureSideSceneCompiled();
+
   const {devicePixelRatio: pixelRatio} = window;
 
   const renderer = getRenderer();
-  sideCamera.position.set(0, 0, 10);
+  /* sideCamera.position.set(0, 0, 10);
   sideCamera.quaternion.identity();
   sideCamera.updateMatrixWorld();
-  renderer.compile(sideScene, sideCamera);
+  renderer.compile(sideScene, sideCamera); */
 
   if (!canvas) {
     canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
@@ -1838,6 +1887,7 @@ const createAppDiorama = (app, {
   const diorama = {
     width: 0,
     height: 0,
+    loaded: false,
     enabled: true,
     addCanvas(canvas) {
       const {width, height} = canvas;
@@ -1865,8 +1915,29 @@ const createAppDiorama = (app, {
         lightningBackground = true;
       }
     },
+    triggerLoad() {
+      const oldParent = app.parent;
+      Promise.all([
+        (async () => {
+          outlineRenderScene.add(app);
+          await renderer.compileAsync(outlineRenderScene);
+        })(),
+        (async () => {
+          sideScene.add(app);
+          await renderer.compileAsync(sideScene);
+        })(),
+      ]).then(() => {
+        this.loaded = true;
+      });
+      
+      if (oldParent) {
+        oldParent.add(app);
+      } else {
+        app.parent.remove(app);
+      }
+    },
     update(timestamp, timeDiff) {
-      if (!this.enabled) {
+      if (!this.loaded || !this.enabled) {
         lastDisabledTime = timestamp;
         return;
       }
@@ -1921,13 +1992,13 @@ const createAppDiorama = (app, {
         sideCamera.updateMatrixWorld();
 
         // set up side avatar scene
-        sideAvatarScene.add(app);
-        // sideAvatarScene.add(world.lights);
+        outlineRenderScene.add(app);
+        // outlineRenderScene.add(world.lights);
 
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.clear();
-        renderer.render(sideAvatarScene, sideCamera);
+        renderer.render(outlineRenderScene, sideCamera);
         
         // set up side scene
         sideScene.add(app);
@@ -2048,6 +2119,9 @@ const createAppDiorama = (app, {
       dioramas.splice(dioramas.indexOf(diorama), 1);
     },
   };
+
+  diorama.triggerLoad();
+
   diorama.addCanvas(canvas);
   dioramas.push(diorama);
   return diorama;

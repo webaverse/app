@@ -5,7 +5,6 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
-import fetch from 'node-fetch';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
@@ -109,7 +108,7 @@ const _proxyUrl = (req, res, u) => {
     }
   });
 
-  const isHttps = !!certs.key && !!certs.cert;
+  const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 

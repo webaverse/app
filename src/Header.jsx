@@ -23,6 +23,7 @@ import {Location} from './components/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {World} from './tabs/world';
+import {Options} from './tabs/options';
 import {XR} from './tabs/xr';
 import {Tokens} from './tabs/tokens';
 
@@ -408,6 +409,12 @@ export default function Header({
               sx={sx}
               sy={sy}
               sz={sz}
+            />
+            <Options
+              app={app}
+              open={open}
+              toggleOpen={toggleOpen}
+              panelsRef={panelsRef}
             />
             <XR
               xrSupported={xrSupported}
