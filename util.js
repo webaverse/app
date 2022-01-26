@@ -729,7 +729,7 @@ export async function loadAudio(u) {
     const _cleanup = () => {
       clearTimeout(timeout);
     };
-    audio.oncanplaythrough = () => {
+    audio.oncanplay = () => {
       _cleanup();
       accept();
     };
