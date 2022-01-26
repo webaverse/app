@@ -10,7 +10,15 @@ export default defineConfig({
   ],
 
   optimizeDeps:{
-    entries: ['src/**/*.js', 'src/**/*.jsx','node_modules/**/*.js', '*.js', './**/*.jsx'],
+    entries: [
+      'src/*.js',
+      'src/*.jsx',
+      'src/components/*.js', 
+      'src/components/*.jsx', 
+      'src/tabs/*.jsx',
+      'src/**/*.jsx',
+      '*.js'
+    ],
     exclude: ['ai', 'deadcode']
   },
   
