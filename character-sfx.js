@@ -11,6 +11,7 @@ import {
 } from './constants.js';
 import {
   mod,
+  loadAudio,
 } from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -77,34 +78,8 @@ let syllableSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
-  const audioTimeoutTime = 10 * 1000;
   const _loadSoundFiles = getUrlFn => function(fileNames) {
-    return Promise.all(fileNames.map(async fileName => {
-      const audio = new Audio();
-      const p = new Promise((accept, reject) => {
-        const timeout = setTimeout(() => {
-          console.warn('audio load seems hung', audio);
-        }, audioTimeoutTime);
-        const _cleanup = () => {
-          clearTimeout(timeout);
-        };
-        audio.oncanplaythrough = () => {
-          _cleanup();
-          accept();
-        };
-        audio.onerror = err => {
-          _cleanup();
-          reject(err);
-        };
-      });
-      // console.log('got src', `../sounds/${soundType}/${fileName}`);
-      audio.crossOrigin = 'Anonymous';
-      audio.src = getUrlFn(fileName);
-      audio.load();
-      await p;
-      // document.body.appendChild(audio);
-      return audio;
-    }));
+    return Promise.all(fileNames.map(fileName => loadAudio(getUrlFn(fileName))));
   };
   const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
     return `/sounds/${soundType}/${fileName}`;
