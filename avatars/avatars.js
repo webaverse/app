@@ -2977,7 +2977,10 @@ class Avatar {
     } */
 	}
 
-  async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
+  isAudioEnabled() {
+    return !!this.microphoneWorker;
+  }
+  async setAudioEnabled(enabled) {
     // cleanup
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
@@ -2989,7 +2992,7 @@ class Avatar {
     }
 
     // setup
-    if (microphoneMediaStream) {
+    if (enabled) {
       this.volume = 0;
      
       const audioContext = getAudioContext();
@@ -2998,40 +3001,34 @@ class Avatar {
           await audioContext.resume();
         })();
       }
-      // console.log('got context', audioContext);
-      // window.audioContext = audioContext;
-      {
-        options.audioContext = audioContext;
-        options.emitVolume = true;
-        options.emitBuffer = true;
-      };
-      this.microphoneWorker = new MicrophoneWorker(microphoneMediaStream, options);
+      this.microphoneWorker = new MicrophoneWorker({
+        audioContext,
+        muted: false,
+        emitVolume: true,
+        emitBuffer: true,
+      });
       this.microphoneWorker.addEventListener('volume', e => {
         this.volume = this.volume*0.8 + e.data*0.2;
       });
       this.microphoneWorker.addEventListener('buffer', e => {
-        // if (live) {
-          this.audioRecognizer.send(e.data);
-        // }
+        this.audioRecognizer.send(e.data);
       });
 
-      // let live = false;
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: audioContext.sampleRate,
       });
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
-        // console.log('got vowels', this.vowels.map(n => n.toFixed(1)).join(','));
       });
-      /* this.audioRecognizer.waitForLoad()
-        .then(() => {
-          live = true;
-        }); */
+
+      await this.microphoneWorker.waitForLoad();
     } else {
       this.volume = -1;
     }
   }
-
+  getAudioInput() {
+    return this.microphoneWorker && this.microphoneWorker.getInput();
+  }
   decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
@@ -3075,7 +3072,7 @@ class Avatar {
     return this.poseManager.vrTransforms.floorHeight;
   }
 
-  say(audio) {
+  /* say(audio) {
     this.setMicrophoneMediaStream(audio, {
       muted: false,
       // emitVolume: true,
@@ -3085,10 +3082,10 @@ class Avatar {
     });
 
     audio.play();
-  }
+  } */
 
   destroy() {
-    this.setMicrophoneMediaStream(null);
+    this.setAudioEnabled(false);
   }
 }
 Avatar.waitForLoad = () => loadPromise;

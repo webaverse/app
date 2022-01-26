@@ -526,8 +526,8 @@ const _startHacks = () => {
     if (e.which === 219) { // [
       if (localPlayer.avatar) {
         (async () => {
-          const audioUrl = '/sounds/vocals.mp3';
-          const audioUrl2 = '/sounds/music.mp3';
+          const audioUrl = '/sounds/pissbaby.mp3';
+          // const audioUrl2 = '/sounds/music.mp3';
 
           const _loadAudio = u => new Promise((accept, reject) => {
             const audio = new Audio(u);
@@ -543,16 +543,46 @@ const _startHacks = () => {
 
           const audios = await Promise.all([
             _loadAudio(audioUrl),
-            _loadAudio(audioUrl2),
+            // _loadAudio(audioUrl2),
           ]);
-          localPlayer.avatar.say(audios[0]);
-          await localPlayer.avatar.microphoneWorker.waitForLoad();
+          await localPlayer.avatar.setAudioEnabled(true);
+          // localPlayer.avatar.say(audios[0]);
+          // await localPlayer.avatar.microphoneWorker.waitForLoad();
+
+          const _createMediaStreamSource = o => {
+            if (o instanceof MediaStream) {
+              const audio = document.createElement('audio');
+              audio.srcObject = o;
+              audio.muted = true;
+            } else {
+              /* const oldO = o;
+              oldO.play = (play => function() {
+                play.apply(oldO, arguments);
+                play.apply(o, arguments);
+              })(oldO.play);
+              oldO.pause = (pause => function() {
+                pause.apply(oldO, arguments);
+                pause.apply(o, arguments);
+              })(oldO.pause);
+              o = o.cloneNode(); */
+            }
+
+            const audioContext = Avatar.getAudioContext();
+            if (o instanceof MediaStream) {
+              return audioContext.createMediaStreamSource(o);
+            } else {
+              return audioContext.createMediaElementSource(o);
+            }
+          };
+          const mediaStreamSource = _createMediaStreamSource(audios[0]);
+          console.log('got audio input', localPlayer.avatar.getAudioInput());
+          mediaStreamSource.connect(localPlayer.avatar.getAudioInput());
 
           audios[0].play();
-          audios[1].play();
-          
+          // audios[1].play();
           audios[0].addEventListener('ended', e => {
-            localPlayer.avatar.setMicrophoneMediaStream(null);
+            mediaStreamSource.disconnect();
+            localPlayer.avatar.setAudioEnabled(false);
           });
         })();
       }
