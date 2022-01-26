@@ -28,6 +28,8 @@ class Voicer {
       };
     });
     this.nonce = 0;
+
+    this.timeout = null;
   }
   selectVoice() {
     // the weight of each voice is proportional to the inverse of the number of times it has been used
@@ -44,6 +46,42 @@ class Voicer {
       }
     }
     return voiceSpec.audio;
+  }
+  start() {
+    clearTimeout(this.timeout);
+
+    const _recurse = async () => {
+      const audio = this.selectVoice();
+      // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
+      if (audio.silencingInterval) {
+        clearInterval(audio.silencingInterval);
+        audio.silencingInterval = null;
+      }
+      audio.currentTime = 0;
+      audio.volume = 1;
+      if (audio.paused) {
+        await audio.play();
+      }
+      let audioTimeout = audio.duration * 1000;
+      audioTimeout *= 0.8 + 0.4 * Math.random();
+      this.timeout = setTimeout(async () => {
+        // await audio.pause();
+  
+        audio.silencingInterval = setInterval(() => {
+          audio.volume = Math.max(audio.volume - 0.1, 0);
+          if (audio.volume === 0) {
+            clearInterval(audio.silencingInterval);
+            audio.silencingInterval = null;
+          }
+        }, 10);
+  
+        _recurse();
+      }, audioTimeout);
+    };
+    _recurse();
+  }
+  stop() {
+    clearTimeout(this.timeout);
   }
 }
 
