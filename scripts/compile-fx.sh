@@ -4,14 +4,13 @@
 # note: texture is 8192x8192, sprite is 1024x1024, max number of frames is 8192*8192/(1024*1024) = 64; we filter files that are too large
 
 rm -f *-spritesheet.ktx2
-for f2 in *.webm; do
+for f2 in *.mov; do
   rm -f lol0*;
   echo extract frames "$f2"
   ffmpeg -i "$f2" -f image2 -vf fps=fps=24 lol%03d.png
   echo montage "$f2"
   a=$(convert "lol001.png" -format '#%[hex:u.p{0,0}]' info:-)
-  echo alpha "$a"
-  montage lol0*.png -background "$a" -tile 8x8 -geometry 1024x1024+0+0 spritesheet.png
+  montage lol0*.png -background none -tile 8x8 -geometry 1024x1024+0+0 spritesheet.png
   echo basisu "$f2"
   basisu -ktx2 -mipmap spritesheet.png
   echo binplace "$f2"-spritesheet.ktx2
@@ -20,7 +19,7 @@ for f2 in *.webm; do
 done;
 
 rm -f animation-frames.txt
-for f2 in *.webm; do
+for f2 in *.mov; do
   frameCount=$(ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of csv=p=0 "$f2")
   if [ "$frameCount" -le 64 ]; then
     echo "$frameCount" "$f2" | tee -a fx-files.txt
