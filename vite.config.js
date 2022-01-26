@@ -8,20 +8,6 @@ export default defineConfig({
     metaversefilePlugin(),
     reactRefresh(),
   ],
-
-  optimizeDeps:{
-    entries: [
-      'src/*.js',
-      'src/*.jsx',
-      'src/components/*.js', 
-      'src/components/*.jsx', 
-      'src/tabs/*.jsx',
-      'src/**/*.jsx',
-      '*.js'
-    ],
-    exclude: ['ai', 'deadcode']
-  },
-  
   server: {
     fs: {
       strict: true,
