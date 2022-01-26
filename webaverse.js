@@ -6,6 +6,7 @@ it uses the help of various managers and stores, and executes the render loop.
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
+import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -17,7 +18,7 @@ import hpManager from './hp-manager.js';
 // import equipmentRender from './equipment-render.js';
 // import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
-import * as postProcessing from './post-processing.js';
+import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
 import {makePromise} from './util.js';
 import {
@@ -33,7 +34,6 @@ import {
 } from './renderer.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
-import soundManager from './sound-manager.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
@@ -95,6 +95,7 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
+        CharacterSfxModule.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad()
@@ -339,7 +340,6 @@ export default class Webaverse extends EventTarget {
       game.pushAppUpdates();
       game.pushPlayerUpdates();
 
-      soundManager.update(timeDiffCapped);
       dioramaManager.update(timestamp, timeDiffCapped);
 
       const session = renderer.xr.getSession();

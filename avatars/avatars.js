@@ -1,21 +1,34 @@
 import * as THREE from 'three';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {world} from '../world.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-// import skeletonString from './skeleton.js';
 import {angleDifference, getVelocityDampingFactor} from '../util.js';
-// import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
-import CBOR from '../cbor.js';
+import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
-import {crouchMaxTime, useMaxTime, aimMaxTime, avatarInterpolationFrameRate, avatarInterpolationTimeDelay, avatarInterpolationNumFrames} from '../constants.js';
+import {
+  crouchMaxTime,
+  useMaxTime,
+  aimMaxTime,
+  avatarInterpolationFrameRate,
+  avatarInterpolationTimeDelay,
+  avatarInterpolationNumFrames,
+} from '../constants.js';
 import {FixedTimeStep} from '../interpolants.js';
+import * as avatarCruncher from '../avatar-cruncher.js';
+import * as avatarSpriter from '../avatar-spriter.js';
 import metaversefile from 'metaversefile';
+import {
+  idleFactorSpeed,
+  walkFactorSpeed,
+  runFactorSpeed,
+  narutoRunTimeFactor,
+} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -27,21 +40,21 @@ import {
   // cloneModelBones,
   decorateAnimation,
   // retargetAnimation,
-  animationBoneToModelBone,
+  // animationBoneToModelBone,
 } from './util.mjs';
-import {scene, getRenderer} from '../renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
 const localQuaternion5 = new THREE.Quaternion();
 const localQuaternion6 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
-const localEuler2 = new THREE.Euler();
+const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -77,6 +90,40 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone);
 
+function getFirstPersonCurves(vrmExtension) {
+  if (vrmExtension) {
+    const {firstPerson} = vrmExtension;
+    const {
+      lookAtHorizontalInner,
+      lookAtHorizontalOuter,
+      lookAtVerticalDown,
+      lookAtVerticalUp,
+      // lookAtTypeName,
+    } = firstPerson;
+
+    const DEG2RAD = Math.PI / 180; // THREE.MathUtils.DEG2RAD;
+    function _importCurveMapperBone(map) {
+      return new VRMCurveMapper(
+        typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
+        typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
+        map.curve,
+      );
+    }
+    const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
+    const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
+    const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
+    const lookAtVerticalUpCurve = _importCurveMapperBone(lookAtVerticalUp);
+    return {
+      lookAtHorizontalInnerCurve,
+      lookAtHorizontalOuterCurve,
+      lookAtVerticalDownCurve,
+      lookAtVerticalUpCurve,
+    };
+  } else {
+    return null;
+  }
+}
+
 const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
   for (let i = 0; i < numSimplexes; i++) {
@@ -85,6 +132,17 @@ const _makeSimplexes = numSimplexes => {
   return result;
 };
 const simplexes = _makeSimplexes(5);
+
+const getClosest2AnimationAngles = (key, angle) => {
+  const animationAngleArray = animationsAngleArrays[key];
+  animationAngleArray.sort((a, b) => {
+    const aDistance = Math.abs(angleDifference(angle, a.angle));
+    const bDistance = Math.abs(angleDifference(angle, b.angle));
+    return aDistance - bDistance;
+  });
+  const closest2AnimationAngles = animationAngleArray.slice(0, 2);
+  return closest2AnimationAngles;
+};
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
@@ -101,7 +159,6 @@ const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 const defaultchargeJumpAnimation = 'chargeJump';
 const defaultStandChargeAnimation = 'standCharge';
-
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -216,6 +273,7 @@ const animationsIdleArrays = {
 };
 
 let animations;
+let animationStepIndices;
 let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
@@ -238,17 +296,34 @@ const loadPromise = (async () => {
   
   await Promise.all([
     (async () => {
-      const res = await fetch('../animations/animations.cbor');
+      const res = await fetch('/animations/animations.z');
       const arrayBuffer = await res.arrayBuffer();
-      animations = CBOR.decode(arrayBuffer).animations
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const animationsJson = zbdecode(uint8Array);
+      animations = animationsJson.animations
         .map(a => THREE.AnimationClip.parse(a));
+      animationStepIndices = animationsJson.animationStepIndices;
       animations.index = {};
       for (const animation of animations) {
         animations.index[animation.name] = animation;
       }
+
+      /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
+      for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0xff0000}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.leftFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      }
+      for (let i = 0; i < animationIndices.rightFootYDeltas.length; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0x0000ff}));
+        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.rightFootYDeltas[i] * 10, -15);
+        mesh.updateMatrixWorld();
+        scene.add(mesh);
+      } */
     })(),
     (async () => {
-      const srcUrl = '../animations/animations-skeleton.glb';
+      const srcUrl = '/animations/animations-skeleton.glb';
       
       let o;
       try {
@@ -659,9 +734,9 @@ const animationMappingConfig = [
   new AnimationMapping('mixamorigRightHandMiddle1.quaternion', 'Right_middleFinger1', true, false),
   new AnimationMapping('mixamorigRightHandMiddle2.quaternion', 'Right_middleFinger2', true, false),
   new AnimationMapping('mixamorigRightHandMiddle3.quaternion', 'Right_middleFinger3', true, false),
-  new AnimationMapping('mixamorigRightHandThumb1.quaternion', 'Left_thumb0', true, false),
-  new AnimationMapping('mixamorigRightHandThumb2.quaternion', 'Left_thumb1', true, false),
-  new AnimationMapping('mixamorigRightHandThumb3.quaternion', 'Left_thumb2', true, false),
+  new AnimationMapping('mixamorigRightHandThumb1.quaternion', 'Right_thumb0', true, false),
+  new AnimationMapping('mixamorigRightHandThumb2.quaternion', 'Right_thumb1', true, false),
+  new AnimationMapping('mixamorigRightHandThumb3.quaternion', 'Right_thumb2', true, false),
   new AnimationMapping('mixamorigRightHandIndex1.quaternion', 'Right_indexFinger1', true, false),
   new AnimationMapping('mixamorigRightHandIndex2.quaternion', 'Right_indexFinger2', true, false),
   new AnimationMapping('mixamorigRightHandIndex3.quaternion', 'Right_indexFinger3', true, false),
@@ -731,7 +806,8 @@ class Avatar {
     this.model = model;
     this.options = options;
     
-    const vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.vrmExtension = object?.parser?.json?.extensions?.VRM;
+    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
     const {
       skinnedMeshes,
@@ -757,6 +833,8 @@ class Avatar {
     // this.retargetedAnimations = retargetedAnimations;
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
+
+    this.spriteMegaAvatarMesh = null;
 
     /* if (options.debug) {
       const debugMeshes = _makeDebugMeshes();
@@ -848,6 +926,8 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
+    this.eyeballTargetPlane = new THREE.Plane();
+    this.eyeballTargetEnabled = false;
 
     this.springBoneManager = null;
     this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
@@ -1126,7 +1206,7 @@ class Avatar {
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getBlendShapeIndexForPresetName = presetName => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.presetName === presetName);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -1139,7 +1219,7 @@ class Avatar {
         }
       };
       /* const _getBlendShapeIndexForName = name => {
-        const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+        const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
           const shape = blendShapes.find(blendShape => blendShape.name.toLowerCase() === name);
           if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
@@ -1196,8 +1276,6 @@ class Avatar {
 
     this.microphoneWorker = null;
     this.volume = -1;
-    
-    this.now = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1274,7 +1352,7 @@ class Avatar {
     this.backwardAnimationSpec = null;
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
-    this.lastEyeTargetTime = 0;
+    this.lastEyeTargetTime = -Infinity;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1685,20 +1763,43 @@ class Avatar {
     );
     return localEuler.y;
   }
-  update(timeDiff) {
-    const {now} = this;
+  async setQuality(quality) {
+    switch (quality) {
+      case 1: {
+        const skinnedMesh = await this.object.cloneVrm();
+        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
+        scene.add(this.spriteMegaAvatarMesh);
+        this.model.visible = false;
+        break;
+      }
+      case 2: {
+        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
+        crunchedModel.frustumCulled = false;
+        scene.add(crunchedModel);
+        this.model.visible = false;
+        break;
+      }
+      case 3: {
+        console.log('not implemented'); // XXX
+        break;
+      }
+      case 4: {
+        console.log('not implemented'); // XXX
+        break;
+      }
+      default: {
+        throw new Error('unknown avatar quality: ' + quality);
+      }
+    }
+  }
+  update(timestamp, timeDiff) {
+    const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     
-    // walk = 0.29
-    // run = 0.88
-    // walk backward = 0.20
-    // run backward = 0.61
-    const idleSpeed = 0;
-    const walkSpeed = 0.25;
-    const runSpeed = 0.7;
-    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
-    const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updatePosition = () => {
@@ -1740,16 +1841,6 @@ class Avatar {
             return 'walk';
           }
         }
-      };
-      const _getClosest2AnimationAngles = key => {
-        const animationAngleArray = animationsAngleArrays[key];
-        animationAngleArray.sort((a, b) => {
-          const aDistance = Math.abs(angleDifference(angle, a.angle));
-          const bDistance = Math.abs(angleDifference(angle, b.angle));
-          return aDistance - bDistance;
-        });
-        const closest2AnimationAngles = animationAngleArray.slice(0, 2);
-        return closest2AnimationAngles;
       };
       const _getMirrorAnimationAngles = (animationAngles, key) => {
         const animations = animationAngles.map(({animation}) => animation);
@@ -1938,16 +2029,16 @@ class Avatar {
       };
       
       // stand
-      const key = _getAnimationKey(false);
-      const keyWalkAnimationAngles = _getClosest2AnimationAngles('walk');
+      // const key = _getAnimationKey(false);
+      const keyWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
       const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
 
-      const keyRunAnimationAngles = _getClosest2AnimationAngles('run');
+      const keyRunAnimationAngles = getClosest2AnimationAngles('run', angle);
       const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
       
       const idleAnimation = _getIdleAnimation('walk');
 
-      // walk sound effect
+      /* // walk sound effect
       {
         const soundManager = metaversefile.useSoundManager();
         const currAniTime = timeSeconds % idleAnimation.duration;
@@ -1986,18 +2077,17 @@ class Avatar {
               soundManager.playStepSound(9);
           }
         }
-      }
+      } */
       
       // crouch
       // const keyOther = _getAnimationKey(true);
-      const keyAnimationAnglesOther = _getClosest2AnimationAngles('crouch');
+      const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
       const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
       const idleAnimationOther = _getIdleAnimation('crouch');
       
       const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
       const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
       const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-      const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
       const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI*0.4;
       if (isBackward !== this.lastIsBackward) {
         this.backwardAnimationSpec = {
@@ -2111,7 +2201,7 @@ class Avatar {
             
             const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
             const src2 = narutoRunAnimation.interpolants[k];
-            const t2 = (this.narutoRunTime / 1000 * 4) % narutoRunAnimation.duration;
+            const t2 = (this.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
@@ -2126,6 +2216,7 @@ class Avatar {
               animationTrackName: k,
               dst,
               // isTop,
+              isPosition,
             } = spec;
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
@@ -2134,6 +2225,8 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+
+            _clearXZ(dst, isPosition);
           };
         }
 
@@ -2590,16 +2683,122 @@ class Avatar {
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
-        localMatrix.compose(localVector.set(0, 0, 0), this.startEyeTargetQuaternion, localVector2.set(1, 1, 1))
-          .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(localVector, localQuaternion, localVector2);
-        localQuaternion
-          .slerp(localQuaternion2.identity(), cubicBezier(eyeTargetFactor));
-        this.modelBoneOutputs.Neck.quaternion.copy(localQuaternion);
+        if (eyeTargetFactor < 1) {
+          localQuaternion2.copy(this.startEyeTargetQuaternion)
+            .slerp(localQuaternion, cubicBezier(eyeTargetFactor));
+          localMatrix.compose(localVector.set(0, 0, 0), localQuaternion2, localVector2.set(1, 1, 1))
+            .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
+            .decompose(localVector, localQuaternion, localVector2);
+        }
       }
-      
     };
     _updateEyeTarget();
+
+    const _updateEyeballTarget = () => {
+      const leftEye = this.modelBoneOutputs['Eye_L'];
+      const rightEye = this.modelBoneOutputs['Eye_R'];
+
+      if (this.eyeballTargetEnabled && this.firstPersonCurves) {
+        const {
+          lookAtHorizontalInnerCurve,
+          lookAtHorizontalOuterCurve,
+          lookAtVerticalDownCurve,
+          lookAtVerticalUpCurve,
+        } = this.firstPersonCurves;
+
+        function calculateTargetEuler(target, position) {
+          const headPosition = eyePosition;
+
+          // Look at direction in world coordinate
+          const lookAtDir = localVector2.copy(headPosition).sub(position).normalize();
+      
+          // Transform the direction into local coordinate from the first person bone
+          lookAtDir.applyQuaternion(
+            localQuaternion.setFromRotationMatrix(head.matrixWorld)
+              .invert()
+          );
+      
+          // convert the direction into euler
+          target.x = Math.atan2(lookAtDir.y, Math.sqrt(lookAtDir.x * lookAtDir.x + lookAtDir.z * lookAtDir.z));
+          target.y = Math.atan2(-lookAtDir.x, -lookAtDir.z);
+          target.z = 0;
+          target.order = 'YXZ';
+        }
+        function lookAtEuler(euler) {
+          const srcX = euler.x;
+          const srcY = euler.y;
+      
+          const rotationFactor = Math.PI;
+          const rotationRange = Math.PI*0.1;
+
+          if (leftEye) {
+            if (srcX < 0.0) {
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+            } else {
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+            }
+      
+            if (srcY < 0.0) {
+              localEuler2.y = -lookAtHorizontalInnerCurve.map(-srcY);
+            } else {
+              localEuler2.y = lookAtHorizontalOuterCurve.map(srcY);
+            }
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
+      
+            leftEye.quaternion.setFromEuler(localEuler2);
+            leftEye.updateMatrix();
+          }
+      
+          if (rightEye) {
+            if (srcX < 0.0) {
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+            } else {
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+            }
+      
+            if (srcY < 0.0) {
+              localEuler2.y = -lookAtHorizontalOuterCurve.map(-srcY);
+            } else {
+              localEuler2.y = lookAtHorizontalInnerCurve.map(srcY);
+            }
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
+
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
+      
+            rightEye.quaternion.setFromEuler(localEuler2);
+            rightEye.updateMatrix();
+          }
+        }
+        function lookAt(position) {
+          calculateTargetEuler(localEuler, position);
+          lookAtEuler(localEuler);
+        }
+
+        const head = this.modelBoneOutputs['Head'];
+        const eyePosition = getEyePosition(this.modelBones);
+        this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
+        lookAt(localVector);
+      } else {
+        if (leftEye) {
+          leftEye.quaternion.identity();
+          leftEye.updateMatrix();
+        }
+        if (rightEye) {
+          rightEye.quaternion.identity();
+          rightEye.updateMatrix();
+        }
+      }
+    };
+    _updateEyeballTarget();
+
     this.modelBoneOutputs.Root.updateMatrixWorld();
     
     Avatar.applyModelBoneOutputs(
@@ -2746,6 +2945,16 @@ class Avatar {
     };
     this.options.visemes && _updateVisemes();
 
+    const _updateSubAvatars = () => {
+      if (this.spriteMegaAvatarMesh) {
+        this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
+          playerAvatar: this,
+          camera,
+        });
+      }
+    };
+    _updateSubAvatars();
+
     /* if (this.debugMeshes) {
       if (this.getTopEnabled()) {
         this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
@@ -2766,8 +2975,6 @@ class Avatar {
       }
       this.debugMeshes.geometry.attributes.position.needsUpdate = true;
     } */
-    
-    this.now += timeDiff;
 	}
 
   async setMicrophoneMediaStream(microphoneMediaStream, options = {}) {
@@ -2886,6 +3093,7 @@ class Avatar {
 }
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
+Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;
 const getAudioContext = () => {
@@ -2898,4 +3106,5 @@ Avatar.getAudioContext = getAudioContext;
 Avatar.setAudioContext = newAvatarAudioContext => {
   avatarAudioContext = newAvatarAudioContext;
 };
+Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
 export default Avatar;

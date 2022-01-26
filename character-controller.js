@@ -4,7 +4,6 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -28,6 +27,7 @@ import {
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
+import {CharacterSfx} from './character-sfx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -236,6 +236,11 @@ class StatePlayer extends PlayerBase {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = nextAvatar;
+
+        this.dispatchEvent({
+          type: 'avatarchange',
+          app,
+        });
         
         const avatarHeight = this.avatar.height;
         const heightFactor = 1.6;
@@ -551,9 +556,10 @@ class StatePlayer extends PlayerBase {
       
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, session, this.avatar);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
-      this.avatar.update(timeDiff);
+      this.avatar.update(timestamp, timeDiff);
     }
 
     this.characterPhysics.updateCamera(timeDiff);
@@ -700,6 +706,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -937,6 +944,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       debugger;
     } */
     this.characterPhysics.update(now, timeDiffS);
+    this.characterSfx.update(now, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -1075,8 +1083,10 @@ class NpcPlayer extends StaticInterpolatedPlayer {
       
       // const renderer = getRenderer();
       // const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, null, this.avatar);
-      this.avatar.update(timeDiff);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+      this.avatar.update(timestamp, timeDiff);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);
@@ -1120,18 +1130,9 @@ function getPlayerCrouchFactor(player) {
   return factor;
 };
 
-/* function updateAvatar(timestamp, timeDiff) {
-  metaversefile.useLocalPlayer().updateAvatar(timestamp, timeDiff);
-}
-function updatePhysics(now, timeDiff) {
-  metaversefile.useLocalPlayer().updatePhysics(now, timeDiff);
-} */
-
 export {
   LocalPlayer,
   RemotePlayer,
   NpcPlayer,
   getPlayerCrouchFactor,
-  // updateAvatar,
-  // updatePhysics,
 };

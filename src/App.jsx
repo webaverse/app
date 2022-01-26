@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import logo from './logo.svg';
 import styles from './App.module.css';
 import MagicMenu from './MagicMenu.jsx';
+import {defaultAvatarUrl} from '../constants';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 
@@ -25,7 +26,6 @@ const _startApp = async (weba, canvas) => {
   universe.handleUrlUpdate();
   await weba.startLoop();
   
-  const defaultAvatarUrl = './avatars/citrine.vrm';
   const localPlayer = metaversefileApi.useLocalPlayer();
   await localPlayer.setAvatarUrl(defaultAvatarUrl);
 };

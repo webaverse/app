@@ -1,11 +1,18 @@
 /* utils to bind players to their avatars
 set the avatar state from the player state */
 
+import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {unFrustumCull, enableShadows} from './util.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
+const maxMirrorDistanace = 3;
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+// const localPlane = new THREE.Plane();
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
@@ -157,6 +164,30 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // pose
   rig.poseAnimation = poseAction?.animation || null;
 }
+export function applyPlayerMirrorsToAvatar(player, rig, mirrors) {
+  rig.eyeballTargetEnabled = false;
+
+  const closestMirror = mirrors.sort((a, b) => {
+    const aDistance = player.position.distanceTo(a.position);
+    const bDistance = player.position.distanceTo(b.position);
+    return aDistance - bDistance;
+  })[0];
+  if (closestMirror) {
+    // console.log('player bind mirror', closestMirror);
+    const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
+
+    if (mirrorPosition.distanceTo(player.position) < maxMirrorDistanace) {
+      rig.eyeballTargetPlane.setFromNormalAndCoplanarPoint(
+        localVector.set(0, 0, 1)
+          .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
+        mirrorPosition
+      );
+      // rig.eyeballTargetPlane.projectPoint(player.position, rig.eyeballTarget);
+      // rig.eyeballTargetInverted = false;
+      rig.eyeballTargetEnabled = true;
+    }
+  }
+}
 export function applyPlayerChatToAvatar(player, rig) {
   const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
   const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
@@ -201,11 +232,12 @@ export function applyPlayerChatToAvatar(player, rig) {
   };
   _applyFakeSpeech(lastMessage);
 }
-export function applyPlayerToAvatar(player, session, rig) {
+export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
+  applyPlayerMirrorsToAvatar(player, rig, mirrors);
   applyPlayerChatToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
