@@ -1,5 +1,6 @@
 /* this is the character heads up player implementation.
-it controls the animated dioramas that happen when players perform actions. */
+it controls the animated dioramas that happen when players perform actions.
+the HTML part of this code lives as part of the React app. */
 
 import * as THREE from 'three';
 import {Voicer} from './voicer.js';
