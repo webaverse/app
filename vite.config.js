@@ -12,6 +12,7 @@ export default defineConfig({
     entries: [
       'src/*.js',
       'src/*.jsx',
+      'avatars/*.js',
       'src/components/*.js', 
       'src/components/*.jsx', 
       'src/tabs/*.jsx',
