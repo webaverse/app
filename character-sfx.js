@@ -63,18 +63,12 @@ const landSoundFileNames = `\
 land1.wav
 land2.wav
 land3.wav`.split('\n');
-const syllableSoundFileNames = (() => {
-  const numFiles = 362;
-  const files = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`);
-  return files;
-})();
 
 let walkSoundFiles;
 let runSoundFiles;
 let jumpSoundFiles;
 let landSoundFiles;
 let narutoRunSoundFiles;
-let syllableSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
@@ -84,9 +78,6 @@ const loadPromise = (async () => {
   const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
     return `/sounds/${soundType}/${fileName}`;
   })(fileNames);
-  const _loadSyllableSoundFiles = _loadSoundFiles(fileName => {
-    return `https://webaverse.github.io/shishi-voicepack/syllables/${fileName}`;
-  });
   await Promise.all([
     _loadFootstepSoundFiles(walkSoundFileNames, 'walk').then(as => {
       walkSoundFiles = as;
@@ -102,9 +93,6 @@ const loadPromise = (async () => {
     }),
     _loadFootstepSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
       narutoRunSoundFiles = as;
-    }),
-    _loadSyllableSoundFiles(syllableSoundFileNames).then(as => {
-      syllableSoundFiles = as;
     }),
   ]);
 })();
