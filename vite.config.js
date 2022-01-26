@@ -13,6 +13,7 @@ export default defineConfig({
       'src/*.js',
       'src/*.jsx',
       'avatars/*.js',
+      'avatars/vrarmik/*.js',
       'src/components/*.js', 
       'src/components/*.jsx', 
       'src/tabs/*.jsx',
