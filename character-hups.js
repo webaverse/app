@@ -97,7 +97,6 @@ class CharacterHups extends EventTarget {
     this.player = player;
 
     this.hups = [];
-    this.voices = [];
 
     this.update();
   }
