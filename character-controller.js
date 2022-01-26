@@ -562,10 +562,8 @@ class StatePlayer extends PlayerBase {
 
       this.avatar.update(timestamp, timeDiff);
     }
-
     this.characterPhysics.updateCamera(timeDiff);
-
-    this.characterHups.update(/* timestamp, timeDiff */);
+    this.characterHups.update(timestamp);
   }
   destroy() {
     this.unbindState();

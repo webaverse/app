@@ -18,13 +18,14 @@ class Hup extends EventTarget {
     this.playerName = '';
     this.fullText = '';
     this.emote = null;
+    this.live = false;
     this.lastTimestamp = 0;
 
-    this.open = false;
+    // this.open = false;
 
-    if (this.parent.voicer) {
+    /* if (this.parent.voicer) {
       this.parent.voicer.start();
-    }
+    } */
   }
   static isHupAction(action) {
     return action.type === 'chat';
@@ -38,23 +39,34 @@ class Hup extends EventTarget {
       this.fullText += message;
     }
     this.emote = emote ?? null;
-    this.lastTimestamp = performance.now();
+    // this.lastTimestamp = performance.now();
   
     this.actionIds.push(action.actionId);
 
     this.dispatchEvent(new MessageEvent('update'));
   }
   setOpen(open) {
-    this.open = open;
-    this.dispatchEvent(new MessageEvent('open', {
+    // this.open = open;
+    /* this.dispatchEvent(new MessageEvent('open', {
       data: {
         open,
       },
-    }));
+    })); */
+  }
+  setLive(live) {
+    if (this.parent.voicer) {
+      if (live && !this.live) {
+        this.parent.voicer.start();
+      } else if (this.live && !live) {
+        this.parent.voicer.stop();
+      }
+    }
+    this.live = live;
   }
   destroy() {
     // console.warn('destroy hup', this);
-    this.parent.voicer.stop();
+    // this.parent.voicer.stop();
+    this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
 
@@ -68,7 +80,7 @@ class CharacterHups extends EventTarget {
 
     this.update();
   }
-  update() {
+  update(timestamp) {
     // let hups = [];
     const player = this.player;
     const actions = player.getActions();
@@ -86,16 +98,26 @@ class CharacterHups extends EventTarget {
       });
 
       if (hup.actionIds.length > 0) {
+        hup.setLive(true);
+        hup.lastTimestamp = timestamp;
         return true;
       } else {
-        hup.destroy();
-        this.dispatchEvent(new MessageEvent('hupremove', {
-          data: {
-            hup,
-          },
-        }));
+        hup.setLive(false);
+
+        const deadTime = timestamp - hup.lastTimestamp;
+        // console.log('dead time', deadTime);
+        if (deadTime > 1000) {
+          hup.destroy();
+          this.dispatchEvent(new MessageEvent('hupremove', {
+            data: {
+              hup,
+            },
+          }));
+          return false;
+        } else {
+          return true;
+        }
       }
-      return false;
     });
     // console.log('hups remove old 2', this.hups.length);
 
