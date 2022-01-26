@@ -52,13 +52,13 @@ function CharacterHup(props) {
     }
   }, [hupRef.current, localOpen]);
   useEffect(() => {
-    function open(e) {
-      setLocalOpen(e.data.open);
+    function destroy(e) {
+      setLocalOpen(false);
     }
-    hup.addEventListener('open', open);
+    hup.addEventListener('destroy', destroy);
     return () => {
-      hup.removeEventListener('open', open);
-    } ;
+      hup.removeEventListener('destroy', destroy);
+    };
   }, [hup]);
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -100,15 +100,15 @@ export default function CharacterHups() {
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
-    function hupremove(e) {
+    /* function hupremove(e) {
       e.data.hup.setOpen(false);
-    }
+    } */
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
     };
   }, []);
 
