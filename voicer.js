@@ -46,3 +46,7 @@ class Voicer {
     return voiceSpec.audio;
   }
 }
+
+export {
+  Voicer,
+};
