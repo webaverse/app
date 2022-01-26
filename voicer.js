@@ -53,10 +53,10 @@ class Voicer {
     const _recurse = async () => {
       const audio = this.selectVoice();
       // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
-      if (audio.silencingInterval) {
+      /* if (audio.silencingInterval) {
         clearInterval(audio.silencingInterval);
         audio.silencingInterval = null;
-      }
+      } */
       audio.currentTime = 0;
       audio.volume = 1;
       audio.paused && audio.play().catch(err => {});
@@ -65,13 +65,13 @@ class Voicer {
       this.timeout = setTimeout(async () => {
         // await audio.pause();
   
-        audio.silencingInterval = setInterval(() => {
+        /* audio.silencingInterval = setInterval(() => {
           audio.volume = Math.max(audio.volume - 0.1, 0);
           if (audio.volume === 0) {
             clearInterval(audio.silencingInterval);
             audio.silencingInterval = null;
           }
-        }, 10);
+        }, 10); */
   
         _recurse();
       }, audioTimeout);
