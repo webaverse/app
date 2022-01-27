@@ -20,12 +20,6 @@ class Hup extends EventTarget {
     this.emote = null;
     this.live = false;
     this.lastTimestamp = 0;
-
-    // this.open = false;
-
-    /* if (this.parent.voicer) {
-      this.parent.voicer.start();
-    } */
   }
   static isHupAction(action) {
     return action.type === 'chat';
@@ -39,19 +33,10 @@ class Hup extends EventTarget {
       this.fullText += message;
     }
     this.emote = emote ?? null;
-    // this.lastTimestamp = performance.now();
   
     this.actionIds.push(action.actionId);
 
     this.dispatchEvent(new MessageEvent('update'));
-  }
-  setOpen(open) {
-    // this.open = open;
-    /* this.dispatchEvent(new MessageEvent('open', {
-      data: {
-        open,
-      },
-    })); */
   }
   setLive(live) {
     if (this.parent.voicer) {
@@ -64,8 +49,6 @@ class Hup extends EventTarget {
     this.live = live;
   }
   destroy() {
-    // console.warn('destroy hup', this);
-    // this.parent.voicer.stop();
     this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
