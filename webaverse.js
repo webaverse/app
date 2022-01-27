@@ -75,8 +75,79 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
+const rendererStats = Stats();
 
-var rendererStats = Stats();
+/* const voiceFiles = `\
+B6_somnium_65_01 - Part_1.wav
+B6_somnium_66_01 - Part_1.wav
+D5-begin20_10_09_03 - Part_1.wav
+D5-begin20_10_09_03 - Part_2.wav
+D5-begin20_10_09_09 - Part_1.wav
+D5-begin20_10_09_10 - Part_1.wav
+D5-begin20_10_09_10 - Part_2.wav
+D5-begin20_10_09_10 - Part_3.wav
+D5-begin20_10_09_11 - Part_1.wav
+D5-begin20_10_09_14 - Part_1.wav
+E5-begin40_10_04_05 - Part_1.wav
+E5-begin40_10_04_06 - Part_1.wav
+E5-begin40_10_04_07 - Part_1.wav
+E5-begin40_10_04_07 - Part_2.wav
+E5-begin40_10_04_09 - Part_1.wav
+E5-begin40_10_05_01 - Part_1.wav
+E5-begin40_10_06_02 - Part_1.wav
+E5-begin40_10_06_05 - Part_1.wav
+E5-begin40_10_06_07 - Part_1.wav
+E5-begin40_10_07_24 - Part_1.wav
+E5-begin40_10_08_01 - Part_1.wav
+E5-begin40_10_08_01 - Part_2.wav
+E5-begin40_10_08_02 - Part_1.wav
+E5-begin40_10_08_03 - Part_1.wav
+E5-begin40_10_08_03 - Part_2.wav
+E5-begin40_10_08_04 - Part_1.wav
+E5-begin40_10_08_04 - Part_2.wav
+E5-begin40_10_08_05 - Part_1.wav
+E5-begin40_10_08_06 - Part_1.wav
+E5-begin40_10_08_07 - Part_1.wav
+E5-begin40_10_08_07 - Part_2.wav
+E5-begin40_10_08_10 - Part_1.wav
+E5-begin40_10_08_10 - Part_2.wav
+E5-begin40_10_08_10 - Part_3.wav
+E5-begin40_10_08_10 - Part_4.wav
+E5-begin40_10_08_12 - Part_1.wav
+E5-begin40_10_08_13 - Part_1.wav
+E5-begin40_10_10_02 - Part_1.wav
+E5-begin40_10_12_02 - Part_1.wav
+E5-begin40_10_14_11 - Part_1.wav
+E5-begin40_10_14_15 - Part_1.wav
+E5-begin40_10_14_15 - Part_2.wav
+E6-wrap_74_10_05_02 - Part_1.wav
+E6-wrap_74_10_19_03 - Part_1.wav
+E6-wrap_74_10_19_21 - Part_1.wav
+E6-wrap_74_10_19_29 - Part_1.wav`
+  .split('\n')
+  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
+  const numFiles = 362;
+  const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
+    .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
+
+const _loadVoicePack = async () => {
+  const audioContext = Avatar.getAudioContext();
+
+  const voices = [];
+  const promises = [];
+  for (const voiceFile of voiceFiles) {
+    const p = (async () => {
+      const res = await fetch(voiceFile);
+      const arrayBuffer = await res.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      voices.push(audioBuffer);
+    })();
+    promises.push(p);
+  }
+  await Promise.all(promises);
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.characterHups.setVoicePack(voices);
+};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -99,7 +170,8 @@ export default class Webaverse extends EventTarget {
         CharacterSfxModule.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
-        WebaWallet.waitForLoad()
+        WebaWallet.waitForLoad(),
+        _loadVoicePack(),
       ]);
     })();
     this.contentLoaded = false;
@@ -658,81 +730,4 @@ const _startHacks = () => {
       }
     }
   });
-};
-
-/* const voiceFiles = `\
-B6_somnium_65_01 - Part_1.wav
-B6_somnium_66_01 - Part_1.wav
-D5-begin20_10_09_03 - Part_1.wav
-D5-begin20_10_09_03 - Part_2.wav
-D5-begin20_10_09_09 - Part_1.wav
-D5-begin20_10_09_10 - Part_1.wav
-D5-begin20_10_09_10 - Part_2.wav
-D5-begin20_10_09_10 - Part_3.wav
-D5-begin20_10_09_11 - Part_1.wav
-D5-begin20_10_09_14 - Part_1.wav
-E5-begin40_10_04_05 - Part_1.wav
-E5-begin40_10_04_06 - Part_1.wav
-E5-begin40_10_04_07 - Part_1.wav
-E5-begin40_10_04_07 - Part_2.wav
-E5-begin40_10_04_09 - Part_1.wav
-E5-begin40_10_05_01 - Part_1.wav
-E5-begin40_10_06_02 - Part_1.wav
-E5-begin40_10_06_05 - Part_1.wav
-E5-begin40_10_06_07 - Part_1.wav
-E5-begin40_10_07_24 - Part_1.wav
-E5-begin40_10_08_01 - Part_1.wav
-E5-begin40_10_08_01 - Part_2.wav
-E5-begin40_10_08_02 - Part_1.wav
-E5-begin40_10_08_03 - Part_1.wav
-E5-begin40_10_08_03 - Part_2.wav
-E5-begin40_10_08_04 - Part_1.wav
-E5-begin40_10_08_04 - Part_2.wav
-E5-begin40_10_08_05 - Part_1.wav
-E5-begin40_10_08_06 - Part_1.wav
-E5-begin40_10_08_07 - Part_1.wav
-E5-begin40_10_08_07 - Part_2.wav
-E5-begin40_10_08_10 - Part_1.wav
-E5-begin40_10_08_10 - Part_2.wav
-E5-begin40_10_08_10 - Part_3.wav
-E5-begin40_10_08_10 - Part_4.wav
-E5-begin40_10_08_12 - Part_1.wav
-E5-begin40_10_08_13 - Part_1.wav
-E5-begin40_10_10_02 - Part_1.wav
-E5-begin40_10_12_02 - Part_1.wav
-E5-begin40_10_14_11 - Part_1.wav
-E5-begin40_10_14_15 - Part_1.wav
-E5-begin40_10_14_15 - Part_2.wav
-E6-wrap_74_10_05_02 - Part_1.wav
-E6-wrap_74_10_19_03 - Part_1.wav
-E6-wrap_74_10_19_21 - Part_1.wav
-E6-wrap_74_10_19_29 - Part_1.wav`
-  .split('\n')
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
-const numFiles = 362;
-const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
-
-const voices = [];
-const promises = [];
-for (const voiceFile of voiceFiles) {
-  const audio = new Audio(voiceFile);
-  const p = makePromise();
-  audio.addEventListener('canplaythrough', () => {
-    p.accept();
-  });
-  audio.addEventListener('error', err => {
-    p.reject();
-  });
-  voices.push(audio);
-}
-const loadPromise = Promise.all(promises).then(() => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoicePack(voices);
-});
-window.testHup = async () => {
-  await loadPromise;
-
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.addTextHup('Leave it to the wind. It will all work itself out. That\'s what losers say!');
 };
