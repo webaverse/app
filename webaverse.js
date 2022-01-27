@@ -77,6 +77,12 @@ const frameEvent = new MessageEvent('frame', {
 });
 const rendererStats = Stats();
 
+const _loadAudioContext = async () => {
+  const audioContext = WSRTC.getAudioContext();
+  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
+  Avatar.setAudioContext(audioContext);
+};
+
 /* const voiceFiles = `\
 B6_somnium_65_01 - Part_1.wav
 B6_somnium_66_01 - Part_1.wav
@@ -129,7 +135,6 @@ E6-wrap_74_10_19_29 - Part_1.wav`
   const numFiles = 362;
   const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
     .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
-
 const _loadVoicePack = async () => {
   const audioContext = Avatar.getAudioContext();
 
@@ -157,14 +162,11 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
 
-    {
-      const audioContext = WSRTC.getAudioContext();
-      Avatar.setAudioContext(audioContext);
-    }
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
+        _loadAudioContext(),
         CharacterSfxModule.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
@@ -615,7 +617,7 @@ const _startHacks = () => {
             _loadAudio(audioUrl),
             // _loadAudio(audioUrl2),
           ]);
-          await localPlayer.avatar.setAudioEnabled(true);
+          localPlayer.avatar.setAudioEnabled(true);
 
           const _createMediaStreamSource = o => {
             if (o instanceof MediaStream) {
