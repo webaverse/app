@@ -305,7 +305,7 @@ const loadPromise = (async () => {
     return o;
   }
 
-  jumpAnimation = animations.find(a => a.isJump);
+  jumpAnimation = animations.index['charge_jump_forward.fbx']
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -1777,11 +1777,11 @@ class Avatar {
             } = spec;
             // console.log('JumpState', spec)
 
-            // const t2 = this.jumpTime/1000 * 0.6 + 0.7;
-            // const src2 = jumpAnimation.interpolants[k];
-            // const v2 = src2.evaluate(t2);
+            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
 
-            // dst.fromArray(v2);
+            dst.fromArray(v2);
           };
         }
         if (this.sitState) {
