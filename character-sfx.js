@@ -11,7 +11,7 @@ import {
 } from './constants.js';
 import {
   mod,
-  loadAudio,
+  loadAudioBuffer,
 } from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -73,7 +73,8 @@ const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
   const _loadSoundFiles = getUrlFn => function(fileNames) {
-    return Promise.all(fileNames.map(fileName => loadAudio(getUrlFn(fileName))));
+    const audioContext = Avatar.getAudioContext();
+    return Promise.all(fileNames.map(fileName => loadAudioBuffer(audioContext, getUrlFn(fileName))));
   };
   const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
     return `/sounds/${soundType}/${fileName}`;
@@ -141,17 +142,20 @@ class CharacterSfx {
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
     // jump
+    const _playSound = audioBuffer => {
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = audioBuffer;
+      audioBufferSourceNode.connect(audioContext.destination);
+      audioBufferSourceNode.start();
+    };
     {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const candidateAudios = jumpSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play().catch(err => {});
+        const audioBuffer = jumpSoundFiles[Math.floor(Math.random() * jumpSoundFiles.length)];
+        _playSound(audioBuffer);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const candidateAudios = landSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play().catch(err => {});
+        const audioBuffer = landSoundFiles[Math.floor(Math.random() * landSoundFiles.length)];
+        _playSound(audioBuffer);
       }
       this.lastJumpState = this.player.avatar.jumpState;
     }
@@ -214,10 +218,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
               
-              const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              audio.currentTime = 0;
-              audio.paused && audio.play().catch(err => {});
-              // console.log('left');
+              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioBuffer);
             }
           }
           this.lastStepped[0] = leftStepIndices[i];
@@ -229,10 +231,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
 
-              const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              audio.currentTime = 0;
-              audio.paused && audio.play().catch(err => {});
-              // console.log('right');
+              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioBuffer);
             }
           }
           this.lastStepped[1] = rightStepIndices[i];
