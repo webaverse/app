@@ -746,3 +746,9 @@ export async function loadAudio(u) {
   // document.body.appendChild(audio);
   return audio;
 }
+export async function loadAudioBuffer(audioContext, url) {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  return audioBuffer;
+}
