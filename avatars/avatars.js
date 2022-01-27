@@ -901,7 +901,6 @@ class Looker {
     // console.log('got mode', this.mode, this.waitTime);
     
     if (_isSpeedTooFast()) {
-      console.log('fast');
       _getEndTargetForward(this.endTarget);
       // this.startTarget.copy(this.endTarget);
       _startDelay();
