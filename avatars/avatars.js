@@ -841,13 +841,10 @@ class Looker {
   }
   // returns the world space eye target
   update(now) {
-    const _startMove = () => {
-      this.mode = 'moving';
-      // const head = this.avatar.modelBoneOutputs['Head'];
+    const _getEndTargetRandom = target => {
       const root = this.avatar.modelBoneOutputs['Root'];
       const eyePosition = getEyePosition(this.avatar.modelBones);
-      this.startTarget.copy(this.endTarget);
-      this.endTarget.copy(eyePosition)
+      return target.copy(eyePosition)
         .add(
           localVector.set(0, 0, 1.5 + 3 * Math.random())
             .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
@@ -857,12 +854,36 @@ class Looker {
             .normalize()
             // .multiplyScalar(1)
         );
+    };
+    const _getEndTargetForward = target => {
+      const root = this.avatar.modelBoneOutputs['Root'];
+      const eyePosition = getEyePosition(this.avatar.modelBones);
+      return target.copy(eyePosition)
+        .add(
+          localVector.set(0, 0, 2)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
+        );
+    };
+    const _startMove = () => {
+      this.mode = 'moving';
+      // const head = this.avatar.modelBoneOutputs['Head'];
+      // const root = this.avatar.modelBoneOutputs['Root'];
+      this.startTarget.copy(this.endTarget);
+      _getEndTargetRandom(this.endTarget);
       this.waitTime = 100;
       this.lastTimestamp = now;
     };
-    const _isSpeedTooFast = () => {
-      return this.avatar.velocity.length() > 0.5;
+    const _startDelay = () => {
+      this.mode = 'delay';
+      this.waitTime = Math.random() * 2000;
+      this.lastTimestamp = now;
     };
+    const _startWaiting = () => {
+      this.mode = 'waiting';
+      this.waitTime = Math.random() * 3000;
+      this.lastTimestamp = now;
+    };
+    const _isSpeedTooFast = () => this.avatar.velocity.length() > 0.5;
     const _isPointTooClose = () => {
       const root = this.avatar.modelBoneOutputs['Root'];
       // const head = this.avatar.modelBoneOutputs['Head'];
@@ -877,18 +898,33 @@ class Looker {
       return distance < 1;
     };
 
-    // console.log('got mode', this.mode);
+    // console.log('got mode', this.mode, this.waitTime);
     
     if (_isSpeedTooFast()) {
+      console.log('fast');
+      _getEndTargetForward(this.endTarget);
+      // this.startTarget.copy(this.endTarget);
+      _startDelay();
       return null;
     } else if (_isPointTooClose()) {
-      _startMove();
-      return this.startTarget;
+      _getEndTargetForward(this.endTarget);
+      // this.startTarget.copy(this.endTarget);
+      _startDelay();
+      return null;
     } else {
       switch (this.mode) {
         case 'ready': {
           _startMove();
           return this.startTarget;
+        }
+        case 'delay': {
+          const timeDiff = now - this.lastTimestamp;
+          if (timeDiff > this.waitTime) {
+            _startMove();
+            return this.startTarget;
+          } else {
+            return null;
+          }
         }
         case 'moving': {
           const timeDiff = now - this.lastTimestamp;
@@ -899,9 +935,7 @@ class Looker {
           // _setTarget(target);
 
           if (f >= 1) {
-            this.mode = 'waiting';
-            this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
-            this.lastTimestamp = now;
+            _startWaiting();
           }
 
           return target;
