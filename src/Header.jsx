@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import styles from './Header.module.css';
 import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
+import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
 import * as Z from 'zjs';
 // import {Color} from './Color.js';
@@ -30,7 +31,6 @@ const localEuler = new THREE.Euler();
 
 // console.log('index 1');
 
-
 const _getCurrentSceneSrc = () => {
   const q = parseQuery(window.location.search);
   let {src} = q;
@@ -44,7 +44,6 @@ const _getCurrentRoom = () => {
   const {room} = q;
   return room || '';
 };
-
 
 export default function Header({
   app,
@@ -348,6 +347,7 @@ export default function Header({
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
 			<Chat open={open} setOpen={setOpen} />
+      <CharacterHups />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
 				<header className={styles.header}>

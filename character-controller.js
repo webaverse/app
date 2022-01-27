@@ -22,10 +22,12 @@ import {
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
-  groundFriction,
+  // groundFriction,
+  defaultPlayerName,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
+import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
@@ -88,6 +90,7 @@ class StatePlayer extends PlayerBase {
     this.playerId = playerId;
     this.playersArray = null;
     this.playerMap = null;
+    this.microphoneMediaStream = null;
 
     this.appManager = new AppManager({
       appsMap: null,
@@ -417,6 +420,17 @@ class StatePlayer extends PlayerBase {
     }
     return null;
   }
+  getActionByActionId(actionId) {
+    if (this.isBound()) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (action.actionId === actionId) {
+          return action;
+        }
+      }
+    }
+    return null;
+  }
   getActionIndex(type) {
     if (this.isBound()) {
       const actions = this.getActionsState();
@@ -485,8 +499,18 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
-  setMicMediaStream(mediaStream, options) {
-    this.avatar.setMicrophoneMediaStream(mediaStream, options);
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setAudioEnabled(true);
+      const audioContext = Avatar.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      mediaStreamSource.connect(this.avatar.getAudioInput());
+      this.microphoneMediaStream = mediaStreamSource;
+    }
   }
   new() {
     const self = this;
@@ -549,8 +573,8 @@ class StatePlayer extends PlayerBase {
 
       this.avatar.update(timestamp, timeDiff);
     }
-
     this.characterPhysics.updateCamera(timeDiff);
+    this.characterHups.update(timestamp);
   }
   destroy() {
     this.unbindState();
@@ -690,7 +714,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.name = defaultPlayerName;
     this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
   }
   async setAvatarUrl(u) {
@@ -1021,6 +1047,9 @@ class StaticInterpolatedPlayer extends PlayerBase {
   }
   getAction(type) {
     return this.actions.find(action => action.type === type);
+  }
+  getActionByActionId(actionId) {
+    return this.actions.find(action => action.actionId === actionId);
   }
   hasAction(type) {
     return this.actions.some(a => a.type === type);

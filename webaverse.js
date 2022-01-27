@@ -6,6 +6,7 @@ it uses the help of various managers and stores, and executes the render loop.
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
+// import * as CharacterHupsModule from './character-hups.js';
 import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -20,6 +21,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
+import {loadAudioBuffer} from './util.js';
 import {
   getRenderer,
   scene,
@@ -41,19 +43,19 @@ import WebaWallet from './src/components/wallet.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-const localArray = Array(4);
-const localArray2 = Array(4);
-const localArray3 = Array(4);
-const localArray4 = Array(4);
+// const localArray = Array(4);
+// const localArray2 = Array(4);
+// const localArray3 = Array(4);
+// const localArray4 = Array(4);
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
@@ -73,8 +75,82 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
+const rendererStats = Stats();
 
-var rendererStats = Stats();
+const _loadAudioContext = async () => {
+  const audioContext = WSRTC.getAudioContext();
+  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
+  Avatar.setAudioContext(audioContext);
+};
+
+/* const voiceFiles = `\
+B6_somnium_65_01 - Part_1.wav
+B6_somnium_66_01 - Part_1.wav
+D5-begin20_10_09_03 - Part_1.wav
+D5-begin20_10_09_03 - Part_2.wav
+D5-begin20_10_09_09 - Part_1.wav
+D5-begin20_10_09_10 - Part_1.wav
+D5-begin20_10_09_10 - Part_2.wav
+D5-begin20_10_09_10 - Part_3.wav
+D5-begin20_10_09_11 - Part_1.wav
+D5-begin20_10_09_14 - Part_1.wav
+E5-begin40_10_04_05 - Part_1.wav
+E5-begin40_10_04_06 - Part_1.wav
+E5-begin40_10_04_07 - Part_1.wav
+E5-begin40_10_04_07 - Part_2.wav
+E5-begin40_10_04_09 - Part_1.wav
+E5-begin40_10_05_01 - Part_1.wav
+E5-begin40_10_06_02 - Part_1.wav
+E5-begin40_10_06_05 - Part_1.wav
+E5-begin40_10_06_07 - Part_1.wav
+E5-begin40_10_07_24 - Part_1.wav
+E5-begin40_10_08_01 - Part_1.wav
+E5-begin40_10_08_01 - Part_2.wav
+E5-begin40_10_08_02 - Part_1.wav
+E5-begin40_10_08_03 - Part_1.wav
+E5-begin40_10_08_03 - Part_2.wav
+E5-begin40_10_08_04 - Part_1.wav
+E5-begin40_10_08_04 - Part_2.wav
+E5-begin40_10_08_05 - Part_1.wav
+E5-begin40_10_08_06 - Part_1.wav
+E5-begin40_10_08_07 - Part_1.wav
+E5-begin40_10_08_07 - Part_2.wav
+E5-begin40_10_08_10 - Part_1.wav
+E5-begin40_10_08_10 - Part_2.wav
+E5-begin40_10_08_10 - Part_3.wav
+E5-begin40_10_08_10 - Part_4.wav
+E5-begin40_10_08_12 - Part_1.wav
+E5-begin40_10_08_13 - Part_1.wav
+E5-begin40_10_10_02 - Part_1.wav
+E5-begin40_10_12_02 - Part_1.wav
+E5-begin40_10_14_11 - Part_1.wav
+E5-begin40_10_14_15 - Part_1.wav
+E5-begin40_10_14_15 - Part_2.wav
+E6-wrap_74_10_05_02 - Part_1.wav
+E6-wrap_74_10_19_03 - Part_1.wav
+E6-wrap_74_10_19_21 - Part_1.wav
+E6-wrap_74_10_19_29 - Part_1.wav`
+  .split('\n')
+  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
+  const numFiles = 362;
+  const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
+    .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
+const _loadVoicePack = async () => {
+  const audioContext = Avatar.getAudioContext();
+
+  const voices = [];
+  const promises = [];
+  for (const voiceFile of voiceFiles) {
+    const p = loadAudioBuffer(audioContext, voiceFile);
+    p.then(audioBuffer => {
+      voices.push(audioBuffer);
+    });
+    promises.push(p);
+  }
+  await Promise.all(promises);
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.characterHups.setVoicePack(voices);
+};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -86,18 +162,16 @@ export default class Webaverse extends EventTarget {
     rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
 
-    {
-      const audioContext = WSRTC.getAudioContext();
-      Avatar.setAudioContext(audioContext);
-    }
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
+        _loadAudioContext(),
         CharacterSfxModule.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
-        WebaWallet.waitForLoad()
+        WebaWallet.waitForLoad(),
+        _loadVoicePack(),
       ]);
     })();
     this.contentLoaded = false;
@@ -524,8 +598,8 @@ const _startHacks = () => {
     if (e.which === 219) { // [
       if (localPlayer.avatar) {
         (async () => {
-          const audioUrl = '/sounds/vocals.mp3';
-          const audioUrl2 = '/sounds/music.mp3';
+          const audioUrl = '/sounds/pissbaby.mp3';
+          // const audioUrl2 = '/sounds/music.mp3';
 
           const _loadAudio = u => new Promise((accept, reject) => {
             const audio = new Audio(u);
@@ -541,16 +615,32 @@ const _startHacks = () => {
 
           const audios = await Promise.all([
             _loadAudio(audioUrl),
-            _loadAudio(audioUrl2),
+            // _loadAudio(audioUrl2),
           ]);
-          localPlayer.avatar.say(audios[0]);
-          await localPlayer.avatar.microphoneWorker.waitForLoad();
+          localPlayer.avatar.setAudioEnabled(true);
+
+          const _createMediaStreamSource = o => {
+            if (o instanceof MediaStream) {
+              const audio = document.createElement('audio');
+              audio.srcObject = o;
+              audio.muted = true;
+            }
+
+            const audioContext = Avatar.getAudioContext();
+            if (o instanceof MediaStream) {
+              return audioContext.createMediaStreamSource(o);
+            } else {
+              return audioContext.createMediaElementSource(o);
+            }
+          };
+          const mediaStreamSource = _createMediaStreamSource(audios[0]);
+          mediaStreamSource.connect(localPlayer.avatar.getAudioInput());
 
           audios[0].play();
-          audios[1].play();
-          
+          // audios[1].play();
           audios[0].addEventListener('ended', e => {
-            localPlayer.avatar.setMicrophoneMediaStream(null);
+            mediaStreamSource.disconnect();
+            localPlayer.avatar.setAudioEnabled(false);
           });
         })();
       }
