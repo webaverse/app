@@ -69,6 +69,7 @@ function CharacterHup(props) {
   useEffect(() => {
     if (text.length <= hup.fullText.length) {
       const timeout = setTimeout(() => {
+        // XXX this text slicing should be done with a mathematical factor in the hups code
         const newText = text + hup.fullText.charAt(text.length);
         setText(newText);
       }, 100);
