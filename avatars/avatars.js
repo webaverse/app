@@ -46,7 +46,7 @@ import {
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -825,7 +825,7 @@ class Nodder {
 const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
 const testMesh = new THREE.Mesh(g, m);
-scene.add(testMesh);
+// scene.add(testMesh);
 class Looker {
   constructor(avatar) {
     this.avatar = avatar;
@@ -835,23 +835,25 @@ class Looker {
     this.endTarget = new THREE.Vector3();
     this.waitTime = 0;
     this.lastTimestamp = 0;
+
+    this._target = new THREE.Vector3();
   }
   update(now) {
-    const _setTarget = () => {
+    const _startMove = () => {
       this.mode = 'moving';
       // const head = this.avatar.modelBoneOutputs['Head'];
       const root = this.avatar.modelBoneOutputs['Root'];
       const eyePosition = getEyePosition(this.avatar.modelBones);
-      this.startTarget = this.avatar.eyeballTarget.clone();
-      this.endTarget = eyePosition.clone()
+      this.startTarget.copy(this.endTarget);
+      this.endTarget.copy(eyePosition)
         .add(
-          new THREE.Vector3(0, 0, 1.5 + 3 * Math.random())
-            .applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(root.matrixWorld))
+          localVector.set(0, 0, 1.5 + 3 * Math.random())
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
         )
         .add(
-          new THREE.Vector3(-0.5+Math.random(), (-0.5+Math.random()) * 0.3, -0.5+Math.random())
+          localVector.set(-0.5+Math.random(), (-0.5+Math.random()) * 0.3, -0.5+Math.random())
             .normalize()
-            .multiplyScalar(1)
+            // .multiplyScalar(1)
         );
       this.waitTime = 100;
       this.lastTimestamp = now;
@@ -861,30 +863,32 @@ class Looker {
 
     switch (this.mode) {
       case 'ready': {
-        _setTarget();
+        _startMove();
+        return this.startTarget;
       }
       case 'moving': {
         const timeDiff = now - this.lastTimestamp;
         const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
         // console.log('got time diff', timeDiff, this.waitTime, f);
-        const target = this.startTarget.clone()
+        const target = this._target.copy(this.startTarget)
           .lerp(this.endTarget, f);
-        this.avatar.eyeballTarget.copy(target);
-        this.avatar.eyeballTargetEnabled = true;
-        
-        testMesh.position.copy(target);
-        testMesh.updateMatrixWorld();
+        // _setTarget(target);
 
         if (f >= 1) {
           this.mode = 'waiting';
           this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
           this.lastTimestamp = now;
         }
+
+        return target;
       }
       case 'waiting': {
         const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
         if (f >= 1) {
-          _setTarget();
+          _startMove();
+          return this.startTarget;
+        } else {
+          return this.endTarget;
         }
       }
     }
@@ -2839,7 +2843,10 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      if (this.eyeballTargetEnabled && this.firstPersonCurves) {
+      const lookerEyeballTarget = this.looker.update(now);
+      const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
+
+      if (eyeballTarget && this.firstPersonCurves) {
         const {
           lookAtHorizontalInnerCurve,
           lookAtHorizontalOuterCurve,
@@ -2925,9 +2932,7 @@ class Avatar {
 
         const head = this.modelBoneOutputs.Head;
         const eyePosition = getEyePosition(this.modelBones);
-        /* this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
-        lookAt(localVector); */
-        lookAt(this.eyeballTarget);
+        lookAt(eyeballTarget);
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
@@ -2962,7 +2967,6 @@ class Avatar {
 
     // XXX hook these up
     this.nodder.update(now);
-    this.looker.update(now);
     this.emoter.update(now);
 
     const _updateVisemes = () => {
