@@ -618,25 +618,12 @@ const _startHacks = () => {
             // _loadAudio(audioUrl2),
           ]);
           await localPlayer.avatar.setAudioEnabled(true);
-          // localPlayer.avatar.say(audios[0]);
-          // await localPlayer.avatar.microphoneWorker.waitForLoad();
 
           const _createMediaStreamSource = o => {
             if (o instanceof MediaStream) {
               const audio = document.createElement('audio');
               audio.srcObject = o;
               audio.muted = true;
-            } else {
-              /* const oldO = o;
-              oldO.play = (play => function() {
-                play.apply(oldO, arguments);
-                play.apply(o, arguments);
-              })(oldO.play);
-              oldO.pause = (pause => function() {
-                pause.apply(oldO, arguments);
-                pause.apply(o, arguments);
-              })(oldO.pause);
-              o = o.cloneNode(); */
             }
 
             const audioContext = Avatar.getAudioContext();
@@ -647,7 +634,6 @@ const _startHacks = () => {
             }
           };
           const mediaStreamSource = _createMediaStreamSource(audios[0]);
-          console.log('got audio input', localPlayer.avatar.getAudioInput());
           mediaStreamSource.connect(localPlayer.avatar.getAudioInput());
 
           audios[0].play();
