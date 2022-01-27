@@ -57,6 +57,7 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localPlane = new THREE.Plane();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
@@ -838,6 +839,7 @@ class Looker {
 
     this._target = new THREE.Vector3();
   }
+  // returns the world space eye target
   update(now) {
     const _startMove = () => {
       this.mode = 'moving';
@@ -858,37 +860,60 @@ class Looker {
       this.waitTime = 100;
       this.lastTimestamp = now;
     };
+    const _isSpeedTooFast = () => {
+      return this.avatar.velocity.length() > 0.5;
+    };
+    const _isPointTooClose = () => {
+      const root = this.avatar.modelBoneOutputs['Root'];
+      // const head = this.avatar.modelBoneOutputs['Head'];
+      localVector.set(0, 0, 1)
+        .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld));
+      localVector2.setFromMatrixPosition(root.matrixWorld);
+      localPlane.setFromNormalAndCoplanarPoint(
+        localVector,
+        localVector2
+      );
+      const distance = localPlane.distanceToPoint(this.endTarget);
+      return distance < 1;
+    };
 
     // console.log('got mode', this.mode);
-
-    switch (this.mode) {
-      case 'ready': {
-        _startMove();
-        return this.startTarget;
-      }
-      case 'moving': {
-        const timeDiff = now - this.lastTimestamp;
-        const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
-        // console.log('got time diff', timeDiff, this.waitTime, f);
-        const target = this._target.copy(this.startTarget)
-          .lerp(this.endTarget, f);
-        // _setTarget(target);
-
-        if (f >= 1) {
-          this.mode = 'waiting';
-          this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
-          this.lastTimestamp = now;
-        }
-
-        return target;
-      }
-      case 'waiting': {
-        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
-        if (f >= 1) {
+    
+    if (_isSpeedTooFast()) {
+      return null;
+    } else if (_isPointTooClose()) {
+      _startMove();
+      return this.startTarget;
+    } else {
+      switch (this.mode) {
+        case 'ready': {
           _startMove();
           return this.startTarget;
-        } else {
-          return this.endTarget;
+        }
+        case 'moving': {
+          const timeDiff = now - this.lastTimestamp;
+          const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
+          // console.log('got time diff', timeDiff, this.waitTime, f);
+          const target = this._target.copy(this.startTarget)
+            .lerp(this.endTarget, f);
+          // _setTarget(target);
+
+          if (f >= 1) {
+            this.mode = 'waiting';
+            this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
+            this.lastTimestamp = now;
+          }
+
+          return target;
+        }
+        case 'waiting': {
+          const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+          if (f >= 1) {
+            _startMove();
+            return this.startTarget;
+          } else {
+            return this.endTarget;
+          }
         }
       }
     }
