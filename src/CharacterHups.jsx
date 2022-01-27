@@ -18,6 +18,7 @@ function CharacterHup(props) {
   const canvasRef = useRef();
   const hupRef = useRef();
   const [localOpen, setLocalOpen] = useState(false);
+  const [text, setText] = useState('');
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -65,6 +66,17 @@ function CharacterHup(props) {
       setLocalOpen(true);
     });
   }, []);
+  useEffect(() => {
+    if (text.length <= hup.fullText.length) {
+      const timeout = setTimeout(() => {
+        const newText = text + hup.fullText.charAt(text.length);
+        setText(newText);
+      }, 100);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [text]);
 
   // console.log('got hup', hup);
 
@@ -86,7 +98,7 @@ function CharacterHup(props) {
           </div>
         </div> */}
       </div>
-      <div className={styles.message}>{hup.fullText}</div>
+      <div className={styles.message}>{text}</div>
     </div>
   );
 }
