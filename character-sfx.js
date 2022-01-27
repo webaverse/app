@@ -11,6 +11,7 @@ import {
 } from './constants.js';
 import {
   mod,
+  loadAudioBuffer,
 } from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -71,47 +72,28 @@ let narutoRunSoundFiles;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
-  const audioTimeoutTime = 10 * 1000;
-  const _loadSoundFiles = (fileNames, soundType) => Promise.all(fileNames.map(async fileName => {
-    const audio = new Audio();
-    const p = new Promise((accept, reject) => {
-      const timeout = setTimeout(() => {
-        console.warn('audio load seems hung', audio);
-      }, audioTimeoutTime);
-      const _cleanup = () => {
-        clearTimeout(timeout);
-      };
-      audio.oncanplaythrough = () => {
-        _cleanup();
-        accept();
-      };
-      audio.onerror = err => {
-        _cleanup();
-        reject(err);
-      };
-    });
-    // console.log('got src', `../sounds/${soundType}/${fileName}`);
-    audio.src = `/sounds/${soundType}/${fileName}`;
-    audio.load();
-    await p;
-    // document.body.appendChild(audio);
-    return audio;
-  }));
+  const _loadSoundFiles = getUrlFn => function(fileNames) {
+    const audioContext = Avatar.getAudioContext();
+    return Promise.all(fileNames.map(fileName => loadAudioBuffer(audioContext, getUrlFn(fileName))));
+  };
+  const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
+    return `/sounds/${soundType}/${fileName}`;
+  })(fileNames);
   await Promise.all([
-    _loadSoundFiles(walkSoundFileNames, 'walk').then(as => {
+    _loadFootstepSoundFiles(walkSoundFileNames, 'walk').then(as => {
       walkSoundFiles = as;
     }),
-    _loadSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
-      narutoRunSoundFiles = as;
-    }),
-    _loadSoundFiles(runSoundFileNames, 'run').then(as => {
+    _loadFootstepSoundFiles(runSoundFileNames, 'run').then(as => {
       runSoundFiles = as;
     }),
-    _loadSoundFiles(jumpSoundFileNames, 'jump').then(as => {
+    _loadFootstepSoundFiles(jumpSoundFileNames, 'jump').then(as => {
       jumpSoundFiles = as;
     }),
-    _loadSoundFiles(landSoundFileNames, 'land').then(as => {
+    _loadFootstepSoundFiles(landSoundFileNames, 'land').then(as => {
       landSoundFiles = as;
+    }),
+    _loadFootstepSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
+      narutoRunSoundFiles = as;
     }),
   ]);
 })();
@@ -160,17 +142,20 @@ class CharacterSfx {
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
     // jump
+    const _playSound = audioBuffer => {
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = audioBuffer;
+      audioBufferSourceNode.connect(audioContext.destination);
+      audioBufferSourceNode.start();
+    };
     {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const candidateAudios = jumpSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play().catch(err => {});
+        const audioBuffer = jumpSoundFiles[Math.floor(Math.random() * jumpSoundFiles.length)];
+        _playSound(audioBuffer);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const candidateAudios = landSoundFiles;
-        const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-        audio.currentTime = 0;
-        audio.paused && audio.play().catch(err => {});
+        const audioBuffer = landSoundFiles[Math.floor(Math.random() * landSoundFiles.length)];
+        _playSound(audioBuffer);
       }
       this.lastJumpState = this.player.avatar.jumpState;
     }
@@ -233,10 +218,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
               
-              const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              audio.currentTime = 0;
-              audio.paused && audio.play().catch(err => {});
-              // console.log('left');
+              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioBuffer);
             }
           }
           this.lastStepped[0] = leftStepIndices[i];
@@ -248,10 +231,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
 
-              const audio = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              audio.currentTime = 0;
-              audio.paused && audio.play().catch(err => {});
-              // console.log('right');
+              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioBuffer);
             }
           }
           this.lastStepped[1] = rightStepIndices[i];
@@ -264,10 +245,6 @@ class CharacterSfx {
     }
   }
 }
-
-const _updateSound = () => {
-  
-};
 
 export {
   waitForLoad,

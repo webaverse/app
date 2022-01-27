@@ -61,6 +61,10 @@ export const appsMapName = 'apps';
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
 
+export const defaultPlayerName = 'Scillia';
+
+export const audioTimeoutTime = 10 * 1000;
+
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
@@ -76,4 +80,5 @@ export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;
 
+export const defaultDioramaSize = 512;
 export const defaultAvatarUrl = './avatars/citrine.vrm';
