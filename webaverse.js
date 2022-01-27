@@ -132,7 +132,7 @@ E6-wrap_74_10_19_21 - Part_1.wav
 E6-wrap_74_10_19_29 - Part_1.wav`
   .split('\n')
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
-  const numFiles = 362;
+  const numFiles = 361;
   const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
     .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
 const _loadVoicePack = async () => {
