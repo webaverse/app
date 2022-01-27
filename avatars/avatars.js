@@ -764,6 +764,77 @@ const _clearXZ = (dst, isPosition) => {
   }
 };
 
+class Blinker {
+  constructor() {
+    this.mode = 'ready';
+    this.waitTime = 0;
+    this.lastTimestamp = 0;
+  }
+  update(now) {
+    const _setOpen = () => {
+      this.mode = 'open';
+      this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
+      this.lastTimestamp = now;
+    };
+
+    // console.log('got mode', this.mode, now - this.lastTimestamp, this.waitTime);
+
+    switch (this.mode) {
+      case 'ready': {
+        _setOpen();
+        return 0;
+      }
+      case 'open': {
+        const timeDiff = now - this.lastTimestamp;
+        if (timeDiff > this.waitTime) {
+          this.mode = 'closing';
+          this.waitTime = 100;
+          this.lastTimestamp = now;
+        }
+        return 0;
+      }
+      case 'closing': {
+        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+        if (f < 1) {
+          return f;
+        } else {
+          this.mode = 'opening';
+          this.waitTime = 100;
+          this.lastTimestamp = now;
+          return 1;
+        }
+      }
+      case 'opening': {
+        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+        if (f < 1) {
+          return 1 - f;
+        } else {
+          _setOpen();
+          return 0;
+        }
+      }
+    }
+  }
+}
+class Nodder {
+  constructor() {
+
+  }
+  update() {
+
+  }
+}
+class Looker {
+  update() {
+    
+  }
+}
+class Emoter {
+  update() {
+    
+  }
+}
+
 class Avatar {
 	constructor(object, options = {}) {
     if (!object) {
@@ -1305,6 +1376,11 @@ class Avatar {
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
+
+    this.blinker = new Blinker();
+    this.nodder = new Nodder();
+    this.looker = new Looker();
+    this.emoter = new Emoter();
 
     // shared state
     this.direction = new THREE.Vector3();
@@ -2818,19 +2894,15 @@ class Avatar {
       this.decapitate();
     } */
 
+    // XXX
+    this.nodder.update();
+    this.looker.update();
+    this.emoter.update();
+
     const _updateVisemes = () => {
       const volumeValue = this.volume !== -1 ? Math.min(this.volume * 12, 1) : -1;
       // console.log('got volume value', this.volume, volumeValue);
-      const blinkValue = (() => {
-        const nowWindow = now % 2000;
-        if (nowWindow >= 0 && nowWindow < 100) {
-          return nowWindow/100;
-        } else if (nowWindow >= 100 && nowWindow < 200) {
-          return 1 - (nowWindow-100)/100;
-        } else {
-          return 0;
-        }
-      })();
+      const blinkValue = this.blinker.update(now);
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
         if (visemeMapping) {
           const [
