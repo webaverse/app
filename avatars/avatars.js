@@ -2980,7 +2980,7 @@ class Avatar {
   isAudioEnabled() {
     return !!this.microphoneWorker;
   }
-  async setAudioEnabled(enabled) {
+  async setAudioEnabled(enabled) { // XXX this can be made sync if we preload the microphone worklet module...
     // cleanup
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
