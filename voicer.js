@@ -50,10 +50,10 @@ class Voicer {
     }
     return voiceSpec.audio;
   }
-  async start() {
+  start() {
     clearTimeout(this.timeout);
 
-    await this.player.avatar.setAudioEnabled(true);
+    this.player.avatar.setAudioEnabled(true);
 
     const _recurse = async () => {
       const audio = this.selectVoice();

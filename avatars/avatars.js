@@ -2980,7 +2980,7 @@ class Avatar {
   isAudioEnabled() {
     return !!this.microphoneWorker;
   }
-  async setAudioEnabled(enabled) { // XXX this can be made sync if we preload the microphone worklet module...
+  setAudioEnabled(enabled) {
     // cleanup
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
@@ -3020,8 +3020,6 @@ class Avatar {
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
       });
-
-      await this.microphoneWorker.waitForLoad();
     } else {
       this.volume = -1;
     }
@@ -3095,13 +3093,15 @@ Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;
 const getAudioContext = () => {
   if (!avatarAudioContext) {
-    avatarAudioContext = new AudioContext();
+    console.warn('using default audio context; setAudioContext was not called');
+    setAudioContext(new AudioContext());
   }
   return avatarAudioContext;
 };
 Avatar.getAudioContext = getAudioContext;
-Avatar.setAudioContext = newAvatarAudioContext => {
+const setAudioContext = newAvatarAudioContext => {
   avatarAudioContext = newAvatarAudioContext;
 };
+Avatar.setAudioContext = setAudioContext;
 Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
 export default Avatar;
