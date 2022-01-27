@@ -246,10 +246,6 @@ class CharacterSfx {
   }
 }
 
-const _updateSound = () => {
-  
-};
-
 export {
   waitForLoad,
   CharacterSfx,
