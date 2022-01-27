@@ -79,8 +79,8 @@ const rendererStats = Stats();
 
 const _loadAudioContext = async () => {
   const audioContext = WSRTC.getAudioContext();
-  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
   Avatar.setAudioContext(audioContext);
+  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
 };
 
 /* const voiceFiles = `\
