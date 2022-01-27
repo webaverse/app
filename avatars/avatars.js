@@ -822,12 +822,78 @@ class Nodder {
 
   }
 }
+const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
+const testMesh = new THREE.Mesh(g, m);
+scene.add(testMesh);
 class Looker {
-  update() {
-    
+  constructor(avatar) {
+    this.avatar = avatar;
+
+    this.mode = 'ready';
+    this.startTarget = new THREE.Vector3();
+    this.endTarget = new THREE.Vector3();
+    this.waitTime = 0;
+    this.lastTimestamp = 0;
+  }
+  update(now) {
+    const _setTarget = () => {
+      this.mode = 'moving';
+      // const head = this.avatar.modelBoneOutputs['Head'];
+      const root = this.avatar.modelBoneOutputs['Root'];
+      const eyePosition = getEyePosition(this.avatar.modelBones);
+      this.startTarget = this.avatar.eyeballTarget.clone();
+      this.endTarget = eyePosition.clone()
+        .add(
+          new THREE.Vector3(0, 0, 1.5 + 3 * Math.random())
+            .applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(root.matrixWorld))
+        )
+        .add(
+          new THREE.Vector3(-0.5+Math.random(), (-0.5+Math.random()) * 0.3, -0.5+Math.random())
+            .normalize()
+            .multiplyScalar(1)
+        );
+      this.waitTime = 100;
+      this.lastTimestamp = now;
+    };
+
+    // console.log('got mode', this.mode);
+
+    switch (this.mode) {
+      case 'ready': {
+        _setTarget();
+      }
+      case 'moving': {
+        const timeDiff = now - this.lastTimestamp;
+        const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
+        // console.log('got time diff', timeDiff, this.waitTime, f);
+        const target = this.startTarget.clone()
+          .lerp(this.endTarget, f);
+        this.avatar.eyeballTarget.copy(target);
+        this.avatar.eyeballTargetEnabled = true;
+        
+        testMesh.position.copy(target);
+        testMesh.updateMatrixWorld();
+
+        if (f >= 1) {
+          this.mode = 'waiting';
+          this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
+          this.lastTimestamp = now;
+        }
+      }
+      case 'waiting': {
+        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+        if (f >= 1) {
+          _setTarget();
+        }
+      }
+    }
   }
 }
 class Emoter {
+  constructor() {
+    
+  }
   update() {
     
   }
@@ -995,6 +1061,7 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
+    this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
@@ -1377,7 +1444,7 @@ class Avatar {
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
-    this.looker = new Looker();
+    this.looker = new Looker(this);
     this.emoter = new Emoter();
 
     // shared state
@@ -2856,10 +2923,11 @@ class Avatar {
           lookAtEuler(localEuler);
         }
 
-        const head = this.modelBoneOutputs['Head'];
+        const head = this.modelBoneOutputs.Head;
         const eyePosition = getEyePosition(this.modelBones);
-        this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
-        lookAt(localVector);
+        /* this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
+        lookAt(localVector); */
+        lookAt(this.eyeballTarget);
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
@@ -2893,9 +2961,9 @@ class Avatar {
     } */
 
     // XXX hook these up
-    this.nodder.update();
-    this.looker.update();
-    this.emoter.update();
+    this.nodder.update(now);
+    this.looker.update(now);
+    this.emoter.update(now);
 
     const _updateVisemes = () => {
       const volumeValue = this.volume !== -1 ? Math.min(this.volume * 12, 1) : -1;
