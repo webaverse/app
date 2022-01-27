@@ -1,3 +1,6 @@
+/* this is the fake speech synthesis module.
+it is responsible for playing Banjo-Kazooie style character speech. */
+
 import Avatar from './avatars/avatars.js';
 
 function weightedRandom(weights) {
