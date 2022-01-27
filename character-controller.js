@@ -72,6 +72,8 @@ class PlayerBase extends THREE.Object3D {
       this.rightHand,
     ];
     this.avatar = null;
+    this.eyeballTarget = new THREE.Vector3();
+    this.eyeballTargetEnabled = false;
   }
 }
 const controlActionTypes = [
