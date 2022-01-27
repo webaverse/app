@@ -2819,7 +2819,8 @@ class Avatar {
     } */
 
     const _updateVisemes = () => {
-      const volumeValue = this.volume !== -1 ? Math.min(this.volume * 10, 1) : -1;
+      const volumeValue = this.volume !== -1 ? Math.min(this.volume * 12, 1) : -1;
+      // console.log('got volume value', this.volume, volumeValue);
       const blinkValue = (() => {
         const nowWindow = now % 2000;
         if (nowWindow >= 0 && nowWindow < 100) {
