@@ -777,8 +777,6 @@ class Blinker {
       this.lastTimestamp = now;
     };
 
-    // console.log('got mode', this.mode, now - this.lastTimestamp, this.waitTime);
-
     switch (this.mode) {
       case 'ready': {
         _setOpen();
@@ -2894,7 +2892,7 @@ class Avatar {
       this.decapitate();
     } */
 
-    // XXX
+    // XXX hook these up
     this.nodder.update();
     this.looker.update();
     this.emoter.update();
