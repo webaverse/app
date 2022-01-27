@@ -4,6 +4,9 @@ set the avatar state from the player state */
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {unFrustumCull, enableShadows} from './util.js';
+import {
+  getEyePosition,
+} from './avatars/util.mjs';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -12,7 +15,7 @@ const maxMirrorDistanace = 3;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
-// const localPlane = new THREE.Plane();
+const localPlane = new THREE.Plane();
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
@@ -177,13 +180,14 @@ export function applyPlayerMirrorsToAvatar(player, rig, mirrors) {
     const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
 
     if (mirrorPosition.distanceTo(player.position) < maxMirrorDistanace) {
-      rig.eyeballTargetPlane.setFromNormalAndCoplanarPoint(
-        localVector.set(0, 0, 1)
-          .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
-        mirrorPosition
-      );
-      // rig.eyeballTargetPlane.projectPoint(player.position, rig.eyeballTarget);
-      // rig.eyeballTargetInverted = false;
+      const eyePosition = getEyePosition(rig.modelBones);
+      localPlane
+        .setFromNormalAndCoplanarPoint(
+          localVector.set(0, 0, 1)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
+          mirrorPosition
+        )
+        .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
     }
   }

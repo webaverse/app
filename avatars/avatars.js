@@ -46,7 +46,7 @@ import {
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -57,6 +57,7 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localPlane = new THREE.Plane();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
@@ -521,7 +522,7 @@ const _findBoneDeep = (bones, boneName) => {
   }
   return null;
 };
-const copySkeleton = (src, dst) => {
+/* const copySkeleton = (src, dst) => {
   for (let i = 0; i < src.bones.length; i++) {
     const srcBone = src.bones[i];
     const dstBone = _findBoneDeep(dst.bones, srcBone.name);
@@ -532,7 +533,7 @@ const copySkeleton = (src, dst) => {
   // _localizeMatrixWorld(armature);
 
   dst.calculateInverses();
-};
+}; */
 
 const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
   .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
@@ -822,12 +823,140 @@ class Nodder {
 
   }
 }
+// const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+// const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
+// const testMesh = new THREE.Mesh(g, m);
+// scene.add(testMesh);
 class Looker {
-  update() {
+  constructor(avatar) {
+    this.avatar = avatar;
+
+    this.mode = 'ready';
+    this.startTarget = new THREE.Vector3();
+    this.endTarget = new THREE.Vector3();
+    this.waitTime = 0;
+    this.lastTimestamp = 0;
+
+    this._target = new THREE.Vector3();
+  }
+  // returns the world space eye target
+  update(now) {
+    const _getEndTargetRandom = target => {
+      const root = this.avatar.modelBoneOutputs['Root'];
+      const eyePosition = getEyePosition(this.avatar.modelBones);
+      return target.copy(eyePosition)
+        .add(
+          localVector.set(0, 0, 1.5 + 3 * Math.random())
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
+        )
+        .add(
+          localVector.set(-0.5+Math.random(), (-0.5+Math.random()) * 0.3, -0.5+Math.random())
+            .normalize()
+            // .multiplyScalar(1)
+        );
+    };
+    const _getEndTargetForward = target => {
+      const root = this.avatar.modelBoneOutputs['Root'];
+      const eyePosition = getEyePosition(this.avatar.modelBones);
+      return target.copy(eyePosition)
+        .add(
+          localVector.set(0, 0, 2)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
+        );
+    };
+    const _startMove = () => {
+      this.mode = 'moving';
+      // const head = this.avatar.modelBoneOutputs['Head'];
+      // const root = this.avatar.modelBoneOutputs['Root'];
+      this.startTarget.copy(this.endTarget);
+      _getEndTargetRandom(this.endTarget);
+      this.waitTime = 100;
+      this.lastTimestamp = now;
+    };
+    const _startDelay = () => {
+      this.mode = 'delay';
+      this.waitTime = Math.random() * 2000;
+      this.lastTimestamp = now;
+    };
+    const _startWaiting = () => {
+      this.mode = 'waiting';
+      this.waitTime = Math.random() * 3000;
+      this.lastTimestamp = now;
+    };
+    const _isSpeedTooFast = () => this.avatar.velocity.length() > 0.5;
+    const _isPointTooClose = () => {
+      const root = this.avatar.modelBoneOutputs['Root'];
+      // const head = this.avatar.modelBoneOutputs['Head'];
+      localVector.set(0, 0, 1)
+        .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld));
+      localVector2.setFromMatrixPosition(root.matrixWorld);
+      localPlane.setFromNormalAndCoplanarPoint(
+        localVector,
+        localVector2
+      );
+      const distance = localPlane.distanceToPoint(this.endTarget);
+      return distance < 1;
+    };
+
+    // console.log('got mode', this.mode, this.waitTime);
     
+    if (_isSpeedTooFast()) {
+      console.log('fast');
+      _getEndTargetForward(this.endTarget);
+      // this.startTarget.copy(this.endTarget);
+      _startDelay();
+      return null;
+    } else if (_isPointTooClose()) {
+      _getEndTargetForward(this.endTarget);
+      // this.startTarget.copy(this.endTarget);
+      _startDelay();
+      return null;
+    } else {
+      switch (this.mode) {
+        case 'ready': {
+          _startMove();
+          return this.startTarget;
+        }
+        case 'delay': {
+          const timeDiff = now - this.lastTimestamp;
+          if (timeDiff > this.waitTime) {
+            _startMove();
+            return this.startTarget;
+          } else {
+            return null;
+          }
+        }
+        case 'moving': {
+          const timeDiff = now - this.lastTimestamp;
+          const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
+          // console.log('got time diff', timeDiff, this.waitTime, f);
+          const target = this._target.copy(this.startTarget)
+            .lerp(this.endTarget, f);
+          // _setTarget(target);
+
+          if (f >= 1) {
+            _startWaiting();
+          }
+
+          return target;
+        }
+        case 'waiting': {
+          const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+          if (f >= 1) {
+            _startMove();
+            return this.startTarget;
+          } else {
+            return this.endTarget;
+          }
+        }
+      }
+    }
   }
 }
 class Emoter {
+  constructor() {
+    
+  }
   update() {
     
   }
@@ -995,6 +1124,7 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
+    this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
@@ -1377,7 +1507,7 @@ class Avatar {
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
-    this.looker = new Looker();
+    this.looker = new Looker(this);
     this.emoter = new Emoter();
 
     // shared state
@@ -2772,7 +2902,10 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      if (this.eyeballTargetEnabled && this.firstPersonCurves) {
+      const lookerEyeballTarget = this.looker.update(now);
+      const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
+
+      if (eyeballTarget && this.firstPersonCurves) {
         const {
           lookAtHorizontalInnerCurve,
           lookAtHorizontalOuterCurve,
@@ -2856,10 +2989,9 @@ class Avatar {
           lookAtEuler(localEuler);
         }
 
-        const head = this.modelBoneOutputs['Head'];
+        const head = this.modelBoneOutputs.Head;
         const eyePosition = getEyePosition(this.modelBones);
-        this.eyeballTargetPlane.projectPoint(eyePosition, localVector);
-        lookAt(localVector);
+        lookAt(eyeballTarget);
       } else {
         if (leftEye) {
           leftEye.quaternion.identity();
@@ -2893,9 +3025,8 @@ class Avatar {
     } */
 
     // XXX hook these up
-    this.nodder.update();
-    this.looker.update();
-    this.emoter.update();
+    this.nodder.update(now);
+    this.emoter.update(now);
 
     const _updateVisemes = () => {
       const volumeValue = this.volume !== -1 ? Math.min(this.volume * 12, 1) : -1;
