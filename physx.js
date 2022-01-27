@@ -1293,7 +1293,7 @@ const physxWorker = (() => {
       dimsTypedArray.byteOffset,
       potentialTypedArray.byteOffset,
       shiftTypedArray.byteOffset,
-      shiftTypedArray.byteOffset
+      scaleTypedArray.byteOffset
     );
 
     allocator.freeAll();
