@@ -146,7 +146,7 @@ class CharacterHups extends EventTarget {
     }
   }
   setVoicePack(voices) {
-    this.voicer = new Voicer(voices);
+    this.voicer = new Voicer(voices, this.player);
   }
   addChatHupAction(text) {
     this.player.addAction({
