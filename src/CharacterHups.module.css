@@ -17,9 +17,10 @@
   /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
 }
 .character-hups > .character-hup {
-  height: 256px;
+  --height: 256px;
   --color: #111;
   --color2: #222;
+  height: var(--height);
   color: #FFF;
 }
 .character-hups > .character-hup .message {
@@ -29,7 +30,7 @@
   position: absolute;
   display: flex;
   top: 0;
-  left: 256px;
+  left: var(--height);
   width: 500px;
   height: 40px;
   padding-left: 30px;
