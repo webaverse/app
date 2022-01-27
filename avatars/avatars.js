@@ -823,9 +823,9 @@ class Nodder {
 
   }
 }
-const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
-const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
-const testMesh = new THREE.Mesh(g, m);
+// const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+// const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
+// const testMesh = new THREE.Mesh(g, m);
 // scene.add(testMesh);
 class Looker {
   constructor(avatar) {
