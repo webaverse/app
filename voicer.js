@@ -1,3 +1,5 @@
+import Avatar from './avatars/avatars.js';
+
 function weightedRandom(weights) {
 	var totalWeight = 0,
 		i, random;
@@ -20,7 +22,7 @@ function weightedRandom(weights) {
 }
 
 class Voicer {
-  constructor(audios) {
+  constructor(audios, player) {
     this.voices = audios.map(audio => {
       return {
         audio,
@@ -28,6 +30,7 @@ class Voicer {
       };
     });
     this.nonce = 0;
+    this.player = player;
 
     this.timeout = null;
   }
@@ -47,19 +50,33 @@ class Voicer {
     }
     return voiceSpec.audio;
   }
-  start() {
+  async start() {
     clearTimeout(this.timeout);
+
+    await this.player.avatar.setAudioEnabled(true);
 
     const _recurse = async () => {
       const audio = this.selectVoice();
+      // console.log('connect', audio);
+
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = audio;
+      /* audioBufferSourceNode.addEventListener('ended', () => {
+        audioBufferSourceNode.disconnect();
+      }, {once: true}); */
+
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      audioBufferSourceNode.start();
+      // console.log('got audio', audio, audio.audioBuffer);
       // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
       /* if (audio.silencingInterval) {
         clearInterval(audio.silencingInterval);
         audio.silencingInterval = null;
       } */
-      audio.currentTime = 0;
+      /* audio.currentTime = 0;
       audio.volume = 1;
-      audio.paused && audio.play().catch(err => {});
+      audio.paused && audio.play().catch(err => {}); */
       let audioTimeout = audio.duration * 1000;
       audioTimeout *= 0.8 + 0.4 * Math.random();
       this.timeout = setTimeout(async () => {
