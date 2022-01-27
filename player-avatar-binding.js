@@ -167,7 +167,18 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // pose
   rig.poseAnimation = poseAction?.animation || null;
 }
-export function applyPlayerMirrorsToAvatar(player, rig, mirrors) {
+// returns whether eyes were applied
+export function applyPlayerEyesToAvatar(player, rig) {
+  if (player.eyeballTargetEnabled) {
+    rig.eyeballTarget.copy(player.eyeballTarget);
+    rig.eyeballTargetEnabled = true;
+    return true;
+  } else {
+    rig.eyeballTargetEnabled = false;
+    return false;
+  }
+}
+export function applyMirrorsToAvatar(player, rig, mirrors) {
   rig.eyeballTargetEnabled = false;
 
   const closestMirror = mirrors.sort((a, b) => {
@@ -241,7 +252,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
-  applyPlayerMirrorsToAvatar(player, rig, mirrors);
+  applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   applyPlayerChatToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
