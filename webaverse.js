@@ -6,7 +6,7 @@ it uses the help of various managers and stores, and executes the render loop.
 import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
-import * as CharacterHupsModule from './character-hups.js';
+// import * as CharacterHupsModule from './character-hups.js';
 import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -21,7 +21,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-import {makePromise} from './util.js';
+import {loadAudioBuffer} from './util.js';
 import {
   getRenderer,
   scene,
@@ -136,12 +136,10 @@ const _loadVoicePack = async () => {
   const voices = [];
   const promises = [];
   for (const voiceFile of voiceFiles) {
-    const p = (async () => {
-      const res = await fetch(voiceFile);
-      const arrayBuffer = await res.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const p = loadAudioBuffer(audioContext, voiceFile);
+    p.then(audioBuffer => {
       voices.push(audioBuffer);
-    })();
+    });
     promises.push(p);
   }
   await Promise.all(promises);
