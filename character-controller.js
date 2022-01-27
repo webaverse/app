@@ -90,6 +90,7 @@ class StatePlayer extends PlayerBase {
     this.playerId = playerId;
     this.playersArray = null;
     this.playerMap = null;
+    this.microphoneMediaStream = null;
 
     this.appManager = new AppManager({
       appsMap: null,
@@ -498,8 +499,18 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
-  setMicMediaStream(mediaStream, options) {
-    this.avatar.setMicrophoneMediaStream(mediaStream, options);
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setAudioEnabled(true);
+      const audioContext = Avatar.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      mediaStreamSource.connect(this.avatar.getAudioInput());
+      this.microphoneMediaStream = mediaStreamSource;
+    }
   }
   new() {
     const self = this;
