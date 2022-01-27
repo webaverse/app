@@ -33,7 +33,7 @@ class VolumeProcessor extends AudioWorkletProcessor {
     this.port.start();
   }
   process(inputs, outputs) {
-    if (emitVolume) {
+    const _emitVolume = () => {
       {
         for (const channels of inputs) {
           for (const samples of channels) {
@@ -56,12 +56,13 @@ class VolumeProcessor extends AudioWorkletProcessor {
         sampleSum = 0;
         numSamples = 0;
       }
-    }
+    };
+    emitVolume && _emitVolume();
 
     // merge the channels
     const sampleLength = (inputs && inputs[0] && inputs[0][0] && inputs[0][0].length) ?? 0;
     if (sampleLength > 0) {
-      if (!muted) {
+      const _mergeOutput = () => {
         const mergedChannels = Array(2);
         for (let channelIndex = 0; channelIndex < 2; channelIndex++) {
           const mergedChannel = new Float32Array(sampleLength);
@@ -89,9 +90,10 @@ class VolumeProcessor extends AudioWorkletProcessor {
             }
           }
         }
-      }
+      };
+      !muted && _mergeOutput();
 
-      if (emitBuffer) {
+      const _emitBuffer = () => {
         const mergedSamples = new Float32Array(sampleLength);
         for (const channels of inputs) {
           for (const samples of channels) {
@@ -104,7 +106,8 @@ class VolumeProcessor extends AudioWorkletProcessor {
           method: 'buffer',
           data: mergedSamples,
         }, [mergedSamples.buffer]);
-      }
+      };
+      emitBuffer && _emitBuffer();
     }
 
     return true;
