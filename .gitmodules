@@ -10,3 +10,6 @@
 [submodule "packages/three-vrm"]
 	path = packages/three-vrm
 	url = https://github.com/webaverse/three-vrm
+[submodule "packages/three"]
+	path = packages/three
+	url = https://github.com/webaverse/three
