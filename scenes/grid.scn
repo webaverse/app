@@ -63,14 +63,6 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/grid/grid.glb",
       "dynamic": false
-    },
-    {
-      "position": [
-        -16,
-        0,
-        -40
-      ],
-      "start_url": "http://localhost:8000/marching-cube-example.git/"
     }
   ]
 }
