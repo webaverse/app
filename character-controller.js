@@ -4,7 +4,6 @@ this file is responisible for maintaining player state that is network-replicate
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-// import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -23,10 +22,13 @@ import {
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
-  groundFriction,
+  // groundFriction,
+  defaultPlayerName,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
+import {CharacterHups} from './character-hups.js';
+import {CharacterSfx} from './character-sfx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -49,6 +51,30 @@ function makeCancelFn() {
     },
   };
 }
+function loadPhysxCharacterController() {
+  const avatarHeight = this.avatar.height;
+  const heightFactor = 1.6;
+  const contactOffset = 0.1/heightFactor * avatarHeight;
+  const stepOffset = 0.5/heightFactor * avatarHeight;
+  const radius = 0.3/heightFactor * avatarHeight;
+  const position = this.position.clone()
+    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+  if (this.characterController) {
+    physicsManager.destroyCharacterController(this.characterController);
+    this.characterController = null;
+    this.characterControllerObject = null;
+  }
+  this.characterController = physicsManager.createCharacterController(
+    radius - contactOffset,
+    avatarHeight - radius*2,
+    contactOffset,
+    stepOffset,
+    position,
+    physicsMaterial
+  );
+  this.characterControllerObject = new THREE.Object3D();
+}
 
 class PlayerHand extends THREE.Object3D {
   constructor() {
@@ -70,6 +96,8 @@ class PlayerBase extends THREE.Object3D {
       this.rightHand,
     ];
     this.avatar = null;
+    this.eyeballTarget = new THREE.Vector3();
+    this.eyeballTargetEnabled = false;
   }
 }
 const controlActionTypes = [
@@ -88,6 +116,7 @@ class StatePlayer extends PlayerBase {
     this.playerId = playerId;
     this.playersArray = null;
     this.playerMap = null;
+    this.microphoneMediaStream = null;
 
     this.appManager = new AppManager({
       appsMap: null,
@@ -230,7 +259,6 @@ class StatePlayer extends PlayerBase {
     }
     
     const _setNextAvatarApp = app => {
-      // console.log('set next avatar app', app);
       (async () => {
         const nextAvatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
@@ -241,74 +269,7 @@ class StatePlayer extends PlayerBase {
           app,
         });
         
-        const avatarHeight = this.avatar.height;
-        const heightFactor = 1.6;
-        const contactOffset = 0.1/heightFactor * avatarHeight;
-        const stepOffset = 0.5/heightFactor * avatarHeight;
-        const radius = 0.3/heightFactor * avatarHeight;
-        // const halfHeight = Math.max(avatarHeight * 0.5 - radius, 0);
-        const position = this.position.clone()
-          .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-        const physicsMaterial = new THREE.Vector3(0, 0, 0);
-
-        /* this.capsule = (() => {
-          const physicsObject = physicsManager.addCapsuleGeometry(
-            new THREE.Vector3(0, -avatarHeight * 0.5, 0),
-            new THREE.Quaternion(),
-            radius,
-            halfHeight,
-            physicsMaterial,
-            true
-          );
-          
-          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-          
-          // console.log('set flags', physicsObject.physicsId, physicsObject);
-          physicsObject.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5);
-          physicsManager.setTransform(physicsObject);
-          physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
-
-          return physicsObject;
-        })(); */
-        {
-          if (this.characterController) {
-            physicsManager.destroyCharacterController(this.characterController);
-            this.characterController = null;
-            this.characterControllerObject = null;
-          }
-          this.characterController = physicsManager.createCharacterController(
-            radius - contactOffset,
-            avatarHeight - radius*2,
-            contactOffset,
-            stepOffset,
-            position,
-            physicsMaterial
-          );
-          this.characterControllerObject = new THREE.Object3D();
-
-          /* const debugCapsuleGeometry = new CapsuleGeometry(radius, radius, halfHeight*2);
-          debugCapsuleGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
-            new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI*0.5)
-          ));
-          const debugCapsule = new THREE.Mesh(
-            debugCapsuleGeometry,
-            new THREE.MeshStandardMaterial({
-              transparent: true,
-              opacity: 0.9,
-              color: 0xff0000,
-              wireframe: true,
-              wireframeLinewidth: 2,
-            })
-          );
-          scene.add(debugCapsule);
-          world.appManager.addEventListener('frame', e => {
-            debugCapsule.position.copy(this.characterControllerObject.position);
-            debugCapsule.quaternion.copy(this.characterControllerObject.quaternion);
-            debugCapsule.scale.copy(this.characterControllerObject.scale);
-            debugCapsule.updateMatrixWorld();
-          }); */
-        }
+        loadPhysxCharacterController.call(this);
       })();
       
       this.dispatchEvent({
@@ -417,6 +378,17 @@ class StatePlayer extends PlayerBase {
     }
     return null;
   }
+  getActionByActionId(actionId) {
+    if (this.isBound()) {
+      const actions = this.getActionsState();
+      for (const action of actions) {
+        if (action.actionId === actionId) {
+          return action;
+        }
+      }
+    }
+    return null;
+  }
   getActionIndex(type) {
     if (this.isBound()) {
       const actions = this.getActionsState();
@@ -485,8 +457,18 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
-  setMicMediaStream(mediaStream, options) {
-    this.avatar.setMicrophoneMediaStream(mediaStream, options);
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setAudioEnabled(true);
+      const audioContext = Avatar.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      mediaStreamSource.connect(this.avatar.getAudioInput());
+      this.microphoneMediaStream = mediaStreamSource;
+    }
   }
   new() {
     const self = this;
@@ -544,12 +526,13 @@ class StatePlayer extends PlayerBase {
       
       const renderer = getRenderer();
       const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, session, this.avatar);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
-      this.avatar.update(timeDiff);
+      this.avatar.update(timestamp, timeDiff);
     }
-
     this.characterPhysics.updateCamera(timeDiff);
+    this.characterHups.update(timestamp);
   }
   destroy() {
     this.unbindState();
@@ -689,7 +672,10 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.name = defaultPlayerName;
     this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -922,11 +908,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    /* if (isNaN(timeDiff)) {
-      console.log('updaet', now, timeDiffS);
-      debugger;
-    } */
     this.characterPhysics.update(now, timeDiffS);
+    this.characterSfx.update(now, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -1005,7 +988,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
-class StaticInterpolatedPlayer extends PlayerBase {
+class StaticUninterpolatedPlayer extends PlayerBase {
   constructor(opts) {
     super(opts);
 
@@ -1018,6 +1001,9 @@ class StaticInterpolatedPlayer extends PlayerBase {
   }
   getAction(type) {
     return this.actions.find(action => action.type === type);
+  }
+  getActionByActionId(actionId) {
+    return this.actions.find(action => action.actionId === actionId);
   }
   hasAction(type) {
     return this.actions.some(a => a.type === type);
@@ -1036,7 +1022,7 @@ class StaticInterpolatedPlayer extends PlayerBase {
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
-class NpcPlayer extends StaticInterpolatedPlayer {
+class NpcPlayer extends StaticUninterpolatedPlayer {
   constructor(opts) {
     super(opts);
   }
@@ -1055,6 +1041,13 @@ class NpcPlayer extends StaticInterpolatedPlayer {
     enableShadows(app);
   
     this.avatar = avatar;
+
+    this.characterPhysics = new CharacterPhysics(this);
+    loadPhysxCharacterController.call(this);
+  }
+  updatePhysics(now, timeDiff) {
+    const timeDiffS = timeDiff / 1000;
+    this.characterPhysics.update(now, timeDiffS);
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1062,9 +1055,10 @@ class NpcPlayer extends StaticInterpolatedPlayer {
       
       // const renderer = getRenderer();
       // const session = renderer.xr.getSession();
-      applyPlayerToAvatar(this, null, this.avatar);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
-      this.avatar.update(timeDiff);
+      this.avatar.update(timestamp, timeDiff);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);

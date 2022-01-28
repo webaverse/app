@@ -4,6 +4,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
+import {defaultDioramaSize} from './constants.js';
 import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
 
@@ -1269,7 +1270,6 @@ const outlineMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const sideSize = 512;
 const s1 = 0.4;
 const sk1 = 0.2;
 const speed1 = 1;
@@ -1605,9 +1605,13 @@ const createPlayerDiorama = (player, {
   sideCamera.updateMatrixWorld();
   renderer.compile(sideScene, sideCamera); */
 
-  if (!canvas) {
-    canvas = _makeCanvas(sideSize, sideSize);
+  let locallyOwnedCanvas;
+  if (canvas) {
+    locallyOwnedCanvas = null;
+  } else {
+    canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
     document.body.appendChild(canvas);
+    locallyOwnedCanvas = canvas;
   }
   const canvases = [];
   let outlineRenderTarget = null
@@ -1684,7 +1688,6 @@ const createPlayerDiorama = (player, {
         const oldParent = player.avatar.model.parent;
         const oldRenderTarget = renderer.getRenderTarget();
         const oldViewport = renderer.getViewport(localVector4D);
-        // const oldWorldLightParent = world.lights.parent;
       
         const _render = () => {
           // set up side camera
@@ -1821,8 +1824,8 @@ const createPlayerDiorama = (player, {
       }
     },
     destroy() {
-      for (const canvas of canvases) {
-        canvas.parentNode.removeChild(canvas);
+      if (locallyOwnedCanvas) {
+        locallyOwnedCanvas.parentNode.removeChild(locallyOwnedCanvas);
       }
       dioramas.splice(dioramas.indexOf(diorama), 1);
 
@@ -1874,7 +1877,7 @@ const createAppDiorama = (app, {
   renderer.compile(sideScene, sideCamera); */
 
   if (!canvas) {
-    canvas = _makeCanvas(sideSize, sideSize);
+    canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
     document.body.appendChild(canvas);
   }
   const canvases = [];

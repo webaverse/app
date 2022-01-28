@@ -115,7 +115,7 @@ const crunchAvatarModel = (model, options = {}) => {
   const _packAtlases = () => {
     const _attempt = (k, atlasSize) => {
       const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
-      maxRectsPacker.addArray(textures[k].map(t => {
+      const rects = textures[k].map(t => {
         const w = t.image.width;
         const h = t.image.height;
         const image = t.image;
@@ -128,8 +128,9 @@ const crunchAvatarModel = (model, options = {}) => {
             groups,
           },
         };
-      }));
-      let oversized = maxRectsPacker.bins.length !== 1;
+      });
+      maxRectsPacker.addArray(rects);
+      let oversized = maxRectsPacker.bins.length > 1;
       maxRectsPacker.bins.forEach(bin => {
         bin.rects.forEach(rect => {
           if (rect.oversized) {

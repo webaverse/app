@@ -88,10 +88,10 @@ class LoadTester {
           statsErrNew.push(err);
         }
       }  
-      console.log(statsErrNew);
+      // console.log(statsErrNew);
     }
     catch (error) {
-      console.log(error)
+      // console.log(error)
     }
 
     for(let err of statsErrNew) {
@@ -107,7 +107,6 @@ class LoadTester {
     let retries = 5;
     let _fetch = false;
     return new Promise((resolve,reject)=>{
-
       let outInterval = setInterval(async () => {
         try{
               if(retries < 0){
@@ -120,7 +119,7 @@ class LoadTester {
                 if(res.ok){
                   _fetch = true;
                   retries = 120; // wait for 120 seconds
-                  console.log('fetch completed')
+                  // console.log('fetch completed')
                   await this.page.setDefaultNavigationTimeout(0);
                   await this.page.goto(this.config.host,{
                     waitUntil: 'domcontentloaded',
@@ -131,13 +130,11 @@ class LoadTester {
 
               if(_fetch){
                 try {
-                  console.log('waiting for __THREE__')
                   let __THREE__ = await this.page.evaluate(()=>{
-                    console.log('__THREE__', __THREE__);
+                    // console.log('__THREE__', __THREE__);
                     return window.__THREE__;                 
                   });
-                  if(__THREE__ === '133'){
-                    console.log('Webaverse is running tests. Sit tight! :)');
+                  if(__THREE__ === '134'){
                     clearInterval(outInterval);
                     return resolve();  
                   }
@@ -146,7 +143,8 @@ class LoadTester {
                 }
               }
         }catch(e){
-          console.warn(e);
+          // commenting as its causing code smell
+          //console.warn(e);
 
         }finally{
           retries--;
