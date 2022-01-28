@@ -25,10 +25,14 @@ function weightedRandom(weights) {
 }
 
 class Voicer {
-  constructor(audios, player) {
-    this.voices = audios.map(audio => {
+  constructor(syllableFiles, audioBuffer, player) {
+    this.syllableFiles = syllableFiles;
+    this.audioBuffer = audioBuffer;
+    this.voices = syllableFiles.map(({name, offset, duration}) => {
       return {
-        audio,
+        name,
+        offset,
+        duration,
         nonce: 0,
       };
     });
@@ -51,7 +55,7 @@ class Voicer {
         voiceSpec.nonce--;
       }
     }
-    return voiceSpec.audio;
+    return voiceSpec;
   }
   start() {
     clearTimeout(this.timeout);
@@ -59,18 +63,13 @@ class Voicer {
     this.player.avatar.setAudioEnabled(true);
 
     const _recurse = async () => {
-      const audio = this.selectVoice();
-      // console.log('connect', audio);
+      const {offset, duration} = this.selectVoice();
 
       const audioContext = Avatar.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
-      audioBufferSourceNode.buffer = audio;
-      /* audioBufferSourceNode.addEventListener('ended', () => {
-        audioBufferSourceNode.disconnect();
-      }, {once: true}); */
-
+      audioBufferSourceNode.buffer = this.audioBuffer;
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-      audioBufferSourceNode.start();
+      audioBufferSourceNode.start(0, offset, duration);
       // console.log('got audio', audio, audio.audioBuffer);
       // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
       /* if (audio.silencingInterval) {
@@ -80,9 +79,9 @@ class Voicer {
       /* audio.currentTime = 0;
       audio.volume = 1;
       audio.paused && audio.play().catch(err => {}); */
-      let audioTimeout = audio.duration * 1000;
+      let audioTimeout = duration * 1000;
       audioTimeout *= 0.9 + 0.2 * Math.random();
-      this.timeout = setTimeout(async () => {
+      this.timeout = setTimeout(() => {
         // await audio.pause();
   
         /* audio.silencingInterval = setInterval(() => {
