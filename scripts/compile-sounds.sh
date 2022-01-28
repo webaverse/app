@@ -1,3 +1,7 @@
+# this script is used to compile sounds into an indexed mp3 file
+# input: directory of wav files
+# output: mp3 data file and json metadata file
+
 ls *.wav | sort -n | awk '{print "file " $0}' >syllables.txt
 ffmpeg -f concat -i syllables.txt -b:a 320k -y syllables.mp3
 
