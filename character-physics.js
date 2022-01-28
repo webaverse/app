@@ -225,19 +225,19 @@ class CharacterPhysics {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
-    if (session) {
+    /* if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
         this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
 
-        /* dolly.position.add(
-          avatarWorldObject.position.clone().sub(originalPosition)
-        ); */
+        // dolly.position.add(
+          // avatarWorldObject.position.clone().sub(originalPosition)
+        // );
       } else {
         // this.velocity.y = 0;
       }
-    } else {
+    } else { */
       const cameraMode = cameraManager.getMode();
       switch (cameraMode) {
         case 'firstperson': {
@@ -260,7 +260,7 @@ class CharacterPhysics {
           throw new Error('invalid camera mode: ' + cameraMode);
         }
       }
-    }
+    // }
   }
   /* offset the camera back from the avatar */
   updateCamera(timeDiffS) {
