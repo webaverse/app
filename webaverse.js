@@ -1,5 +1,5 @@
 /*
-this file bootraps the webaverse engine.
+this file bootstraps the webaverse engine.
 it uses the help of various managers and stores, and executes the render loop.
 */
 
