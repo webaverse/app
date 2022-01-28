@@ -704,6 +704,91 @@ const physxWorker = (() => {
       throw new Error('raycastPhysicsArray error');
     }
   };
+
+  w.doCut = (
+    positions,
+    numPositions,
+    normals,
+    numNormals,
+    uvs,
+    numUvs,
+    faces,
+    numFaces,
+
+    position,
+    quaternion,
+    scale,
+  ) => {
+    const allocator = new Allocator();
+
+    const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
+    positionsTypedArray.set(positions);
+
+    const normalsTypedArray = allocator.alloc(Float32Array, numNormals);
+    normalsTypedArray.set(normals);
+
+    const uvsTypedArray = allocator.alloc(Float32Array, numUvs);
+    uvsTypedArray.set(uvs);
+
+    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+    facesTypedArray.set(faces);
+
+    const positionTypedArray = allocator.alloc(Float32Array, 3);
+    positionTypedArray.set(position);
+
+    const quaternionTypedArray = allocator.alloc(Float32Array, 4);
+    quaternionTypedArray.set(quaternion);
+
+    const scaleTypedArray = allocator.alloc(Float32Array, 3)
+    scaleTypedArray.set(scale);
+
+    const outputBufferOffset = moduleInstance._doCut(
+      positionsTypedArray.byteOffset,
+      numPositions,
+      normalsTypedArray.byteOffset,
+      numNormals,
+      uvsTypedArray.byteOffset,
+      numUvs,
+      facesTypedArray.byteOffset,
+      numFaces,
+
+      positionTypedArray.byteOffset,
+      quaternionTypedArray.byteOffset,
+      scaleTypedArray.byteOffset,
+    );
+    allocator.freeAll();
+
+    let head = outputBufferOffset / 4;
+    let tail = head + 2;
+    const numOutPositionsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutNormalsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutUvsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
+    const outPositions = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]);
+    const outNormals = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1]);
+    const outUvs = moduleInstance.HEAPF32.slice(head, tail);
+
+    Module._free(outputBufferOffset);
+
+    const output = {
+      numOutPositions: numOutPositionsTypedArray,
+      outPositions,
+      numOutNormals: numOutNormalsTypedArray,
+      outNormals,
+      numOutUvs: numOutUvsTypedArray,
+      outUvs,
+    };
+    return output;
+  };
   w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setLinearLockFlagsPhysics(
       physics,
