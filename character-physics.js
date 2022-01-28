@@ -47,7 +47,7 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
-    if (this.player.avatar && physicsManager.physicsEnabled) {
+    if (this.player.avatar) {
       this.velocity.add(keysDirection);
     }
   }
@@ -66,7 +66,7 @@ class CharacterPhysics {
     now,
     timeDiffS,
   ) {
-    if (this.player.avatar && physicsManager.physicsEnabled) {
+    if (this.player.avatar) {
       // move character controller
       const minDist = 0;
       localVector3.copy(this.velocity)
@@ -330,7 +330,7 @@ class CharacterPhysics {
     this.applyAvatarPhysics(now, timeDiffS);
   }
   reset() {
-    if (this.player.avatar && physicsManager.physicsEnabled) {
+    if (this.player.avatar) {
       this.player.characterPhysics.velocity.set(0, 0, 0);
     }
   }
