@@ -51,7 +51,7 @@ function makeCancelFn() {
     },
   };
 }
-function loadCharacterController() {
+function loadPhysxCharacterController() {
   const avatarHeight = this.avatar.height;
   const heightFactor = 1.6;
   const contactOffset = 0.1/heightFactor * avatarHeight;
@@ -269,7 +269,7 @@ class StatePlayer extends PlayerBase {
           app,
         });
         
-        loadCharacterController.call(this);
+        loadPhysxCharacterController.call(this);
       })();
       
       this.dispatchEvent({
@@ -1043,7 +1043,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatar = avatar;
 
     this.characterPhysics = new CharacterPhysics(this);
-    loadCharacterController.call(this);
+    loadPhysxCharacterController.call(this);
   }
   updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
