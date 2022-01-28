@@ -5,7 +5,6 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
-import fetch from 'node-fetch';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 Error.stackTraceLimit = 300;
@@ -118,6 +117,7 @@ const _proxyUrl = (req, res, u) => {
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
+      force:true,
       hmr: {
         server: httpServer,
         port,

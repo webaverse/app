@@ -13,6 +13,7 @@ import {
 	NearestFilter,
 	NoBlending,
 	RGBAFormat,
+	sRGBEncoding,
 	RepeatWrapping,
 	ShaderMaterial,
 	UniformsUtils,
@@ -73,7 +74,8 @@ class SSAOPass extends Pass {
 		this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat
+			format: RGBAFormat,
+			encoding: sRGBEncoding,
 		} );
 
 		// normal render target with depth buffer
@@ -90,7 +92,8 @@ class SSAOPass extends Pass {
 		this.ssaoRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat
+			format: RGBAFormat,
+			encoding: sRGBEncoding,
 		} );
 
 		this.blurRenderTarget = this.ssaoRenderTarget.clone();
@@ -108,7 +111,8 @@ class SSAOPass extends Pass {
 			uniforms: UniformsUtils.clone( SSAOShader.uniforms ),
 			vertexShader: SSAOShader.vertexShader,
 			fragmentShader: SSAOShader.fragmentShader,
-			blending: NoBlending
+			blending: NoBlending,
+			encoding: sRGBEncoding,
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
@@ -257,7 +261,7 @@ class SSAOPass extends Pass {
 
 			case SSAOPass.OUTPUT.Normal:
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.normalRenderTarget.texture;
+				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.texture;
 				this.copyMaterial.blending = NoBlending;
 				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 
@@ -311,7 +315,7 @@ class SSAOPass extends Pass {
 
 	}
 
-	renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
+	/* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
 
 		renderer.getClearColor( this.originalClearColor );
 		const originalClearAlpha = renderer.getClearAlpha();
@@ -363,7 +367,7 @@ class SSAOPass extends Pass {
 		renderer.setClearColor( this.originalClearColor );
 		renderer.setClearAlpha( originalClearAlpha );
 
-	}
+	} */
 
 	setSize( width, height ) {
 
