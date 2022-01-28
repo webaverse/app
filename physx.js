@@ -1302,8 +1302,8 @@ const physxWorker = (() => {
 
     const positionCount = moduleInstance.HEAP32.subarray(head, head + 1)[0];
     const faceCount = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
-    const positions = moduleInstance.HEAPF32.subarray(head + 2, head + 2 + positionCount);
-    const faces = moduleInstance.HEAP32.subarray(head + 2 + positionCount, head + 2 + positionCount +faceCount);
+    const positions = [...moduleInstance.HEAPF32.subarray(head + 2, head + 2 + positionCount)];
+    const faces = [...moduleInstance.HEAP32.subarray(head + 2 + positionCount, head + 2 + positionCount +faceCount)];
 
     return {
       positionCount: positionCount,
