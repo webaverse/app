@@ -25,4 +25,4 @@ for f2 in *.mov; do
     echo "$frameCount" "$f2" | tee -a fx-files.txt
   fi;
 done;
-node -e 'a = require("fs").readFileSync("./fx-files.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9]+) (.+)$/); numFrames = parseInt(m[1], 10); name = m[2]; return {name,numFrames};}); console.log(JSON.stringify(a, null, 2))' > fx-files.json
+node -e 'a = require("fs").readFileSync("./fx-files.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9\.]+) (.+)$/); numFrames = parseFloat(m[1]); name = m[2]; return {name,numFrames};}); console.log(JSON.stringify(a, null, 2))' >fx-files.json
