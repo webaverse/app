@@ -392,7 +392,7 @@ export default class Webaverse extends EventTarget {
       cameraManager.update(timeDiffCapped);
       
       const localPlayer = metaversefileApi.useLocalPlayer();
-      if (this.contentLoaded) {
+      if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
         //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
         physicsManager.simulatePhysics(timeDiffCapped); 
         localPlayer.updatePhysics(timestamp, timeDiffCapped);
