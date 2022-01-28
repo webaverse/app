@@ -132,24 +132,26 @@ E6-wrap_74_10_19_21 - Part_1.wav
 E6-wrap_74_10_19_29 - Part_1.wav`
   .split('\n')
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
-  const numFiles = 361;
-  const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
-    .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`);
+/* const numFiles = 361;
+const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
+  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
 const _loadVoicePack = async () => {
   const audioContext = Avatar.getAudioContext();
 
-  const voices = [];
-  const promises = [];
-  for (const voiceFile of voiceFiles) {
-    const p = loadAudioBuffer(audioContext, voiceFile);
-    p.then(audioBuffer => {
-      voices.push(audioBuffer);
-    });
-    promises.push(p);
-  }
-  await Promise.all(promises);
+  const syllableFiles = await (async () => {
+    const res = await fetch('./shishi-voicepack/syllables/syllable-files.json');
+    const j = await res.json();
+    return j;
+  })();
+  const audioBuffer = await (async () => {
+    const res = await fetch('./shishi-voicepack/syllables/syllables.mp3');
+    const arrayBuffer = await res.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    return audioBuffer;
+  })();
+
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoicePack(voices);
+  localPlayer.characterHups.setVoicePack(syllableFiles, audioBuffer);
 };
 
 export default class Webaverse extends EventTarget {
