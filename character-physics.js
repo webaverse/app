@@ -331,7 +331,7 @@ class CharacterPhysics {
   }
   reset() {
     if (this.player.avatar) {
-      this.player.characterPhysics.velocity.set(0, 0, 0);
+      this.velocity.set(0, 0, 0);
     }
   }
 }
