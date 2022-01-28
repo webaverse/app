@@ -1050,6 +1050,13 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     enableShadows(app);
   
     this.avatar = avatar;
+
+    this.characterPhysics = new CharacterPhysics(this);
+    loadCharacterController.call(this);
+  }
+  updatePhysics(now, timeDiff) {
+    const timeDiffS = timeDiff / 1000;
+    this.characterPhysics.update(now, timeDiffS);
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
