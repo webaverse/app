@@ -51,6 +51,39 @@ function makeCancelFn() {
     },
   };
 }
+function loadCharacterController() {
+  const avatarHeight = this.avatar.height;
+  const heightFactor = 1.6;
+  const contactOffset = 0.1/heightFactor * avatarHeight;
+  const stepOffset = 0.5/heightFactor * avatarHeight;
+  const radius = 0.3/heightFactor * avatarHeight;
+  const position = this.position.clone()
+    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+  if (this.characterController) {
+    physicsManager.destroyCharacterController(this.characterController);
+    this.characterController = null;
+    this.characterControllerObject = null;
+  }
+  this.characterController = physicsManager.createCharacterController(
+    radius - contactOffset,
+    avatarHeight - radius*2,
+    contactOffset,
+    stepOffset,
+    position,
+    physicsMaterial
+  );
+  console.log('got character controller 1', this.characterController);
+  console.log('got 2', [
+    radius - contactOffset,
+    avatarHeight - radius*2,
+    contactOffset,
+    stepOffset,
+    position,
+    physicsMaterial,
+  ]);
+  this.characterControllerObject = new THREE.Object3D();
+}
 
 class PlayerHand extends THREE.Object3D {
   constructor() {
@@ -245,30 +278,7 @@ class StatePlayer extends PlayerBase {
           app,
         });
         
-        const avatarHeight = this.avatar.height;
-        const heightFactor = 1.6;
-        const contactOffset = 0.1/heightFactor * avatarHeight;
-        const stepOffset = 0.5/heightFactor * avatarHeight;
-        const radius = 0.3/heightFactor * avatarHeight;
-        const position = this.position.clone()
-          .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-        const physicsMaterial = new THREE.Vector3(0, 0, 0);
-        {
-          if (this.characterController) {
-            physicsManager.destroyCharacterController(this.characterController);
-            this.characterController = null;
-            this.characterControllerObject = null;
-          }
-          this.characterController = physicsManager.createCharacterController(
-            radius - contactOffset,
-            avatarHeight - radius*2,
-            contactOffset,
-            stepOffset,
-            position,
-            physicsMaterial
-          );
-          this.characterControllerObject = new THREE.Object3D();
-        }
+        loadCharacterController.call(this);
       })();
       
       this.dispatchEvent({
