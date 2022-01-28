@@ -1077,6 +1077,16 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
+  w.getGlobalPositionPhysics = (physics, id, position) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+
+    moduleInstance._getGlobalPositionPhysics(physics, id, p.byteOffset);
+
+    position.fromArray(p);
+
+    allocator.freeAll();
+  };
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
