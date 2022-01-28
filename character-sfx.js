@@ -35,7 +35,7 @@ const loadPromise = (async () => {
     loadAudioBuffer(audioContext, '/sounds/sounds.mp3'),
   ]);
 
-  console.log('got specs', soundFileSpecs);
+  // console.log('got specs', soundFileSpecs);
 
   walkSoundFiles = soundFileSpecs.filter(f => /^walk\//.test(f.name));
   runSoundFiles = soundFileSpecs.filter(f => /^run\//.test(f.name));
