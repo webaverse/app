@@ -742,7 +742,7 @@ const physxWorker = (() => {
     const scaleTypedArray = allocator.alloc(Float32Array, 3)
     scaleTypedArray.set(scale);
 
-    const outputBuffer = moduleInstance._doCut(
+    const outputBufferOffset = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
       numPositions,
       normalsTypedArray.byteOffset,
@@ -758,24 +758,26 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
 
-    let head = outputBuffer / 4;
+    let head = outputBufferOffset / 4;
     let tail = head + 2;
-    const numOutPositionsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    const numOutPositionsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
     head = tail;
     tail = head + 2;
-    const numOutNormalsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    const numOutNormalsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
     head = tail;
     tail = head + 2;
-    const numOutUvsTypedArray = moduleInstance.HEAPF32.subarray(head, tail);
+    const numOutUvsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
     head = tail;
     tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
-    const outPositions = moduleInstance.HEAPF32.subarray(head, tail);
+    const outPositions = moduleInstance.HEAPF32.slice(head, tail);
     head = tail;
     tail = head + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]);
-    const outNormals = moduleInstance.HEAPF32.subarray(head, tail);
+    const outNormals = moduleInstance.HEAPF32.slice(head, tail);
     head = tail;
     tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1]);
-    const outUvs = moduleInstance.HEAPF32.subarray(head, tail);
+    const outUvs = moduleInstance.HEAPF32.slice(head, tail);
+
+    Module._free(outputBufferOffset);
 
     const output = {
       numOutPositions: numOutPositionsTypedArray,
@@ -784,8 +786,8 @@ const physxWorker = (() => {
       outNormals,
       numOutUvs: numOutUvsTypedArray,
       outUvs,
-    }
-    return output
+    };
+    return output;
   };
   w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setLinearLockFlagsPhysics(
