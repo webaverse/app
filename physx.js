@@ -1384,7 +1384,7 @@ const physxWorker = (() => {
     const scaleTypedArray = allocator.alloc(Float32Array, 3);
     scaleTypedArray.set(scale);
 
-    const outputBuffer = moduleInstance._doMarchingCubes(
+    const outputBufferOffset = moduleInstance._doMarchingCubes(
       dimsTypedArray.byteOffset,
       potentialTypedArray.byteOffset,
       shiftTypedArray.byteOffset,
@@ -1393,14 +1393,14 @@ const physxWorker = (() => {
 
     allocator.freeAll();
 
-    const head = outputBuffer / 4;
+    const head = outputBufferOffset / 4;
 
-    const positionCount = moduleInstance.HEAP32.subarray(head, head + 1)[0];
-    const faceCount = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
-    const positions = [...moduleInstance.HEAPF32.subarray(head + 2, head + 2 + positionCount)];
-    const faces = [...moduleInstance.HEAP32.subarray(head + 2 + positionCount, head + 2 + positionCount +faceCount)];
+    const positionCount = moduleInstance.HEAP32[head];
+    const faceCount = moduleInstance.HEAP32[head + 1];
+    const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
+    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
 
-    moduleInstance._doFree(outputBuffer);
+    moduleInstance._doFree(outputBufferOffset);
 
     return {
       positionCount: positionCount,
