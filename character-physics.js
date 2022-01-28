@@ -223,7 +223,7 @@ class CharacterPhysics {
   }
   applyAvatarPhysics(now, timeDiffS) {
     const renderer = getRenderer();
-    const session = renderer.xr.getSession();
+    // const session = renderer.xr.getSession();
 
     /* if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
