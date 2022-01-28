@@ -40,6 +40,11 @@ class CharacterPhysics {
     this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
   }
+  setPosition(p) {
+    localVector.copy(p);
+    localVector.y -= this.player.avatar.height * 0.5;
+    physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+  }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection, timeDiff) {
     if (this.player.avatar && physicsManager.physicsEnabled) {
