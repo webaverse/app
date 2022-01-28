@@ -228,6 +228,33 @@ physicsManager.setCharacterControllerPosition = (characterController, position) 
 }; */
 physicsManager.raycast = (position, quaternion) => physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
 physicsManager.raycastArray = (position, quaternion, n) => physx.physxWorker.raycastPhysicsArray(physx.physics, position, quaternion, n);
+physicsManager.cutMesh = (
+  positions,
+  numPositions,
+  normals,
+  numNormals,
+  uvs,
+  numUvs,
+  faces,
+  numFaces,
+
+  position,
+  quaternion,
+  scale,
+) => physx.physxWorker.doCut(
+  positions,
+  numPositions,
+  normals,
+  numNormals,
+  uvs,
+  numUvs,
+  faces,
+  numFaces,
+
+  position,
+  quaternion,
+  scale,
+);
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z);
 };
