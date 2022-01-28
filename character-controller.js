@@ -907,10 +907,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    /* if (isNaN(timeDiff)) {
-      console.log('updaet', now, timeDiffS);
-      debugger;
-    } */
     this.characterPhysics.update(now, timeDiffS);
     this.characterSfx.update(now, timeDiffS);
   }
