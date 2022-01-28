@@ -991,7 +991,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
-class StaticInterpolatedPlayer extends PlayerBase {
+class StaticUninterpolatedPlayer extends PlayerBase {
   constructor(opts) {
     super(opts);
 
@@ -1025,7 +1025,7 @@ class StaticInterpolatedPlayer extends PlayerBase {
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
-class NpcPlayer extends StaticInterpolatedPlayer {
+class NpcPlayer extends StaticUninterpolatedPlayer {
   constructor(opts) {
     super(opts);
   }
