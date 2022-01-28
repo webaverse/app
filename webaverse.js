@@ -138,17 +138,17 @@ const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
 const _loadVoicePack = async () => {
   const audioContext = Avatar.getAudioContext();
 
-  const syllableFiles = await (async () => {
-    const res = await fetch('./shishi-voicepack/syllables/syllable-files.json');
-    const j = await res.json();
-    return j;
-  })();
-  const audioBuffer = await (async () => {
-    const res = await fetch('./shishi-voicepack/syllables/syllables.mp3');
-    const arrayBuffer = await res.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    return audioBuffer;
-  })();
+  const [
+    syllableFiles,
+    audioBuffer,
+  ] = await Promise.all([
+    (async () => {
+      const res = await fetch('https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json');
+      const j = await res.json();
+      return j;
+    })(),
+    loadAudioBuffer(audioContext, 'https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3'),
+  ]);
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.characterHups.setVoicePack(syllableFiles, audioBuffer);
