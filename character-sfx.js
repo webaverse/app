@@ -11,91 +11,40 @@ import {
 } from './constants.js';
 import {
   mod,
+  loadJson,
   loadAudioBuffer,
 } from './util.js';
 
 const localVector = new THREE.Vector3();
-
-const walkSoundFileNames = `\
-walk1.wav
-walk2.wav
-walk3.wav
-walk4.wav
-walk5.wav
-walk6.wav
-walk7.wav
-walk8.wav
-walk9.wav
-walk10.wav
-walk11.wav
-walk12.wav`.split('\n');
-const runSoundFileNames = `\
-run1.wav
-run2.wav
-run3.wav
-run4.wav
-run5.wav
-run6.wav
-run7.wav
-run8.wav
-run9.wav
-run10.wav
-run11.wav
-run12.wav`.split('\n');
-const narutoRunSoundFileNames = `\
-narutoRun1.wav
-narutoRun2.wav
-narutoRun3.wav
-narutoRun4.wav
-narutoRun5.wav
-narutoRun6.wav
-narutoRun7.wav
-narutoRun8.wav
-narutoRun9.wav
-narutoRun10.wav
-narutoRun11.wav
-narutoRun12.wav`.split('\n');
-const jumpSoundFileNames = `\
-jump1.wav
-jump2.wav
-jump3.wav`.split('\n');
-const landSoundFileNames = `\
-land1.wav
-land2.wav
-land3.wav`.split('\n');
 
 let walkSoundFiles;
 let runSoundFiles;
 let jumpSoundFiles;
 let landSoundFiles;
 let narutoRunSoundFiles;
+let soundFileAudioBuffer;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
-  const _loadSoundFiles = getUrlFn => function(fileNames) {
-    const audioContext = Avatar.getAudioContext();
-    return Promise.all(fileNames.map(fileName => loadAudioBuffer(audioContext, getUrlFn(fileName))));
-  };
-  const _loadFootstepSoundFiles = (fileNames, soundType) => _loadSoundFiles(fileName => {
-    return `/sounds/${soundType}/${fileName}`;
-  })(fileNames);
-  await Promise.all([
-    _loadFootstepSoundFiles(walkSoundFileNames, 'walk').then(as => {
-      walkSoundFiles = as;
-    }),
-    _loadFootstepSoundFiles(runSoundFileNames, 'run').then(as => {
-      runSoundFiles = as;
-    }),
-    _loadFootstepSoundFiles(jumpSoundFileNames, 'jump').then(as => {
-      jumpSoundFiles = as;
-    }),
-    _loadFootstepSoundFiles(landSoundFileNames, 'land').then(as => {
-      landSoundFiles = as;
-    }),
-    _loadFootstepSoundFiles(narutoRunSoundFileNames, 'narutoRun').then(as => {
-      narutoRunSoundFiles = as;
-    }),
+  const audioContext = Avatar.getAudioContext();
+  const [
+    soundFileSpecs,
+    _soundFileAudioBuffer,
+  ] = await Promise.all([
+    loadJson(`/sounds/sound-files.json`),
+    loadAudioBuffer(audioContext, '/sounds/sounds.mp3'),
   ]);
+
+  console.log('got specs', soundFileSpecs);
+
+  walkSoundFiles = soundFileSpecs.filter(f => /^walk\//.test(f.name));
+  runSoundFiles = soundFileSpecs.filter(f => /^run\//.test(f.name));
+  jumpSoundFiles = soundFileSpecs.filter(f => /^jump\//.test(f.name));
+  landSoundFiles = soundFileSpecs.filter(f => /^land\//.test(f.name));
+  narutoRunSoundFiles = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
+  soundFileAudioBuffer = _soundFileAudioBuffer;
+
+  // console.log('loaded audio', soundFileSpecs, soundFileAudioBuffer);
 })();
 const waitForLoad = () => loadPromise;
 
@@ -142,20 +91,22 @@ class CharacterSfx {
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
     // jump
-    const _playSound = audioBuffer => {
+    const _playSound = audioSpec => {
+      const {offset, duration} = audioSpec;
+
       const audioContext = Avatar.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
-      audioBufferSourceNode.buffer = audioBuffer;
+      audioBufferSourceNode.buffer = soundFileAudioBuffer;
       audioBufferSourceNode.connect(audioContext.destination);
-      audioBufferSourceNode.start();
+      audioBufferSourceNode.start(0, offset, duration);
     };
     {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const audioBuffer = jumpSoundFiles[Math.floor(Math.random() * jumpSoundFiles.length)];
-        _playSound(audioBuffer);
+        const audioSpec = jumpSoundFiles[Math.floor(Math.random() * jumpSoundFiles.length)];
+        _playSound(audioSpec);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const audioBuffer = landSoundFiles[Math.floor(Math.random() * landSoundFiles.length)];
-        _playSound(audioBuffer);
+        const audioSpec = landSoundFiles[Math.floor(Math.random() * landSoundFiles.length)];
+        _playSound(audioSpec);
       }
       this.lastJumpState = this.player.avatar.jumpState;
     }
@@ -218,8 +169,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
               
-              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              _playSound(audioBuffer);
+              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioSpec);
             }
           }
           this.lastStepped[0] = leftStepIndices[i];
@@ -231,8 +182,8 @@ class CharacterSfx {
                 !a.paused && a.pause();
               } */
 
-              const audioBuffer = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              _playSound(audioBuffer);
+              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              _playSound(audioSpec);
             }
           }
           this.lastStepped[1] = rightStepIndices[i];
