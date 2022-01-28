@@ -73,15 +73,6 @@ function loadCharacterController() {
     position,
     physicsMaterial
   );
-  console.log('got character controller 1', this.characterController);
-  console.log('got 2', [
-    radius - contactOffset,
-    avatarHeight - radius*2,
-    contactOffset,
-    stepOffset,
-    position,
-    physicsMaterial,
-  ]);
   this.characterControllerObject = new THREE.Object3D();
 }
 
