@@ -830,7 +830,7 @@ class Nodder {
 class Looker {
   constructor(avatar) {
     this.avatar = avatar;
-
+    this.move = false;
     this.mode = 'ready';
     this.startTarget = new THREE.Vector3();
     this.endTarget = new THREE.Vector3();
@@ -2025,6 +2025,9 @@ class Avatar {
 
       if (this.velocity.length() > maxIdleVelocity) {
         this.lastMoveTime = now;
+        this.move = true;
+      } else {
+        this.move = false;
       }
     };
     _updatePosition();
@@ -2241,47 +2244,6 @@ class Avatar {
       
       const idleAnimation = _getIdleAnimation('walk');
 
-      /* // walk sound effect
-      {
-        const soundManager = metaversefile.useSoundManager();
-        const currAniTime = timeSeconds % idleAnimation.duration;
-
-        if (currentSpeed > 0.1) {
-          if (key === 'walk') {
-            if (currAniTime > 0.26 && currAniTime < 0.4)
-              soundManager.playStepSound(1);
-            if (currAniTime > 0.76 && currAniTime < 0.9)
-              soundManager.playStepSound(2);
-            if (currAniTime > 1.26 && currAniTime < 1.4)
-              soundManager.playStepSound(3);
-            if (currAniTime > 1.76 && currAniTime < 1.9)
-              soundManager.playStepSound(4);
-            if (currAniTime > 2.26 && currAniTime < 2.5)
-              soundManager.playStepSound(5);
-          }
-          if (key === 'run') {
-            if (currAniTime > 0.16 && currAniTime < 0.3)
-              soundManager.playStepSound(1);
-            if (currAniTime > 0.43 && currAniTime < 0.45)
-              soundManager.playStepSound(2);
-            if (currAniTime > 0.693 && currAniTime < 0.8)
-              soundManager.playStepSound(3);
-            if (currAniTime > 0.963 && currAniTime < 1.1)
-              soundManager.playStepSound(4);
-            if (currAniTime > 1.226 && currAniTime < 1.3)
-              soundManager.playStepSound(5);
-            if (currAniTime > 1.496 && currAniTime < 1.6)
-              soundManager.playStepSound(6);
-            if (currAniTime > 1.759 && currAniTime < 1.9)
-              soundManager.playStepSound(7);
-            if (currAniTime > 2.029 && currAniTime < 2.1)
-              soundManager.playStepSound(8);
-            if (currAniTime > 2.292 && currAniTime < 2.4)
-              soundManager.playStepSound(9);
-          }
-        }
-      } */
-      
       // crouch
       // const keyOther = _getAnimationKey(true);
       const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
@@ -2432,52 +2394,6 @@ class Avatar {
             _clearXZ(dst, isPosition);
           };
         }
-
-        /* if (this.standChargeState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.standChargeTime/1000) ;
-            const src2 = standCharge.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordSideSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordSideSlashTime/1000) ;
-            const src2 = swordSideSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordTopDownSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordTopDownSlashTime/1000) ;
-            const src2 = swordTopDownSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
         if (this.fallLoopState) {
           return spec => {
             const {
@@ -2493,22 +2409,6 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        /* if (this.chargeJumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            
-            const t2 = (this.chargeJumpTime/1000) ;
-            const src2 = chargeJump.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
         if (this.jumpState) {
           return spec => {
             const {
@@ -2577,27 +2477,36 @@ class Avatar {
             })();
             if (!isPosition) {
               if (useAnimation) {
-                const src2 = useAnimation.interpolants[k];
+                const idleAnimation = _getIdleAnimation('walk');
+                
+                let src2 = useAnimation.interpolants[k];
+                
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                  src2 = idleAnimation.interpolants[k];
+                }
+
                 const v2 = src2.evaluate(t2);
 
-                const idleAnimation = _getIdleAnimation('walk');
+              
                 const t3 = 0;
                 const src3 = idleAnimation.interpolants[k];
                 const v3 = src3.evaluate(t3);
-
+                
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              }
             } else {
-              const src2 = useAnimation.interpolants[k];
+              let src2 = useAnimation.interpolants[k];
+              const idleAnimation = _getIdleAnimation('walk');
+              if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                src2 = idleAnimation.interpolants[k];
+              }
+
               const v2 = src2.evaluate(t2);
               localVector2.fromArray(v2);
               _clearXZ(localVector2, isPosition);
 
-              const idleAnimation = _getIdleAnimation('walk');
               const t3 = 0;
               const src3 = idleAnimation.interpolants[k];
               const v3 = src3.evaluate(t3);
@@ -2622,14 +2531,17 @@ class Avatar {
             const t2 = (this.aimTime/aimMaxTime) % aimAnimation.duration;
             if (!isPosition) {
               if (aimAnimation) {
-                const src2 = aimAnimation.interpolants[k];
-                const v2 = src2.evaluate(t2);
-
+                let src2 = aimAnimation.interpolants[k];
                 const idleAnimation = _getIdleAnimation('walk');
+         
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                  src2 = idleAnimation.interpolants[k];
+                }
+                const v2 = src2.evaluate(t2);
                 const t3 = 0;
                 const src3 = idleAnimation.interpolants[k];
                 const v3 = src3.evaluate(t3);
-                
+
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
