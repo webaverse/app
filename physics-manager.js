@@ -232,7 +232,7 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
 physicsManager.simulatePhysics = timeDiff => {
-  if (physicsManager.physicsEnabled) {
+  if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
@@ -265,9 +265,10 @@ physicsManager.pushUpdate = physicsObject => {
   });
 };
 
-physicsManager.physicsEnabled = false;
-physicsManager.setPhysicsEnabled = physicsEnabled => {
-  physicsManager.physicsEnabled = physicsEnabled;
+let physicsEnabled = false;
+physicsManager.getPhysicsEnabled = () => physicsEnabled;
+physicsManager.setPhysicsEnabled = newPhysicsEnabled => {
+  physicsEnabled = newPhysicsEnabled;
 };
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
