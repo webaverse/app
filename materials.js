@@ -38,18 +38,31 @@ const appendMain = (shaderText, postfixLine) => {
   }
 `; */
 
-const formatVertexShader = vertexShader => `\
+// memoize a function which takes a string and returns a string
+const _memoize = fn => {
+  const cache = new Map();
+  return s => {
+    let result = cache.get(s);
+    if (result === undefined) {
+      result = fn(s);
+      cache.set(s, result);
+    }
+    return result;
+  };
+}
+
+const formatVertexShader = _memoize(vertexShader => `\
 ${THREE.ShaderChunk.common}
 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
     
 ${appendMain(vertexShader, THREE.ShaderChunk.logdepthbuf_vertex)}
-`;
+`);
 
-const formatFragmentShader = fragmentShader => `\
+const formatFragmentShader = _memoize(fragmentShader => `\
 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
     
 ${appendMain(fragmentShader, THREE.ShaderChunk.logdepthbuf_fragment)}
-`;
+`);
 
 class WebaverseShaderMaterial extends THREE.ShaderMaterial {
   constructor(opts = {}) {
@@ -58,6 +71,27 @@ class WebaverseShaderMaterial extends THREE.ShaderMaterial {
     super(opts);
   }
 }
+class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
+  constructor(opts = {}) {
+    opts.vertexShader = formatVertexShader(opts.vertexShader);
+    const lines = opts.vertexShader.split('\n');
+    let firstNonPrecisionLine = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (!lines[i].trim().startsWith('precision')) {
+        firstNonPrecisionLine = i;
+        break;
+      }
+    }
+    if (firstNonPrecisionLine !== -1 && !lines.some(l => l.trim().startsWith('#define USE_LOGDEPTHBUF'))) {
+      lines.splice(firstNonPrecisionLine, 0, '#define USE_LOGDEPTHBUF');
+      opts.vertexShader = lines.join('\n');
+    }
+    // opts.vertexShader = opts.vertexShader.replace('#define EPSILON 1e-6', '#define EPSILON 1e-6\n#define USE_LOGDEPTHBUF 1');
+    opts.fragmentShader = formatFragmentShader(opts.fragmentShader);
+    super(opts);
+  }
+}
 export {
   WebaverseShaderMaterial,
+  WebaverseRawShaderMaterial,
 };

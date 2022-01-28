@@ -1077,6 +1077,16 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
+  w.getGlobalPositionPhysics = (physics, id, position) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+
+    moduleInstance._getGlobalPositionPhysics(physics, id, p.byteOffset);
+
+    position.fromArray(p);
+
+    allocator.freeAll();
+  };
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
@@ -1097,14 +1107,14 @@ const physxWorker = (() => {
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  w.setAngularVelocityPhysics = (physicsObject, velocity, autoWake) => {
+  w.setAngularVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
     autoWake = autoWake ?? false;
 
-    physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+    moduleInstance._setAngularVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
   w.setTransformPhysics = (physics, id, position, quaternion, scale, autoWake) => {

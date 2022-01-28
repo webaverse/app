@@ -13,7 +13,7 @@ import metaversefileApi from 'metaversefile';
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
+import {CapsuleGeometry} from './geometries.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -194,6 +194,9 @@ physicsManager.removeGeometry = physicsObject => {
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
 }; */
+physicsManager.getGlobalPosition = (physicsObject, position) => {
+  physx.physxWorker.getGlobalPositionPhysics(physx.physics, physicsObject.physicsId, position);
+};
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 };
@@ -232,7 +235,7 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
 physicsManager.simulatePhysics = timeDiff => {
-  if (physicsManager.physicsEnabled) {
+  if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
@@ -267,9 +270,10 @@ physicsManager.pushUpdate = physicsObject => {
   });
 };
 
-physicsManager.physicsEnabled = false;
-physicsManager.setPhysicsEnabled = physicsEnabled => {
-  physicsManager.physicsEnabled = physicsEnabled;
+let physicsEnabled = false;
+physicsManager.getPhysicsEnabled = () => physicsEnabled;
+physicsManager.setPhysicsEnabled = newPhysicsEnabled => {
+  physicsEnabled = newPhysicsEnabled;
 };
 
 const gravity = new THREE.Vector3(0, -9.8, 0);

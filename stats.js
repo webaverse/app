@@ -3,14 +3,19 @@
  * @author jetienne / http://jetienne.com/
  */
 
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
+const {useLocalPlayer} = metaversefile;
+
+const localVector = new THREE.Vector3();
 
 export var Stats = function () {
-
-	var msMin	= 100;
-	var msMax	= 0;
+	// var msMin	= 100;
+	// var msMax	= 0;
 	var frames  = 0;
 	var beginTime = Date.now();
 	var lastTime = beginTime;
+	var localPlayer = useLocalPlayer();
 
 	var container	= document.createElement( 'div' );
 	container.style.cssText = 'width:120px;opacity:0.9;cursor:pointer';
@@ -25,11 +30,11 @@ export var Stats = function () {
 	msText.innerHTML= 'Renderer Stats';
 	msDiv.appendChild( msText );
 	
-	var msTexts	= [];
-	var nLines	= 5;
+	var msTexts = [];
+	var nLines = 11;
 	for(var i = 0; i < nLines; i++){
 		msTexts[i]	= document.createElement( 'div' );
-		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
+		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
 		msDiv.appendChild( msTexts[i] );		
 		msTexts[i].innerHTML= '-';
 	}
@@ -41,15 +46,27 @@ export var Stats = function () {
 
 		update: function(webGLRenderer){
 			frames++;
-		
+
+			var i = 0;
+
+			// Update every frame
+			if (localPlayer) {
+				msTexts[i++].textContent = "X: " + localPlayer.position.x.toFixed(2);
+				msTexts[i++].textContent = "Y: " + localPlayer.position.y.toFixed(2);
+				msTexts[i++].textContent = "Z: " + localPlayer.position.z.toFixed(2);
+				msTexts[i++].textContent = "Velocity: " + localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)).join(', ');
+				msTexts[i++].textContent = "Speed: " + localPlayer.characterPhysics.velocity.length().toFixed(2);
+				localVector.copy(localPlayer.characterPhysics.velocity);
+				localVector.y = 0;
+				msTexts[i++].textContent = "HSpeed: " + localVector.length().toFixed(2);
+			}
+			
+			// Only update once per second
 	        if (Date.now() > lastTime + 1000) {
-
-
-				var i	= 0;
-				msTexts[i++].textContent = "FPS: "	+ Math.round((frames * 1000) / (Date.now() - lastTime));
+				msTexts[i++].textContent = "FPS: " + Math.round((frames * 1000) / (Date.now() - lastTime));
 				msTexts[i++].textContent = "== Memory =====";
 				msTexts[i++].textContent = "Programs: "	+ webGLRenderer.info.programs.length;
-				msTexts[i++].textContent = "Geometries: "+webGLRenderer.info.memory.geometries;
+				msTexts[i++].textContent = "Geometries: " +webGLRenderer.info.memory.geometries;
 				msTexts[i++].textContent = "Textures: "	+ webGLRenderer.info.memory.textures;
 
 				// msTexts[i++].textContent = "== Render ======";
