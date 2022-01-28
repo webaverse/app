@@ -720,6 +720,10 @@ export function copyPQS(dst, src) {
   dst.scale.copy(src.scale);
 }
 
+export async function loadJson(u) {
+  const res = await fetch(u);
+  return await res.json();
+}
 export async function loadAudio(u) {
   const audio = new Audio();
   const p = new Promise((accept, reject) => {
