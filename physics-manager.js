@@ -195,6 +195,9 @@ physicsManager.removeGeometry = physicsObject => {
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
 }; */
+physicsManager.getGlobalPosition = (physicsObject, position) => {
+  physx.physxWorker.getGlobalPositionPhysics(physx.physics, physicsObject.physicsId, position);
+};
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 };
