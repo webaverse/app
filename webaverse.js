@@ -45,8 +45,10 @@ window.isStart = false;
 // const height = 71;
 const width = 15;
 const height = 15;
-const start = new THREE.Vector2(-7, -5)
-const dest = new THREE.Vector2(4, 6)
+// const start = new THREE.Vector2(-7, -5)
+const start = new THREE.Vector2(0, -5)
+// const dest = new THREE.Vector2(4, 6)
+const dest = new THREE.Vector2(0, 6)
 window.frontiers = []
 window.blocks = new THREE.Group();
 window.rootScene.add(window.blocks);
@@ -145,6 +147,15 @@ function tenStep() {
 window.untilFound = untilFound;
 function untilFound() {
   while (!window.isFound) step()
+}
+window.generateVoxelMap = generateVoxelMap
+function generateVoxelMap() {
+  window.blocks.children.forEach((block, i) => {
+    if (block.position.y > 2) {
+      block._isObstacle = true
+      block.material = materialObstacle
+    }
+  })
 }
 
 const localVector = new THREE.Vector3();
