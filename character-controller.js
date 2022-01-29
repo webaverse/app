@@ -672,6 +672,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.isLocalPlayer = true;
+
     this.name = defaultPlayerName;
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
@@ -956,6 +958,8 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
+  
+    this.isRemotePlayer = true;
   }
   detachState() {
     return null;
@@ -1025,6 +1029,8 @@ class StaticUninterpolatedPlayer extends PlayerBase {
 class NpcPlayer extends StaticUninterpolatedPlayer {
   constructor(opts) {
     super(opts);
+  
+    this.isNpcPlayer = true;
   }
   async setAvatarAppAsync(app) {
     await app.setSkinning(true);
