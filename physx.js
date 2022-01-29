@@ -1088,6 +1088,16 @@ const physxWorker = (() => {
 
     allocator.freeAll();
   };
+  w.getGlobalQuaternionPhysics = (physics, id, quaternion) => {
+    const allocator = new Allocator();
+    const q = allocator.alloc(Float32Array, 4);
+
+    moduleInstance._getGlobalQuaternionPhysics(physics, id, q.byteOffset);
+
+    quaternion.fromArray(q);
+
+    allocator.freeAll();
+  };
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
