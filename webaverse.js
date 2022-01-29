@@ -45,6 +45,8 @@ window.isStart = false;
 // const height = 71;
 const width = 15;
 const height = 15;
+const start = new THREE.Vector2(-7, -5)
+const dest = new THREE.Vector2(4, 6)
 window.frontiers = []
 window.blocks = new THREE.Group();
 window.rootScene.add(window.blocks);
@@ -68,6 +70,81 @@ function getBlock(x, y) {
   y += (height - 1) / 2
   if (x < 0 || y < 0 || x >= width || y >= height) return null
   return window.blocks.children[vs.xy_to_serial(width, { x, y })]
+}
+
+const tmpVec2 = new THREE.Vector2()
+
+function stepBlock(block, prevBlock) {
+  function recur(block) {
+    if (block) {
+      if (!block._isStart && !block._isDest) block.material = materialPath
+      recur(block._prev)
+    }
+  }
+  if (!block) return
+  if (block._isObstacle) return
+  // if (block._x === 9) debugger
+  const newCost = prevBlock._costSoFar + 1
+  // if (block._isAct === false || newCost < block._costSoFar) {
+  if (block._isAct === false) { // Seems no need `|| newCost < block._costSoFar` ? Need? http://disq.us/p/2mgpazs
+    block._isAct = true
+    block._costSoFar = newCost
+
+    // todo: use Vector2 instead of _x _z.
+    // block._priority = tmpVec2.set(block._x, block._z).manhattanDistanceTo(dest)
+    // block._priority = tmpVec2.set(block._x, block._z).distanceToSquared(dest)
+    block._priority = tmpVec2.set(block._x, block._z).distanceTo(dest)
+    block._priority += newCost
+    window.frontiers.push(block)
+    // window.frontiers.unshift(block)
+    window.frontiers.sort((a, b) => a._priority - b._priority)
+
+    if (!block._isStart && !block._isDest) block.material = materialFrontier
+    block._prev = prevBlock
+  }
+  if (block._isDest) {
+    console.log('found')
+    window.isFound = true
+    recur(block)
+  }
+}
+
+window.step = step;
+function step() {
+  console.log('step')
+  // debugger
+  if (window.frontiers.length <= 0) {
+    console.log('finish')
+    return
+  }
+  if (window.isFound) return
+
+  const current = window.frontiers.shift();
+  if (!current._isStart) current.material = materialAct
+
+  const leftBlock = getBlock(current._x - 1, current._z)
+  stepBlock(leftBlock, current);
+  if (window.isFound) return
+
+  const rightBlock = getBlock(current._x + 1, current._z)
+  stepBlock(rightBlock, current);
+  if (window.isFound) return
+
+  const btmBlock = getBlock(current._x, current._z - 1)
+  stepBlock(btmBlock, current);
+  if (window.isFound) return
+
+  const topBlock = getBlock(current._x, current._z + 1)
+  stepBlock(topBlock, current);
+  // if (window.isFound) return
+}
+window.tenStep = tenStep;
+function tenStep() {
+  for (let i = 0; i < 10; i++) step()
+}
+window.untilFound = untilFound;
+function untilFound() {
+  while (!window.isFound) step()
 }
 
 const localVector = new THREE.Vector3();
@@ -496,18 +573,17 @@ const _startHacks = () => {
     }
 
     // dest
-    const dest = new THREE.Vector2(4, 6)
     const destBlock = getBlock(dest.x, dest.y)
     // const destBlock = getBlock(0, 0)
     destBlock._isDest = true
     destBlock.material = materialDest
 
     // start
-    const start = new THREE.Vector2(-7, -5)
     const startBlock = getBlock(start.x, start.y)
     startBlock._isStart = true
     startBlock._isAct = true
-    startBlock._priority = start.manhattanDistanceTo(dest)
+    // startBlock._priority = start.manhattanDistanceTo(dest)
+    startBlock._priority = start.distanceTo(dest)
     startBlock._costSoFar = 0
     window.frontiers.push(startBlock)
     startBlock.material = materialStart
