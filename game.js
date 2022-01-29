@@ -1612,11 +1612,25 @@ const gameManager = {
     localPlayer.removeAction('dance');
   },
   menuBDown(e) {
-    if (e.ctrlKey) {
-      universe.reload();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const action = localPlayer.getAction('powerup');
+    if (!action) {
+      const newAction = {
+        type: 'dapowerupnce',
+        animation: 'powerup',
+        // time: 0,
+      };
+      localPlayer.addAction(newAction);
     }
+
+    /* if (e.ctrlKey) {
+      universe.reload();
+    } */
   },
   menuBUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('powerup');
+    
     // physicsManager.setThrowState(null);
   },
   menuDoubleTap() {
