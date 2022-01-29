@@ -24,61 +24,6 @@ const lastCameraQuaternion = new THREE.Quaternion();
 let lastCameraZ = 0;
 let lastCameraValidZ = 0;
 
-const requestPointerLock = async () => {
-  for (const options of [
-    {
-      unadjustedMovement: true,
-    },
-    undefined
-  ]) {
-    try {
-      await new Promise((accept, reject) => {
-        if (!document.pointerLockElement) {
-          const _pointerlockchange = e => {
-            accept();
-            _cleanup();
-          };
-          document.addEventListener('pointerlockchange', _pointerlockchange);
-          const _pointerlockerror = err => {
-            reject(err);
-            _cleanup();
-            
-            notifications.addNotification(`\
-              <i class="icon fa fa-mouse-pointer"></i>
-              <div class=wrap>
-                <div class=label>Whoa there!</div>
-                <div class=text>
-                  Hold up champ! The browser wants you to slow down.
-                </div>
-                <div class=close-button>✕</div>
-              </div>
-            `, {
-              timeout: 3000,
-            });
-          };
-          document.addEventListener('pointerlockerror', _pointerlockerror);
-          const _cleanup = () => {
-            document.removeEventListener('pointerlockchange', _pointerlockchange);
-            document.removeEventListener('pointerlockerror', _pointerlockerror);
-          };
-          const renderer = getRenderer();
-          renderer.domElement.requestPointerLock(options);
-        } else {
-          accept();
-        }
-      });
-      break;
-    } catch (err) {
-      console.warn(err);
-      continue;
-    }
-  }
-};
-const focusCamera = position => {
-  camera.lookAt(position);
-  camera.updateMatrixWorld();
-};
-
 function lerpNum(value1, value2, amount) {
   amount = amount < 0 ? 0 : amount;
   amount = amount > 1 ? 1 : amount;
@@ -115,12 +60,67 @@ function initOffsetRayParams(arrayIndex,originPoint) {
 
 }
 
-const cameraManager = {
+class CameraManager extends EventTarget {
+  constructor() {
+    super();
+  }
   wasActivated() {
     return wasActivated;
-  },
-  focusCamera,
-  requestPointerLock,
+  }
+  focusCamera(position) {
+    camera.lookAt(position);
+    camera.updateMatrixWorld();
+  }
+  async requestPointerLock() {
+    for (const options of [
+      {
+        unadjustedMovement: true,
+      },
+      undefined
+    ]) {
+      try {
+        await new Promise((accept, reject) => {
+          if (!document.pointerLockElement) {
+            const _pointerlockchange = e => {
+              accept();
+              _cleanup();
+            };
+            document.addEventListener('pointerlockchange', _pointerlockchange);
+            const _pointerlockerror = err => {
+              reject(err);
+              _cleanup();
+              
+              notifications.addNotification(`\
+                <i class="icon fa fa-mouse-pointer"></i>
+                <div class=wrap>
+                  <div class=label>Whoa there!</div>
+                  <div class=text>
+                    Hold up champ! The browser wants you to slow down.
+                  </div>
+                  <div class=close-button>✕</div>
+                </div>
+              `, {
+                timeout: 3000,
+              });
+            };
+            document.addEventListener('pointerlockerror', _pointerlockerror);
+            const _cleanup = () => {
+              document.removeEventListener('pointerlockchange', _pointerlockchange);
+              document.removeEventListener('pointerlockerror', _pointerlockerror);
+            };
+            const renderer = getRenderer();
+            renderer.domElement.requestPointerLock(options);
+          } else {
+            accept();
+          }
+        });
+        break;
+      } catch (err) {
+        console.warn(err);
+        continue;
+      }
+    }
+  }
   getMode() {
     const f = -cameraOffset.z;
     if (f < 0.5) {
@@ -128,15 +128,15 @@ const cameraManager = {
     } else {
       return 'isometric';
     }
-  },
+  }
   getCameraOffset() {
     return cameraOffset;
-  },
+  }
   handleWheelEvent(e) {
     e.preventDefault();
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-  },
+  }
   update(timeDiff) {
     const localPlayer = metaversefile.useLocalPlayer();
 
@@ -230,6 +230,7 @@ const cameraManager = {
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
     }
-  },
+  }
 };
+const cameraManager = new CameraManager();
 export default cameraManager;
