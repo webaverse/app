@@ -1,0 +1,311 @@
+<html>
+
+<head>
+  <title></title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    html, body, canvas {
+      margin: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="btns" style="position: absolute;left: 0;top:0;width:100%;height:100%;display: flex;flex-direction: column; justify-content: center; align-items: flex-end;pointer-events: none;z-index:1;">
+    <button id="oneStep" style="margin: 5px;pointer-events: all;">1 step</button>
+    <button id="tenStep" style="margin: 5px;pointer-events: all;">10 step</button>
+    <button id="untilFound" style="margin: 5px;pointer-events: all;">until found</button>
+  </div>
+
+  <!-- <script> window.THREE = true </script> -->
+  <!-- <script src="/lib/vs_util/vs_util.js"></script> -->
+  <script type="module">
+
+    // import * as THREE from '/lib/three.js_github/build/three.module.js';
+    import * as THREE from '//cdn.skypack.dev/three@0.137?min'
+    window.THREE = THREE
+
+    // import Stats from '/lib/three.js_github/examples/jsm/libs/stats.module.js';
+
+    // import { OrbitControls } from '/lib/three.js_github/examples/jsm/controls/OrbitControls.js';
+    // import { GLTFLoader } from '/lib/three.js_github/examples/jsm/loaders/GLTFLoader.js';
+    // import { RGBELoader } from '/lib/three.js_github/examples/jsm/loaders/RGBELoader.js';
+    // import { PMREMGenerator } from '/lib/three.js_github/examples/jsm/pmrem/PMREMGenerator.js';
+    // import { PMREMCubeUVPacker } from '/lib/three.js_github/examples/jsm/pmrem/PMREMCubeUVPacker.js';
+
+
+
+    /* cdn.skypack */
+    // import * as THREE from "//cdn.skypack.dev/three@0.129?min";
+    // import { OrbitControls } from "//cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls?min";
+    // import { Line2 } from "//cdn.skypack.dev/three@0.129.0/examples/jsm/lines/Line2?min";
+    // import { LineGeometry } from "//cdn.skypack.dev/three@0.129.0/examples/jsm/lines/LineGeometry?min";
+    // import { LineMaterial } from "//cdn.skypack.dev/three@0.129.0/examples/jsm/lines/LineMaterial?min";
+
+
+
+    const width = 15;
+    const height = 15;
+
+    let camera
+    // let camera_type = 'perspective'
+    let camera_type = 'ortho'
+
+    if (camera_type === 'perspective') {
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    } else {
+      let screen_ratio = window.innerWidth / window.innerHeight;
+      let screen_height = 20;
+      let screen_width = screen_height * screen_ratio
+      camera = new THREE.OrthographicCamera(-screen_width, screen_width, screen_height, -screen_height, 0, 1000);
+    }
+    window.camera = camera
+
+    let scene = new THREE.Scene();
+    window.scene = scene
+    let renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const light = new THREE.AmbientLight(0x404040); // soft white light
+    scene.add(light);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    scene.add(directionalLight);
+    directionalLight.target.position.set(-1, -1.5, -2)
+    scene.add(directionalLight.target);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.1);
+    scene.add(directionalLight2);
+    directionalLight2.target.position.set(1, 1.5, 2)
+    scene.add(directionalLight2.target);
+
+    camera.position.z = 5;
+
+    // let controls = new OrbitControls(camera, renderer.domElement)
+
+    window.addEventListener('resize', onWindowResize, false);
+    oneStep.addEventListener('click', e => {
+      step()
+    })
+    tenStep.addEventListener('click', e => {
+      for (let i = 0; i < 10; i++) step()
+    })
+    untilFound.addEventListener('click', e => {
+      while (!window.isFound) step()
+    })
+
+    // helper
+    var helper = new THREE.Group();
+    scene.add(helper)
+    helper.gridHelper = new THREE.GridHelper(width, height);
+    helper.add(helper.gridHelper);
+    helper.gridHelper.rotation.x = Math.PI / 2;
+    helper.position.z = 2
+
+    // helper.geometry_x = new THREE.BoxGeometry(10, 0.1, 0.1);
+    // helper.material_x = new THREE.MeshBasicMaterial({ color: 'red' });
+    // helper.mesh_x = new THREE.Mesh(helper.geometry_x, helper.material_x);
+    // helper.mesh_x.position.x = 5;
+    // helper.add(helper.mesh_x);
+
+    // helper.geometry_y = new THREE.BoxGeometry(.1, 10, 0.1);
+    // helper.material_y = new THREE.MeshBasicMaterial({ color: 'green' });
+    // helper.mesh_y = new THREE.Mesh(helper.geometry_y, helper.material_y);
+    // helper.mesh_y.position.y = 5;
+    // helper.add(helper.mesh_y);
+
+    // helper.geometry_z = new THREE.BoxGeometry(.1, .1, 10);
+    // helper.material_z = new THREE.MeshBasicMaterial({ color: 'blue' });
+    // helper.mesh_z = new THREE.Mesh(helper.geometry_z, helper.material_z);
+    // helper.mesh_z.position.z = 5;
+    // helper.add(helper.mesh_z);
+
+    function onWindowResize() {
+
+      let windowHalfX = window.innerWidth / 2;
+      let windowHalfY = window.innerHeight / 2;
+
+      if (camera_type === 'perspective') {
+        camera.aspect = window.innerWidth / window.innerHeight;
+      } else {
+        let screen_ratio = window.innerWidth / window.innerHeight;
+        let screen_height = 20;
+        let screen_width = screen_height * screen_ratio
+        camera.left = -screen_width
+        camera.right = screen_width
+        camera.top = screen_height
+        camera.bottom = -screen_height
+      }
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      renderer.render(scene, camera);
+
+    }
+
+    // let animate = function () {
+    //   requestAnimationFrame(animate);
+
+    //   renderer.render(scene, camera);
+    // };
+
+    // animate();
+
+    let geometry = new THREE.BoxGeometry(1, 1, 1);
+    let materialIdle = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(221,213,213)') });
+    let materialAct = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(204,191,179)') });
+    let materialFrontier = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(92,133,214)') });
+    let materialStart = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(191,64,64)') });
+    let materialDest = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(191,64,170)') });
+    let materialPath = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(149,64,191)') });
+    let materialObstacle = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(134,134,121)') });
+    let blocks = new THREE.Group();
+    window.blocks = blocks
+    scene.add(blocks)
+    for (let y = -(height - 1) / 2; y < height / 2; y++) {
+      for (let x = -(width - 1) / 2; x < width / 2; x++) {
+        let mesh = new THREE.Mesh(geometry, materialIdle);
+        blocks.add(mesh);
+        mesh.position.x = x
+        mesh.position.y = y
+        mesh._x = x
+        mesh._y = y
+        mesh._isAct = false
+      }
+    }
+
+    let vs = {}
+    vs.xy_to_serial = function (width, xy) { // :index
+      return xy.y * width + xy.x
+    }
+
+    window.getBlock = getBlock
+    function getBlock(x, y) {
+      // if (x === -10) debugger
+      x += (width - 1) / 2
+      y += (height - 1) / 2
+      if (x < 0 || y < 0 || x >= width || y >= height) return null
+      return blocks.children[vs.xy_to_serial(width, { x, y })]
+    }
+
+    window.frontiers = []
+
+    // dest
+    const dest = new THREE.Vector2(4, 6)
+    let destBlock = getBlock(dest.x, dest.y)
+    // let destBlock = getBlock(0, 0)
+    destBlock._isDest = true
+    destBlock.material = materialDest
+
+    // start
+    const start = new THREE.Vector2(-7, -5)
+    let startBlock = getBlock(start.x, start.y)
+    startBlock._isStart = true
+    startBlock._isAct = true
+    startBlock._priority = start.manhattanDistanceTo(dest)
+    startBlock._costSoFar = 0
+    frontiers.push(startBlock)
+    startBlock.material = materialStart
+
+    // add obstacles
+    for (let x = -2; x <= 5; x++) {
+      let obstacleBlock = getBlock(x, 5)
+      obstacleBlock._isObstacle = true
+      obstacleBlock.material = materialObstacle
+    }
+    for (let x = -5; x <= 5; x++) {
+      let obstacleBlock = getBlock(x, -5)
+      obstacleBlock._isObstacle = true
+      obstacleBlock.material = materialObstacle
+    }
+    for (let y = -5; y <= 5; y++) {
+      let obstacleBlock = getBlock(5, y)
+      obstacleBlock._isObstacle = true
+      obstacleBlock.material = materialObstacle
+    }
+
+    const tmpVec2 = new THREE.Vector2()
+
+    function stepBlock(block, prevBlock) {
+      if (!block) return
+      if (block._isObstacle) return
+      // if (block._x === 9) debugger
+      const newCost = prevBlock._costSoFar + 1
+      // if (block._isAct === false || newCost < block._costSoFar) {
+      if (block._isAct === false) { // Seems no need `|| newCost < block._costSoFar` ? Need? http://disq.us/p/2mgpazs
+        block._isAct = true
+        block._costSoFar = newCost
+
+        // todo: use Vector2 instead of _x _y.
+        // block._priority = tmpVec2.set(block._x, block._y).manhattanDistanceTo(dest)
+        // block._priority = tmpVec2.set(block._x, block._y).distanceToSquared(dest)
+        block._priority = tmpVec2.set(block._x, block._y).distanceTo(dest)
+        block._priority += newCost
+        frontiers.push(block)
+        // frontiers.unshift(block)
+        frontiers.sort((a, b) => a._priority - b._priority)
+
+        if (!block._isStart && !block._isDest) block.material = materialFrontier
+        block._prev = prevBlock
+      }
+      if (block._isDest) {
+        console.log('found')
+        window.isFound = true
+
+        function recur(block) {
+          if (block) {
+            if (!block._isStart && !block._isDest) block.material = materialPath
+            recur(block._prev)
+          }
+        }
+        recur(block)
+
+        renderer.render(scene, camera)
+
+      }
+    }
+
+    function step() {
+      console.log('step')
+      if (frontiers.length <= 0) {
+        console.log('finish')
+        return
+      }
+      if (window.isFound) return
+
+      let current = frontiers.shift();
+      if (!current._isStart) current.material = materialAct
+
+      let leftBlock = getBlock(current._x - 1, current._y)
+      stepBlock(leftBlock, current);
+      if (window.isFound) return
+
+      let rightBlock = getBlock(current._x + 1, current._y)
+      stepBlock(rightBlock, current);
+      if (window.isFound) return
+
+      let btmBlock = getBlock(current._x, current._y - 1)
+      stepBlock(btmBlock, current);
+      if (window.isFound) return
+
+      let topBlock = getBlock(current._x, current._y + 1)
+      stepBlock(topBlock, current);
+      if (window.isFound) return
+
+      renderer.render(scene, camera);
+    }
+
+    renderer.render(scene, camera);
+  </script>
+</body>
+
+</html>
