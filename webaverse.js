@@ -324,11 +324,13 @@ export default class Webaverse extends EventTarget {
         window.meshPhysxs.forEach((meshPhysx, i) => {
           // if (i === 0) debugger;
           if (meshPhysx._isCollide) {
+            // if (meshPhysx._haveNotCollided || meshPhysx._isCollide) { // for _haveNotCollided
             // console.log(i);
             // physicsManager.collide(radius, halfHeight, p, q, maxIter)
             meshPhysx.position.y += 0.1;
             meshPhysx.updateMatrixWorld();
             meshPhysx._isCollide = physicsManager.collide(0.5, 1, meshPhysx.position, localQuaternion.set(0, 0, 0, 1), 1);
+            // if (meshPhysx._isCollide) meshPhysx._haveNotCollided = false; // for _haveNotCollided
           }
         });
       }
@@ -454,8 +456,10 @@ const _startHacks = () => {
         window.meshPhysxs.push(meshPhysx);
         window.rootScene.add(meshPhysx);
         meshPhysx.position.set(x, -0.1, z);
+        // meshPhysx.position.set(x, 1.5, z); // for _haveNotCollided
         meshPhysx.updateMatrixWorld();
         meshPhysx._isCollide = true;
+        // meshPhysx._haveNotCollided = true; // for _haveNotCollided
       }
     }
   }
