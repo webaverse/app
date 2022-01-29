@@ -24,10 +24,6 @@ const lastCameraQuaternion = new THREE.Quaternion();
 let lastCameraZ = 0;
 let lastCameraValidZ = 0;
 
-
-/* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
-
 const requestPointerLock = async () => {
   for (const options of [
     {
