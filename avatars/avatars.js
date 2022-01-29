@@ -1563,7 +1563,7 @@ class Avatar {
     
     const skinnedMeshes = getSkinnedMeshes(object);
     const skeleton = getSkeleton(object);
-    const boneMap = makeBoneMap(object);
+    // const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
     
