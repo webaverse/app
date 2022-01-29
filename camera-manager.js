@@ -3,8 +3,6 @@ import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
-import { Vector3 } from 'three';
-import { Quaternion } from 'three';
 
 const localVector = new THREE.Vector3();
 
