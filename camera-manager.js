@@ -135,11 +135,6 @@ const cameraManager = {
   handleWheelEvent(e) {
     e.preventDefault();
 
-    /* camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    
-    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    camera.updateMatrixWorld(); */
-    
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   },
   update(timeDiff) {
