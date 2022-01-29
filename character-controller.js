@@ -81,7 +81,6 @@ function loadPhysxCharacterController() {
   const dynamic = !!(this.isRemotePlayer || this.isNpcPlayer);
   if (dynamic) {
     const halfHeight = height/2;
-    // console.log('npc controller', {avatarHeight, contactOffset, radius, height, halfHeight});
     const physicsObject = physicsManager.addCapsuleGeometry(
       this.position,
       localQuaternion.copy(this.quaternion)
@@ -95,8 +94,9 @@ function loadPhysxCharacterController() {
       halfHeight,
       physicsMaterial
     );
-    physicsManager.disablePhysicsObject(physicsObject);
     physicsManager.setGravityEnabled(physicsObject, false);
+    physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
+    physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
     this.physicsObject = physicsObject;
     // console.log('character controller physics id', physicsObject.physicsId);
   }
