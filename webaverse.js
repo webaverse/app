@@ -318,10 +318,12 @@ export default class Webaverse extends EventTarget {
       // window.totalTime = 0
       // window.count = 0
 
-      if (window.body3) {
-        physicsManager.getGlobalPosition(window.body3, window.meshPhysx.position);
-        physicsManager.getGlobalQuaternion(window.body3, window.meshPhysx.quaternion);
-        window.meshPhysx.updateMatrixWorld();
+      if (window.bodyPhysxs) {
+        window.bodyPhysxs.forEach((body, i) => {
+          physicsManager.getGlobalPosition(body, window.meshPhysxs[i].position);
+          physicsManager.getGlobalQuaternion(body, window.meshPhysxs[i].quaternion);
+          window.meshPhysxs[i].updateMatrixWorld();
+        });
       }
 
       timestamp = timestamp ?? performance.now();
@@ -417,11 +419,19 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
-  {
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshStandardMaterial({color: 'red'});
-    window.meshPhysx = new THREE.Mesh(geometry, material);
-    window.rootScene.add(window.meshPhysx);
+  window.meshPhysxs = [];
+  window.bodyPhysxs = [];
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshStandardMaterial({color: 'red'});
+  for (let z = -10; z <= 10; z++) {
+    for (let x = -10; x <= 10; x++) {
+      const bodyPhysx = physicsManager.addBoxGeometry(new THREE.Vector3(x, 10, z), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), true);
+      window.bodyPhysxs.push(bodyPhysx);
+
+      const meshPhysx = new THREE.Mesh(geometry, material);
+      window.meshPhysxs.push(meshPhysx);
+      window.rootScene.add(meshPhysx);
+    }
   }
   setTimeout(() => {
     if (false && !window.isInitTestPhysxMesh) {
