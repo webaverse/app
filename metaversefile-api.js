@@ -847,9 +847,24 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+    const npcs = metaversefile.useNpcs();
+    let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
+    if (result) {
+      return result;
+    } else {
+      let remotePhysicsObject = null;
+      remotePlayers.some(remotePlayer => {
+        const physicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments);
+        if (physicsObject) {
+          remotePhysicsObject = physicsObject;
+          return true;
+        } else {
+          return false;
+        }
+      })
+      return remotePhysicsObject;
+    }
   },
   getAvatarHeight(obj) {
     return getHeight(obj);
