@@ -22,6 +22,7 @@
     <button id="oneStep" style="margin: 5px;pointer-events: all;">1 step</button>
     <button id="tenStep" style="margin: 5px;pointer-events: all;">10 step</button>
     <button id="untilFound" style="margin: 5px;pointer-events: all;">until found</button>
+    <button id="tut" style="margin: 5px;pointer-events: all;">open tut</button>
   </div>
 
   <!-- <script> window.THREE = true </script> -->
@@ -100,6 +101,9 @@
     })
     untilFound.addEventListener('click', e => {
       while (!window.isFound) step()
+    })
+    tut.addEventListener('click', e => {
+      window.open('https://www.redblobgames.com/pathfinding/a-star/introduction.html')
     })
 
     // helper
