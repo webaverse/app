@@ -1266,7 +1266,7 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled = false) => {
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, flags = {}) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1276,6 +1276,10 @@ const physxWorker = (() => {
     quaternion.toArray(q);
     physicsMaterial.toArray(mat);
     
+    const flagsInt = (
+      (+(flags.physics !== false) << 0) |
+      (+flags.ccd << 1)
+    );
     moduleInstance._addCapsuleGeometryPhysics(
       physics,
       p.byteOffset,
@@ -1284,7 +1288,7 @@ const physxWorker = (() => {
       halfHeight,
       mat.byteOffset,
       id,
-      +ccdEnabled,
+      flagsInt,
     );
     allocator.freeAll();
   };

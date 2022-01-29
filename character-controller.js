@@ -92,7 +92,10 @@ function loadPhysxCharacterController() {
         ),
       radius,
       halfHeight,
-      physicsMaterial
+      physicsMaterial,
+      {
+        physics: false,
+      }
     );
     physicsManager.setGravityEnabled(physicsObject, false);
     physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
