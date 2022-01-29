@@ -80,6 +80,8 @@ function loadPhysxCharacterController() {
   if (dynamic) {
     const halfHeight = height/2;
     const physicsObject = physicsManager.addCapsuleGeometry(this.position, this.quaternion, radius, halfHeight, physicsMaterial);
+    physicsManager.disablePhysicsObject(physicsObject);
+    physicsManager.setGravityEnabled(physicsObject, false);
     this.physicsObject = physicsObject;
     // console.log('character controller physics id', physicsObject.physicsId);
   }
