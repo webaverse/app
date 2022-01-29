@@ -1365,9 +1365,7 @@ const _bindLocalPlayerTeleport = () => {
 };
 _bindLocalPlayerTeleport(); */
 
-cameraManager.addEventListener('modechange', e => {
-  const {mode} = e.data;
-  const firstPerson = mode === 'firstperson';
+const _setFirstPersonAction = firstPerson => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (firstPerson) {
     if (!localPlayer.hasAction('firstperson')) {
@@ -1379,6 +1377,14 @@ cameraManager.addEventListener('modechange', e => {
   } else {
     localPlayer.removeAction('firstperson');
   }
+};
+if (cameraManager.getMode() === 'firstperson') {
+  _setFirstPersonAction(true);
+}
+cameraManager.addEventListener('modechange', e => {
+  const {mode} = e.data;
+  const firstPerson = mode === 'firstperson';
+  _setFirstPersonAction(firstPerson);
 });
 
 let lastMouseEvent = null;
