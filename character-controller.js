@@ -57,6 +57,7 @@ function loadPhysxCharacterController() {
   const contactOffset = 0.1/heightFactor * avatarHeight;
   const stepOffset = 0.5/heightFactor * avatarHeight;
   const radius = 0.3/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
   const physicsMaterial = new THREE.Vector3(0, 0, 0);
@@ -67,13 +68,21 @@ function loadPhysxCharacterController() {
   }
   this.characterController = physicsManager.createCharacterController(
     radius - contactOffset,
-    avatarHeight - radius*2,
+    height,
     contactOffset,
     stepOffset,
     position,
     physicsMaterial
   );
   this.characterControllerObject = new THREE.Object3D();
+
+  const dynamic = !!(this.isRemotePlayer || this.isNpcPlayer);
+  if (dynamic) {
+    const halfHeight = height/2;
+    const physicsObject = physicsManager.addCapsuleGeometry(this.position, this.quaternion, radius, halfHeight, physicsMaterial);
+    this.physicsObject = physicsObject;
+    // console.log('character controller physics id', physicsObject.physicsId);
+  }
 }
 
 class PlayerHand extends THREE.Object3D {
@@ -1050,6 +1059,9 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.characterPhysics = new CharacterPhysics(this);
     loadPhysxCharacterController.call(this);
+
+    const npcs = metaversefile.useNpcs();
+    npcs.push(this);
   }
   updatePhysics(now, timeDiff) {
     const timeDiffS = timeDiff / 1000;
@@ -1099,6 +1111,13 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     
     this.syncAvatar();
   } */
+  destroy() {
+    const npcs = metaversefile.getNpcs();
+    const index = npcs.indexOf(this);
+    if (index !== -1) {
+      npcs.splice(index, 1);
+    }
+  }
 }
 
 function getPlayerCrouchFactor(player) {
