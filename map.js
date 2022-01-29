@@ -17,8 +17,6 @@ camera.up.set(0, 0, -1);
 
 (async () => {
   const weba = new Webaverse();
-  console.log(666)
-  debugger
   await weba.waitForLoad();
   weba.bindCanvas(document.createElement('canvas'));
   

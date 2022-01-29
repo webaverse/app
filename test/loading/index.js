@@ -203,7 +203,7 @@ class LoadTester {
       self.resolve = resolve;
       const currTimeout = setTimeout(()=>{
         reject();
-      }, 120 * 1000); 
+      }, 120 * 1000);
       self.currTimeout = currTimeout;
     })
   }

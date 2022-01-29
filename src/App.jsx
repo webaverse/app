@@ -39,10 +39,6 @@ const Crosshair = () => (
 function RootNode() {
   const canvasRef = useRef();
   const [app, setApp] = useState(() => new Webaverse());
-  // console.log(Math.random())
-  // if (!window.meshes) window.meshes = []
-  // window.meshes.push(new THREE.Mesh())
-  // debugger
   
   useEffect(() => {
     if (canvasRef.current) {
