@@ -46,9 +46,9 @@ window.isStart = false;
 const width = 15;
 const height = 15;
 // const start = new THREE.Vector2(-7, -5)
-const start = new THREE.Vector2(0, -5)
+const start = new THREE.Vector2(-3, -4)
 // const dest = new THREE.Vector2(4, 6)
-const dest = new THREE.Vector2(0, 6)
+const dest = new THREE.Vector2(5, 6)
 window.frontiers = []
 window.blocks = new THREE.Group();
 window.rootScene.add(window.blocks);
