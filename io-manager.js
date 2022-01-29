@@ -875,9 +875,11 @@ ioManager.bindInput = () => {
   }); */
   window.addEventListener('wheel', e => {
     // console.log('target', e.target);
-    const renderer = getRenderer();
-    if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
-      cameraManager.handleWheelEvent(e);
+    if (physicsManager.getPhysicsEnabled()) {
+      const renderer = getRenderer();
+      if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
+        cameraManager.handleWheelEvent(e);
+      }
     }
   }, {
     passive: false,
