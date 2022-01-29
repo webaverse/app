@@ -2324,6 +2324,9 @@ class Avatar {
 
       };
       const _getApplyFn = () => {
+        let crouch = this.crouchTime === 0;
+        console.log(Math.abs(this.crouchTime));
+        console.log('crouch is ', crouch);
         if (this.jumpState) {
           return spec => {
             const {
@@ -2374,7 +2377,6 @@ class Avatar {
             _clearXZ(dst, isPosition);
           };
         }
-
         if (this.danceState) {
           return spec => {
             const {
@@ -2481,9 +2483,16 @@ class Avatar {
                 
                 let src2 = useAnimation.interpolants[k];
                 
-                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move  && k.includes("Hips"))
+                {
                   src2 = idleAnimation.interpolants[k];
                 }
+
+                if(crouch && k.includes("Leg") || crouch && k.includes("Foot") || crouch && k.includes("Toe") || crouch  && k.includes("Hips"))
+                {
+                  src2 = idleAnimation.interpolants[k];
+                }
+
 
                 const v2 = src2.evaluate(t2);
 
@@ -2499,8 +2508,12 @@ class Avatar {
             } else {
               let src2 = useAnimation.interpolants[k];
               const idleAnimation = _getIdleAnimation('walk');
-              if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+              if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move  && k.includes("Hips"))
+              {
                 src2 = idleAnimation.interpolants[k];
+              }
+              if(crouch && k.includes("Leg") || crouch && k.includes("Foot") || crouch && k.includes("Toe") || crouch  && k.includes("Hips")) {
+                  src2 = idleAnimation.interpolants[k];
               }
 
               const v2 = src2.evaluate(t2);
@@ -2534,7 +2547,13 @@ class Avatar {
                 let src2 = aimAnimation.interpolants[k];
                 const idleAnimation = _getIdleAnimation('walk');
          
-                if(this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move && k.includes("Toe") || this.move && k.includes("Hips")) {
+                if((this.move && k.includes("Leg") || this.move && k.includes("Foot") || this.move&& k.includes("Toe") || this.move && k.includes("Hips"))) {
+                  // src2 = idleAnimation.interpolants[k];#
+                  src2 = idleAnimation.interpolants[k];
+                }
+
+                if((crouch && k.includes("Leg") || crouch && k.includes("Foot") || crouch && k.includes("Toe") || crouch && k.includes("Hips"))) {
+                  // src2 = idleAnimation.interpolants[k];#
                   src2 = idleAnimation.interpolants[k];
                 }
                 const v2 = src2.evaluate(t2);
@@ -2563,6 +2582,7 @@ class Avatar {
             }
           };
         }
+
         return _handleDefault;
       };
       const applyFn = _getApplyFn();
