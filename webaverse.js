@@ -40,6 +40,8 @@ import metaversefileApi from 'metaversefile';
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
+window.isStart = false;
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -318,7 +320,20 @@ export default class Webaverse extends EventTarget {
       // window.totalTime = 0
       // window.count = 0
 
-      if (window.bodyPhysxs) {
+      if (window.isStart && window.meshPhysxs) {
+        window.meshPhysxs.forEach((meshPhysx, i) => {
+          // if (i === 0) debugger;
+          if (!meshPhysx._isCollide) {
+            // console.log(i);
+            // physicsManager.collide(radius, halfHeight, p, q, maxIter)
+            meshPhysx.position.y -= 0.1;
+            meshPhysx.updateMatrixWorld();
+            meshPhysx._isCollide = physicsManager.collide(0.5, 0.1, meshPhysx.position, localQuaternion.set(0, 0, 0, 1), 1);
+          }
+        });
+      }
+
+      if (false && window.bodyPhysxs) {
         window.bodyPhysxs.forEach((body, i) => {
           physicsManager.getGlobalPosition(body, window.meshPhysxs[i].position);
           physicsManager.getGlobalQuaternion(body, window.meshPhysxs[i].quaternion);
@@ -372,7 +387,7 @@ export default class Webaverse extends EventTarget {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      if (window.isStart && window.body) {
+      if (false && window.isStart && window.body) { // physicsCube follow role
         localVector.subVectors(window.localPlayer.position, window.body.position);
         localVector.y = 0;
         // localVector.normalize();
@@ -419,18 +434,34 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
-  window.meshPhysxs = [];
-  window.bodyPhysxs = [];
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshStandardMaterial({color: 'red'});
-  for (let z = -10; z <= 10; z++) {
-    for (let x = -10; x <= 10; x++) {
-      const bodyPhysx = physicsManager.addBoxGeometry(new THREE.Vector3(x, 10, z), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), true);
-      window.bodyPhysxs.push(bodyPhysx);
+  if (1) {
+    window.meshPhysxs = [];
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial({color: 'red'});
+    for (let z = -2; z <= 2; z++) {
+      for (let x = -2; x <= 2; x++) {
+        const meshPhysx = new THREE.Mesh(geometry, material);
+        window.meshPhysxs.push(meshPhysx);
+        window.rootScene.add(meshPhysx);
+        meshPhysx.position.set(x, 5, z);
+        meshPhysx.updateMatrixWorld();
+      }
+    }
+  }
+  if (0) {
+    window.meshPhysxs = [];
+    window.bodyPhysxs = [];
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial({color: 'red'});
+    for (let z = -10; z <= 10; z++) {
+      for (let x = -10; x <= 10; x++) {
+        const bodyPhysx = physicsManager.addBoxGeometry(new THREE.Vector3(x, 10, z), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), true);
+        window.bodyPhysxs.push(bodyPhysx);
 
-      const meshPhysx = new THREE.Mesh(geometry, material);
-      window.meshPhysxs.push(meshPhysx);
-      window.rootScene.add(meshPhysx);
+        const meshPhysx = new THREE.Mesh(geometry, material);
+        window.meshPhysxs.push(meshPhysx);
+        window.rootScene.add(meshPhysx);
+      }
     }
   }
   setTimeout(() => {
