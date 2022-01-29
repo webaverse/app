@@ -1124,7 +1124,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.syncAvatar();
   } */
   destroy() {
-    const npcs = metaversefile.getNpcs();
+    const npcs = metaversefile.useNpcs();
     const index = npcs.indexOf(this);
     if (index !== -1) {
       npcs.splice(index, 1);
