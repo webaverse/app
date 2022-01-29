@@ -104,24 +104,13 @@ const cameraManager = {
   },
   handleWheelEvent(e) {
     e.preventDefault();
-  
-    // if (controlsManager.isPossessed()) {
-      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      
-      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld();
-      
-      cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
 
-
-      // physicsManager.unlockControls();
-    /* } else {
-      camera.position.add(
-        localVector.set(0, 0, e.deltaY * 0.01)
-          .applyQuaternion(camera.quaternion)
-      );
-      camera.updateMatrixWorld();
-    } */
+    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    
+    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+    
+    cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   },
   update(timeDiff) {
 
