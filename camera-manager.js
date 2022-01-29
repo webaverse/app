@@ -79,6 +79,42 @@ const focusCamera = position => {
   camera.updateMatrixWorld();
 };
 
+function lerpNum(value1, value2, amount) {
+  amount = amount < 0 ? 0 : amount;
+  amount = amount > 1 ? 1 : amount;
+  return value1 + (value2 - value1) * amount;
+}
+// Raycast from player to camera corner
+function initCameraRayParams(arrayIndex,originPoint) {
+  const localPlayer = metaversefile.useLocalPlayer();
+
+  rayDirection.subVectors(localPlayer.position, originPoint).normalize();
+
+  rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+  rayQuaternion.setFromRotationMatrix(rayMatrix);
+
+  // Slightly move ray start position towards camera (to avoid hair,hat)
+  rayStartPos.copy(localPlayer.position);
+  rayStartPos.add( rayDirection.multiplyScalar(0.1) );
+
+  rayOriginArray[arrayIndex].copy(rayStartPos);
+  rayDirectionArray[arrayIndex].copy(rayQuaternion);
+
+}
+// Raycast from player postition with small offset
+function initOffsetRayParams(arrayIndex,originPoint) {
+  const localPlayer = metaversefile.useLocalPlayer();
+
+  rayDirection.subVectors(localPlayer.position, camera.position).normalize();
+
+  rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
+  rayQuaternion.setFromRotationMatrix(rayMatrix);
+
+  rayOriginArray[arrayIndex].copy(originPoint);
+  rayDirectionArray[arrayIndex].copy(rayQuaternion);
+
+}
+
 const cameraManager = {
   wasActivated() {
     return wasActivated;
@@ -99,59 +135,18 @@ const cameraManager = {
   handleWheelEvent(e) {
     e.preventDefault();
 
-    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    /* camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-    camera.updateMatrixWorld();
+    camera.updateMatrixWorld(); */
     
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   },
   update(timeDiff) {
-
-    function lerpNum(value1, value2, amount) {
-      amount = amount < 0 ? 0 : amount;
-      amount = amount > 1 ? 1 : amount;
-      return value1 + (value2 - value1) * amount;
-    }
-
-    // Raycast from player to camera corner
-    function initCameraRayParams(arrayIndex,originPoint) {
-
-      rayDirection.subVectors(localPlayer.position, originPoint ).normalize();
-
-      rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
-      rayQuaternion.setFromRotationMatrix(rayMatrix);
-
-      // Slightly move ray start position towards camera (to avoid hair,hat)
-      rayStartPos.copy(localPlayer.position);
-      rayStartPos.add( rayDirection.multiplyScalar(0.1) );
-
-      rayOriginArray[arrayIndex].copy(rayStartPos);
-      rayDirectionArray[arrayIndex].copy(rayQuaternion);
-
-    }
-
-    // Raycast from player postition with small offset
-    function initOffsetRayParams(arrayIndex,originPoint) {
-
-      rayDirection.subVectors(localPlayer.position,camera.position ).normalize();
-
-      rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
-      rayQuaternion.setFromRotationMatrix(rayMatrix);
-
-      rayOriginArray[arrayIndex].copy(originPoint);
-      rayDirectionArray[arrayIndex].copy(rayQuaternion);
-
-    }
-
-
     const localPlayer = metaversefile.useLocalPlayer();
-
-    
 
     let newVal = cameraOffsetTargetZ;
     let hasIntersection = false;
-
 
     // Camera - Top left 
     initCameraRayParams(0,rayStartPos.set(-1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
@@ -240,7 +235,6 @@ const cameraManager = {
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
     }
-
   },
 };
 export default cameraManager;
