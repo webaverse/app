@@ -41,6 +41,34 @@ import metaversefileApi from 'metaversefile';
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 window.isStart = false;
+// const width = 71;
+// const height = 71;
+const width = 15;
+const height = 15;
+window.frontiers = []
+window.blocks = new THREE.Group();
+window.rootScene.add(window.blocks);
+
+const materialIdle = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(221,213,213)') });
+const materialAct = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(204,191,179)') });
+const materialFrontier = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(92,133,214)') });
+const materialStart = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(191,64,64)') });
+const materialDest = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(191,64,170)') });
+const materialPath = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(149,64,191)') });
+const materialObstacle = new THREE.MeshStandardMaterial({ color: new THREE.Color('rgb(134,134,121)') });
+
+const vs = {}
+vs.xy_to_serial = function (width, xy) { // :index
+  return xy.y * width + xy.x
+}
+
+function getBlock(x, y) {
+  // if (x === -10) debugger
+  x += (width - 1) / 2
+  y += (height - 1) / 2
+  if (x < 0 || y < 0 || x >= width || y >= height) return null
+  return window.blocks.children[vs.xy_to_serial(width, { x, y })]
+}
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -320,17 +348,17 @@ export default class Webaverse extends EventTarget {
       // window.totalTime = 0
       // window.count = 0
 
-      if (window.isStart && window.meshPhysxs) { // mark: generate voxel map
-        window.meshPhysxs.forEach((meshPhysx, i) => {
+      if (window.isStart && window.blocks) { // mark: generate voxel map
+        window.blocks.children.forEach((block, i) => {
           // if (i === 0) debugger;
-          if (meshPhysx._isCollide) {
-            // if (meshPhysx._haveNotCollided || meshPhysx._isCollide) { // for _haveNotCollided
+          if (block._isCollide) {
+            // if (block._haveNotCollided || block._isCollide) { // for _haveNotCollided
             // console.log(i);
             // physicsManager.collide(radius, halfHeight, p, q, maxIter)
-            meshPhysx.position.y += 0.1;
-            meshPhysx.updateMatrixWorld();
-            meshPhysx._isCollide = physicsManager.collide(0.5, 1, meshPhysx.position, localQuaternion.set(0, 0, 0, 1), 1);
-            // if (meshPhysx._isCollide) meshPhysx._haveNotCollided = false; // for _haveNotCollided
+            block.position.y += 0.1;
+            block.updateMatrixWorld();
+            block._isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            // if (block._isCollide) block._haveNotCollided = false; // for _haveNotCollided
           }
         });
       }
@@ -450,19 +478,41 @@ const _startHacks = () => {
       // transparent: true,
       // opacity: 0.7,
     });
-    for (let z = -35; z <= 35; z++) {
-      for (let x = -35; x <= 35; x++) {
-        const meshPhysx = new THREE.Mesh(geometry, material);
-        window.meshPhysxs.push(meshPhysx);
-        window.rootScene.add(meshPhysx);
-        meshPhysx.position.set(x, -0.1, z);
-        // meshPhysx.position.set(x, 1.5, z); // for _haveNotCollided
-        meshPhysx.updateMatrixWorld();
-        meshPhysx._isCollide = true;
-        // meshPhysx._haveNotCollided = true; // for _haveNotCollided
+    for (let z = -(height - 1) / 2; z < height / 2; z++) {
+      for (let x = -(width - 1) / 2; x < width / 2; x++) {
+        const block = new THREE.Mesh(geometry, materialIdle);
+        window.blocks.add(block);
+        block.position.set(x, -0.1, z);
+        // block.position.set(x, 1.5, z); // for _haveNotCollided
+        block.updateMatrixWorld();
+        block._isCollide = true;
+        // block._haveNotCollided = true; // for _haveNotCollided
+        block.position.x = x
+        block.position.z = z
+        block._x = x
+        block._z = z
+        block._isAct = false
       }
     }
+
+    // dest
+    const dest = new THREE.Vector2(4, 6)
+    const destBlock = getBlock(dest.x, dest.y)
+    // const destBlock = getBlock(0, 0)
+    destBlock._isDest = true
+    destBlock.material = materialDest
+
+    // start
+    const start = new THREE.Vector2(-7, -5)
+    const startBlock = getBlock(start.x, start.y)
+    startBlock._isStart = true
+    startBlock._isAct = true
+    startBlock._priority = start.manhattanDistanceTo(dest)
+    startBlock._costSoFar = 0
+    window.frontiers.push(startBlock)
+    startBlock.material = materialStart
   }
+
   if (0) {
     window.meshPhysxs = [];
     window.bodyPhysxs = [];
