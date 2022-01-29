@@ -150,6 +150,7 @@ const localPlayer = new LocalPlayer({
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
+const npcs = [];
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -491,6 +492,9 @@ metaversefile.setApi({
   },
   useRemotePlayers() {
     return Array.from(remotePlayers.values());
+  },
+  useNpcs() {
+     return npcs;
   },
   useLoaders() {
     return loaders;
