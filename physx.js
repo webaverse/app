@@ -19,7 +19,6 @@ const scratchStackSize = 1024*1024;
 const maxNumUpdates = 256;
 
 const physx = {};
-window.physx = physx;
 
 physx.waitForLoad = Module.waitForLoad;
 
@@ -1078,26 +1077,6 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
-  w.getGlobalPositionPhysics = (physics, id, position) => {
-    const allocator = new Allocator();
-    const p = allocator.alloc(Float32Array, 3);
-
-    moduleInstance._getGlobalPositionPhysics(physics, id, p.byteOffset);
-
-    position.fromArray(p);
-
-    allocator.freeAll();
-  };
-  w.getGlobalQuaternionPhysics = (physics, id, quaternion) => {
-    const allocator = new Allocator();
-    const q = allocator.alloc(Float32Array, 4);
-
-    moduleInstance._getGlobalQuaternionPhysics(physics, id, q.byteOffset);
-
-    quaternion.fromArray(q);
-
-    allocator.freeAll();
-  };
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
@@ -1118,14 +1097,14 @@ const physxWorker = (() => {
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  w.setAngularVelocityPhysics = (physics, id, velocity, autoWake) => {
+  w.setAngularVelocityPhysics = (physicsObject, velocity, autoWake) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
     autoWake = autoWake ?? false;
 
-    moduleInstance._setAngularVelocityPhysics(physics, id, vel.byteOffset, autoWake);
+    physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
     allocator.freeAll();
   };
   w.setTransformPhysics = (physics, id, position, quaternion, scale, autoWake) => {

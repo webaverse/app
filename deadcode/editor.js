@@ -15,7 +15,7 @@ import cameraManager from './camera-manager.js';
 import {rigManager} from './rig.js';
 import controlsManager from './controls-manager.js';
 import {downloadFile, getExt, flipGeomeryUvs, updateRaycasterFromMouseEvent, getCameraUiPlane, getUiForwardIntersection} from './util.js';
-// import App from './app.js';
+import App from './app.js';
 import {camera, getRenderer} from './app-object.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import HtmlRenderer from 'https://html-render.webaverse.com/html-render-api.js';
