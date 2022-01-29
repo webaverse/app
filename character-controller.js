@@ -943,14 +943,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterPhysics.reset();
   }
   teleportTo = (() => {
-    // const localVector = new THREE.Vector3();
+    const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
-    const localVector3 = new THREE.Vector3();
-    // const localQuaternion = new THREE.Quaternion();
-    const localQuaternion2 = new THREE.Quaternion();
-    // const localQuaternion3 = new THREE.Quaternion();
-    // const localQuaternion4 = new THREE.Quaternion();
-    // const localEuler = new THREE.Euler();
+    const localQuaternion = new THREE.Quaternion();
     const localMatrix = new THREE.Matrix4();
     return function(position, quaternion, {relation = 'floor'} = {}) {
       const renderer = getRenderer();
@@ -960,18 +955,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (renderer.xr.getSession()) {
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
+          .decompose(localVector, localQuaternion, localVector2);
           
         dolly.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+          .premultiply(localMatrix.makeTranslation(position.x - localVector.x, position.y - localVector.y, position.z - localVector.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          // .premultiply(localMatrix.makeTranslation(localVector.x, localVector.y, localVector.z))
           .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
         dolly.updateMatrixWorld();
       } else {
         camera.position.copy(position)
-          .sub(localVector2.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+          .sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
         camera.position.y += relation === 'floor' ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
         camera.updateMatrixWorld();
