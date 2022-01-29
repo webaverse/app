@@ -320,15 +320,15 @@ export default class Webaverse extends EventTarget {
       // window.totalTime = 0
       // window.count = 0
 
-      if (window.isStart && window.meshPhysxs) {
+      if (window.isStart && window.meshPhysxs) { // mark: generate voxel map
         window.meshPhysxs.forEach((meshPhysx, i) => {
           // if (i === 0) debugger;
-          if (!meshPhysx._isCollide) {
+          if (meshPhysx._isCollide) {
             // console.log(i);
             // physicsManager.collide(radius, halfHeight, p, q, maxIter)
-            meshPhysx.position.y -= 0.1;
+            meshPhysx.position.y += 0.1;
             meshPhysx.updateMatrixWorld();
-            meshPhysx._isCollide = physicsManager.collide(0.5, 0.1, meshPhysx.position, localQuaternion.set(0, 0, 0, 1), 1);
+            meshPhysx._isCollide = physicsManager.collide(0.5, 1, meshPhysx.position, localQuaternion.set(0, 0, 0, 1), 1);
           }
         });
       }
@@ -434,17 +434,28 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
-  if (1) {
+  if (1) { // mark: generate voxel map
     window.meshPhysxs = [];
     const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshStandardMaterial({color: 'red'});
-    for (let z = -2; z <= 2; z++) {
-      for (let x = -2; x <= 2; x++) {
+    geometry.scale(0.9, 0.9, 0.9);
+    // geometry.translate(0, -0.7, 0);
+    geometry.translate(0, -1.2, 0);
+    // const geometry = new THREE.PlaneGeometry(0.7, 0.7);
+    // geometry.rotateX(-Math.PI / 2);
+    // geometry.translate(0, -0.5, 0);
+    const material = new THREE.MeshStandardMaterial({
+      color: 'red',
+      // transparent: true,
+      // opacity: 0.7,
+    });
+    for (let z = -35; z <= 35; z++) {
+      for (let x = -35; x <= 35; x++) {
         const meshPhysx = new THREE.Mesh(geometry, material);
         window.meshPhysxs.push(meshPhysx);
         window.rootScene.add(meshPhysx);
-        meshPhysx.position.set(x, 5, z);
+        meshPhysx.position.set(x, -0.1, z);
         meshPhysx.updateMatrixWorld();
+        meshPhysx._isCollide = true;
       }
     }
   }
