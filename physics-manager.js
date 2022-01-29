@@ -210,6 +210,9 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
+physicsManager.collide = (radius, halfHeight, p, q, maxIter) => {
+  return physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, p, q, maxIter);
+};
 physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat) => {
   const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat);
   return characterController;
