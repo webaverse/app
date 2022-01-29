@@ -46,7 +46,7 @@ class CharacterPhysics {
     physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection, timeDiff) {
+  applyWasd(keysDirection) {
     if (this.player.avatar) {
       this.velocity.add(keysDirection);
     }
