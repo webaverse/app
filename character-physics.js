@@ -222,7 +222,7 @@ class CharacterPhysics {
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
-    const renderer = getRenderer();
+    // const renderer = getRenderer();
     // const session = renderer.xr.getSession();
 
     /* if (session) {
@@ -238,27 +238,10 @@ class CharacterPhysics {
         // this.velocity.y = 0;
       }
     } else { */
-      const cameraMode = cameraManager.getMode();
-      switch (cameraMode) {
-        case 'firstperson': {
-          this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
-          break;
-        }
-        case 'isometric': {
-          if (this.player.hasAction('aim') && !this.player.hasAction('narutoRun')) {
-            this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
-          } else {
-            this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
-          }
-          break;
-        }
-        /* case 'birdseye': {
-          this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
-          break;
-        } */
-        default: {
-          throw new Error('invalid camera mode: ' + cameraMode);
-        }
+      if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {
+        this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
+      } else {
+        this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
       }
     // }
   }
