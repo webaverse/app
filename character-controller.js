@@ -35,6 +35,8 @@ import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
@@ -79,7 +81,20 @@ function loadPhysxCharacterController() {
   const dynamic = !!(this.isRemotePlayer || this.isNpcPlayer);
   if (dynamic) {
     const halfHeight = height/2;
-    const physicsObject = physicsManager.addCapsuleGeometry(this.position, this.quaternion, radius, halfHeight, physicsMaterial);
+    // console.log('npc controller', {avatarHeight, contactOffset, radius, height, halfHeight});
+    const physicsObject = physicsManager.addCapsuleGeometry(
+      this.position,
+      localQuaternion.copy(this.quaternion)
+        .premultiply(
+          localQuaternion2.setFromAxisAngle(
+            localVector.set(0, 0, 1),
+            Math.PI/2
+          )
+        ),
+      radius,
+      halfHeight,
+      physicsMaterial
+    );
     physicsManager.disablePhysicsObject(physicsObject);
     physicsManager.setGravityEnabled(physicsObject, false);
     this.physicsObject = physicsObject;
