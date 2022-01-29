@@ -1365,6 +1365,22 @@ const _bindLocalPlayerTeleport = () => {
 };
 _bindLocalPlayerTeleport(); */
 
+cameraManager.addEventListener('modechange', e => {
+  const {mode} = e.data;
+  const firstPerson = mode === 'firstperson';
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  if (firstPerson) {
+    if (!localPlayer.hasAction('firstperson')) {
+      const aimAction = {
+        type: 'firstperson',
+      };
+      localPlayer.addAction(aimAction);
+    }
+  } else {
+    localPlayer.removeAction('firstperson');
+  }
+});
+
 let lastMouseEvent = null;
 const gameManager = {
   menuOpen: 0,
