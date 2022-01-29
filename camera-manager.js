@@ -140,6 +140,8 @@ class CameraManager extends EventTarget {
   update(timeDiff) {
     const localPlayer = metaversefile.useLocalPlayer();
 
+    const startMode = this.getMode();
+
     let newVal = cameraOffsetTargetZ;
     let hasIntersection = false;
 
@@ -229,6 +231,15 @@ class CameraManager extends EventTarget {
       cameraOffset.z = cameraOffsetZ;
       camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       camera.updateMatrixWorld();
+    }
+
+    const endMode = this.getMode();
+    if (endMode !== startMode) {
+      this.dispatchEvent(new MessageEvent('modechange', {
+        data: {
+          mode: endMode,
+        },
+      }));
     }
   }
 };
