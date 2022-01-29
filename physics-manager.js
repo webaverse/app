@@ -198,6 +198,9 @@ physicsManager.removeGeometry = physicsObject => {
 physicsManager.getGlobalPosition = (physicsObject, position) => {
   physx.physxWorker.getGlobalPositionPhysics(physx.physics, physicsObject.physicsId, position);
 };
+physicsManager.getGlobalQuaternion = (physicsObject, quaternion) => {
+  physx.physxWorker.getGlobalQuaternionPhysics(physx.physics, physicsObject.physicsId, quaternion);
+};
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 };
