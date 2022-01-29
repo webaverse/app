@@ -158,6 +158,8 @@ function generateVoxelMap() {
   })
 }
 
+window.domBtns.addEventListener('click', e => e.stopPropagation())
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
