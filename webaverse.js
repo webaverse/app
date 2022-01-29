@@ -318,6 +318,12 @@ export default class Webaverse extends EventTarget {
       // window.totalTime = 0
       // window.count = 0
 
+      if (window.body3) {
+        physicsManager.getGlobalPosition(window.body3, window.meshPhysx.position);
+        physicsManager.getGlobalQuaternion(window.body3, window.meshPhysx.quaternion);
+        window.meshPhysx.updateMatrixWorld();
+      }
+
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffS = timeDiff / 1000;
@@ -411,6 +417,12 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
+  {
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial({color: 'red'});
+    window.meshPhysx = new THREE.Mesh(geometry, material);
+    window.rootScene.add(window.meshPhysx);
+  }
   setTimeout(() => {
     if (false && !window.isInitTestPhysxMesh) {
       window.isInitTestPhysxMesh = true;
