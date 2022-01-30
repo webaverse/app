@@ -8,19 +8,38 @@ const {useApp, useFrame, useLocalPlayer, useMaterials} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
-
 export default () => {
   const app = useApp();
   const {WebaverseShaderMaterial} = useMaterials();
 
-  const _decorateMaterial = o => {
+  const count = 8;
+  const _getKiWindGeometry = geometry => {
+    const geometry2 = new THREE.BufferGeometry();
+    ['position', 'normal', 'uv'].forEach(k => {
+      geometry2.setAttribute(k, geometry.attributes[k]);
+    });
+    geometry2.setIndex(geometry.index);
+    
+    const positions = new Float32Array(count * 3);
+    const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+    geometry.addAttribute('positions', positionsAttribute);
+    const quaternions = new Float32Array(count * 4);
+    const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+    geometry.addAttribute('quaternions', quaternionsAttribute);
+    const enableds = new Float32Array(count);
+    const enabledsAttribute = new THREE.InstancedBufferAttribute(enableds, 1);
+    geometry.addAttribute('enableds', enabledsAttribute);
+
+    return geometry2;
+  };
+  const _getKiWindMaterial = material => {
     const now = performance.now();
-    const texture = o.material.emissiveMap;
+    const texture = material.emissiveMap;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.anisotropy = 16;
     texture.needsUpdate = true;
-    o.material = new WebaverseShaderMaterial({
+    return new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
           value: texture,
@@ -56,8 +75,8 @@ export default () => {
             vec2 uv2 = uv;
             uv2.y += float(i) / float(numSamples);
             // uv2.y /= float(numSamples);
-            float f = 1.-min(max(1.-vUv.y, 0.), 1.);
-            vec4 c = texture2D(uTex, uv2) * f;
+            // float f = 1.-min(max(1.-vUv.y, 0.), 1.);
+            vec4 c = texture2D(uTex, uv2);
             // c.a = min(c.a, f);
             gl_FragColor += c;
           }
@@ -83,16 +102,31 @@ export default () => {
       if (o.isMesh) {
         if (o.name === 'GroundWind') {
           groundWind = o;
+
           // console.log('old ground wind material', groundWind, groundWind.material);
-          _decorateMaterial(groundWind);
+          // _decorateMaterial(groundWind);
         }
         if (o.name === 'Capsule') {
           capsule = o;
           // console.log('old ground wind material', groundWind, groundWind.material);
-          _decorateMaterial(capsule);
+          // _decorateMaterial(capsule);
+          capsule.visible = false;
         }
       }
     });
+
+    {
+      const geometry = _getKiWindGeometry(groundWind.geometry);
+      const material = _getKiWindMaterial(groundWind.material);
+      const {parent} = groundWind;
+      parent.remove(groundWind);
+      groundWind = new THREE.InstancedMesh(
+        geometry,
+        material,
+        count
+      );
+      parent.add(groundWind);
+    }
   })();
 
   /* const silkMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
@@ -109,11 +143,13 @@ export default () => {
       kiGlbApp.quaternion.copy(localPlayer.quaternion);
       kiGlbApp.updateMatrixWorld();
     }
-    if (groundWind) {
+    if (groundWind?.material.uniforms) {
       groundWind.material.uniforms.uTime.value = timestamp;
       groundWind.material.uniforms.uTime.needsUpdate = true;
+
+
     }
-    if (capsule) {
+    if (capsule?.material.uniforms) {
       capsule.material.uniforms.uTime.value = timestamp + 500;
       capsule.material.uniforms.uTime.needsUpdate = true;
     }
