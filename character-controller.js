@@ -29,6 +29,7 @@ import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterFx} from './character-fx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -127,6 +128,9 @@ class PlayerBase extends THREE.Object3D {
     this.avatar = null;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+  }
+  destroy() {
+    // nothing
   }
 }
 const controlActionTypes = [
@@ -567,8 +571,9 @@ class StatePlayer extends PlayerBase {
     this.unbindState();
     this.appManager.unbindState();
 
-    // this.switchAvatar(this.avatar, null);
     this.appManager.destroy();
+  
+    super.destroy();
   }
 }
 class InterpolatedPlayer extends StatePlayer {
@@ -707,6 +712,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -937,10 +943,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(now, timeDiff) {
+  updatePhysics(timestamp, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(now, timeDiffS);
-    this.characterSfx.update(now, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -978,6 +985,14 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.resetPhysics();
     };
   })()
+  destroy() {
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+
+    super.destroy();
+  }
 }
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
@@ -1132,6 +1147,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     }
+
+    super.destroy();
   }
 }
 
