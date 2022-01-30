@@ -31,7 +31,7 @@ export var Stats = function () {
 	msDiv.appendChild( msText );
 
 	var msTexts = [];
-	var nLines = 12;
+	var nLines = 14;
 	for(var i = 0; i < nLines; i++){
 		msTexts[i]	= document.createElement( 'div' );
 		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
@@ -69,7 +69,6 @@ export var Stats = function () {
 				msTexts[i++].textContent = `Programs: ${ webGLRenderer.info.programs.length }`;
 				msTexts[i++].textContent = `Geometries: ${ webGLRenderer.info.memory.geometries }`;
 				msTexts[i++].textContent = `Textures: ${ webGLRenderer.info.memory.textures }`;
-                msTexts[i++].textContent = `Drawcalls: ${ webGLRenderer.info.render.calls }`;
 
 				msTexts[i++].textContent = "== Render ======";
 				msTexts[i++].textContent = "Calls: "	+ webGLRenderer.info.render.calls;
