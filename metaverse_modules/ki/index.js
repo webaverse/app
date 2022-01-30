@@ -189,18 +189,13 @@ export default () => {
       groundWind.material.uniforms.uTime.value = timestamp/1000;
       groundWind.material.uniforms.uTime.needsUpdate = true;
 
-      // console.log('filter particles 0');
       const startTimesAttribute = groundWind.geometry.attributes.startTimes;
-      // console.log('filter particles 1', groundWind.geometry.attributes);
       const startTimes = startTimesAttribute.array;
-      // console.log('filter particles 2');
       startTimes.fill(-1);
       const now = performance.now()/1000;
-      // console.log('filter particles 3');
       let startTimesIndex = 0;
       particles = particles.filter(particle => {
         const timeDiff = now - particle.startTime;
-        // console.log('got time diff', timeDiff);
         if (timeDiff <= 1) {
           startTimes[startTimesIndex++] = particle.startTime;
           return true;
@@ -208,8 +203,6 @@ export default () => {
           return false;
         }
       });
-      window.particles = particles;
-      window.startTimes = startTimes;
       startTimesAttribute.needsUpdate = true;
     }
     if (capsule?.material.uniforms) {
