@@ -7,7 +7,12 @@ const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 const identityQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
-export default () => {
+let kiGlbApp = null;
+const loadPromise = (async () => {
+  kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
+})();
+
+export default e => {
   const app = useApp();
   const {camera} = useInternals();
   const {WebaverseShaderMaterial} = useMaterials();
@@ -285,18 +290,13 @@ export default () => {
     });
   };
 
-  let kiGlbApp = null;
+  const object = new THREE.Object3D();
+  app.add(object);
   let groundWind = null;
   let capsule = null;
   let aura = null;
-  (async () => {
-    // const texture = textureLoader.load(baseUrl + 'Aura01_noBack.png');
-    
-    kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
-    app.add(kiGlbApp);
-
-    console.log('load ki app', kiGlbApp);
-    // window.kiGlbApp = kiGlbApp;
+  e.waitUntil((async () => {
+    await loadPromise;
 
     kiGlbApp.traverse(o => {
       if (o.isMesh) {
@@ -315,40 +315,34 @@ export default () => {
     {
       const geometry = _getKiWindGeometry(groundWind.geometry);
       const material = _getKiGroundWindMaterial(groundWind.material);
-      const {parent} = groundWind;
-      parent.remove(groundWind);
       groundWind = new THREE.InstancedMesh(
         geometry,
         material,
         count
       );
-      parent.add(groundWind);
+      object.add(groundWind);
     }
     {
       const geometry = _getKiWindGeometry(capsule.geometry);
       const material = _getKiCapsuleMaterial(capsule.material);
-      const {parent} = capsule;
-      parent.remove(capsule);
       capsule = new THREE.InstancedMesh(
         geometry,
         material,
         count
       );
-      parent.add(capsule);
+      object.add(capsule);
     }
     {
       const geometry = _getKiWindGeometry(aura.geometry);
       const material = _getKiAuraMaterial(aura.material);
-      const {parent} = aura;
-      parent.remove(aura);
       aura = new THREE.InstancedMesh(
         geometry,
         material,
         count
       );
-      parent.add(aura);
+      object.add(aura);
     }
-  })();
+  })());
 
   /* const silkMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
@@ -551,15 +545,15 @@ export default () => {
       _updateAura();
     }
     
-    if (localPlayer.avatar && kiGlbApp) {
-      kiGlbApp.position.copy(localPlayer.position);
-      kiGlbApp.position.y -= localPlayer.avatar.height;
-      kiGlbApp.position.y -= 0.1;
+    if (localPlayer.avatar) {
+      object.position.copy(localPlayer.position);
+      object.position.y -= localPlayer.avatar.height;
+      object.position.y -= 0.1;
       /* localEuler.setFromQuaternion(localPlayer.quaternion);
       localEuler.x = 0;
       localEuler.z = 0;
-      kiGlbApp.quaternion.setFromEuler(localEuler); */
-      kiGlbApp.updateMatrixWorld();
+      object.quaternion.setFromEuler(localEuler); */
+      object.updateMatrixWorld();
     }
     if (groundWind?.material.uniforms) {
       groundWind.material.uniforms.uTime.value = timeS;
