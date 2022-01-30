@@ -63,10 +63,15 @@ export default () => {
         varying vec2 vUv;
         varying float vStartTimes;
 
+        vec3 qtransform(vec3 v, vec4 q) { 
+          return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+        }
+
         void main() {
           vUv = uv; // vec2(uv.x, 1.-uv.y);
           vStartTimes = startTimes;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vec3 p = qtransform(position + positions, quaternions);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
       fragmentShader: `\
@@ -158,52 +163,82 @@ export default () => {
     }
   }
   let particles = [];
-  setInterval(() => {
-    const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
-      .multiplyScalar(0.05);
-    const quaternion = new THREE.Quaternion()
-      .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
-    const startTime = performance.now()/1000;
-    const particle = new Particle(
-      position,
-      quaternion,
-      startTime
-    );
-    particles.push(particle);
-    // console.log('interval', particles.length);
-  }, 300);
+  let nextParticleTime = 0;
 
   // const timeOffset = Math.random() * 10;
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
-    if (localPlayer.avatar && kiGlbApp) {
-      kiGlbApp.position.copy(localPlayer.position);
-      kiGlbApp.position.y -= localPlayer.avatar.height;
-      localEuler.setFromQuaternion(localPlayer.quaternion);
-      localEuler.x = 0;
-      localEuler.z = 0;
-      kiGlbApp.quaternion.setFromEuler(localEuler);
-      kiGlbApp.updateMatrixWorld();
-    }
-    if (groundWind?.material.uniforms) {
-      groundWind.material.uniforms.uTime.value = timestamp/1000;
-      groundWind.material.uniforms.uTime.needsUpdate = true;
+    const now = performance.now();
+
+    const _updateAttributes = () => {
+      const positionsAttribute = groundWind.geometry.getAttribute('positions');
+      const positions = positionsAttribute.array;
+
+      const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
+      const quaternions = quaternionsAttribute.array;
 
       const startTimesAttribute = groundWind.geometry.attributes.startTimes;
       const startTimes = startTimesAttribute.array;
       startTimes.fill(-1);
-      const now = performance.now()/1000;
+      const timeS = performance.now()/1000;
       let startTimesIndex = 0;
+
       particles = particles.filter(particle => {
-        const timeDiff = now - particle.startTime;
+        const timeDiff = timeS - particle.startTime;
         if (timeDiff <= 1) {
-          startTimes[startTimesIndex++] = particle.startTime;
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
           return true;
         } else {
           return false;
         }
       });
+
+      positionsAttribute.needsUpdate = true;
+      quaternionsAttribute.needsUpdate = true;
       startTimesAttribute.needsUpdate = true;
+      groundWind.count = particles.length;
+    };
+
+    if (now >= nextParticleTime) {
+      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
+        .multiplyScalar(0.05);
+      const quaternion = new THREE.Quaternion()
+        .setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          new THREE.Vector3(Math.random() * 2 - 1, 100, Math.random() * 2 - 1).normalize()
+        )
+        .premultiply(
+          new THREE.Quaternion()
+            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2)
+        );
+      const startTime = performance.now()/1000;
+      const particle = new Particle(
+        position,
+        quaternion,
+        startTime
+      );
+      particles.push(particle);
+      // console.log('interval', particles.length);
+      nextParticleTime = now + 30 + Math.random() * 100;
+
+      _updateAttributes();
+    }
+    
+    if (localPlayer.avatar && kiGlbApp) {
+      kiGlbApp.position.copy(localPlayer.position);
+      kiGlbApp.position.y -= localPlayer.avatar.height;
+      /* localEuler.setFromQuaternion(localPlayer.quaternion);
+      localEuler.x = 0;
+      localEuler.z = 0;
+      kiGlbApp.quaternion.setFromEuler(localEuler); */
+      kiGlbApp.updateMatrixWorld();
+    }
+    if (groundWind?.material.uniforms) {
+      groundWind.material.uniforms.uTime.value = timestamp/1000;
+      groundWind.material.uniforms.uTime.needsUpdate = true;
     }
     if (capsule?.material.uniforms) {
       capsule.material.uniforms.uTime.value = timestamp/1000;
