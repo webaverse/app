@@ -263,7 +263,7 @@ export default () => {
       // await metaversefile.load(baseUrl + 'ki.glb');
       const size = 2;
       let geometry = new THREE.PlaneBufferGeometry(size, size*2)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, size*0.9, 0));
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, size*0.85, 0));
       geometry = _getKiWindGeometry(geometry);
       const now = performance.now();
       const material = new WebaverseShaderMaterial({
@@ -295,8 +295,8 @@ export default () => {
             vStartTimes = startTimes;
             vec3 p = position;
             // p *= vec3(0.9, 1., 0.9);
-            // p += positions;
-            // p = qtransform(p, quaternions);
+            p += positions;
+            p = qtransform(p, quaternions);
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
           }
         `,
@@ -524,12 +524,13 @@ export default () => {
       _updateCapsule();
     }
     if (now >= nextAuraParticleTime) {
-      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
-        .multiplyScalar(0.05);
+      /* const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
+        .multiplyScalar(0.05); */
+      const position = new THREE.Vector3();
       const quaternion = new THREE.Quaternion()
-        .setFromUnitVectors(
+        .setFromAxisAngle(
           new THREE.Vector3(0, 0, 1),
-          (Math.random() * 2 - 1) * Math.PI*0.05
+          (Math.random() * 2 - 1) * Math.PI*0.02
         );
       const startTime = performance.now()/1000;
       const particle = new Particle(
