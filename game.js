@@ -604,7 +604,6 @@ const damageMeshOffsetDistance = 1.5;
 })(); */
 
 let grabUseMesh = null;
-let kiMesh = null;
 const _gameInit = () => {
   {
     grabUseMesh = metaversefileApi.createApp();
@@ -616,16 +615,6 @@ const _gameInit = () => {
     })();
     grabUseMesh.target = null;
     sceneLowPriority.add(grabUseMesh);
-  }
-  {
-    kiMesh = metaversefileApi.createApp();
-    (async () => {
-      await metaverseModules.waitForLoad();
-      const {modules} = metaversefileApi.useDefaultModules();
-      const m = modules['ki'];
-      await kiMesh.addModule(m);
-    })();
-    sceneLowPriority.add(kiMesh);
   }
 };
 Promise.resolve()
