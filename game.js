@@ -1595,16 +1595,14 @@ const gameManager = {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('dance');
-      if (!action) {
-        const newAction = {
-          type: 'dance',
-          animation: 'dansu',
-          // time: 0,
-        };
+      localPlayer.removeAction('dance');
 
-        localPlayer.addAction(newAction);
-      }
+      const newAction = {
+        type: 'dance',
+        animation: 'dansu',
+        // time: 0,
+      };
+      localPlayer.addAction(newAction);
     }
   },
   menuVUp(e) {
@@ -1613,10 +1611,12 @@ const gameManager = {
   },
   menuBDown(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('dance');
+
     const action = localPlayer.getAction('powerup');
     if (!action) {
       const newAction = {
-        type: 'dapowerupnce',
+        type: 'dance',
         animation: 'powerup',
         // time: 0,
       };
@@ -1629,7 +1629,7 @@ const gameManager = {
   },
   menuBUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('powerup');
+    localPlayer.removeAction('dance');
     
     // physicsManager.setThrowState(null);
   },
