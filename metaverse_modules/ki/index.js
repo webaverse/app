@@ -38,13 +38,83 @@ export default () => {
 
     return geometry2;
   };
-  const _getKiWindMaterial = material => {
+  const _getKiGroundWindMaterial = material => {
     const now = performance.now();
     const texture = material.emissiveMap;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.anisotropy = 16;
-    texture.needsUpdate = true;
+    // texture.needsUpdate = true;
+    return new WebaverseShaderMaterial({
+      uniforms: {
+        uTex: {
+          value: texture,
+          needsUpdate: true,
+        },
+        uTime: {
+          value: now,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        attribute vec3 positions;
+        attribute vec4 quaternions;
+        attribute float startTimes;
+        varying vec2 vUv;
+        varying float vStartTimes;
+
+        vec3 qtransform(vec3 v, vec4 q) { 
+          return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+        }
+
+        void main() {
+          vUv = uv; // vec2(uv.x, 1.-uv.y);
+          vStartTimes = startTimes;
+          vec3 p = qtransform(position + positions, quaternions);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        uniform sampler2D uTex;
+        uniform float uTime;
+        varying vec2 vUv;
+        
+        varying float vStartTimes;
+
+        float offset = 0.;
+        const float animationSpeed = 3.;
+
+        void main() {
+          if (vStartTimes >= 0.) {
+            float t = uTime;
+            float timeDiff = t - vStartTimes;
+
+            vec2 uv = vUv;
+            // uv.y *= 2.;
+            uv.y += timeDiff * animationSpeed;
+            // uv.y *= 2.;
+
+            vec4 c = texture2D(uTex, uv);
+            c *= min(max(1.-pow(timeDiff*6., 2.), 0.), 1.) * 3.;
+            // c.a = min(c.a, f);
+            gl_FragColor = c;
+          } else {
+            discard;
+          }
+        }
+      `,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      transparent: true,
+    });
+  };
+  const _getKiCapsuleMaterial = material => {
+    const now = performance.now();
+    const texture = material.emissiveMap;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.anisotropy = 16;
+    // texture.needsUpdate = true;
     return new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
@@ -131,14 +201,14 @@ export default () => {
           capsule = o;
           // console.log('old ground wind material', groundWind, groundWind.material);
           // _decorateMaterial(capsule);
-          capsule.visible = false;
+          // capsule.visible = false;
         }
       }
     });
 
     {
       const geometry = _getKiWindGeometry(groundWind.geometry);
-      const material = _getKiWindMaterial(groundWind.material);
+      const material = _getKiGroundWindMaterial(groundWind.material);
       const {parent} = groundWind;
       parent.remove(groundWind);
       groundWind = new THREE.InstancedMesh(
@@ -147,6 +217,18 @@ export default () => {
         count
       );
       parent.add(groundWind);
+    }
+    {
+      const geometry = _getKiWindGeometry(capsule.geometry);
+      const material = _getKiCapsuleMaterial(capsule.material);
+      const {parent} = capsule;
+      parent.remove(capsule);
+      capsule = new THREE.InstancedMesh(
+        geometry,
+        material,
+        count
+      );
+      parent.add(capsule);
     }
   })();
 
@@ -162,8 +244,8 @@ export default () => {
       this.startTime = startTime;
     }
   }
-  let particles = [];
-  let nextParticleTime = 0;
+  let groundWindParticles = [];
+  let nextGroundWindParticleTime = 0;
 
   // const timeOffset = Math.random() * 10;
   useFrame(({timestamp, timeDiff}) => {
@@ -171,38 +253,72 @@ export default () => {
     const now = performance.now();
 
     const _updateAttributes = () => {
-      const positionsAttribute = groundWind.geometry.getAttribute('positions');
-      const positions = positionsAttribute.array;
-
-      const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
-      const quaternions = quaternionsAttribute.array;
-
-      const startTimesAttribute = groundWind.geometry.attributes.startTimes;
-      const startTimes = startTimesAttribute.array;
-      startTimes.fill(-1);
-      const timeS = performance.now()/1000;
-      let startTimesIndex = 0;
-
-      particles = particles.filter(particle => {
+      const now = performance.now();
+      const timeS = now/1000;
+      groundWindParticles = groundWindParticles.filter(particle => {
         const timeDiff = timeS - particle.startTime;
         if (timeDiff <= 1) {
-          const index = startTimesIndex++;
-          particle.position.toArray(positions, index * 3);
-          particle.quaternion.toArray(quaternions, index * 4);
-          startTimes[index] = particle.startTime;
           return true;
         } else {
           return false;
         }
       });
+      
+      const _updateGroundWind = () => {
+        const positionsAttribute = groundWind.geometry.getAttribute('positions');
+        const positions = positionsAttribute.array;
 
-      positionsAttribute.needsUpdate = true;
-      quaternionsAttribute.needsUpdate = true;
-      startTimesAttribute.needsUpdate = true;
-      groundWind.count = particles.length;
+        const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
+        const quaternions = quaternionsAttribute.array;
+
+        const startTimesAttribute = groundWind.geometry.attributes.startTimes;
+        const startTimes = startTimesAttribute.array;
+        startTimes.fill(-1);
+        let startTimesIndex = 0;
+        
+        for (const particle of groundWindParticles) {
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
+        }
+
+        positionsAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+        startTimesAttribute.needsUpdate = true;
+        groundWind.count = groundWindParticles.length;
+      };
+      _updateGroundWind();
+      
+      const _updateCapsule = () => {
+        const positionsAttribute = capsule.geometry.getAttribute('positions');
+        const positions = positionsAttribute.array;
+
+        const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
+        const quaternions = quaternionsAttribute.array;
+
+        const startTimesAttribute = capsule.geometry.attributes.startTimes;
+        const startTimes = startTimesAttribute.array;
+        startTimes.fill(-1);
+        const timeS = performance.now()/1000;
+        let startTimesIndex = 0;
+        
+        for (const particle of groundWindParticles) {
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
+        }
+
+        positionsAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+        startTimesAttribute.needsUpdate = true;
+        capsule.count = groundWindParticles.length;
+      };
+      _updateCapsule();
     };
 
-    if (now >= nextParticleTime) {
+    if (now >= nextGroundWindParticleTime) {
       const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
         .multiplyScalar(0.05);
       const quaternion = new THREE.Quaternion()
@@ -220,9 +336,9 @@ export default () => {
         quaternion,
         startTime
       );
-      particles.push(particle);
-      // console.log('interval', particles.length);
-      nextParticleTime = now + 30 + Math.random() * 100;
+      groundWindParticles.push(particle);
+      // console.log('interval', groundWindParticles.length);
+      nextGroundWindParticleTime = now + 30 + Math.random() * 100;
 
       _updateAttributes();
     }
@@ -244,19 +360,6 @@ export default () => {
       capsule.material.uniforms.uTime.value = timestamp/1000;
       capsule.material.uniforms.uTime.needsUpdate = true;
     }
-
-    /* const time = timeOffset + performance.now() * 0.002;
-    const k = 1;
-    for (var i = 0; i < silkMesh.geometry.attributes.position.array.length; i += 3) {
-      const p = localVector.fromArray(silkMesh.geometry.attributes.position.array, i);
-      const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
-      p.normalize().multiplyScalar(f);
-      p.toArray(silkMesh.geometry.attributes.position.array, i);
-    }
-    silkMesh.geometry.attributes.position.needsUpdate = true;
-    silkMesh.geometry.computeVertexNormals();
-    silkMesh.geometry.normalsNeedUpdate = true;
-    silkMesh.geometry.verticesNeedUpdate = true; */
   });
 
   return app;
