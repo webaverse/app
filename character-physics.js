@@ -317,6 +317,9 @@ class CharacterPhysics {
       this.velocity.set(0, 0, 0);
     }
   }
+  destroy() {
+    // nothing
+  }
 }
 
 export {
