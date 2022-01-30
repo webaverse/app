@@ -263,7 +263,7 @@ export default () => {
       // await metaversefile.load(baseUrl + 'ki.glb');
       const size = 2;
       let geometry = new THREE.PlaneBufferGeometry(size, size*2)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, size*0.85, 0));
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, size*0.9, 0));
       geometry = _getKiWindGeometry(geometry);
       const now = performance.now();
       const material = new WebaverseShaderMaterial({
@@ -531,6 +531,13 @@ export default () => {
         .setFromAxisAngle(
           new THREE.Vector3(0, 0, 1),
           (Math.random() * 2 - 1) * Math.PI*0.02
+        )
+        .multiply(
+          new THREE.Quaternion()
+            .setFromAxisAngle(
+              new THREE.Vector3(0, 1, 0),
+              (Math.random() < 0.5 ? 0 : Math.PI)
+            )
         );
       const startTime = performance.now()/1000;
       const particle = new Particle(
