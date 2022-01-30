@@ -188,7 +188,7 @@ export default () => {
               c *= pow(vUv.y/.3, 0.5);
             }
             // c *= pow(0.5-distanceToMiddle, 3.);
-            c = pow4(c, 5.) * 2.;
+            c = pow4(c, 6.) * 2.;
             // c *= 1.-pow(distanceToMiddle, 2.)*4.;
             // c.a = min(c.a, f);
             gl_FragColor = c;
@@ -389,7 +389,7 @@ export default () => {
       );
       capsuleParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
-      nextCapsuleParticleTime = now + 100 + Math.random() * 50;
+      nextCapsuleParticleTime = now + 120 + Math.random() * 50;
 
       _updateCapsule();
     }
