@@ -36,7 +36,8 @@ class CharacterFx {
     }
 
     const powerupAction = this.player.getAction('dance');
-    if (powerupAction && powerupAction.animation === 'powerup' && !this.kiMesh) {
+    const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
+    if (isPowerup && !this.kiMesh) {
       this.kiMesh = metaversefile.createApp();
       (async () => {
         await metaverseModules.waitForLoad();
@@ -45,6 +46,9 @@ class CharacterFx {
         await this.kiMesh.addModule(m);
       })();
       sceneLowPriority.add(this.kiMesh);
+    }
+    if (this.kiMesh) {
+      this.kiMesh.visible = isPowerup;
     }
   }
   destroy() {
