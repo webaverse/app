@@ -143,6 +143,9 @@ class CharacterHups extends EventTarget {
       emote,
     });
   }
+  destroy() {
+    // nothing
+  }
 }
 
 export {

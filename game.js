@@ -605,15 +605,17 @@ const damageMeshOffsetDistance = 1.5;
 
 let grabUseMesh = null;
 const _gameInit = () => {
-  grabUseMesh = metaversefileApi.createApp();
-  (async () => {
-    await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
-    const m = modules['button'];
-    await grabUseMesh.addModule(m);
-  })();
-  grabUseMesh.target = null;
-  sceneLowPriority.add(grabUseMesh);
+  {
+    grabUseMesh = metaversefileApi.createApp();
+    (async () => {
+      await metaverseModules.waitForLoad();
+      const {modules} = metaversefileApi.useDefaultModules();
+      const m = modules['button'];
+      await grabUseMesh.addModule(m);
+    })();
+    grabUseMesh.target = null;
+    sceneLowPriority.add(grabUseMesh);
+  }
 };
 Promise.resolve()
   .then(_gameInit);
@@ -1595,16 +1597,14 @@ const gameManager = {
       this.menuGridSnap();
     } else {
       const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('dance');
-      if (!action) {
-        const newAction = {
-          type: 'dance',
-          animation: 'dansu',
-          // time: 0,
-        };
+      localPlayer.removeAction('dance');
 
-        localPlayer.addAction(newAction);
-      }
+      const newAction = {
+        type: 'dance',
+        animation: 'dansu',
+        // time: 0,
+      };
+      localPlayer.addAction(newAction);
     }
   },
   menuVUp(e) {
@@ -1612,11 +1612,27 @@ const gameManager = {
     localPlayer.removeAction('dance');
   },
   menuBDown(e) {
-    if (e.ctrlKey) {
-      universe.reload();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('dance');
+
+    const action = localPlayer.getAction('powerup');
+    if (!action) {
+      const newAction = {
+        type: 'dance',
+        animation: 'powerup',
+        // time: 0,
+      };
+      localPlayer.addAction(newAction);
     }
+
+    /* if (e.ctrlKey) {
+      universe.reload();
+    } */
   },
   menuBUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('dance');
+    
     // physicsManager.setThrowState(null);
   },
   menuDoubleTap() {
