@@ -40,12 +40,18 @@ import metaversefileApi from 'metaversefile';
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 window.isStart = false;
+window.isRising = false;
 // const width = 71;
 // const height = 71;
-const width = 15;
-const height = 15;
-const start = new THREE.Vector2(-3, -4);
-const dest = new THREE.Vector2(5, 6);
+const width = 35;
+const height = 35;
+
+const tmpVec2 = new THREE.Vector2();
+
+const start = new THREE.Vector2(0, 0);
+const dest = new THREE.Vector2(0, 15);
+// swapStartDest();
+
 window.frontiers = [];
 window.blocks = new THREE.Group();
 rootScene.add(window.blocks);
@@ -63,14 +69,19 @@ vs.xy_to_serial = function(width, xy) { // :index
   return xy.y * width + xy.x;
 };
 
+window.getblock = getBlock;
 function getBlock(x, y) {
   x += (width - 1) / 2;
   y += (height - 1) / 2;
   if (x < 0 || y < 0 || x >= width || y >= height) return null;
-  return window.blocks.children[vs.xy_to_serial(width, { x, y })];
+  return window.blocks.children[vs.xy_to_serial(width, {x, y})];
 }
 
-const tmpVec2 = new THREE.Vector2();
+function swapStartDest() {
+  tmpVec2.copy(start);
+  start.copy(dest);
+  dest.copy(tmpVec2);
+}
 
 function stepBlock(block, prevBlock) {
   function recur(block) {
@@ -114,24 +125,32 @@ function step() {
   }
   if (window.isFound) return;
 
-  const current = window.frontiers.shift();
-  if (!current._isStart) current.material = materialAct;
+  const currentBlock = window.frontiers.shift();
+  if (!currentBlock._isStart) currentBlock.material = materialAct;
 
-  const leftBlock = getBlock(current._x - 1, current._z);
-  stepBlock(leftBlock, current);
-  if (window.isFound) return;
+  if (currentBlock._canLeft) {
+    const leftBlock = getBlock(currentBlock._x - 1, currentBlock._z);
+    stepBlock(leftBlock, currentBlock);
+    if (window.isFound) return;
+  }
 
-  const rightBlock = getBlock(current._x + 1, current._z);
-  stepBlock(rightBlock, current);
-  if (window.isFound) return;
+  if (currentBlock._canRight) {
+    const rightBlock = getBlock(currentBlock._x + 1, currentBlock._z);
+    stepBlock(rightBlock, currentBlock);
+    if (window.isFound) return;
+  }
 
-  const btmBlock = getBlock(current._x, current._z - 1);
-  stepBlock(btmBlock, current);
-  if (window.isFound) return;
+  if (currentBlock._canBtm) {
+    const btmBlock = getBlock(currentBlock._x, currentBlock._z - 1);
+    stepBlock(btmBlock, currentBlock);
+    if (window.isFound) return;
+  }
 
-  const topBlock = getBlock(current._x, current._z + 1);
-  stepBlock(topBlock, current);
-  // if (window.isFound) return
+  if (currentBlock._canTop) {
+    const topBlock = getBlock(currentBlock._x, currentBlock._z + 1);
+    stepBlock(topBlock, currentBlock);
+    // if (window.isFound) return
+  }
 }
 window.tenStep = tenStep;
 function tenStep() {
@@ -143,12 +162,34 @@ function untilFound() {
 }
 window.generateVoxelMap = generateVoxelMap;
 function generateVoxelMap() {
-  window.blocks.children.forEach((block, i) => {
-    if (block.position.y > 2) {
-      block._isObstacle = true;
-      block.material = materialObstacle;
+  window.isRising = false;
+
+  for (let z = -(height - 1) / 2; z < height / 2; z++) {
+    for (let x = -(width - 1) / 2; x < width / 2; x++) {
+      const currentBlock = getBlock(x, z);
+
+      const leftBlock = getBlock(x - 1, z);
+      if (leftBlock && leftBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canLeft = true;
+
+      const rightBlock = getBlock(x + 1, z);
+      if (rightBlock && rightBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canRight = true;
+
+      const btmBlock = getBlock(x, z - 1);
+      if (btmBlock && btmBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canBtm = true;
+
+      const topBlock = getBlock(x, z + 1);
+      if (topBlock && topBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canTop = true;
     }
-  });
+  }
+
+  // window.blocks.children.forEach((block, i) => {
+  //   if (block.position.y > 3) {
+  //     block._isObstacle = true
+  //     block.material = materialObstacle
+  //   }
+  // })
+
+  console.log('generated voxel map');
 }
 
 window.domBtns.addEventListener('click', e => e.stopPropagation());
@@ -416,8 +457,8 @@ export default class Webaverse extends EventTarget {
     
     let lastTimestamp = performance.now();
 
-    const animate = (timestamp, frame) => { 
-      if (window.isStart && window.blocks) { // mark: generate voxel map
+    const animate = (timestamp, frame) => {
+      if (window.isRising && window.blocks) { // mark: generate voxel map
         window.blocks.children.forEach((block, i) => {
           if (block._isCollide) {
             block.position.y += 0.1;
