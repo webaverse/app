@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import Simplex from './simplex-noise.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useLoaders, useMaterials} = metaversefile;
+const {useApp, useInternals, useFrame, useLocalPlayer, useLoaders, useMaterials} = metaversefile;
 
 // const localVector = new THREE.Vector3();
 // const simplex = new Simplex('lol');
@@ -13,6 +13,7 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
 export default () => {
   const app = useApp();
+  const {camera} = useInternals();
   // const {textureLoader} = useLoaders();
   const {WebaverseShaderMaterial} = useMaterials();
 
@@ -73,7 +74,7 @@ export default () => {
         }
 
         void main() {
-          vUv = uv; // vec2(uv.x, 1.-uv.y);
+          vUv = uv;
           vStartTimes = startTimes;
           vec3 p = qtransform((position * vec3(1.5, 1., 1.5)) + positions, quaternions);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
@@ -147,13 +148,12 @@ export default () => {
         }
 
         void main() {
-          vUv = uv; // vec2(uv.x, 1.-uv.y);
+          vUv = uv;
           vStartTimes = startTimes;
           vec3 p = position;
           p *= vec3(0.9, 1., 0.9);
           p += positions;
           p = qtransform(p, quaternions);
-          // p.y = easing(p.y, uTime);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
@@ -209,11 +209,13 @@ export default () => {
   let capsule = null;
   let aura = null;
   (async () => {
+    const texture = textureLoader.load(baseUrl + 'Aura01_noBack.png');
+    
     kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
     app.add(kiGlbApp);
 
     console.log('load ki app', kiGlbApp);
-    window.kiGlbApp = kiGlbApp;
+    // window.kiGlbApp = kiGlbApp;
 
     kiGlbApp.traverse(o => {
       if (o.isMesh) {
@@ -258,10 +260,10 @@ export default () => {
     }
 
     {
-      const texture = textureLoader.load(baseUrl + 'ki.png');
       // await metaversefile.load(baseUrl + 'ki.glb');
-      let geometry = new THREE.PlaneBufferGeometry(2, 2)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 1));
+      const size = 2;
+      let geometry = new THREE.PlaneBufferGeometry(size, size*2)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, size*0.9, 0));
       geometry = _getKiWindGeometry(geometry);
       const now = performance.now();
       const material = new WebaverseShaderMaterial({
@@ -283,9 +285,19 @@ export default () => {
           varying float vStartTimes;
 
           uniform float uTime;
-          
+
+          vec3 qtransform(vec3 v, vec4 q) { 
+            return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+          }
+
           void main() {
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            vUv = uv;
+            vStartTimes = startTimes;
+            vec3 p = position;
+            // p *= vec3(0.9, 1., 0.9);
+            // p += positions;
+            // p = qtransform(p, quaternions);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
           }
         `,
         fragmentShader: `
@@ -307,8 +319,9 @@ export default () => {
               float timeDiff = t - vStartTimes;
 
               vec2 uv = vUv;
+              uv.y *= 2.;
               // uv.y *= 2.;
-              uv.y += timeDiff * animationSpeed;
+              uv.y -= timeDiff * animationSpeed;
               // uv.y *= 2.;
               // uv.y = 0.2 + pow(uv.y, 0.7);
 
@@ -316,8 +329,8 @@ export default () => {
 
               vec4 c = texture2D(uTex, uv);
               c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
-              if (vUv.y < .3) {
-                c *= pow(vUv.y/.3, 0.5);
+              if (vUv.y > .9) {
+                c *= pow(1. - (vUv.y - 0.9)/.1, 0.5);
               }
               // c *= pow(0.5-distanceToMiddle, 3.);
               c = pow4(c, 6.) * 2.;
@@ -333,8 +346,8 @@ export default () => {
         depthWrite: false,
         transparent: true,
       });
-      aura = new THREE.Mesh(geometry, material);
-      app.add(aura);
+      aura = new THREE.InstancedMesh(geometry, material, count);
+      kiGlbApp.add(aura);
     }
   })();
 
@@ -353,7 +366,9 @@ export default () => {
   let groundWindParticles = [];
   let nextGroundWindParticleTime = 0;
   let capsuleParticles = [];
+  let auraParticles = [];
   let nextCapsuleParticleTime = 0;
+  let nextAuraParticleTime = 0;
 
   // const timeOffset = Math.random() * 10;
   useFrame(({timestamp, timeDiff}) => {
@@ -377,6 +392,15 @@ export default () => {
         return false;
       }
     });
+    auraParticles = auraParticles.filter(particle => {
+      const timeDiff = timeS - particle.startTime;
+      if (timeDiff <= 1) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    // window.auraParticles = auraParticles;
 
     const _updateGroundWind = () => {
       const positionsAttribute = groundWind.geometry.getAttribute('positions');
@@ -425,6 +449,30 @@ export default () => {
       quaternionsAttribute.needsUpdate = true;
       startTimesAttribute.needsUpdate = true;
       capsule.count = capsuleParticles.length;
+    };
+    const _updateAura = () => {
+      const positionsAttribute = aura.geometry.getAttribute('positions');
+      const positions = positionsAttribute.array;
+
+      const quaternionsAttribute = aura.geometry.getAttribute('quaternions');
+      const quaternions = quaternionsAttribute.array;
+
+      const startTimesAttribute = aura.geometry.attributes.startTimes;
+      const startTimes = startTimesAttribute.array;
+      startTimes.fill(-1);
+      let startTimesIndex = 0;
+      
+      for (const particle of auraParticles) {
+        const index = startTimesIndex++;
+        particle.position.toArray(positions, index * 3);
+        particle.quaternion.toArray(quaternions, index * 4);
+        startTimes[index] = particle.startTime;
+      }
+
+      positionsAttribute.needsUpdate = true;
+      quaternionsAttribute.needsUpdate = true;
+      startTimesAttribute.needsUpdate = true;
+      aura.count = auraParticles.length;
     };
 
     if (now >= nextGroundWindParticleTime) {
@@ -475,6 +523,26 @@ export default () => {
 
       _updateCapsule();
     }
+    if (now >= nextAuraParticleTime) {
+      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
+        .multiplyScalar(0.05);
+      const quaternion = new THREE.Quaternion()
+        .setFromUnitVectors(
+          new THREE.Vector3(0, 0, 1),
+          (Math.random() * 2 - 1) * Math.PI*0.05
+        );
+      const startTime = performance.now()/1000;
+      const particle = new Particle(
+        position,
+        quaternion,
+        startTime
+      );
+      auraParticles.push(particle);
+      // console.log('interval', groundWindParticles.length);
+      nextAuraParticleTime = now + 100 + Math.random() * 50;
+
+      _updateAura();
+    }
     
     if (localPlayer.avatar && kiGlbApp) {
       kiGlbApp.position.copy(localPlayer.position);
@@ -487,12 +555,23 @@ export default () => {
       kiGlbApp.updateMatrixWorld();
     }
     if (groundWind?.material.uniforms) {
-      groundWind.material.uniforms.uTime.value = timestamp/1000;
+      groundWind.material.uniforms.uTime.value = timeS;
       groundWind.material.uniforms.uTime.needsUpdate = true;
     }
     if (capsule?.material.uniforms) {
-      capsule.material.uniforms.uTime.value = timestamp/1000;
+      capsule.material.uniforms.uTime.value = timeS;
       capsule.material.uniforms.uTime.needsUpdate = true;
+    }
+    if (aura?.material.uniforms) {
+      aura.material.uniforms.uTime.value = timeS;
+      aura.material.uniforms.uTime.needsUpdate = true;
+
+      // make the aura face the camera
+      localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      aura.quaternion.setFromEuler(localEuler);
+      aura.updateMatrixWorld();
     }
   });
 
