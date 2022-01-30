@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import Simplex from './simplex-noise.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useMaterials} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useLoaders, useMaterials} = metaversefile;
 
 // const localVector = new THREE.Vector3();
 // const simplex = new Simplex('lol');
@@ -13,7 +13,10 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
 export default () => {
   const app = useApp();
+  // const {textureLoader} = useLoaders();
   const {WebaverseShaderMaterial} = useMaterials();
+
+  const textureLoader = new THREE.TextureLoader();
 
   const count = 32;
   const animationSpeed = 3;
@@ -83,7 +86,6 @@ export default () => {
         
         varying float vStartTimes;
 
-        float offset = 0.;
         const float animationSpeed = ${animationSpeed.toFixed(8)};
 
         void main() {
@@ -162,7 +164,6 @@ export default () => {
         
         varying float vStartTimes;
 
-        float offset = 0.;
         const float animationSpeed = ${animationSpeed.toFixed(8)};
 
         vec4 pow4(vec4 v, float n) {
@@ -206,6 +207,7 @@ export default () => {
   let kiGlbApp = null;
   let groundWind = null;
   let capsule = null;
+  let aura = null;
   (async () => {
     kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
     app.add(kiGlbApp);
@@ -253,6 +255,86 @@ export default () => {
         count
       );
       parent.add(capsule);
+    }
+
+    {
+      const texture = textureLoader.load(baseUrl + 'ki.png');
+      // await metaversefile.load(baseUrl + 'ki.glb');
+      let geometry = new THREE.PlaneBufferGeometry(2, 2)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 1));
+      geometry = _getKiWindGeometry(geometry);
+      const now = performance.now();
+      const material = new WebaverseShaderMaterial({
+        uniforms: {
+          uTex: {
+            value: texture,
+            needsUpdate: true,
+          },
+          uTime: {
+            value: now,
+            needsUpdate: true,
+          },
+        },
+        vertexShader: `\
+          attribute vec3 positions;
+          attribute vec4 quaternions;
+          attribute float startTimes;
+          varying vec2 vUv;
+          varying float vStartTimes;
+
+          uniform float uTime;
+          
+          void main() {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D uTex;
+          uniform float uTime;
+          varying vec2 vUv;
+          
+          varying float vStartTimes;
+          
+          const float animationSpeed = ${animationSpeed.toFixed(8)};
+
+          vec4 pow4(vec4 v, float n) {
+            return vec4(pow(v.x, n), pow(v.y, n), pow(v.z, n), pow(v.w, n));
+          }
+
+          void main() {
+            if (vStartTimes >= 0.) {
+              float t = uTime;
+              float timeDiff = t - vStartTimes;
+
+              vec2 uv = vUv;
+              // uv.y *= 2.;
+              uv.y += timeDiff * animationSpeed;
+              // uv.y *= 2.;
+              // uv.y = 0.2 + pow(uv.y, 0.7);
+
+              float distanceToMiddle = abs(vUv.y - 0.5);
+
+              vec4 c = texture2D(uTex, uv);
+              c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
+              if (vUv.y < .3) {
+                c *= pow(vUv.y/.3, 0.5);
+              }
+              // c *= pow(0.5-distanceToMiddle, 3.);
+              c = pow4(c, 6.) * 2.;
+              // c *= 1.-pow(distanceToMiddle, 2.)*4.;
+              // c.a = min(c.a, f);
+              gl_FragColor = c;
+            } else {
+              discard;
+            }
+          }
+        `,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        transparent: true,
+      });
+      aura = new THREE.Mesh(geometry, material);
+      app.add(aura);
     }
   })();
 
