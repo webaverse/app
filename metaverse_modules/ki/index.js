@@ -16,6 +16,8 @@ export default () => {
   const {WebaverseShaderMaterial} = useMaterials();
 
   const count = 32;
+  const animationSpeed = 3;
+  const hideFactor = 1;
   const _getKiWindGeometry = geometry => {
     const geometry2 = new THREE.BufferGeometry();
     ['position', 'normal', 'uv'].forEach(k => {
@@ -70,7 +72,7 @@ export default () => {
         void main() {
           vUv = uv; // vec2(uv.x, 1.-uv.y);
           vStartTimes = startTimes;
-          vec3 p = qtransform(position + positions, quaternions);
+          vec3 p = qtransform((position * vec3(1.5, 1., 1.5)) + positions, quaternions);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
@@ -82,7 +84,7 @@ export default () => {
         varying float vStartTimes;
 
         float offset = 0.;
-        const float animationSpeed = 3.;
+        const float animationSpeed = ${animationSpeed.toFixed(8)};
 
         void main() {
           if (vStartTimes >= 0.) {
@@ -95,8 +97,11 @@ export default () => {
             // uv.y *= 2.;
 
             vec4 c = texture2D(uTex, uv);
-            c *= min(max(1.-pow(timeDiff*6., 2.), 0.), 1.) * 3.;
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 2).toFixed(8)}, 2.), 0.), 1.) * 3.;
             // c.a = min(c.a, f);
+            if (vUv.y < .3) {
+              c *= pow(vUv.y/.3, 1.);
+            }
             gl_FragColor = c;
           } else {
             discard;
@@ -133,6 +138,8 @@ export default () => {
         varying vec2 vUv;
         varying float vStartTimes;
 
+        uniform float uTime;
+
         vec3 qtransform(vec3 v, vec4 q) { 
           return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
         }
@@ -140,7 +147,11 @@ export default () => {
         void main() {
           vUv = uv; // vec2(uv.x, 1.-uv.y);
           vStartTimes = startTimes;
-          vec3 p = qtransform(position + positions, quaternions);
+          vec3 p = position;
+          p *= vec3(0.9, 1., 0.9);
+          p += positions;
+          p = qtransform(p, quaternions);
+          // p.y = easing(p.y, uTime);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
@@ -152,7 +163,11 @@ export default () => {
         varying float vStartTimes;
 
         float offset = 0.;
-        const float animationSpeed = 3.;
+        const float animationSpeed = ${animationSpeed.toFixed(8)};
+
+        vec4 pow4(vec4 v, float n) {
+          return vec4(pow(v.x, n), pow(v.y, n), pow(v.z, n), pow(v.w, n));
+        }
 
         void main() {
           if (vStartTimes >= 0.) {
@@ -163,9 +178,18 @@ export default () => {
             // uv.y *= 2.;
             uv.y += timeDiff * animationSpeed;
             // uv.y *= 2.;
+            // uv.y = 0.2 + pow(uv.y, 0.7);
+
+            float distanceToMiddle = abs(vUv.y - 0.5);
 
             vec4 c = texture2D(uTex, uv);
-            c *= min(max(1.-pow(timeDiff*6., 2.), 0.), 1.) * 3.;
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
+            if (vUv.y < .3) {
+              c *= pow(vUv.y/.3, 0.5);
+            }
+            // c *= pow(0.5-distanceToMiddle, 3.);
+            c = pow4(c, 5.) * 2.;
+            // c *= 1.-pow(distanceToMiddle, 2.)*4.;
             // c.a = min(c.a, f);
             gl_FragColor = c;
           } else {
@@ -246,76 +270,79 @@ export default () => {
   }
   let groundWindParticles = [];
   let nextGroundWindParticleTime = 0;
+  let capsuleParticles = [];
+  let nextCapsuleParticleTime = 0;
 
   // const timeOffset = Math.random() * 10;
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
-    const now = performance.now();
+    const now = timestamp;
+    const timeS = now/1000;
 
-    const _updateAttributes = () => {
-      const now = performance.now();
-      const timeS = now/1000;
-      groundWindParticles = groundWindParticles.filter(particle => {
-        const timeDiff = timeS - particle.startTime;
-        if (timeDiff <= 1) {
-          return true;
-        } else {
-          return false;
-        }
-      });
+    groundWindParticles = groundWindParticles.filter(particle => {
+      const timeDiff = timeS - particle.startTime;
+      if (timeDiff <= 1) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    capsuleParticles = capsuleParticles.filter(capsule => {
+      const timeDiff = timeS - capsule.startTime;
+      if (timeDiff <= 1) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    const _updateGroundWind = () => {
+      const positionsAttribute = groundWind.geometry.getAttribute('positions');
+      const positions = positionsAttribute.array;
+
+      const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
+      const quaternions = quaternionsAttribute.array;
+
+      const startTimesAttribute = groundWind.geometry.attributes.startTimes;
+      const startTimes = startTimesAttribute.array;
+      startTimes.fill(-1);
+      let startTimesIndex = 0;
       
-      const _updateGroundWind = () => {
-        const positionsAttribute = groundWind.geometry.getAttribute('positions');
-        const positions = positionsAttribute.array;
+      for (const particle of groundWindParticles) {
+        const index = startTimesIndex++;
+        particle.position.toArray(positions, index * 3);
+        particle.quaternion.toArray(quaternions, index * 4);
+        startTimes[index] = particle.startTime;
+      }
 
-        const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
-        const quaternions = quaternionsAttribute.array;
+      positionsAttribute.needsUpdate = true;
+      quaternionsAttribute.needsUpdate = true;
+      startTimesAttribute.needsUpdate = true;
+      groundWind.count = groundWindParticles.length;
+    };
+    const _updateCapsule = () => {
+      const positionsAttribute = capsule.geometry.getAttribute('positions');
+      const positions = positionsAttribute.array;
 
-        const startTimesAttribute = groundWind.geometry.attributes.startTimes;
-        const startTimes = startTimesAttribute.array;
-        startTimes.fill(-1);
-        let startTimesIndex = 0;
-        
-        for (const particle of groundWindParticles) {
-          const index = startTimesIndex++;
-          particle.position.toArray(positions, index * 3);
-          particle.quaternion.toArray(quaternions, index * 4);
-          startTimes[index] = particle.startTime;
-        }
+      const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
+      const quaternions = quaternionsAttribute.array;
 
-        positionsAttribute.needsUpdate = true;
-        quaternionsAttribute.needsUpdate = true;
-        startTimesAttribute.needsUpdate = true;
-        groundWind.count = groundWindParticles.length;
-      };
-      _updateGroundWind();
+      const startTimesAttribute = capsule.geometry.attributes.startTimes;
+      const startTimes = startTimesAttribute.array;
+      startTimes.fill(-1);
+      let startTimesIndex = 0;
       
-      const _updateCapsule = () => {
-        const positionsAttribute = capsule.geometry.getAttribute('positions');
-        const positions = positionsAttribute.array;
+      for (const particle of capsuleParticles) {
+        const index = startTimesIndex++;
+        particle.position.toArray(positions, index * 3);
+        particle.quaternion.toArray(quaternions, index * 4);
+        startTimes[index] = particle.startTime;
+      }
 
-        const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
-        const quaternions = quaternionsAttribute.array;
-
-        const startTimesAttribute = capsule.geometry.attributes.startTimes;
-        const startTimes = startTimesAttribute.array;
-        startTimes.fill(-1);
-        const timeS = performance.now()/1000;
-        let startTimesIndex = 0;
-        
-        for (const particle of groundWindParticles) {
-          const index = startTimesIndex++;
-          particle.position.toArray(positions, index * 3);
-          particle.quaternion.toArray(quaternions, index * 4);
-          startTimes[index] = particle.startTime;
-        }
-
-        positionsAttribute.needsUpdate = true;
-        quaternionsAttribute.needsUpdate = true;
-        startTimesAttribute.needsUpdate = true;
-        capsule.count = groundWindParticles.length;
-      };
-      _updateCapsule();
+      positionsAttribute.needsUpdate = true;
+      quaternionsAttribute.needsUpdate = true;
+      startTimesAttribute.needsUpdate = true;
+      capsule.count = capsuleParticles.length;
     };
 
     if (now >= nextGroundWindParticleTime) {
@@ -324,7 +351,7 @@ export default () => {
       const quaternion = new THREE.Quaternion()
         .setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(Math.random() * 2 - 1, 100, Math.random() * 2 - 1).normalize()
+          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize()
         )
         .premultiply(
           new THREE.Quaternion()
@@ -340,12 +367,37 @@ export default () => {
       // console.log('interval', groundWindParticles.length);
       nextGroundWindParticleTime = now + 30 + Math.random() * 100;
 
-      _updateAttributes();
+      _updateGroundWind();
+    }
+    if (now >= nextCapsuleParticleTime) {
+      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
+        .multiplyScalar(0.05);
+      const quaternion = new THREE.Quaternion()
+        .setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize()
+        )
+        .premultiply(
+          new THREE.Quaternion()
+            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2)
+        );
+      const startTime = performance.now()/1000;
+      const particle = new Particle(
+        position,
+        quaternion,
+        startTime
+      );
+      capsuleParticles.push(particle);
+      // console.log('interval', groundWindParticles.length);
+      nextCapsuleParticleTime = now + 100 + Math.random() * 50;
+
+      _updateCapsule();
     }
     
     if (localPlayer.avatar && kiGlbApp) {
       kiGlbApp.position.copy(localPlayer.position);
       kiGlbApp.position.y -= localPlayer.avatar.height;
+      kiGlbApp.position.y -= 0.1;
       /* localEuler.setFromQuaternion(localPlayer.quaternion);
       localEuler.x = 0;
       localEuler.z = 0;
