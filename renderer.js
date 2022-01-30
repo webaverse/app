@@ -44,6 +44,23 @@ function bindCanvas(c) {
   // renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // reload renderer WebGLInfo.reset function
+  // in order to continue chaning frames value
+  // in other case [.autoReset = false] it'll broke Avatars hair rendering [not sure why]
+
+  renderer.info.reset = () => {
+    renderer.info.render.frame++;
+  };
+  renderer.info.completeReset = () => {
+    renderer.info.render.calls = 0;
+    renderer.info.render.triangles = 0;
+    renderer.info.render.points = 0;
+    renderer.info.render.lines = 0;
+  };
+
+  //
+
   if (!canvas) {
     canvas = renderer.domElement;
   }

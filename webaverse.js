@@ -354,14 +354,16 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   render(timestamp, timeDiff) {
     const renderer = getRenderer();
+    renderer.info.completeReset();
+
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
     // frameEvent.data.lastTimestamp = timestamp;
-    
+
     // equipment panel render
     // equipmentRender.previewScene.add(world.lights);
     // equipmentRender.render();
@@ -371,7 +373,7 @@ export default class Webaverse extends EventTarget {
       rendererStats.update(renderer);
     }
   }
-  
+
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
@@ -381,6 +383,7 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
+
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 

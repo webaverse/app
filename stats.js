@@ -5,14 +5,14 @@
 
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer} = metaversefile;
+const { useLocalPlayer } = metaversefile;
 
 const localVector = new THREE.Vector3();
 
 export var Stats = function () {
 	// var msMin	= 100;
 	// var msMax	= 0;
-	var frames  = 0;
+	var frames = 0;
 	var beginTime = Date.now();
 	var lastTime = beginTime;
 	var localPlayer = useLocalPlayer();
@@ -29,23 +29,24 @@ export var Stats = function () {
 	msText.style.cssText = 'color:white;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
 	msText.innerHTML= 'Renderer Stats';
 	msDiv.appendChild( msText );
-	
+
 	var msTexts = [];
-	var nLines = 11;
+	var nLines = 12;
 	for(var i = 0; i < nLines; i++){
 		msTexts[i]	= document.createElement( 'div' );
 		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
-		msDiv.appendChild( msTexts[i] );		
+		msDiv.appendChild( msTexts[i] );
 		msTexts[i].innerHTML= '-';
 	}
 
+	var lastTime = Date.now();
 
-	var lastTime	= Date.now();
 	return {
 		domElement: container,
 
 		update: function(webGLRenderer){
-			frames++;
+
+            frames++;
 
 			var i = 0;
 
@@ -60,21 +61,22 @@ export var Stats = function () {
 				localVector.y = 0;
 				msTexts[i++].textContent = "HSpeed: " + localVector.length().toFixed(2);
 			}
-			
+
 			// Only update once per second
 	        if (Date.now() > lastTime + 1000) {
-				msTexts[i++].textContent = "FPS: " + Math.round((frames * 1000) / (Date.now() - lastTime));
-				msTexts[i++].textContent = "== Memory =====";
-				msTexts[i++].textContent = "Programs: "	+ webGLRenderer.info.programs.length;
-				msTexts[i++].textContent = "Geometries: " +webGLRenderer.info.memory.geometries;
-				msTexts[i++].textContent = "Textures: "	+ webGLRenderer.info.memory.textures;
+				msTexts[i++].textContent = `FPS: ${ Math.round((frames * 1000) / (Date.now() - lastTime)) }`;
+				msTexts[i++].textContent = '== Memory =====';
+				msTexts[i++].textContent = `Programs: ${ webGLRenderer.info.programs.length }`;
+				msTexts[i++].textContent = `Geometries: ${ webGLRenderer.info.memory.geometries }`;
+				msTexts[i++].textContent = `Textures: ${ webGLRenderer.info.memory.textures }`;
+                msTexts[i++].textContent = `Drawcalls: ${ webGLRenderer.info.render.calls }`;
 
-				// msTexts[i++].textContent = "== Render ======";
-				// msTexts[i++].textContent = "Calls: "	+ webGLRenderer.info.render.calls;
-				// msTexts[i++].textContent = "Triangles: "	+ webGLRenderer.info.render.triangles;
+				msTexts[i++].textContent = "== Render ======";
+				msTexts[i++].textContent = "Calls: "	+ webGLRenderer.info.render.calls;
+				msTexts[i++].textContent = "Triangles: "	+ webGLRenderer.info.render.triangles;
 				frames = 0;
-				lastTime	= Date.now();
+				lastTime = Date.now();
 			}
 		}
-	}	
+    }
 };
