@@ -465,6 +465,7 @@ const loadPromise = (async () => {
   };
   danceAnimations = {
     dansu: animations.find(a => a.isDancing),
+    powerup: animations.find(a => a.isPowerUp),
   };
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
