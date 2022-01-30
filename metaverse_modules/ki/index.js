@@ -1,10 +1,6 @@
 import * as THREE from 'three';
-// import Simplex from './simplex-noise.js';
 import metaversefile from 'metaversefile';
 const {useApp, useInternals, useFrame, useLocalPlayer, useLoaders, useMaterials} = metaversefile;
-
-// const localVector = new THREE.Vector3();
-// const simplex = new Simplex('lol');
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
