@@ -8,11 +8,14 @@ const {useApp, useFrame, useLocalPlayer, useMaterials} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
+const identityQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+
 export default () => {
   const app = useApp();
   const {WebaverseShaderMaterial} = useMaterials();
 
-  const count = 8;
+  const count = 32;
   const _getKiWindGeometry = geometry => {
     const geometry2 = new THREE.BufferGeometry();
     ['position', 'normal', 'uv'].forEach(k => {
@@ -22,13 +25,16 @@ export default () => {
     
     const positions = new Float32Array(count * 3);
     const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-    geometry.addAttribute('positions', positionsAttribute);
+    geometry2.setAttribute('positions', positionsAttribute);
     const quaternions = new Float32Array(count * 4);
+    for (let i = 0; i < count; i++) {
+      identityQuaternion.toArray(quaternions, i * 4);
+    }
     const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-    geometry.addAttribute('quaternions', quaternionsAttribute);
-    const enableds = new Float32Array(count);
-    const enabledsAttribute = new THREE.InstancedBufferAttribute(enableds, 1);
-    geometry.addAttribute('enableds', enabledsAttribute);
+    geometry2.setAttribute('quaternions', quaternionsAttribute);
+    const startTimes = new Float32Array(count);
+    const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
+    geometry2.setAttribute('startTimes', startTimesAttribute);
 
     return geometry2;
   };
@@ -51,9 +57,15 @@ export default () => {
         },
       },
       vertexShader: `\
+        attribute vec3 positions;
+        attribute vec4 quaternions;
+        attribute float startTimes;
         varying vec2 vUv;
+        varying float vStartTimes;
+
         void main() {
           vUv = uv; // vec2(uv.x, 1.-uv.y);
+          vStartTimes = startTimes;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -61,24 +73,28 @@ export default () => {
         uniform sampler2D uTex;
         uniform float uTime;
         varying vec2 vUv;
+        
+        varying float vStartTimes;
 
         float offset = 0.;
-        const float animationSpeed = 0.004;
+        const float animationSpeed = 3.;
 
         void main() {
-          vec2 uv = vUv;
-          // uv.y *= 2.;
-          uv.y += uTime * animationSpeed;
+          if (vStartTimes >= 0.) {
+            float t = uTime;
+            float timeDiff = t - vStartTimes;
 
-          int numSamples = 1;
-          for (int i = 0; i < numSamples; i++) {
-            vec2 uv2 = uv;
-            uv2.y += float(i) / float(numSamples);
-            // uv2.y /= float(numSamples);
-            // float f = 1.-min(max(1.-vUv.y, 0.), 1.);
-            vec4 c = texture2D(uTex, uv2);
+            vec2 uv = vUv;
+            // uv.y *= 2.;
+            uv.y += timeDiff * animationSpeed;
+            // uv.y *= 2.;
+
+            vec4 c = texture2D(uTex, uv);
+            c *= min(max(1.-pow(timeDiff*6., 2.), 0.), 1.) * 3.;
             // c.a = min(c.a, f);
-            gl_FragColor += c;
+            gl_FragColor = c;
+          } else {
+            discard;
           }
         }
       `,
@@ -134,23 +150,70 @@ export default () => {
   silkMesh.scale.copy(defaultScale);
   app.add(silkMesh); */
 
+  class Particle {
+    constructor(position, quaternion, startTime) {
+      this.position = position;
+      this.quaternion = quaternion;
+      this.startTime = startTime;
+    }
+  }
+  let particles = [];
+  setInterval(() => {
+    const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
+      .multiplyScalar(0.05);
+    const quaternion = new THREE.Quaternion()
+      .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+    const startTime = performance.now()/1000;
+    const particle = new Particle(
+      position,
+      quaternion,
+      startTime
+    );
+    particles.push(particle);
+    // console.log('interval', particles.length);
+  }, 300);
+
   // const timeOffset = Math.random() * 10;
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
     if (localPlayer.avatar && kiGlbApp) {
       kiGlbApp.position.copy(localPlayer.position);
       kiGlbApp.position.y -= localPlayer.avatar.height;
-      kiGlbApp.quaternion.copy(localPlayer.quaternion);
+      localEuler.setFromQuaternion(localPlayer.quaternion);
+      localEuler.x = 0;
+      localEuler.z = 0;
+      kiGlbApp.quaternion.setFromEuler(localEuler);
       kiGlbApp.updateMatrixWorld();
     }
     if (groundWind?.material.uniforms) {
-      groundWind.material.uniforms.uTime.value = timestamp;
+      groundWind.material.uniforms.uTime.value = timestamp/1000;
       groundWind.material.uniforms.uTime.needsUpdate = true;
 
-
+      // console.log('filter particles 0');
+      const startTimesAttribute = groundWind.geometry.attributes.startTimes;
+      // console.log('filter particles 1', groundWind.geometry.attributes);
+      const startTimes = startTimesAttribute.array;
+      // console.log('filter particles 2');
+      startTimes.fill(-1);
+      const now = performance.now()/1000;
+      // console.log('filter particles 3');
+      let startTimesIndex = 0;
+      particles = particles.filter(particle => {
+        const timeDiff = now - particle.startTime;
+        // console.log('got time diff', timeDiff);
+        if (timeDiff <= 1) {
+          startTimes[startTimesIndex++] = particle.startTime;
+          return true;
+        } else {
+          return false;
+        }
+      });
+      window.particles = particles;
+      window.startTimes = startTimes;
+      startTimesAttribute.needsUpdate = true;
     }
     if (capsule?.material.uniforms) {
-      capsule.material.uniforms.uTime.value = timestamp + 500;
+      capsule.material.uniforms.uTime.value = timestamp/1000;
       capsule.material.uniforms.uTime.needsUpdate = true;
     }
 
