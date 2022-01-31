@@ -110,6 +110,7 @@ function loadPhsxAuxCharacterCapsule() {
       physics: false,
     }
   );
+  physicsObject.name = 'characeterCapsuleAux';
   physicsManager.setGravityEnabled(physicsObject, false);
   physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
   physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
