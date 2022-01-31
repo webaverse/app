@@ -63,7 +63,7 @@ const localPlane = new THREE.Plane();
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
-VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
+/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
   return function(a, b) {
     const bone = _createSpringBone.apply(this, arguments);
@@ -72,7 +72,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     // const initialGravityPower = bone.gravityPower;
     
     const localPlayer = metaversefile.useLocalPlayer();
-    /* Object.defineProperty(bone, 'stiffnessForce', {
+    Object.defineProperty(bone, 'stiffnessForce', {
       get() {
         localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z);
         const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(localPlayer.characterPhysics.velocity.y)*0.5, 0), 4), 2);
@@ -85,11 +85,11 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
         return initialDragForce * 0.7;
       },
       set(v) {},
-    }); */
+    });
     
     return bone;
   };
-})(VRMSpringBoneImporter.prototype._createSpringBone);
+})(VRMSpringBoneImporter.prototype._createSpringBone); */
 
 function getFirstPersonCurves(vrmExtension) {
   if (vrmExtension) {
