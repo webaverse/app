@@ -60,13 +60,15 @@ function loadPhysxCharacterController() {
   const avatarHeight = this.avatar.height;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
   const contactOffset = 0.1/heightFactor * avatarHeight;
   const stepOffset = 0.5/heightFactor * avatarHeight;
 
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
+    
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
     this.characterController = null;
@@ -86,11 +88,14 @@ function loadPhsxAuxCharacterCapsule() {
   const avatarHeight = this.avatar.height;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
   const halfHeight = height/2;
 
+  const position = this.position.clone()
+    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
   const physicsObject = physicsManager.addCapsuleGeometry(
-    this.position,
+    position,
     localQuaternion.copy(this.quaternion)
       .premultiply(
         localQuaternion2.setFromAxisAngle(
@@ -109,7 +114,6 @@ function loadPhsxAuxCharacterCapsule() {
   physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
   physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
   this.physicsObject = physicsObject;
-  // console.log('character controller physics id', physicsObject.physicsId);
 }
 
 class PlayerHand extends THREE.Object3D {
@@ -1101,8 +1105,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     npcs.push(this);
   }
   updatePhysics(now, timeDiff) {
-    const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(now, timeDiffS);
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterPhysics.update(now, timeDiffS);
+    }
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1114,6 +1120,11 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
+
+      this.physicsObject.position.copy(this.position)
+        .add(new THREE.Vector3(0, -this.avatar.height/2, 0));
+      this.physicsObject.updateMatrixWorld();
+      physicsManager.setTransform(this.physicsObject);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);
