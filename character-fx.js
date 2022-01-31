@@ -1,19 +1,4 @@
 import * as THREE from 'three';
-/* import Avatar from './avatars/avatars.js';
-import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  narutoRunTimeFactor,
-} from './avatars/constants.js';
-import {
-  crouchMaxTime,
-} from './constants.js';
-import {
-  mod,
-  loadJson,
-  loadAudioBuffer,
-} from './util.js'; */
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {sceneLowPriority} from './renderer.js';
@@ -21,7 +6,6 @@ import {sceneLowPriority} from './renderer.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
 
 const _makeKiHairMaterial = () => {
   let wVertex = THREE.ShaderLib["standard"].vertexShader;
@@ -113,17 +97,6 @@ class CharacterFx {
 
     const timeS = timestamp/1000;
 
-    // window.avatar = this.player.avatar;
-    // const {object, vrmExtension} = this.player.avatar;
-    
-    /* const {parser} = object;
-    const {json} = parser;
-    const {nodes} = json;
-
-    const {secondaryAnimation} = vrmExtension;
-    const {boneGroups} = secondaryAnimation;
-    const {bones} = boneGroups; */
-
     const powerupAction = this.player.getAction('dance');
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
     const sssAction = this.player.getAction('sss');
@@ -148,7 +121,6 @@ class CharacterFx {
               const skinIndex = skinIndices[index * itemSize + j];
               const skinWeight = skinWeights[index * itemSize + j];
               if (skinWeight !== 0 && /hair/i.test(skeleton.bones[skinIndex].name)) {
-                // console.log('got', o.name, {attributes, skinIndices, skinWeights});
                 this.hairMeshes.push(o);
                 done = true;
                 break;
@@ -182,7 +154,6 @@ class CharacterFx {
       }
     };
     const _enableHairMeshes = () => {
-      // hairMesh.material = kiHairMaterial;
       for (const hairMesh of this.hairMeshes) {
         hairMesh.material = hairMesh.kiMaterial;
       }
