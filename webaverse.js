@@ -581,7 +581,6 @@ export default class Webaverse extends EventTarget {
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
   // mark: generate voxel map
-  window.meshPhysxs = [];
   const geometry = new THREE.BoxGeometry();
   geometry.scale(0.9, 0.9, 0.9);
   geometry.translate(0, -1.2, 0);
