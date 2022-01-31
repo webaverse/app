@@ -822,8 +822,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
-        if (object && !_isWear(object)) {
-          object.getWorldPosition(grabUseMesh.position);
+        const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+        // console.log('got object', physicsId, object);
+        if (object && !_isWear(object) && physicsObject) {
+          physicsObject.physicsMesh.getWorldPosition(grabUseMesh.position);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
