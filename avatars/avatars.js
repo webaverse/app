@@ -1110,7 +1110,7 @@ class Avatar {
       }
     };
     _recurseAllHairBones(skeleton.bones); */
-    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
+    /* const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === modelBones.Head) {
           return bone;
@@ -1119,7 +1119,7 @@ class Avatar {
       return null;
     }).filter(bone => bone);
     // this.allHairBones = allHairBones;
-    this.hairBones = hairBones;
+    this.hairBones = hairBones; */
     
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
