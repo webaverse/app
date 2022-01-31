@@ -63,7 +63,7 @@ const localPlane = new THREE.Plane();
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
-VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
+/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
   return function(a, b) {
     const bone = _createSpringBone.apply(this, arguments);
@@ -89,7 +89,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     
     return bone;
   };
-})(VRMSpringBoneImporter.prototype._createSpringBone);
+})(VRMSpringBoneImporter.prototype._createSpringBone); */
 
 function getFirstPersonCurves(vrmExtension) {
   if (vrmExtension) {
@@ -1110,7 +1110,7 @@ class Avatar {
       }
     };
     _recurseAllHairBones(skeleton.bones); */
-    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
+    /* const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === modelBones.Head) {
           return bone;
@@ -1119,7 +1119,7 @@ class Avatar {
       return null;
     }).filter(bone => bone);
     // this.allHairBones = allHairBones;
-    this.hairBones = hairBones;
+    this.hairBones = hairBones; */
     
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
@@ -2362,6 +2362,17 @@ class Avatar {
           );
 
       };
+      const _handleDefault = spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          lerpFn,
+          isPosition,
+        } = spec;
+        
+        _getHorizontalBlend(k, lerpFn, isPosition, dst);
+      };
       const _getApplyFn = () => {
         if (this.jumpState) {
           return spec => {
@@ -2414,21 +2425,33 @@ class Avatar {
           };
         }
 
-        if (this.danceState) {
+        if (this.danceTime > 0) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
+              lerpFn,
               // isTop,
               isPosition,
             } = spec;
 
+            _handleDefault(spec);
+
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const t2 = (timestamp/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            // console.log('dance time', this.danceTime, t2);
+            // dst.fromArray(v2);
+            const danceTimeS = this.danceTime/crouchMaxTime;
+            const f = Math.min(Math.max(danceTimeS, 0), 1);
+            lerpFn
+              .call(
+                dst,
+                localQuaternion.fromArray(v2),
+                f
+              );
 
             _clearXZ(dst, isPosition);
           };
@@ -2510,7 +2533,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         } */
-        if (this.jumpState) {
+        /* if (this.jumpState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2527,7 +2550,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.throwState) {
           return spec => {
             const {
@@ -2544,17 +2567,6 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        const _handleDefault = spec => {
-          const {
-            animationTrackName: k,
-            dst,
-            // isTop,
-            lerpFn,
-            isPosition,
-          } = spec;
-          
-          _getHorizontalBlend(k, lerpFn, isPosition, dst);
-        };
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
           return spec => {
