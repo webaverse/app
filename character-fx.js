@@ -104,7 +104,7 @@ class CharacterFx {
 
     this.kiMesh = null;
     this.hairMeshes = null;
-    this.lastPowerup = false;
+    this.lastSSS = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -126,6 +126,8 @@ class CharacterFx {
 
     const powerupAction = this.player.getAction('dance');
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
+    const sssAction = this.player.getAction('sss');
+    const isSSS = !!sssAction;
 
     const _initHairMeshes = () => {
       this.hairMeshes = [];
@@ -197,15 +199,15 @@ class CharacterFx {
       }
     };
     const _updateHair = () => {
-      if (isPowerup && !this.lastPowerup) {
+      if (isSSS && !this.lastSSS) {
         if (!this.hairMeshes) {
           _initHairMeshes();
         }
         _enableHairMeshes();
-      } else if (this.lastPowerup && !isPowerup) {
+      } else if (this.lastSSS && !isSSS) {
         _disableHairMeshes();
       }
-      if (isPowerup) {
+      if (isSSS) {
         for (const hairMesh of this.hairMeshes) {
           hairMesh.material.uniforms.iTime.value = timeS;
           hairMesh.material.uniforms.iTime.needsUpdate = true;
@@ -252,7 +254,7 @@ class CharacterFx {
     };
     _updateKiMesh();
 
-    this.lastPowerup = isPowerup;
+    this.lastSSS = isSSS;
   }
   destroy() {
     if (this.kiMesh) {
