@@ -72,7 +72,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     // const initialGravityPower = bone.gravityPower;
     
     const localPlayer = metaversefile.useLocalPlayer();
-    Object.defineProperty(bone, 'stiffnessForce', {
+    /* Object.defineProperty(bone, 'stiffnessForce', {
       get() {
         localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z);
         const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(localPlayer.characterPhysics.velocity.y)*0.5, 0), 4), 2);
@@ -85,7 +85,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
         return initialDragForce * 0.7;
       },
       set(v) {},
-    });
+    }); */
     
     return bone;
   };
