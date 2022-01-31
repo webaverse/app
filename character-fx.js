@@ -108,6 +108,7 @@ class CharacterFx {
         // console.log(o.name, o.isMesh);
         if (o.isSkinnedMesh) {
           const {geometry, skeleton} = o;
+          const skeletonBoneHariBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
           const {attributes, index: indexAttribute} = geometry;
           const indices = indexAttribute.array;
           const {skinIndex, skinWeight} = attributes;
@@ -120,7 +121,7 @@ class CharacterFx {
             for (let j = 0; j < itemSize; j++) {
               const skinIndex = skinIndices[index * itemSize + j];
               const skinWeight = skinWeights[index * itemSize + j];
-              if (skinWeight !== 0 && /hair/i.test(skeleton.bones[skinIndex].name)) {
+              if (skinWeight !== 0 && skeletonBoneHariBooleans[skinIndex]) {
                 this.hairMeshes.push(o);
                 done = true;
                 break;
