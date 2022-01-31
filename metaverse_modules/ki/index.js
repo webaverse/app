@@ -4,8 +4,11 @@ const {useApp, useInternals, useFrame, useLocalPlayer, useLoaders, useMaterials}
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
-const identityQuaternion = new THREE.Quaternion();
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+
+const identityQuaternion = new THREE.Quaternion();
 
 let kiGlbApp = null;
 const loadPromise = (async () => {
@@ -363,7 +366,108 @@ export default e => {
   let nextCapsuleParticleTime = 0;
   let nextAuraParticleTime = 0;
 
+  const _makeKiHairMaterial = () => {
+    let wVertex = THREE.ShaderLib["standard"].vertexShader;
+    let wFragment = THREE.ShaderLib["standard"].fragmentShader;
+    // let wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
+    let wUniforms = {
+      iTime: {
+        value: 0,
+        needsUpdate: false,
+      },
+      uHeadCenter: {
+        value: new THREE.Vector3(0, 0, 0),
+        needsUpdate: false,
+      },
+    };
+    /* wVertex = `\
+      attribute vec3 offset;
+      attribute vec4 orientation;
+  
+      vec3 applyQuaternionToVector(vec4 q, vec3 v){
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      }
+  
+    ` + wVertex;
+  
+    wVertex = wVertex.replace(`\
+      #include <project_vertex>
+      vec3 vPosition = applyQuaternionToVector(orientation, transformed);
+  
+      vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
+      
+    `); */
+    /* wFragment = `\
+      void main() {
+        gl_FragColor = vec4(1., 0., 0., 1.);
+      }
+    `; */
+    // console.log('got vertex', wVertex, wFragment);
+    wVertex = wVertex.replace(`#include <clipping_planes_pars_vertex>`, `\
+      #include <clipping_planes_pars_vertex>
+      varying vec2 vUv;
+      varying vec3 vWorldPosition;
+    `);
+    wVertex = wVertex.replace(`}`, `\
+        vUv = uv;
+      }
+    `);
+    wVertex = wVertex.replace(`#include <skinning_vertex>`, `\
+      #include <skinning_vertex>
+      vWorldPosition = transformed;
+    `);
+
+    wFragment = wFragment.replace(`#include <clipping_planes_pars_fragment>`, `\
+      #include <clipping_planes_pars_fragment>
+      uniform float iTime;
+      uniform vec3 uHeadCenter;
+      varying vec2 vUv;
+      varying vec3 vWorldPosition;
+    `);
+    wFragment = wFragment.replace(`}`, `\
+        gl_FragColor.rb = vUv;
+        
+        float distanceToCenter = length(vWorldPosition - uHeadCenter);
+        float glowRadius = -iTime * 0.08;
+        float distanceToGlowRadius = abs(distanceToCenter - glowRadius);
+        distanceToGlowRadius = mod(distanceToGlowRadius, 0.1);
+        if (distanceToGlowRadius < 0.01) {
+          gl_FragColor.rgb *= 3.;
+        }
+        gl_FragColor.rgb *= mod(iTime, 1.);
+      }
+    `);
+    /* const defaultUniforms = ['diffuse', 'emissive', 'roughness', 'metalness', 'opacity', 'ambientLightColor', 'lightProbe', 'directionalLights'];
+    for (const defaultUniform of defaultUniforms) {
+      wUniforms[defaultUniform] = {
+        value: null,
+        needsUpdate: false,
+      };
+    } */
+
+    // console.log('got fragment', wFragment);
+    const material = new THREE.ShaderMaterial({
+      uniforms: wUniforms,
+      /* defines: {
+        USE_LOGDEPTHBUF: '1',
+      }, */
+      vertexShader: wVertex,
+      fragmentShader: wFragment,
+      // lights: true,
+      // depthPacking: THREE.RGBADepthPacking,
+      // name: "detail-material",
+      // fog: true,
+      extensions: {
+        derivatives: true,
+      },
+      // side: THREE.DoubleSide,
+    });
+    return material;
+  };
+
   // const timeOffset = Math.random() * 10;
+  let hairMeshes = null;
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
     const now = timestamp;
@@ -467,6 +571,100 @@ export default e => {
       startTimesAttribute.needsUpdate = true;
       aura.count = auraParticles.length;
     };
+
+    if (localPlayer.avatar) {
+      // window.avatar = localPlayer.avatar;
+      const {object, vrmExtension} = localPlayer.avatar;
+      
+      /* const {parser} = object;
+      const {json} = parser;
+      const {nodes} = json;
+
+      const {secondaryAnimation} = vrmExtension;
+      const {boneGroups} = secondaryAnimation;
+      const {bones} = boneGroups; */
+
+      // const hairBoneBooleans = bones.map(bone => /hair/i.test(bone.name));
+      if (!object.kiDecorated) {
+        hairMeshes = [];
+        object.scene.traverse(o => {
+          // console.log(o.name, o.isMesh);
+          if (o.isSkinnedMesh) {
+            const {geometry, skeleton} = o;
+            const {attributes, index: indexAttribute} = geometry;
+            const indices = indexAttribute.array;
+            const {skinIndex, skinWeight} = attributes;
+            const skinIndices = skinIndex.array;
+            const skinWeights = skinWeight.array;
+            const {itemSize} = skinIndex;
+            let done = false;
+            for (let i = 0; i < indices.length; i++) {
+              const index = indices[i];
+              for (let j = 0; j < itemSize; j++) {
+                const skinIndex = skinIndices[index * itemSize + j];
+                const skinWeight = skinWeights[index * itemSize + j];
+                if (skinWeight !== 0 && /hair/i.test(skeleton.bones[skinIndex].name)) {
+                  // console.log('got', o.name, {attributes, skinIndices, skinWeights});
+                  hairMeshes.push(o);
+                  done = true;
+                  break;
+                }
+              }
+              if (done) {
+                break;
+              }
+            }
+          }
+        });
+        for (const hairMesh of hairMeshes) {
+          hairMesh.kiOriginalMaterial = hairMesh.material;
+          const kiHairMaterial = _makeKiHairMaterial(hairMesh.material);
+          hairMesh.material = kiHairMaterial;
+          for (const k in kiHairMaterial.uniforms) {
+            hairMesh.material.uniforms[k] = kiHairMaterial.uniforms[k];
+          }
+          hairMesh.material.defines = kiHairMaterial.defines;
+          hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
+          hairMesh.material.fragmentShader = kiHairMaterial.fragmentShader;
+          // console.log('got original', hairMesh.kiOriginalMaterial);
+        }
+        // object.hairMeshes = hairMeshes;
+        // console.log('got hair meshes', hairMeshes);
+        object.kiDecorated = true;
+      }
+      for (const hairMesh of hairMeshes) {
+        hairMesh.material.uniforms.iTime.value = timestamp/1000;
+        hairMesh.material.uniforms.iTime.needsUpdate = true;
+
+        hairMesh.material.uniforms.uHeadCenter.value.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld);
+        hairMesh.material.uniforms.uHeadCenter.needsUpdate = true;
+      }
+
+      /* if (!o.kiHairOriginalMaterial) {
+        o.kiHairOriginalMaterial = o.material;
+        o.material = kiHairMaterial;
+        console.log('replace hair', o);
+      } */
+
+      if (localPlayer.avatar.springBoneManager) {
+        /* if (window.gravityPower === undefined) {
+          window.gravityPower = -1;
+        } */
+        localPlayer.avatar.springBoneManager.springBoneGroupList[0].forEach(o => {
+          o.gravityDir.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld)
+            .sub(localVector.setFromMatrixPosition(o.bone.matrixWorld))
+            .normalize()
+            .lerp(localVector.set(0, 1, 0), 0.7)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(o.bone.matrixWorld));
+          const octave = Math.sin(timeS * Math.PI * 2 * 3) // +
+            // Math.sin(timeS * Math.PI * 2 * 4) +
+            // Math.sin(timeS * Math.PI * 2 * 8);
+          o.gravityPower = 1 + (1 + octave)*0.5 * 1.2;
+          // o.gravityDir.toArray().join(',');
+        });
+        localPlayer.avatar.springBoneTimeStep.update(timeDiff);
+      }
+    }
 
     if (now >= nextGroundWindParticleTime) {
       const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
