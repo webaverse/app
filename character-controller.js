@@ -54,16 +54,19 @@ function makeCancelFn() {
     },
   };
 }
+const heightFactor = 1.6;
+const baseRadius = 0.3;
 function loadPhysxCharacterController() {
   const avatarHeight = this.avatar.height;
-  const heightFactor = 1.6;
+  const radius = baseRadius/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
   const contactOffset = 0.1/heightFactor * avatarHeight;
   const stepOffset = 0.5/heightFactor * avatarHeight;
-  const radius = 0.3/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
+
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
     this.characterController = null;
@@ -78,32 +81,35 @@ function loadPhysxCharacterController() {
     physicsMaterial
   );
   this.characterControllerObject = new THREE.Object3D();
+}
+function loadPhsxAuxCharacterCapsule() {
+  const avatarHeight = this.avatar.height;
+  const radius = baseRadius/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+  const halfHeight = height/2;
 
-  const dynamic = !!(this.isRemotePlayer || this.isNpcPlayer);
-  if (dynamic) {
-    const halfHeight = height/2;
-    const physicsObject = physicsManager.addCapsuleGeometry(
-      this.position,
-      localQuaternion.copy(this.quaternion)
-        .premultiply(
-          localQuaternion2.setFromAxisAngle(
-            localVector.set(0, 0, 1),
-            Math.PI/2
-          )
-        ),
-      radius,
-      halfHeight,
-      physicsMaterial,
-      {
-        physics: false,
-      }
-    );
-    physicsManager.setGravityEnabled(physicsObject, false);
-    physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
-    physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
-    this.physicsObject = physicsObject;
-    // console.log('character controller physics id', physicsObject.physicsId);
-  }
+  const physicsObject = physicsManager.addCapsuleGeometry(
+    this.position,
+    localQuaternion.copy(this.quaternion)
+      .premultiply(
+        localQuaternion2.setFromAxisAngle(
+          localVector.set(0, 0, 1),
+          Math.PI/2
+        )
+      ),
+    radius,
+    halfHeight,
+    physicsMaterial,
+    {
+      physics: false,
+    }
+  );
+  physicsManager.setGravityEnabled(physicsObject, false);
+  physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
+  physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+  this.physicsObject = physicsObject;
+  // console.log('character controller physics id', physicsObject.physicsId);
 }
 
 class PlayerHand extends THREE.Object3D {
@@ -1089,6 +1095,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.characterPhysics = new CharacterPhysics(this);
     loadPhysxCharacterController.call(this);
+    loadPhsxAuxCharacterCapsule.call(this);
 
     const npcs = metaversefile.useNpcs();
     npcs.push(this);
