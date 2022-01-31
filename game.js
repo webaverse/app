@@ -613,7 +613,7 @@ const _gameInit = () => {
       const m = modules['button'];
       await grabUseMesh.addModule(m);
     })();
-    grabUseMesh.target = null;
+    grabUseMesh.targetApp = null;
     sceneLowPriority.add(grabUseMesh);
   }
 };
@@ -806,7 +806,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         grabUseMesh.quaternion.copy(camera.quaternion);
         grabUseMesh.updateMatrixWorld();
         // grabUseMesh.visible = true;
-        grabUseMesh.target = grabbedObject;
+        grabUseMesh.targetApp = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
@@ -828,7 +828,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
           //grabUseMesh.visible = true;
-          grabUseMesh.target = object;
+          grabUseMesh.targetApp = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
           const inRange = _updateActivateAnimation(grabUseMesh.position);
@@ -1208,8 +1208,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const currentActivated = v >= 1;
     
     if (currentActivated && !lastActivated) {
-      if (grabUseMesh.target) {
-        grabUseMesh.target.activate();
+      if (grabUseMesh.targetApp) {
+        grabUseMesh.targetApp.activate();
       }
       localPlayer.removeAction('activate');
     }
