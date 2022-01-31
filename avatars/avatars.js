@@ -2532,7 +2532,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         } */
-        if (this.jumpState) {
+        /* if (this.jumpState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2549,7 +2549,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (this.throwState) {
           return spec => {
             const {
