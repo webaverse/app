@@ -1488,14 +1488,14 @@ const textObject = (() => {
   return o;
 })();
 const skinnedRedMaterial = (() => {
-  var wVertex = THREE.ShaderLib["standard"].vertexShader;
-  var wFragment = THREE.ShaderLib["standard"].fragmentShader;
-  var wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
+  let wVertex = THREE.ShaderLib["standard"].vertexShader;
+  let wFragment = THREE.ShaderLib["standard"].fragmentShader;
+  let wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
   wUniforms.iTime = {
     value: 0,
     needsUpdate: false,
   };
-  wVertex = `\
+  /* wVertex = `\
     attribute vec3 offset;
     attribute vec4 orientation;
 
@@ -1512,7 +1512,7 @@ const skinnedRedMaterial = (() => {
     vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
     
-  `);
+  `); */
   wFragment = `\
     void main() {
       gl_FragColor = vec4(1., 0., 0., 1.);
