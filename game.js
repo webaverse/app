@@ -713,47 +713,57 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     let currentDistance = 100;
     let currentAnimation = "grab_forward";
-    let distance = 0;
 
     // Forward
-    localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    currentDistance = grabUseMeshPosition.distanceTo(localVector);
+    {
+      localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      currentDistance = distance;
+    }
 
     // Down
-    localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = "grab_down";
+    {
+      localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = "grab_down";
+      }
     }
 
     // Up
-    localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = "grab_up";
+    {
+      localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = "grab_up";
+      }
     }
 
     // Left
-    localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = "grab_left";
+    {
+      localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = "grab_left";
+      }
     }
     
     // Right
-    localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = "grab_right";
+    {
+      localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = "grab_right";
+      }
     }
 
     if (localPlayer.getAction('activate')) {
@@ -761,7 +771,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
 
     return (currentDistance < 0.8);
-
   };
 
   const _updateGrab = () => {
