@@ -388,30 +388,6 @@ export default e => {
         needsUpdate: false,
       },
     };
-    /* wVertex = `\
-      attribute vec3 offset;
-      attribute vec4 orientation;
-  
-      vec3 applyQuaternionToVector(vec4 q, vec3 v){
-        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-      }
-  
-    ` + wVertex;
-  
-    wVertex = wVertex.replace(`\
-      #include <project_vertex>
-      vec3 vPosition = applyQuaternionToVector(orientation, transformed);
-  
-      vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
-      
-    `); */
-    /* wFragment = `\
-      void main() {
-        gl_FragColor = vec4(1., 0., 0., 1.);
-      }
-    `; */
-    // console.log('got vertex', wVertex, wFragment);
     wVertex = wVertex.replace(`#include <clipping_planes_pars_vertex>`, `\
       #include <clipping_planes_pars_vertex>
       varying vec2 vUv;
@@ -458,26 +434,11 @@ export default e => {
         gl_FragColor.a = 1.;
       }
     `);
-    /* const defaultUniforms = ['diffuse', 'emissive', 'roughness', 'metalness', 'opacity', 'ambientLightColor', 'lightProbe', 'directionalLights'];
-    for (const defaultUniform of defaultUniforms) {
-      wUniforms[defaultUniform] = {
-        value: null,
-        needsUpdate: false,
-      };
-    } */
 
-    // console.log('got fragment', wFragment);
     const material = new THREE.ShaderMaterial({
       uniforms: wUniforms,
-      /* defines: {
-        USE_LOGDEPTHBUF: '1',
-      }, */
       vertexShader: wVertex,
       fragmentShader: wFragment,
-      // lights: true,
-      // depthPacking: THREE.RGBADepthPacking,
-      // name: "detail-material",
-      // fog: true,
       extensions: {
         derivatives: true,
       },
