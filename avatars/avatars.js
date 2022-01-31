@@ -2425,7 +2425,7 @@ class Avatar {
           };
         }
 
-        if (this.danceState) {
+        if (this.danceTime > 0) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2439,13 +2439,13 @@ class Avatar {
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
-            const danceTimeS = this.danceTime/1000;
-            const t2 = danceTimeS % danceAnimation.duration;
+            const t2 = (timestamp/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             // console.log('dance time', this.danceTime, t2);
             // dst.fromArray(v2);
-            const f = Math.min(Math.max(cubicBezier(danceTimeS), 0), 1);
+            const danceTimeS = this.danceTime/crouchMaxTime;
+            const f = Math.min(Math.max(danceTimeS, 0), 1);
             lerpFn
               .call(
                 dst,
