@@ -1613,16 +1613,23 @@ const gameManager = {
   },
   menuBDown(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('dance');
+    
+    const sssAction = localPlayer.getAction('sss');
+    if (!sssAction) {
+      const newSssAction = {
+        type: 'sss',
+      };
+      localPlayer.addAction(newSssAction);
 
-    const action = localPlayer.getAction('powerup');
-    if (!action) {
-      const newAction = {
+      localPlayer.removeAction('dance');
+      const newDanceAction = {
         type: 'dance',
         animation: 'powerup',
         // time: 0,
       };
-      localPlayer.addAction(newAction);
+      localPlayer.addAction(newDanceAction);
+    } else {
+      localPlayer.removeAction('sss');
     }
 
     /* if (e.ctrlKey) {

@@ -126,9 +126,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
-  rig.danceState = !!danceAction;
+  // rig.danceState = !!danceAction;
   rig.danceTime = player.actionInterpolants.dance.get();
-  rig.danceAnimation = danceAnimation;
+  if (danceAction) {
+    rig.danceAnimation = danceAnimation;
+  }
   rig.throwState = !!throwAction;
   rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
