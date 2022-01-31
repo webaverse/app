@@ -277,6 +277,8 @@ let animations;
 let animationStepIndices;
 let animationsBaseModel;
 let jumpAnimation;
+let fallLoopAnimation;
+let landingAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -436,6 +438,8 @@ const loadPromise = (async () => {
   }
 
   jumpAnimation = animations.find(a => a.isJump);
+  fallLoopAnimation = animations.index["fall_loop.fbx"];
+  landingAnimation = animations.index["falling_to_landing.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -964,6 +968,7 @@ class Emoter {
 
 class Avatar {
 	constructor(object, options = {}) {
+    this.previousTime = 0;
     if (!object) {
       object = {};
     }
@@ -2374,7 +2379,11 @@ class Avatar {
         _getHorizontalBlend(k, lerpFn, isPosition, dst);
       };
       const _getApplyFn = () => {
-        if (this.jumpState) {
+        if(this.previousTime > 0 && this.jumpTime === 0) {
+          console.log('LANDING');
+          this.landingState = true;
+        }
+        if (this.landingState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2383,8 +2392,40 @@ class Avatar {
             } = spec;
             // console.log('JumpState', spec)
 
+            this.jump=false;
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
-            const src2 = jumpAnimation.interpolants[k];
+            const src2 = landingAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+            setTimeout(()=>{
+              this.landingState=false;
+              this.previousTime = this.jumpTime;
+            }, this.previousTime);
+          };
+        }
+        if (this.jumpState) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              // isTop,
+            } = spec;
+            // console.log('JUMPING')
+
+            this.previousTime = this.jumpTime;
+            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
+            let src2;
+            // this.jump=true;
+   
+            if(this.jump) {
+              console.log('INITIAL JUMP');
+              src2 = jumpAnimation.interpolants[k];
+              this.jump=false;
+            } else {
+              console.log('FALLING');
+              src2 = fallLoopAnimation.interpolants[k];
+            }
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
