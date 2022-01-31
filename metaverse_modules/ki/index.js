@@ -379,6 +379,14 @@ export default e => {
         value: new THREE.Vector3(0, 0, 0),
         needsUpdate: false,
       },
+      color1: {
+        value: new THREE.Color(),
+        needsUpdate: false,
+      },
+      color2: {
+        value: new THREE.Color(),
+        needsUpdate: false,
+      },
     };
     /* wVertex = `\
       attribute vec3 offset;
@@ -422,20 +430,31 @@ export default e => {
       #include <clipping_planes_pars_fragment>
       uniform float iTime;
       uniform vec3 uHeadCenter;
+      uniform vec3 color1;
+      uniform vec3 color2;
       varying vec2 vUv;
       varying vec3 vWorldPosition;
+
+      // #define PI 3.1415926535897932384626433832795
     `);
     wFragment = wFragment.replace(`}`, `\
+        // float f = dot(vNormal, normalize(vec3(1.)));
+        // vec3 colorX = mix(color1, color2, f);
+        // vec3 colorY = mix(color1, color2, vUv.y);
+        // gl_FragColor.rgb = colorX * colorY;
+        // gl_FragColor.rgb = colorX;
         gl_FragColor.rb = vUv;
-        
+
         float distanceToCenter = length(vWorldPosition - uHeadCenter);
-        float glowRadius = -iTime * 0.08;
+        float glowRadius = iTime * 0.15;
         float distanceToGlowRadius = abs(distanceToCenter - glowRadius);
         distanceToGlowRadius = mod(distanceToGlowRadius, 0.1);
+        gl_FragColor.rgb *= 0.3;
         if (distanceToGlowRadius < 0.01) {
-          gl_FragColor.rgb *= 3.;
+          gl_FragColor.rgb *= 2.;
         }
-        gl_FragColor.rgb *= mod(iTime, 1.);
+        float glowFactor = 1. + sin(iTime * PI * 2. * 3.) * 0.5;
+        gl_FragColor.rgb *= 0.5 + glowFactor * 0.5;
       }
     `);
     /* const defaultUniforms = ['diffuse', 'emissive', 'roughness', 'metalness', 'opacity', 'ambientLightColor', 'lightProbe', 'directionalLights'];
@@ -620,16 +639,19 @@ export default e => {
           hairMesh.kiOriginalMaterial = hairMesh.material;
           const kiHairMaterial = _makeKiHairMaterial(hairMesh.material);
           hairMesh.material = kiHairMaterial;
+          
+          kiHairMaterial.uniforms.color1.value.setHex(0xfdeb44);
+          kiHairMaterial.uniforms.color1.needsUpdate = true;
+          kiHairMaterial.uniforms.color2.value.setHex(0xf6b01d);
+          kiHairMaterial.uniforms.color2.needsUpdate = true;
+
           for (const k in kiHairMaterial.uniforms) {
             hairMesh.material.uniforms[k] = kiHairMaterial.uniforms[k];
           }
           hairMesh.material.defines = kiHairMaterial.defines;
           hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
           hairMesh.material.fragmentShader = kiHairMaterial.fragmentShader;
-          // console.log('got original', hairMesh.kiOriginalMaterial);
         }
-        // object.hairMeshes = hairMeshes;
-        // console.log('got hair meshes', hairMeshes);
         object.kiDecorated = true;
       }
       for (const hairMesh of hairMeshes) {
@@ -640,27 +662,17 @@ export default e => {
         hairMesh.material.uniforms.uHeadCenter.needsUpdate = true;
       }
 
-      /* if (!o.kiHairOriginalMaterial) {
-        o.kiHairOriginalMaterial = o.material;
-        o.material = kiHairMaterial;
-        console.log('replace hair', o);
-      } */
-
       if (localPlayer.avatar.springBoneManager) {
-        /* if (window.gravityPower === undefined) {
-          window.gravityPower = -1;
-        } */
         localPlayer.avatar.springBoneManager.springBoneGroupList[0].forEach(o => {
-          o.gravityDir.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld)
-            .sub(localVector.setFromMatrixPosition(o.bone.matrixWorld))
+          o.gravityDir.setFromMatrixPosition(o.bone.matrixWorld)
+            .sub(localVector.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld))
             .normalize()
-            .lerp(localVector.set(0, 1, 0), 0.7)
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(o.bone.matrixWorld));
-          const octave = Math.sin(timeS * Math.PI * 2 * 3) // +
+            .lerp(localVector.set(0, 1, 0), 0.9)
+            // .applyQuaternion(localQuaternion.setFromRotationMatrix(o.bone.matrixWorld));
+          const octave = Math.sin(timeS * Math.PI * 2 * 4) // +
             // Math.sin(timeS * Math.PI * 2 * 4) +
             // Math.sin(timeS * Math.PI * 2 * 8);
-          o.gravityPower = 1 + (1 + octave)*0.5 * 1.2;
-          // o.gravityDir.toArray().join(',');
+          o.gravityPower = 0.4 + (1 + octave)*0.5 * 0.5;
         });
         localPlayer.avatar.springBoneTimeStep.update(timeDiff);
       }
