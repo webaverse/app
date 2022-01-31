@@ -2362,6 +2362,17 @@ class Avatar {
           );
 
       };
+      const _handleDefault = spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          lerpFn,
+          isPosition,
+        } = spec;
+        
+        _getHorizontalBlend(k, lerpFn, isPosition, dst);
+      };
       const _getApplyFn = () => {
         if (this.jumpState) {
           return spec => {
@@ -2419,16 +2430,27 @@ class Avatar {
             const {
               animationTrackName: k,
               dst,
+              lerpFn,
               // isTop,
               isPosition,
             } = spec;
+
+            _handleDefault(spec);
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
             const t2 = (this.danceTime/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            // console.log('dance time', this.danceTime, t2);
+            // dst.fromArray(v2);
+            const f = Math.min(Math.max(cubicBezier(t2), 0), 1);
+            lerpFn
+              .call(
+                dst,
+                localQuaternion.fromArray(v2),
+                f
+              );
 
             _clearXZ(dst, isPosition);
           };
@@ -2544,17 +2566,6 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        const _handleDefault = spec => {
-          const {
-            animationTrackName: k,
-            dst,
-            // isTop,
-            lerpFn,
-            isPosition,
-          } = spec;
-          
-          _getHorizontalBlend(k, lerpFn, isPosition, dst);
-        };
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
           return spec => {
