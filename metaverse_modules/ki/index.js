@@ -675,7 +675,6 @@ export default e => {
             // Math.sin(timeS * Math.PI * 2 * 8);
           o.gravityPower = 0.4 + (1 + octave)*0.5 * 0.5;
         });
-        localPlayer.avatar.springBoneTimeStep.update(timeDiff);
       }
     }
 
