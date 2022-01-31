@@ -36,14 +36,6 @@ const _makeKiHairMaterial = () => {
       value: new THREE.Vector3(0, 0, 0),
       needsUpdate: false,
     },
-    color1: {
-      value: new THREE.Color(),
-      needsUpdate: false,
-    },
-    color2: {
-      value: new THREE.Color(),
-      needsUpdate: false,
-    },
   };
   wVertex = wVertex.replace(`#include <clipping_planes_pars_vertex>`, `\
     #include <clipping_planes_pars_vertex>
@@ -63,8 +55,6 @@ const _makeKiHairMaterial = () => {
     #include <clipping_planes_pars_fragment>
     uniform float iTime;
     uniform vec3 uHeadCenter;
-    uniform vec3 color1;
-    uniform vec3 color2;
     varying vec2 vUv;
     varying vec3 vWorldPosition;
 
@@ -173,10 +163,10 @@ class CharacterFx {
         const kiHairMaterial = _makeKiHairMaterial();
         hairMesh.kiMaterial = kiHairMaterial;
         
-        kiHairMaterial.uniforms.color1.value.setHex(0xfdeb44);
+        /* kiHairMaterial.uniforms.color1.value.setHex(0xfdeb44);
         kiHairMaterial.uniforms.color1.needsUpdate = true;
         kiHairMaterial.uniforms.color2.value.setHex(0xf6b01d);
-        kiHairMaterial.uniforms.color2.needsUpdate = true;
+        kiHairMaterial.uniforms.color2.needsUpdate = true; */
 
         /* hairMesh.material.defines = kiHairMaterial.defines;
         hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
