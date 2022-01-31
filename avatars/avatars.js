@@ -2439,12 +2439,13 @@ class Avatar {
 
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const danceTimeS = this.danceTime/1000;
+            const t2 = danceTimeS % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
             // console.log('dance time', this.danceTime, t2);
             // dst.fromArray(v2);
-            const f = Math.min(Math.max(cubicBezier(t2), 0), 1);
+            const f = Math.min(Math.max(cubicBezier(danceTimeS), 0), 1);
             lerpFn
               .call(
                 dst,
