@@ -1630,6 +1630,7 @@ const gameManager = {
       localPlayer.addAction(newDanceAction);
     } else {
       localPlayer.removeAction('sss');
+      localPlayer.removeAction('dance');
     }
 
     /* if (e.ctrlKey) {
