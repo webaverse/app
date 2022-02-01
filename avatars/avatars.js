@@ -755,6 +755,8 @@ const _makeDebugMesh = () => {
 
     const _recurse = meshBone => {
       const nameBuffer = textEncoder.encode(meshBone.name);
+      const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
+      buffers.push(nameBufferLengthBuffer);
       buffers.push(nameBuffer);
 
       const transformBuffer = new Float32Array(10);
