@@ -540,11 +540,6 @@ const _findBoneDeep = (bones, boneName) => {
 }; */
 
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-  /* .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
-    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)))
-  ); */
-// const cubeGeometryPositions = cubeGeometry.attributes.position.array;
-// const numCubeGeometryPositions = cubeGeometryPositions.length;
 const srcCubeGeometries = {};
 const debugMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
@@ -552,28 +547,16 @@ const debugMeshMaterial = new THREE.MeshNormalMaterial({
   depthTest: false,
 });
 const _makeDebugMesh = () => {
-  // const geometries = [];
   const baseScale = 0.01;
   const fingerScale = 0.5;
   const _makeCubeMesh = (name, scale = 1) => {
-    // color = new THREE.Color(color);
-
     let srcGeometry = srcCubeGeometries[scale];
     if (!srcGeometry) {
       srcGeometry = cubeGeometry.clone()
         .applyMatrix4(localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
-        // .applyMatrix4(localMatrix.makeTranslation(0, 1*0.5, 0));
       srcCubeGeometries[scale] = srcGeometry;
     }
     const geometry = srcGeometry//.clone();
-    /* const colors = new Float32Array(cubeGeometry.attributes.position.array.length);
-    for (let i = 0; i < colors.length; i += 3) {
-      color.toArray(colors, i);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); */
-    /* const index = geometries.length;
-    geometries.push(geometry);
-    return [index, srcGeometry]; */
     const object = new THREE.Object3D();
     object.name = name;
     const mesh = new THREE.Mesh(geometry, debugMeshMaterial);
@@ -726,30 +709,14 @@ const _makeDebugMesh = () => {
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
-      // if (k !== 'Root') {
-        /* const a = modelBone.getWorldPosition(new THREE.Vector3());
 
-        const parent = (() => {
-          for (let parent = modelBone.parent; parent; parent = parent.parent) {
-            if (modelBoneOutputsArray.indexOf(parent) !== -1) {
-              return parent;
-            }
-          }
-          return null;
-        })();
-
-        const b = parent.getWorldPosition(new THREE.Vector3()); */
-
-        // console.log('got pos', b.clone().sub(a).toArray().join(','));
-
-        modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-          localMatrix.lookAt(
-            localVector.set(0, 0, 0),
-            modelBone.position,
-            localVector2.set(0, 1, 0)
-          )
-        );
-      // }
+      modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+        localMatrix.lookAt(
+          localVector.set(0, 0, 0),
+          modelBone.position,
+          localVector2.set(0, 1, 0)
+        )
+      );
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
     }
   };
@@ -758,36 +725,28 @@ const _makeDebugMesh = () => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
-      // if (modelBone !== avatar.modelBoneOutputs.Root) {
-        (modelBone.parent ?
-          modelBone.parent.matrixWorld
-        :
-          localMatrix.identity()
-        ).decompose(localVector, localQuaternion, localVector2);
+      (modelBone.parent ?
+        modelBone.parent.matrixWorld
+      :
+        localMatrix.identity()
+      ).decompose(localVector, localQuaternion, localVector2);
 
-        localVector.add(
-          localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
-            .applyQuaternion(modelBone.forwardQuaternion)
-            .applyQuaternion(localQuaternion)
-        );
+      localVector.add(
+        localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
+          .applyQuaternion(modelBone.forwardQuaternion)
+          .applyQuaternion(localQuaternion)
+      );
 
-        localQuaternion.multiply(
-          modelBone.forwardQuaternion
-        );
+      localQuaternion.multiply(
+        modelBone.forwardQuaternion
+      );
 
-        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        meshBone.matrix.copy(meshBone.matrixWorld);
-        if (meshBone.parent) {
-          meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
-        }
-        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-      /* } else {
-        meshBone.position.copy(modelBone.position);
-        meshBone.quaternion.copy(modelBone.quaternion);
-        meshBone.scale.copy(modelBone.scale);
-        meshBone.matrix.copy(modelBone.matrix);
-        meshBone.matrixWorld.copy(modelBone.matrixWorld);
-      } */
+      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      meshBone.matrix.copy(meshBone.matrixWorld);
+      if (meshBone.parent) {
+        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
+      }
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
     mesh.updateMatrixWorld();
   };
