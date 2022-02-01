@@ -1,11 +1,21 @@
 /* utils to bind players to their avatars
 set the avatar state from the player state */
 
+import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {unFrustumCull, enableShadows} from './util.js';
+import {
+  getEyePosition,
+} from './avatars/util.mjs';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
+const maxMirrorDistanace = 3;
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localPlane = new THREE.Plane();
 
 export function applyPlayerTransformsToAvatar(player, session, rig) {
   if (!session) {
@@ -116,9 +126,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
-  rig.danceState = !!danceAction;
+  // rig.danceState = !!danceAction;
   rig.danceTime = player.actionInterpolants.dance.get();
-  rig.danceAnimation = danceAnimation;
+  if (danceAction) {
+    rig.danceAnimation = danceAnimation;
+  }
   rig.throwState = !!throwAction;
   rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
@@ -156,6 +168,42 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // pose
   rig.poseAnimation = poseAction?.animation || null;
+}
+// returns whether eyes were applied
+export function applyPlayerEyesToAvatar(player, rig) {
+  if (player.eyeballTargetEnabled) {
+    rig.eyeballTarget.copy(player.eyeballTarget);
+    rig.eyeballTargetEnabled = true;
+    return true;
+  } else {
+    rig.eyeballTargetEnabled = false;
+    return false;
+  }
+}
+export function applyMirrorsToAvatar(player, rig, mirrors) {
+  rig.eyeballTargetEnabled = false;
+
+  const closestMirror = mirrors.sort((a, b) => {
+    const aDistance = player.position.distanceTo(a.position);
+    const bDistance = player.position.distanceTo(b.position);
+    return aDistance - bDistance;
+  })[0];
+  if (closestMirror) {
+    // console.log('player bind mirror', closestMirror);
+    const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
+
+    if (mirrorPosition.distanceTo(player.position) < maxMirrorDistanace) {
+      const eyePosition = getEyePosition(rig.modelBones);
+      localPlane
+        .setFromNormalAndCoplanarPoint(
+          localVector.set(0, 0, 1)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
+          mirrorPosition
+        )
+        .projectPoint(eyePosition, rig.eyeballTarget);
+      rig.eyeballTargetEnabled = true;
+    }
+  }
 }
 export function applyPlayerChatToAvatar(player, rig) {
   const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
@@ -201,11 +249,12 @@ export function applyPlayerChatToAvatar(player, rig) {
   };
   _applyFakeSpeech(lastMessage);
 }
-export function applyPlayerToAvatar(player, session, rig) {
+export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
+  applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   applyPlayerChatToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {

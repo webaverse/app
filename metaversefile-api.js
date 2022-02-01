@@ -7,6 +7,7 @@ metaversfile can load many file types, including javascript.
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
@@ -26,14 +27,15 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
-import * as postProcessing from './post-processing.js';
+import postProcessing from './post-processing.js';
 // import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
-import soundManager from './sound-manager.js';
+import * as avatarCruncher from './avatar-cruncher.js';
+import * as avatarSpriter from './avatar-spriter.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
@@ -52,6 +54,7 @@ class App extends THREE.Object3D {
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
+    this.appType = 'script';
     this.lastMatrix = new THREE.Matrix4();
   }
   getComponent(key) {
@@ -147,6 +150,7 @@ const localPlayer = new LocalPlayer({
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
+const npcs = [];
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -189,7 +193,7 @@ function createPointerEvents(store) {
     onPointerMove: 'pointermove',
     onPointerCancel: 'pointercancel',
     onLostPointerCapture: 'lostpointercapture',
-  }
+  };
 
   return {
     connected: false,
@@ -235,10 +239,28 @@ const _dracoLoader = _memoize(() => {
   dracoLoader.setDecoderPath('/three/draco/');
   return dracoLoader;
 });
+const _ktx2Loader = _memoize(() => {
+  const ktx2Loader = new KTX2Loader();
+  ktx2Loader.load = (_load => function load() {
+    if (!this.workerConfig) {
+      const renderer = getRenderer();
+      this.detectSupport(renderer);
+    }
+    return _load.apply(this, arguments);
+  })(ktx2Loader.load);
+  ktx2Loader.setTranscoderPath('/three/basis/');
+  return ktx2Loader;
+});
 const _gltfLoader = _memoize(() => {
   const gltfLoader = new GLTFLoader();
-  const dracoLoader = _dracoLoader();
-  gltfLoader.setDRACOLoader(dracoLoader);
+  {
+    const dracoLoader = _dracoLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+  }
+  {
+    const ktx2Loader = _ktx2Loader();
+    gltfLoader.setKTX2Loader(ktx2Loader);
+  }
   return gltfLoader;
 });
 const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
@@ -249,6 +271,9 @@ const _voxLoader = _memoize(() => new VOXLoader({
 const loaders = {
   get dracoLoader() {
     return _dracoLoader();
+  },
+  get ktx2Loader() {
+    return _ktx2Loader();
   },
   get gltfLoader() {
     return _gltfLoader();
@@ -311,6 +336,7 @@ let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
+const mirrors = [];
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -353,6 +379,18 @@ metaversefile.setApi({
   usePostPerspectiveScene() {
     return postScenePerspective;
   },
+  getMirrors() {
+    return mirrors;
+  },
+  registerMirror(mirror) {
+    mirrors.push(mirror);
+  },
+  unregisterMirror(mirror) {
+    const index = mirrors.indexOf(mirror);
+    if (index !== -1) {
+      mirrors.splice(index, 1);
+    }
+  },
   useWorld() {
     return {
       appManager: world.appManager,
@@ -370,8 +408,11 @@ metaversefile.setApi({
       },
     };
   },
-  useSoundManager() {
-    return soundManager;
+  useAvatarCruncher() {
+    return avatarCruncher;
+  },
+  useAvatarSpriter() {
+    return avatarSpriter;
   },
   usePostProcessing() {
     return postProcessing;
@@ -452,6 +493,9 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(remotePlayers.values());
   },
+  useNpcs() {
+     return npcs;
+  },
   useLoaders() {
     return loaders;
   },
@@ -496,7 +540,7 @@ metaversefile.setApi({
 
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, flags) {
         // const basePosition = position;
         // const baseQuaternion = quaternion;
         // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -510,7 +554,7 @@ metaversefile.setApi({
         // quaternion = localQuaternion;
         //size = localVector2;
         
-        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
+        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, flags);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
@@ -729,10 +773,10 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', type = '', /*components = [], */in_front = false} = {}) {
+  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
     const app = new App();
     // app.name = name;
-    app.type = type;
+    // app.type = type;
     app.contentId = start_url;
     // app.components = components;
     if (in_front) {
@@ -803,9 +847,24 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+    const npcs = metaversefile.useNpcs();
+    let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
+    if (result) {
+      return result;
+    } else {
+      let remotePhysicsObject = null;
+      remotePlayers.some(remotePlayer => {
+        const physicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments);
+        if (physicsObject) {
+          remotePhysicsObject = physicsObject;
+          return true;
+        } else {
+          return false;
+        }
+      })
+      return remotePhysicsObject;
+    }
   },
   getAvatarHeight(obj) {
     return getHeight(obj);

@@ -14,6 +14,7 @@ import {world} from './world.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
 import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
+import physicsManager from './physics-manager.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
@@ -50,7 +51,6 @@ ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
-ioManager.debugMode = false;
 
 ioManager.keys = {
   up: false,
@@ -237,11 +237,10 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0) {
+    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff),
-          timeDiff
+          .multiplyScalar(game.getSpeed() * timeDiff)
       );
     }
   }
@@ -278,6 +277,22 @@ ioManager.keydown = e => {
   if (_inputFocused() || e.repeat) {
     return;
   }
+
+  // HACK: these keybindings control developer avatar animation offset settings in avatars.js
+  /* if (e.which === 74) {
+    window.lol -= 0.01;
+    console.log(window.lol);
+  } else if (e.which === 75) {
+    window.lol += 0.01;
+    console.log(window.lol);
+  } else if (e.which === 78) {
+    window.lol2 += 0.01;
+    console.log(window.lol2);
+  } else if (e.which === 77) {
+    window.lol2 += 0.01;
+    console.log(window.lol2);
+  } */
+
   switch (e.which) {
     /* case 9: { // tab
       e.preventDefault();
@@ -551,8 +566,7 @@ ioManager.keydown = e => {
       break;
     }
     case 72: { // H
-      game.toggleDebug(ioManager.debugMode);
-      ioManager.debugMode = !ioManager.debugMode;
+      game.toggleDebug(!game.debugMode);
       break;
     }
   }
@@ -858,9 +872,11 @@ ioManager.bindInput = () => {
   }); */
   window.addEventListener('wheel', e => {
     // console.log('target', e.target);
-    const renderer = getRenderer();
-    if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
-      cameraManager.handleWheelEvent(e);
+    if (physicsManager.getPhysicsEnabled()) {
+      const renderer = getRenderer();
+      if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
+        cameraManager.handleWheelEvent(e);
+      }
     }
   }, {
     passive: false,
