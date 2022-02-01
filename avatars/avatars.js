@@ -2166,11 +2166,11 @@ class Avatar {
     _updatePosition();
     
     const _applyAnimation = () => {
-      const runSpeed = 0.5;
+      // const runSpeed = 0.5;
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
-      const _getAnimationKey = crouchState => {
+      /* const _getAnimationKey = crouchState => {
         if (crouchState) {
           return 'crouch';
         } else {
@@ -2180,7 +2180,7 @@ class Avatar {
             return 'walk';
           }
         }
-      };
+      }; */
       const _getMirrorAnimationAngles = (animationAngles, key) => {
         const animations = animationAngles.map(({animation}) => animation);
         const animationAngleArrayMirror = animationsAngleArraysMirror[key];
