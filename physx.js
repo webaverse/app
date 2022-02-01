@@ -1412,7 +1412,20 @@ const physxWorker = (() => {
       positions: positions,
       faces: faces
     }
-  }
+  };
+
+  w.createSkeleton = (physics, skeletonBuffer) => {
+    const allocator = new Allocator();
+    const skeletonBufferInner = allocator.alloc(Uint8Array, skeletonBuffer.byteLength);
+    
+    skeletonBufferInner.set(new Uint8Array(skeletonBuffer.buffer, skeletonBuffer.byteOffset, skeletonBuffer.byteLength));
+
+    moduleInstance._createSkeleton(
+      physics,
+      skeletonBufferInner.byteOffset
+    );
+    allocator.freeAll();
+  };
 
   return w;
 })();

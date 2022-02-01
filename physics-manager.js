@@ -285,6 +285,8 @@ physicsManager.simulatePhysics = timeDiff => {
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
 
+physicsManager.createSkeleton = skeletonBuffer => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer);
+
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
