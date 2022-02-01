@@ -7,7 +7,11 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-import {angleDifference, getVelocityDampingFactor} from '../util.js';
+import {
+  angleDifference,
+  // getVelocityDampingFactor,
+  getNextPhysicsId,
+} from '../util.js';
 import easing from '../easing.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
@@ -34,7 +38,7 @@ import {
   getSkeleton,
   getEyePosition,
   getHeight,
-  makeBoneMap,
+  // makeBoneMap,
   getTailBones,
   getModelBones,
   // cloneModelBones,
@@ -754,6 +758,10 @@ const _makeDebugMesh = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
+      const id = getNextPhysicsId();
+      const idBuffer = Uint32Array.from([id]);
+      buffers.push(idBuffer);
+
       const nameBuffer = textEncoder.encode(meshBone.name);
       const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
       buffers.push(nameBufferLengthBuffer);
