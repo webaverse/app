@@ -773,10 +773,11 @@ const _makeDebugMesh = () => {
       meshBone.scale.toArray(transformBuffer, 7);
       buffers.push(transformBuffer);
 
-      const numChildrenBuffer = Uint32Array.from([meshBone.children]);
+      const objectChildren = meshBone.children.filter(child => !child.isMesh);
+      const numChildrenBuffer = Uint32Array.from([objectChildren.length]);
       buffers.push(numChildrenBuffer);
 
-      for (const child of meshBone.children) {
+      for (const child of objectChildren) {
         _recurse(child);
       }
     };
