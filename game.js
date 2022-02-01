@@ -1413,6 +1413,7 @@ const gameManager = {
   closestObject: null,
   usableObject: null,
   hoverEnabled: false,
+  debugMode: false,
   getMenu() {
     return this.menuOpen;
   },
@@ -1675,11 +1676,8 @@ const gameManager = {
     }
   },
   toggleDebug(debugMode) {
-    if(debugMode) {
-      document.getElementById('statsBox').style.display = 'none';
-    } else {
-      document.getElementById('statsBox').style.display = 'block';
-    }
+    document.getElementById('statsBox').style.display = debugMode ? null : 'none';
+    this.debugMode = debugMode;
   },
   isFlying() {
     return metaversefileApi.useLocalPlayer().hasAction('fly');

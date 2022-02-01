@@ -51,7 +51,6 @@ ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
-ioManager.debugMode = false;
 
 ioManager.keys = {
   up: false,
@@ -567,8 +566,7 @@ ioManager.keydown = e => {
       break;
     }
     case 72: { // H
-      game.toggleDebug(ioManager.debugMode);
-      ioManager.debugMode = !ioManager.debugMode;
+      game.toggleDebug(!game.debugMode);
       break;
     }
   }
