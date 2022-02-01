@@ -841,9 +841,28 @@ export default () => {
   getAppByPhysicsId() {
     const localPlayer = metaversefile.useLocalPlayer();
     const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
+    const result = world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
       remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
+    if (result) {
+      return result;
+    } else {
+      if (window.debugMeshes) {
+        let debugMeshPhysicsObject = null;
+        window.debugMeshes.some(debugMesh => {
+          const object = debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
+          if (object) {
+            debugMeshPhysicsObject = object;
+            return true;
+          } else {
+            return false;
+          }
+        });
+        return debugMeshPhysicsObject;
+      } else { 
+        return null;
+      }
+    }
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
@@ -854,7 +873,7 @@ export default () => {
       return result;
     } else {
       let remotePhysicsObject = null;
-      remotePlayers.some(remotePlayer => {
+      if (remotePlayers.some(remotePlayer => {
         const physicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments);
         if (physicsObject) {
           remotePhysicsObject = physicsObject;
@@ -862,8 +881,25 @@ export default () => {
         } else {
           return false;
         }
-      })
-      return remotePhysicsObject;
+      })) {
+        return remotePhysicsObject;
+      } else {
+        if (window.debugMeshes) {
+          let debugMeshPhysicsObject = null;
+          window.debugMeshes.some(debugMesh => {
+            const object = debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
+            if (object) {
+              debugMeshPhysicsObject = object;
+              return true;
+            } else {
+              return false;
+            }
+          });
+          return debugMeshPhysicsObject;
+        } else { 
+          return null;
+        }
+      }
     }
   },
   getAvatarHeight(obj) {

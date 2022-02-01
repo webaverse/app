@@ -270,6 +270,8 @@ physicsManager.simulatePhysics = timeDiff => {
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
+        // XXX make this based on setting the matrix world instead of position
+        // that means that the debug meshes bones need to be flattened
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
@@ -277,7 +279,9 @@ physicsManager.simulatePhysics = timeDiff => {
         physicsObject.collided = collided;
         physicsObject.grounded = grounded;
       } /* else {
-        console.warn('failed to get physics object', id);
+        if (id !== 0) {
+          console.warn('failed to get physics object', id);
+        }
       } */
     }
   }

@@ -67,6 +67,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
 const textEncoder = new TextEncoder();
+window.debugMeshes = [];
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
@@ -555,6 +556,7 @@ const debugMeshMaterial = new THREE.MeshNormalMaterial({
 const _makeDebugMesh = () => {
   const baseScale = 0.01;
   const fingerScale = 0.5;
+  const physicsIdToMeshBoneMap = new Map();
   const _makeCubeMesh = (name, scale = 1) => {
     let srcGeometry = srcCubeGeometries[scale];
     if (!srcGeometry) {
@@ -562,13 +564,17 @@ const _makeDebugMesh = () => {
         .applyMatrix4(localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
       srcCubeGeometries[scale] = srcGeometry;
     }
-    const geometry = srcGeometry//.clone();
+    const geometry = srcGeometry;
+
     const object = new THREE.Object3D();
     object.name = name;
     object.physicsId = getNextPhysicsId();
-    const mesh = new THREE.Mesh(geometry, debugMeshMaterial);
-    object.add(mesh);
-    object.mesh = mesh;
+    physicsIdToMeshBoneMap.set(object.physicsId, object);
+
+    const physicsMesh = new THREE.Mesh(geometry, debugMeshMaterial);
+    object.add(physicsMesh);
+    object.physicsMesh = physicsMesh;
+
     return object;
   };
   const attributes = {
@@ -707,7 +713,7 @@ const _makeDebugMesh = () => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
       const l = k !== 'Root' ? modelBone.position.length() : 0;
-      meshBone.mesh.scale.z = l;
+      meshBone.physicsMesh.scale.z = l;
     }
 
     const modelBoneOutputsArray = Object.keys(avatar.modelBoneOutputs).map(k => avatar.modelBoneOutputs[k]);
@@ -725,35 +731,38 @@ const _makeDebugMesh = () => {
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
     }
   };
+  let detached = false;
   mesh.setFromAvatar = avatar => {
-    for (const k in avatar.modelBoneOutputs) {
-      const modelBone = avatar.modelBoneOutputs[k];
-      const meshBone = modelBoneToMeshBoneMap.get(modelBone);
+    if (!detached) {
+      for (const k in avatar.modelBoneOutputs) {
+        const modelBone = avatar.modelBoneOutputs[k];
+        const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
-      (modelBone.parent ?
-        modelBone.parent.matrixWorld
-      :
-        localMatrix.identity()
-      ).decompose(localVector, localQuaternion, localVector2);
+        (modelBone.parent ?
+          modelBone.parent.matrixWorld
+        :
+          localMatrix.identity()
+        ).decompose(localVector, localQuaternion, localVector2);
 
-      localVector.add(
-        localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
-          .applyQuaternion(modelBone.forwardQuaternion)
-          .applyQuaternion(localQuaternion)
-      );
+        localVector.add(
+          localVector3.set(0, 0, -meshBone.physicsMesh.scale.z*0.5)
+            .applyQuaternion(modelBone.forwardQuaternion)
+            .applyQuaternion(localQuaternion)
+        );
 
-      localQuaternion.multiply(
-        modelBone.forwardQuaternion
-      );
+        localQuaternion.multiply(
+          modelBone.forwardQuaternion
+        );
 
-      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-      meshBone.matrix.copy(meshBone.matrixWorld);
-      if (meshBone.parent) {
-        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
+        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+        meshBone.matrix.copy(meshBone.matrixWorld);
+        if (meshBone.parent) {
+          meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
+        }
+        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
-      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+      mesh.updateMatrixWorld();
     }
-    mesh.updateMatrixWorld();
   };
   mesh.serializeSkeleton = () => {
     const buffers = [];
@@ -768,9 +777,10 @@ const _makeDebugMesh = () => {
       buffers.push(nameBuffer);
 
       const transformBuffer = new Float32Array(10);
-      meshBone.position.toArray(transformBuffer, 0);
-      meshBone.quaternion.toArray(transformBuffer, 3);
-      meshBone.scale.toArray(transformBuffer, 7);
+      meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector.toArray(transformBuffer, 0);
+      localQuaternion.toArray(transformBuffer, 3);
+      meshBone.physicsMesh.scale.toArray(transformBuffer, 7);
       buffers.push(transformBuffer);
 
       const objectChildren = meshBone.children.filter(child => !child.isMesh);
@@ -793,7 +803,14 @@ const _makeDebugMesh = () => {
       result.set(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength), offset);
       offset += buffer.byteLength;
     }
+
+    detached = true;
+
     return result;
+  };
+  mesh.getPhysicsObjectByPhysicsId = physicsId => {
+    const object = physicsIdToMeshBoneMap.get(physicsId);
+    return object;
   };
   return mesh;
 };
@@ -3312,6 +3329,7 @@ class Avatar {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
+      window.debugMeshes.push(this.debugMesh);
     }
     if (this.debugMesh) {
       game.debugMode && this.debugMesh.setFromAvatar(this);
