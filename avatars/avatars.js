@@ -22,7 +22,7 @@ import {
 import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
-import metaversefile from 'metaversefile';
+import game from '../game.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -42,6 +42,7 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1532,20 +1533,8 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    /* if (!this.shoulderTransforms.hips.children.includes(this.legsManager.leftLeg.upperLeg)) {
-      debugger;
-    } */
 
-    this.debugMesh = _makeDebugMesh();
-    this.debugMesh.wrapToAvatar(this);
-    scene.add(this.debugMesh);
-    /* if (options.debug) {
-      const debugMeshes = _makeDebugMesh();
-      this.model.add(debugMeshes);
-      this.debugMeshes = debugMeshes;
-    } else {
-      this.debugMeshes = null;
-    } */
+    this.debugMesh = null;
 
     this.emotes = [];
     if (this.options.visemes) {
@@ -3315,28 +3304,15 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    this.debugMesh.setFromAvatar(this);
-
-    /* if (this.debugMeshes) {
-      if (this.getTopEnabled()) {
-        this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
-        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
-        this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
-        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
-      }
-
-      for (const k in this.debugMeshes.attributes) {
-        const attribute = this.debugMeshes.attributes[k];
-        if (attribute.visible) {
-          const output = this.modelBoneOutputs[k];
-          attribute.array.set(attribute.srcGeometry.attributes.position.array);
-          attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
-        } else {
-          attribute.array.fill(0);
-        }
-      }
-      this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    } */
+    if (game.debugMode && !this.debugMesh) {
+      this.debugMesh = _makeDebugMesh();
+      this.debugMesh.wrapToAvatar(this);
+      this.model.add(this.debugMesh);
+    }
+    if (this.debugMesh) {
+      game.debugMode && this.debugMesh.setFromAvatar(this);
+      this.debugMesh.visible = game.debugMode;
+    }
 	}
 
   isAudioEnabled() {
