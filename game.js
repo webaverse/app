@@ -825,7 +825,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         // console.log('got object', physicsId, object);
         if (object && !_isWear(object) && physicsObject) {
-          physicsObject.physicsMesh.getWorldPosition(grabUseMesh.position);
+          grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
