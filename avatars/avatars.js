@@ -690,8 +690,6 @@ const _makeDebugMesh = () => {
   attributes.Right_knee.add(attributes.Right_ankle);
   attributes.Right_ankle.add(attributes.Right_toe);
 
-  // window.attributes = attributes;
-
   const mesh = attributes.Root;
   const modelBoneToMeshBoneMap = new Map();
 
