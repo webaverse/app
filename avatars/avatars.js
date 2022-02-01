@@ -565,7 +565,7 @@ const _makeDebugMesh = () => {
     const geometry = srcGeometry//.clone();
     const object = new THREE.Object3D();
     object.name = name;
-    object.id = getNextPhysicsId();
+    object.physicsId = getNextPhysicsId();
     const mesh = new THREE.Mesh(geometry, debugMeshMaterial);
     object.add(mesh);
     object.mesh = mesh;
@@ -759,7 +759,7 @@ const _makeDebugMesh = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
-      const idBuffer = Uint32Array.from([meshBone.id]);
+      const idBuffer = Uint32Array.from([meshBone.physicsId]);
       buffers.push(idBuffer);
 
       const nameBuffer = textEncoder.encode(meshBone.name);
