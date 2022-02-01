@@ -62,6 +62,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
+const textEncoder = new TextEncoder();
+
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
@@ -747,6 +749,40 @@ const _makeDebugMesh = () => {
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
     mesh.updateMatrixWorld();
+  };
+  mesh.serializeSkeleton = () => {
+    const buffers = [];
+
+    const _recurse = meshBone => {
+      const nameBuffer = textEncoder.encode(meshBone.name);
+      buffers.push(nameBuffer);
+
+      const transformBuffer = new Float32Array(10);
+      meshBone.position.toArray(transformBuffer, 0);
+      meshBone.quaternion.toArray(transformBuffer, 3);
+      meshBone.scale.toArray(transformBuffer, 7);
+      buffers.push(transformBuffer);
+
+      const numChildrenBuffer = Uint32Array.from([meshBone.children]);
+      buffers.push(numChildrenBuffer);
+
+      for (const child of meshBone.children) {
+        _recurse(child);
+      }
+    };
+    _recurse(attributes.Root);
+
+    let totalBufferSize = 0;
+    for (const buffer of buffers) {
+      totalBufferSize += buffer.byteLength;
+    }
+    const result = new Uint8Array(totalBufferSize);
+    let offset = 0;
+    for (const buffer of buffers) {
+      result.set(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength), offset);
+      offset += buffer.byteLength;
+    }
+    return result;
   };
   return mesh;
 };
