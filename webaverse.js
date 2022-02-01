@@ -43,6 +43,7 @@ import WebaWallet from './src/components/wallet.js';
 
 window.isStart = false;
 window.isRising = false;
+window.isRising2 = false;
 window.isGeneratedVoxelMap = false;
 const width = 71;
 const height = 71;
@@ -57,13 +58,15 @@ const tmpVec2 = new THREE.Vector2();
 // window.dest = new THREE.Vector2(-6, -27)
 // window.start = new THREE.Vector2(24, -5)
 // window.dest = new THREE.Vector2(24, 24)
-window.start = new THREE.Vector2(0, 0);
-window.dest = new THREE.Vector2(0, 15);
-swapStartDest();
+window.start = new THREE.Vector2(0, 3);
+window.dest = new THREE.Vector2(13, 3);
+// swapStartDest();
 
 window.frontiers = [];
 window.blocks = new THREE.Group();
 rootScene.add(window.blocks);
+window.blocks2 = new THREE.Group();
+rootScene.add(window.blocks2);
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
 const materialAct = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
@@ -79,7 +82,7 @@ vs.xy_to_serial = function(width, xy) { // :index
 };
 
 window.resetStartDest = resetStartDest;
-function resetStartDest(startX, startZ, destX, destZ) {
+function resetStartDest(startLayer, startX, startZ, destLayer, destX, destZ) {
   window.isFound = false;
   window.frontiers.length = 0;
 
@@ -90,24 +93,67 @@ function resetStartDest(startX, startZ, destX, destZ) {
     block._priority = 0;
     block._costSoFar = 0;
     block._prev = null;
+    block._next = null;
+    if (block.material !== materialObstacle) block.material = materialIdle;
+  });
+
+  window.blocks2.children.forEach(block => {
+    block._isStart = false;
+    block._isDest = false;
+    block._isAct = false;
+    block._priority = 0;
+    block._costSoFar = 0;
+    block._prev = null;
+    block._next = null;
     if (block.material !== materialObstacle) block.material = materialIdle;
   });
 
   window.start.set(startX, startZ);
   window.dest.set(destX, destZ);
 
-  const startBlock = getBlock(startX, startZ);
-  startBlock._isStart = true;
-  startBlock._isAct = true;
-  // startBlock._priority = start.manhattanDistanceTo(dest)
-  startBlock._priority = window.start.distanceTo(window.dest);
-  startBlock._costSoFar = 0;
-  window.frontiers.push(startBlock);
-  startBlock.material = materialStart;
+  if (startLayer === 1) {
+    window.startBlock = getBlock(startX, startZ);
+  } else if (startLayer === 2) {
+    window.startBlock = getBlock2(startX, startZ);
+  }
+  window.startBlock._isStart = true;
+  window.startBlock._isAct = true;
+  // window.startBlock._priority = start.manhattanDistanceTo(dest)
+  window.startBlock._priority = window.start.distanceTo(window.dest);
+  window.startBlock._costSoFar = 0;
+  window.frontiers.push(window.startBlock);
+  window.startBlock.material = materialStart;
 
-  const destBlock = getBlock(destX, destZ);
-  destBlock._isDest = true;
-  destBlock.material = materialDest;
+  if (destLayer === 1) {
+    window.destBlock = getBlock(destX, destZ);
+  } else if (destLayer === 2) {
+    window.destBlock = getBlock2(destX, destZ);
+  }
+  window.destBlock._isDest = true;
+  window.destBlock.material = materialDest;
+}
+
+window.rise = rise;
+function rise() {
+  window.isRising = true;
+}
+
+window.riseAgain = riseAgain;
+function riseAgain() {
+  window.blocks.children.forEach(block => {
+    block._risingState = 'initial';
+  });
+}
+
+window.rise2 = rise2;
+function rise2() {
+  window.isRising = false;
+
+  window.blocks2.children.forEach((block, i) => {
+    block.position.y = window.blocks.children[i].position.y;
+  });
+
+  window.isRising2 = true;
 }
 
 window.setStart = setStart;
@@ -122,6 +168,14 @@ function getBlock(x, y) {
   return window.blocks.children[vs.xy_to_serial(width, {x, y})];
 }
 
+window.getblock2 = getBlock2;
+function getBlock2(x, y) {
+  x += (width - 1) / 2;
+  y += (height - 1) / 2;
+  if (x < 0 || y < 0 || x >= width || y >= height) return null;
+  return window.blocks2.children[vs.xy_to_serial(width, {x, y})];
+}
+
 function swapStartDest() {
   tmpVec2.copy(window.start);
   window.start.copy(window.dest);
@@ -132,6 +186,7 @@ function stepBlock(block, prevBlock) {
   function recur(block) {
     if (block) {
       if (!block._isStart && !block._isDest) block.material = materialPath;
+      if (block._prev) block._prev._next = block;
       recur(block._prev);
     }
   }
@@ -178,27 +233,23 @@ function step() {
   const currentBlock = window.frontiers.shift();
   if (!currentBlock._isStart) currentBlock.material = materialAct;
 
-  if (currentBlock._canLeft) {
-    const leftBlock = getBlock(currentBlock._x - 1, currentBlock._z);
-    stepBlock(leftBlock, currentBlock);
+  if (currentBlock._leftBlock) {
+    stepBlock(currentBlock._leftBlock, currentBlock);
     if (window.isFound) return;
   }
 
-  if (currentBlock._canRight) {
-    const rightBlock = getBlock(currentBlock._x + 1, currentBlock._z);
-    stepBlock(rightBlock, currentBlock);
+  if (currentBlock._rightBlock) {
+    stepBlock(currentBlock._rightBlock, currentBlock);
     if (window.isFound) return;
   }
 
-  if (currentBlock._canBtm) {
-    const btmBlock = getBlock(currentBlock._x, currentBlock._z - 1);
-    stepBlock(btmBlock, currentBlock);
+  if (currentBlock._btmBlock) {
+    stepBlock(currentBlock._btmBlock, currentBlock);
     if (window.isFound) return;
   }
 
-  if (currentBlock._canTop) {
-    const topBlock = getBlock(currentBlock._x, currentBlock._z + 1);
-    stepBlock(topBlock, currentBlock);
+  if (currentBlock._topBlock) {
+    stepBlock(currentBlock._topBlock, currentBlock);
     // if (window.isFound) return
   }
 }
@@ -218,25 +269,113 @@ function untilFound() {
   }
   while (window.frontiers.length > 0 && !window.isFound) step();
 }
+window.foxFollowAvatar = foxFollowAvatar;
+function foxFollowAvatar() { // run after: rise(), generateVoxelMap(), and "E" activated the fox.
+  const foxX = Math.round(window.fox.position.x);
+  const foxZ = Math.round(window.fox.position.z);
+  const localPlayerX = Math.round(window.localPlayer.position.x);
+  const localPlayerZ = Math.round(window.localPlayer.position.z);
+
+  let startLayer, destLayer;
+  const startBlock = getBlock(foxX, foxZ);
+  const startBlock2 = getBlock2(foxX, foxZ);
+  const destBlock = getBlock(localPlayerX, localPlayerZ);
+  const destBlock2 = getBlock2(localPlayerX, localPlayerZ);
+  if (Math.abs(startBlock.position.y - window.fox.position.y) < Math.abs(startBlock2.position.y - window.fox.position.y)) {
+    startLayer = 1;
+  } else {
+    startLayer = 2;
+  }
+  if (Math.abs(destBlock.position.y - window.localPlayer.position.y) < Math.abs(destBlock2.position.y - window.localPlayer.position.y)) {
+    destLayer = 1;
+  } else {
+    destLayer = 2;
+  }
+
+  resetStartDest(
+    startLayer,
+    foxX,
+    foxZ,
+    destLayer,
+    localPlayerX,
+    localPlayerZ,
+  );
+  untilFound();
+  window.petDestBlock = window.startBlock;
+}
 window.generateVoxelMap = generateVoxelMap;
 function generateVoxelMap() {
   window.isRising = false;
+  window.isRising2 = false;
 
   for (let z = -(height - 1) / 2; z < height / 2; z++) {
     for (let x = -(width - 1) / 2; x < width / 2; x++) {
       const currentBlock = getBlock(x, z);
 
-      const leftBlock = getBlock(x - 1, z);
-      if (leftBlock && leftBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canLeft = true;
+      const leftBlock2 = getBlock2(x - 1, z);
+      if (leftBlock2 && leftBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._leftBlock = leftBlock2;
+      } else {
+        const leftBlock = getBlock(x - 1, z);
+        if (leftBlock && leftBlock.position.y - currentBlock.position.y < 0.6) {
+          currentBlock._leftBlock = leftBlock;
+        }
+      }
 
-      const rightBlock = getBlock(x + 1, z);
-      if (rightBlock && rightBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canRight = true;
+      const rightBlock2 = getBlock2(x + 1, z);
+      if (rightBlock2 && rightBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._rightBlock = rightBlock2;
+      } else {
+        const rightBlock = getBlock(x + 1, z);
+        if (rightBlock && rightBlock.position.y - currentBlock.position.y < 0.6) {
+          currentBlock._rightBlock = rightBlock;
+        }
+      }
 
-      const btmBlock = getBlock(x, z - 1);
-      if (btmBlock && btmBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canBtm = true;
+      const btmBlock2 = getBlock2(x, z - 1);
+      if (btmBlock2 && btmBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._btmBlock = btmBlock2;
+      } else {
+        const btmBlock = getBlock(x, z - 1);
+        if (btmBlock && btmBlock.position.y - currentBlock.position.y < 0.6) {
+          currentBlock._btmBlock = btmBlock;
+        }
+      }
 
-      const topBlock = getBlock(x, z + 1);
-      if (topBlock && topBlock.position.y - currentBlock.position.y < 0.6) currentBlock._canTop = true;
+      const topBlock2 = getBlock2(x, z + 1);
+      if (topBlock2 && topBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._topBlock = topBlock2;
+      } else {
+        const topBlock = getBlock(x, z + 1);
+        if (topBlock && topBlock.position.y - currentBlock.position.y < 0.6) {
+          currentBlock._topBlock = topBlock;
+        }
+      }
+    }
+  }
+  for (let z = -(height - 1) / 2; z < height / 2; z++) {
+    for (let x = -(width - 1) / 2; x < width / 2; x++) {
+      const currentBlock = getBlock2(x, z);
+
+      const leftBlock2 = getBlock2(x - 1, z);
+      if (leftBlock2 && leftBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._leftBlock = leftBlock2;
+      }
+
+      const rightBlock2 = getBlock2(x + 1, z);
+      if (rightBlock2 && rightBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._rightBlock = rightBlock2;
+      }
+
+      const btmBlock2 = getBlock2(x, z - 1);
+      if (btmBlock2 && btmBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._btmBlock = btmBlock2;
+      }
+
+      const topBlock2 = getBlock2(x, z + 1);
+      if (topBlock2 && topBlock2.position.y - currentBlock.position.y < 0.6) {
+        currentBlock._topBlock = topBlock2;
+      }
     }
   }
 
@@ -595,12 +734,41 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       if (window.isRising && window.blocks) { // mark: generate voxel map
         window.blocks.children.forEach((block, i) => {
-          if (block._isCollide) {
+          if (block._risingState === 'initial' || block._risingState === 'colliding') {
             block.position.y += 0.1;
             block.updateMatrixWorld();
-            block._isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            const isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            if (isCollide) {
+              block._risingState = 'colliding';
+            } else if (block._risingState === 'colliding') {
+              block._risingState = 'stopped';
+            }
           }
         });
+      }
+      if (window.isRising2 && window.blocks2) {
+        window.blocks2.children.forEach((block, i) => {
+          if (block._risingState === 'initial' || block._risingState === 'colliding') {
+            block.position.y += 0.1;
+            block.updateMatrixWorld();
+            const isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            if (isCollide) {
+              block._risingState = 'colliding';
+            } else if (block._risingState === 'colliding') {
+              block._risingState = 'stopped';
+            }
+          }
+        });
+      }
+      if (window.petDestBlock) {
+        if (Math.abs(window.fox.position.x - window.petDestBlock.position.x) < 1 && Math.abs(window.fox.position.z - window.petDestBlock.position.z) < 1) {
+          // debugger
+          if (window.petDestBlock._next) window.petDestBlock = window.petDestBlock._next;
+        }
+      }
+      // fox auto follow avatar
+      if (window.isGeneratedVoxelMap && window.localPlayer && (Math.abs(window.localPlayer.position.x - window.destBlock.position.x) > 3 || Math.abs(window.localPlayer.position.z - window.destBlock.position.z) > 3)) {
+        foxFollowAvatar();
       }
 
       timestamp = timestamp ?? performance.now();
@@ -667,7 +835,21 @@ const _startHacks = () => {
       window.blocks.add(block);
       block.position.set(x, -0.1, z);
       block.updateMatrixWorld();
-      block._isCollide = true;
+      block._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
+      block.position.x = x;
+      block.position.z = z;
+      block._x = x;
+      block._z = z;
+      block._isAct = false;
+    }
+  }
+  for (let z = -(height - 1) / 2; z < height / 2; z++) {
+    for (let x = -(width - 1) / 2; x < width / 2; x++) {
+      const block = new THREE.Mesh(geometry, materialIdle);
+      window.blocks2.add(block);
+      block.position.set(x, -0.1, z);
+      block.updateMatrixWorld();
+      block._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
       block.position.x = x;
       block.position.z = z;
       block._x = x;
@@ -676,7 +858,7 @@ const _startHacks = () => {
     }
   }
 
-  resetStartDest(window.start.x, window.start.y, window.dest.x, window.dest.y);
+  resetStartDest(1, window.start.x, window.start.y, 2, window.dest.x, window.dest.y);
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
