@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
-import {playersMapName, maxGrabDistance, tokensHost, storageHost, accountsHost, loginEndpoint} from './constants.js';
+import {playersMapName, maxGrabDistance, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -718,4 +718,41 @@ export function copyPQS(dst, src) {
   dst.position.copy(src.position);
   dst.quaternion.copy(src.quaternion);
   dst.scale.copy(src.scale);
+}
+
+export async function loadJson(u) {
+  const res = await fetch(u);
+  return await res.json();
+}
+export async function loadAudio(u) {
+  const audio = new Audio();
+  const p = new Promise((accept, reject) => {
+    const timeout = setTimeout(() => {
+      console.warn('audio load seems hung', audio);
+    }, audioTimeoutTime);
+    const _cleanup = () => {
+      clearTimeout(timeout);
+    };
+    audio.oncanplay = () => {
+      _cleanup();
+      accept();
+    };
+    audio.onerror = err => {
+      _cleanup();
+      reject(err);
+    };
+  });
+  // console.log('got src', `../sounds/${soundType}/${fileName}`);
+  audio.crossOrigin = 'Anonymous';
+  audio.src = u;
+  audio.load();
+  await p;
+  // document.body.appendChild(audio);
+  return audio;
+}
+export async function loadAudioBuffer(audioContext, url) {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  return audioBuffer;
 }

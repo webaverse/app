@@ -162,7 +162,7 @@ body {
   content: '';
 }
 .header .panel-header > .panel-section.name h1 {
- position: relative;
+  position: relative;
 }
 .header .panel-header > .panel-section > .panel-row {
   display: flex;
@@ -175,7 +175,7 @@ body {
   /* margin-top: 20px; */
 }
 .header .tab.top.right .panel-header {
-  margin-top: 40px;
+  margin-top: 60px;
 }
 .header .panel-header .button {
   cursor: pointer;
@@ -190,7 +190,9 @@ body {
 .header .panel-header .button:hover .img {
   filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
-.header .panel-header  h1 {
+.header h1,
+.header h2
+{
   display: flex;
   margin: 0;
   padding-bottom: 5px;
@@ -198,6 +200,137 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
   align-items: center;
+}
+.header p
+{
+  display: block;
+  height: 190px;
+  border-radius: 10px;
+  background-color: #333;
+  box-shadow: inset 0 10px 20px -10px #111;
+  /* background-image: linear-gradient(to bottom,#222222, #000000 20px); */
+  margin: 20px 30px;
+  padding: 20px;
+  /* font-family: 'PlazaRegular'; */
+  /* font-family: 'WinchesterCaps'; */
+  font-size: 20px;
+  /* letter-spacing: 3px; */
+}
+.header p b,
+.header p span
+{
+  display: block;
+  text-align: left;
+}
+.header p b {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+@keyframes gloob {
+  from {
+    filter: brightness(150%);
+    transform: scale(1.2, 1.2);
+  }
+  to {
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes gloob2 {
+  from {
+    transform: scale(1.2, 1.2);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes pulse {
+  from {
+    filter: invert(71%) sepia(12%) saturate(1550%) hue-rotate(73deg) brightness(91%) contrast(85%);
+
+  }
+  to {
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes zoom {
+  from {
+
+  }
+  to {
+    transform: none;
+  }
+}
+
+.mint-button {
+  position: relative;
+  display: flex;
+  margin: 0 30px;
+  padding: 8px;
+  /* border: 2px solid rgba(0, 0, 0, 0.1); */
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  /* font-family: 'WinchesterCaps'; */
+  font-family: 'PlazaRegular';
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #FFF;
+  cursor: pointer;
+  user-select: none;
+}
+.mint-button span {
+  position: relative;
+}
+.mint-button .button-background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  animation-name: pulse;
+  animation-duration: 0.3s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+.mint-button .button-background {
+  background-image: linear-gradient(to bottom, #4776E6, #8E54E9);
+  /* border-image: linear-gradient(to bottom, #4776E6, #8E54E9); */
+}
+.mint-button span {
+  animation-name: zoom;
+  animation-duration: 0.3s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+.header input[type=range] {
+  margin: 0 30px;
+}
+input[type=range] {
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  /* width: 100%; // Specific width is required for Firefox. */
+  /* background: #333; /* Otherwise white in Chrome */
+  /* box-shadow: inset 0 -1px #000; /* Otherwise thick black border */
+  background: repeating-linear-gradient(to right, #333, #333 110px, #666 110px, #666 115px);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 1px solid #000000;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects */
 }
 .header .panel-subheader {
   display: flex;
@@ -235,12 +368,17 @@ body {
   top: -50px;
   left: -400px;
 }
-.header .tab.top.right .panels {
+.header .tab.top.right .panels
+{
   top: -100px;
   left: 100%;
   height: 100vh;
   overflow-y: scroll;
   overflow-x: hidden;
+}
+.header .tab.top.right.index-1 .panels {
+  top: -155px;
+  overflow: visible;
 }
 .header .tab .objects .object {
   position: relative;
@@ -334,6 +472,9 @@ body {
 .header .tab.top.right.open {
   transform: translateX(-400px);
 }
+.header .tab.top.right.index-1.open {
+  transform: translateX(-400px) translateY(55px);
+}
 .header .tab .label .background {
   position: absolute;
   top: 0;
@@ -380,6 +521,9 @@ body {
 .header .tab.bottom.right:not(.disabled):hover .background,
 .header .tab.bottom.right.open .background {
   transform: translateX(50px);
+}
+.header .tab.top.right.index-1 {
+  transform: translateY(55px);
 }
 .header .tab.bottom.left:not(.disabled):hover .background,
 .header .tab.bottom.left.open .background {

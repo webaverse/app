@@ -704,6 +704,91 @@ const physxWorker = (() => {
       throw new Error('raycastPhysicsArray error');
     }
   };
+
+  w.doCut = (
+    positions,
+    numPositions,
+    normals,
+    numNormals,
+    uvs,
+    numUvs,
+    faces,
+    numFaces,
+
+    position,
+    quaternion,
+    scale,
+  ) => {
+    const allocator = new Allocator();
+
+    const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
+    positionsTypedArray.set(positions);
+
+    const normalsTypedArray = allocator.alloc(Float32Array, numNormals);
+    normalsTypedArray.set(normals);
+
+    const uvsTypedArray = allocator.alloc(Float32Array, numUvs);
+    uvsTypedArray.set(uvs);
+
+    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+    facesTypedArray.set(faces);
+
+    const positionTypedArray = allocator.alloc(Float32Array, 3);
+    positionTypedArray.set(position);
+
+    const quaternionTypedArray = allocator.alloc(Float32Array, 4);
+    quaternionTypedArray.set(quaternion);
+
+    const scaleTypedArray = allocator.alloc(Float32Array, 3)
+    scaleTypedArray.set(scale);
+
+    const outputBufferOffset = moduleInstance._doCut(
+      positionsTypedArray.byteOffset,
+      numPositions,
+      normalsTypedArray.byteOffset,
+      numNormals,
+      uvsTypedArray.byteOffset,
+      numUvs,
+      facesTypedArray.byteOffset,
+      numFaces,
+
+      positionTypedArray.byteOffset,
+      quaternionTypedArray.byteOffset,
+      scaleTypedArray.byteOffset,
+    );
+    allocator.freeAll();
+
+    let head = outputBufferOffset / 4;
+    let tail = head + 2;
+    const numOutPositionsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutNormalsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + 2;
+    const numOutUvsTypedArray = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutPositionsTypedArray[0] + numOutPositionsTypedArray[1]);
+    const outPositions = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutNormalsTypedArray[0] + numOutNormalsTypedArray[1]);
+    const outNormals = moduleInstance.HEAPF32.slice(head, tail);
+    head = tail;
+    tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1]);
+    const outUvs = moduleInstance.HEAPF32.slice(head, tail);
+
+    Module._free(outputBufferOffset);
+
+    const output = {
+      numOutPositions: numOutPositionsTypedArray,
+      outPositions,
+      numOutNormals: numOutNormalsTypedArray,
+      outNormals,
+      numOutUvs: numOutUvsTypedArray,
+      outUvs,
+    };
+    return output;
+  };
   w.setLinearLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setLinearLockFlagsPhysics(
       physics,
@@ -1077,6 +1162,16 @@ const physxWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance._removeGeometryPhysics(physics, id);
   };
+  w.getGlobalPositionPhysics = (physics, id, position) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+
+    moduleInstance._getGlobalPositionPhysics(physics, id, p.byteOffset);
+
+    position.fromArray(p);
+
+    allocator.freeAll();
+  };
   w.getVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator();
     const v = allocator.alloc(Float32Array, 3);
@@ -1097,14 +1192,14 @@ const physxWorker = (() => {
     moduleInstance._setVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  w.setAngularVelocityPhysics = (physicsObject, velocity, autoWake) => {
+  w.setAngularVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator();
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
    
     autoWake = autoWake ?? false;
 
-    physx.physxWorker._setAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+    moduleInstance._setAngularVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
   w.setTransformPhysics = (physics, id, position, quaternion, scale, autoWake) => {
@@ -1171,7 +1266,7 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, ccdEnabled = false) => {
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, flags = {}) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1181,6 +1276,10 @@ const physxWorker = (() => {
     quaternion.toArray(q);
     physicsMaterial.toArray(mat);
     
+    const flagsInt = (
+      (+(flags.physics !== false) << 0) |
+      (+flags.ccd << 1)
+    );
     moduleInstance._addCapsuleGeometryPhysics(
       physics,
       p.byteOffset,
@@ -1189,7 +1288,7 @@ const physxWorker = (() => {
       halfHeight,
       mat.byteOffset,
       id,
-      +ccdEnabled,
+      flagsInt,
     );
     allocator.freeAll();
   };
@@ -1273,13 +1372,55 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
+
+  w.marchingCubes = (dims, potential, shift, scale) => {
+    let allocator = new Allocator();
+
+    const dimsTypedArray = allocator.alloc(Int32Array, 3);
+    dimsTypedArray.set(dims);
+
+    const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
+    potentialTypedArray.set(potential);
+
+    const shiftTypedArray = allocator.alloc(Float32Array, 3);
+    shiftTypedArray.set(shift);
+
+    const scaleTypedArray = allocator.alloc(Float32Array, 3);
+    scaleTypedArray.set(scale);
+
+    const outputBufferOffset = moduleInstance._doMarchingCubes(
+      dimsTypedArray.byteOffset,
+      potentialTypedArray.byteOffset,
+      shiftTypedArray.byteOffset,
+      scaleTypedArray.byteOffset
+    );
+
+    allocator.freeAll();
+
+    const head = outputBufferOffset / 4;
+
+    const positionCount = moduleInstance.HEAP32[head];
+    const faceCount = moduleInstance.HEAP32[head + 1];
+    const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
+    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
+
+    moduleInstance._doFree(outputBufferOffset);
+
+    return {
+      positionCount: positionCount,
+      faceCount: faceCount,
+      positions: positions,
+      faces: faces
+    }
+  }
+
   return w;
 })();
 physx.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update();
-  
+
   physxWorker.update();
 };
 physx.update = _updateGeometry;

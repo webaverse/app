@@ -215,7 +215,7 @@ const _getType = id => {
   console.log('get type', o);
   let match;
   if (o.href && (match = o.href.match(dataUrlRegex))) {
-    const type = match[1] || '';
+    let type = match[1] || '';
     if (type === 'text/javascript') {
       type = 'application/javascript';
     }
