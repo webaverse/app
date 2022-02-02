@@ -40,7 +40,6 @@ function bindCanvas(c) {
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
-  renderer.info.autoReset = false;
   // renderer.outputEncoding = THREE.sRGBEncoding;
   // renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
