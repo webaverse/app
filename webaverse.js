@@ -41,6 +41,7 @@ import WebaWallet from './src/components/wallet.js';
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
+const localPlayer = metaversefileApi.useLocalPlayer();
 window.isStart = false;
 window.isRising = false;
 window.isRising2 = false;
@@ -276,8 +277,8 @@ window.foxFollowAvatar = foxFollowAvatar;
 function foxFollowAvatar() { // run after: rise(), generateVoxelMap(), and "E" activated the fox.
   const foxX = Math.round(window.fox.position.x);
   const foxZ = Math.round(window.fox.position.z);
-  const localPlayerX = Math.round(window.localPlayer.position.x);
-  const localPlayerZ = Math.round(window.localPlayer.position.z);
+  const localPlayerX = Math.round(localPlayer.position.x);
+  const localPlayerZ = Math.round(localPlayer.position.z);
 
   let startLayer, destLayer;
   const startBlock = getBlock(foxX, foxZ);
@@ -289,7 +290,7 @@ function foxFollowAvatar() { // run after: rise(), generateVoxelMap(), and "E" a
   } else {
     startLayer = 2;
   }
-  if (Math.abs(destBlock.position.y - window.localPlayer.position.y) < Math.abs(destBlock2.position.y - window.localPlayer.position.y)) {
+  if (Math.abs(destBlock.position.y - localPlayer.position.y) < Math.abs(destBlock2.position.y - localPlayer.position.y)) {
     destLayer = 1;
   } else {
     destLayer = 2;
@@ -818,7 +819,7 @@ export default class Webaverse extends EventTarget {
         }
       }
       // fox auto follow avatar
-      if (window.isGeneratedVoxelMap && window.localPlayer && (Math.abs(window.localPlayer.position.x - window.destBlock.position.x) > 3 || Math.abs(window.localPlayer.position.z - window.destBlock.position.z) > 3)) {
+      if (window.isGeneratedVoxelMap && localPlayer && (Math.abs(localPlayer.position.x - window.destBlock.position.x) > 3 || Math.abs(localPlayer.position.z - window.destBlock.position.z) > 3)) {
         foxFollowAvatar();
       }
 
@@ -832,7 +833,7 @@ export default class Webaverse extends EventTarget {
       
       cameraManager.update(timeDiffCapped);
       
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      // const localPlayer = metaversefileApi.useLocalPlayer();
       if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
         //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
         physicsManager.simulatePhysics(timeDiffCapped); 
