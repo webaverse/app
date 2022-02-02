@@ -64,9 +64,11 @@ window.dest = new THREE.Vector2(13, 3);
 
 window.frontiers = [];
 window.blocks = new THREE.Group();
+window.blocks.name = 'blocks';
 rootScene.add(window.blocks);
 window.blocks2 = new THREE.Group();
 rootScene.add(window.blocks2);
+window.blocks2.name = 'blocks2';
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
 const materialAct = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
@@ -147,6 +149,7 @@ function riseAgain() {
 
 window.rise2 = rise2;
 function rise2() {
+  // NOTE: Need rise to higher than heightCanGoThrough2.
   window.isRising = false;
 
   window.blocks2.children.forEach((block, i) => {
@@ -303,6 +306,10 @@ function foxFollowAvatar() { // run after: rise(), generateVoxelMap(), and "E" a
   untilFound();
   window.petDestBlock = window.startBlock;
 }
+
+const heightTolerance = 0.6;
+const heightCanGoThrough = 1.5;
+const heightCanGoThrough2 = 30;
 window.generateVoxelMap = generateVoxelMap;
 function generateVoxelMap() {
   window.isRising = false;
@@ -313,42 +320,54 @@ function generateVoxelMap() {
       const currentBlock = getBlock(x, z);
 
       const leftBlock2 = getBlock2(x - 1, z);
-      if (leftBlock2 && leftBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._leftBlock = leftBlock2;
-      } else {
-        const leftBlock = getBlock(x - 1, z);
-        if (leftBlock && leftBlock.position.y - currentBlock.position.y < 0.6) {
-          currentBlock._leftBlock = leftBlock;
+      if (leftBlock2) {
+        const biasToLayer2 = leftBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._leftBlock = leftBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough) {
+          const leftBlock = getBlock(x - 1, z);
+          if (leftBlock && leftBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._leftBlock = leftBlock;
+          }
         }
       }
 
       const rightBlock2 = getBlock2(x + 1, z);
-      if (rightBlock2 && rightBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._rightBlock = rightBlock2;
-      } else {
-        const rightBlock = getBlock(x + 1, z);
-        if (rightBlock && rightBlock.position.y - currentBlock.position.y < 0.6) {
-          currentBlock._rightBlock = rightBlock;
+      if (rightBlock2) {
+        const biasToLayer2 = rightBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._rightBlock = rightBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough) {
+          const rightBlock = getBlock(x + 1, z);
+          if (rightBlock && rightBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._rightBlock = rightBlock;
+          }
         }
       }
 
       const btmBlock2 = getBlock2(x, z - 1);
-      if (btmBlock2 && btmBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._btmBlock = btmBlock2;
-      } else {
-        const btmBlock = getBlock(x, z - 1);
-        if (btmBlock && btmBlock.position.y - currentBlock.position.y < 0.6) {
-          currentBlock._btmBlock = btmBlock;
+      if (btmBlock2) {
+        const biasToLayer2 = btmBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._btmBlock = btmBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough) {
+          const btmBlock = getBlock(x, z - 1);
+          if (btmBlock && btmBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._btmBlock = btmBlock;
+          }
         }
       }
 
       const topBlock2 = getBlock2(x, z + 1);
-      if (topBlock2 && topBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._topBlock = topBlock2;
-      } else {
-        const topBlock = getBlock(x, z + 1);
-        if (topBlock && topBlock.position.y - currentBlock.position.y < 0.6) {
-          currentBlock._topBlock = topBlock;
+      if (topBlock2) {
+        const biasToLayer2 = topBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._topBlock = topBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough) {
+          const topBlock = getBlock(x, z + 1);
+          if (topBlock && topBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._topBlock = topBlock;
+          }
         }
       }
     }
@@ -358,23 +377,55 @@ function generateVoxelMap() {
       const currentBlock = getBlock2(x, z);
 
       const leftBlock2 = getBlock2(x - 1, z);
-      if (leftBlock2 && leftBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._leftBlock = leftBlock2;
+      if (leftBlock2) {
+        const biasToLayer2 = leftBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._leftBlock = leftBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough2) {
+          const leftBlock = getBlock(x - 1, z);
+          if (leftBlock && leftBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._leftBlock = leftBlock;
+          }
+        }
       }
 
       const rightBlock2 = getBlock2(x + 1, z);
-      if (rightBlock2 && rightBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._rightBlock = rightBlock2;
+      if (rightBlock2) {
+        const biasToLayer2 = rightBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._rightBlock = rightBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough2) {
+          const rightBlock = getBlock(x + 1, z);
+          if (rightBlock && rightBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._rightBlock = rightBlock;
+          }
+        }
       }
 
       const btmBlock2 = getBlock2(x, z - 1);
-      if (btmBlock2 && btmBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._btmBlock = btmBlock2;
+      if (btmBlock2) {
+        const biasToLayer2 = btmBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._btmBlock = btmBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough2) {
+          const btmBlock = getBlock(x, z - 1);
+          if (btmBlock && btmBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._btmBlock = btmBlock;
+          }
+        }
       }
 
       const topBlock2 = getBlock2(x, z + 1);
-      if (topBlock2 && topBlock2.position.y - currentBlock.position.y < 0.6) {
-        currentBlock._topBlock = topBlock2;
+      if (topBlock2) {
+        const biasToLayer2 = topBlock2.position.y - currentBlock.position.y;
+        if (biasToLayer2 < heightTolerance) {
+          currentBlock._topBlock = topBlock2;
+        } else if (biasToLayer2 > heightCanGoThrough2) {
+          const topBlock = getBlock(x, z + 1);
+          if (topBlock && topBlock.position.y - currentBlock.position.y < heightTolerance) {
+            currentBlock._topBlock = topBlock;
+          }
+        }
       }
     }
   }
