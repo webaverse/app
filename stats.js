@@ -31,7 +31,7 @@ export var Stats = function () {
 	msDiv.appendChild( msText );
 	
 	var msTexts = [];
-	var nLines = 11;
+	var nLines = 13;
 	for(var i = 0; i < nLines; i++){
 		msTexts[i]	= document.createElement( 'div' );
 		msTexts[i].style.cssText = 'color:white;background-color:rgba(0,0,0,0.3);font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:15px';
@@ -69,12 +69,14 @@ export var Stats = function () {
 				msTexts[i++].textContent = "Geometries: " +webGLRenderer.info.memory.geometries;
 				msTexts[i++].textContent = "Textures: "	+ webGLRenderer.info.memory.textures;
 
-				// msTexts[i++].textContent = "== Render ======";
-				// msTexts[i++].textContent = "Calls: "	+ webGLRenderer.info.render.calls;
+				msTexts[i++].textContent = "== Render =====";
+				msTexts[i++].textContent = "Draw Calls: "	+ webGLRenderer.info.render.calls;
 				// msTexts[i++].textContent = "Triangles: "	+ webGLRenderer.info.render.triangles;
 				frames = 0;
 				lastTime	= Date.now();
 			}
+
+			webGLRenderer.info.reset();
 		}
 	}	
 };
