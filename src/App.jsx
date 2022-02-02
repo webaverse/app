@@ -1,58 +1,78 @@
-import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
-import classnames from 'classnames';
-import logo from './logo.svg';
-import styles from './App.module.css';
+
+import React, { useState, useEffect, useRef } from 'react';
+
 import MagicMenu from './MagicMenu.jsx';
-import {defaultAvatarUrl} from '../constants';
-import Header from './Header.jsx';
-import Footer from './Footer.jsx';
+import { defaultAvatarUrl } from '../constants';
 
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
 
-import dropManager from '../drop-manager.js';
+import { Inventory } from './components/inventory';
+import { Hotbar } from './components/hotbar/Hotbar.jsx';
+import { ActionMenu } from './components/action-menu';
+import { LocationMenu } from './components/location-menu';
 
-const _startApp = async (weba, canvas) => {
-  weba.setContentLoaded();
+import styles from './App.module.css';
+import { PlayerZone } from './components/player-zone/PlayerZone.jsx';
 
-  weba.bindInput();
-  weba.bindInterface();
-  weba.bindCanvas(canvas);
+//
 
-  await weba.waitForLoad();
-  universe.handleUrlUpdate();
-  await weba.startLoop();
-  
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  await localPlayer.setAvatarUrl(defaultAvatarUrl);
+const _startApp = async ( weba, canvas ) => {
+
+    weba.setContentLoaded();
+
+    weba.bindInput();
+    weba.bindInterface();
+    weba.bindCanvas( canvas );
+
+    await weba.waitForLoad();
+    universe.handleUrlUpdate();
+    await weba.startLoop();
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    await localPlayer.setAvatarUrl( defaultAvatarUrl );
+
 };
 
 const Crosshair = () => (
-  <div className={styles.crosshair} id="crosshair">
-    <img src="./assets/crosshair.svg" width={30} height={30} />
-  </div>
+
+    <div className={styles.crosshair} id="crosshair">
+        <img src="./assets/crosshair.svg" width={ 30 } height={ 30 } />
+    </div>
+
 );
 
-function RootNode() {
-  const canvasRef = useRef();
-  const [app, setApp] = useState(() => new Webaverse());
-  
-  useEffect(() => {
-    if (canvasRef.current) {
-      _startApp(app, canvasRef.current);
-    }
-  }, [canvasRef.current]);
+function RootNode () {
 
-  return (
-    <div className={styles.App} id="app">
-      <Header app={app} />
-      <Crosshair />
-      <canvas id="canvas" className={styles.canvas} ref={canvasRef} />
-      <Footer />
-    </div>
-  );
-}
+    const canvasRef = useRef();
+    const [app, setApp] = useState( () => new Webaverse() );
+
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
+
+        }
+
+    }, [ canvasRef.current ] );
+
+    //
+
+    return (
+        <div className={styles.App} id="app">
+            <MagicMenu open={ false } />
+            <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
+            <ActionMenu />
+            <LocationMenu />
+            <Inventory />
+            <Hotbar />
+            <PlayerZone />
+            {/* <Crosshair /> */ }
+        </div>
+    );
+
+};
+
 export default RootNode;

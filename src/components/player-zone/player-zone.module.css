@@ -1,0 +1,39 @@
+
+.playerZone {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 300px;
+    height: 200px;
+    z-index: 1;
+}
+
+.avatar {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 70px;
+    height: 70px;
+    background-color: #000;
+    opacity: 0.5;
+}
+
+.healthBar {
+    position: absolute;
+    top: 50px;
+    left: 85px;
+    width: 250px;
+    height: 8px;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.healthBarFill {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 50%;
+    height: 100%;
+    background-color: #5f5;
+}

@@ -1,0 +1,36 @@
+
+.inventory {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 300px;
+    height: 200px;
+    z-index: 1;
+}
+
+.weapon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background-color: rgba( 0, 0, 0, 0.5 );
+    border-radius: 1px solid #000;
+}
+
+.weponStats {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba( 255, 0, 0, 0.5 );
+    border: 2px solid #000;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 38px;
+}
