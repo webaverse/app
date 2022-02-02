@@ -29,6 +29,7 @@ import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterFx} from './character-fx.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -53,16 +54,21 @@ function makeCancelFn() {
     },
   };
 }
+const heightFactor = 1.6;
+const baseRadius = 0.3;
 function loadPhysxCharacterController() {
   const avatarHeight = this.avatar.height;
-  const heightFactor = 1.6;
+  const radius = baseRadius/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
+
   const contactOffset = 0.1/heightFactor * avatarHeight;
   const stepOffset = 0.5/heightFactor * avatarHeight;
-  const radius = 0.3/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
+
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
   const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
+    
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
     this.characterController = null;
@@ -77,32 +83,38 @@ function loadPhysxCharacterController() {
     physicsMaterial
   );
   this.characterControllerObject = new THREE.Object3D();
+}
+function loadPhsxAuxCharacterCapsule() {
+  const avatarHeight = this.avatar.height;
+  const radius = baseRadius/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
+  const halfHeight = height/2;
 
-  const dynamic = !!(this.isRemotePlayer || this.isNpcPlayer);
-  if (dynamic) {
-    const halfHeight = height/2;
-    const physicsObject = physicsManager.addCapsuleGeometry(
-      this.position,
-      localQuaternion.copy(this.quaternion)
-        .premultiply(
-          localQuaternion2.setFromAxisAngle(
-            localVector.set(0, 0, 1),
-            Math.PI/2
-          )
-        ),
-      radius,
-      halfHeight,
-      physicsMaterial,
-      {
-        physics: false,
-      }
-    );
-    physicsManager.setGravityEnabled(physicsObject, false);
-    physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
-    physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
-    this.physicsObject = physicsObject;
-    // console.log('character controller physics id', physicsObject.physicsId);
-  }
+  const position = this.position.clone()
+    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+
+  const physicsObject = physicsManager.addCapsuleGeometry(
+    position,
+    localQuaternion.copy(this.quaternion)
+      .premultiply(
+        localQuaternion2.setFromAxisAngle(
+          localVector.set(0, 0, 1),
+          Math.PI/2
+        )
+      ),
+    radius,
+    halfHeight,
+    physicsMaterial,
+    {
+      physics: false,
+    }
+  );
+  physicsObject.name = 'characeterCapsuleAux';
+  physicsManager.setGravityEnabled(physicsObject, false);
+  physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
+  physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+  this.physicsObject = physicsObject;
 }
 
 class PlayerHand extends THREE.Object3D {
@@ -127,6 +139,9 @@ class PlayerBase extends THREE.Object3D {
     this.avatar = null;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+  }
+  destroy() {
+    // nothing
   }
 }
 const controlActionTypes = [
@@ -567,8 +582,9 @@ class StatePlayer extends PlayerBase {
     this.unbindState();
     this.appManager.unbindState();
 
-    // this.switchAvatar(this.avatar, null);
     this.appManager.destroy();
+  
+    super.destroy();
   }
 }
 class InterpolatedPlayer extends StatePlayer {
@@ -676,7 +692,7 @@ class UninterpolatedPlayer extends StatePlayer {
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      dance: new InfiniteActionInterpolant(() => this.hasAction('dance'), 0),
+      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       throw: new InfiniteActionInterpolant(() => this.hasAction('throw'), 0),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
@@ -707,6 +723,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -937,10 +954,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
   }
-  updatePhysics(now, timeDiff) {
+  updatePhysics(timestamp, timeDiff) {
     const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(now, timeDiffS);
-    this.characterSfx.update(now, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -978,6 +996,14 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.resetPhysics();
     };
   })()
+  destroy() {
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+
+    super.destroy();
+  }
 }
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
@@ -1074,13 +1100,16 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.characterPhysics = new CharacterPhysics(this);
     loadPhysxCharacterController.call(this);
+    loadPhsxAuxCharacterCapsule.call(this);
 
     const npcs = metaversefile.useNpcs();
     npcs.push(this);
   }
   updatePhysics(now, timeDiff) {
-    const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(now, timeDiffS);
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterPhysics.update(now, timeDiffS);
+    }
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1092,6 +1121,11 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
+
+      this.physicsObject.position.copy(this.position)
+        .add(new THREE.Vector3(0, -this.avatar.height/2, 0));
+      this.physicsObject.updateMatrixWorld();
+      physicsManager.setTransform(this.physicsObject);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);
@@ -1132,6 +1166,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     }
+
+    super.destroy();
   }
 }
 

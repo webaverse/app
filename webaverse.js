@@ -368,9 +368,6 @@ export default class Webaverse extends EventTarget {
     // equipmentRender.render();
 
     getComposer().render();
-    if(ioManager.debugMode) {
-      rendererStats.update(renderer);
-    }
     game.debugMode && rendererStats.update(renderer);
     renderer.info.reset();
   }

@@ -195,6 +195,9 @@ class CharacterSfx {
       this.lastWalkTime = timeSeconds;
     }
   }
+  destroy() {
+    // nothing
+  }
 }
 
 export {

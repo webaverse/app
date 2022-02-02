@@ -521,6 +521,7 @@ export const decorateAnimation = animation => {
   animation.isSkateboarding = /skateboarding/i.test(animation.name);
   animation.isThrow = /throw/i.test(animation.name);
   animation.isDancing = /dancing/i.test(animation.name);
+  animation.isPowerUp = /powerup/i.test(animation.name);
   animation.isEating = /eating/i.test(animation.name);
   animation.isDrinking = /drinking/i.test(animation.name);
   animation.isCrouch = /crouch|sneak/i.test(animation.name);
