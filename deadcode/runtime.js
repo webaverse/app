@@ -1776,7 +1776,6 @@ const _loadHtml = async (file, {contentId = null}) => {
 
   function epsilon(value) {
 		return value;
-    // return Math.abs(value) < 1e-10 ? 0 : value;
 	}
   function getObjectCSSMatrix( matrix, cameraCSSMatrix ) {
 		var elements = matrix.elements;
