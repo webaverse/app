@@ -222,11 +222,11 @@ const animationsDistanceMap = {
 }; */
 const animationsAngleArrays = {
   walk: [
-    {name: 'left strafe walking.fbx', angle: Math.PI/2},
-    {name: 'right strafe walking.fbx', angle: -Math.PI/2},
+    {name: 'sword_left.fbx', angle: Math.PI/2},
+    {name: 'sword_right.fbx', angle: -Math.PI/2},
 
-    {name: 'walking.fbx', angle: 0},
-    {name: 'walking backwards.fbx', angle: Math.PI},
+    {name: 'sword_walk.fbx', angle: 0},
+    {name: 'sword_walk_backward.fbx', angle: Math.PI},
 
     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
     // {name: 'right strafe walking reverse.fbx', angle: -Math.PI*3/4},
@@ -372,15 +372,15 @@ const loadPromise = (async () => {
     }
   };
   const walkingAnimations = [
-    `walking.fbx`,
-    `left strafe walking.fbx`,
-    `right strafe walking.fbx`,
+    `sword_walk.fbx`,
+    `sword_left.fbx`,
+    `sword_right.fbx`,
   ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
   const walkingBackwardAnimations = [
-    `walking backwards.fbx`,
-    `left strafe walking reverse.fbx`,
-    `right strafe walking reverse.fbx`,
+    `sword_walk_backward.fbx`,
+    `sword_right.fbx`,
+    `sword_left.fbx`,
   ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
   const runningAnimations = [

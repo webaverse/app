@@ -146,51 +146,51 @@ class CharacterSfx {
       const animation = animations.find(a => a.name === walkRunAnimationName);
       const animationStepIndices = Avatar.getAnimationStepIndices();
       const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
-      const {leftStepIndices, rightStepIndices} = animationIndices;
+      const {leftStepIndices, rightStepIndices} = animationIndices || {};
 
       const offset = offsets[walkRunAnimationName] ?? 0; // ?? window.lol;
       const _getStepIndex = timeSeconds => {
-        const timeMultiplier = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
-        const walkTime = (timeSeconds * timeMultiplier + offset) % animation.duration;
-        const walkFactor = walkTime / animation.duration;
-        const stepIndex = Math.floor(mod(walkFactor, 1) * leftStepIndices.length);
-        return stepIndex;
+        // const timeMultiplier = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
+        // const walkTime = (timeSeconds * timeMultiplier + offset) % animation.duration;
+        // const walkFactor = walkTime / animation.duration;
+        // const stepIndex = Math.floor(mod(walkFactor, 1) * leftStepIndices.length) || null;
+        // return stepIndex;
       };
 
-      const startIndex = _getStepIndex(this.lastWalkTime);
-      const endIndex = _getStepIndex(timeSeconds);
-      for (let i = startIndex;; i++) {
-        i = i % leftStepIndices.length;
-        if (i !== endIndex) {
-          if (leftStepIndices[i] && !this.lastStepped[0]) {
-            const candidateAudios = soundFiles//.filter(a => a.paused);
-            if (candidateAudios.length > 0) {
-              /* for (const a of candidateAudios) {
-                !a.paused && a.pause();
-              } */
+      // const startIndex = _getStepIndex(this.lastWalkTime);
+      // const endIndex = _getStepIndex(timeSeconds);
+      // for (let i = startIndex;; i++) {
+      //   i = i % leftStepIndices.length;
+      //   if (i !== endIndex) {
+      //     if (leftStepIndices[i] && !this.lastStepped[0]) {
+      //       const candidateAudios = soundFiles//.filter(a => a.paused);
+      //       if (candidateAudios.length > 0) {
+      //         /* for (const a of candidateAudios) {
+      //           !a.paused && a.pause();
+      //         } */
               
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              _playSound(audioSpec);
-            }
-          }
-          this.lastStepped[0] = leftStepIndices[i];
+      //         const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+      //         _playSound(audioSpec);
+      //       }
+      //     }
+      //     this.lastStepped[0] = leftStepIndices[i];
 
-          if (rightStepIndices[i] && !this.lastStepped[1]) {
-            const candidateAudios = soundFiles// .filter(a => a.paused);
-            if (candidateAudios.length > 0) {
-              /* for (const a of candidateAudios) {
-                !a.paused && a.pause();
-              } */
+      //     if (rightStepIndices[i] && !this.lastStepped[1]) {
+      //       const candidateAudios = soundFiles// .filter(a => a.paused);
+      //       if (candidateAudios.length > 0) {
+      //         /* for (const a of candidateAudios) {
+      //           !a.paused && a.pause();
+      //         } */
 
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-              _playSound(audioSpec);
-            }
-          }
-          this.lastStepped[1] = rightStepIndices[i];
-        } else {
-          break;
-        }
-      }
+      //         const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+      //         _playSound(audioSpec);
+      //       }
+      //     }
+      //     this.lastStepped[1] = rightStepIndices[i];
+      //   } else {
+      //     break;
+      //   }
+      // }
 
       this.lastWalkTime = timeSeconds;
     }
