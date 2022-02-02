@@ -441,7 +441,7 @@ const loadPromise = (async () => {
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
-    swordSideIdle: animations.index['sword_idle_side.fbx'],
+    swordSideIdle: animations.index['sword_idle.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
     swordSideSlash: animations.index['sword_side_slash.fbx'],
     swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
