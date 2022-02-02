@@ -357,7 +357,6 @@ export default class Webaverse extends EventTarget {
 
   render(timestamp, timeDiff) {
     const renderer = getRenderer();
-    renderer.info.completeReset();
 
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
@@ -372,6 +371,8 @@ export default class Webaverse extends EventTarget {
     if(ioManager.debugMode) {
       rendererStats.update(renderer);
     }
+    game.debugMode && rendererStats.update(renderer);
+    renderer.info.reset();
   }
 
   startLoop() {
