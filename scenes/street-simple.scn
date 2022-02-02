@@ -1,0 +1,9 @@
+{
+  "objects": [
+    { "type": "application/light", "content": { "lightType": "ambient", "args": [[255, 255, 255], 2] } },
+    { "type": "application/light", "content": { "lightType": "directional", "args": [[255, 255, 255], 2], "position": [1, 2, 3] } },
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/" },
+    { "position": [ 0, 0, 0 ], "quaternion": [ 0, 0, 0, 1 ], "start_url": "http://localhost/lib/webaverse_resource/stacks/index.js" },
+    { "position": [ 0, 0.16, 10 ], "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ], "physics": false, "start_url": "http://localhost/lib/webaverse_resource/fox/" }
+  ]
+}
