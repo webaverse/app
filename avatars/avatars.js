@@ -268,7 +268,7 @@ const animationsAngleArraysMirror = {
 };
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
-  walk: {name: 'idle.fbx'},
+  walk: {name: 'sword_idle_sword.fbx'},
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
@@ -441,7 +441,7 @@ const loadPromise = (async () => {
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
-    swordSideIdle: animations.index['sword_idle.fbx'],
+    swordSideIdle: animations.index['sword_idle_sword.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
     swordSideSlash: animations.index['sword_side_slash.fbx'],
     swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
