@@ -222,11 +222,11 @@ const animationsDistanceMap = {
 }; */
 const animationsAngleArrays = {
   walk: [
-    {name: 'sword_left.fbx', angle: Math.PI/2},
-    {name: 'sword_right.fbx', angle: -Math.PI/2},
+    {name: 'great_sword_right.fbx', angle: Math.PI/2},
+    {name: 'great_sword_left.fbx', angle: -Math.PI/2},
 
-    {name: 'sword_walk.fbx', angle: 0},
-    {name: 'sword_walk_backward.fbx', angle: Math.PI},
+    {name: 'great_sword_walk.fbx', angle: 0},
+    {name: 'great_sword_walk_back.fbx', angle: Math.PI},
 
     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
     // {name: 'right strafe walking reverse.fbx', angle: -Math.PI*3/4},
@@ -268,7 +268,7 @@ const animationsAngleArraysMirror = {
 };
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
-  walk: {name: 'sword_idle_sword.fbx'},
+  walk: {name: 'great_sword_idle.fbx'},
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
@@ -372,15 +372,15 @@ const loadPromise = (async () => {
     }
   };
   const walkingAnimations = [
-    `sword_walk.fbx`,
-    `sword_left.fbx`,
-    `sword_right.fbx`,
+    `great_sword_walk.fbx`,
+    `great_sword_right.fbx`,
+    `great_sword_left.fbx`,
   ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
   const walkingBackwardAnimations = [
-    `sword_walk_backward.fbx`,
-    `sword_right.fbx`,
-    `sword_left.fbx`,
+    `great_sword_walk_back.fbx`,
+    `great_sword_right.fbx`,
+    `great_sword_left.fbx`,
   ].map(name => animations.index[name]);
   _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
   const runningAnimations = [
@@ -441,12 +441,12 @@ const loadPromise = (async () => {
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
-    swordSideIdle: animations.index['sword_idle_sword.fbx'],
-    swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
-    swordSideSlash: animations.index['sword_side_slash.fbx'],
-    swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
-    swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
-    swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
+    swordSideIdle: animations.index['great_sword_idle.fbx'],
+    swordSideIdleStatic: animations.index['great_sword_idle.fbx'],
+    swordSideSlash: animations.index['great_sword_slash_1.fbx'],
+    swordSideSlashStep: animations.index['great_sword_slash_2.fbx'],
+    swordTopDownSlash: animations.index['great_sword_slash_3.fbx'],
+    swordTopDownSlashStep: animations.index['great_sword_slash_2.fbx'],
     swordUndraw: animations.index['sword_undraw.fbx'],
   };
   useAnimations = mergeAnimations({
