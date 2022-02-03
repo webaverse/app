@@ -286,6 +286,10 @@ let animations;
 let animationStepIndices;
 let animationsBaseModel;
 let jumpAnimation;
+let fallAnimation;
+let fallToLandAnimation;
+let hardLandingAnimation;
+let jumpForwardAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -445,6 +449,10 @@ const loadPromise = (async () => {
   }
 
   jumpAnimation = animations.find(a => a.isJump);
+  fallAnimation = animations.index["fall_loop.fbx"];
+  fallToLandAnimation = animations.index["falling_to_landing.fbx"];
+  hardLandingAnimation = animations.index["hard_landing.fbx"];
+  jumpForwardAnimation = animations.index["jump_forward.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -1145,6 +1153,7 @@ class Avatar {
       } */
       return o;
     })();
+    this.move = false;
     this.model = model;
     this.options = options;
     
@@ -2165,6 +2174,13 @@ class Avatar {
 
       if (this.velocity.length() > maxIdleVelocity) {
         this.lastMoveTime = now;
+        this.move = true;
+        this.horizontalMove = Math.abs(this.velocity.x) !== 0 || Math.abs(this.velocity.z) !== 0;
+        console.log('move : ', this.move);
+        console.log('horiz move : ', this.horizontalMove);
+      } else {
+        this.move = false;
+        this.horizontalMove = false;
       }
     };
     _updatePosition();
@@ -2523,7 +2539,20 @@ class Avatar {
             // console.log('JumpState', spec)
 
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
-            const src2 = jumpAnimation.interpolants[k];
+            let src2;
+            if(this.jumpTime > 1000) {
+              console.log('falling :', this.jumpTime);
+              src2 = fallAnimation.interpolants[k];
+            } else {
+              console.log('jumping:', this.jumpTime);
+              if(this.move && !this.horizontalMove) {
+                src2 = jumpAnimation.interpolants[k];
+              } 
+              if(this.move && this.horizontalMove) {
+                src2 = jumpForwardAnimation.interpolants[k];
+              }
+            }
+            if(!src2) return;
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
