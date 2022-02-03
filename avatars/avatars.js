@@ -837,6 +837,7 @@ const _makeDebugMesh = () => {
       modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
     }
   };
+  // XXX this can be rewritten to use an allocated buffer from the physics manager
   mesh.serializeSkeleton = () => {
     const buffers = [];
 
