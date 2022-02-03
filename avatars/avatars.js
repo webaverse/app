@@ -725,9 +725,7 @@ const _makeDebugMesh = () => {
   for (const k in attributes) {
     mesh.add(attributes[k]);
   }
-  // window.mesh = mesh;
   const modelBoneToMeshBoneMap = new Map();
-  // const meshBoneToModelBoneMap = new Map();
 
   mesh.wrapToAvatar = avatar => {
     avatar.modelBoneOutputs.Root.updateMatrixWorld();
@@ -752,7 +750,6 @@ const _makeDebugMesh = () => {
       meshBone.boneLength = boneLength;
     }
 
-    // const modelBoneOutputsArray = Object.keys(avatar.modelBoneOutputs).map(k => avatar.modelBoneOutputs[k]);
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
@@ -765,7 +762,6 @@ const _makeDebugMesh = () => {
         )
       );
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
-      // meshBoneToModelBoneMap.set(meshBone, modelBone);
     }
   };
   mesh.setFromAvatar = avatar => {
