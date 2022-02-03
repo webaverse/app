@@ -364,6 +364,11 @@ export function getNextPhysicsId() {
   return ++nextPhysicsId;
 }
 
+let nextCharacterId = 0;
+export function getNextCharacterId() {
+  return ++nextCharacterId;
+}
+
 export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
   oldParent && oldParent.remove(topMesh);
