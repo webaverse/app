@@ -789,7 +789,8 @@ export default class Webaverse extends EventTarget {
           if (block._risingState === 'initial' || block._risingState === 'colliding') {
             block.position.y += 0.1;
             block.updateMatrixWorld();
-            const isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            // const isCollide = physicsManager.collideCapsule(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, block.position, localQuaternion.set(0, 0, 0, 1), 1);
             if (isCollide) {
               block._risingState = 'colliding';
             } else if (block._risingState === 'colliding') {
@@ -803,7 +804,8 @@ export default class Webaverse extends EventTarget {
           if (block._risingState === 'initial' || block._risingState === 'colliding') {
             block.position.y += 0.1;
             block.updateMatrixWorld();
-            const isCollide = physicsManager.collide(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            // const isCollide = physicsManager.collideCapsule(0.5, 1, block.position, localQuaternion.set(0, 0, 0, 1), 1);
+            const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, block.position, localQuaternion.set(0, 0, 0, 1), 1);
             if (isCollide) {
               block._risingState = 'colliding';
             } else if (block._risingState === 'colliding') {
@@ -812,8 +814,8 @@ export default class Webaverse extends EventTarget {
           }
         });
       }
-      if (window.petDestBlock) {
-        if (Math.abs(window.fox.position.x - window.petDestBlock.position.x) < 1 && Math.abs(window.fox.position.z - window.petDestBlock.position.z) < 1) {
+      if (window.petDestBlock) { // pet auto go along the path found by A*.
+        if (Math.abs(window.fox.position.x - window.petDestBlock.position.x) < 0.5 && Math.abs(window.fox.position.z - window.petDestBlock.position.z) < 0.5) {
           // debugger
           if (window.petDestBlock._next) window.petDestBlock = window.petDestBlock._next;
         }
@@ -879,8 +881,8 @@ export default class Webaverse extends EventTarget {
 const _startHacks = () => {
   // mark: generate voxel map
   const geometry = new THREE.BoxGeometry();
-  geometry.scale(0.9, 0.9, 0.9);
-  geometry.translate(0, -1.2, 0);
+  geometry.scale(0.9, 0.1, 0.9);
+  // geometry.translate(0, -1.2, 0); //
   for (let z = -(height - 1) / 2; z < height / 2; z++) {
     for (let x = -(width - 1) / 2; x < width / 2; x++) {
       const block = new THREE.Mesh(geometry, materialIdle);
