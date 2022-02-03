@@ -37,7 +37,7 @@ let currentCollisionId = null;
 const getCurrentPhysicsId = () => currentCollisionId;
 const update = () => {
   if (document.pointerLockElement) {
-    const collision = geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
+    const collision = geometryManager.geometryWorker.collideCapsulePhysics(geometryManager.physics, radius, halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
     if (collision) {
       const collisionId = collision.objectId;
       currentCollisionId = collisionId;
