@@ -34,8 +34,6 @@ const geometryUtils = (() => {
 
     (async () => { await Module.waitForLoad(); })();
 
-    scope.test = () => { console.log(">>> geometry utils test: ", moduleInstance) };
-
     scope.marchingCubes = (dims, potential, shift, scale) => {
         let allocator = new Allocator();
 
