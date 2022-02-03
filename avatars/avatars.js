@@ -769,21 +769,35 @@ const _makeDebugMesh = () => {
       if (k === 'Hips') {
         const position = new THREE.Vector3();
         let numChildren = 0;
-        for (const childModelBone of modelBone.children) {
-          const childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
-          if (childMeshBone) {
+        for (const child of modelBone.children) {
+          let childModelBone = child;
+          let childMeshBone = null;
+          for (;;) {
+            if (!childModelBone) {
+              throw new Error('fail');
+            }
+            childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
+            if (childMeshBone) {
+              break;
+            } else {
+              childModelBone = childModelBone.parent;
+            }
+          }
+
+          // const childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
+          if (childModelBone.name !== 'ikSpine') {
             const worldPosition = new THREE.Vector3().setFromMatrixPosition(childModelBone.matrixWorld);
             const worldQuaternion = new THREE.Quaternion().setFromRotationMatrix(childModelBone.matrixWorld);
             const {boneLength} = childModelBone;
-            position.add(worldPosition);
-            /* position.add(
+            // position.add(worldPosition);
+            position.add(
               worldPosition.clone()
                 .add(
-                  new THREE.Vector3(0, 0, -boneLength*0.5)
+                  new THREE.Vector3(0, 0, boneLength*0.5)
                     .applyQuaternion(childModelBone.forwardQuaternion)
                     .applyQuaternion(worldQuaternion)
                 )
-            ); */
+            );
             numChildren++;
             /* if (isNaN(position.x)) {
               debugger;
