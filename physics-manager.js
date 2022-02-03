@@ -291,6 +291,7 @@ physicsManager.simulatePhysics = timeDiff => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
 
 physicsManager.createSkeleton = (skeletonBuffer, groupId) => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer, groupId);
+physicsManager.setSkeletonFromBuffer = (skeleton, buffer) => physx.physxWorker.setSkeletonFromBuffer(physx.physics, skeleton, buffer);
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
