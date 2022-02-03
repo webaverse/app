@@ -847,18 +847,9 @@ export default () => {
     if (result) {
       return result;
     } else {
-      if (window.debugMeshes) {
-        let debugMeshPhysicsObject = null;
-        window.debugMeshes.some(debugMesh => {
-          const object = debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
-          if (object) {
-            debugMeshPhysicsObject = object;
-            return true;
-          } else {
-            return false;
-          }
-        });
-        return debugMeshPhysicsObject;
+      const debugMesh = localPlayer.avatar?.debugMesh;
+      if (debugMesh) {
+        return debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
       } else { 
         return null;
       }
@@ -884,18 +875,9 @@ export default () => {
       })) {
         return remotePhysicsObject;
       } else {
-        if (window.debugMeshes) {
-          let debugMeshPhysicsObject = null;
-          window.debugMeshes.some(debugMesh => {
-            const object = debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
-            if (object) {
-              debugMeshPhysicsObject = object;
-              return true;
-            } else {
-              return false;
-            }
-          });
-          return debugMeshPhysicsObject;
+        const debugMesh = localPlayer.avatar?.debugMesh;
+        if (debugMesh) {
+          return debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
         } else { 
           return null;
         }

@@ -11,7 +11,9 @@ import {
   angleDifference,
   // getVelocityDampingFactor,
   getNextPhysicsId,
+  getNextCharacterId,
 } from '../util.js';
+import physicsManager from '../physics-manager.js';
 import easing from '../easing.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
@@ -67,7 +69,6 @@ const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
 const textEncoder = new TextEncoder();
-window.debugMeshes = [];
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
@@ -547,7 +548,6 @@ const _findBoneDeep = (bones, boneName) => {
 }; */
 
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-const srcCubeGeometries = {};
 const debugMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
@@ -555,16 +555,12 @@ const debugMeshMaterial = new THREE.MeshNormalMaterial({
 });
 const _makeDebugMesh = () => {
   const baseScale = 0.01;
-  const fingerScale = 0.5;
+  const fingerScale = 0.2;
+  const physicsBoneScaleFactor = 0.7;
   const physicsIdToMeshBoneMap = new Map();
   const _makeCubeMesh = (name, scale = 1) => {
-    let srcGeometry = srcCubeGeometries[scale];
-    if (!srcGeometry) {
-      srcGeometry = cubeGeometry.clone()
-        .applyMatrix4(localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
-      srcCubeGeometries[scale] = srcGeometry;
-    }
-    const geometry = srcGeometry;
+    const scaleFactor = baseScale * scale;
+    const geometry = cubeGeometry;
 
     const object = new THREE.Object3D();
     object.name = name;
@@ -572,13 +568,16 @@ const _makeDebugMesh = () => {
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
     const physicsMesh = new THREE.Mesh(geometry, debugMeshMaterial);
+    physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
 
-    /* object.parent2 = null;
+    object.parent2 = null;
+    object.children2 = [];
     object.add2 = child => {
+      object.children2.push(child);
       child.parent2 = object;
-    }; */
+    };
 
     return object;
   };
@@ -640,11 +639,25 @@ const _makeDebugMesh = () => {
     Right_toe: _makeCubeMesh('Right_toe'),
   };
 
-  /* // hips
+  // hips
+  attributes.Hips.physicsMesh.material = new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    transparent: true,
+    depthTest: false,
+  });
+  console.log('hips material', attributes.Hips.physicsMesh.material);
   attributes.Root.add2(attributes.Hips);
+  attributes.Root.physicsMesh.material = new THREE.MeshBasicMaterial({
+    color: 0x00ff00,
+    transparent: true,
+    depthTest: false,
+  });
+  console.log('root material', attributes.Root.physicsMesh.material);
   attributes.Hips.add2(attributes.Spine);
   attributes.Spine.add2(attributes.Chest);
   attributes.Chest.add2(attributes.UpperChest);
+
+  // window.spine = attributes.Spine;
 
   // head
   attributes.UpperChest.add2(attributes.Neck);
@@ -706,7 +719,7 @@ const _makeDebugMesh = () => {
   attributes.Hips.add2(attributes.Right_leg);
   attributes.Right_leg.add2(attributes.Right_knee);
   attributes.Right_knee.add2(attributes.Right_ankle);
-  attributes.Right_ankle.add2(attributes.Right_toe); */
+  attributes.Right_ankle.add2(attributes.Right_toe);
 
   const mesh = new THREE.Object3D();
   for (const k in attributes) {
@@ -722,8 +735,21 @@ const _makeDebugMesh = () => {
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
-      const l = k !== 'Root' ? modelBone.position.length() : 0;
-      meshBone.physicsMesh.scale.z = l;
+      const boneLength = (() => {
+        if (k === 'Root') {
+          return baseScale;
+        } else if (k === 'Hips') {
+          return modelBone.position.length();
+        } else {
+          return modelBone.position.length();
+        }
+      })();
+      if (k === 'Hips') {
+        // meshBone.physicsMesh.scale.z = 0.3;
+      } else if (k !== 'Root') {
+        meshBone.physicsMesh.scale.z = boneLength * physicsBoneScaleFactor;
+      }
+      meshBone.boneLength = boneLength;
     }
 
     // const modelBoneOutputsArray = Object.keys(avatar.modelBoneOutputs).map(k => avatar.modelBoneOutputs[k]);
@@ -742,44 +768,49 @@ const _makeDebugMesh = () => {
       // meshBoneToModelBoneMap.set(meshBone, modelBone);
     }
   };
-  let detached = false;
   mesh.setFromAvatar = avatar => {
-    if (!detached) {
-      for (const k in avatar.modelBoneOutputs) {
-        const modelBone = avatar.modelBoneOutputs[k];
-        const meshBone = modelBoneToMeshBoneMap.get(modelBone);
+    for (const k in avatar.modelBoneOutputs) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
-        /*
-        meshBone.matrixWorld.copy(modelBone.matrixWorld);
-        meshBone.matrix.copy(modelBone.matrixWorld);
-        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);  
-        */
+      modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+        localMatrix.lookAt(
+          localVector.set(0, 0, 0),
+          modelBone.position,
+          localVector2.set(0, 1, 0)
+        )
+      );
 
-        (modelBone.parent ?
-          modelBone.parent.matrixWorld
-        :
-          localMatrix.identity()
-        ).decompose(localVector, localQuaternion, localVector2);
+      /*
+      meshBone.matrixWorld.copy(modelBone.matrixWorld);
+      meshBone.matrix.copy(modelBone.matrixWorld);
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);  
+      */
 
-        localVector.add(
-          localVector3.set(0, 0, -meshBone.physicsMesh.scale.z*0.5)
-            .applyQuaternion(modelBone.forwardQuaternion)
-            .applyQuaternion(localQuaternion)
-        );
+      (modelBone.parent ?
+        modelBone.parent.matrixWorld
+      :
+        localMatrix.identity()
+      ).decompose(localVector, localQuaternion, localVector2);
 
-        localQuaternion.multiply(
-          modelBone.forwardQuaternion
-        );
+      localVector.add(
+        localVector3.set(0, 0, -meshBone.boneLength * (k === 'Hips' ? 1 : 0.5))
+          .applyQuaternion(modelBone.forwardQuaternion)
+          .applyQuaternion(localQuaternion)
+      );
 
-        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        meshBone.matrix.copy(meshBone.matrixWorld);
-        /* if (meshBone.parent2) {
-          meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
-        } */
-        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-      }
-      mesh.updateMatrixWorld();
+      localQuaternion.multiply(
+        modelBone.forwardQuaternion
+      );
+
+      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      meshBone.matrix.copy(meshBone.matrixWorld);
+      /* if (meshBone.parent2) {
+        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
+      } */
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
+    mesh.updateMatrixWorld();
   };
   mesh.serializeSkeleton = () => {
     const buffers = [];
@@ -795,12 +826,13 @@ const _makeDebugMesh = () => {
 
       const transformBuffer = new Float32Array(10);
       meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+// localVector.add(localVector3.set(0, 1, 0)); // XXX
       localVector.toArray(transformBuffer, 0);
       localQuaternion.toArray(transformBuffer, 3);
       meshBone.physicsMesh.scale.toArray(transformBuffer, 7);
       buffers.push(transformBuffer);
 
-      const objectChildren = meshBone.children.filter(child => !child.isMesh);
+      const objectChildren = meshBone.children2.filter(child => !child.isMesh);
       const numChildrenBuffer = Uint32Array.from([objectChildren.length]);
       buffers.push(numChildrenBuffer);
 
@@ -808,7 +840,8 @@ const _makeDebugMesh = () => {
         _recurse(child);
       }
     };
-    _recurse(attributes.Root);
+    _recurse(attributes.Hips);
+    // attributes.Root.visible = false;
 
     let totalBufferSize = 0;
     for (const buffer of buffers) {
@@ -821,14 +854,14 @@ const _makeDebugMesh = () => {
       offset += buffer.byteLength;
     }
 
-    detached = true;
-
     return result;
   };
+  // window.physicsIdToMeshBoneMap = physicsIdToMeshBoneMap;
   mesh.getPhysicsObjectByPhysicsId = physicsId => {
     const object = physicsIdToMeshBoneMap.get(physicsId);
     return object;
   };
+  mesh.skeleton = null;
   return mesh;
 };
 const _findArmature = bone => {
@@ -951,6 +984,9 @@ class Blinker {
     this.lastTimestamp = 0;
   }
   update(now) {
+    const localPlayer = metaversefile.useLocalPlayer();
+    window.localPlayer = localPlayer;
+
     const _setOpen = () => {
       this.mode = 'open';
       this.waitTime = (0.5 + 0.5 * Math.random()) * 3000;
@@ -1142,6 +1178,8 @@ class Emoter {
 
 class Avatar {
 	constructor(object, options = {}) {
+    window.avatar = this;
+    // window.physicsManager = physicsManager;
     if (!object) {
       object = {};
     }
@@ -1572,7 +1610,11 @@ class Avatar {
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
 
-    this.debugMesh = null;
+    this.debugMesh = _makeDebugMesh();
+    this.debugMesh.wrapToAvatar(this);
+    this.model.add(this.debugMesh);
+    this.ragdoll = null;
+    this.characterId = getNextCharacterId();
 
     this.emotes = [];
     if (this.options.visemes) {
@@ -3342,16 +3384,18 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    if (game.debugMode && !this.debugMesh) {
-      this.debugMesh = _makeDebugMesh();
-      this.debugMesh.wrapToAvatar(this);
-      this.model.add(this.debugMesh);
-      window.debugMeshes.push(this.debugMesh);
+    if (game.debugMode) {
+      if (!this.ragdoll) {
+        this.debugMesh.setFromAvatar(this);
+      } else {
+        if (!this.debugMesh.skeleton) {
+          const b = this.debugMesh.serializeSkeleton();
+          const skeleton = physicsManager.createSkeleton(b, this.characterId);
+          this.debugMesh.skeleton = skeleton;
+        }
+      }
     }
-    if (this.debugMesh) {
-      game.debugMode && this.debugMesh.setFromAvatar(this);
-      this.debugMesh.visible = game.debugMode;
-    }
+    this.debugMesh.visible = game.debugMode;
 	}
 
   isAudioEnabled() {
