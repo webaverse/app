@@ -1312,7 +1312,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat) => {
+  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat, groupId) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const m = allocator.alloc(Float32Array, 3);
@@ -1327,9 +1327,15 @@ const physxWorker = (() => {
       contactOffset,
       stepOffset,
       p.byteOffset,
-      m.byteOffset
+      m.byteOffset,
+      groupId
     );
     allocator.freeAll();
+
+    if (!groupId) {
+      debugger;
+    }
+    console.log('create character controller', groupId);
   
     return characterController;
   };
@@ -1414,7 +1420,7 @@ const physxWorker = (() => {
     }
   };
 
-  w.createSkeleton = (physics, skeletonBuffer) => {
+  w.createSkeleton = (physics, skeletonBuffer, groupId) => {
     const allocator = new Allocator();
     const skeletonBufferInner = allocator.alloc(Uint8Array, skeletonBuffer.byteLength);
     
@@ -1422,9 +1428,18 @@ const physxWorker = (() => {
 
     moduleInstance._createSkeleton(
       physics,
-      skeletonBufferInner.byteOffset
+      skeletonBufferInner.byteOffset,
+      groupId
     );
     allocator.freeAll();
+
+    console.log('create skeleton', groupId);
+
+    if (!groupId) {
+      debugger;
+    }
+
+    return {};
   };
 
   return w;

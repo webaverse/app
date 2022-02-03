@@ -206,8 +206,8 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
-physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat) => {
-  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat);
+physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat, groupId) => {
+  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat, groupId);
   return characterController;
 };
 physicsManager.destroyCharacterController = characterController => {
@@ -270,26 +270,27 @@ physicsManager.simulatePhysics = timeDiff => {
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
-        // XXX make this based on setting the matrix world instead of position
-        // that means that the debug meshes bones need to be flattened
+        // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
 
+        // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
+
         physicsObject.collided = collided;
         physicsObject.grounded = grounded;
-      } /* else {
-        if (id !== 0) {
+      } else {
+        if (id !== 0 && id < 1000) {
           console.warn('failed to get physics object', id);
         }
-      } */
+      }
     }
   }
 };
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
 
-physicsManager.createSkeleton = skeletonBuffer => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer);
+physicsManager.createSkeleton = (skeletonBuffer, groupId) => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer, groupId);
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
