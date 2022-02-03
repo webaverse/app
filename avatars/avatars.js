@@ -451,7 +451,7 @@ const loadPromise = (async () => {
 
   jumpAnimation = animations.find(a => a.isJump);
   fallAnimation = animations.index["falling_loop.fbx"];
-  fallToLandAnimation = animations.index["falling_to_landing.fbx"];
+  fallToLandAnimation = animations.index["soft_landing_45degHipAdjustm.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
   jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
@@ -2543,8 +2543,15 @@ class Avatar {
           // console.log('Landing');
         }
         if(!this.jumpState && this.previousTime > 0) {
+          //enable landing time
+          this.landingTime = 0;
+          this.targetTime = this.previousTime;
+          this.previousTime = 0;
+          console.log('target time is ' + this.targetTime);
+        }
+        if(this.landingTime < this.targetTime) {
           console.log('landing anim plays');
-          this.previousTime -= 25;
+          this.landingTime += 25;
           return spec => {
             const {
               animationTrackName: k,
@@ -2554,8 +2561,15 @@ class Avatar {
           
             let t2;
             let src2;
-            src2 = hardLandingAnimation.interpolants[k];
-            t2 = this.previousTime/1000 * 0.6;
+            console.log('target time ')
+            if(this.targetTime > 1500) {
+              src2 = hardLandingAnimation.interpolants[k];
+            } else {
+              src2 = fallToLandAnimation.interpolants[k];
+            }
+            
+            
+            t2 = this.landingTime/1000 * 0.6;
             if(!src2) return;
             const v2 = src2.evaluate(t2);
 
