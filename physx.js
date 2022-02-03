@@ -1373,47 +1373,6 @@ const physxWorker = (() => {
     allocator.freeAll();
   };
 
-  w.marchingCubes = (dims, potential, shift, scale) => {
-    let allocator = new Allocator();
-
-    const dimsTypedArray = allocator.alloc(Int32Array, 3);
-    dimsTypedArray.set(dims);
-
-    const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
-    potentialTypedArray.set(potential);
-
-    const shiftTypedArray = allocator.alloc(Float32Array, 3);
-    shiftTypedArray.set(shift);
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3);
-    scaleTypedArray.set(scale);
-
-    const outputBufferOffset = moduleInstance._doMarchingCubes(
-      dimsTypedArray.byteOffset,
-      potentialTypedArray.byteOffset,
-      shiftTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
-    );
-
-    allocator.freeAll();
-
-    const head = outputBufferOffset / 4;
-
-    const positionCount = moduleInstance.HEAP32[head];
-    const faceCount = moduleInstance.HEAP32[head + 1];
-    const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
-    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
-
-    moduleInstance._doFree(outputBufferOffset);
-
-    return {
-      positionCount: positionCount,
-      faceCount: faceCount,
-      positions: positions,
-      faces: faces
-    }
-  }
-
   return w;
 })();
 physx.physxWorker = physxWorker;

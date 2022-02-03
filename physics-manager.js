@@ -283,8 +283,6 @@ physicsManager.simulatePhysics = timeDiff => {
   }
 };
 
-physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
-
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
