@@ -767,48 +767,10 @@ const _makeDebugMesh = () => {
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
       if (k === 'Hips') {
-        const position = new THREE.Vector3();
-        let numChildren = 0;
-        for (const child of modelBone.children) {
-          let childModelBone = child;
-          let childMeshBone = null;
-          for (;;) {
-            if (!childModelBone) {
-              throw new Error('fail');
-            }
-            childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
-            if (childMeshBone) {
-              break;
-            } else {
-              childModelBone = childModelBone.parent;
-            }
-          }
 
-          // const childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
-          if (childModelBone.name !== 'ikSpine') {
-            const worldPosition = new THREE.Vector3().setFromMatrixPosition(childModelBone.matrixWorld);
-            const worldQuaternion = new THREE.Quaternion().setFromRotationMatrix(childModelBone.matrixWorld);
-            const {boneLength} = childModelBone;
-            // position.add(worldPosition);
-            position.add(
-              worldPosition.clone()
-                .add(
-                  new THREE.Vector3(0, 0, boneLength*0.5)
-                    .applyQuaternion(childModelBone.forwardQuaternion)
-                    .applyQuaternion(worldQuaternion)
-                )
-            );
-            numChildren++;
-            /* if (isNaN(position.x)) {
-              debugger;
-            } */
-          }
-        }
-        window.children = modelBone.children;
-        position.divideScalar(numChildren);
         // console.log('got position', position.toArray().join(','));
-        /* const position = new THREE.Vector3()
-          .setFromMatrixPosition(modelBone.matrixWorld); */
+        const position = new THREE.Vector3()
+          .setFromMatrixPosition(modelBone.matrixWorld);
         const quaternion = new THREE.Quaternion()
           .setFromRotationMatrix(modelBone.matrixWorld);
         const scale = new THREE.Vector3()
@@ -841,7 +803,7 @@ const _makeDebugMesh = () => {
         ).decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(
-          localVector3.set(0, 0, -meshBone.boneLength * (k === 'Hips' ? 1 : 0.5))
+          localVector3.set(0, 0, -meshBone.boneLength * 0.5)
             .applyQuaternion(modelBone.forwardQuaternion)
             .applyQuaternion(localQuaternion)
         );
@@ -877,7 +839,6 @@ const _makeDebugMesh = () => {
 
       const transformBuffer = new Float32Array(10);
       meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-// localVector.add(localVector3.set(0, 1, 0)); // XXX
       localVector.toArray(transformBuffer, 0);
       localQuaternion.toArray(transformBuffer, 3);
       meshBone.physicsMesh.scale.toArray(transformBuffer, 7);
@@ -891,8 +852,7 @@ const _makeDebugMesh = () => {
         _recurse(child);
       }
     };
-    _recurse(attributes.Hips);
-    // attributes.Root.visible = false;
+    _recurse(attributes.Root);
 
     let totalBufferSize = 0;
     for (const buffer of buffers) {
@@ -907,7 +867,6 @@ const _makeDebugMesh = () => {
 
     return result;
   };
-  // window.physicsIdToMeshBoneMap = physicsIdToMeshBoneMap;
   mesh.getPhysicsObjectByPhysicsId = physicsId => {
     const object = physicsIdToMeshBoneMap.get(physicsId);
     return object;
