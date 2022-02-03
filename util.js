@@ -122,8 +122,8 @@ export function makePromise() {
   return p;
 }
 
-let nextMeshId = 0;
-export const getNextMeshId = () => ++nextMeshId;
+// let nextMeshId = 0;
+// export const getNextMeshId = () => ++nextMeshId;
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
