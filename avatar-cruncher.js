@@ -171,7 +171,15 @@ const crunchAvatarModel = (model, options = {}) => {
     
     for (const layout of attributeLayouts) {
       for (const g of geometries) {
-        const gAttribute = g.attributes[layout.name];
+        let gAttribute = g.attributes[layout.name];
+        if (!gAttribute) {
+          if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
+            gAttribute = new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * layout.itemSize), layout.itemSize);
+            g.setAttribute(layout.name, gAttribute);
+          } else {
+            throw new Error('unknown layout');
+          }
+        }
         layout.count += gAttribute.count * gAttribute.itemSize;
       }
     }
