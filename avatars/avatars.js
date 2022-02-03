@@ -1624,6 +1624,7 @@ class Avatar {
     this.debugMesh.wrapToAvatar(this);
     this.model.add(this.debugMesh);
     this.ragdoll = false;
+    this.lastRagdoll = false;
     this.characterId = getNextCharacterId();
 
     this.emotes = [];
@@ -3397,15 +3398,20 @@ class Avatar {
     if (game.debugMode) {
       if (!this.ragdoll) {
         this.debugMesh.setFromAvatar(this);
-      } else {
+      }
+      if (!this.lastRagdoll && this.ragdoll) {
         if (!this.debugMesh.skeleton) {
           const b = this.debugMesh.serializeSkeleton();
-          const skeleton = physicsManager.createSkeleton(b, this.characterId);
-          this.debugMesh.skeleton = skeleton;
+          this.debugMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
+      }
+      if (!this.ragdoll && this.debugMesh.skeleton) {
+        const b = this.debugMesh.serializeSkeleton();
+        physicsManager.setSkeletonFromBuffer(this.debugMesh.skeleton, b);
       }
     }
     this.debugMesh.visible = game.debugMode;
+    this.lastRagdoll = this.ragdoll;
 	}
 
   isAudioEnabled() {
