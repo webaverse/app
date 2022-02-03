@@ -734,19 +734,16 @@ const _makeDebugMesh = () => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
       const boneLength = (() => {
-        if (k === 'Root') {
+        if (k === 'Root' || k === 'Hips') {
           return baseScale;
-        } else if (k === 'Hips') {
-          return modelBone.position.length();
         } else {
           return modelBone.position.length();
         }
       })();
-      if (k === 'Hips') {
-        // meshBone.physicsMesh.scale.z = 0.3;
-      } else if (k !== 'Root') {
+      if (k !== 'Root' && k !== 'Hips') {
         meshBone.physicsMesh.scale.z = boneLength * physicsBoneScaleFactor;
       }
+      modelBone.boneLength = boneLength;
       meshBone.boneLength = boneLength;
     }
 
@@ -769,42 +766,86 @@ const _makeDebugMesh = () => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
-      modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-        localMatrix.lookAt(
-          localVector.set(0, 0, 0),
-          modelBone.position,
-          localVector2.set(0, 1, 0)
-        )
-      );
+      if (k === 'Hips') {
+        const position = new THREE.Vector3();
+        let numChildren = 0;
+        for (const childModelBone of modelBone.children) {
+          const childMeshBone = modelBoneToMeshBoneMap.get(childModelBone);
+          if (childMeshBone) {
+            const worldPosition = new THREE.Vector3().setFromMatrixPosition(childModelBone.matrixWorld);
+            const worldQuaternion = new THREE.Quaternion().setFromRotationMatrix(childModelBone.matrixWorld);
+            const {boneLength} = childModelBone;
+            position.add(worldPosition);
+            /* position.add(
+              worldPosition.clone()
+                .add(
+                  new THREE.Vector3(0, 0, -boneLength*0.5)
+                    .applyQuaternion(childModelBone.forwardQuaternion)
+                    .applyQuaternion(worldQuaternion)
+                )
+            ); */
+            numChildren++;
+            /* if (isNaN(position.x)) {
+              debugger;
+            } */
+          }
+        }
+        window.children = modelBone.children;
+        position.divideScalar(numChildren);
+        // console.log('got position', position.toArray().join(','));
+        /* const position = new THREE.Vector3()
+          .setFromMatrixPosition(modelBone.matrixWorld); */
+        const quaternion = new THREE.Quaternion()
+          .setFromRotationMatrix(modelBone.matrixWorld);
+        const scale = new THREE.Vector3()
+          .setFromMatrixScale(modelBone.matrixWorld);
+        
+        meshBone.matrixWorld.compose(
+          position,
+          quaternion,
+          scale
+        );
+      } else {
+        /* modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.set(0, 0, 0),
+            modelBone.position,
+            localVector2.set(0, 1, 0)
+          )
+        ); */
 
-      /*
-      meshBone.matrixWorld.copy(modelBone.matrixWorld);
-      meshBone.matrix.copy(modelBone.matrixWorld);
-      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);  
-      */
+        /*
+        meshBone.matrixWorld.copy(modelBone.matrixWorld);
+        meshBone.matrix.copy(modelBone.matrixWorld);
+        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);  
+        */
 
-      (modelBone.parent ?
-        modelBone.parent.matrixWorld
-      :
-        localMatrix.identity()
-      ).decompose(localVector, localQuaternion, localVector2);
+        (modelBone.parent ?
+          modelBone.parent.matrixWorld
+        :
+          localMatrix.identity()
+        ).decompose(localVector, localQuaternion, localVector2);
 
-      localVector.add(
-        localVector3.set(0, 0, -meshBone.boneLength * (k === 'Hips' ? 1 : 0.5))
-          .applyQuaternion(modelBone.forwardQuaternion)
-          .applyQuaternion(localQuaternion)
-      );
+        localVector.add(
+          localVector3.set(0, 0, -meshBone.boneLength * (k === 'Hips' ? 1 : 0.5))
+            .applyQuaternion(modelBone.forwardQuaternion)
+            .applyQuaternion(localQuaternion)
+        );
 
-      localQuaternion.multiply(
-        modelBone.forwardQuaternion
-      );
+        localQuaternion.multiply(
+          modelBone.forwardQuaternion
+        );
 
-      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-      meshBone.matrix.copy(meshBone.matrixWorld);
-      /* if (meshBone.parent2) {
-        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
-      } */
-      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      }
+      
+      {
+        meshBone.matrix.copy(meshBone.matrixWorld);
+        /* if (meshBone.parent2) {
+          meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
+        } */
+        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+      }
     }
     mesh.updateMatrixWorld();
   };
