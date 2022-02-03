@@ -1623,7 +1623,7 @@ class Avatar {
     this.debugMesh = _makeDebugMesh();
     this.debugMesh.wrapToAvatar(this);
     this.model.add(this.debugMesh);
-    this.ragdoll = null;
+    this.ragdoll = false;
     this.characterId = getNextCharacterId();
 
     this.emotes = [];
