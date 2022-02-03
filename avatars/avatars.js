@@ -450,7 +450,7 @@ const loadPromise = (async () => {
   }
 
   jumpAnimation = animations.find(a => a.isJump);
-  fallAnimation = animations.index["fall_loop.fbx"];
+  fallAnimation = animations.index["falling_loop.fbx"];
   fallToLandAnimation = animations.index["falling_to_landing.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
   jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
@@ -2531,7 +2531,7 @@ class Avatar {
         _getHorizontalBlend(k, lerpFn, isPosition, dst);
       };
       const _getApplyFn = () => {
-        if(this.previousTime > this.jumpTime && this.jumpTime < 100  && !this.landingState) {
+        if(this.previousTime > this.jumpTime && this.jumpTime < 100  && !this.landingState ) {
           console.log('LANDED');
           this.landingState = true;
         }
@@ -2542,6 +2542,26 @@ class Avatar {
         } else {
           // console.log('Landing');
         }
+        if(!this.jumpState && this.previousTime > 0) {
+          console.log('landing anim plays');
+          this.previousTime -= 25;
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              // isTop,
+            } = spec;
+          
+            let t2;
+            let src2;
+            src2 = hardLandingAnimation.interpolants[k];
+            t2 = this.previousTime/1000 * 0.6;
+            if(!src2) return;
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          };
+        }
         if (this.jumpState) {
           return spec => {
             const {
@@ -2551,7 +2571,7 @@ class Avatar {
             } = spec;
             // console.log('JumpState', spec)
             this.previousTime = this.jumpTime;
-            this.landingState = false;
+            // this.landingState = false;
             let t2;
             let src2;
             if(this.jumpTime > 1000) {
