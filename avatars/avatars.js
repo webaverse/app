@@ -48,6 +48,7 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1153,6 +1154,7 @@ class Avatar {
       } */
       return o;
     })();
+    this.previousTime = 0;
     this.move = false;
     this.model = model;
     this.options = options;
@@ -2176,8 +2178,8 @@ class Avatar {
         this.lastMoveTime = now;
         this.move = true;
         this.horizontalMove = Math.abs(this.velocity.x) !== 0 || Math.abs(this.velocity.z) !== 0;
-        console.log('move : ', this.move);
-        console.log('horiz move : ', this.horizontalMove);
+        // console.log('move : ', this.move);
+        // console.log('horiz move : ', this.horizontalMove);
       } else {
         this.move = false;
         this.horizontalMove = false;
@@ -2529,6 +2531,17 @@ class Avatar {
         _getHorizontalBlend(k, lerpFn, isPosition, dst);
       };
       const _getApplyFn = () => {
+        if(this.previousTime > this.jumpTime && this.jumpTime < 100  && !this.landingState) {
+          console.log('LANDED');
+          this.landingState = true;
+        }
+        if(this.previousTime > 500 && this.jumpTime > this.previousTime && !this.landingState) {
+          console.log('About to LAND ');
+          this.landingState = true;
+          this.previousTime = this.jumpTime;
+        } else {
+          // console.log('Landing');
+        }
         if (this.jumpState) {
           return spec => {
             const {
@@ -2537,15 +2550,16 @@ class Avatar {
               // isTop,
             } = spec;
             // console.log('JumpState', spec)
-
+            this.previousTime = this.jumpTime;
+            this.landingState = false;
             let t2;
             let src2;
             if(this.jumpTime > 1000) {
-              console.log('falling :', this.jumpTime);
+              // console.log('falling');
               src2 = fallAnimation.interpolants[k];
               t2 = this.jumpTime/1000 * 0.6 + 0.7;
             } else {
-              console.log('jumping:', this.jumpTime);
+              // console.log('jumping');
               if(this.move && !this.horizontalMove) {
                 src2 = jumpAnimation.interpolants[k];
                 t2 = this.jumpTime/1000 * 0.6 + 0.7;
