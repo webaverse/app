@@ -452,7 +452,7 @@ const loadPromise = (async () => {
   fallAnimation = animations.index["fall_loop.fbx"];
   fallToLandAnimation = animations.index["falling_to_landing.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
-  jumpForwardAnimation = animations.index["jump_forward.fbx"];
+  jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -2538,18 +2538,21 @@ class Avatar {
             } = spec;
             // console.log('JumpState', spec)
 
-            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
+            let t2;
             let src2;
             if(this.jumpTime > 1000) {
               console.log('falling :', this.jumpTime);
               src2 = fallAnimation.interpolants[k];
+              t2 = this.jumpTime/1000 * 0.6 + 0.7;
             } else {
               console.log('jumping:', this.jumpTime);
               if(this.move && !this.horizontalMove) {
                 src2 = jumpAnimation.interpolants[k];
+                t2 = this.jumpTime/1000 * 0.6 + 0.7;
               } 
               if(this.move && this.horizontalMove) {
                 src2 = jumpForwardAnimation.interpolants[k];
+                t2 = this.jumpTime/1000 * 0.6;
               }
             }
             if(!src2) return;
