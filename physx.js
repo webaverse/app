@@ -1426,20 +1426,30 @@ const physxWorker = (() => {
     
     skeletonBufferInner.set(new Uint8Array(skeletonBuffer.buffer, skeletonBuffer.byteOffset, skeletonBuffer.byteLength));
 
-    moduleInstance._createSkeleton(
+    const skeletonId = moduleInstance._createSkeleton(
       physics,
       skeletonBufferInner.byteOffset,
       groupId
     );
     allocator.freeAll();
 
-    console.log('create skeleton', groupId);
+    // console.log('create skeleton', groupId);
 
-    if (!groupId) {
-      debugger;
-    }
+    return skeletonId;
+  };
 
-    return {};
+  w.setSkeletonFromBuffer = (physics, skeletonId, skeletonBuffer) => {
+    const allocator = new Allocator();
+    const skeletonBufferInner = allocator.alloc(Uint8Array, skeletonBuffer.byteLength);
+    
+    skeletonBufferInner.set(new Uint8Array(skeletonBuffer.buffer, skeletonBuffer.byteOffset, skeletonBuffer.byteLength));
+
+    moduleInstance._setSkeletonFromBuffer(
+      physics,
+      skeletonId,
+      skeletonBufferInner.byteOffset
+    );
+    allocator.freeAll();
   };
 
   return w;
