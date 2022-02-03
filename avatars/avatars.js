@@ -767,7 +767,6 @@ const _makeDebugMesh = () => {
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
       if (k === 'Hips') {
-
         // console.log('got position', position.toArray().join(','));
         const position = new THREE.Vector3()
           .setFromMatrixPosition(modelBone.matrixWorld);
@@ -824,6 +823,19 @@ const _makeDebugMesh = () => {
       }
     }
     mesh.updateMatrixWorld();
+  };
+  mesh.toAvatar = avatar => {
+    for (const k in avatar.modelBoneOutputs) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = modelBoneToMeshBoneMap.get(modelBone);
+      modelBone.matrixWorld.copy(meshBone.matrixWorld);
+      modelBone.matrix.copy(meshBone.matrixWorld)
+      if (meshBone.parent2) {
+        modelBone.matrix
+          .premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
+      }
+      modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+    }
   };
   mesh.serializeSkeleton = () => {
     const buffers = [];
@@ -3244,6 +3256,26 @@ class Avatar {
     _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
+
+    if (game.debugMode) {
+      if (!this.ragdoll) {
+        this.debugMesh.setFromAvatar(this);
+      } else {
+        this.debugMesh.toAvatar(this);
+      }
+      if (!this.lastRagdoll && this.ragdoll) {
+        if (!this.debugMesh.skeleton) {
+          const b = this.debugMesh.serializeSkeleton();
+          this.debugMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
+        }
+      }
+      if (!this.ragdoll && this.debugMesh.skeleton) {
+        const b = this.debugMesh.serializeSkeleton();
+        physicsManager.setSkeletonFromBuffer(this.debugMesh.skeleton, b);
+      }
+    }
+    this.debugMesh.visible = game.debugMode;
+    this.lastRagdoll = this.ragdoll;
     
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
@@ -3394,24 +3426,6 @@ class Avatar {
       }
     };
     _updateSubAvatars();
-
-    if (game.debugMode) {
-      if (!this.ragdoll) {
-        this.debugMesh.setFromAvatar(this);
-      }
-      if (!this.lastRagdoll && this.ragdoll) {
-        if (!this.debugMesh.skeleton) {
-          const b = this.debugMesh.serializeSkeleton();
-          this.debugMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
-        }
-      }
-      if (!this.ragdoll && this.debugMesh.skeleton) {
-        const b = this.debugMesh.serializeSkeleton();
-        physicsManager.setSkeletonFromBuffer(this.debugMesh.skeleton, b);
-      }
-    }
-    this.debugMesh.visible = game.debugMode;
-    this.lastRagdoll = this.ragdoll;
 	}
 
   isAudioEnabled() {
