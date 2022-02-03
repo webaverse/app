@@ -763,6 +763,10 @@ const _makeDebugMesh = () => {
   };
   mesh.setFromAvatar = avatar => {
     for (const k in avatar.modelBoneOutputs) {
+      if (k === 'Root') {
+        continue;
+      }
+
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
 
@@ -809,6 +813,10 @@ const _makeDebugMesh = () => {
 
     /* // reverse transform test
     for (const k in avatar.modelBoneOutputs) {
+      if (k === 'Root') {
+        continue;
+      }
+
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
       
@@ -827,9 +835,6 @@ const _makeDebugMesh = () => {
       } else {
         const modelBoneParent = modelBone.parent;
         if (modelBoneParent) {
-          const modelBone = avatar.modelBoneOutputs[k];
-          const meshBone = modelBoneToMeshBoneMap.get(modelBone);
-
           meshBone.matrix.decompose(localVector, localQuaternion, localVector2);
 
           localVector.sub(
@@ -852,53 +857,58 @@ const _makeDebugMesh = () => {
           }
           modelBoneParent.matrix.decompose(modelBoneParent.position, modelBoneParent.quaternion, modelBoneParent.scale);
           // modelBoneParent.updateMatrixWorld();
-          modelBoneParent.matrixWorld.multiplyMatrices(modelBoneParent.parent.matrixWorld, modelBoneParent.matrix);
+          // modelBoneParent.matrixWorld.multiplyMatrices(modelBoneParent.parent.matrixWorld, modelBoneParent.matrix);
         }
       }
-    } */
+    }
+    mesh.updateMatrixWorld(); */
   };
   mesh.toAvatar = avatar => {
     for (const k in avatar.modelBoneOutputs) {
+      if (k === 'Root') {
+        continue;
+      }
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
-      // modelBone.matrixWorld.copy(meshBone.matrixWorld);
-      // modelBone.matrix.copy(meshBone.matrixWorld);
 
-      // console.log('got position', position.toArray().join(','));
-      let position = new THREE.Vector3();
-      let quaternion = new THREE.Quaternion();
-      let scale = new THREE.Vector3();
       if (k === 'Hips') {
-        // XXX clean up the memory
-        meshBone.matrixWorld.decompose(position, quaternion, scale);
+        modelBone.matrixWorld.copy(meshBone.matrixWorld);
+
+        modelBone.matrix.copy(modelBone.matrixWorld);
+        if (modelBone.parent) {
+          modelBone.matrix
+            .premultiply(localMatrix.copy(modelBone.parent.matrixWorld).invert());
+        }
+        modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+        modelBone.updateMatrixWorld();
       } else {
-        meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        const modelBoneParent = modelBone.parent;
+        if (modelBoneParent) {
+          meshBone.matrix.decompose(localVector, localQuaternion, localVector2);
 
-        position = localVector.clone().add(
-          localVector3.set(0, 0, meshBone.boneLength * 0.5)
-            .applyQuaternion(localQuaternion)
-        );
-        quaternion = localQuaternion.clone().multiply(
-          localQuaternion2.copy(modelBone.forwardQuaternion).invert()
-        ).clone();
-        // position = localVector.clone();
-        // quaternion = localQuaternion.clone();
-        scale = localVector2.clone();
+          localVector.add(
+            localVector3.set(0, 0, meshBone.boneLength * 0.5)
+              .applyQuaternion(localQuaternion)
+          );
+
+          localQuaternion.multiply(
+            localQuaternion2.copy(modelBone.forwardQuaternion).invert()
+          );
+
+          modelBoneParent.matrixWorld.compose(localVector, localQuaternion, localVector2);
+
+          // update
+          modelBoneParent.matrix
+            .copy(modelBoneParent.matrixWorld);
+          if (modelBoneParent.parent) {
+            modelBoneParent.matrix
+              .premultiply(localMatrix.copy(modelBoneParent.parent.matrixWorld).invert())
+          }
+          modelBoneParent.matrix.decompose(modelBoneParent.position, modelBoneParent.quaternion, modelBoneParent.scale);
+          // modelBoneParent.updateMatrixWorld();
+          // modelBoneParent.matrixWorld.multiplyMatrices(modelBoneParent.parent.matrixWorld, modelBoneParent.matrix);
+        }
       }
-
-      // modelBone.matrix.decompose(localVector, localQuaternion, localVector2);
-      modelBone.matrix.compose(
-        position,
-        quaternion,
-        scale
-      );
-
-      if (meshBone.parent2) {
-        modelBone.matrix
-          .premultiply(localMatrix.copy(meshBone.parent2.matrixWorld).invert());
-      }
-      modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
-      modelBone.updateMatrixWorld();
     }
   };
   // XXX this can be rewritten to use an allocated buffer from the physics manager
@@ -3341,6 +3351,8 @@ class Avatar {
     }
     this.debugMesh.visible = game.debugMode;
     this.lastRagdoll = this.ragdoll;
+
+    // this.modelBoneOutputs.Root.updateMatrixWorld();
     
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
