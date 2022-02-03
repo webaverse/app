@@ -40,6 +40,8 @@ import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
 
+import geometryUtils from './geometry-utils.js';
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -927,6 +929,11 @@ export default () => {
   useGradientMapsInternal() {
     return gradientMaps;
   },
+
+  useGeometryUtils() {
+    return geometryUtils;
+  },
+
   isSceneLoaded() {
     return isSceneLoaded();
   },
