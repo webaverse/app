@@ -731,7 +731,7 @@ const _makeDebugMesh = () => {
     mesh.Hips.add2(mesh.Right_leg);
     mesh.Right_leg.add2(mesh.Right_knee);
     mesh.Right_knee.add2(mesh.Right_ankle);
-    adder(mesh.Right_ankle, mesh.Right_toe);
+    mesh.Right_ankle.add2(mesh.Right_toe);
     
     return mesh;
   };
