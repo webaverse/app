@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import styles from './Inspector.module.css';
-import {world2canvas} from './ThreeUtils.js';
-import {world} from '../world.js';
-import game from '../game.js';
+import {world2canvas} from '../../../ThreeUtils.js';
+import {world} from '../../../../world.js';
+import game from '../../../../game.js';
 
 const Inspector = ({open, setOpen, selectedApp, dragging}) => {
   const [hoverPosition, setHoverPosition] = useState(null);

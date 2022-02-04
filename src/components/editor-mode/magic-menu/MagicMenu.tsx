@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import metaversefile from 'metaversefile';
-import ioManager from '../../../io-manager';
-import { aiHost } from '../../../constants';
+import ioManager from '../../../../io-manager';
+import { aiHost } from '../../../../constants';
 
 import classes from './magic-menu.module.css';
 

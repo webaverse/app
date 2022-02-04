@@ -15,4 +15,10 @@
     border-radius: 50%;
     background-color: #000;
     opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+}
+
+.btn:hover {
+    opacity: 0.8;
 }

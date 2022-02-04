@@ -2,8 +2,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import App from './App';
-import Error from './Error';
+import { App } from './components/app';
+import { Error } from './components/error-page';
 
 //
 
@@ -11,11 +11,13 @@ const WebWorkerSupport = !navigator.userAgent.match(/(Firefox|MSIE)/);
 
 ReactDOM.render(
     <React.StrictMode>
-        {WebWorkerSupport ? (
-            <App />
-        ) : (
-            <Error errors={[ 'WebWorker modules' ]} />
-        )}
+        {
+            WebWorkerSupport ? (
+                <App />
+            ) : (
+                <Error errors={[ 'WebWorker modules' ]} />
+            )
+        }
     </React.StrictMode>,
     document.getElementById('root'),
 );

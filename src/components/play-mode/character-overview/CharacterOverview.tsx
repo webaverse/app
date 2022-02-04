@@ -8,6 +8,13 @@ import styles from './character-overview.module.css';
 
 export const CharacterOverview = ({ open, setOpen }) => {
 
+    const handleCloseBtnClick = ( event ) => {
+
+        event.stopPropagation();
+        setOpen( false );
+
+    };
+
     useEffect( () => {
 
         const handleKeyPress = ( event ) => {
@@ -39,7 +46,9 @@ export const CharacterOverview = ({ open, setOpen }) => {
     //
 
     return (
-        <div className={ classnames( styles.characterOverview, open ? styles.open : null ) } />
+        <div className={ classnames( styles.characterOverview, open ? styles.open : null ) }>
+            <div className={ styles.closeBtn } onClick={ handleCloseBtnClick }>X</div>
+        </div>
     );
 
 };

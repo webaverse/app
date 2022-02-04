@@ -17,3 +17,19 @@
     visibility: visible;
     transition: visibility 0s 0ms, opacity 300ms ease;
 }
+
+.closeBtn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    font-size: 35px;
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 200ms ease;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    opacity: 0.9;
+}
