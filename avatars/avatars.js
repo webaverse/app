@@ -590,9 +590,7 @@ const _makeDebugMesh = () => {
 
     return object;
   };
-  const _makeMeshes = ({
-    adder,
-  }) => {
+  const _makeMeshes = () => {
     const mesh = {
       Root: _makeCubeMesh('Root'),
       Head: _makeCubeMesh('Head'),
@@ -736,11 +734,7 @@ const _makeDebugMesh = () => {
     return mesh;
   };
 
-  const flatMeshes = _makeMeshes({
-    adder(a, b) {
-      a.add2(b);
-    },
-  });
+  const flatMeshes = _makeMeshes();
   const flatMesh = new THREE.Object3D();
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]);
