@@ -802,14 +802,18 @@ const _makeDebugMesh = () => {
       meshBone.boneLength = boneLength;
       // console.log('bone length', modelBone.name, boneLength)
 
-      modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-        localMatrix.lookAt(
-          modelBoneStart,
-          modelBoneEnd,
-          localVector2.set(0, 1, 0)
-        )
-      );
-      // modelBone.modelBoneEnd = modelBoneEnd;
+      if (k === 'Hips') {
+        modelBone.forwardQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+      } else {
+        modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+          localMatrix.lookAt(
+            modelBoneStart,
+            modelBoneEnd,
+            localVector2.set(0, 1, 0)
+          )
+        );
+        // modelBone.modelBoneEnd = modelBoneEnd;
+      }
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
     }
   };
@@ -824,7 +828,13 @@ const _makeDebugMesh = () => {
         const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
 
         if (k === 'Hips') {
-          meshBone.matrixWorld.copy(modelBone.matrixWorld);
+          // meshBone.matrixWorld.copy(modelBone.matrixWorld);
+
+          modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          localQuaternion.multiply(
+            modelBone.forwardQuaternion
+          );
+          meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         } else {
           modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
@@ -942,27 +952,17 @@ const _makeDebugMesh = () => {
       const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
       
       if (k === 'Hips') {
-        modelBone.matrixWorld.copy(meshBone.matrix);
+        // modelBone.matrixWorld.copy(meshBone.matrix);
+        localMatrix.copy(meshBone.fakeBone.matrixWorld);
 
         // update
-        modelBone.matrix
-          .copy(modelBone.matrixWorld);
         if (modelBone.parent) {
-          modelBone.matrix
-            .premultiply(localMatrix.copy(modelBone.parent.matrixWorld).invert())
+          localMatrix
+            .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
         }
-        modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+        localMatrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
         modelBone.updateMatrixWorld();
       } else {
-        // XXX
-        /* localMatrix.copy(meshBone.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
-        
-        localQuaternion.premultiply(meshBone.initialWorldQuaternionInverse);
-        localQuaternion.premultiply(modelBone.initialWorldQuaternion);
-
-        modelBone.matrixWorld.decompose(localVector, localQuaternion2, localVector2);
-        modelBone.matrixWorld.compose(localVector, localQuaternion, localVector2); */
         localMatrix.copy(meshBone.fakeBone.matrixWorld);
         if (modelBone.parent) {
           localMatrix
