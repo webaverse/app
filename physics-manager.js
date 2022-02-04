@@ -261,7 +261,22 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
+let done = 0;
+window.lol = 10;
 physicsManager.simulatePhysics = timeDiff => {
+  // timeDiff *= 0.0000000001;
+  /* {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    if (localPlayer.avatar?.ragdoll) {
+      if (done >= window.lol) {
+        return;
+      } else {
+        done++;
+        console.log('done', done);
+      }
+    }
+  } */
+
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
