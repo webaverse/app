@@ -563,7 +563,7 @@ const debugMeshMaterial = new THREE.MeshNormalMaterial({
   depthTest: false,
 });
 const _makeDebugMesh = () => {
-  const baseScale = 0.05;
+  const baseScale = 0.02;
   const fingerScale = 0.2;
   const physicsBoneScaleFactor = 0.7;
   const physicsIdToMeshBoneMap = new Map();
