@@ -18,10 +18,8 @@
     opacity: 0.5;
 }
 
-.healthBar {
+.progressBar {
     position: absolute;
-    top: 50px;
-    left: 85px;
     width: 250px;
     height: 8px;
     border: 1px solid #aaa;
@@ -29,11 +27,28 @@
     overflow: hidden;
 }
 
-.healthBarFill {
+.progressBarFill {
     position: absolute;
     top: 0px;
     left: 0px;
     width: 50%;
     height: 100%;
-    background-color: #5f5;
+}
+
+.healthBar {
+    top: 35px;
+    left: 85px;
+}
+
+.manaBar {
+    top: 25px;
+    left: 85px;
+}
+
+.healthBar .progressBarFill {
+    background-color: #f50;
+}
+
+.manaBar .progressBarFill {
+    background-color: #55f;
 }

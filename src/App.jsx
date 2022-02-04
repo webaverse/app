@@ -1,20 +1,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-import MagicMenu from './MagicMenu.jsx';
 import { defaultAvatarUrl } from '../constants';
 
+import { MagicMenu } from './components/magic-menu';
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
 
 import { Inventory } from './components/inventory';
-import { Hotbar } from './components/hotbar/Hotbar.jsx';
+import { Hotbar } from './components/hotbar';
 import { ActionMenu } from './components/action-menu';
 import { LocationMenu } from './components/location-menu';
+import { PlayerZone } from './components/player-zone';
+import { CharacterOverview } from './components/character-overview';
+import { Crosshair } from './components/crosshair';
 
 import styles from './App.module.css';
-import { PlayerZone } from './components/player-zone/PlayerZone.jsx';
 
 //
 
@@ -35,18 +37,11 @@ const _startApp = async ( weba, canvas ) => {
 
 };
 
-const Crosshair = () => (
-
-    <div className={styles.crosshair} id="crosshair">
-        <img src="./assets/crosshair.svg" width={ 30 } height={ 30 } />
-    </div>
-
-);
-
 function RootNode () {
 
     const canvasRef = useRef();
-    const [app, setApp] = useState( () => new Webaverse() );
+    const [ app, setApp ] = useState( () => new Webaverse() );
+    const [ characterOverviewOpen, setCharacterOverviewOpen ] = useState( false );
 
     useEffect( () => {
 
@@ -66,10 +61,11 @@ function RootNode () {
             <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
             <ActionMenu />
             <LocationMenu />
-            <Inventory />
+            <Inventory openCharacterOverview={ setCharacterOverviewOpen } />
             <Hotbar />
             <PlayerZone />
-            {/* <Crosshair /> */ }
+            <Crosshair />
+            <CharacterOverview open={ characterOverviewOpen } setOpen={ setCharacterOverviewOpen } />
         </div>
     );
 
