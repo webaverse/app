@@ -759,11 +759,50 @@ const _makeDebugMesh = () => {
       }
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k];
+
+      const modelBoneStart = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld);
+      let modelBoneEnd;
       const boneLength = (() => {
         if (k === 'Hips') {
-          return baseScale;
+          const length = baseScale;
+          modelBoneEnd = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
+            .add(
+              new THREE.Vector3(0, 0, -length)
+                .applyQuaternion(localQuaternion.setFromRotationMatrix(modelBone.matrixWorld))
+            );
+          return length;
         } else {
-          return modelBone.position.length();
+          const children = modelBone.children.map(child => {
+            let result = null;
+            child.traverse(o => {
+              if (result === null) {
+                if (/^ik/.test(o.name)) {
+                  result = o;
+                }
+              }
+            });
+            /*  if (!result) {
+              debugger;
+            } */
+            return result;
+          });
+          if (children.length === 0) {
+            const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
+              .sub(new THREE.Vector3().setFromMatrixPosition(modelBone.parent.matrixWorld));
+            modelBoneEnd = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
+              .add(
+                diff
+              );
+            return length; // same length as parent
+          } else {
+            const acc = new THREE.Vector3();
+            for (const child of children) {
+              localVector.setFromMatrixPosition(child.matrixWorld);
+              acc.add(localVector);
+            }
+            modelBoneEnd = acc.divideScalar(children.length);
+            return modelBoneStart.distanceTo(modelBoneEnd);
+          }
         }
       })();
       if (k !== 'Hips') {
@@ -771,16 +810,12 @@ const _makeDebugMesh = () => {
       }
       modelBone.boneLength = boneLength;
       meshBone.boneLength = boneLength;
-    }
-
-    for (const k in avatar.modelBoneOutputs) {
-      const modelBone = avatar.modelBoneOutputs[k];
-      const meshBone = flatMeshes[k];
+      // console.log('bone length', modelBone.name, boneLength)
 
       modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
         localMatrix.lookAt(
-          localVector.set(0, 0, 0),
-          modelBone.position,
+          modelBoneStart,
+          modelBoneEnd,
           localVector2.set(0, 1, 0)
         )
       );
@@ -800,11 +835,7 @@ const _makeDebugMesh = () => {
         if (k === 'Hips') {
           meshBone.matrixWorld.copy(modelBone.matrixWorld);
         } else {
-          (modelBone.parent ?
-            modelBone.parent.matrixWorld
-          :
-            localMatrix.identity()
-          ).decompose(localVector, localQuaternion, localVector2);
+          modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
           localQuaternion.multiply(
             modelBone.forwardQuaternion
@@ -908,6 +939,7 @@ const _makeDebugMesh = () => {
     first = false;
   };
   object.toAvatar = avatar => {
+    return;
     // flatMeshes.Left_leg.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), performance.now() * Math.PI * 0.0001);
     // flatMeshes.Left_leg.updateMatrixWorld();
 
