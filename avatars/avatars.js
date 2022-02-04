@@ -1601,13 +1601,12 @@ class Avatar {
       leftUpperLeg: _getOffset(modelBones.Right_leg),
       leftLowerLeg: _getOffset(modelBones.Right_knee),
       leftFoot: _getOffset(modelBones.Right_ankle),
+      leftToe: _getOffset(modelBones.Right_toe),
 
       rightUpperLeg: _getOffset(modelBones.Left_leg),
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
-      
-      leftToe: _getOffset(modelBones.Left_toe),
-      rightToe: _getOffset(modelBones.Right_toe),
+      rightToe: _getOffset(modelBones.Left_toe),
     });
 
     // height is defined as eyes to root
@@ -1733,6 +1732,7 @@ class Avatar {
 	    Left_leg: this.legsManager.rightLeg.upperLeg,
 	    Left_knee: this.legsManager.rightLeg.lowerLeg,
 	    Left_ankle: this.legsManager.rightLeg.foot,
+      Left_toe: this.legsManager.rightLeg.toe,
 
 	    Right_shoulder: this.shoulderTransforms.leftShoulderAnchor,
 	    Right_arm: this.shoulderTransforms.leftArm.upperArm,
@@ -1757,8 +1757,7 @@ class Avatar {
 	    Right_leg: this.legsManager.leftLeg.upperLeg,
 	    Right_knee: this.legsManager.leftLeg.lowerLeg,
 	    Right_ankle: this.legsManager.leftLeg.foot,
-      Left_toe: this.legsManager.leftLeg.toe,
-      Right_toe: this.legsManager.rightLeg.toe,
+      Right_toe: this.legsManager.leftLeg.toe,
 	  };
 
     this.debugMesh = _makeDebugMesh();
@@ -2234,13 +2233,12 @@ class Avatar {
     leftUpperLeg: 'Right_leg',
     leftLowerLeg: 'Right_knee',
     leftFoot: 'Right_ankle',
+    leftToe: 'Right_toe',
 
     rightUpperLeg: 'Left_leg',
     rightLowerLeg: 'Left_knee',
     rightFoot: 'Left_ankle',
-
-    leftToe: 'Left_toe',
-    rightToe: 'Right_toe'
+    rightToe: 'Left_toe',
   }
   initializeBonePositions(setups) {
     this.shoulderTransforms.hips.position.copy(setups.hips);
