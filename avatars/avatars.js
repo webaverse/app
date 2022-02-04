@@ -820,6 +820,7 @@ const _makeDebugMesh = () => {
           localVector2.set(0, 1, 0)
         )
       );
+      // modelBone.modelBoneEnd = modelBoneEnd;
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
     }
   };
@@ -940,7 +941,6 @@ const _makeDebugMesh = () => {
     first = false;
   };
   object.toAvatar = avatar => {
-    return;
     // flatMeshes.Left_leg.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), performance.now() * Math.PI * 0.0001);
     // flatMeshes.Left_leg.updateMatrixWorld();
 
