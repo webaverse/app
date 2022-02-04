@@ -759,6 +759,7 @@ const _makeDebugMesh = () => {
       const boneLength = (() => {
         if (k === 'Hips') {
           modelBoneEnd = modelBoneStart.clone();
+          // return baseScale * 0.5;
           return 0;
         } else {
           const children = modelBone.children.map(child => {
@@ -770,9 +771,6 @@ const _makeDebugMesh = () => {
                 }
               }
             });
-            /*  if (!result) {
-              debugger;
-            } */
             return result;
           });
           if (children.length === 0) {
