@@ -207,6 +207,7 @@ let fallAnimation;
 let fallToLandAnimation;
 let hardLandingAnimation;
 let jumpForwardAnimation;
+let jumpForwardOtherAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -345,9 +346,10 @@ const loadPromise = (async () => {
 
   jumpAnimation = animations.find(a => a.isJump);
   fallAnimation = animations.index["falling_loop.fbx"];
-  fallToLandAnimation = animations.index["soft_landing_45degHipAdjustm.fbx"];
+  fallToLandAnimation = animations.index["soft_landing5.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
-  jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
+  jumpForwardAnimation = animations.index["jump_forward_r.fbx"];
+  jumpForwardOtherAnimation = animations.index["jump_forward_r.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -2109,11 +2111,14 @@ class Avatar {
           this.landingTime = 0;
           this.targetTime = this.previousTime;
           this.previousTime = 0;
+          this.frameTime = 25;
           console.log('target time is ' + this.targetTime);
         }
         if(this.landingTime < this.targetTime) {
+       
           console.log('landing anim plays');
-          this.landingTime += 25;
+          
+          this.landingTime += this.frameTime;
           return spec => {
             const {
               animationTrackName: k,
@@ -2122,38 +2127,38 @@ class Avatar {
               // isTop,
             } = spec;
             _handleDefault(spec);
+            // if(!this.horizontalMove) return;
             let t2;
             let src2;
             // console.log('target time ')
             if(this.targetTime > 1500) {
              
-              let isLowerBone =  k.includes("Foot") || k.includes("Leg") || k.includes("Toe");
-              if(isLowerBone) {
-                return;
-              }
+              // let isLowerBone =  k.includes("Foot") || k.includes("Leg") || k.includes("Toe");
+              // if(isLowerBone) {
+              //   return;
+              // }
               src2 = hardLandingAnimation.interpolants[k];
 
               // console.log(src2);
             } 
             else {
-            
-              // let isLowerBone =  k.includes("Foot");
-              // if(isLowerBone) {
-              //   return;
-              // }
-              let isLowerBone =  k.includes("Foot") || k.includes("Leg") || k.includes("Toe") || k.includes("Arm");
+
+              let areArmsMoving = k.includes("Arm") && this.horizontalMove;
+              let isLowerBone = k.includes("Foot");
+              let isToe = k.includes("Toe");
+              let isLeg = k.includes("Leg") ;
+              let isUpLegPos = k.includes("UpLeg");
               let hipRot = k.includes("Hips") && !isPosition;
-              if(isLowerBone || hipRot) {
+              let hipPos = k.includes("Hips") && isPosition;
+              if( hipPos || hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
                 return;
               }
               src2 = fallToLandAnimation.interpolants[k];
-              // console.log(src2);
             }   
             
             t2 = this.landingTime/1000 * 0.6;
             if(!src2) return;
             const v2 = src2.evaluate(t2);
-
             dst.fromArray(v2);
           };
         }
@@ -2164,6 +2169,12 @@ class Avatar {
               dst,
               // isTop,
             } = spec;
+            // _handleDefault(spec);
+            let randomLeg = 0;
+            // if(this.previousTime === 0 ) {
+            //   randomLeg = Math.random();
+            //   console.log("new jump! ", randomLeg);
+            // }
             // console.log('JumpState', spec)
             this.previousTime = this.jumpTime;
             // this.landingState = false;
@@ -2172,7 +2183,7 @@ class Avatar {
             if(this.jumpTime > 1000) {
               // console.log('falling');
               src2 = fallAnimation.interpolants[k];
-              t2 = this.jumpTime/1000 * 0.6 + 0.7;
+              t2 = this.jumpTime/1000 * 0.8;
             } else {
               // console.log('jumping');
               if(this.move && !this.horizontalMove) {
@@ -2180,7 +2191,12 @@ class Avatar {
                 t2 = this.jumpTime/1000 * 0.6 + 0.7;
               } 
               if(this.move && this.horizontalMove) {
-                src2 = jumpForwardAnimation.interpolants[k];
+
+                // let isLowerBone = k.includes("Leg") || k.includes("Toe") || k.includes("Foot")
+                // if(isLowerBone) {
+                //   return;
+                // }
+                src2 = jumpForwardOtherAnimation.interpolants[k];
                 t2 = this.jumpTime/1000 * 0.6;
               }
             }
@@ -2446,16 +2462,21 @@ class Avatar {
           // isTop,
           isPosition,
         } = spec;
-        console.log(spec);
+
         applyFn(spec);
         _blendFly(spec);
         _blendActivateAction(spec);
-        
+        // console.log(spec);
         // ignore all animation position except y
         if (isPosition) {
           if (!this.jumpState) {
             // animations position is height-relative
-            dst.y *= this.height; // XXX this could be made perfect by measuring from foot to hips instead
+            dst.y *= this.height + 0.1; // XXX this could be made perfect by measuring from foot to hips instead
+            // if(spec.boneName.includes("Hips") && spec.isPosition) {
+            //   console.log(dst.y);
+            //   const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+            //   dst.y = clamp(dst.y, 0.8, 10);
+            // }
           } else {
             // force height in the jump case to overide the animation
             dst.y = this.height * 0.55;

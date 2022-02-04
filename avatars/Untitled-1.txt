@@ -2,9 +2,9 @@
 
 1.
 
-When jumping up, you cannot press forward
+When jumping up, you should not be able to press forward
 
-jumping has a cooldown 
+jumping should have a cooldown, especially after a longer jumptime
 
 after jumping you cannot sprint straight away 
 
@@ -12,3 +12,22 @@ after jumping you cannot sprint straight away
 handle default if no state animation
 
 blender tool to allow adjustments
+
+
+editor tool for animations
+-allow ability to spread arms in poses ( like idle needs the arms to be more spread ) (overdrive? cant recall name)
+
+
+Let the jump animation end..
+
+
+
+
+
+
+dc
+
+@textametron#2606 the jump forward needs 2 varieties, one with each leg kicking forward first. 
+can you please make a jump forward animation (Same as jump_forward_2.fbx) 
+but with the other foot leading the jump, there may be some mirror option youve seen in blender? Mirror option should usually work in mixamo, 
+but those animations are not playable with our system (some bug). 
