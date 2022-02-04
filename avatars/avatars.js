@@ -47,6 +47,7 @@ import {
   // animationBoneToModelBone,
 } from './util.mjs';
 import metaversefile from 'metaversefile';
+import { clamp } from 'three/src/math/MathUtils';
 
 
 const localVector = new THREE.Vector3();
@@ -346,7 +347,7 @@ const loadPromise = (async () => {
 
   jumpAnimation = animations.find(a => a.isJump);
   fallAnimation = animations.index["falling_loop.fbx"];
-  fallToLandAnimation = animations.index["soft_landing5.fbx"];
+  fallToLandAnimation = animations.index["verticalLand.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
   jumpForwardAnimation = animations.index["jump_forward_r.fbx"];
   jumpForwardOtherAnimation = animations.index["jump_forward_r.fbx"];
@@ -2114,7 +2115,7 @@ class Avatar {
           this.frameTime = 25;
           console.log('target time is ' + this.targetTime);
         }
-        if(this.landingTime < this.targetTime) {
+        if(this.landingTime < clamp(this.targetTime, 0, 1600)) {
        
           console.log('landing anim plays');
           
@@ -2150,7 +2151,7 @@ class Avatar {
               let isUpLegPos = k.includes("UpLeg");
               let hipRot = k.includes("Hips") && !isPosition;
               let hipPos = k.includes("Hips") && isPosition;
-              if( hipPos || hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
+              if(hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
                 return;
               }
               src2 = fallToLandAnimation.interpolants[k];
