@@ -789,7 +789,8 @@ const _makeDebugMesh = () => {
           if (children.length === 0) {
             const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
               .sub(new THREE.Vector3().setFromMatrixPosition(modelBone.parent.matrixWorld));
-            modelBoneEnd = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
+            const length = diff.length();
+            modelBoneEnd = modelBoneStart.clone()
               .add(
                 diff
               );
