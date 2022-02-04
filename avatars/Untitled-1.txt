@@ -1,0 +1,14 @@
+
+
+1.
+
+When jumping up, you cannot press forward
+
+jumping has a cooldown 
+
+after jumping you cannot sprint straight away 
+
+
+handle default if no state animation
+
+blender tool to allow adjustments
