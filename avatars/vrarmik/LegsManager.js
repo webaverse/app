@@ -47,14 +47,18 @@ class Leg {
   constructor(legsManager, left) {
   	this.transform = new THREE.Object3D();
     this.upperLeg = new THREE.Object3D();
+    this.upperLeg.name = 'ikUpperLeg';
     this.lowerLeg = new THREE.Object3D();
+    this.lowerLeg.name = 'ikLowerLeg';
     this.foot = new THREE.Object3D();
+    this.foot.name = 'ikFoot';
     this.foot.stickTransform = new THREE.Object3D();
     this.foot.startTransform = new THREE.Object3D();
     this.foot.endTransform = new THREE.Object3D();
     this.foot.startHmdFloorTransform = new THREE.Object3D();
 
     this.toe = new THREE.Object3D();
+    this.toe.name = 'ikToe';
 
     this.transform.add(this.upperLeg);
     this.upperLeg.add(this.lowerLeg);
