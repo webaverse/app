@@ -832,15 +832,6 @@ const _makeDebugMesh = () => {
   object.setFromAvatar2 = avatar => {
     flatMeshes.Left_leg.quaternion.copy(baseQ);
     flatMeshes.Left_leg.updateMatrixWorld();
-    /* const _recurse = (o, matrixWorldInverse) => {
-      const matrixWorldInverse = o.matrixWorld.clone().invert();
-      for (const child of o.children2) {
-        child.matrixWorld.premultiply(matrixWorldInverse)
-          .premultiply();
-        _recurse(child);
-      }
-    };
-    _recurse(flatMeshes.Left_leg); */
 
     // reverse transform test
     for (const k in avatar.modelBoneOutputs) {
