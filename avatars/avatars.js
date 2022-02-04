@@ -951,26 +951,17 @@ const _makeDebugMesh = () => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
       
-      if (k === 'Hips') {
-        // modelBone.matrixWorld.copy(meshBone.matrix);
-        localMatrix.copy(meshBone.fakeBone.matrixWorld);
-
-        // update
-        if (modelBone.parent) {
-          localMatrix
-            .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
-        }
-        localMatrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
-        modelBone.updateMatrixWorld();
-      } else {
-        localMatrix.copy(meshBone.fakeBone.matrixWorld);
-        if (modelBone.parent) {
-          localMatrix
-            .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
-        }
-        localMatrix.decompose(localVector, modelBone.quaternion, localVector2);
-        modelBone.updateMatrixWorld();
+      localMatrix.copy(meshBone.fakeBone.matrixWorld);
+      if (modelBone.parent) {
+        localMatrix
+          .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
       }
+      if (k === 'Hips') {
+        localMatrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+      } else {
+        localMatrix.decompose(localVector, modelBone.quaternion, localVector2);
+      }
+      modelBone.updateMatrixWorld();
     }
   };
   // XXX this can be rewritten to use an allocated buffer from the physics manager
