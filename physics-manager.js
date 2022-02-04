@@ -274,6 +274,8 @@ physicsManager.simulatePhysics = timeDiff => {
         done++;
         console.log('done', done);
       }
+    } else {
+      done = 0;
     }
   } */
 
