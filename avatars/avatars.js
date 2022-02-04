@@ -758,13 +758,8 @@ const _makeDebugMesh = () => {
       let modelBoneEnd;
       const boneLength = (() => {
         if (k === 'Hips') {
-          const length = baseScale;
-          modelBoneEnd = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
-            .add(
-              new THREE.Vector3(0, 0, -length)
-                .applyQuaternion(localQuaternion.setFromRotationMatrix(modelBone.matrixWorld))
-            );
-          return length;
+          modelBoneEnd = modelBoneStart.clone();
+          return 0;
         } else {
           const children = modelBone.children.map(child => {
             let result = null;
