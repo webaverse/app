@@ -974,12 +974,12 @@ const _makeDebugMesh = () => {
 
         modelBone.matrixWorld.decompose(localVector, localQuaternion2, localVector2);
         modelBone.matrixWorld.compose(localVector, localQuaternion, localVector2); */
-        modelBone.matrix.copy(meshBone.fakeBone.matrixWorld);
+        localMatrix.copy(meshBone.fakeBone.matrixWorld);
         if (modelBone.parent) {
-          modelBone.matrix
-            .premultiply(localMatrix.copy(modelBone.parent.matrixWorld).invert())
+          localMatrix
+            .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
         }
-        modelBone.matrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+        localMatrix.decompose(localVector, modelBone.quaternion, localVector2);
         modelBone.updateMatrixWorld();
       }
     }
