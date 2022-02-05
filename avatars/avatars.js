@@ -592,7 +592,8 @@ const _makeDebugMesh = () => {
   };
   const _makeMeshes = () => {
     const mesh = {
-      Root: _makeCubeMesh('Root'),
+      // Root: _makeCubeMesh('Root'),
+      
       Head: _makeCubeMesh('Head'),
       Eye_L: _makeCubeMesh('Eye_L'),
       Eye_R: _makeCubeMesh('Eye_R'),
@@ -601,44 +602,49 @@ const _makeDebugMesh = () => {
       Chest: _makeCubeMesh('Chest'),
       Hips: _makeCubeMesh('Hips'),
       Spine: _makeCubeMesh('Spine'),
+
       Left_shoulder: _makeCubeMesh('Left_shoulder'),
-      Left_wrist: _makeCubeMesh('Left_wrist'),
-      Left_thumb2: _makeCubeMesh('Left_thumb2', fingerScale),
-      Left_thumb1: _makeCubeMesh('Left_thumb1', fingerScale),
-      Left_thumb0: _makeCubeMesh('Left_thumb0', fingerScale),
-      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', fingerScale),
-      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', fingerScale),
-      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', fingerScale),
-      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', fingerScale),
-      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', fingerScale),
-      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', fingerScale),
-      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', fingerScale),
-      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', fingerScale),
-      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', fingerScale),
-      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', fingerScale),
-      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', fingerScale),
-      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', fingerScale),
-      Left_elbow: _makeCubeMesh('Left_elbow'),
       Left_arm: _makeCubeMesh('Left_arm'),
+      Left_elbow: _makeCubeMesh('Left_elbow'),
+      Left_wrist: _makeCubeMesh('Left_wrist'),
+
       Right_shoulder: _makeCubeMesh('Right_shoulder'),
-      Right_wrist: _makeCubeMesh('Right_wrist'),
-      Right_thumb2: _makeCubeMesh('Right_thumb2', fingerScale),
-      Right_thumb1: _makeCubeMesh('Right_thumb1', fingerScale),
-      Right_thumb0: _makeCubeMesh('Right_thumb0', fingerScale),
-      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', fingerScale),
-      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', fingerScale),
-      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', fingerScale),
-      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', fingerScale),
-      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', fingerScale),
-      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', fingerScale),
-      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', fingerScale),
-      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', fingerScale),
-      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', fingerScale),
-      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', fingerScale),
-      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', fingerScale),
-      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', fingerScale),
-      Right_elbow: _makeCubeMesh('Right_elbow'),
       Right_arm: _makeCubeMesh('Right_arm'),
+      Right_elbow: _makeCubeMesh('Right_elbow'),
+      Right_wrist: _makeCubeMesh('Right_wrist'),
+      
+      /* Left_thumb0: _makeCubeMesh('Left_thumb0', fingerScale),
+      Left_thumb1: _makeCubeMesh('Left_thumb1', fingerScale),
+      Left_thumb2: _makeCubeMesh('Left_thumb2', fingerScale),
+      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', fingerScale),
+      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', fingerScale),
+      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', fingerScale),
+      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', fingerScale),
+      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', fingerScale),
+      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', fingerScale),
+      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', fingerScale),
+      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', fingerScale),
+      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', fingerScale),
+      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', fingerScale),
+      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', fingerScale),
+      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', fingerScale),
+
+      Right_thumb0: _makeCubeMesh('Right_thumb0', fingerScale),
+      Right_thumb1: _makeCubeMesh('Right_thumb1', fingerScale),
+      Right_thumb2: _makeCubeMesh('Right_thumb2', fingerScale),
+      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', fingerScale),
+      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', fingerScale),
+      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', fingerScale),
+      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', fingerScale),
+      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', fingerScale),
+      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', fingerScale),
+      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', fingerScale),
+      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', fingerScale),
+      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', fingerScale),
+      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', fingerScale),
+      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', fingerScale),
+      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', fingerScale), */
+
       Left_ankle: _makeCubeMesh('Left_ankle'),
       Left_knee: _makeCubeMesh('Left_knee'),
       Left_leg: _makeCubeMesh('Left_leg'),
@@ -650,7 +656,7 @@ const _makeDebugMesh = () => {
     };
 
     // hips
-    mesh.Root.add2(mesh.Hips);
+    // mesh.Root.add2(mesh.Hips);
     mesh.Hips.add2(mesh.Spine);
     mesh.Spine.add2(mesh.Chest);
     mesh.Chest.add2(mesh.UpperChest);
@@ -673,7 +679,7 @@ const _makeDebugMesh = () => {
     mesh.Right_arm.add2(mesh.Right_elbow);
     mesh.Right_elbow.add2(mesh.Right_wrist);
 
-    // hands
+    /* // hands
     mesh.Left_wrist.add2(mesh.Left_thumb0);
     mesh.Left_thumb0.add2(mesh.Left_thumb1);
     mesh.Left_thumb1.add2(mesh.Left_thumb2);
@@ -704,7 +710,7 @@ const _makeDebugMesh = () => {
     mesh.Right_ringFinger2.add2(mesh.Right_ringFinger3);
     mesh.Right_wrist.add2(mesh.Right_littleFinger1);
     mesh.Right_littleFinger1.add2(mesh.Right_littleFinger2);
-    mesh.Right_littleFinger2.add2(mesh.Right_littleFinger3);
+    mesh.Right_littleFinger2.add2(mesh.Right_littleFinger3); */
 
     // legs
     mesh.Hips.add2(mesh.Left_leg);
@@ -734,11 +740,11 @@ const _makeDebugMesh = () => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
 
     for (const k in avatar.modelBoneOutputs) {
-      if (k === 'Root') {
-        continue;
-      }
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k];
+      if (!meshBone) {
+        continue;
+      }
 
       const modelBoneStart = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld);
       let modelBoneEnd;
@@ -804,12 +810,11 @@ const _makeDebugMesh = () => {
   object.setFromAvatar = avatar => {
     // if (first) {
       for (const k in avatar.modelBoneOutputs) {
-        if (k === 'Root') {
+        const modelBone = avatar.modelBoneOutputs[k];
+        const meshBone = flatMeshes[k];
+        if (!meshBone) {
           continue;
         }
-
-        const modelBone = avatar.modelBoneOutputs[k];
-        const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
 
         if (k === 'Hips') {
           // meshBone.matrixWorld.copy(modelBone.matrixWorld);
@@ -843,12 +848,11 @@ const _makeDebugMesh = () => {
 
       if (first) {
         for (const k in avatar.modelBoneOutputs) {
-          if (k === 'Root') {
+          const modelBone = avatar.modelBoneOutputs[k];
+          const meshBone = flatMeshes[k];
+          if (!meshBone) {
             continue;
           }
-
-          const modelBone = avatar.modelBoneOutputs[k];
-          const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
 
           // const diffMatrix = modelBone.matrixWorld.clone()
             // .premultiply(localMatrix.copy(meshBone.matrixWorld).invert());
@@ -870,13 +874,12 @@ const _makeDebugMesh = () => {
 
       // reverse transform test
       for (const k in avatar.modelBoneOutputs) {
-        if (k === 'Root') {
+        const modelBone = avatar.modelBoneOutputs[k];
+        const meshBone = flatMeshes[k];
+        if (!meshBone) {
           continue;
         }
 
-        const modelBone = avatar.modelBoneOutputs[k];
-        const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
-        
         if (k === 'Hips') {
           modelBone.matrixWorld.copy(meshBone.matrix);
 
@@ -928,12 +931,11 @@ const _makeDebugMesh = () => {
     // flatMeshes.Left_leg.updateMatrixWorld();
 
     for (const k in avatar.modelBoneOutputs) {
-      if (k === 'Root') {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = flatMeshes[k];
+      if (!meshBone) {
         continue;
       }
-
-      const modelBone = avatar.modelBoneOutputs[k];
-      const meshBone = modelBoneToFlatMeshBoneMap.get(modelBone);
       
       localMatrix.copy(meshBone.fakeBone.matrixWorld);
       if (modelBone.parent) {
