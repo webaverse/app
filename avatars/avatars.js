@@ -568,6 +568,7 @@ const _findBoneDeep = (bones, boneName) => {
 }; */
 
 const boneRadius = 0.02;
+const minHeight = 0.02;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
 const physicsBoneScaleFactor = 0.8;
@@ -677,13 +678,13 @@ const _makeDebugMesh = () => {
       Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', undefined, fingerScale),
       Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', undefined, fingerScale), */
 
-      Left_ankle: _makeCubeMesh('Left_ankle'),
-      Left_knee: _makeCubeMesh('Left_knee'),
       Left_leg: _makeCubeMesh('Left_leg'),
+      Left_knee: _makeCubeMesh('Left_knee'),
+      Left_ankle: _makeCubeMesh('Left_ankle'),
       Left_toe: _makeCubeMesh('Left_toe'),
-      Right_ankle: _makeCubeMesh('Right_ankle'),
-      Right_knee: _makeCubeMesh('Right_knee'),
       Right_leg: _makeCubeMesh('Right_leg'),
+      Right_knee: _makeCubeMesh('Right_knee'),
+      Right_ankle: _makeCubeMesh('Right_ankle'),
       Right_toe: _makeCubeMesh('Right_toe'),
     };
 
@@ -797,7 +798,7 @@ const _makeDebugMesh = () => {
         if (k === 'Hips') {
           modelBoneEnd = modelBoneStart.clone();
           // return baseScale * 0.5;
-          return 0;
+          return boneRadius * 2 + minHeight;
         } else {
           if (children.length === 0) {
             const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
