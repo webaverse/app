@@ -6,12 +6,12 @@ import {
 import metaversefileApi from 'metaversefile';
 import physicsManager from './physics-manager.js';
 
-const localPlayer = metaversefileApi.useLocalPlayer();
 const localQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
 const heightCanGoThrough = 1.5;
-const heightCanGoThrough2 = 30;
+// const heightCanGoThrough2 = 30;
+const heightCanGoThrough2 = 10;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
@@ -106,16 +106,6 @@ class PathFinder {
           }
         }
       });
-    }
-    if (window.petDestVoxel) { // pet auto go along the path found by A*.
-      if (Math.abs(window.fox.position.x - window.petDestVoxel.position.x) < 0.5 && Math.abs(window.fox.position.z - window.petDestVoxel.position.z) < 0.5) {
-        // debugger
-        if (window.petDestVoxel._next) window.petDestVoxel = window.petDestVoxel._next;
-      }
-    }
-    // fox auto follow avatar
-    if (this.isGeneratedVoxelMap && localPlayer && (Math.abs(localPlayer.position.x - this.destVoxel.position.x) > 3 || Math.abs(localPlayer.position.z - this.destVoxel.position.z) > 3)) {
-      this.foxFollowAvatar();
     }
   }
 
@@ -357,40 +347,6 @@ class PathFinder {
     while (this.frontiers.length > 0 && !this.isFound) this.step();
   }
 
-  foxFollowAvatar() { // run after: rise(), generateVoxelMap(), and "E" activated the fox.
-    const foxX = Math.round(window.fox.position.x);
-    const foxZ = Math.round(window.fox.position.z);
-    const localPlayerX = Math.round(localPlayer.position.x);
-    const localPlayerZ = Math.round(localPlayer.position.z);
-
-    let startLayer, destLayer;
-    const startVoxel = this.getVoxel(foxX, foxZ);
-    const startVoxel2 = this.getVoxel2(foxX, foxZ);
-    const destVoxel = this.getVoxel(localPlayerX, localPlayerZ);
-    const destVoxel2 = this.getVoxel2(localPlayerX, localPlayerZ);
-    if (Math.abs(startVoxel.position.y - window.fox.position.y) < Math.abs(startVoxel2.position.y - window.fox.position.y)) {
-      startLayer = 1;
-    } else {
-      startLayer = 2;
-    }
-    if (Math.abs(destVoxel.position.y - localPlayer.position.y) < Math.abs(destVoxel2.position.y - localPlayer.position.y)) {
-      destLayer = 1;
-    } else {
-      destLayer = 2;
-    }
-
-    this.resetStartDest(
-      startLayer,
-      foxX,
-      foxZ,
-      destLayer,
-      localPlayerX,
-      localPlayerZ,
-    );
-    this.untilFound();
-    window.petDestVoxel = this.startVoxel;
-  }
-
   xyToSerial(width, xy) { // :index
     return xy.y * width + xy.x;
   }
@@ -424,14 +380,14 @@ class PathFinder {
       voxel._prev = prevVoxel;
     }
     if (voxel._isDest) {
-      console.log('found');
+      // console.log('found');
       this.isFound = true;
       recur(voxel);
     }
   }
 
   step() {
-    console.log('step');
+    // console.log('step');
     // debugger
     if (!this.isGeneratedVoxelMap) {
       console.warn('voxel map not generated.');
