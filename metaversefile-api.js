@@ -37,6 +37,7 @@ import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
+import {PathFinder} from './npc-utils.js';
 
 import {getHeight} from './avatars/util.mjs';
 
@@ -151,6 +152,7 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
+const pathFinder = new PathFinder();
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -495,6 +497,9 @@ metaversefile.setApi({
   },
   useNpcs() {
      return npcs;
+  },
+  usePathFinder() {
+    return pathFinder;
   },
   useLoaders() {
     return loaders;

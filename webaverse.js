@@ -38,11 +38,12 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import { PathFinder } from './npc-utils.js';
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localPlayer = metaversefileApi.useLocalPlayer();
+const pathFinder = metaversefileApi.usePathFinder();
+window.pathFinder = pathFinder; // test
 // const width = 35;
 // const height = 35;
 
@@ -396,7 +397,7 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
-      window.pathFinder.update();
+      pathFinder.update();
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
@@ -452,8 +453,6 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = () => {
-  window.pathFinder = new PathFinder();
-
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
