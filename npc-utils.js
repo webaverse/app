@@ -93,6 +93,7 @@ class PathFinder {
       });
     }
     if (this.isRising2 && this.voxels2) {
+      console.log(this.getVoxel2(0, 0).position.y);
       this.voxels2.children.forEach((voxel, i) => {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
           voxel.position.y += 0.1;
