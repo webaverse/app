@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {CapsuleGeometry} from '../geometries.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
@@ -288,6 +289,19 @@ const animationsIdleArrays = {
   crouch: {name: 'Crouch Idle.fbx'},
 };
 
+/* {
+  const radius = 0.5;
+  const height = 1;
+  const geometry = new CapsuleGeometry(radius, radius, height);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const capsuleMesh = new THREE.Mesh(geometry, material);
+  capsuleMesh.position.set(0, 1, 3);
+  capsuleMesh.updateMatrixWorld();
+  scene.add(capsuleMesh);
+} */
+
 let animations;
 let animationStepIndices;
 let animationsBaseModel;
@@ -551,25 +565,35 @@ const _findBoneDeep = (bones, boneName) => {
   dst.calculateInverses();
 }; */
 
-const cubeGeometry = BufferGeometryUtils.mergeBufferGeometries([
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.BoxGeometry(0.1, 4, 0.1)
-    // .applyMatrix4(new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), Math.PI*0.5))
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 4/2, 1/2)),
-]);
+const boneRadius = 0.02;
+// const baseScale = 0.02;
+// const fingerScale = 0.2;
+const physicsBoneScaleFactor = 0.8;
+const _makeCapsuleGeometry = (length = 1) => {
+  length *= physicsBoneScaleFactor;
+  const radius = boneRadius;
+  const height = length - boneRadius*2;
+  return BufferGeometryUtils.mergeBufferGeometries([
+    (() => {
+      const geometry = new CapsuleGeometry(radius, radius, height)
+        .applyMatrix4(
+          new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+        );
+      return geometry;
+    })(),
+    new THREE.BoxGeometry(0.005, 0.2, 0.005)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.2/2, height/2)),
+  ]);
+};
 const debugMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
   depthTest: false,
 });
 const _makeDebugMesh = () => {
-  const baseScale = 0.02;
-  const fingerScale = 0.2;
-  const physicsBoneScaleFactor = 0.7;
   const physicsIdToMeshBoneMap = new Map();
-  const _makeCubeMesh = (name, scale = 1) => {
-    const scaleFactor = baseScale * scale;
-    const geometry = cubeGeometry;
+  const _makeCubeMesh = (name, geometry = _makeCapsuleGeometry(), scale = 1) => {
+    // const scaleFactor = baseScale * scale;
 
     const object = new THREE.Object3D();
     object.name = name;
@@ -577,13 +601,13 @@ const _makeDebugMesh = () => {
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
     const physicsMesh = new THREE.Mesh(geometry, debugMeshMaterial);
-    physicsMesh.scale.setScalar(scaleFactor);
+    // physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
 
     object.parent2 = null;
     object.children2 = [];
-    object.add2 = child => {
+    object.add2 = function(child) {
       object.children2.push(child);
       child.parent2 = object;
     };
@@ -593,15 +617,17 @@ const _makeDebugMesh = () => {
   const _makeMeshes = () => {
     const mesh = {
       // Root: _makeCubeMesh('Root'),
-      
+
+      Hips: _makeCubeMesh('Hips', _makeCapsuleGeometry()),
+
+      Spine: _makeCubeMesh('Spine'),
+      Chest: _makeCubeMesh('Chest'),
+      UpperChest: _makeCubeMesh('UpperChest'),
+
+      Neck: _makeCubeMesh('Neck'),
       Head: _makeCubeMesh('Head'),
       Eye_L: _makeCubeMesh('Eye_L'),
       Eye_R: _makeCubeMesh('Eye_R'),
-      Neck: _makeCubeMesh('Neck'),
-      UpperChest: _makeCubeMesh('UpperChest'),
-      Chest: _makeCubeMesh('Chest'),
-      Hips: _makeCubeMesh('Hips'),
-      Spine: _makeCubeMesh('Spine'),
 
       Left_shoulder: _makeCubeMesh('Left_shoulder'),
       Left_arm: _makeCubeMesh('Left_arm'),
@@ -613,37 +639,37 @@ const _makeDebugMesh = () => {
       Right_elbow: _makeCubeMesh('Right_elbow'),
       Right_wrist: _makeCubeMesh('Right_wrist'),
       
-      /* Left_thumb0: _makeCubeMesh('Left_thumb0', fingerScale),
-      Left_thumb1: _makeCubeMesh('Left_thumb1', fingerScale),
-      Left_thumb2: _makeCubeMesh('Left_thumb2', fingerScale),
-      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', fingerScale),
-      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', fingerScale),
-      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', fingerScale),
-      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', fingerScale),
-      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', fingerScale),
-      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', fingerScale),
-      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', fingerScale),
-      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', fingerScale),
-      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', fingerScale),
-      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', fingerScale),
-      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', fingerScale),
-      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', fingerScale),
+      /* Left_thumb0: _makeCubeMesh('Left_thumb0', undefined, fingerScale),
+      Left_thumb1: _makeCubeMesh('Left_thumb1', undefined, fingerScale),
+      Left_thumb2: _makeCubeMesh('Left_thumb2', undefined, fingerScale),
+      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', undefined, fingerScale),
+      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', undefined, fingerScale),
+      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', undefined, fingerScale),
+      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', undefined, fingerScale),
+      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', undefined, fingerScale),
+      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', undefined, fingerScale),
+      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', undefined, fingerScale),
+      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', undefined, fingerScale),
+      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', undefined, fingerScale),
+      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', undefined, fingerScale),
+      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', undefined, fingerScale),
+      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', undefined, fingerScale),
 
-      Right_thumb0: _makeCubeMesh('Right_thumb0', fingerScale),
-      Right_thumb1: _makeCubeMesh('Right_thumb1', fingerScale),
-      Right_thumb2: _makeCubeMesh('Right_thumb2', fingerScale),
-      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', fingerScale),
-      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', fingerScale),
-      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', fingerScale),
-      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', fingerScale),
-      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', fingerScale),
-      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', fingerScale),
-      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', fingerScale),
-      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', fingerScale),
-      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', fingerScale),
-      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', fingerScale),
-      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', fingerScale),
-      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', fingerScale), */
+      Right_thumb0: _makeCubeMesh('Right_thumb0', undefined, fingerScale),
+      Right_thumb1: _makeCubeMesh('Right_thumb1', undefined, fingerScale),
+      Right_thumb2: _makeCubeMesh('Right_thumb2', undefined, fingerScale),
+      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', undefined, fingerScale),
+      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', undefined, fingerScale),
+      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', undefined, fingerScale),
+      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', undefined, fingerScale),
+      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', undefined, fingerScale),
+      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', undefined, fingerScale),
+      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', undefined, fingerScale),
+      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', undefined, fingerScale),
+      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', undefined, fingerScale),
+      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', undefined, fingerScale),
+      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', undefined, fingerScale),
+      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', undefined, fingerScale), */
 
       Left_ankle: _makeCubeMesh('Left_ankle'),
       Left_knee: _makeCubeMesh('Left_knee'),
@@ -746,6 +772,19 @@ const _makeDebugMesh = () => {
         continue;
       }
 
+      const children = modelBone.children.map(child => {
+        let result = null;
+        child.traverse(o => {
+          if (result === null) {
+            if (/^ik/.test(o.name)) {
+              result = o;
+            }
+          }
+        });
+        return result;
+      });
+
+      // bone length
       const modelBoneStart = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld);
       let modelBoneEnd;
       const boneLength = (() => {
@@ -754,17 +793,6 @@ const _makeDebugMesh = () => {
           // return baseScale * 0.5;
           return 0;
         } else {
-          const children = modelBone.children.map(child => {
-            let result = null;
-            child.traverse(o => {
-              if (result === null) {
-                if (/^ik/.test(o.name)) {
-                  result = o;
-                }
-              }
-            });
-            return result;
-          });
           if (children.length === 0) {
             const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
               .sub(new THREE.Vector3().setFromMatrixPosition(modelBone.parent.matrixWorld));
@@ -785,13 +813,10 @@ const _makeDebugMesh = () => {
           }
         }
       })();
-      if (k !== 'Hips') {
-        meshBone.physicsMesh.scale.z = boneLength * physicsBoneScaleFactor;
-      }
       modelBone.boneLength = boneLength;
       meshBone.boneLength = boneLength;
-      // console.log('bone length', modelBone.name, boneLength)
 
+      // forward quaternion
       if (k === 'Hips') {
         modelBone.forwardQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
       } else {
@@ -802,8 +827,21 @@ const _makeDebugMesh = () => {
             localVector2.set(0, 1, 0)
           )
         );
-        // modelBone.modelBoneEnd = modelBoneEnd;
       }
+
+      // set capsule geometries
+      if (children.length > 0) {
+        for (const childModelBone of children) {
+          const parentWorldPosition = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld);
+          const childWorldPosition = new THREE.Vector3().setFromMatrixPosition(childModelBone.matrixWorld);
+          const length = parentWorldPosition.distanceTo(childWorldPosition);
+          meshBone.physicsMesh.geometry = _makeCapsuleGeometry(length);
+        }
+      } else {
+        meshBone.physicsMesh.geometry = _makeCapsuleGeometry(boneLength);
+      }
+
+      // memoize
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
     }
   };
