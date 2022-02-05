@@ -55,7 +55,7 @@ class PathFinder {
         voxel.position.z = z;
         voxel._x = x;
         voxel._z = z;
-        voxel._isAct = false;
+        voxel._isReached = false;
       }
     }
     for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
@@ -69,7 +69,7 @@ class PathFinder {
         voxel.position.z = z;
         voxel._x = x;
         voxel._z = z;
-        voxel._isAct = false;
+        voxel._isReached = false;
       }
     }
 
@@ -256,7 +256,7 @@ class PathFinder {
     this.voxels.children.forEach(voxel => {
       voxel._isStart = false;
       voxel._isDest = false;
-      voxel._isAct = false;
+      voxel._isReached = false;
       voxel._priority = 0;
       voxel._costSoFar = 0;
       voxel._prev = null;
@@ -267,7 +267,7 @@ class PathFinder {
     this.voxels2.children.forEach(voxel => {
       voxel._isStart = false;
       voxel._isDest = false;
-      voxel._isAct = false;
+      voxel._isReached = false;
       voxel._priority = 0;
       voxel._costSoFar = 0;
       voxel._prev = null;
@@ -284,7 +284,7 @@ class PathFinder {
       this.startVoxel = this.getVoxel2(startX, startZ);
     }
     this.startVoxel._isStart = true;
-    this.startVoxel._isAct = true;
+    this.startVoxel._isReached = true;
     // this.startVoxel._priority = start.manhattanDistanceTo(dest)
     this.startVoxel._priority = this.start.distanceTo(this.dest);
     this.startVoxel._costSoFar = 0;
@@ -406,10 +406,10 @@ class PathFinder {
     if (!voxel) return;
     if (voxel._isObstacle) return;
     const newCost = prevVoxel._costSoFar + 1;
-    // if (voxel._isAct === false || newCost < voxel._costSoFar) {
-    if (voxel._isAct === false) {
+    // if (voxel._isReached === false || newCost < voxel._costSoFar) {
+    if (voxel._isReached === false) {
       // Seems no need `|| newCost < voxel._costSoFar` ? Need? http://disq.us/p/2mgpazs
-      voxel._isAct = true;
+      voxel._isReached = true;
       voxel._costSoFar = newCost;
 
       // todo: use Vector2 instead of _x _z.
