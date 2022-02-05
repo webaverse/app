@@ -650,24 +650,10 @@ const _makeDebugMesh = () => {
     };
 
     // hips
-    /* mesh.Hips.physicsMesh.material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      transparent: true,
-      depthTest: false,
-    });
-    console.log('hips material', mesh.Hips.physicsMesh.material); */
     mesh.Root.add2(mesh.Hips);
-    /* mesh.Root.physicsMesh.material = new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
-      transparent: true,
-      depthTest: false,
-    });
-    console.log('root material', mesh.Root.physicsMesh.material); */
     mesh.Hips.add2(mesh.Spine);
     mesh.Spine.add2(mesh.Chest);
     mesh.Chest.add2(mesh.UpperChest);
-
-    // window.spine = attributes.Spine;
 
     // head
     mesh.UpperChest.add2(mesh.Neck);
