@@ -70,8 +70,10 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
+// const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
+
+const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 
 const textEncoder = new TextEncoder();
 
@@ -573,17 +575,21 @@ const _makeCapsuleGeometry = (length = 1) => {
   length *= physicsBoneScaleFactor;
   const radius = boneRadius;
   const height = length - boneRadius*2;
-  return BufferGeometryUtils.mergeBufferGeometries([
+  const halfHeight = height/2;
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
     (() => {
       const geometry = new CapsuleGeometry(radius, radius, height)
-        .applyMatrix4(
+        /* .applyMatrix4(
           new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
-        );
+        ); */
       return geometry;
     })(),
     new THREE.BoxGeometry(0.005, 0.2, 0.005)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.2/2, height/2)),
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
   ]);
+  geometry.radius = radius;
+  geometry.halfHeight = halfHeight;
+  return geometry;
 };
 const debugMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
@@ -854,32 +860,22 @@ const _makeDebugMesh = () => {
           continue;
         }
 
-        if (k === 'Hips') {
-          // meshBone.matrixWorld.copy(modelBone.matrixWorld);
-
-          modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-          localQuaternion.multiply(
-            modelBone.forwardQuaternion
-          );
-          meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        } else {
-          modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-          localQuaternion.multiply(
-            modelBone.forwardQuaternion
-          );
-
+        modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localQuaternion.multiply(
+          modelBone.forwardQuaternion
+        );
+        if (k !== 'Hips') {
           localVector.add(
             localVector3.set(0, 0, -meshBone.boneLength * 0.5)
               .applyQuaternion(localQuaternion)
           );
-
-          meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         }
+        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         
         {
           meshBone.matrix.copy(meshBone.matrixWorld);
           meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+          meshBone.quaternion.multiply(leftQuaternion);
         }
       }
       object.updateMatrixWorld();
@@ -996,17 +992,21 @@ const _makeDebugMesh = () => {
       const idBuffer = Uint32Array.from([meshBone.physicsId]);
       buffers.push(idBuffer);
 
+      // console.log('serialize', meshBone.name);
+
       const nameBuffer = textEncoder.encode(meshBone.name);
       const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
       buffers.push(nameBufferLengthBuffer);
       buffers.push(nameBuffer);
 
-      const transformBuffer = new Float32Array(11);
+      const transformBuffer = new Float32Array(3 + 4 + 3 + 3);
       meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.toArray(transformBuffer, 0);
       localQuaternion.toArray(transformBuffer, 3);
       meshBone.physicsMesh.scale.toArray(transformBuffer, 7);
-      transformBuffer[10] = meshBone.boneLength;
+      transformBuffer[10] = meshBone.physicsMesh.geometry.radius;
+      transformBuffer[11] = meshBone.physicsMesh.geometry.halfHeight;
+      transformBuffer[12] = meshBone.boneLength;
       buffers.push(transformBuffer);
 
       const objectChildren = meshBone.children2.filter(child => !child.isMesh);
