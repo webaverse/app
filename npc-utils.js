@@ -15,6 +15,7 @@ const heightCanGoThrough2 = 10;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
+const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)')});
 const materialAct = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
 const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)')});
 const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)')});
@@ -42,8 +43,9 @@ class PathFinder {
     this.voxels2.name = 'voxels2';
 
     const geometry = new THREE.BoxGeometry();
-    geometry.scale(0.9, 0.1, 0.9);
     // geometry.translate(0, -1.2, 0); //
+    // geometry.scale(0.9, 0.1, 0.9);
+    geometry.scale(0.9, 1, 0.9);
     for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
         const voxel = new THREE.Mesh(geometry, materialIdle);
@@ -60,7 +62,7 @@ class PathFinder {
     }
     for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
-        const voxel = new THREE.Mesh(geometry, materialIdle);
+        const voxel = new THREE.Mesh(geometry, materialIdle2);
         this.voxels2.add(voxel);
         voxel.position.set(x, -0.1, z);
         voxel.updateMatrixWorld();
@@ -83,7 +85,8 @@ class PathFinder {
           voxel.position.y += 0.1;
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.collideBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
@@ -99,7 +102,8 @@ class PathFinder {
           voxel.position.y += 0.1;
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.collideBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
@@ -263,7 +267,7 @@ class PathFinder {
       voxel._costSoFar = 0;
       voxel._prev = null;
       voxel._next = null;
-      if (voxel.material !== materialObstacle) voxel.material = materialIdle;
+      if (voxel.material !== materialObstacle) voxel.material = materialIdle2;
     });
 
     this.start.set(startX, startZ);
@@ -422,6 +426,22 @@ class PathFinder {
       this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
       // if (this.isFound) return
     }
+  }
+
+  toggleVoxelsVisible() {
+    this.voxels.visible = !this.voxels.visible;
+  }
+
+  toggleVoxels2Visible() {
+    this.voxels2.visible = !this.voxels2.visible;
+  }
+
+  toggleVoxelsWireframe() {
+    materialIdle.wireframe = !materialIdle.wireframe;
+  }
+
+  toggleVoxels2Wireframe() {
+    materialIdle2.wireframe = !materialIdle2.wireframe;
   }
 }
 

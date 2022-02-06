@@ -28,6 +28,7 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
+window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {

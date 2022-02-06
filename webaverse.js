@@ -4,6 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
+window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
@@ -42,6 +43,7 @@ import WebaWallet from './src/components/wallet.js';
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localPlayer = metaversefileApi.useLocalPlayer();
+window.localPlayer = localPlayer; // test
 const pathFinder = metaversefileApi.usePathFinder();
 window.pathFinder = pathFinder; // test
 // const width = 35;
