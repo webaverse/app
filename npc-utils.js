@@ -24,13 +24,15 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
-  constructor() {
+  constructor({width, height, voxelHeight}) {
     this.isStart = false;
     this.isRising = false;
     this.isRising2 = false;
     this.isGeneratedVoxelMap = false;
-    this.width = 71;
-    this.height = 71;
+    this.width = (width % 2 === 0) ? (width + 1) : (width);
+    this.height = (height % 2 === 0) ? (height + 1) : (height);
+    this.voxelHeight = voxelHeight;
+    this.voxelHeightHalf = this.voxelHeight / 2;
     this.start = new THREE.Vector2(0, 3);
     this.dest = new THREE.Vector2(13, 3);
 
@@ -45,7 +47,8 @@ class PathFinder {
     const geometry = new THREE.BoxGeometry();
     // geometry.translate(0, -1.2, 0); //
     // geometry.scale(0.9, 0.1, 0.9);
-    geometry.scale(0.9, 1, 0.9);
+    // geometry.scale(0.1, this.voxelHeight, 0.1);
+    geometry.scale(0.9, 0.1, 0.9);
     for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
         const voxel = new THREE.Mesh(geometry, materialIdle);
@@ -86,7 +89,7 @@ class PathFinder {
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.overlapBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
+          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
@@ -103,7 +106,7 @@ class PathFinder {
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.overlapBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
+          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {

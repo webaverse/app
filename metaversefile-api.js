@@ -152,7 +152,12 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
-const pathFinder = new PathFinder();
+const pathFinder = new PathFinder({
+  width: 71,
+  height: 71,
+  voxelHeight: 2,
+});
+window.pathFinder = pathFinder; // test
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

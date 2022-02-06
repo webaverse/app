@@ -45,7 +45,6 @@ import WebaWallet from './src/components/wallet.js';
 const localPlayer = metaversefileApi.useLocalPlayer();
 window.localPlayer = localPlayer; // test
 const pathFinder = metaversefileApi.usePathFinder();
-window.pathFinder = pathFinder; // test
 // const width = 35;
 // const height = 35;
 
