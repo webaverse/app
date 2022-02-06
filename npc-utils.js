@@ -86,7 +86,7 @@ class PathFinder {
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.collideBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.overlapBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
@@ -103,7 +103,7 @@ class PathFinder {
           voxel.updateMatrixWorld();
           // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
           // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.collideBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.overlapBox(0.5, 0.5, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
