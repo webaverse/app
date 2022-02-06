@@ -592,13 +592,13 @@ const _makeCapsuleGeometry = (length = 1) => {
   geometry.halfHeight = halfHeight;
   return geometry;
 };
-const debugMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-const debugMeshMaterial = new THREE.MeshNormalMaterial({
+const ragdollMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
   depthTest: false,
 });
-const _makeDebugMesh = () => {
+const _makeRagdollMesh = () => {
   const physicsIdToMeshBoneMap = new Map();
   const _makeCubeMesh = (name, isTop, scale = 1) => {
     // const scaleFactor = baseScale * scale;
@@ -608,7 +608,7 @@ const _makeDebugMesh = () => {
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
-    const physicsMesh = new THREE.Mesh(debugMeshGeometry, debugMeshMaterial);
+    const physicsMesh = new THREE.Mesh(ragdollMeshGeometry, ragdollMeshMaterial);
     // physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
@@ -1786,9 +1786,9 @@ class Avatar {
       Right_toe: this.legsManager.leftLeg.toe,
 	  };
 
-    this.debugMesh = _makeDebugMesh();
-    this.debugMesh.wrapToAvatar(this);
-    this.model.add(this.debugMesh);
+    this.ragdollMesh = _makeRagdollMesh();
+    this.ragdollMesh.wrapToAvatar(this);
+    this.model.add(this.ragdollMesh);
     this.ragdoll = false;
     this.lastRagdoll = false;
     this.characterId = getNextCharacterId();
@@ -3245,7 +3245,7 @@ class Avatar {
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
         .sub(localVector.set(0, this.height, 0));
     // }
-    /* if (!this.getTopEnabled() && this.debugMeshes) {
+    /* if (!this.getTopEnabled() && this.ragdollMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
 
@@ -3412,28 +3412,28 @@ class Avatar {
 
     if (game.debugMode) {
       if (!this.ragdoll) {
-        this.debugMesh.setFromAvatar(this);
+        this.ragdollMesh.setFromAvatar(this);
       } else {
-        this.debugMesh.toAvatar(this);
+        this.ragdollMesh.toAvatar(this);
       }
       if (!this.lastRagdoll && this.ragdoll) {
-        if (!this.debugMesh.skeleton) {
-          const b = this.debugMesh.serializeSkeleton();
-          this.debugMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
+        if (!this.ragdollMesh.skeleton) {
+          const b = this.ragdollMesh.serializeSkeleton();
+          this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
-      if (!this.ragdoll && this.debugMesh.skeleton) {
-        const b = this.debugMesh.serializeSkeleton();
-        physicsManager.setSkeletonFromBuffer(this.debugMesh.skeleton, b);
+      if (!this.ragdoll && this.ragdollMesh.skeleton) {
+        const b = this.ragdollMesh.serializeSkeleton();
+        physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, b);
       }
     }
     /* if (first) {
-      this.debugMesh.setFromAvatar(this);
+      this.ragdollMesh.setFromAvatar(this);
       first = false;
     } else {
-      this.debugMesh.setFromAvatar2(this);
+      this.ragdollMesh.setFromAvatar2(this);
     } */
-    this.debugMesh.visible = game.debugMode;
+    this.ragdollMesh.visible = game.debugMode;
     this.lastRagdoll = this.ragdoll;
 
     // this.modelBoneOutputs.Root.updateMatrixWorld();
@@ -3649,8 +3649,8 @@ class Avatar {
           o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
         }
       });
-      /* if (this.debugMeshes) {
-        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+      /* if (this.ragdollMeshes) {
+        [this.ragdollMeshes.attributes.eyes, this.ragdollMeshes.attributes.head].forEach(attribute => {
           attribute.visible = false;
         });
       } */
@@ -3665,8 +3665,8 @@ class Avatar {
           o.matrixWorld.copy(o.savedMatrixWorld);
         }
       });
-      /* if (this.debugMeshes) {
-        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+      /* if (this.ragdollMeshes) {
+        [this.ragdollMeshes.attributes.eyes, this.ragdollMeshes.attributes.head].forEach(attribute => {
           attribute.visible = true;
         });
       } */

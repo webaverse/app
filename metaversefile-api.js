@@ -847,9 +847,9 @@ export default () => {
     if (result) {
       return result;
     } else {
-      const debugMesh = localPlayer.avatar?.debugMesh;
-      if (debugMesh) {
-        return debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
+      const ragdollMesh = localPlayer.avatar?.ragdollMesh;
+      if (ragdollMesh) {
+        return ragdollMesh.getPhysicsObjectByPhysicsId.apply(ragdollMesh, arguments);
       } else { 
         return null;
       }
@@ -875,9 +875,9 @@ export default () => {
       })) {
         return remotePhysicsObject;
       } else {
-        const debugMesh = localPlayer.avatar?.debugMesh;
-        if (debugMesh) {
-          return debugMesh.getPhysicsObjectByPhysicsId.apply(debugMesh, arguments);
+        const ragdollMesh = localPlayer.avatar?.ragdollMesh;
+        if (ragdollMesh) {
+          return ragdollMesh.getPhysicsObjectByPhysicsId.apply(ragdollMesh, arguments);
         } else { 
           return null;
         }
