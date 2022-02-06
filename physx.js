@@ -807,7 +807,47 @@ const physxWorker = (() => {
       z
     );
   };
-  w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
+  w.collideBoxPhysics = (physics, hx, hy, hz, p, q, maxIter) => {
+    p.toArray(scratchStack.f32, 0);
+    localQuaternion.copy(q)
+      .toArray(scratchStack.f32, 3);
+    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
+
+    const positionOffset = scratchStack.f32.byteOffset;
+    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
+    const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const directionOffset = scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT;
+    const groundedOffset = scratchStack.f32.byteOffset + 18 * Float32Array.BYTES_PER_ELEMENT;
+    const idOffset = scratchStack.f32.byteOffset + 19 * Float32Array.BYTES_PER_ELEMENT;
+
+    moduleInstance._collideBoxPhysics(
+      physics,
+      hx,
+      hy,
+      hz,
+      positionOffset,
+      quaternionOffset,
+      meshPositionOffset,
+      meshQuaternionOffset,
+      maxIter,
+      hitOffset,
+      directionOffset,
+      groundedOffset,
+      idOffset,
+    );
+
+    return scratchStack.u32[14] ? {
+      direction: scratchStack.f32.slice(15, 18),
+      grounded: !!scratchStack.u32[18],
+      objectId: scratchStack.u32[19],
+    } : null;
+  };
+  w.collideCapsulePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .premultiply(capsuleUpQuaternion)
@@ -826,7 +866,7 @@ const physxWorker = (() => {
     const groundedOffset = scratchStack.f32.byteOffset + 18 * Float32Array.BYTES_PER_ELEMENT;
     const idOffset = scratchStack.f32.byteOffset + 19 * Float32Array.BYTES_PER_ELEMENT;
 
-    moduleInstance._collidePhysics(
+    moduleInstance._collideCapsulePhysics(
       physics,
       radius,
       halfHeight,
