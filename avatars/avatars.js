@@ -77,7 +77,7 @@ const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3
 
 const textEncoder = new TextEncoder();
 
-// const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
@@ -592,6 +592,7 @@ const _makeCapsuleGeometry = (length = 1) => {
   geometry.halfHeight = halfHeight;
   return geometry;
 };
+const debugMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 const debugMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
@@ -599,7 +600,7 @@ const debugMeshMaterial = new THREE.MeshNormalMaterial({
 });
 const _makeDebugMesh = () => {
   const physicsIdToMeshBoneMap = new Map();
-  const _makeCubeMesh = (name, geometry = _makeCapsuleGeometry(), scale = 1) => {
+  const _makeCubeMesh = (name, isTop, scale = 1) => {
     // const scaleFactor = baseScale * scale;
 
     const object = new THREE.Object3D();
@@ -607,7 +608,7 @@ const _makeDebugMesh = () => {
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
-    const physicsMesh = new THREE.Mesh(geometry, debugMeshMaterial);
+    const physicsMesh = new THREE.Mesh(debugMeshGeometry, debugMeshMaterial);
     // physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
@@ -619,73 +620,75 @@ const _makeDebugMesh = () => {
       child.parent2 = object;
     };
 
+    object.isTop = isTop;
+
     return object;
   };
   const _makeMeshes = () => {
     const mesh = {
       // Root: _makeCubeMesh('Root'),
 
-      Hips: _makeCubeMesh('Hips', _makeCapsuleGeometry()),
+      Hips: _makeCubeMesh('Hips', false),
 
-      Spine: _makeCubeMesh('Spine'),
-      Chest: _makeCubeMesh('Chest'),
-      UpperChest: _makeCubeMesh('UpperChest'),
+      Spine: _makeCubeMesh('Spine', true),
+      Chest: _makeCubeMesh('Chest', true),
+      UpperChest: _makeCubeMesh('UpperChest', true),
 
-      Neck: _makeCubeMesh('Neck'),
-      Head: _makeCubeMesh('Head'),
-      Eye_L: _makeCubeMesh('Eye_L'),
-      Eye_R: _makeCubeMesh('Eye_R'),
+      Neck: _makeCubeMesh('Neck', true),
+      Head: _makeCubeMesh('Head', true),
+      Eye_L: _makeCubeMesh('Eye_L', true),
+      Eye_R: _makeCubeMesh('Eye_R', true),
 
-      Left_shoulder: _makeCubeMesh('Left_shoulder'),
-      Left_arm: _makeCubeMesh('Left_arm'),
-      Left_elbow: _makeCubeMesh('Left_elbow'),
-      Left_wrist: _makeCubeMesh('Left_wrist'),
+      Left_shoulder: _makeCubeMesh('Left_shoulder', true),
+      Left_arm: _makeCubeMesh('Left_arm', true),
+      Left_elbow: _makeCubeMesh('Left_elbow', true),
+      Left_wrist: _makeCubeMesh('Left_wrist', true),
 
-      Right_shoulder: _makeCubeMesh('Right_shoulder'),
-      Right_arm: _makeCubeMesh('Right_arm'),
-      Right_elbow: _makeCubeMesh('Right_elbow'),
-      Right_wrist: _makeCubeMesh('Right_wrist'),
+      Right_shoulder: _makeCubeMesh('Right_shoulder', true),
+      Right_arm: _makeCubeMesh('Right_arm', true),
+      Right_elbow: _makeCubeMesh('Right_elbow', true),
+      Right_wrist: _makeCubeMesh('Right_wrist', true),
       
-      /* Left_thumb0: _makeCubeMesh('Left_thumb0', undefined, fingerScale),
-      Left_thumb1: _makeCubeMesh('Left_thumb1', undefined, fingerScale),
-      Left_thumb2: _makeCubeMesh('Left_thumb2', undefined, fingerScale),
-      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', undefined, fingerScale),
-      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', undefined, fingerScale),
-      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', undefined, fingerScale),
-      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', undefined, fingerScale),
-      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', undefined, fingerScale),
-      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', undefined, fingerScale),
-      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', undefined, fingerScale),
-      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', undefined, fingerScale),
-      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', undefined, fingerScale),
-      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', undefined, fingerScale),
-      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', undefined, fingerScale),
-      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', undefined, fingerScale),
+      /* Left_thumb0: _makeCubeMesh('Left_thumb0', true, fingerScale),
+      Left_thumb1: _makeCubeMesh('Left_thumb1', true, fingerScale),
+      Left_thumb2: _makeCubeMesh('Left_thumb2', true, fingerScale),
+      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', true, fingerScale),
+      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', true, fingerScale),
+      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', true, fingerScale),
+      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', true, fingerScale),
+      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', true, fingerScale),
+      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', true, fingerScale),
+      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
+      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', true, fingerScale),
+      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
+      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', true, fingerScale),
+      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', true, fingerScale),
+      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', true, fingerScale),
 
-      Right_thumb0: _makeCubeMesh('Right_thumb0', undefined, fingerScale),
-      Right_thumb1: _makeCubeMesh('Right_thumb1', undefined, fingerScale),
-      Right_thumb2: _makeCubeMesh('Right_thumb2', undefined, fingerScale),
-      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', undefined, fingerScale),
-      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', undefined, fingerScale),
-      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', undefined, fingerScale),
-      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', undefined, fingerScale),
-      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', undefined, fingerScale),
-      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', undefined, fingerScale),
-      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', undefined, fingerScale),
-      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', undefined, fingerScale),
-      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', undefined, fingerScale),
-      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', undefined, fingerScale),
-      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', undefined, fingerScale),
-      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', undefined, fingerScale), */
+      Right_thumb0: _makeCubeMesh('Right_thumb0', true, fingerScale),
+      Right_thumb1: _makeCubeMesh('Right_thumb1', true, fingerScale),
+      Right_thumb2: _makeCubeMesh('Right_thumb2', true, fingerScale),
+      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', true, fingerScale),
+      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', true, fingerScale),
+      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', true, fingerScale),
+      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', true, fingerScale),
+      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', true, fingerScale),
+      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', true, fingerScale),
+      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', true, fingerScale),
+      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', true, fingerScale),
+      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', true, fingerScale),
+      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', true, fingerScale),
+      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', true, fingerScale),
+      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
 
-      Left_leg: _makeCubeMesh('Left_leg'),
-      Left_knee: _makeCubeMesh('Left_knee'),
-      Left_ankle: _makeCubeMesh('Left_ankle'),
-      Left_toe: _makeCubeMesh('Left_toe'),
-      Right_leg: _makeCubeMesh('Right_leg'),
-      Right_knee: _makeCubeMesh('Right_knee'),
-      Right_ankle: _makeCubeMesh('Right_ankle'),
-      Right_toe: _makeCubeMesh('Right_toe'),
+      Left_leg: _makeCubeMesh('Left_leg', false),
+      Left_knee: _makeCubeMesh('Left_knee', false),
+      Left_ankle: _makeCubeMesh('Left_ankle', false),
+      Left_toe: _makeCubeMesh('Left_toe', false),
+      Right_leg: _makeCubeMesh('Right_leg', false),
+      Right_knee: _makeCubeMesh('Right_knee', false),
+      Right_ankle: _makeCubeMesh('Right_ankle', false),
+      Right_toe: _makeCubeMesh('Right_toe', false),
     };
 
     // hips
@@ -825,28 +828,21 @@ const _makeDebugMesh = () => {
 
       // forward quaternion
       if (k === 'Hips') {
-        modelBone.forwardQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+        modelBone.forwardQuaternion = new THREE.Quaternion()
+          .setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
       } else {
-        modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-          localMatrix.lookAt(
-            modelBoneStart,
-            modelBoneEnd,
-            localVector2.set(0, 1, 0)
-          )
-        );
+        modelBone.forwardQuaternion = new THREE.Quaternion()
+          .setFromRotationMatrix(
+            localMatrix.lookAt(
+              modelBoneStart,
+              modelBoneEnd,
+              localVector2.set(0, 1, 0)
+            )
+          );
       }
 
       // set capsule geometries
-      if (children.length > 0) {
-        for (const childModelBone of children) {
-          const parentWorldPosition = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld);
-          const childWorldPosition = new THREE.Vector3().setFromMatrixPosition(childModelBone.matrixWorld);
-          const length = parentWorldPosition.distanceTo(childWorldPosition);
-          meshBone.physicsMesh.geometry = _makeCapsuleGeometry(length);
-        }
-      } else {
-        meshBone.physicsMesh.geometry = _makeCapsuleGeometry(boneLength);
-      }
+      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength);
 
       // memoize
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
@@ -877,6 +873,11 @@ const _makeDebugMesh = () => {
           meshBone.matrix.copy(meshBone.matrixWorld);
           meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
           meshBone.quaternion.multiply(leftQuaternion);
+          if (meshBone.isTop) {
+            meshBone.quaternion.multiply(y180Quaternion);
+          }
+          meshBone.matrix.compose(meshBone.position, meshBone.quaternion, meshBone.scale);
+          meshBone.matrixWorld.copy(meshBone.matrix);
         }
       }
       object.updateMatrixWorld();
@@ -1004,7 +1005,7 @@ const _makeDebugMesh = () => {
       meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.toArray(transformBuffer, 0);
       localQuaternion.toArray(transformBuffer, 3);
-      meshBone.physicsMesh.scale.toArray(transformBuffer, 7);
+      localVector2.toArray(transformBuffer, 7);
       transformBuffer[10] = meshBone.physicsMesh.geometry.radius;
       transformBuffer[11] = meshBone.physicsMesh.geometry.halfHeight;
       transformBuffer[12] = meshBone.boneLength;
