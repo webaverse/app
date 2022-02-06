@@ -873,6 +873,9 @@ const _makeRagdollMesh = () => {
           meshBone.matrix.copy(meshBone.matrixWorld);
           meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
           meshBone.quaternion.multiply(leftQuaternion);
+          // XXX this flips bones to all face the same direction;
+          // the top bones are rotated 180 degrees, so the bones direction is from toes to head + fingers
+          // I'm not sure if this is matters; if the simulation can be made stable without it, then we should remove this because it adds complexity
           if (meshBone.isTop) {
             meshBone.quaternion.multiply(y180Quaternion);
           }
