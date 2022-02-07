@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
@@ -19,6 +19,7 @@ function CharacterHup(props) {
   const hupRef = useRef();
   const [localOpen, setLocalOpen] = useState(false);
   const [text, setText] = useState('');
+  const [fullText, setFullText] = useState('');
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -53,11 +54,19 @@ function CharacterHup(props) {
     }
   }, [hupRef.current, localOpen]);
   useEffect(() => {
+    setFullText(hup.fullText);
+  }, []);
+  useEffect(() => {
+    function update(e) {
+      setFullText(hup.fullText);
+    }
+    hup.addEventListener('update', update);
     function destroy(e) {
       setLocalOpen(false);
     }
     hup.addEventListener('destroy', destroy);
     return () => {
+      hup.removeEventListener('update', update);
       hup.removeEventListener('destroy', destroy);
     };
   }, [hup]);
@@ -67,17 +76,18 @@ function CharacterHup(props) {
     });
   }, []);
   useEffect(() => {
-    if (text.length <= hup.fullText.length) {
+    if (text.length <= fullText.length) {
       const timeout = setTimeout(() => {
         // XXX this text slicing should be done with a mathematical factor in the hups code
-        const newText = text + hup.fullText.charAt(text.length);
+        const newText = text + fullText.charAt(text.length);
+        window.text = newText;
         setText(newText);
       }, 100);
       return () => {
         clearTimeout(timeout);
       };
     }
-  }, [text]);
+  }, [text, fullText]);
 
   // console.log('got hup', hup);
 
