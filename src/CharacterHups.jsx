@@ -80,7 +80,6 @@ function CharacterHup(props) {
       const timeout = setTimeout(() => {
         // XXX this text slicing should be done with a mathematical factor in the hups code
         const newText = text + fullText.charAt(text.length);
-        window.text = newText;
         setText(newText);
       }, 100);
       return () => {
