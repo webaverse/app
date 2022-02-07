@@ -53,7 +53,7 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
-const cubicBezier = easing(0, 1, 0, 1);
+// const cubicBezier = easing(0, 1, 0, 1);
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
