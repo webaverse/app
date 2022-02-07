@@ -21,7 +21,8 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-import {loadAudioBuffer} from './util.js';
+// import {loadAudioBuffer} from './util.js';
+import {VoicePack} from './voice-pack-voicer.js';
 import {
   getRenderer,
   scene,
@@ -136,22 +137,12 @@ E6-wrap_74_10_19_29 - Part_1.wav`
 const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
 const _loadVoicePack = async () => {
-  const audioContext = Avatar.getAudioContext();
-
-  const [
-    syllableFiles,
-    audioBuffer,
-  ] = await Promise.all([
-    (async () => {
-      const res = await fetch('https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json');
-      const j = await res.json();
-      return j;
-    })(),
-    loadAudioBuffer(audioContext, 'https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3'),
-  ]);
-
+  const voicePack = await VoicePack.load({
+    audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
+    indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
+  });
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoicePack(syllableFiles, audioBuffer);
+  localPlayer.characterHups.setVoice(voicePack);
 };
 
 export default class Webaverse extends EventTarget {
