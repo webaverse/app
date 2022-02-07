@@ -122,7 +122,7 @@ class CharacterHups extends EventTarget {
     player.addEventListener('actionremove', e => {
       const {action} = e;
       const {actionId} = action;
-      console.log('action remove', action);
+      // console.log('action remove', action);
 
       const oldHup = this.hups.find(hup => hup.actionIds.includes(actionId));
       if (oldHup) {
