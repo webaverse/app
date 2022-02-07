@@ -712,7 +712,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePush();
 
   const _updateActivateAnimation = grabUseMeshPosition => {
-
     let currentDistance = 100;
     let currentAnimation = "grab_forward";
 
@@ -773,7 +772,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
 
     // return (currentDistance < 0.8);
-    return true;
   };
 
   const _updateGrab = () => {
@@ -836,8 +834,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.targetApp = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          const inRange = _updateActivateAnimation(grabUseMesh.position);
-          grabUseMesh.visible = inRange;
+          _updateActivateAnimation(grabUseMesh.position);
+          grabUseMesh.visible = true;
         }
       }
     }
