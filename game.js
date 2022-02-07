@@ -22,6 +22,8 @@ import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
+import {VoicePack} from './voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -51,7 +53,7 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
-const cubicBezier = easing(0, 1, 0, 1);
+// const cubicBezier = easing(0, 1, 0, 1);
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
@@ -709,8 +711,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePush();
 
-  const _updateActivateAnimation = (grabUseMeshPosition) => {
-
+  const _updateActivateAnimation = grabUseMeshPosition => {
     let currentDistance = 100;
     let currentAnimation = "grab_forward";
 
@@ -770,7 +771,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.getAction('activate').animationName = currentAnimation;
     }
 
-    return (currentDistance < 0.8);
+    // return (currentDistance < 0.8);
   };
 
   const _updateGrab = () => {
@@ -825,7 +826,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         // console.log('got object', physicsId, object);
         if (object && !_isWear(object) && physicsObject) {
-          physicsObject.physicsMesh.getWorldPosition(grabUseMesh.position);
+          grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
           // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
@@ -833,8 +834,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.targetApp = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          const inRange = _updateActivateAnimation(grabUseMesh.position);
-          grabUseMesh.visible = inRange;
+          _updateActivateAnimation(grabUseMesh.position);
+          grabUseMesh.visible = true;
         }
       }
     }
@@ -877,7 +878,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       highlightedPhysicsObject.updateMatrixWorld();
 
       const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-      if(physicsObject) {
+      if (physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
         // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
@@ -1977,6 +1978,20 @@ const gameManager = {
     canvas.addEventListener('click', e => {
       this.playerDiorama.toggleShader();
     });
+  },
+  async loadVoicePack({audioUrl, indexUrl}) {
+    const voicePack = await VoicePack.load({
+      audioUrl,
+      indexUrl,
+    });
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.characterHups.setVoice(voicePack);
+  },
+  setVoiceEndpoint(voiceEndpoint, voiceId) {
+    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const voice = new VoiceEndpoint(url);
+    localPlayer.characterHups.setVoice(voice);
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
