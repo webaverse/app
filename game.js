@@ -711,7 +711,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePush();
 
-  const _updateActivateAnimation = (grabUseMeshPosition) => {
+  const _updateActivateAnimation = grabUseMeshPosition => {
 
     let currentDistance = 100;
     let currentAnimation = "grab_forward";
@@ -772,7 +772,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.getAction('activate').animationName = currentAnimation;
     }
 
-    return (currentDistance < 0.8);
+    // return (currentDistance < 0.8);
+    return true;
   };
 
   const _updateGrab = () => {
