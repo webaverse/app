@@ -24,7 +24,7 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
-  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1}) {
+  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
     this.isRising2 = false;
@@ -40,10 +40,12 @@ class PathFinder {
     this.frontiers = [];
     this.voxels = new THREE.Group();
     this.voxels.name = 'voxels';
+    this.voxels.visible = debugRender
     rootScene.add(this.voxels);
     this.voxels2 = new THREE.Group();
     rootScene.add(this.voxels2);
     this.voxels2.name = 'voxels2';
+    this.voxels2.visible = debugRender
 
     const geometry = new THREE.BoxGeometry();
     // geometry.translate(0, -1.2, 0); //
@@ -446,6 +448,16 @@ class PathFinder {
 
   toggleVoxels2Wireframe() {
     materialIdle2.wireframe = !materialIdle2.wireframe;
+  }
+
+  moveDownVoxels() {
+    this.voxels.position.y -= 0.5;
+    this.voxels.updateMatrixWorld();
+  }
+
+  moveDownVoxels2() {
+    this.voxels2.position.y -= 0.5;
+    this.voxels2.updateMatrixWorld();
   }
 }
 
