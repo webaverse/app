@@ -25,9 +25,9 @@ class VoiceEndpointVoicer {
     (async () => {
       const u = new URL(this.voiceEndpoint.url.toString());
       u.searchParams.set('s', text);
-      const res = await fetch(u, {
+      const res = await fetch(u/*, {
         mode: 'cors',
-      });
+      } */);
       const arrayBuffer = await res.arrayBuffer();
 
       const audioContext = Avatar.getAudioContext();
