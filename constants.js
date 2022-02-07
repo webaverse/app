@@ -86,6 +86,7 @@ export const defaultVoicePack = {
   indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
 };
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 
 export const defaultDioramaSize = 512;
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
