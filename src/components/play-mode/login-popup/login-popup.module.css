@@ -1,0 +1,47 @@
+
+.loginPopupWrapper {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba( 0, 0, 0, 0.5 );
+}
+
+.loginPopupWrapper.opened {
+    display: block;
+}
+
+.loginPopupContent {
+    position: absolute;
+    padding: 20px;
+    width: 300px;
+    top: 30%;
+    left: 50%;
+    background-color: #fff;
+    transform: translate( -50%, -50% );
+}
+
+.item {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 10px 0px;
+    border: 1px solid rgba( 0, 0, 0, 0.2 );
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    cursor: pointer;
+    transition: border 200ms ease;
+}
+
+.item:hover {
+    border: 1px solid rgba( 0, 0, 0, 0.9 );
+}
+
+.closeBtn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #000;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}

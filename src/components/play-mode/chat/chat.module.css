@@ -1,0 +1,18 @@
+
+.chat {
+    position: absolute;
+    top: 100px;
+    left: 0px;
+}
+
+.chatBtn {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: rgba( 0, 0, 0, 0.5 );
+    cursor: pointer;
+    color: #fff;
+    padding: 10px 20px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    cursor: pointer;
+}

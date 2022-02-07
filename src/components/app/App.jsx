@@ -9,14 +9,9 @@ import Webaverse from '../../../webaverse.js';
 import * as universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api.js';
 
-import { Inventory } from '../play-mode/inventory';
-import { Hotbar } from '../play-mode/hotbar';
-import { ActionMenu } from '../play-mode/action-menu';
-import { LocationMenu } from '../play-mode/location-menu';
-import { PlayerZone } from '../play-mode/player-zone';
-import { CharacterOverview } from '../play-mode/character-overview';
+import { PlayMode } from '../play-mode';
+import { EditorMode } from '../editor-mode';
 import { Crosshair } from '../play-mode/crosshair';
-import { Settings } from '../play-mode/settings';
 
 import styles from './App.module.css';
 
@@ -45,8 +40,6 @@ export const App = () => {
 
     const canvasRef = useRef();
     const [ app, setApp ] = useState( () => new Webaverse() );
-    const [ characterOverviewOpen, setCharacterOverviewOpen ] = useState( false );
-    const [ settingsOpen, setSettingsOpen ] = useState( false );
 
     useEffect( () => {
 
@@ -64,14 +57,8 @@ export const App = () => {
         <div className={styles.App} id="app">
             <MagicMenu open={ false } />
             <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
-            <ActionMenu openSettings={ setSettingsOpen } />
-            <LocationMenu />
-            <Inventory openCharacterOverview={ setCharacterOverviewOpen } />
-            <Hotbar />
-            <PlayerZone />
             <Crosshair />
-            <CharacterOverview open={ characterOverviewOpen } setOpen={ setCharacterOverviewOpen } />
-            <Settings open={ settingsOpen } setOpen={ setSettingsOpen } />
+            <PlayMode />
         </div>
     );
 

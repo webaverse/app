@@ -5,10 +5,20 @@ import styles from './chat.module.css';
 
 //
 
-export const Chat = () => (
+export const Chat = () => {
 
-    <div className={ styles.chat } >
+    const handleChatBtnClick = ( event ) => {
 
-    </div>
+        event.stopPropagation();
 
-);
+    };
+
+    //
+
+    return (
+        <div className={ styles.chat } >
+            <div className={ styles.chatBtn } onClick={ handleChatBtnClick }>Chat</div>
+        </div>
+    );
+
+};
