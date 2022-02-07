@@ -42,7 +42,7 @@ class Hup extends EventTarget {
 
     const _updateVoicer = () => {
       if (this.parent.voicer) {
-        this.parent.voicer.start(this.fullText);
+        this.parent.voicer.start(message);
       }
     };
     _updateVoicer();
