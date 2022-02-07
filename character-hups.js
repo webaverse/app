@@ -3,7 +3,7 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
-import {Voicer} from './voicer.js';
+import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 
 let nextHupId = 0;
 class Hup extends EventTarget {
@@ -52,7 +52,6 @@ class Hup extends EventTarget {
     this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
-
 class CharacterHups extends EventTarget {
   constructor(player) {
     super();
@@ -128,8 +127,13 @@ class CharacterHups extends EventTarget {
       }
     }
   }
-  setVoicePack(syllableFiles, audioBuffer) {
-    this.voicer = new Voicer(syllableFiles, audioBuffer, this.player);
+  setVoice(voice) {
+    if (voice instanceof VoicePack) {
+      const {syllableFiles, audioBuffer} = voice;
+      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
+    } else if (voice instanceof VoiceEndpoint) {
+      throw new Error('not implemented');
+    }
   }
   addChatHupAction(text) {
     this.player.addAction({
