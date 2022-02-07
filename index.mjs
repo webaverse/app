@@ -108,7 +108,8 @@ const _proxyUrl = (req, res, u) => {
     }
   });
 
-  const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
+  // const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
+  const isHttps = false;
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
