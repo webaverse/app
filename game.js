@@ -22,6 +22,8 @@ import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority
 import {snapPosition} from './util.js';
 import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
 import easing from './easing.js';
+import {VoicePack} from './voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -1977,6 +1979,20 @@ const gameManager = {
     canvas.addEventListener('click', e => {
       this.playerDiorama.toggleShader();
     });
+  },
+  async loadVoicePack({audioUrl, indexUrl}) {
+    const voicePack = await VoicePack.load({
+      audioUrl,
+      indexUrl,
+    });
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.characterHups.setVoice(voicePack);
+  },
+  setVoiceEndpoint(voiceEndpoint, voiceId) {
+    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const voice = new VoiceEndpoint(url);
+    localPlayer.characterHups.setVoice(voice);
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
