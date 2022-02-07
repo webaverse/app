@@ -80,5 +80,12 @@ export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;
 
+export const defaultVoicePack = {
+  name: `ShiShi voice pack`,
+  audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
+  indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
+};
+export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+
 export const defaultDioramaSize = 512;
-export const defaultAvatarUrl = './avatars/citrine.vrm';
+export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
