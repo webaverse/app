@@ -31,6 +31,9 @@ class Hup extends EventTarget {
       this.playerName = playerName;
     }
     if (message) {
+      if (this.fullText.length > 0) {
+        this.fullText += '\n';
+      }
       this.fullText += message;
     }
     this.emote = emote ?? null;
