@@ -63,13 +63,6 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/grid/grid.glb",
       "dynamic": false
-    },
-    {
-      "name": "physicscube",
-      "position": [0, 0, 0],
-      "quaternion": [0, 0, 0, 1],
-      "scale": [1, 1, 1],
-      "start_url": "https://avaer.github.io/physicscube/index.js"
     }
   ]
 }
