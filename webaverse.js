@@ -151,7 +151,6 @@ export default class Webaverse extends EventTarget {
     document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = (async () => {
-      // const voice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`;
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
@@ -161,7 +160,6 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
         game.loadVoicePack(defaultVoicePack),
-        // game.setVoiceEndpoint(voiceEndpoint, voice),
       ]);
     })();
     this.contentLoaded = false;
