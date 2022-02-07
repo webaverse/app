@@ -22,6 +22,7 @@
 }
 
 .item {
+    display: block;
     margin-top: 10px;
     margin-bottom: 10px;
     width: 100%;
@@ -30,6 +31,8 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
     transition: border 200ms ease;
+    color: #000;
+    text-decoration: none;
 }
 
 .item:hover {

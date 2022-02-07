@@ -126,12 +126,18 @@ export const App = () => {
 
     }, [] );
 
+    const handleCanvasClick = ( event ) => {
+
+        ioManager['click']( event );
+
+    };
+
     //
 
     return (
         <div className={styles.App} id="app">
             <MagicMenu open={ magicMenuOpened } setOpen={ setMagicMenuOpened } />
-            <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
+            <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } onClick={ handleCanvasClick } />
             <Crosshair />
             <PlayMode />
         </div>

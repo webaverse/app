@@ -148,7 +148,7 @@ export const MagicMenu = ({ open, setOpen }) => {
 
     useEffect(() => {
 
-        const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
+        const types = ['keyup', /* 'click', */ 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
 
         const cleanups = types.map(type => {
 

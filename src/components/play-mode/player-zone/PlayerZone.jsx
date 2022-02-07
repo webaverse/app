@@ -13,7 +13,8 @@ import styles from './player-zone.module.css';
 export const PlayerZone = () => {
 
     const [ loginPopupOpened, setLoginOpenPopupOpened ] = useState( false );
-    const [ loggingIn, setLoggingIn ] = useState( false );
+    const [ loginInState, setLoginInState ] = useState('');
+    const [ loginInMethod, setLoginInMethod ] = useState( null );
     const [ loginButtons, setLoginButtons ] = useState( false );
     const [ loginError, setLoginError ] = useState( null );
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState( false );
@@ -28,7 +29,7 @@ export const PlayerZone = () => {
 
     };
 
-    useEffect( () => {
+    useEffect( async () => {
 
         const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
 
@@ -38,7 +39,7 @@ export const PlayerZone = () => {
 
             if ( code ) {
 
-                setLoggingIn( true );
+                setLoginInState( 'in-progress' );
 
                 WebaWallet.waitForLaunch().then( async () => {
 
@@ -56,22 +57,23 @@ export const PlayerZone = () => {
 
                     }
 
-                    window.history.pushState( {}, '', window.location.origin );
-                    setLoggingIn( false );
+                    // window.history.pushState( {}, '', window.location.origin );
+                    setLoginInState( 'done' );
 
                 }); // it may occur that wallet loading is in progress already
 
             } else {
 
+                setLoginInState( 'in-progress' );
+
                 WebaWallet.waitForLaunch().then( async () => {
 
-                    const { address, error } = await WebaWallet.autoLogin();
+                    const loginResult = await WebaWallet.autoLogin();
 
-                    if ( address ) {
+                    if ( loginResult && address ) {
 
                         setAddress( address );
-                        setLoginFrom( 'discord' );
-                        setShow( false );
+                        setLoginInState( 'done' );
 
                     } else if ( error ) {
 
@@ -85,7 +87,7 @@ export const PlayerZone = () => {
 
         }
 
-    }, [ address, setAddress ]);
+    }, [ address ]);
 
     //
 
@@ -93,8 +95,8 @@ export const PlayerZone = () => {
         <div className={ styles.playerZone } >
 
             {
-                ( loggingIn ) ? (
-                    'loggin in'
+                ( loginInState === 'in-progress' ) ?(
+                    <div className={ styles.loginBtn }>Login in...</div>
                 ) : (
                     ( address ) ? (
                         <div className={ styles.avatar } />
@@ -112,7 +114,7 @@ export const PlayerZone = () => {
                 <div className={ styles.progressBarFill } />
             </div>
 
-            <LoginPopup open={ loginPopupOpened } setOpen={ setLoginOpenPopupOpened } />
+            <LoginPopup open={ loginPopupOpened } setOpen={ setLoginOpenPopupOpened } loginInState={ loginInState } setLoginInState={ setLoginInState } setAddress={ setAddress } />
 
         </div>
     );

@@ -37,7 +37,6 @@ export const CharacterOverview = ({ open, setOpen }) => {
             renderer = new THREE.WebGLRenderer({ canvas: canvas.current, antialias: true, alpha: true });
             const canvasSize = canvas.current.parentNode.getBoundingClientRect();
             renderer.setSize( canvasSize.width, canvasSize.height );
-            // renderer.setClearColor( 0x000000, 0 );
             camera = new THREE.PerspectiveCamera( 50, 1, 1, 2000 );
             camera.position.set( 0, 1.5, - 2 );
             camera.aspect = canvasSize.width / canvasSize.height;
