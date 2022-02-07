@@ -63,7 +63,7 @@ class ChatManager extends EventTarget {
     return m;
   }
   removeMessage(m) {
-    const localPlayer = useLocalPlayer();
+    const localPlayer = metaversefileApi.useLocalPlayer();
     const index = this.messageActions.indexOf(m);
     if (index !== -1) {
       const m = this.messageActions[index];
