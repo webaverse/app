@@ -9,9 +9,6 @@ import physicsManager from './physics-manager.js';
 const localQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
-const heightCanGoThrough = 1.5;
-// const heightCanGoThrough2 = 30;
-const heightCanGoThrough2 = 10;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
@@ -133,7 +130,7 @@ class PathFinder {
           const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._leftVoxel = leftVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const leftVoxel = this.getVoxel(x - 1, z);
             if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._leftVoxel = leftVoxel;
@@ -146,7 +143,7 @@ class PathFinder {
           const biasToLayer2 = rightVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._rightVoxel = rightVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const rightVoxel = this.getVoxel(x + 1, z);
             if (rightVoxel && rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._rightVoxel = rightVoxel;
@@ -159,7 +156,7 @@ class PathFinder {
           const biasToLayer2 = btmVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._btmVoxel = btmVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const btmVoxel = this.getVoxel(x, z - 1);
             if (btmVoxel && btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._btmVoxel = btmVoxel;
@@ -172,7 +169,7 @@ class PathFinder {
           const biasToLayer2 = topVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._topVoxel = topVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const topVoxel = this.getVoxel(x, z + 1);
             if (topVoxel && topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._topVoxel = topVoxel;
@@ -190,7 +187,7 @@ class PathFinder {
           const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._leftVoxel = leftVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough2) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const leftVoxel = this.getVoxel(x - 1, z);
             if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._leftVoxel = leftVoxel;
@@ -203,7 +200,7 @@ class PathFinder {
           const biasToLayer2 = rightVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._rightVoxel = rightVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough2) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const rightVoxel = this.getVoxel(x + 1, z);
             if (rightVoxel && rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._rightVoxel = rightVoxel;
@@ -216,7 +213,7 @@ class PathFinder {
           const biasToLayer2 = btmVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._btmVoxel = btmVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough2) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const btmVoxel = this.getVoxel(x, z - 1);
             if (btmVoxel && btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._btmVoxel = btmVoxel;
@@ -229,7 +226,7 @@ class PathFinder {
           const biasToLayer2 = topVoxel2.position.y - currentVoxel.position.y;
           if (biasToLayer2 < heightTolerance) {
             currentVoxel._topVoxel = topVoxel2;
-          } else if (biasToLayer2 > heightCanGoThrough2) {
+          } else if (biasToLayer2 > this.voxelHeight) {
             const topVoxel = this.getVoxel(x, z + 1);
             if (topVoxel && topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
               currentVoxel._topVoxel = topVoxel;
@@ -312,7 +309,6 @@ class PathFinder {
   }
 
   rise2() {
-    // NOTE: Need rise to higher than heightCanGoThrough2.
     this.isRising = false;
 
     this.voxels2.children.forEach((voxel, i) => {
