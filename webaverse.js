@@ -382,7 +382,7 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
-      pathFinder.update();
+      if (!pathFinder.isAutoInit) pathFinder.update();
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;

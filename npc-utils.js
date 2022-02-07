@@ -23,7 +23,7 @@ const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rg
 const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
-  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, debugRender = false}) {
+  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
     this.isRising2 = false;
@@ -35,6 +35,12 @@ class PathFinder {
     this.start = new THREE.Vector2(0, 3);
     this.dest = new THREE.Vector2(13, 3);
     this.lowestY = lowestY;
+    this.highestY = highestY;
+    this.highestY2 = highestY2;
+    this.voxelsY = this.lowestY;
+    this.voxelsY2 = this.lowestY;
+    this.isAutoInit = false;
+    this.debugRender = debugRender;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -83,7 +89,18 @@ class PathFinder {
     this.resetStartDest(1, this.start.x, this.start.y, 2, this.dest.x, this.dest.y);
   }
 
+  async init() { // Use highestY and highestY2, to auto rise() -> rise2() -> generateVoxelMap().
+    return new Promise(resolve => {
+      this.resolveInit = resolve;
+
+      this.isAutoInit = true;
+      this.rise();
+      this.update();
+    });
+  }
+
   update() {
+    // console.log('update');
     if (this.isRising && this.voxels) { // mark: generate voxel map
       this.voxels.children.forEach((voxel, i) => {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
@@ -99,9 +116,15 @@ class PathFinder {
           }
         }
       });
+      this.voxelsY += 0.1;
+      if (this.voxelsY > this.highestY) {
+        this.rise2();
+      } else {
+        if (this.isAutoInit) this.update();
+      }
     }
     if (this.isRising2 && this.voxels2) {
-      if (this.debugRender) console.log(this.getVoxel2(0, 0).position.y);
+      // if (this.debugRender) console.log(this.getVoxel2(0, 0).position.y);
       this.voxels2.children.forEach((voxel, i) => {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
           voxel.position.y += 0.1;
@@ -116,6 +139,13 @@ class PathFinder {
           }
         }
       });
+      this.voxelsY2 += 0.1;
+      if (this.voxelsY2 > this.highestY2) {
+        this.generateVoxelMap();
+        this.resolveInit('PathFinder auto inited.');
+      } else {
+        if (this.isAutoInit) this.update();
+      }
     }
   }
 
@@ -304,11 +334,11 @@ class PathFinder {
     this.isRising = true;
   }
 
-  riseAgain() {
-    this.voxels.children.forEach(voxel => {
-      voxel._risingState = 'initial';
-    });
-  }
+  // riseAgain() {
+  //   this.voxels.children.forEach(voxel => {
+  //     voxel._risingState = 'initial';
+  //   });
+  // }
 
   rise2() {
     this.isRising = false;
@@ -480,6 +510,14 @@ class PathFinder {
   getHighestY() {
     let highestY = -Infinity;
     this.voxels.children.forEach(voxel => {
+      if (voxel.position.y > highestY) highestY = voxel.position.y;
+    });
+    return highestY;
+  }
+
+  getHighestY2() {
+    let highestY = -Infinity;
+    this.voxels2.children.forEach(voxel => {
       if (voxel.position.y > highestY) highestY = voxel.position.y;
     });
     return highestY;
