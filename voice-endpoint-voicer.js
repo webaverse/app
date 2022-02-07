@@ -38,22 +38,6 @@ class VoiceEndpointVoicer {
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
       audioBufferSourceNode.start();
     })();
-
-    /* const _recurse = async () => {
-      const {offset, duration} = this.selectVoice();
-
-      const audioContext = Avatar.getAudioContext();
-      const audioBufferSourceNode = audioContext.createBufferSource();
-      audioBufferSourceNode.buffer = this.audioBuffer;
-      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-      audioBufferSourceNode.start(0, offset, duration);
-      let audioTimeout = duration * 1000;
-      audioTimeout *= 0.9 + 0.2 * Math.random();
-      this.timeout = setTimeout(() => {
-        _recurse();
-      }, audioTimeout);
-    };
-    _recurse(); */
   }
   stop() {
     this.live = false;
