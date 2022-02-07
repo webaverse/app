@@ -1,6 +1,5 @@
 import {makeId} from './util.js';
 import metaversefileApi from 'metaversefile';
-const {useLocalPlayer} = metaversefileApi;
 
 const _getEmotion = text => {
   let match;
@@ -34,7 +33,7 @@ class ChatManager extends EventTarget {
     return this.messageActions;
   } */
   addMessage(message = '', {timeout = 3000} = {}) {
-    const localPlayer = useLocalPlayer();
+    const localPlayer = metaversefileApi.useLocalPlayer();
     const chatId = makeId(5);
     const match = _getEmotion(message);
     const emotion = match && match.emotion;
