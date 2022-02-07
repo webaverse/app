@@ -36,6 +36,7 @@ import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
+import loreAI from './lore-ai.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
@@ -407,6 +408,9 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  useLoreAI() {
+    return loreAI;
   },
   useAvatarCruncher() {
     return avatarCruncher;
