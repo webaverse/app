@@ -28,6 +28,7 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
+window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
@@ -205,6 +206,12 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 };
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
+};
+physicsManager.overlapBox = (hx, hy, hz, p, q) => {
+  return physx.physxWorker.overlapBoxPhysics(physx.physics, hx, hy, hz, p, q);
+};
+physicsManager.overlapCapsule = (radius, halfHeight, p, q) => {
+  return physx.physxWorker.overlapCapsulePhysics(physx.physics, radius, halfHeight, p, q);
 };
 physicsManager.collideBox = (hx, hy, hz, p, q, maxIter) => {
   return physx.physxWorker.collideBoxPhysics(physx.physics, hx, hy, hz, p, q, maxIter);

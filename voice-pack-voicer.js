@@ -2,29 +2,51 @@
 it is responsible for playing Banjo-Kazooie style character speech. */
 
 import Avatar from './avatars/avatars.js';
+import {loadAudioBuffer} from './util.js';
 
 function weightedRandom(weights) {
-	var totalWeight = 0,
-		i, random;
-
-	for (i = 0; i < weights.length; i++) {
+	let totalWeight = 0;
+	for (let i = 0; i < weights.length; i++) {
 		totalWeight += weights[i];
 	}
 
-	random = Math.random() * totalWeight;
-
-	for (i = 0; i < weights.length; i++) {
+	let random = Math.random() * totalWeight;
+	for (let i = 0; i < weights.length; i++) {
 		if (random < weights[i]) {
 			return i;
 		}
-
 		random -= weights[i];
 	}
 
 	return -1;
 }
 
-class Voicer {
+class VoicePack {
+  constructor(syllableFiles, audioBuffer) {
+    this.syllableFiles = syllableFiles;
+    this.audioBuffer = audioBuffer;
+  }
+  static async load({
+    audioUrl,
+    indexUrl,
+  }) {
+    const audioContext = Avatar.getAudioContext();
+    const [
+      syllableFiles,
+      audioBuffer,
+    ] = await Promise.all([
+      (async () => {
+        const res = await fetch('https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json');
+        const j = await res.json();
+        return j;
+      })(),
+      loadAudioBuffer(audioContext, 'https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3'),
+    ]);
+    const voicePack = new VoicePack(syllableFiles, audioBuffer);
+    return voicePack;
+  }
+}
+class VoicePackVoicer {
   constructor(syllableFiles, audioBuffer, player) {
     this.syllableFiles = syllableFiles;
     this.audioBuffer = audioBuffer;
@@ -103,5 +125,6 @@ class Voicer {
 }
 
 export {
-  Voicer,
+  VoicePack,
+  VoicePackVoicer,
 };

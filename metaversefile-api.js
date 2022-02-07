@@ -37,6 +37,7 @@ import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
+import {PathFinder} from './npc-utils.js';
 
 import {getHeight} from './avatars/util.mjs';
 
@@ -151,6 +152,9 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
+const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: 0.1, highestY: 15, highestY2: 30, debugRender: false }); // for treehouse.scn
+// const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: -50, debugRender: false }); // for marching-cube.scn
+window.pathFinder = pathFinder; // test
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -495,6 +499,9 @@ metaversefile.setApi({
   },
   useNpcs() {
      return npcs;
+  },
+  usePathFinder() {
+    return pathFinder;
   },
   useLoaders() {
     return loaders;
