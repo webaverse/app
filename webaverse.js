@@ -23,7 +23,7 @@ import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
 // import {loadAudioBuffer} from './util.js';
 // import {VoicePack} from './voice-pack-voicer.js';
-import {VoiceEndpoint} from './voice-endpoint-voicer.js';
+// import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {
   getRenderer,
   scene,
@@ -40,6 +40,8 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+import {voiceEndpoint, defaultVoicePack} from './constants.js';
+
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
@@ -138,21 +140,6 @@ E6-wrap_74_10_19_29 - Part_1.wav`
 const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
 
-/* const _loadVoicePack = async () => {
-  const voicePack = await VoicePack.load({
-    audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
-    indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
-  });
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoice(voicePack);
-}; */
-const _loadVoiceEndpoint = () => {
-  const voice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`;
-  const voiceEndpoint = new VoiceEndpoint(`https://voice.webaverse.com/tts?voice=${encodeURIComponent(voice)}`);
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoice(voiceEndpoint);
-};
-
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
@@ -164,6 +151,7 @@ export default class Webaverse extends EventTarget {
     document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = (async () => {
+      // const voice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`;
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
@@ -172,8 +160,8 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
-        // _loadVoicePack(),
-        _loadVoiceEndpoint(),
+        game.loadVoicePack(defaultVoicePack),
+        // game.setVoiceEndpoint(voiceEndpoint, voice),
       ]);
     })();
     this.contentLoaded = false;
