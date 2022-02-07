@@ -21,27 +21,6 @@
 
   <div id=iframe-container></div>
   <div id="root"></div>
-
-  <div id="domAverageTime" style="position:absolute;left:0;right:0;text-align: left;top:100px;background: white;">
-  </div>
-  
-  <div id="domBtns" style="position: absolute;left: 0;top:0;width:100%;height:100%;display: flex;flex-direction: column; justify-content: center; align-items: flex-end;pointer-events: none;z-index:1;">
-    <button onclick="pathFinder.init()" style="margin: 5px;pointer-events: all;">init</button>
-    <button onclick="pathFinder.rise()" style="margin: 5px;pointer-events: all;">rise</button>
-    <button onclick="pathFinder.rise2()" style="margin: 5px;pointer-events: all;">rise2</button>
-    <button onclick="pathFinder.generateVoxelMap()" style="margin: 5px;pointer-events: all;">generateVoxelMap</button>
-    <button onclick="pathFinder.step()" style="margin: 5px;pointer-events: all;">1 step</button>
-    <button onclick="pathFinder.tenStep()" style="margin: 5px;pointer-events: all;">10 step</button>
-    <button onclick="pathFinder.untilFound()" style="margin: 5px;pointer-events: all;">until found</button>
-    <button onclick="pathFinder.foxFollowAvatar()" style="margin: 5px;pointer-events: all;">foxFollowAvatar</button>
-    <button onclick="pathFinder.toggleVoxelsVisible()" style="margin: 5px;pointer-events: all;">toggleVoxelsVisible</button>
-    <button onclick="pathFinder.toggleVoxelsWireframe()" style="margin: 5px;pointer-events: all;">toggleVoxelsWireframe</button>
-    <button onclick="pathFinder.moveDownVoxels()" style="margin: 5px;pointer-events: all;">moveDownVoxels</button>
-    <button onclick="pathFinder.toggleVoxels2Visible()" style="margin: 5px;pointer-events: all;">toggleVoxels2Visible</button>
-    <button onclick="pathFinder.toggleVoxels2Wireframe()" style="margin: 5px;pointer-events: all;">toggleVoxels2Wireframe</button>
-    <button onclick="pathFinder.moveDownVoxels2()" style="margin: 5px;pointer-events: all;">moveDownVoxels2</button>
-  </div>
-
   <script type=module src="/pre.js"></script>
   <script type=module src="/src/main.jsx"></script>
 </body>

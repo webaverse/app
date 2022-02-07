@@ -4,7 +4,6 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
@@ -46,22 +45,6 @@ import {voiceEndpoint, defaultVoicePack} from './constants.js';
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
-const localPlayer = metaversefileApi.useLocalPlayer();
-window.localPlayer = localPlayer; // test
-const pathFinder = metaversefileApi.usePathFinder();
-// const width = 35;
-// const height = 35;
-
-// window.start = new THREE.Vector2(-7, -5)
-// window.dest = new THREE.Vector2(4, 6)
-// window.start = new THREE.Vector2(-12, -14)
-// window.dest = new THREE.Vector2(-6, -27)
-// window.start = new THREE.Vector2(24, -5)
-// window.dest = new THREE.Vector2(24, 24)
-// swapStartDest();
-
-window.domBtns.addEventListener('click', e => e.stopPropagation());
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 // const localVector3 = new THREE.Vector3();
@@ -77,6 +60,8 @@ const localMatrix3 = new THREE.Matrix4();
 // const localArray2 = Array(4);
 // const localArray3 = Array(4);
 // const localArray4 = Array(4);
+
+const pathFinder = metaversefileApi.usePathFinder();
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
