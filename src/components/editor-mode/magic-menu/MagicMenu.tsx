@@ -66,8 +66,6 @@ export const MagicMenu = ({ open, setOpen }) => {
     const inputTextarea = useRef();
     const outputTextarea = useRef();
 
-    const magicMenuOpen = open === 'magicMenu';
-
     //
 
     const _compile = async () => {
@@ -188,7 +186,7 @@ export const MagicMenu = ({ open, setOpen }) => {
 
     useEffect(() => {
 
-        if ( magicMenuOpen ) {
+        if ( open ) {
 
             if ( page === 'input' ) {
 
@@ -208,7 +206,7 @@ export const MagicMenu = ({ open, setOpen }) => {
 
         }
 
-    }, [magicMenuOpen, inputTextarea.current, needsFocus]);
+    }, [ open, inputTextarea.current, needsFocus ]);
 
     const click = e => {
 
@@ -218,7 +216,7 @@ export const MagicMenu = ({ open, setOpen }) => {
 
     const keydown = e => {
 
-        if (magicMenuOpen) {
+        if ( open ) {
 
             if (e.which === 13 && window.document.activeElement !== outputTextarea.current) { // enter
 
@@ -242,7 +240,7 @@ export const MagicMenu = ({ open, setOpen }) => {
     };
 
     return (
-        <div className={classes.MagicMenu + ' ' + (magicMenuOpen ? classes.open : '')} onClick={click}>
+        <div className={ classes.MagicMenu + ' ' + ( open ? classes.open : '' ) } onClick={ click }>
             <div className={classes.container} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
