@@ -53,7 +53,7 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
-const cubicBezier = easing(0, 1, 0, 1);
+// const cubicBezier = easing(0, 1, 0, 1);
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
@@ -711,8 +711,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePush();
 
-  const _updateActivateAnimation = (grabUseMeshPosition) => {
-
+  const _updateActivateAnimation = grabUseMeshPosition => {
     let currentDistance = 100;
     let currentAnimation = "grab_forward";
 
@@ -772,7 +771,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.getAction('activate').animationName = currentAnimation;
     }
 
-    return (currentDistance < 0.8);
+    // return (currentDistance < 0.8);
   };
 
   const _updateGrab = () => {
@@ -835,8 +834,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.targetApp = object;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          const inRange = _updateActivateAnimation(grabUseMesh.position);
-          grabUseMesh.visible = inRange;
+          _updateActivateAnimation(grabUseMesh.position);
+          grabUseMesh.visible = true;
         }
       }
     }
