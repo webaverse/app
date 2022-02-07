@@ -24,7 +24,7 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
-  constructor({width, height, voxelHeight}) {
+  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1}) {
     this.isStart = false;
     this.isRising = false;
     this.isRising2 = false;
@@ -35,6 +35,7 @@ class PathFinder {
     this.voxelHeightHalf = this.voxelHeight / 2;
     this.start = new THREE.Vector2(0, 3);
     this.dest = new THREE.Vector2(13, 3);
+    this.lowestY = lowestY;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -53,7 +54,7 @@ class PathFinder {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
         const voxel = new THREE.Mesh(geometry, materialIdle);
         this.voxels.add(voxel);
-        voxel.position.set(x, -0.1, z);
+        voxel.position.set(x, this.lowestY, z);
         voxel.updateMatrixWorld();
         voxel._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
         voxel.position.x = x;
@@ -67,7 +68,7 @@ class PathFinder {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
         const voxel = new THREE.Mesh(geometry, materialIdle2);
         this.voxels2.add(voxel);
-        voxel.position.set(x, -0.1, z);
+        voxel.position.set(x, this.lowestY, z);
         voxel.updateMatrixWorld();
         voxel._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
         voxel.position.x = x;

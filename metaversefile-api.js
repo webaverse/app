@@ -152,11 +152,8 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
-const pathFinder = new PathFinder({
-  width: 71,
-  height: 71,
-  voxelHeight: 2,
-});
+const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: 0.1 }); // for treehouse.scn
+// const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: -50 }); // for marching-cube.scn
 window.pathFinder = pathFinder; // test
 
 class ErrorBoundary extends React.Component {
