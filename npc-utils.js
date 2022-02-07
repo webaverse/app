@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import {
   rootScene,
 } from './renderer.js';
-import metaversefileApi from 'metaversefile';
 import physicsManager from './physics-manager.js';
 
 const localQuaternion = new THREE.Quaternion();
@@ -40,12 +39,12 @@ class PathFinder {
     this.frontiers = [];
     this.voxels = new THREE.Group();
     this.voxels.name = 'voxels';
-    this.voxels.visible = debugRender
+    this.voxels.visible = debugRender;
     rootScene.add(this.voxels);
     this.voxels2 = new THREE.Group();
     rootScene.add(this.voxels2);
     this.voxels2.name = 'voxels2';
-    this.voxels2.visible = debugRender
+    this.voxels2.visible = debugRender;
 
     const geometry = new THREE.BoxGeometry();
     // geometry.translate(0, -1.2, 0); //
@@ -476,6 +475,14 @@ class PathFinder {
   moveDownVoxels2() {
     this.voxels2.position.y -= 0.5;
     this.voxels2.updateMatrixWorld();
+  }
+
+  getHighestY() {
+    let highestY = -Infinity;
+    this.voxels.children.forEach(voxel => {
+      if (voxel.position.y > highestY) highestY = voxel.position.y;
+    });
+    return highestY;
   }
 }
 
