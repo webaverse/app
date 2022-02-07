@@ -90,13 +90,14 @@ class PathFinder {
   }
 
   async init() { // Use highestY and highestY2, to auto rise() -> rise2() -> generateVoxelMap().
-    return new Promise(resolve => {
+    const re = await new Promise(resolve => {
       this.resolveInit = resolve;
 
       this.isAutoInit = true;
       this.rise();
       this.update();
     });
+    if (re === true) console.log('PathFinder auto inited.');
   }
 
   update() {
@@ -142,7 +143,7 @@ class PathFinder {
       this.voxelsY2 += 0.1;
       if (this.voxelsY2 > this.highestY2) {
         this.generateVoxelMap();
-        this.resolveInit('PathFinder auto inited.');
+        this.resolveInit(true);
       } else {
         if (this.isAutoInit) this.update();
       }
