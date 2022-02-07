@@ -4,6 +4,7 @@ the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
 
 let nextHupId = 0;
 class Hup extends EventTarget {
@@ -41,7 +42,7 @@ class Hup extends EventTarget {
   setLive(live) {
     if (this.parent.voicer) {
       if (live && !this.live) {
-        this.parent.voicer.start();
+        this.parent.voicer.start(this.fullText);
       } else if (this.live && !live) {
         this.parent.voicer.stop();
       }
@@ -132,7 +133,9 @@ class CharacterHups extends EventTarget {
       const {syllableFiles, audioBuffer} = voice;
       this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
     } else if (voice instanceof VoiceEndpoint) {
-      throw new Error('not implemented');
+      this.voicer = new VoiceEndpointVoicer(voice, this.player);
+    } else {
+      throw new Error('invalid voice');
     }
   }
   addChatHupAction(text) {

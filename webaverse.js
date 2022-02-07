@@ -22,7 +22,8 @@ import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
 // import {loadAudioBuffer} from './util.js';
-import {VoicePack} from './voice-pack-voicer.js';
+// import {VoicePack} from './voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {
   getRenderer,
   scene,
@@ -136,13 +137,20 @@ E6-wrap_74_10_19_29 - Part_1.wav`
 /* const numFiles = 361;
 const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
-const _loadVoicePack = async () => {
+
+/* const _loadVoicePack = async () => {
   const voicePack = await VoicePack.load({
     audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
     indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
   });
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.characterHups.setVoice(voicePack);
+}; */
+const _loadVoiceEndpoint = () => {
+  const voice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`;
+  const voiceEndpoint = new VoiceEndpoint(`https://voice.webaverse.com/tts?voice=${encodeURIComponent(voice)}`);
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.characterHups.setVoice(voiceEndpoint);
 };
 
 export default class Webaverse extends EventTarget {
@@ -164,7 +172,8 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
-        _loadVoicePack(),
+        // _loadVoicePack(),
+        _loadVoiceEndpoint(),
       ]);
     })();
     this.contentLoaded = false;
