@@ -13,7 +13,7 @@ const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
 const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)')});
-const materialAct = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
+const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
 const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)')});
 const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)')});
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)')});
@@ -407,7 +407,7 @@ class PathFinder {
     if (this.isFound) return;
 
     const currentVoxel = this.frontiers.shift();
-    if (!currentVoxel._isStart) currentVoxel.material = materialAct;
+    if (!currentVoxel._isStart) currentVoxel.material = materialReached;
 
     if (currentVoxel._leftVoxel) {
       this.stepVoxel(currentVoxel._leftVoxel, currentVoxel);
