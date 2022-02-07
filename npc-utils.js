@@ -12,12 +12,15 @@ const heightTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
+const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)')});
 const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)')});
-const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(204,191,179)')});
+const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)')});
 const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)')});
+const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)')});
 const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)')});
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)')});
 const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)')});
+const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)')});
 const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
@@ -99,7 +102,7 @@ class PathFinder {
       });
     }
     if (this.isRising2 && this.voxels2) {
-      console.log(this.getVoxel2(0, 0).position.y);
+      if (this.debugRender) console.log(this.getVoxel2(0, 0).position.y);
       this.voxels2.children.forEach((voxel, i) => {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
           voxel.position.y += 0.1;
@@ -244,7 +247,7 @@ class PathFinder {
     // })
 
     this.isGeneratedVoxelMap = true;
-    console.log('generated voxel map');
+    if (this.debugRender) console.log('generated voxel map');
   }
 
   resetStartDest(startLayer, startX, startZ, destLayer, destX, destZ) {
@@ -358,14 +361,21 @@ class PathFinder {
     return xy.y * width + xy.x;
   }
 
-  stepVoxel(voxel, prevVoxel) {
-    function recur(voxel) {
-      if (voxel) {
-        if (!voxel._isStart && !voxel._isDest) voxel.material = materialPath;
-        if (voxel._prev) voxel._prev._next = voxel;
-        recur(voxel._prev);
+  recur(voxel) {
+    if (voxel) {
+      if (!voxel._isStart && !voxel._isDest) { // todo: Don't run if !this.debugRender.
+        if (voxel.parent === this.voxels) {
+          voxel.material = materialPath;
+        } else {
+          voxel.material = materialPath2;
+        }
       }
+      if (voxel._prev) voxel._prev._next = voxel;
+      this.recur(voxel._prev);
     }
+  }
+
+  stepVoxel(voxel, prevVoxel) {
     if (!voxel) return;
     if (voxel._isObstacle) return;
     const newCost = prevVoxel._costSoFar + 1;
@@ -383,31 +393,43 @@ class PathFinder {
       this.frontiers.push(voxel);
       this.frontiers.sort((a, b) => a._priority - b._priority);
 
-      if (!voxel._isStart && !voxel._isDest) voxel.material = materialFrontier;
+      if (!voxel._isStart && !voxel._isDest) {
+        if (voxel.parent === this.voxels) {
+          voxel.material = materialFrontier;
+        } else {
+          voxel.material = materialFrontier2;
+        }
+      }
       voxel._prev = prevVoxel;
     }
     if (voxel._isDest) {
-      // console.log('found');
+      // if (this.debugRender) console.log('found');
       this.isFound = true;
-      recur(voxel);
+      this.recur(voxel);
     }
   }
 
   step() {
-    // console.log('step');
+    // if (this.debugRender) console.log('step');
     // debugger
     if (!this.isGeneratedVoxelMap) {
       console.warn('voxel map not generated.');
       return;
     }
     if (this.frontiers.length <= 0) {
-      console.log('finish');
+      if (this.debugRender) console.log('finish');
       return;
     }
     if (this.isFound) return;
 
     const currentVoxel = this.frontiers.shift();
-    if (!currentVoxel._isStart) currentVoxel.material = materialReached;
+    if (!currentVoxel._isStart) {
+      if (currentVoxel.parent === this.voxels) {
+        currentVoxel.material = materialReached;
+      } else {
+        currentVoxel.material = materialReached2;
+      }
+    }
 
     if (currentVoxel._leftVoxel) {
       this.stepVoxel(currentVoxel._leftVoxel, currentVoxel);
