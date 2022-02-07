@@ -24,7 +24,20 @@
   color: #FFF;
 }
 .character-hups > .character-hup .message {
+  position: relative;
+  display: flex;
   width: 500px;
+  height: 100%;
+  font-family: 'GeoSans';
+  padding: 15px;
+  padding-top: 50px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  white-space: pre-wrap;
+  text-align: left;
+  /* justify-content: flex-start;
+  align-items: flex-start;
+  float: left; */
 }
 .character-hups > .character-hup .name {
   position: absolute;
@@ -54,16 +67,6 @@
 .character-hups > .character-hup .name > h2 {
   font-size: 13px;
   color: #FFFFFF80;
-}
-.character-hups > .character-hup .message {
-  position: relative;
-  display: flex;
-  height: 100%;
-  font-family: 'GeoSans';
-  padding: 15px;
-  padding-top: 50px;
-  font-size: 20px;
-  letter-spacing: 1px;
 }
 .character-hups > .character-hup .stats {
   display: flex;
