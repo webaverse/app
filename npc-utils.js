@@ -52,6 +52,9 @@ class PathFinder {
     this.voxels2.name = 'voxels2';
     this.voxels2.visible = debugRender;
 
+    this.voxelo = {};
+    this.voxelo2 = {};
+
     // const geometry = new THREE.BoxGeometry();
     this.geometry = new THREE.BoxGeometry();
     // geometry.translate(0, -1.2, 0); //
@@ -95,14 +98,36 @@ class PathFinder {
   getPath(start, dest, range, waypointResult) {
     // test
     start = new THREE.Vector3().copy(window.npcPlayer.position);
+    // start.x += 1;
     // test end
     start.x = Math.round(start.x);
     start.z = Math.round(start.z);
     // window.test = this.createVoxel(start.x, start.z);
-    this.startVoxel = this.createVoxel(start.x, start.z).voxel;
+
+    let startLayer;
+    const {voxel: startVoxel, voxel2: startVoxel2} = this.createVoxelAnd2(start.x, start.z);
+    if (Math.abs(startVoxel.position.y - window.npcPlayer.position.y) < Math.abs(startVoxel2.position.y - window.npcPlayer.position.y)) {
+      startLayer = 1;
+    } else {
+      startLayer = 2;
+    }
+    if (startLayer === 1) {
+      this.startVoxel = startVoxel;
+    } else if (startLayer === 2) {
+      this.startVoxel = startVoxel2;
+    }
+    this.startVoxel._isStart = true;
+    this.startVoxel._isReached = true;
+    // this.startVoxel._priority = start.manhattanDistanceTo(dest)
+    this.startVoxel._priority = this.start.distanceTo(this.dest);
+    this.startVoxel._costSoFar = 0;
+    this.frontiers.push(this.startVoxel);
+    this.startVoxel.material = materialStart;
+
+    this.step();
   }
 
-  createVoxel(x, z) {
+  createVoxelAnd2(x, z) {
     const voxel = new THREE.Mesh(this.geometry, materialIdle);
     this.voxels.add(voxel);
     voxel.position.set(x, this.lowestY, z);
@@ -117,6 +142,7 @@ class PathFinder {
 
     this.detect(voxel);
     voxel.updateMatrixWorld();
+    this.voxelo[`${x}_${z}`] = voxel;
 
     //
 
@@ -134,6 +160,7 @@ class PathFinder {
 
     this.detect2(voxel2);
     voxel2.updateMatrixWorld();
+    this.voxelo2[`${x}_${z}`] = voxel2;
 
     return {voxel, voxel2};
   }
@@ -434,18 +461,20 @@ class PathFinder {
     this.isRising2 = true;
   }
 
-  getVoxel(x, y) {
-    x += (this.width - 1) / 2;
-    y += (this.height - 1) / 2;
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return null;
-    return this.voxels.children[this.xyToSerial(this.width, {x, y})];
+  getVoxel(x, z) {
+    // x += (this.width - 1) / 2;
+    // y += (this.height - 1) / 2;
+    // if (x < 0 || y < 0 || x >= this.width || y >= this.height) return null;
+    // return this.voxels.children[this.xyToSerial(this.width, {x, y})];
+    return this.voxelo[`${x}_${z}`];
   }
 
-  getVoxel2(x, y) {
-    x += (this.width - 1) / 2;
-    y += (this.height - 1) / 2;
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return null;
-    return this.voxels2.children[this.xyToSerial(this.width, {x, y})];
+  getVoxel2(x, z) {
+    // x += (this.width - 1) / 2;
+    // y += (this.height - 1) / 2;
+    // if (x < 0 || y < 0 || x >= this.width || y >= this.height) return null;
+    // return this.voxels2.children[this.xyToSerial(this.width, {x, y})];
+    return this.voxelo2[`${x}_${z}`];
   }
 
   swapStartDest() {
@@ -525,10 +554,10 @@ class PathFinder {
   step() {
     // if (this.debugRender) console.log('step');
     // debugger
-    if (!this.isGeneratedVoxelMap) {
-      console.warn('voxel map not generated.');
-      return;
-    }
+    // if (!this.isGeneratedVoxelMap) {
+    //   console.warn('voxel map not generated.');
+    //   return;
+    // }
     if (this.frontiers.length <= 0) {
       if (this.debugRender) console.log('finish');
       return;
