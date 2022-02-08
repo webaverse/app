@@ -21,9 +21,6 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-// import {loadAudioBuffer} from './util.js';
-// import {VoicePack} from './voice-pack-voicer.js';
-// import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {
   getRenderer,
   scene,
