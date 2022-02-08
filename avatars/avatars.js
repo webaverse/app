@@ -208,7 +208,9 @@ let fallAnimation;
 let fallToLandAnimation;
 let hardLandingAnimation;
 let jumpForwardAnimation;
+let jumpForwardLandAnimation;
 let jumpForwardOtherAnimation;
+let jumpForwardOtherLandAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -347,10 +349,12 @@ const loadPromise = (async () => {
 
   jumpAnimation = animations.find(a => a.isJump);
   fallAnimation = animations.index["falling_loop.fbx"];
-  fallToLandAnimation = animations.index["verticalLand.fbx"];
+  fallToLandAnimation = animations.index["soft_landing3.fbx"];
+  jumpForwardLandAnimation = animations.index["soft_landing_final.fbx"];
+  jumpForwardOtherLandAnimation = animations.index["soft_landing_final_mirror.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
-  jumpForwardAnimation = animations.index["jump_forward_r.fbx"];
-  jumpForwardOtherAnimation = animations.index["jump_forward_r.fbx"];
+  jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
+  jumpForwardOtherAnimation = animations.index["jump_forward_2_mirror.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -989,6 +993,7 @@ class Avatar {
       }
       return o;
     })();
+    this.randomLeg = 0;
     this.previousTime = 0;
     this.move = false;
     this.model = model;
@@ -2115,8 +2120,9 @@ class Avatar {
           this.frameTime = 25;
           console.log('target time is ' + this.targetTime);
         }
-        if(this.landingTime < clamp(this.targetTime, 0, 1600)) {
-       
+        
+        if(!this.jumpState && this.landingTime < clamp(this.targetTime, 0, 1600)) {
+
           console.log('landing anim plays');
           
           this.landingTime += this.frameTime;
@@ -2139,7 +2145,7 @@ class Avatar {
               //   return;
               // }
               src2 = hardLandingAnimation.interpolants[k];
-
+              //TODO If there is movement on hard landing at the end, stand back up animation, or flip back up animation
               // console.log(src2);
             } 
             else {
@@ -2151,10 +2157,16 @@ class Avatar {
               let isUpLegPos = k.includes("UpLeg");
               let hipRot = k.includes("Hips") && !isPosition;
               let hipPos = k.includes("Hips") && isPosition;
-              if(hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
+              if( hipPos || hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
                 return;
               }
               src2 = fallToLandAnimation.interpolants[k];
+              // if(this.randomLeg > 0.5) {
+              //   src2 = jumpForwardOtherLandAnimation.interpolants[k];
+              // }
+              // if(this.randomLeg < 0.5) {
+              //   src2 = jumpForwardLandAnimation.interpolants[k];
+              // }
             }   
             
             t2 = this.landingTime/1000 * 0.6;
@@ -2163,6 +2175,9 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
+        //todo IF JUMPSTATE || PREVIOUSTIME > 0  
+        //this way we can let the jump animation finish before switching to any landing animation
+        //We should check whether the jump has enough time to finish or whether there is too much air time and we are bracing for a hard landing
         if (this.jumpState) {
           return spec => {
             const {
@@ -2171,11 +2186,13 @@ class Avatar {
               // isTop,
             } = spec;
             // _handleDefault(spec);
-            let randomLeg = 0;
-            // if(this.previousTime === 0 ) {
-            //   randomLeg = Math.random();
-            //   console.log("new jump! ", randomLeg);
-            // }
+
+            if(this.previousTime === 0 ) {
+              this.randomLeg = Math.random();
+              console.log("new jump! ", this.randomLeg);
+            } else {
+              console.log('counting previous ')
+            }
             // console.log('JumpState', spec)
             this.previousTime = this.jumpTime;
             // this.landingState = false;
@@ -2184,7 +2201,7 @@ class Avatar {
             if(this.jumpTime > 1000) {
               // console.log('falling');
               src2 = fallAnimation.interpolants[k];
-              t2 = this.jumpTime/1000 * 0.8;
+              t2 = this.jumpTime/1000 * 0.6;
             } else {
               // console.log('jumping');
               if(this.move && !this.horizontalMove) {
@@ -2197,7 +2214,16 @@ class Avatar {
                 // if(isLowerBone) {
                 //   return;
                 // }
-                src2 = jumpForwardOtherAnimation.interpolants[k];
+                console.log('random leg', this.randomLeg);
+                if(this.randomLeg > 0.5) {
+                  console.log('left kick');
+                  src2 = jumpForwardAnimation.interpolants[k];
+                } 
+                if(this.randomLeg < 0.5) {
+                  console.log('right kick');
+                  src2 = jumpForwardOtherAnimation.interpolants[k];
+                }
+                
                 t2 = this.jumpTime/1000 * 0.6;
               }
             }
