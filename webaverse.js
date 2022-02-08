@@ -37,7 +37,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import {voiceEndpoint, defaultVoice, defaultVoicePack} from './constants.js';
+import {defaultVoice, defaultVoicePack} from './constants.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -157,7 +157,7 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
         game.loadVoicePack(defaultVoicePack),
-        // game.setVoiceEndpoint(voiceEndpoint, defaultVoice),
+        // game.setVoice(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;

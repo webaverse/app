@@ -24,12 +24,15 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   defaultPlayerName,
+  voiceEndpoint,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
+import {VoicePack} from './voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -208,6 +211,18 @@ class PlayerBase extends THREE.Object3D {
       }
     }
     return false;
+  }
+  async loadVoicePack({audioUrl, indexUrl}) {
+    const voicePack = await VoicePack.load({
+      audioUrl,
+      indexUrl,
+    });
+    this.characterHups.setVoice(voicePack);
+  }
+  setVoice(voiceId) {
+    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+    const voice = new VoiceEndpoint(url);
+    this.characterHups.setVoice(voice);
   }
   destroy() {
     // nothing
