@@ -21,9 +21,6 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-// import {loadAudioBuffer} from './util.js';
-// import {VoicePack} from './voice-pack-voicer.js';
-// import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {
   getRenderer,
   scene,
@@ -40,7 +37,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import {voiceEndpoint, defaultVoicePack} from './constants.js';
+import {voiceEndpoint, defaultVoice, defaultVoicePack} from './constants.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -160,6 +157,7 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
         game.loadVoicePack(defaultVoicePack),
+        // game.setVoiceEndpoint(voiceEndpoint, defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
