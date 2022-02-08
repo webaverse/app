@@ -77,6 +77,28 @@ const geometryUtils = (() => {
         }
     }
 
+    scope.generateChunk = (x, y, z, chunkSize) => {
+        const outputBufferOffset = moduleInstance._generateChunk(x, y, z, chunkSize);
+
+        const head = outputBufferOffset / 4;
+
+        const positionCount = moduleInstance.HEAP32[head];
+        const faceCount = moduleInstance.HEAP32[head + 1];
+        const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
+        const faces = moduleInstance.HEAP32.slice(
+            head + 2 + positionCount, head + 2 + positionCount + faceCount
+        );
+
+        moduleInstance._doFree(outputBufferOffset);
+
+        return {
+            positionCount: positionCount,
+            faceCount: faceCount,
+            positions: positions,
+            faces: faces
+        }
+    }
+
     return scope;
 
 })();
