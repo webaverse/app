@@ -340,13 +340,28 @@ export default function Header({
     };
   }, [dragging]);
 
+  const npcManager = metaversefile.useNpcManager();
+  const [npcs, setNpcs] = useState(npcManager.npcs);
+  useEffect(() => {
+    npcManager.addEventListener('npcadd', e => {
+      const {player} = e.data;
+      const newNpcs = npcs.concat([player]);
+      setNpcs(newNpcs);
+    });
+    npcManager.addEventListener('npcremove', e => {
+      const {player} = e.data;
+      const newNpcs = npcs.slice().splice(npcs.indexOf(player), 1);
+      setNpcs(newNpcs);
+    });
+  }, []);
+
 	return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
 			<Chat open={open} setOpen={setOpen} />
-      <CharacterHups player={localPlayer} />
+      <CharacterHups localPlayer={localPlayer} npcs={npcs} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
 				<header className={styles.header}>
