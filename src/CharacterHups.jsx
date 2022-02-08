@@ -13,7 +13,7 @@ const defaultHupSize = 256;
 const pixelRatio = window.devicePixelRatio;
 
 function CharacterHup(props) {
-  const {hup, hups, setHups} = props;
+  const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
   const hupRef = useRef();
@@ -114,7 +114,8 @@ function CharacterHup(props) {
 }
 
 export default function CharacterHups({
-  player,
+  localPlayer,
+  npcs,
 }) {
   const [hups, setHups] = useState([]);
 
@@ -123,18 +124,30 @@ export default function CharacterHups({
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
-    player.characterHups.addEventListener('hupadd', hupadd);
+    localPlayer.characterHups.addEventListener('hupadd', hupadd);
+    for (const npcPlayer of npcs) {
+      npcPlayer.characterHups.addEventListener('hupadd', hupadd);
+    }
 
     return () => {
-      player.characterHups.removeEventListener('hupadd', hupadd);
+      localPlayer.characterHups.removeEventListener('hupadd', hupadd);
+      for (const npcPlayer of npcs) {
+        npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
+      }
     };
-  }, []);
+  }, [localPlayer, npcs, npcs.length]);
 
   return (
     <div className={styles['character-hups']}>
-      {hups.map((hup, i) => {
+      {hups.map((hup, index) => {
         return (
-          <CharacterHup key={hup.hupId} hup={hup} hups={hups} setHups={setHups} />
+          <CharacterHup
+            key={hup.hupId}
+            hup={hup}
+            index={index}
+            hups={hups}
+            setHups={setHups}
+          />
         );
       })}
     </div>
