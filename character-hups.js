@@ -107,6 +107,7 @@ class CharacterHups extends EventTarget {
           
           this.dispatchEvent(new MessageEvent('hupremove', {
             data: {
+              player,
               hup: newHup,
             },
           }));
@@ -114,6 +115,7 @@ class CharacterHups extends EventTarget {
         this.hups.push(newHup);
         this.dispatchEvent(new MessageEvent('hupadd', {
           data: {
+            player,
             hup: newHup,
           },
         }));
