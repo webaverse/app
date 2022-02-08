@@ -35,6 +35,12 @@ class NpcManager extends EventTarget {
 
     await npcPlayer.setAvatarAppAsync(avatarApp);
     this.npcs.push(npcPlayer);
+
+    this.dispatchEvent(new MessageEvent('npcadd', {
+      data: {
+        player: npcPlayer,
+      },
+    }));
     
     return npcPlayer;
   }
@@ -43,6 +49,12 @@ class NpcManager extends EventTarget {
 
     const removeIndex = this.npcs.indexOf(npcPlayer);
     this.npcs.splice(removeIndex, 1);
+  
+    this.dispatchEvent(new MessageEvent('npcremove', {
+      data: {
+        player: npcPlayer,
+      },
+    }));
   }
 }
 const npcManager = new NpcManager();
