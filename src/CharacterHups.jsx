@@ -113,24 +113,20 @@ function CharacterHup(props) {
   );
 }
 
-export default function CharacterHups() {
+export default function CharacterHups({
+  player,
+}) {
   const [hups, setHups] = useState([]);
 
   useEffect(() => {
-    const localPlayer = useLocalPlayer();
     function hupadd(e) {
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
-    /* function hupremove(e) {
-      e.data.hup.setOpen(false);
-    } */
-    localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    player.characterHups.addEventListener('hupadd', hupadd);
 
     return () => {
-      localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      player.characterHups.removeEventListener('hupadd', hupadd);
     };
   }, []);
 

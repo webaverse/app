@@ -347,7 +347,7 @@ export default function Header({
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
 			<Chat open={open} setOpen={setOpen} />
-      <CharacterHups />
+      <CharacterHups player={localPlayer} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
 				<header className={styles.header}>
