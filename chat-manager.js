@@ -56,7 +56,7 @@ class ChatManager extends EventTarget {
     }));
     
     const localTimeout = setTimeout(() => {
-      this.removeMessage(m);
+      this.removePlayerMessage(player, m);
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);
