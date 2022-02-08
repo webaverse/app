@@ -27,7 +27,7 @@ class ChatManager extends EventTarget {
   constructor() {
     super();
 
-    this.messageActions = [];
+    // this.messageActions = [];
   }
   /* getMessageActions() {
     return this.messageActions;
@@ -46,11 +46,14 @@ class ChatManager extends EventTarget {
       fakeSpeech,
     };
     player.addAction(m);
-    this.messageActions.push(m);
+    // this.messageActions.push(m);
     
-    /* this.dispatchEvent(new MessageEvent('messageadd', {
-      data: m,
-    })); */
+    this.dispatchEvent(new MessageEvent('messageadd', {
+      data: {
+        player,
+        message: m,
+      },
+    }));
     
     const localTimeout = setTimeout(() => {
       this.removeMessage(m);
@@ -66,11 +69,11 @@ class ChatManager extends EventTarget {
     return this.addPlayerMessage(localPlayer, message, opts);
   }
   removePlayerMessage(player, m) {
-    const index = this.messageActions.indexOf(m);
-    if (index !== -1) {
-      const m = this.messageActions[index];
+    // const index = this.messageActions.indexOf(m);
+    // if (index !== -1) {
+      // const m = this.messageActions[index];
       m.cleanup();
-      this.messageActions.splice(index, 1);
+      // this.messageActions.splice(index, 1);
       
       const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
       if (actionIndex !== -1) {
@@ -79,12 +82,15 @@ class ChatManager extends EventTarget {
         console.warn('remove unknown message action 2', m);
       }
       
-      /* this.dispatchEvent(new MessageEvent('messageremove', {
-        data: m,
-      })); */
-    } else {
+      this.dispatchEvent(new MessageEvent('messageremove', {
+        data: {
+          player,
+          message: m,
+        },
+      }));
+    /* } else {
       console.warn('remove unknown message action 1', m);
-    }
+    } */
   }
   removeMessage(m) {
     const localPlayer = metaversefileApi.useLocalPlayer();
