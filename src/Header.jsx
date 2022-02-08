@@ -48,7 +48,7 @@ const _getCurrentRoom = () => {
 export default function Header({
   app,
 }) {
-  
+  const localPlayer = metaversefile.useLocalPlayer();  
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
   
 	// console.log('index 2');
@@ -68,7 +68,6 @@ export default function Header({
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
 
-  const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
   let [px, setPx] = useState(0);
