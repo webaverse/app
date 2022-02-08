@@ -95,17 +95,19 @@ class PathFinder {
     // this.resetStartDest(1, this.start.x, this.start.y, 2, this.dest.x, this.dest.y);
   }
 
-  getPath(start, dest, range, waypointResult) {
-    // test
-    start = new THREE.Vector3().copy(window.npcPlayer.position);
-    // start.x += 1;
-    // test end
-    start.x = Math.round(start.x);
-    start.z = Math.round(start.z);
-    // window.test = this.createVoxel(start.x, start.z);
+  getPath() {
+    this.start.set(
+      Math.round(window.npcPlayer.position.x),
+      Math.round(window.npcPlayer.position.z),
+    );
+    this.dest.set(
+      Math.round(window.localPlayer.position.x),
+      Math.round(window.localPlayer.position.z),
+    );
 
     let startLayer;
-    const {voxel: startVoxel, voxel2: startVoxel2} = this.createVoxelAnd2(start.x, start.z);
+    const startVoxel = this.createVoxel(this.start.x, this.start.y);
+    const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
     if (Math.abs(startVoxel.position.y - window.npcPlayer.position.y) < Math.abs(startVoxel2.position.y - window.npcPlayer.position.y)) {
       startLayer = 1;
     } else {
@@ -127,7 +129,7 @@ class PathFinder {
     this.step();
   }
 
-  createVoxelAnd2(x, z) {
+  createVoxel(x, z) {
     const voxel = new THREE.Mesh(this.geometry, materialIdle);
     this.voxels.add(voxel);
     voxel.position.set(x, this.lowestY, z);
@@ -144,8 +146,10 @@ class PathFinder {
     voxel.updateMatrixWorld();
     this.voxelo[`${x}_${z}`] = voxel;
 
-    //
+    return voxel;
+  }
 
+  createVoxel2(x, z, voxel) {
     const voxel2 = new THREE.Mesh(this.geometry, materialIdle2);
     this.voxels2.add(voxel2);
     voxel2.position.copy(voxel.position);
@@ -162,7 +166,7 @@ class PathFinder {
     voxel2.updateMatrixWorld();
     this.voxelo2[`${x}_${z}`] = voxel2;
 
-    return {voxel, voxel2};
+    return voxel2;
   }
 
   detect(voxel) {
@@ -260,6 +264,25 @@ class PathFinder {
     // }
   }
 
+  generateVoxelMapLeft(currentVoxel) {
+    let leftVoxel = this.getVoxel(currentVoxel.position.x - 1, currentVoxel.position.z);
+    let leftVoxel2 = this.getVoxel2(currentVoxel.position.x - 1, currentVoxel.position.z);
+    if (!leftVoxel) {
+      leftVoxel = this.createVoxel(currentVoxel.position.x - 1, currentVoxel.position.z);
+      leftVoxel2 = this.createVoxel2(currentVoxel.position.x - 1, currentVoxel.position.z, leftVoxel);
+    }
+    if (leftVoxel2) {
+      const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
+      if (biasToLayer2 < heightTolerance) {
+        currentVoxel._leftVoxel = leftVoxel2;
+      } else if (biasToLayer2 > this.voxelHeight) {
+        if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+          currentVoxel._leftVoxel = leftVoxel;
+        }
+      }
+    }
+  }
+
   generateVoxelMap() {
     this.isRising = false;
     this.isRising2 = false;
@@ -268,18 +291,18 @@ class PathFinder {
       for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
         const currentVoxel = this.getVoxel(x, z);
 
-        const leftVoxel2 = this.getVoxel2(x - 1, z);
-        if (leftVoxel2) {
-          const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
-          if (biasToLayer2 < heightTolerance) {
-            currentVoxel._leftVoxel = leftVoxel2;
-          } else if (biasToLayer2 > this.voxelHeight) {
-            const leftVoxel = this.getVoxel(x - 1, z);
-            if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
-              currentVoxel._leftVoxel = leftVoxel;
-            }
-          }
-        }
+        // const leftVoxel2 = this.getVoxel2(x - 1, z);
+        // if (leftVoxel2) {
+        //   const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
+        //   if (biasToLayer2 < heightTolerance) {
+        //     currentVoxel._leftVoxel = leftVoxel2;
+        //   } else if (biasToLayer2 > this.voxelHeight) {
+        //     const leftVoxel = this.getVoxel(x - 1, z);
+        //     if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+        //       currentVoxel._leftVoxel = leftVoxel;
+        //     }
+        //   }
+        // }
 
         const rightVoxel2 = this.getVoxel2(x + 1, z);
         if (rightVoxel2) {
@@ -518,7 +541,7 @@ class PathFinder {
   }
 
   stepVoxel(voxel, prevVoxel) {
-    if (!voxel) return;
+    // if (!voxel) return;
     if (voxel._isObstacle) return;
     const newCost = prevVoxel._costSoFar + 1;
     // if (voxel._isReached === false || newCost < voxel._costSoFar) {
@@ -530,7 +553,7 @@ class PathFinder {
       // todo: use Vector2 instead of _x _z.
       // voxel._priority = tmpVec2.set(voxel._x, voxel._z).manhattanDistanceTo(dest)
       // voxel._priority = tmpVec2.set(voxel._x, voxel._z).distanceToSquared(dest)
-      voxel._priority = tmpVec2.set(voxel.position.x, voxel.poxition.z).distanceTo(this.dest);
+      voxel._priority = tmpVec2.set(voxel.position.x, voxel.position.z).distanceTo(this.dest);
       voxel._priority += newCost;
       this.frontiers.push(voxel);
       this.frontiers.sort((a, b) => a._priority - b._priority);
@@ -573,25 +596,26 @@ class PathFinder {
       }
     }
 
+    this.generateVoxelMapLeft(currentVoxel);
     if (currentVoxel._leftVoxel) {
       this.stepVoxel(currentVoxel._leftVoxel, currentVoxel);
-      if (this.isFound) return;
+      // if (this.isFound) return;
     }
 
-    if (currentVoxel._rightVoxel) {
-      this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
-      if (this.isFound) return;
-    }
+    // if (currentVoxel._rightVoxel) {
+    //   this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
+    //   if (this.isFound) return;
+    // }
 
-    if (currentVoxel._btmVoxel) {
-      this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
-      if (this.isFound) return;
-    }
+    // if (currentVoxel._btmVoxel) {
+    //   this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
+    //   if (this.isFound) return;
+    // }
 
-    if (currentVoxel._topVoxel) {
-      this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
-      // if (this.isFound) return
-    }
+    // if (currentVoxel._topVoxel) {
+    //   this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
+    //   // if (this.isFound) return
+    // }
   }
 
   toggleVoxelsVisible() {
