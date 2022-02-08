@@ -19,6 +19,14 @@
     cursor: pointer;
 }
 
+.username {
+    position: absolute;
+    left: 85px;
+    top: 5px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 10px;
+}
+
 .avatar {
     position: absolute;
     top: 0px;

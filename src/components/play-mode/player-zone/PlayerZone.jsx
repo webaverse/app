@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 
+import * as ceramicApi from '../../../../ceramic.js';
 import WebaWallet from '../../wallet';
 import { parseQuery } from '../../../../util.js';
 import { LoginPopup } from '../login-popup';
@@ -19,6 +20,7 @@ export const PlayerZone = () => {
     const [ loginError, setLoginError ] = useState( null );
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState( false );
     const [ address, setAddress ] = useState( null );
+    const [ username, setUserName ] = useState( 'Anonimus' );
 
     //
 
@@ -36,6 +38,17 @@ export const PlayerZone = () => {
         if ( ! autoLoginRequestMade ) {
 
             setAutoLoginRequestMade( true );
+
+            const user = await ceramicApi.login();
+
+            if ( user && user.address ) {
+
+                setUserName( user.address );
+                setAddress( user.address );
+                setLoginInState( false );
+                return;
+
+            }
 
             if ( code ) {
 
@@ -105,6 +118,8 @@ export const PlayerZone = () => {
                     )
                 )
             }
+
+            <div className={ styles.username }>{ username }</div>
 
             <div className={ classNames( styles.progressBar, styles.manaBar ) } >
                 <div className={ styles.progressBarFill } />

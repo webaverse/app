@@ -550,7 +550,7 @@ ioManager.keydown = e => {
       break;
     }
     case 13: { // enter
-      game.enter();
+    //   game.enter();
       break;
     }
     /* case 77: { // M

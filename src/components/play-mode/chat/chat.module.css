@@ -16,3 +16,20 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
 }
+
+.chatInput {
+    position: fixed;
+    bottom: 250px;
+    left: -200px;
+    width: 200px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    z-index: 1;
+    font-size: 15px;
+    line-height: 25px;
+    padding: 5px 10px;
+    transition: left 400ms ease;
+}
+
+.chatInput.open {
+    left: 0px;
+}

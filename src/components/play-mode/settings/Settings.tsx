@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-import styles from './settings.module.css';
 import { TabGeneral } from './TabGeneral';
 import { TabAudio } from './TabAudio';
-import { TabDisplay } from './TabDisplay';
 import { TabGraphics } from './TabGraphics';
+
+import styles from './settings.module.css';
 
 //
 
@@ -66,7 +66,7 @@ export const Settings = ({ open, setOpen }) => {
                 <div className={ styles.tabs }>
                     <div className={ classNames( styles.tab, activeTab === 'general' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='general'>GENERAL</div>
                     <div className={ classNames( styles.tab, activeTab === 'audio' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='audio'>AUDIO</div>
-                    <div className={ classNames( styles.tab, activeTab === 'display' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='display'>DISPLAY</div>
+                    {/* <div className={ classNames( styles.tab, activeTab === 'display' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='display'>DISPLAY</div> */}
                     <div className={ classNames( styles.tab, activeTab === 'graphics' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='graphics'>GRAPHICS</div>
                     <div className={ styles.clearfix } />
                 </div>
@@ -75,7 +75,7 @@ export const Settings = ({ open, setOpen }) => {
 
                     <TabGeneral active={ activeTab === 'general' } />
                     <TabAudio active={ activeTab === 'audio' } />
-                    <TabDisplay active={ activeTab === 'display' } />
+                    {/* <TabDisplay active={ activeTab === 'display' } /> */}
                     <TabGraphics active={ activeTab === 'graphics' } />
 
                 </div>

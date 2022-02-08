@@ -96,3 +96,18 @@
 .tabContent.active {
     display: block;
 }
+
+/*  */
+
+.blockTitle {
+    padding: 10px;
+    border-bottom: 1px solid #aaa;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.paramName {
+    padding-left: 30px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
