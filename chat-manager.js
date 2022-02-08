@@ -32,8 +32,7 @@ class ChatManager extends EventTarget {
   /* getMessageActions() {
     return this.messageActions;
   } */
-  addMessage(message = '', {timeout = 3000} = {}) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+  addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
     const chatId = makeId(5);
     const match = _getEmotion(message);
     const emotion = match && match.emotion;
@@ -41,12 +40,12 @@ class ChatManager extends EventTarget {
     const m = {
       type: 'chat',
       chatId,
-      playerName: localPlayer.name,
+      playerName: player.name,
       message,
       emotion,
       fakeSpeech,
     };
-    localPlayer.addAction(m);
+    player.addAction(m);
     this.messageActions.push(m);
     
     /* this.dispatchEvent(new MessageEvent('messageadd', {
@@ -62,17 +61,20 @@ class ChatManager extends EventTarget {
     
     return m;
   }
-  removeMessage(m) {
+  addMessage(message, opts) {
     const localPlayer = metaversefileApi.useLocalPlayer();
+    return this.addPlayerMessage(localPlayer, message, opts);
+  }
+  removePlayerMessage(player, m) {
     const index = this.messageActions.indexOf(m);
     if (index !== -1) {
       const m = this.messageActions[index];
       m.cleanup();
       this.messageActions.splice(index, 1);
       
-      const actionIndex = localPlayer.findActionIndex(action => action.chatId === m.chatId);
+      const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
       if (actionIndex !== -1) {
-        localPlayer.removeActionIndex(actionIndex);
+        player.removeActionIndex(actionIndex);
       } else {
         console.warn('remove unknown message action 2', m);
       }
@@ -83,6 +85,10 @@ class ChatManager extends EventTarget {
     } else {
       console.warn('remove unknown message action 1', m);
     }
+  }
+  removeMessage(m) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    this.removePlayerMessage(localPlayer, m);
   }
 }
 const chatManager = new ChatManager();
