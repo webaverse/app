@@ -2147,6 +2147,7 @@ class Avatar {
               src2 = hardLandingAnimation.interpolants[k];
               //TODO If there is movement on hard landing at the end, stand back up animation, or flip back up animation
               // console.log(src2);
+              t2 = this.landingTime/1000 * 0.6 + 0.3;
             } 
             else {
 
@@ -2167,9 +2168,10 @@ class Avatar {
               // if(this.randomLeg < 0.5) {
               //   src2 = jumpForwardLandAnimation.interpolants[k];
               // }
+              t2 = this.landingTime/1000 * 0.6;
             }   
             
-            t2 = this.landingTime/1000 * 0.6;
+           
             if(!src2) return;
             const v2 = src2.evaluate(t2);
             dst.fromArray(v2);
