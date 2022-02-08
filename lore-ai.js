@@ -2,8 +2,8 @@ import {loreAiEndpoint} from './constants.js';
 
 class LoreAI {
   generate(prompt, {
-    maxTokens = 25,
     end,
+    maxTokens = 25,
   } = {}) {
     return new Promise((resolve, reject) => {
       if (prompt) {    
