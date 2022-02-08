@@ -9,7 +9,8 @@
     left: 0px;
     width: 100%;
     height: 100%;
-    background-color: rgba( 0, 0, 0, 0.9 );
+    background-color: #000000;
+    background-image: linear-gradient(315deg, #000000 0%, #414141 74%);
     z-index: 2;
     transition: visibility 0s 300ms, opacity 300ms ease;
     opacity: 0;
@@ -41,8 +42,8 @@
 .wrapper {
     margin-left: auto;
     margin-right: auto;
+    width: 40%;
     min-width: 400px;
-    width: 80%;
     height: 100%;
 }
 
@@ -83,13 +84,15 @@
     position: relative;
     width: 100%;
     height: calc( 100% - 250px );
-    background-color: #fff;
     text-align: left;
     overflow-y: scroll;
 }
 
 .tabContent {
+    padding-top: 30px;
     width: 100%;
+    margin-left: auto;
+    margin-right: auto;
     display: none;
 }
 
@@ -99,15 +102,31 @@
 
 /*  */
 
+.row {
+    margin-bottom: 20px;
+}
+
 .blockTitle {
     padding: 10px;
     border-bottom: 1px solid #aaa;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: #fff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
 }
 
 .paramName {
-    padding-left: 30px;
+    float: left;
+    width: 300px;
+    text-align: right;
     padding-top: 10px;
     padding-bottom: 10px;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: #fff;
+}
+
+.switch {
+    float: left;
+    margin-left: 80px;
+    width: 200px;
 }

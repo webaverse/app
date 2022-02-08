@@ -90,19 +90,39 @@ export const CharacterOverview = ({ open, setOpen }) => {
 
     return (
         <div className={ classnames( styles.characterOverview, open ? styles.open : null ) }>
-            <div className={ styles.closeBtn } onClick={ handleCloseBtnClick }>X</div>
             <div className={ styles.characterItems }>
                 <div className={ styles.header }>
-                    Your items
+                    ITEMS
                 </div>
                 <div className={ styles.contentWrapper }>
                     <div className={ styles.content }>
-                        <div className={ styles.item } >Some item name</div>
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
+                        <div className={ styles.slot } />
                     </div>
                 </div>
             </div>
             <div className={ styles.characterBlock }>
                 <canvas className={ styles.characterBlockCanvas } ref={ canvas } />
+            </div>
+            <div className={ styles.backBtn } onClick={ handleCloseBtnClick }>
+                <div className={ styles.icon } />
+                <div className={ styles.label }>BACK</div>
             </div>
         </div>
     );
