@@ -1052,6 +1052,11 @@ class StaticUninterpolatedPlayer extends PlayerBase {
   }
   addAction(action) {
     this.actions.push(action);
+
+    this.dispatchEvent({
+      type: 'actionadd',
+      action,
+    });
   }
   removeAction(type) {
     for (let i = 0; i < this.actions.length; i++) {
@@ -1063,7 +1068,11 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     }
   }
   removeActionIndex(index) {
-    this.actions.splice(index, 1);
+    const action = this.actions.splice(index, 1)[0];
+    this.dispatchEvent({
+      type: 'actionremove',
+      action,
+    });
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
