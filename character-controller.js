@@ -1105,9 +1105,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     
     loadPhysxCharacterController.call(this);
     loadPhsxAuxCharacterCapsule.call(this);
-
-    const npcs = metaversefile.useNpcs();
-    npcs.push(this);
   }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1169,11 +1166,11 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.syncAvatar();
   } */
   destroy() {
-    const npcs = metaversefile.useNpcs();
+    /* const npcs = metaversefile.useNpcs();
     const index = npcs.indexOf(this);
     if (index !== -1) {
       npcs.splice(index, 1);
-    }
+    } */
 
     super.destroy();
   }

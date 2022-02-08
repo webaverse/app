@@ -17,7 +17,6 @@ import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, post
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-// import * as ui from './vr-ui.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
@@ -26,9 +25,8 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
+import {LocalPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
-// import {getState} from './state.js';
 import {makeId, getRandomString, getPlayerPrefix} from './util.js';
 import JSON6 from 'json-6';
 import {initialPosY} from './constants.js';
@@ -38,6 +36,7 @@ import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './lore-ai.js';
+import npcManager from './npc-manager.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
 import {getHeight} from './avatars/util.mjs';
@@ -501,8 +500,8 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(remotePlayers.values());
   },
-  useNpcs() {
-     return npcs;
+  useNpcManager() {
+    return npcManager;
   },
   useLoaders() {
     return loaders;
@@ -855,7 +854,7 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
-    const npcs = metaversefile.useNpcs();
+    const npcs = metaversefile.useNpcManager();
     let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
     if (result) {
@@ -916,9 +915,6 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
-  },
-  useNpcPlayerInternal() {
-    return NpcPlayer;
   },
   useTextInternal() {
     return Text;
