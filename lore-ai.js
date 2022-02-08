@@ -4,6 +4,8 @@ class LoreAI {
   generate(prompt, {
     end,
     maxTokens = 25,
+    temperature,
+    top_p,
   } = {}) {
     return new Promise((resolve, reject) => {
       if (prompt) {    
@@ -12,6 +14,12 @@ class LoreAI {
         url.searchParams.set('l', maxTokens);
         if (typeof end !== 'undefined') {
           url.searchParams.set('e', end);
+        }
+        if (typeof temperature === 'number') {
+          url.searchParams.set('t', temperature);
+        }
+        if (typeof top_p === 'number') {
+          url.searchParams.set('tp', top_p);
         }
         // console.log('got url', url);
       
