@@ -151,7 +151,6 @@ const localPlayer = new LocalPlayer({
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
-const npcs = [];
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -854,7 +853,8 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
-    const npcs = metaversefile.useNpcManager();
+    /* const npcManager = metaversefile.useNpcManager();
+    const {npcs} = npcManager; */
     let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
     if (result) {
