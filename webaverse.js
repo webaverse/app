@@ -48,7 +48,7 @@ import {voiceEndpoint, defaultVoicePack} from './constants.js';
 
 const localPlayer = metaversefileApi.useLocalPlayer();
 window.localPlayer = localPlayer; // test
-const pathFinder = metaversefileApi.usePathFinder();
+// const pathFinder = metaversefileApi.usePathFinder();
 // const width = 35;
 // const height = 35;
 
@@ -382,7 +382,7 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
-      if (!pathFinder.isAutoInit) pathFinder.update();
+      // if (!pathFinder.isAutoInit) pathFinder.update();
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
