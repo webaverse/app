@@ -140,6 +140,75 @@ class PlayerBase extends THREE.Object3D {
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
   }
+  findAction(fn) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (fn(action)) {
+        return action;
+      }
+    }
+    return null;
+  }
+  findActionIndex(fn) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const action of actions) {
+      if (fn(action)) {
+        return i;
+      }
+      i++
+    }
+    return -1;
+  }
+  getAction(type) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.type === type) {
+        return action;
+      }
+    }
+    return null;
+  }
+  getActionByActionId(actionId) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.actionId === actionId) {
+        return action;
+      }
+    }
+    return null;
+  }
+  getActionIndex(type) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const action of actions) {
+      if (action.type === type) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+  indexOfAction(action) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const a of actions) {
+      if (a === action) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+  hasAction(type) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.type === type) {
+        return true;
+      }
+    }
+    return false;
+  }
   destroy() {
     // nothing
   }
@@ -385,90 +454,6 @@ class StatePlayer extends PlayerBase {
   }
   getAppsArray() {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
-  }
-  findAction(fn) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (fn(action)) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  findActionIndex(fn) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const action of actions) {
-        if (fn(action)) {
-          return i;
-        }
-        i++
-      }
-    }
-    return -1;
-  }
-  getAction(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-     // console.log(actions);
-      for (const action of actions) {
-        if (action.type === type) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  getActionByActionId(actionId) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (action.actionId === actionId) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  getActionIndex(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const action of actions) {
-        if (action.type === type) {
-          return i;
-        }
-        i++;
-      }
-    }
-    return -1;
-  }
-  indexOfAction(action) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const a of actions) {
-        if (a === action) {
-          return i;
-        }
-        i++;
-      }
-    }
-    return -1;
-  }
-  hasAction(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (action.type === type) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
   addAction(action) {
     action = clone(action);
@@ -1050,8 +1035,11 @@ class StaticUninterpolatedPlayer extends PlayerBase {
 
     this.actions = [];
   }
-  getActions() {
+  getActionsState() {
     return this.actions;
+  }
+  getActions() {
+    return this.getActionsState();
   }
   getAction(type) {
     return this.actions.find(action => action.type === type);
@@ -1073,6 +1061,9 @@ class StaticUninterpolatedPlayer extends PlayerBase {
         break;
       }
     }
+  }
+  removeActionIndex(index) {
+    this.actions.splice(index, 1);
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
