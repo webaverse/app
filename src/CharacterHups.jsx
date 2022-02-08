@@ -124,18 +124,27 @@ export default function CharacterHups({
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
+    function hupremove(e) {
+      const oldHup = e.data.hup;
+      const newHups = hups.splice(hups.indexOf(oldHup), 1);
+      setHups(newHups);
+    }
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
+    localPlayer.characterHups.addEventListener('hupremove', hupremove);
     for (const npcPlayer of npcs) {
       npcPlayer.characterHups.addEventListener('hupadd', hupadd);
+      npcPlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
+      localPlayer.characterHups.removeEventListener('hupremove', hupremove);
       for (const npcPlayer of npcs) {
         npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
+        npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
     };
-  }, [localPlayer, npcs, npcs.length]);
+  }, [localPlayer, npcs, npcs.length, hups]);
 
   return (
     <div className={styles['character-hups']}>
