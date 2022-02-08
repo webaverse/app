@@ -352,6 +352,7 @@ export default class Webaverse extends EventTarget {
 
     getComposer().render();
     game.debugMode && rendererStats.update(renderer);
+    renderer.info.reset();
   }
   
   startLoop() {
