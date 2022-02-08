@@ -1979,19 +1979,13 @@ const gameManager = {
       this.playerDiorama.toggleShader();
     });
   },
-  async loadVoicePack({audioUrl, indexUrl}) {
-    const voicePack = await VoicePack.load({
-      audioUrl,
-      indexUrl,
-    });
+  loadVoicePack(voicePack) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.characterHups.setVoice(voicePack);
+    return localPlayer.loadVoicePack(voicePack);
   },
-  setVoiceEndpoint(voiceEndpoint, voiceId) {
-    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+  setVoice(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const voice = new VoiceEndpoint(url);
-    localPlayer.characterHups.setVoice(voice);
+    return localPlayer.setVoice(voiceId);
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
