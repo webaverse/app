@@ -1057,7 +1057,7 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     for (let i = 0; i < this.actions.length; i++) {
       const action = this.actions[i];
       if (action.type === type) {
-        this.actions.splice(i, 1);
+        this.removeActionIndex(i);
         break;
       }
     }
