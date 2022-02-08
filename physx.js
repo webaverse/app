@@ -807,6 +807,64 @@ const physxWorker = (() => {
       z
     );
   };
+  w.overlapBoxPhysics = (physics, hx, hy, hz, p, q) => {
+    p.toArray(scratchStack.f32, 0);
+    localQuaternion.copy(q)
+      .toArray(scratchStack.f32, 3);
+    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
+
+    const positionOffset = scratchStack.f32.byteOffset;
+    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
+    const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+
+    moduleInstance._overlapBoxPhysics(
+      physics,
+      hx,
+      hy,
+      hz,
+      positionOffset,
+      quaternionOffset,
+      meshPositionOffset,
+      meshQuaternionOffset,
+      hitOffset,
+    );
+
+    return scratchStack.u32[14];
+  };
+  w.overlapCapsulePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
+    p.toArray(scratchStack.f32, 0);
+    localQuaternion.copy(q)
+      .premultiply(capsuleUpQuaternion)
+      .toArray(scratchStack.f32, 3);
+    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
+
+    const positionOffset = scratchStack.f32.byteOffset;
+    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
+    const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+
+    moduleInstance._overlapCapsulePhysics(
+      physics,
+      radius,
+      halfHeight,
+      positionOffset,
+      quaternionOffset,
+      meshPositionOffset,
+      meshQuaternionOffset,
+      hitOffset,
+    );
+
+    return scratchStack.u32[14];
+  };
   w.collideBoxPhysics = (physics, hx, hy, hz, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
