@@ -29,6 +29,7 @@ class LoreAI {
       
             const endIndex = fullS.indexOf(end);
             if (endIndex !== -1) {
+              es.close();
               resolve(fullS.substring(0, endIndex));
             }
           } else {
