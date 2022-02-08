@@ -36,6 +36,7 @@ import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
+import {chatManager} from './chat-manager.js';
 import loreAI from './lore-ai.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 
@@ -408,6 +409,9 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  useChatManager() {
+    return chatManager;
   },
   useLoreAI() {
     return loreAI;
