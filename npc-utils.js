@@ -5,7 +5,7 @@ import {
 } from './renderer.js';
 import physicsManager from './physics-manager.js';
 
-const identityQuaternion = new THREE.Quaternion();
+const localQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
@@ -24,8 +24,6 @@ const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color(
 
 class PathFinder {
   constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
-    this.npcPlayerPivotHeight = 1.518240094787793; // todo: Do not hard-cdoe.
-    this.localPlayerPivotHeight = 1.2576430977951292; // todo: Do not hard-cdoe.
     this.isStart = false;
     this.isRising = false;
     this.isRising2 = false;
@@ -34,8 +32,8 @@ class PathFinder {
     this.height = (height % 2 === 0) ? (height + 1) : (height);
     this.voxelHeight = voxelHeight;
     this.voxelHeightHalf = this.voxelHeight / 2;
-    this.start = new THREE.Vector3(0, 0, 3);
-    this.dest = new THREE.Vector3(13, 0, 3);
+    this.start = new THREE.Vector2(0, 3);
+    this.dest = new THREE.Vector2(13, 3);
     this.lowestY = lowestY;
     this.highestY = highestY;
     this.highestY2 = highestY2;
@@ -54,39 +52,52 @@ class PathFinder {
     this.voxels2.name = 'voxels2';
     this.voxels2.visible = debugRender;
 
-    this.geometry = new THREE.BoxGeometry();
-  }
-
-  getPath() {
-    this.reset();
-
-    this.start.copy(window.npcPlayer.position); // test
-    // this.start.x += 1; // test // todo: Do not collide with npcPlayer
-    this.start.y -= this.npcPlayerPivotHeight; // todo: Not hard-code npcPlayer's height.
-    this.start.y -= 0.05; // Prevent -X axis not collide, +X axis collide problem, when half height = 0.5 and position.y = 0.5 too.
-
-    this.dest.copy(window.localPlayer.position);
-    this.dest.y -= this.localPlayerPivotHeight;
-
-    const voxel = new THREE.Mesh(this.geometry, materialStart);
-    voxel.position.copy(this.start);
-    this.upDetect(voxel);
-    this.voxels.add(voxel);
-    voxel.updateMatrixWorld(); // test
-    console.log('found');
-  }
-
-  reset() {
-    // todo
-  }
-
-  upDetect(voxel) {
-    console.log('upDetect', voxel.position.y);
-    const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion); // todo: Do not collide with npcPlayer
-    if (isCollide) {
-      voxel.position.y += 0.1;
-      this.upDetect(voxel);
+    const geometry = new THREE.BoxGeometry();
+    // geometry.translate(0, -1.2, 0); //
+    // geometry.scale(0.9, 0.1, 0.9);
+    // geometry.scale(0.1, this.voxelHeight, 0.1);
+    geometry.scale(0.9, 0.1, 0.9);
+    for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
+      for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
+        const voxel = new THREE.Mesh(geometry, materialIdle);
+        this.voxels.add(voxel);
+        voxel.position.set(x, this.lowestY, z);
+        voxel.updateMatrixWorld();
+        voxel._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
+        voxel.position.x = x;
+        voxel.position.z = z;
+        voxel._x = x;
+        voxel._z = z;
+        voxel._isReached = false;
+      }
     }
+    for (let z = -(this.height - 1) / 2; z < this.height / 2; z++) {
+      for (let x = -(this.width - 1) / 2; x < this.width / 2; x++) {
+        const voxel = new THREE.Mesh(geometry, materialIdle2);
+        this.voxels2.add(voxel);
+        voxel.position.set(x, this.lowestY, z);
+        voxel.updateMatrixWorld();
+        voxel._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
+        voxel.position.x = x;
+        voxel.position.z = z;
+        voxel._x = x;
+        voxel._z = z;
+        voxel._isReached = false;
+      }
+    }
+
+    this.resetStartDest(1, this.start.x, this.start.y, 2, this.dest.x, this.dest.y);
+  }
+
+  async init() { // Use highestY and highestY2, to auto rise() -> rise2() -> generateVoxelMap().
+    const re = await new Promise(resolve => {
+      this.resolveInit = resolve;
+
+      this.isAutoInit = true;
+      this.rise();
+      this.update();
+    });
+    if (re === true) console.log('PathFinder auto inited.');
   }
 
   update() {
@@ -96,9 +107,9 @@ class PathFinder {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
           voxel.position.y += 0.1;
           voxel.updateMatrixWorld();
-          // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, identityQuaternion.set(0, 0, 0, 1), 1);
-          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, identityQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion.set(0, 0, 0, 1));
+          // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
@@ -119,9 +130,9 @@ class PathFinder {
         if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
           voxel.position.y += 0.1;
           voxel.updateMatrixWorld();
-          // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, identityQuaternion.set(0, 0, 0, 1), 1);
-          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, identityQuaternion.set(0, 0, 0, 1), 1);
-          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion.set(0, 0, 0, 1));
+          // const isCollide = physicsManager.collideCapsule(0.5, 1, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          // const isCollide = physicsManager.collideBox(0.5, 0.05, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1), 1);
+          const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, localQuaternion.set(0, 0, 0, 1));
           if (isCollide) {
             voxel._risingState = 'colliding';
           } else if (voxel._risingState === 'colliding') {
