@@ -144,7 +144,7 @@ export default function CharacterHups({
         npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
     };
-  }, [localPlayer, npcs, npcs.length, hups]);
+  }, [localPlayer, npcs, npcs.length, hups, hups.length]);
 
   return (
     <div className={styles['character-hups']}>
