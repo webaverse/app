@@ -3,6 +3,7 @@
   top: 100px;
   left: 0;
   display: flex;
+  flex-direction: column;
   z-index: 1;
 }
 .character-hups > .character-hup {
