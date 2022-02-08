@@ -1099,16 +1099,22 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatar = avatar;
 
     this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    
     loadPhysxCharacterController.call(this);
     loadPhsxAuxCharacterCapsule.call(this);
 
     const npcs = metaversefile.useNpcs();
     npcs.push(this);
   }
-  updatePhysics(now, timeDiff) {
+  updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterPhysics.update(now, timeDiffS);
+      this.characterPhysics.update(timestamp, timeDiffS);
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
     }
   }
   updateAvatar(timestamp, timeDiff) {
@@ -1126,6 +1132,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
         .add(new THREE.Vector3(0, -this.avatar.height/2, 0));
       this.physicsObject.updateMatrixWorld();
       physicsManager.setTransform(this.physicsObject);
+
+      this.characterHups.update(timestamp);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);
