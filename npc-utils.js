@@ -105,9 +105,9 @@ class PathFinder {
       Math.round(window.localPlayer.position.z),
     );
 
-    let startLayer;
     const startVoxel = this.createVoxel(this.start.x, this.start.y);
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
+    let startLayer;
     if (Math.abs(startVoxel.position.y - window.npcPlayer.position.y) < Math.abs(startVoxel2.position.y - window.npcPlayer.position.y)) {
       startLayer = 1;
     } else {
@@ -125,6 +125,22 @@ class PathFinder {
     this.startVoxel._costSoFar = 0;
     this.frontiers.push(this.startVoxel);
     this.startVoxel.material = materialStart;
+
+    const destVoxel = this.createVoxel(this.dest.x, this.dest.y);
+    const destVoxel2 = this.createVoxel2(this.dest.x, this.dest.y, destVoxel);
+    let destLayer;
+    if (Math.abs(destVoxel.position.y - window.localPlayer.position.y) < Math.abs(destVoxel2.position.y - window.localPlayer.position.y)) {
+      destLayer = 1;
+    } else {
+      destLayer = 2;
+    }
+    if (destLayer === 1) {
+      this.destVoxel = destVoxel;
+    } else if (destLayer === 2) {
+      this.destVoxel = destVoxel2;
+    }
+    this.destVoxel._isDest = true;
+    this.destVoxel.material = materialDest;
 
     this.step();
   }
@@ -568,10 +584,6 @@ class PathFinder {
   }
 
   untilFound() {
-    if (!this.isGeneratedVoxelMap) {
-      console.warn('voxel map not generated.');
-      return;
-    }
     while (this.frontiers.length > 0 && !this.isFound) this.step();
   }
 
