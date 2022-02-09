@@ -11,16 +11,18 @@ const heightTolerance = 0.6;
 const selectStartDestVoxelYTolerance = 1;
 const tmpVec2 = new THREE.Vector2();
 
-const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
-const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)')});
-const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)')});
-const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)')});
-const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)')});
-const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)')});
-const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)')});
-const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)')});
-const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)')});
-const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)')});
+const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: true});
+const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: true});
+const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)'), wireframe: true});
+const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)'), wireframe: true});
+const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)'), wireframe: true});
+const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)'), wireframe: true});
+// const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)'), wireframe: true});
+const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(0,255,255)'), wireframe: true});
+// const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: true});
+const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: true});
+const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: true});
+const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)'), wireframe: true});
 
 class PathFinder {
   constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
@@ -57,7 +59,8 @@ class PathFinder {
     this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
-    this.geometry.scale(0.9, this.voxelHeight, 0.9);
+    // this.geometry.scale(0.9, this.voxelHeight, 0.9);
+    this.geometry.scale(0.9, 0.1, 0.9);
   }
 
   getPath(start, dest) {
@@ -428,6 +431,7 @@ class PathFinder {
     materialPath2.wireframe = !materialPath2.wireframe;
 
     materialStart.wireframe = !materialStart.wireframe;
+    materialDest.wireframe = !materialDest.wireframe;
   }
 
   moveDownVoxels() {
