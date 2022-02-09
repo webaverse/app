@@ -60,6 +60,7 @@ class PathFinder {
   }
 
   getPath() {
+    this.reset();
     this.start.set(
       Math.round(window.npcPlayer.position.x),
       Math.round(window.npcPlayer.position.z),
@@ -108,6 +109,15 @@ class PathFinder {
 
     // this.step();
     this.untilFound();
+  }
+
+  reset() {
+    this.isFound = false;
+    this.frontiers.length = 0;
+    this.voxels.children.length = 0;
+    this.voxels2.children.length = 0;
+    this.voxelo = {};
+    this.voxelo2 = {};
   }
 
   createVoxel(x, z) {
