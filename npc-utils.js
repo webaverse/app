@@ -41,6 +41,7 @@ class PathFinder {
     this.voxelsY2 = this.lowestY;
     this.isAutoInit = false;
     this.debugRender = debugRender;
+    this.onlyShowPath = true; // test
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -288,6 +289,8 @@ class PathFinder {
 
   recur(voxel) {
     if (voxel) {
+      voxel._isPath = true;
+      if (this.onlyShowPath) voxel.visible = true;
       if (!voxel._isStart && !voxel._isDest) { // todo: Don't run if !this.debugRender.
         if (voxel.parent === this.voxels) {
           voxel.material = materialPath;
@@ -330,6 +333,10 @@ class PathFinder {
     if (voxel._isDest) {
       // if (this.debugRender) console.log('found');
       this.isFound = true;
+      if (this.onlyShowPath) {
+        this.voxels.children.forEach(voxel => { voxel.visible = false; });
+        this.voxels2.children.forEach(voxel2 => { voxel2.visible = false; });
+      }
       this.recur(voxel);
     }
   }
@@ -373,6 +380,11 @@ class PathFinder {
       this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
       // if (this.isFound) return
     }
+  }
+
+  toggleNonPath() {
+    this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
+    this.voxels2.children.forEach(voxel2 => { if (!voxel2._isPath) voxel2.visible = !voxel2.visible; });
   }
 
   toggleVoxelsVisible() {
