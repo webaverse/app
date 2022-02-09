@@ -10,7 +10,9 @@ import wsrtc from 'wsrtc/wsrtc-server.mjs';
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
-const isProduction = process.argv[2] === '-p';
+process.title = process.argv.find(e => e.split("=")[0] == '--name');
+process.title &&= process.title.split("=")[1];
+const isProduction = process.argv.find(e => e == '-p') === '-p';
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
