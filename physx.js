@@ -821,6 +821,7 @@ const physxWorker = (() => {
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
 
     const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const idOffset = scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT;
 
     moduleInstance._overlapBoxPhysics(
       physics,
@@ -832,9 +833,12 @@ const physxWorker = (() => {
       meshPositionOffset,
       meshQuaternionOffset,
       hitOffset,
+      idOffset,
     );
 
-    return scratchStack.u32[14];
+    return scratchStack.u32[14] ? {
+      objectId: scratchStack.u32[15],
+    } : null;
   };
   w.overlapCapsulePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
