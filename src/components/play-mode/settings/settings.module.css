@@ -130,3 +130,17 @@
     margin-left: 80px;
     width: 200px;
 }
+
+.audioTab .slider {
+    float: left;
+    margin-left: 20px;
+    margin-top: 8px;
+}
+
+.audioTab .row {
+    margin-top: 50px;
+}
+
+.audioTab .paramName {
+    width: 250px;
+}

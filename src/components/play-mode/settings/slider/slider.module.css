@@ -1,0 +1,51 @@
+
+.clearfix {
+    clear: both;
+}
+
+.minus {
+    float: left;
+    padding: 3px 10px;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.progressWrapper {
+    position: relative;
+    float: left;
+    margin-left: 10px;
+    margin-top: 8px;
+    width: 150px;
+    height: 10px;
+    border: 1px solid #aaa;
+}
+
+.progressFill {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    background-color: #aaa;
+    transition: width 200ms ease;
+}
+
+.value {
+    float: left;
+    padding: 3px 10px;
+    color: #fff;
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.plus {
+    float: left;
+    padding: 3px 10px;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-weight: bold;
+}
