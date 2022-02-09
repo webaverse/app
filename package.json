@@ -10,7 +10,8 @@
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
-    "test": "cd test && npm run test"
+    "test": "cd test && npm run test",
+    "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
@@ -22,6 +23,7 @@
     "@pixiv/three-vrm": "./packages/three-vrm",
     "@react-three/fiber": "^7.0.6",
     "@shaderfrog/glsl-parser": "^0.1.20",
+    "borc": "^3.0.0",
     "classnames": "^2.3.1",
     "dids": "^2.4.0",
     "encoding-japanese": "^1.0.30",
@@ -31,7 +33,6 @@
     "json-6": "^1.1.4",
     "key-did-provider-ed25519": "^1.1.0",
     "key-did-resolver": "^1.4.0",
-    "maxrects-packer": "^2.7.2",
     "metaversefile": "./packages/totum",
     "node-fetch": "^3.1.0",
     "openai-api": "^1.2.6",
