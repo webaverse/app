@@ -1977,8 +1977,14 @@ const gameManager = {
     localPlayer.removeAction('activate');
   },
   setAvatarQuality(quality) {
+    const qualityMap = {
+      "ULTRA":4,
+      "HIGH":3,
+      "MEDIUM":2,
+      "LOW":1
+    }
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.avatar.setQuality(quality);
+    localPlayer.avatar.setQuality(qualityMap[quality]);
   },
   playerDiorama: null,
   async bindPreviewCanvas(canvas) {
