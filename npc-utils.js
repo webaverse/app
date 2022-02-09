@@ -115,10 +115,32 @@ class PathFinder {
   reset() {
     this.isFound = false;
     this.frontiers.length = 0;
-    this.voxels.children.length = 0;
-    this.voxels2.children.length = 0;
-    this.voxelo = {};
-    this.voxelo2 = {};
+
+    // // pure realtime, no any cache
+    // this.voxels.children.length = 0;
+    // this.voxels2.children.length = 0;
+    // this.voxelo = {};
+    // this.voxelo2 = {};
+
+    // simple cache
+    this.voxels.children.forEach(voxel => {
+      voxel._isStart = false;
+      voxel._isDest = false;
+      voxel._isReached = false;
+      voxel._priority = 0;
+      voxel._costSoFar = 0;
+      voxel._prev = null;
+      voxel._next = null;
+    });
+    this.voxels2.children.forEach(voxel => {
+      voxel._isStart = false;
+      voxel._isDest = false;
+      voxel._isReached = false;
+      voxel._priority = 0;
+      voxel._costSoFar = 0;
+      voxel._prev = null;
+      voxel._next = null;
+    });
   }
 
   createVoxel(x, z) {
