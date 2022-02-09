@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>PocketSphinx.js</title>
+  </head>
+  <body>
+    <h2>PocketSphinx.js live demo</h2>
+    <ul>
+      <li>This demo works on recent versions of Chrome and Firefox with the Web Audio API, make sure it works for you and actually records audio.</li>
+      <li>Press "Start" and speak</li>
+    </ul>
+    <select id="grammars"></select>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <span id="recording-indicator" style="border-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; width: 20px; height: 20px; background: red;"></span>
+    <h2>Recognition Output</h2>
+    <div id="output" style="height:150px;overflow:auto;" >
+    </div>
+    <h2>Status</h2>
+    <div id="current-status">Loading page</div>
+
+    <script type="module">
+      import MicrophoneWorker from './avatars/microphone-worker.js';
+      import {AudioRecognizer} from './audio-recognizer.js';
+
+      let isRecognizerReady = false;
+
+      // These will be initialized later
+      let outputContainer;
+      // Only when both recorder and recognizer do we have a ready application
+      let isRecorderReady = isRecognizerReady = false;
+
+      // To display the hypothesis sent by the recognizer
+      function updateHyp(hyp) {
+        outputContainer.innerHTML = hyp;
+      };
+
+      // This updates the UI when the app might get ready
+      // Only when both recorder and recognizer are ready do we enable the buttons
+      function updateUI() {
+        if (isRecorderReady && isRecognizerReady) startBtn.disabled = stopBtn.disabled = false;
+      };
+
+      // This is just a logging window where we display the status
+      function updateStatus(newStatus) {
+        document.getElementById('current-status').innerHTML += "<br/>" + newStatus;
+      };
+
+      // A not-so-great recording indicator
+      function displayRecording(display) {
+        if (display) document.getElementById('recording-indicator').innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        else document.getElementById('recording-indicator').innerHTML = "";
+      };
+
+      // Called once the recognizer is ready
+      // We then add the grammars to the input select tag and update the UI
+      var recognizerReady = function() {
+        // updateGrammars();
+        isRecognizerReady = true;
+        updateUI();
+        updateStatus("Recognizer ready");
+      };
+
+      // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
+      // request access to the microphone
+      window.onload = async function() {
+        outputContainer = document.getElementById("output");
+        updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
+
+        {
+          const audioUrl = '/sounds/pissbaby.mp3';
+          // This starts recording. We first need to get the id of the grammar to use
+          var startRecording = function() {
+            start(audioUrl);
+            displayRecording(true);
+          };
+          // Stops recording
+          var stopRecording = function() {
+            stop();
+            displayRecording(false);
+          };
+
+          // Wiring JavaScript to the UI
+          var startBtn = document.getElementById('startBtn');
+          var stopBtn = document.getElementById('stopBtn');
+          startBtn.disabled = true;
+          stopBtn.disabled = true;
+          startBtn.onclick = startRecording;
+          stopBtn.onclick = stopRecording;
+        }
+
+        const audioContext = new AudioContext();
+        const audioRecognizer = new AudioRecognizer({
+          sampleRate: audioContext.sampleRate,
+        });
+        audioRecognizer.addEventListener('result', e => {
+          updateHyp(e.data);
+        });
+        let microphoneWorker = null;
+        function start(audioUrl) {
+          const audio = new Audio(audioUrl);
+          audio.addEventListener('canplaythrough', async e => {
+            const options = {
+              muted: false,
+              // emitVolume: true,
+              emitBuffer: true,
+              audioContext,
+              microphoneWorkletUrl: '/avatars/microphone-worklet.js',
+            }
+            microphoneWorker = new MicrophoneWorker(audio, options);
+            /* microphoneWorker.addEventListener('volume', e => {
+              console.log('got volume', e);
+            }); */
+            microphoneWorker.addEventListener('buffer', e => {
+              audioRecognizer.send(e.data);
+            });
+          }, {once: true});
+          audio.addEventListener('error', e => {
+            console.log('load error', e);
+          });
+          audio.play();
+          audioContext.resume();
+        }
+        function stop() {
+          microphoneWorker.close();
+        }
+
+        await audioRecognizer.waitForLoad();
+        recognizerReady();
+
+        isRecorderReady = true;
+        updateUI();
+        updateStatus("Audio recorder ready");
+      };
+    </script>
+  </body>
+</html>
