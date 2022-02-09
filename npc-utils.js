@@ -79,7 +79,7 @@ class PathFinder {
     );
 
     const startVoxel = this.createVoxel(this.start.x, this.start.y);
-    startVoxel.position.y = start.y; // TODO: Not use this code. Not collide/overlap with player.
+    // startVoxel.position.y = start.y; // TODO: Not use this code. Not collide/overlap with player.
     startVoxel.updateMatrixWorld(); // Same as above;
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
     let startLayer;
@@ -212,8 +212,8 @@ class PathFinder {
     this.iterDetect++;
 
     if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
-      const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
-      if (isCollide) {
+      const collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
+      if (collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId) {
         voxel._risingState = 'colliding';
       } else if (voxel._risingState === 'colliding') {
         voxel._risingState = 'stopped';
@@ -235,8 +235,8 @@ class PathFinder {
     this.iterDetect++;
 
     if (voxel2._risingState === 'initial' || voxel2._risingState === 'colliding') {
-      const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel2.position, identityQuaternion);
-      if (isCollide) {
+      const collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel2.position, identityQuaternion);
+      if (collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId) {
         voxel2._risingState = 'colliding';
       } else if (voxel2._risingState === 'colliding') {
         voxel2._risingState = 'stopped';
