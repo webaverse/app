@@ -8,7 +8,7 @@ import physicsManager from './physics-manager.js';
 const identityQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
-const selectStartDestVoxelYTolerance = 1;
+const selectStartDestVoxelYTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: true});
@@ -44,6 +44,10 @@ class PathFinder {
     this.isAutoInit = false;
     this.debugRender = debugRender;
     this.onlyShowPath = true; // test
+    this.iterDetect = 0;
+    this.maxIterDetect = 100;
+    this.iterStep = 0;
+    this.maxIterStep = 1000;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -75,6 +79,8 @@ class PathFinder {
     );
 
     const startVoxel = this.createVoxel(this.start.x, this.start.y);
+    startVoxel.position.y = start.y; // TODO: Not use this code. Not collide/overlap with player.
+    startVoxel.updateMatrixWorld(); // Same as above;
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
     let startLayer;
     const startYBias = Math.abs(startVoxel.position.y - start.y);
@@ -142,6 +148,7 @@ class PathFinder {
       voxel._costSoFar = 0;
       voxel._prev = null;
       voxel._next = null;
+      voxel.material = materialIdle;
     });
     this.voxels2.children.forEach(voxel => {
       voxel._isStart = false;
@@ -151,6 +158,7 @@ class PathFinder {
       voxel._costSoFar = 0;
       voxel._prev = null;
       voxel._next = null;
+      voxel.material = materialIdle2;
     });
   }
 
@@ -167,6 +175,7 @@ class PathFinder {
     voxel._prev = null;
     voxel._next = null;
 
+    this.iterDetect = 0;
     this.detect(voxel);
     voxel.updateMatrixWorld();
     this.voxelo[`${x}_${z}`] = voxel;
@@ -187,6 +196,7 @@ class PathFinder {
     voxel2._prev = null;
     voxel2._next = null;
 
+    this.iterDetect = 0;
     this.detect2(voxel2);
     voxel2.updateMatrixWorld();
     this.voxelo2[`${x}_${z}`] = voxel2;
@@ -195,6 +205,12 @@ class PathFinder {
   }
 
   detect(voxel) {
+    if (this.iterDetect >= this.maxIterDetect) {
+      // console.log('maxIterDetect: detect');
+      return;
+    }
+    this.iterDetect++;
+
     if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
       const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
       if (isCollide) {
@@ -212,6 +228,12 @@ class PathFinder {
   }
 
   detect2(voxel2) {
+    if (this.iterDetect >= this.maxIterDetect) {
+      // console.log('maxIterDetect: detect2');
+      return;
+    }
+    this.iterDetect++;
+
     if (voxel2._risingState === 'initial' || voxel2._risingState === 'colliding') {
       const isCollide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel2.position, identityQuaternion);
       if (isCollide) {
@@ -317,7 +339,16 @@ class PathFinder {
   }
 
   untilFound() {
-    while (this.frontiers.length > 0 && !this.isFound) this.step();
+    this.iterStep = 0;
+    while (this.frontiers.length > 0 && !this.isFound) {
+      if (this.iterStep >= this.maxIterStep) {
+        // console.log('maxIterDetect: untilFound');
+        return;
+      }
+      this.iterStep++;
+
+      this.step();
+    }
   }
 
   recur(voxel) {
