@@ -60,21 +60,21 @@ class PathFinder {
     this.geometry.scale(0.9, 1, 0.9);
   }
 
-  getPath() {
+  getPath(start, dest) {
     this.reset();
     this.start.set(
-      Math.round(window.npcPlayer.position.x),
-      Math.round(window.npcPlayer.position.z),
+      Math.round(start.x),
+      Math.round(start.z),
     );
     this.dest.set(
-      Math.round(window.localPlayer.position.x),
-      Math.round(window.localPlayer.position.z),
+      Math.round(dest.x),
+      Math.round(dest.z),
     );
 
     const startVoxel = this.createVoxel(this.start.x, this.start.y);
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
     let startLayer;
-    if (Math.abs(startVoxel.position.y - window.npcPlayer.position.y) < Math.abs(startVoxel2.position.y - window.npcPlayer.position.y)) {
+    if (Math.abs(startVoxel.position.y - start.y) < Math.abs(startVoxel2.position.y - start.y)) {
       startLayer = 1;
     } else {
       startLayer = 2;
@@ -95,7 +95,7 @@ class PathFinder {
     const destVoxel = this.createVoxel(this.dest.x, this.dest.y);
     const destVoxel2 = this.createVoxel2(this.dest.x, this.dest.y, destVoxel);
     let destLayer;
-    if (Math.abs(destVoxel.position.y - window.localPlayer.position.y) < Math.abs(destVoxel2.position.y - window.localPlayer.position.y)) {
+    if (Math.abs(destVoxel.position.y - dest.y) < Math.abs(destVoxel2.position.y - dest.y)) {
       destLayer = 1;
     } else {
       destLayer = 2;
