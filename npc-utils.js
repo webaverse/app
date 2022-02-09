@@ -20,7 +20,6 @@ const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rg
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)')});
 const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)')});
 const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)')});
-const materialObstacle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(134,134,121)')});
 
 class PathFinder {
   constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
@@ -57,7 +56,7 @@ class PathFinder {
     this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
-    this.geometry.scale(0.9, 1, 0.9);
+    this.geometry.scale(0.9, this.voxelHeight, 0.9);
   }
 
   getPath(start, dest) {
@@ -326,8 +325,6 @@ class PathFinder {
   }
 
   stepVoxel(voxel, prevVoxel) {
-    // if (!voxel) return;
-    if (voxel._isObstacle) return;
     const newCost = prevVoxel._costSoFar + 1;
     // if (voxel._isReached === false || newCost < voxel._costSoFar) {
     if (voxel._isReached === false) {
@@ -365,7 +362,7 @@ class PathFinder {
 
   step() {
     if (this.frontiers.length <= 0) {
-      if (this.debugRender) console.log('finish');
+      // if (this.debugRender) console.log('finish');
       return;
     }
     if (this.isFound) return;
@@ -411,26 +408,23 @@ class PathFinder {
 
   toggleVoxelsVisible() {
     this.voxels.visible = !this.voxels.visible;
-  }
-
-  toggleVoxels2Visible() {
     this.voxels2.visible = !this.voxels2.visible;
   }
 
   toggleVoxelsWireframe() {
     materialIdle.wireframe = !materialIdle.wireframe;
-  }
+    materialPath.wireframe = !materialPath.wireframe;
 
-  toggleVoxels2Wireframe() {
     materialIdle2.wireframe = !materialIdle2.wireframe;
+    materialPath2.wireframe = !materialPath2.wireframe;
+
+    materialStart.wireframe = !materialStart.wireframe;
   }
 
   moveDownVoxels() {
     this.voxels.position.y -= 0.5;
     this.voxels.updateMatrixWorld();
-  }
 
-  moveDownVoxels2() {
     this.voxels2.position.y -= 0.5;
     this.voxels2.updateMatrixWorld();
   }
