@@ -65,6 +65,8 @@ class PathFinder {
     this.geometry = new THREE.BoxGeometry();
     // this.geometry.scale(0.9, this.voxelHeight, 0.9);
     this.geometry.scale(0.9, 0.1, 0.9);
+
+    this.waypointResult = [];
   }
 
   getPath(start, dest) {
@@ -127,6 +129,8 @@ class PathFinder {
 
     // this.step();
     this.untilFound();
+
+    return this.isFound;
   }
 
   reset() {
@@ -148,6 +152,7 @@ class PathFinder {
       voxel._costSoFar = 0;
       voxel._prev = null;
       voxel._next = null;
+      voxel._isPath = false;
       voxel.material = materialIdle;
     });
     this.voxels2.children.forEach(voxel => {
@@ -158,6 +163,7 @@ class PathFinder {
       voxel._costSoFar = 0;
       voxel._prev = null;
       voxel._next = null;
+      voxel._isPath = false;
       voxel.material = materialIdle2;
     });
   }
@@ -353,7 +359,7 @@ class PathFinder {
 
   recur(voxel) {
     if (voxel) {
-      voxel._isPath = true;
+      // debugRender
       if (this.onlyShowPath) voxel.visible = true;
       if (!voxel._isStart && !voxel._isDest) { // todo: Don't run if !this.debugRender.
         if (voxel.parent === this.voxels) {
@@ -362,7 +368,10 @@ class PathFinder {
           voxel.material = materialPath2;
         }
       }
+
+      voxel._isPath = true;
       if (voxel._prev) voxel._prev._next = voxel;
+
       this.recur(voxel._prev);
     }
   }
@@ -400,6 +409,21 @@ class PathFinder {
         this.voxels2.children.forEach(voxel2 => { voxel2.visible = false; });
       }
       this.recur(voxel);
+
+      this.waypointResult.length = 0;
+      let wayPoint = this.startVoxel;
+      let result = new THREE.Group();
+      result.position.copy(wayPoint.position);
+      this.waypointResult.push(result);
+      while (wayPoint._next) {
+        wayPoint = wayPoint._next;
+
+        result._next = new THREE.Group();
+        result._next.position.copy(wayPoint.position);
+        this.waypointResult.push(result._next);
+
+        result = result._next;
+      }
     }
   }
 
@@ -442,6 +466,11 @@ class PathFinder {
       this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
       // if (this.isFound) return
     }
+  }
+
+  showAll() {
+    this.voxels.children.forEach(voxel => { voxel.visible = true; });
+    this.voxels2.children.forEach(voxel2 => { voxel2.visible = true; });
   }
 
   toggleNonPath() {
