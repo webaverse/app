@@ -207,6 +207,7 @@ let jumpAnimation;
 let fallAnimation;
 let fallToLandAnimation;
 let hardLandingAnimation;
+let rollLandingAnimation;
 let jumpForwardAnimation;
 let jumpForwardLandAnimation;
 let jumpForwardOtherAnimation;
@@ -353,6 +354,7 @@ const loadPromise = (async () => {
   jumpForwardLandAnimation = animations.index["soft_landing_final.fbx"];
   jumpForwardOtherLandAnimation = animations.index["soft_landing_final_mirror.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
+  rollLandingAnimation = animations.index["falling_to_roll.fbx"];
   jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
   jumpForwardOtherAnimation = animations.index["jump_forward_2_mirror.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
@@ -2145,6 +2147,10 @@ class Avatar {
               //   return;
               // }
               src2 = hardLandingAnimation.interpolants[k];
+
+              if(this.horizontalMove) {
+                src2 = rollLandingAnimation.interpolants[k];
+              }
               //TODO If there is movement on hard landing at the end, stand back up animation, or flip back up animation
               // console.log(src2);
               t2 = this.landingTime/1000 * 0.6 + 0.3;
@@ -2193,7 +2199,7 @@ class Avatar {
               this.randomLeg = Math.random();
               console.log("new jump! ", this.randomLeg);
             } else {
-              console.log('counting previous ')
+              // console.log('counting previous ')
             }
             // console.log('JumpState', spec)
             this.previousTime = this.jumpTime;
@@ -2298,21 +2304,6 @@ class Avatar {
               );
 
             _clearXZ(dst, isPosition);
-          };
-        }
-        if (this.fallLoopState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-
-            const t2 = (this.fallLoopTime/1000) ;
-            const src2 = fallLoop.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
           };
         }
         if (this.throwState) {
