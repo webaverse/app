@@ -24,6 +24,16 @@ export const TabGraphics = ({ active }) => {
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
+                <div className={ styles.paramName }>View range</div>
+                <Switch className={ styles.switch } value="HIGH" values={ [ 'HIGH', 'MEDIUM', 'LOW' ] } />
+                <div className={ styles.clearfix } />
+            </div>
+            <div className={ styles.row }>
+                <div className={ styles.paramName }>Shadows quality</div>
+                <Switch className={ styles.switch } value="HIGH" values={ [ 'HIGH', 'MEDIUM', 'LOW', 'OFF' ] } />
+                <div className={ styles.clearfix } />
+            </div>
+            <div className={ styles.row }>
                 <div className={ styles.blockTitle }>Postprocessing</div>
                 <div className={ styles.clearfix } />
             </div>

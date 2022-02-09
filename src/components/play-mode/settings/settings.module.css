@@ -144,3 +144,11 @@
 .audioTab .paramName {
     width: 250px;
 }
+
+/*  */
+
+.controlsTab .keyInput {
+    float: left;
+    margin-left: 20px;
+    margin-top: 2px;
+}
