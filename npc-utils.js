@@ -283,6 +283,63 @@ class PathFinder {
     }
   }
 
+  generateVoxelMapRight(currentVoxel) {
+    let rightVoxel = this.getVoxel(currentVoxel.position.x + 1, currentVoxel.position.z);
+    let rightVoxel2 = this.getVoxel2(currentVoxel.position.x + 1, currentVoxel.position.z);
+    if (!rightVoxel) {
+      rightVoxel = this.createVoxel(currentVoxel.position.x + 1, currentVoxel.position.z);
+      rightVoxel2 = this.createVoxel2(currentVoxel.position.x + 1, currentVoxel.position.z, rightVoxel);
+    }
+    if (rightVoxel2) {
+      const biasToLayer2 = rightVoxel2.position.y - currentVoxel.position.y;
+      if (biasToLayer2 < heightTolerance) {
+        currentVoxel._rightVoxel = rightVoxel2;
+      } else if (biasToLayer2 > this.voxelHeight) {
+        if (rightVoxel && rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+          currentVoxel._rightVoxel = rightVoxel;
+        }
+      }
+    }
+  }
+
+  generateVoxelMapBtm(currentVoxel) {
+    let btmVoxel = this.getVoxel(currentVoxel.position.x, currentVoxel.position.z - 1);
+    let btmVoxel2 = this.getVoxel2(currentVoxel.position.x, currentVoxel.position.z - 1);
+    if (!btmVoxel) {
+      btmVoxel = this.createVoxel(currentVoxel.position.x, currentVoxel.position.z - 1);
+      btmVoxel2 = this.createVoxel2(currentVoxel.position.x, currentVoxel.position.z - 1, btmVoxel);
+    }
+    if (btmVoxel2) {
+      const biasToLayer2 = btmVoxel2.position.y - currentVoxel.position.y;
+      if (biasToLayer2 < heightTolerance) {
+        currentVoxel._btmVoxel = btmVoxel2;
+      } else if (biasToLayer2 > this.voxelHeight) {
+        if (btmVoxel && btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+          currentVoxel._btmVoxel = btmVoxel;
+        }
+      }
+    }
+  }
+
+  generateVoxelMapTop(currentVoxel) {
+    let topVoxel = this.getVoxel(currentVoxel.position.x, currentVoxel.position.z + 1);
+    let topVoxel2 = this.getVoxel2(currentVoxel.position.x, currentVoxel.position.z + 1);
+    if (!topVoxel) {
+      topVoxel = this.createVoxel(currentVoxel.position.x, currentVoxel.position.z + 1);
+      topVoxel2 = this.createVoxel2(currentVoxel.position.x, currentVoxel.position.z + 1, topVoxel);
+    }
+    if (topVoxel2) {
+      const biasToLayer2 = topVoxel2.position.y - currentVoxel.position.y;
+      if (biasToLayer2 < heightTolerance) {
+        currentVoxel._topVoxel = topVoxel2;
+      } else if (biasToLayer2 > this.voxelHeight) {
+        if (topVoxel && topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+          currentVoxel._topVoxel = topVoxel;
+        }
+      }
+    }
+  }
+
   generateVoxelMap() {
     this.isRising = false;
     this.isRising2 = false;
@@ -507,10 +564,6 @@ class PathFinder {
   }
 
   tenStep() {
-    if (!this.isGeneratedVoxelMap) {
-      console.warn('voxel map not generated.');
-      return;
-    }
     for (let i = 0; i < 10; i++) this.step();
   }
 
@@ -602,20 +655,23 @@ class PathFinder {
       // if (this.isFound) return;
     }
 
-    // if (currentVoxel._rightVoxel) {
-    //   this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
-    //   if (this.isFound) return;
-    // }
+    this.generateVoxelMapRight(currentVoxel);
+    if (currentVoxel._rightVoxel) {
+      this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
+      if (this.isFound) return;
+    }
 
-    // if (currentVoxel._btmVoxel) {
-    //   this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
-    //   if (this.isFound) return;
-    // }
+    this.generateVoxelMapBtm(currentVoxel);
+    if (currentVoxel._btmVoxel) {
+      this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
+      if (this.isFound) return;
+    }
 
-    // if (currentVoxel._topVoxel) {
-    //   this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
-    //   // if (this.isFound) return
-    // }
+    this.generateVoxelMapTop(currentVoxel);
+    if (currentVoxel._topVoxel) {
+      this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
+      // if (this.isFound) return
+    }
   }
 
   toggleVoxelsVisible() {
