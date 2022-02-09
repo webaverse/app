@@ -8,6 +8,7 @@ import physicsManager from './physics-manager.js';
 const identityQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
+const selectStartDestVoxelYTolerance = 1;
 const tmpVec2 = new THREE.Vector2();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)')});
@@ -73,10 +74,14 @@ class PathFinder {
     const startVoxel = this.createVoxel(this.start.x, this.start.y);
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
     let startLayer;
-    if (Math.abs(startVoxel.position.y - start.y) < Math.abs(startVoxel2.position.y - start.y)) {
+    const startYBias = Math.abs(startVoxel.position.y - start.y);
+    const start2YBias = Math.abs(startVoxel2.position.y - start.y);
+    if (startYBias < selectStartDestVoxelYTolerance && startYBias < start2YBias) {
       startLayer = 1;
-    } else {
+    } else if (start2YBias < selectStartDestVoxelYTolerance && start2YBias < startYBias) {
       startLayer = 2;
+    } else {
+      return false;
     }
     if (startLayer === 1) {
       this.startVoxel = startVoxel;
@@ -94,10 +99,14 @@ class PathFinder {
     const destVoxel = this.createVoxel(this.dest.x, this.dest.y);
     const destVoxel2 = this.createVoxel2(this.dest.x, this.dest.y, destVoxel);
     let destLayer;
-    if (Math.abs(destVoxel.position.y - dest.y) < Math.abs(destVoxel2.position.y - dest.y)) {
+    const destYBias = Math.abs(destVoxel.position.y - dest.y);
+    const dest2YBias = Math.abs(destVoxel2.position.y - dest.y);
+    if (destYBias < selectStartDestVoxelYTolerance && destYBias < dest2YBias) {
       destLayer = 1;
-    } else {
+    } else if (dest2YBias < selectStartDestVoxelYTolerance && dest2YBias < destYBias) {
       destLayer = 2;
+    } else {
+      return false;
     }
     if (destLayer === 1) {
       this.destVoxel = destVoxel;
