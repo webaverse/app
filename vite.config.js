@@ -20,20 +20,8 @@ export default defineConfig({
   ],
   build: {
     sourcemap: false,
+    polyfillDynamicImport: true,
     rollupOptions: {
-      output: {
-        // manualChunks: id => {
-        //   if (id.includes('three')) {
-        //     console.log('_________', id);
-        //     return 'three';
-        //   } else if (id.includes('metaversefile')) {
-        //     return 'metaversefile';
-        //   } else if (id.includes('node_modules')) {
-        //     return 'vendor';
-        //   }
-        //   return 'app'; // all other package goes here
-        // },
-      },
       external: ['plugin-transform-react-jsx'],
     },
   },

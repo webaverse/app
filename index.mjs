@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+/* eslint-disable promise/param-names */
 import http from 'http';
 import https from 'https';
 import url from 'url';
@@ -17,7 +19,7 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.te
 const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
-  } catch(err) {
+  } catch (err) {
     // console.warn(err);
     return null;
   }
@@ -36,32 +38,16 @@ function makeId(length) {
   return result;
 }
 
-const _proxyUrl = (req, res, u) => {
-  const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
-  proxyReq.on('response', proxyRes => {
-    for (const header in proxyRes.headers) {
-      res.setHeader(header, proxyRes.headers[header]);
-    }
-    res.statusCode = proxyRes.statusCode;
-    proxyRes.pipe(res);
-  });
-  proxyReq.on('error', err => {
-    console.error(err);
-    res.statusCode = 500;
-    res.end();
-  });
-  proxyReq.end();
-};
-
 (async () => {
   const app = express();
+  app.use(express.static('dist'));
   app.use('*', async (req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -85,7 +71,8 @@ const _proxyUrl = (req, res, u) => {
         req.originalUrl = u;
         next();
       }
-    } else if (o.query['noimport'] !== undefined) {
+    } else if (o.query.noimport !== undefined) {
+      console.log(o);
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -101,9 +88,10 @@ const _proxyUrl = (req, res, u) => {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
+      console.log(o);
       next();
     }
   });
@@ -114,19 +102,7 @@ const _proxyUrl = (req, res, u) => {
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
-  const viteServer = await vite.createServer({
-    server: {
-      middlewareMode: 'html',
-      force:true,
-      hmr: {
-        server: httpServer,
-        port,
-        overlay: false,
-      },
-    }
-  });
-  app.use(viteServer.middlewares);
-  
+
   await new Promise((accept, reject) => {
     httpServer.listen(port, '0.0.0.0', () => {
       accept();
@@ -134,7 +110,7 @@ const _proxyUrl = (req, res, u) => {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
-  
+
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -143,10 +119,10 @@ const _proxyUrl = (req, res, u) => {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const s = fs.readFileSync('./dist/scenes/gunroom.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
-    
+
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],
