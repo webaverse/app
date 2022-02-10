@@ -130,13 +130,13 @@ class PathFinder {
     // this.step();
     this.untilFound();
     if (this.isFound) {
-      this.simplifyWaypointResultX(this.waypointResult[0]);
-      this.simplifyWaypointResultZ(this.waypointResult[0]);
       this.simplifyWaypointResultXZ(this.waypointResult[0]);
       this.simplifyWaypointResultXZ2(this.waypointResult[0]);
+      this.simplifyWaypointResultX(this.waypointResult[0]);
+      this.simplifyWaypointResultZ(this.waypointResult[0]);
       this.waypointResult.shift();
     }
-    // console.log('waypointResult', this.waypointResult.length);
+    console.log('waypointResult', this.waypointResult.length);
 
     return this.isFound;
   }
@@ -166,7 +166,17 @@ class PathFinder {
   }
 
   simplifyWaypointResultXZ(result) {
-    if (result?._next?._next) {
+    if (result?._next?._next?._next) {
+      if (
+        Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z) &&
+        result._next.position.x - result.position.x === result._next._next._next.position.x - result._next._next.position.x &&
+        result._next.position.z - result.position.z === result._next._next._next.position.z - result._next._next.position.z
+      ) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+      }
+      this.simplifyWaypointResultXZ(result._next);
+    } else if (result?._next?._next && !result._next._next._next) {
       if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
@@ -177,7 +187,13 @@ class PathFinder {
 
   simplifyWaypointResultXZ2(result) {
     if (result?._next?._next) {
-      if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
+      const xBias = Math.abs(result._next._next.position.x - result.position.x);
+      const zBias = Math.abs(result._next._next.position.z - result.position.z);
+      if (
+        xBias === zBias &&
+        xBias > 1 &&
+        zBias > 1
+      ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         this.simplifyWaypointResultXZ2(result);
