@@ -62,7 +62,6 @@ function CharacterHup(props) {
     }
     hup.addEventListener('update', update);
     function destroy(e) {
-      console.log('hup destroy', e);
       setLocalOpen(false);
     }
     hup.addEventListener('destroy', destroy);

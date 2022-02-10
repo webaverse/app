@@ -67,6 +67,22 @@
       "position": [
         4,
         0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "physics": false,
+      "start_url": "/avatars/gear.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
+        4,
+        0,
         3
       ],
       "quaternion": [
@@ -113,6 +129,38 @@
     },
     {
       "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/particle-mesh/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        4,
+        1,
+        4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/basiheart/",
+      "dynamic": true
+    },
+    {
+      "position": [
         4,
         0,
         -2
@@ -123,7 +171,7 @@
         0,
         1
       ],
-      "start_url": "../npc/"
+      "start_url": "https://webaverse.github.io/npc/"
     },
     {
       "position": [
@@ -193,7 +241,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "../fox/"
+      "start_url": "https://webaverse.github.io/fox/"
     },
     {
       "position": [
@@ -212,7 +260,7 @@
         0.5,
         0.5
       ],
-      "start_url": "../potion/"
+      "start_url": "https://webaverse.github.io/potion/"
     },
     {
       "position": [
@@ -231,7 +279,7 @@
         1,
         1
       ],
-      "start_url": "../pistol/"
+      "start_url": "https://webaverse.github.io/pistol/"
     },
     {
       "position": [
@@ -250,35 +298,7 @@
         1,
         1
       ],
-      "start_url": "../silsword/"
-    },
-    {
-      "position": [30, 0, 4],
-      "start_url": "../origin-tablet/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        -2
-      ],
-      "start_url": "../mirror/"
-    },
-    {
-      "position": [
-        3,
-        0,
-        0
-      ],
-      "start_url": "../bomb/"
-    },
-    {
-      "position": [
-        5,
-        0,
-        0
-      ],
-      "start_url": "../branch/"
+      "start_url": "https://webaverse.github.io/silsword/"
     }
   ]
 }

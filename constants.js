@@ -91,4 +91,4 @@ export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Bell
 export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 
 export const defaultDioramaSize = 512;
-export const defaultAvatarUrl = './avatars/ann.vrm';
+export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
