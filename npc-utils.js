@@ -23,7 +23,7 @@ const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rg
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: false});
 const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: false});
 const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)'), wireframe: false});
-const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,255)'), wireframe: false});
+const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(127,127,127)'), wireframe: false});
 
 class PathFinder {
   constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
@@ -64,7 +64,7 @@ class PathFinder {
     this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
-    this.geometry.scale(0.9, this.voxelHeight, 0.9);
+    this.geometry.scale(0.5, this.voxelHeight, 0.5);
     // this.geometry.scale(0.9, 0.1, 0.9);
 
     this.waypointResult = [];
