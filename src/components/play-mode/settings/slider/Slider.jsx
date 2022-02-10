@@ -6,9 +6,7 @@ import styles from './slider.module.css';
 
 //
 
-export const Slider = ({ className, initalValue, max = 100, min = 0 }) => {
-
-    const [ value, setValue ] = useState( initalValue );
+export const Slider = ({ className, value, setValue, max = 100, min = 0 }) => {
 
     const handleMinusBtnClick = () => {
 

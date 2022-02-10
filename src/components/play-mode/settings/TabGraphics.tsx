@@ -27,17 +27,17 @@ const DefaultSettings = {
 
 export const TabGraphics = ({ active }) => {
 
-    const [ settingsLoaded, setSettingsLoaded ] = useState( false );
-    const [ resolution, setResolution ] = useState( 'HIGH' );
-    const [ antialias, setAntialias ] = useState( 'MSAA' );
-    const [ viewRange, setViewRange ] = useState( 'HIGH' );
-    const [ shadowQuality, setShadowQuality ] = useState( 'HIGH' );
-    const [ postprocessing, setPostprocessing ] = useState( 'ON' );
-    const [ depthOfField, setDepthOfField ] = useState( 'ON' );
-    const [ hdr, setHdr ] = useState( 'ON' );
-    const [ bloom, setBloom ] = useState( 'ON' );
-    const [ characterDetails, setCharacterDetails ] = useState( 'HIGH' );
-    const [ hairPhysics, setHairPhysics ] = useState( 'ON' );
+    const [ settingsLoaded, setSettingsLoaded ] = useState( null );
+    const [ resolution, setResolution ] = useState( null );
+    const [ antialias, setAntialias ] = useState( null );
+    const [ viewRange, setViewRange ] = useState( null );
+    const [ shadowQuality, setShadowQuality ] = useState( null );
+    const [ postprocessing, setPostprocessing ] = useState( null );
+    const [ depthOfField, setDepthOfField ] = useState( null );
+    const [ hdr, setHdr ] = useState( null );
+    const [ bloom, setBloom ] = useState( null );
+    const [ characterDetails, setCharacterDetails ] = useState( null );
+    const [ hairPhysics, setHairPhysics ] = useState( null );
 
     function saveSettings () {
 
@@ -58,6 +58,7 @@ export const TabGraphics = ({ active }) => {
             }
         };
 
+        applySettings();
         localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
 
     };
@@ -90,7 +91,14 @@ export const TabGraphics = ({ active }) => {
         setCharacterDetails( settings.character.details ?? DefaultSettings.character.details );
         setHairPhysics( settings.character.hairPhysics ?? DefaultSettings.character.hairPhysics );
 
+        applySettings();
         setSettingsLoaded( true );
+
+    };
+
+    function applySettings () {
+
+        // todo
 
     };
 
@@ -100,7 +108,6 @@ export const TabGraphics = ({ active }) => {
 
         if ( ! settingsLoaded ) return;
         saveSettings();
-        console.log( resolution );
 
     }, [ settingsLoaded, resolution, antialias, viewRange, shadowQuality, postprocessing, depthOfField, hdr, bloom, characterDetails, hairPhysics ] );
 

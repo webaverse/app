@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 
 import { KeyInput } from './key-input';
@@ -8,7 +8,76 @@ import styles from './settings.module.css';
 
 //
 
+const DefaultSettings = {
+
+};
+
 export const TabControls = ({ active }) => {
+
+    const [ settingsLoaded, setSettingsLoaded ] = useState( false );
+    const [ moveForward, setMoveForward ] = useState( null );
+
+    //
+
+    function saveSettings () {
+
+        const settings = {
+
+        };
+
+        // todo
+
+        applySettings();
+        localStorage.setItem( 'ControlsSettings', JSON.stringify( settings ) );
+
+    };
+
+    function loadSettings () {
+
+        const settingsString = localStorage.getItem( 'ControlsSettings' );
+        let settings;
+
+        try {
+
+            settings = JSON.parse( settingsString );
+
+        } catch ( err ) {
+
+            settings = DefaultSettings;
+
+        }
+
+        settings = settings ?? DefaultSettings;
+
+        // todo
+
+        applySettings();
+        setSettingsLoaded( true );
+
+    };
+
+    function applySettings () {
+
+        // todo
+
+    };
+
+    //
+
+    useEffect( () => {
+
+        if ( ! settingsLoaded ) return;
+        saveSettings();
+
+    }, [ settingsLoaded ] );
+
+    useEffect( () => {
+
+        loadSettings();
+
+    }, [] );
+
+    //
 
     return (
         <div className={ classNames( styles.controlsTab, styles.tabContent, active ? styles.active : null ) }>
