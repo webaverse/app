@@ -14,7 +14,7 @@ import styles from './play-mode.module.css';
 
 //
 
-export const PlayMode = () => {
+export const PlayMode = ({ setLoginOpenPopupOpened, loginInState, username }) => {
 
     const [ characterOverviewOpen, setCharacterOverviewOpen ] = useState( false );
     const [ settingsOpen, setSettingsOpen ] = useState( false );
@@ -29,7 +29,7 @@ export const PlayMode = () => {
             <LocationMenu />
             <Inventory openCharacterOverview={ setCharacterOverviewOpen } />
             <Hotbar />
-            <PlayerZone />
+            <PlayerZone username={ username } setLoginOpenPopupOpened={ setLoginOpenPopupOpened } loginInState={ loginInState } />
             <Chat />
         </div>
     );

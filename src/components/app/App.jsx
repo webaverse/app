@@ -9,10 +9,14 @@ import Webaverse from '../../../webaverse.js';
 import * as universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api.js';
 import ioManager from '../../../io-manager';
+import * as ceramicApi from '../../../ceramic.js';
+import WebaWallet from '../wallet';
+import { parseQuery } from '../../../util.js';
 
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
-import { Crosshair } from '../play-mode/crosshair';
+import { Crosshair } from '../general/crosshair';
+import { LoginPopup } from '../general/login-popup';
 
 import styles from './App.module.css';
 
@@ -43,6 +47,119 @@ export const App = () => {
     const [ app, setApp ] = useState( () => new Webaverse() );
     const [ magicMenuOpened, setMagicMenuOpened ] = useState( false );
 
+    const [ loginPopupOpened, setLoginOpenPopupOpened ] = useState( false );
+    const [ loginInState, setLoginInState ] = useState('');
+    const [ loginInMethod, setLoginInMethod ] = useState( null );
+    const [ loginButtons, setLoginButtons ] = useState( false );
+    const [ loginError, setLoginError ] = useState( null );
+    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState( false );
+    const [ address, setAddress ] = useState( null );
+    const [ username, setUserName ] = useState( 'Anonimus' );
+
+    //
+
+    async function auth () {
+
+        const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
+
+        if ( ! autoLoginRequestMade ) {
+
+            setAutoLoginRequestMade( true );
+            let user;
+
+            try {
+
+                user = await ceramicApi.login();
+
+            } catch ( err ) {}
+
+            if ( user && user.address ) {
+
+                setAddress( user.address );
+                setLoginInState( 'done' );
+                return;
+
+            }
+
+            if ( code ) {
+
+                setLoginInState( 'in-progress' );
+
+                WebaWallet.waitForLaunch().then( async () => {
+
+                    const user = await WebaWallet.loginDiscord( code, id );
+                    console.log( user );
+
+                    if ( address ) {
+
+                        setAddress( address );
+                        setLoginFrom( 'discord' );
+                        setShow( 'done' );
+
+                    } else if ( error ) {
+
+                        setLoginError( String( error ).toLocaleUpperCase() );
+
+                    }
+
+                    console.log( address, error );
+                    // window.history.pushState( {}, '', window.location.origin );
+                    setLoginInState( 'done' );
+
+                }); // it may occur that wallet loading is in progress already
+
+            } else {
+
+                // setLoginInState( 'in-progress' );
+
+                // WebaWallet.waitForLaunch().then( async () => {
+
+                //     const loginResult = await WebaWallet.autoLogin();
+
+                //     if ( loginResult && address ) {
+
+                //         setAddress( address );
+                //         setLoginInState( 'done' );
+
+                //     } else if ( error ) {
+
+                //         setLoginError( String( error ).toLocaleUpperCase() );
+
+                //     }
+
+                // }); // it may occur that wallet loading is in progress already
+
+            }
+
+        }
+
+    };
+
+    async function getProfileInfo () {
+
+        if ( ! address ) return;
+        const res = await fetch(`https://nft.webaverse.com/account/${ address }`, {});
+        const data = await res.json();
+
+        setUserName( data.name || 'No username' );
+
+    };
+
+    const handleCanvasClick = ( event ) => {
+
+        ioManager['click']( event );
+
+    };
+
+    //
+
+    useEffect( async () => {
+
+        auth();
+        getProfileInfo();
+
+    }, [ address ]);
+
     useEffect( () => {
 
         if ( canvasRef.current ) {
@@ -52,8 +169,6 @@ export const App = () => {
         }
 
     }, [ canvasRef.current ] );
-
-    //
 
     useEffect( () => {
 
@@ -126,20 +241,15 @@ export const App = () => {
 
     }, [] );
 
-    const handleCanvasClick = ( event ) => {
-
-        ioManager['click']( event );
-
-    };
-
     //
 
     return (
-        <div className={styles.App} id="app">
+        <div className={ styles.App }>
             <MagicMenu open={ magicMenuOpened } setOpen={ setMagicMenuOpened } />
-            <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } onClick={ handleCanvasClick } />
+            <canvas className={ styles.canvas } ref={ canvasRef } onClick={ handleCanvasClick } />
             <Crosshair />
-            <PlayMode />
+            <PlayMode username={ username } loginInState={ loginInState } setLoginOpenPopupOpened={ setLoginOpenPopupOpened } />
+            <LoginPopup open={ loginPopupOpened } setOpen={ setLoginOpenPopupOpened } loginInState={ loginInState } setLoginInState={ setLoginInState } setAddress={ setAddress } />
         </div>
     );
 
