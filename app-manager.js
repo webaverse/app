@@ -237,7 +237,7 @@ class AppManager extends EventTarget {
       };
       try {
         const m = await metaversefile.import(contentId);
-        contentId.includes('ann') && console.log("ABOUT TO CREATE", m);
+        // app.appType == "vrm" && console.log("ABOUT TO CREATE", m);
         if (!live) return _bailout(null);
         const app = metaversefile.createApp({
           name: contentId,
@@ -524,6 +524,7 @@ class AppManager extends EventTarget {
         const quaternion = srcTrackedApp.get('quaternion');
         const scale = srcTrackedApp.get('scale');
         const components = srcTrackedApp.get('components');
+        const load = srcTrackedApp.get('load');
 
         srcAppManager.removeTrackedAppInternal(instanceId);
 
@@ -534,6 +535,7 @@ class AppManager extends EventTarget {
           quaternion,
           scale,
           components,
+          load,
         );
       });
 

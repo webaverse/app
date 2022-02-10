@@ -6,7 +6,7 @@
 	url = https://github.com/webaverse/zjs.git
 [submodule "packages/totum"]
 	path = packages/totum
-	url = https://github.com/webaverse/totum.git
+	url = git@github.com:0reo/totum.git
 [submodule "packages/three-vrm"]
 	path = packages/three-vrm
 	url = https://github.com/webaverse/three-vrm

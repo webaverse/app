@@ -8,6 +8,7 @@ import dropManager from '../../../drop-manager.js';
 import Webaverse from '../../../webaverse.js';
 import * as universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
+import { getGPUTier } from 'detect-gpu';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -19,7 +20,14 @@ import styles from './App.module.css';
 
 //
 
-const _startApp = async ( weba, canvas ) => {
+const _startApp = async (weba, canvas) => {
+
+    const gpuTier = await getGPUTier();
+    console.log("GPU INFO", gpuTier);
+    if (!metaversefileApi.getQualitySetting()) {
+        console.log("setting default quality to ", gpuTier.tier);
+        metaversefileApi.setQualitySetting(gpuTier.tier)
+    }
 
     weba.setContentLoaded();
 

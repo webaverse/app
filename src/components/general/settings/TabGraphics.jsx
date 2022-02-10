@@ -103,7 +103,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = localStorage.getItem('avatarStyle') || 'ULTRA';
+        let avatarStyle = metaversefileApi.getQualitySetting();
         if ( characterDetails === 'HIGH' ) avatarStyle = 'HIGH';
         if ( characterDetails === 'MEDIUM' ) avatarStyle = 'MEDIUM';
         if ( characterDetails === 'LOW' ) avatarStyle = 'LOW';
@@ -113,7 +113,6 @@ export const TabGraphics = ({ active }) => {
         function setAvatarQuality () {
 
             game.setAvatarQuality( avatarStyle );
-            localStorage.setItem('avatarStyle', avatarStyle);
             localPlayer.removeEventListener( 'avatarchange', setAvatarQuality );
 
         };

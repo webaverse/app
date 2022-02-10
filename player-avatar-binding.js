@@ -79,16 +79,32 @@ export function makeAvatar(app) {
       });
       avatar[appSymbol] = app;
 
-      const quality = localStorage.getItem('avatarStyle') || 'ULTRA';
-      if (quality !== 'LOW'){
+      const qualityMap = {
+        "ULTRA": 1,
+        "HIGH": 3,
+        "MEDIUM": 2,
+        "LOW": 1
+      }
+      const quality = metaversefile.getQualitySetting();
+      avatar.setQuality(quality).then(()=>{
         const am = metaversefile.useLocalPlayer().appManager;
         const trackedApp = am.getTrackedApp(app.instanceId);
         trackedApp.set('load', true);
-        // console.log("APPADD CALLED", trackedApp);
-      } else {
-        avatar.setQuality(1);
-      }
-      console.log("MADE AVATAR");
+      })
+/*
+       (async () => {
+         // await Avatar.waitForLoad();
+         avatar[appSymbol] = app;
+         await avatar.setQuality(quality);
+         const am = metaversefile.useLocalPlayer().appManager;
+         const trackedApp = am.getTrackedApp(app.instanceId);
+         console.log("PLAYER AVATAR", trackedApp, app.instanceId);
+         trackedApp.set('load', true);
+         unFrustumCull(app);
+         enableShadows(app);
+         console.log("ASYNC DONE");
+      })();
+*/
 
       unFrustumCull(app);
       enableShadows(app);
