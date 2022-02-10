@@ -11,18 +11,19 @@ const heightTolerance = 0.6;
 const selectStartDestVoxelYTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
 
-const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: true});
-const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: true});
-const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)'), wireframe: true});
-const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)'), wireframe: true});
-const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)'), wireframe: true});
-const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)'), wireframe: true});
-// const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)'), wireframe: true});
-const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(0,255,255)'), wireframe: true});
-// const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: true});
-const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: true});
-const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: true});
-const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)'), wireframe: true});
+const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: false});
+const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: false});
+const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)'), wireframe: false});
+const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)'), wireframe: false});
+const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)'), wireframe: false});
+const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)'), wireframe: false});
+// const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)'), wireframe: false});
+const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(0,255,255)'), wireframe: false});
+// const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: false});
+const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: false});
+const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: false});
+const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)'), wireframe: false});
+const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(127,127,127)'), wireframe: false});
 
 class PathFinder {
   constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
@@ -63,8 +64,8 @@ class PathFinder {
     this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
-    // this.geometry.scale(0.9, this.voxelHeight, 0.9);
-    this.geometry.scale(0.9, 0.1, 0.9);
+    this.geometry.scale(0.5, this.voxelHeight, 0.5);
+    // this.geometry.scale(0.9, 0.1, 0.9);
 
     this.waypointResult = [];
   }
@@ -129,8 +130,97 @@ class PathFinder {
 
     // this.step();
     this.untilFound();
+    if (this.isFound) {
+      this.simplifyWaypointResultXZ(this.waypointResult[0]);
+      this.simplifyWaypointResultXZ2(this.waypointResult[0]);
+      this.simplifyWaypointResultX(this.waypointResult[0]);
+      this.simplifyWaypointResultZ(this.waypointResult[0]);
+      this.waypointResult.shift();
+    }
+    console.log('waypointResult', this.waypointResult.length);
+
+    if (this.debugRender) {
+      this.waypointResult.forEach(result => {
+        const x = result.position.x;
+        const z = result.position.z;
+        this.getVoxel(x, z).material = materialPathSimplified;
+        this.getVoxel2(x, z).material = materialPathSimplified;
+      });
+    }
 
     return this.isFound;
+  }
+
+  simplifyWaypointResultX(result) {
+    if (result?._next?._next) {
+      if (result.position.x === result._next._next.position.x) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        result._next._prev = result;
+        this.simplifyWaypointResultX(result);
+      } else {
+        this.simplifyWaypointResultX(result._next);
+      }
+    }
+  }
+
+  simplifyWaypointResultZ(result) {
+    if (result?._next?._next) {
+      if (result.position.z === result._next._next.position.z) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        result._next._prev = result;
+        this.simplifyWaypointResultZ(result);
+      } else {
+        this.simplifyWaypointResultZ(result._next);
+      }
+    }
+  }
+
+  simplifyWaypointResultXZ(result) {
+    if (result?._next?._next?._next) {
+      if (
+        Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z) &&
+        (
+          (result._prev && Math.abs(result._prev.position.x - result.position.x) === Math.abs(result._prev.position.z - result.position.z)) ||
+          (
+            result._next.position.x - result.position.x === result._next._next._next.position.x - result._next._next.position.x &&
+            result._next.position.z - result.position.z === result._next._next._next.position.z - result._next._next.position.z
+          )
+        )
+      ) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        result._next._prev = result;
+      }
+      this.simplifyWaypointResultXZ(result._next);
+    } else if (result?._next?._next && !result._next._next._next) {
+      if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        result._next._prev = result;
+      }
+      this.simplifyWaypointResultXZ(result._next);
+    }
+  }
+
+  simplifyWaypointResultXZ2(result) {
+    if (result?._next?._next) {
+      const xBias = Math.abs(result._next._next.position.x - result.position.x);
+      const zBias = Math.abs(result._next._next.position.z - result.position.z);
+      if (
+        xBias === zBias &&
+        xBias > 1 &&
+        zBias > 1
+      ) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        result._next._prev = result;
+        this.simplifyWaypointResultXZ2(result);
+      } else {
+        this.simplifyWaypointResultXZ2(result._next);
+      }
+    }
   }
 
   reset() {
@@ -412,15 +502,17 @@ class PathFinder {
 
       this.waypointResult.length = 0;
       let wayPoint = this.startVoxel;
-      let result = new THREE.Group();
+      let result = new THREE.Object3D();
       result.position.copy(wayPoint.position);
       this.waypointResult.push(result);
       while (wayPoint._next) {
         wayPoint = wayPoint._next;
 
-        result._next = new THREE.Group();
+        result._next = new THREE.Object3D();
         result._next.position.copy(wayPoint.position);
         this.waypointResult.push(result._next);
+
+        result._next._prev = result;
 
         result = result._next;
       }
@@ -489,6 +581,7 @@ class PathFinder {
 
     materialIdle2.wireframe = !materialIdle2.wireframe;
     materialPath2.wireframe = !materialPath2.wireframe;
+    materialPathSimplified.wireframe = !materialPathSimplified.wireframe;
 
     materialStart.wireframe = !materialStart.wireframe;
     materialDest.wireframe = !materialDest.wireframe;
