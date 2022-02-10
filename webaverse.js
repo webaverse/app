@@ -156,8 +156,8 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
-        game.loadVoicePack(defaultVoicePack),
-        // game.setVoice(defaultVoice),
+        // game.loadVoicePack(defaultVoicePack),
+        game.setVoice(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
