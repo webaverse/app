@@ -412,13 +412,13 @@ class PathFinder {
 
       this.waypointResult.length = 0;
       let wayPoint = this.startVoxel;
-      let result = new THREE.Group();
+      let result = new THREE.Object3D();
       result.position.copy(wayPoint.position);
       this.waypointResult.push(result);
       while (wayPoint._next) {
         wayPoint = wayPoint._next;
 
-        result._next = new THREE.Group();
+        result._next = new THREE.Object3D();
         result._next.position.copy(wayPoint.position);
         this.waypointResult.push(result._next);
 
