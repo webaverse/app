@@ -24,12 +24,15 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   defaultPlayerName,
+  voiceEndpoint,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
+import {VoicePack} from './voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
@@ -139,6 +142,87 @@ class PlayerBase extends THREE.Object3D {
     this.avatar = null;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+  }
+  findAction(fn) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (fn(action)) {
+        return action;
+      }
+    }
+    return null;
+  }
+  findActionIndex(fn) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const action of actions) {
+      if (fn(action)) {
+        return i;
+      }
+      i++
+    }
+    return -1;
+  }
+  getAction(type) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.type === type) {
+        return action;
+      }
+    }
+    return null;
+  }
+  getActionByActionId(actionId) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.actionId === actionId) {
+        return action;
+      }
+    }
+    return null;
+  }
+  getActionIndex(type) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const action of actions) {
+      if (action.type === type) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+  indexOfAction(action) {
+    const actions = this.getActionsState();
+    let i = 0;
+    for (const a of actions) {
+      if (a === action) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+  hasAction(type) {
+    const actions = this.getActionsState();
+    for (const action of actions) {
+      if (action.type === type) {
+        return true;
+      }
+    }
+    return false;
+  }
+  async loadVoicePack({audioUrl, indexUrl}) {
+    const voicePack = await VoicePack.load({
+      audioUrl,
+      indexUrl,
+    });
+    this.characterHups.setVoice(voicePack);
+  }
+  setVoice(voiceId) {
+    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+    const voice = new VoiceEndpoint(url);
+    this.characterHups.setVoice(voice);
   }
   destroy() {
     // nothing
@@ -385,90 +469,6 @@ class StatePlayer extends PlayerBase {
   }
   getAppsArray() {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
-  }
-  findAction(fn) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (fn(action)) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  findActionIndex(fn) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const action of actions) {
-        if (fn(action)) {
-          return i;
-        }
-        i++
-      }
-    }
-    return -1;
-  }
-  getAction(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-     // console.log(actions);
-      for (const action of actions) {
-        if (action.type === type) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  getActionByActionId(actionId) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (action.actionId === actionId) {
-          return action;
-        }
-      }
-    }
-    return null;
-  }
-  getActionIndex(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const action of actions) {
-        if (action.type === type) {
-          return i;
-        }
-        i++;
-      }
-    }
-    return -1;
-  }
-  indexOfAction(action) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      let i = 0;
-      for (const a of actions) {
-        if (a === action) {
-          return i;
-        }
-        i++;
-      }
-    }
-    return -1;
-  }
-  hasAction(type) {
-    if (this.isBound()) {
-      const actions = this.getActionsState();
-      for (const action of actions) {
-        if (action.type === type) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
   addAction(action) {
     action = clone(action);
@@ -1050,8 +1050,11 @@ class StaticUninterpolatedPlayer extends PlayerBase {
 
     this.actions = [];
   }
-  getActions() {
+  getActionsState() {
     return this.actions;
+  }
+  getActions() {
+    return this.getActionsState();
   }
   getAction(type) {
     return this.actions.find(action => action.type === type);
@@ -1064,15 +1067,27 @@ class StaticUninterpolatedPlayer extends PlayerBase {
   }
   addAction(action) {
     this.actions.push(action);
+
+    this.dispatchEvent({
+      type: 'actionadd',
+      action,
+    });
   }
   removeAction(type) {
     for (let i = 0; i < this.actions.length; i++) {
       const action = this.actions[i];
       if (action.type === type) {
-        this.actions.splice(i, 1);
+        this.removeActionIndex(i);
         break;
       }
     }
+  }
+  removeActionIndex(index) {
+    const action = this.actions.splice(index, 1)[0];
+    this.dispatchEvent({
+      type: 'actionremove',
+      action,
+    });
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
@@ -1099,16 +1114,19 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatar = avatar;
 
     this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    
     loadPhysxCharacterController.call(this);
     loadPhsxAuxCharacterCapsule.call(this);
-
-    const npcs = metaversefile.useNpcs();
-    npcs.push(this);
   }
-  updatePhysics(now, timeDiff) {
+  updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterPhysics.update(now, timeDiffS);
+      this.characterPhysics.update(timestamp, timeDiffS);
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
     }
   }
   updateAvatar(timestamp, timeDiff) {
@@ -1126,6 +1144,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
         .add(new THREE.Vector3(0, -this.avatar.height/2, 0));
       this.physicsObject.updateMatrixWorld();
       physicsManager.setTransform(this.physicsObject);
+
+      this.characterHups.update(timestamp);
     }
 
     // this.characterPhysics.updateCamera(timeDiff);
@@ -1161,11 +1181,11 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.syncAvatar();
   } */
   destroy() {
-    const npcs = metaversefile.useNpcs();
+    /* const npcs = metaversefile.useNpcs();
     const index = npcs.indexOf(this);
     if (index !== -1) {
       npcs.splice(index, 1);
-    }
+    } */
 
     super.destroy();
   }

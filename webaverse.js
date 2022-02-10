@@ -21,7 +21,6 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-import {loadAudioBuffer} from './util.js';
 import {
   getRenderer,
   scene,
@@ -38,6 +37,8 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+import {defaultVoice, defaultVoicePack} from './constants.js';
+
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
@@ -135,24 +136,6 @@ E6-wrap_74_10_19_29 - Part_1.wav`
 /* const numFiles = 361;
 const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
   .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
-const _loadVoicePack = async () => {
-  const audioContext = Avatar.getAudioContext();
-
-  const [
-    syllableFiles,
-    audioBuffer,
-  ] = await Promise.all([
-    (async () => {
-      const res = await fetch('https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json');
-      const j = await res.json();
-      return j;
-    })(),
-    loadAudioBuffer(audioContext, 'https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3'),
-  ]);
-
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.characterHups.setVoicePack(syllableFiles, audioBuffer);
-};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -173,7 +156,8 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
-        _loadVoicePack(),
+        game.loadVoicePack(defaultVoicePack),
+        // game.setVoice(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
@@ -368,6 +352,7 @@ export default class Webaverse extends EventTarget {
 
     getComposer().render();
     game.debugMode && rendererStats.update(renderer);
+    renderer.info.reset();
   }
   
   startLoop() {

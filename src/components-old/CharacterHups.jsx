@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
@@ -13,12 +13,13 @@ const defaultHupSize = 256;
 const pixelRatio = window.devicePixelRatio;
 
 function CharacterHup(props) {
-  const {hup, hups, setHups} = props;
+  const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
   const hupRef = useRef();
   const [localOpen, setLocalOpen] = useState(false);
   const [text, setText] = useState('');
+  const [fullText, setFullText] = useState('');
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -53,11 +54,19 @@ function CharacterHup(props) {
     }
   }, [hupRef.current, localOpen]);
   useEffect(() => {
+    setFullText(hup.fullText);
+  }, []);
+  useEffect(() => {
+    function update(e) {
+      setFullText(hup.fullText);
+    }
+    hup.addEventListener('update', update);
     function destroy(e) {
       setLocalOpen(false);
     }
     hup.addEventListener('destroy', destroy);
     return () => {
+      hup.removeEventListener('update', update);
       hup.removeEventListener('destroy', destroy);
     };
   }, [hup]);
@@ -67,17 +76,17 @@ function CharacterHup(props) {
     });
   }, []);
   useEffect(() => {
-    if (text.length <= hup.fullText.length) {
+    if (text.length <= fullText.length) {
       const timeout = setTimeout(() => {
         // XXX this text slicing should be done with a mathematical factor in the hups code
-        const newText = text + hup.fullText.charAt(text.length);
+        const newText = text + fullText.charAt(text.length);
         setText(newText);
-      }, 100);
+      }, 50);
       return () => {
         clearTimeout(timeout);
       };
     }
-  }, [text]);
+  }, [text, fullText]);
 
   // console.log('got hup', hup);
 
@@ -104,32 +113,50 @@ function CharacterHup(props) {
   );
 }
 
-export default function CharacterHups() {
+export default function CharacterHups({
+  localPlayer,
+  npcs,
+}) {
   const [hups, setHups] = useState([]);
 
   useEffect(() => {
-    const localPlayer = useLocalPlayer();
     function hupadd(e) {
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
-    /* function hupremove(e) {
-      e.data.hup.setOpen(false);
-    } */
+    function hupremove(e) {
+      const oldHup = e.data.hup;
+      const newHups = hups.splice(hups.indexOf(oldHup), 1);
+      setHups(newHups);
+    }
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    for (const npcPlayer of npcs) {
+      npcPlayer.characterHups.addEventListener('hupadd', hupadd);
+      npcPlayer.characterHups.addEventListener('hupremove', hupremove);
+    }
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      for (const npcPlayer of npcs) {
+        npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
+        npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      }
     };
-  }, []);
+  }, [localPlayer, npcs, npcs.length, hups, hups.length]);
 
   return (
     <div className={styles['character-hups']}>
-      {hups.map((hup, i) => {
+      {hups.map((hup, index) => {
         return (
-          <CharacterHup key={hup.hupId} hup={hup} hups={hups} setHups={setHups} />
+          <CharacterHup
+            key={hup.hupId}
+            hup={hup}
+            index={index}
+            hups={hups}
+            setHups={setHups}
+          />
         );
       })}
     </div>
