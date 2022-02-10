@@ -132,10 +132,11 @@ class PathFinder {
     if (this.isFound) {
       this.simplifyWaypointResultX(this.waypointResult[0]);
       this.simplifyWaypointResultZ(this.waypointResult[0]);
-      // this.simplifyWaypointResultXZ(this.waypointResult[0]);
+      this.simplifyWaypointResultXZ(this.waypointResult[0]);
+      this.simplifyWaypointResultXZ2(this.waypointResult[0]);
       this.waypointResult.shift();
     }
-    console.log('waypointResult', this.waypointResult.length);
+    // console.log('waypointResult', this.waypointResult.length);
 
     return this.isFound;
   }
@@ -166,12 +167,22 @@ class PathFinder {
 
   simplifyWaypointResultXZ(result) {
     if (result?._next?._next) {
-      if (Math.abs(result._next.position.x - result.position.x) === Math.abs(result._next.position.z - result.position.z)) {
+      if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
-        this.simplifyWaypointResultXZ(result);
+      }
+      this.simplifyWaypointResultXZ(result._next);
+    }
+  }
+
+  simplifyWaypointResultXZ2(result) {
+    if (result?._next?._next) {
+      if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        this.simplifyWaypointResultXZ2(result);
       } else {
-        this.simplifyWaypointResultXZ(result._next);
+        this.simplifyWaypointResultXZ2(result._next);
       }
     }
   }
