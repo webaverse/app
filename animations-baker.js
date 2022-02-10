@@ -345,7 +345,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
           boneQuaternionInterpolants[boneName] = boneInterpolant;
         } else {
-          console.warn('unknown track name', track);
+          console.warn('unknown track name', animation.name, track);
         }
       }
 
