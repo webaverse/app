@@ -142,10 +142,7 @@ class PathFinder {
 
   simplifyWaypointResultX(result) {
     if (result?._next?._next) {
-      if (
-        result.position.x === result._next.position.x &&
-        result._next.position.x === result._next._next.position.x
-      ) {
+      if (result.position.x === result._next._next.position.x) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         this.simplifyWaypointResultX(result);
@@ -157,10 +154,7 @@ class PathFinder {
 
   simplifyWaypointResultZ(result) {
     if (result?._next?._next) {
-      if (
-        result.position.z === result._next.position.z &&
-        result._next.position.z === result._next._next.position.z
-      ) {
+      if (result.position.z === result._next._next.position.z) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         this.simplifyWaypointResultZ(result);
