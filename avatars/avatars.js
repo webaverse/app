@@ -1181,6 +1181,9 @@ class Avatar {
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
 
+    this.spriteMegaAvatarMesh = object.spriteMegaAvatarMesh || null;
+    this.crunchedModel = null;
+
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
@@ -2109,24 +2112,32 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-
-    this.model.visible = false;
-    if ( this.crunchedModel ) this.crunchedModel.visible = false;
-    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
-
+    console.log("MODEL", this.spriteMegaAvatarMesh, this.object);
     switch (quality) {
       case 1: {
-        const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
-        scene.add( this.spriteMegaAvatarMesh );
-        this.spriteMegaAvatarMesh.visible = true;
+        if (this.spriteMegaAvatarMesh){
+          this.spriteMegaAvatarMesh.visible = true;
+        } else {
+          const skinnedMesh = await this.object.cloneVrm();
+          this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
+          scene.add(this.spriteMegaAvatarMesh);
+        }
+        //
+        this.model.visible = false;
+        if (this.crunchedModel) this.crunchedModel.visible = false;
         break;
       }
       case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
-        this.crunchedModel.frustumCulled = false;
-        scene.add( this.crunchedModel );
-        this.crunchedModel.visible = true;
+        if (this.crunchedModel){
+            this.crunchedModel.visible = true;
+        }else{
+          this.crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
+          this.crunchedModel.frustumCulled = false;
+          scene.add(this.crunchedModel);
+        }
+
+        if (this.spriteMegaAvatarMesh) this.spriteMegaAvatarMesh.visible = false;
+        this.model.visible = false;
         break;
       }
       case 3: {
@@ -2135,8 +2146,11 @@ class Avatar {
         break;
       }
       case 4: {
-        console.log('not implemented'); // XXX
         this.model.visible = true;
+        if (this.spriteMegaAvatarMesh) this.spriteMegaAvatarMesh.visible = false;
+        if (this.crunchedModel) this.crunchedModel.visible = false;
+
+        console.log('not implemented', this); // XXX
         break;
       }
       default: {
