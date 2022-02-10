@@ -33,16 +33,8 @@
           "aperture": 0.00002,
           "maxblur": 0.005
         },
-        "hdr": {
-          "adaptive": true,
-          "resolution": 256,
-          "adaptionRate": 100,
-          "maxLuminance": 10,
-          "minLuminance": 0,
-          "middleGrey": 3
-        },
         "bloom": {
-          "strength": 0.2,
+          "strength": 0.05,
           "radius": 0.5,
           "threshold": 0.8
         }
@@ -76,7 +68,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
+      "start_url": "https://webaverse.github.io/mirror/",
       "dynamic": true
     },
     {
