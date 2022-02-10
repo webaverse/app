@@ -181,8 +181,13 @@ class PathFinder {
     if (result?._next?._next?._next) {
       if (
         Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z) &&
-        result._next.position.x - result.position.x === result._next._next._next.position.x - result._next._next.position.x &&
-        result._next.position.z - result.position.z === result._next._next._next.position.z - result._next._next.position.z
+        (
+          (result._prev && Math.abs(result._prev.position.x - result.position.x) === Math.abs(result._prev.position.z - result.position.z)) ||
+          (
+            result._next.position.x - result.position.x === result._next._next._next.position.x - result._next._next.position.x &&
+            result._next.position.z - result.position.z === result._next._next._next.position.z - result._next._next.position.z
+          )
+        )
       ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
