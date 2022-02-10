@@ -354,7 +354,7 @@ const loadPromise = (async () => {
   jumpForwardLandAnimation = animations.index["soft_landing_final.fbx"];
   jumpForwardOtherLandAnimation = animations.index["soft_landing_final_mirror.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
-  rollLandingAnimation = animations.index["falling_to_roll.fbx"];
+  rollLandingAnimation = animations.index["falling_to_roll_inPlace.fbx"];
   jumpForwardAnimation = animations.index["jump_forward_2.fbx"];
   jumpForwardOtherAnimation = animations.index["jump_forward_2_mirror.fbx"];
   // sittingAnimation = animations.find(a => a.isSitting);
