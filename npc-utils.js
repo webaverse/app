@@ -156,6 +156,7 @@ class PathFinder {
       if (result.position.x === result._next._next.position.x) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
+        result._next._prev = result;
         this.simplifyWaypointResultX(result);
       } else {
         this.simplifyWaypointResultX(result._next);
@@ -168,6 +169,7 @@ class PathFinder {
       if (result.position.z === result._next._next.position.z) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
+        result._next._prev = result;
         this.simplifyWaypointResultZ(result);
       } else {
         this.simplifyWaypointResultZ(result._next);
@@ -184,12 +186,14 @@ class PathFinder {
       ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
+        result._next._prev = result;
       }
       this.simplifyWaypointResultXZ(result._next);
     } else if (result?._next?._next && !result._next._next._next) {
       if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
+        result._next._prev = result;
       }
       this.simplifyWaypointResultXZ(result._next);
     }
@@ -206,6 +210,7 @@ class PathFinder {
       ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
+        result._next._prev = result;
         this.simplifyWaypointResultXZ2(result);
       } else {
         this.simplifyWaypointResultXZ2(result._next);
@@ -501,6 +506,8 @@ class PathFinder {
         result._next = new THREE.Object3D();
         result._next.position.copy(wayPoint.position);
         this.waypointResult.push(result._next);
+
+        result._next._prev = result;
 
         result = result._next;
       }
