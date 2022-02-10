@@ -63,8 +63,8 @@ class PathFinder {
     this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
-    // this.geometry.scale(0.9, this.voxelHeight, 0.9);
-    this.geometry.scale(0.9, 0.1, 0.9);
+    this.geometry.scale(0.9, this.voxelHeight, 0.9);
+    // this.geometry.scale(0.9, 0.1, 0.9);
 
     this.waypointResult = [];
   }
@@ -129,8 +129,57 @@ class PathFinder {
 
     // this.step();
     this.untilFound();
+    if (this.isFound) {
+      this.simplifyWaypointResultX(this.waypointResult[0]);
+      this.simplifyWaypointResultZ(this.waypointResult[0]);
+      // this.simplifyWaypointResultXZ(this.waypointResult[0]);
+      this.waypointResult.shift();
+    }
+    console.log('waypointResult', this.waypointResult.length);
 
     return this.isFound;
+  }
+
+  simplifyWaypointResultX(result) {
+    if (result?._next?._next) {
+      if (
+        result.position.x === result._next.position.x &&
+        result._next.position.x === result._next._next.position.x
+      ) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        this.simplifyWaypointResultX(result);
+      } else {
+        this.simplifyWaypointResultX(result._next);
+      }
+    }
+  }
+
+  simplifyWaypointResultZ(result) {
+    if (result?._next?._next) {
+      if (
+        result.position.z === result._next.position.z &&
+        result._next.position.z === result._next._next.position.z
+      ) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        this.simplifyWaypointResultZ(result);
+      } else {
+        this.simplifyWaypointResultZ(result._next);
+      }
+    }
+  }
+
+  simplifyWaypointResultXZ(result) {
+    if (result?._next?._next) {
+      if (Math.abs(result._next.position.x - result.position.x) === Math.abs(result._next.position.z - result.position.z)) {
+        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
+        result._next = result._next._next;
+        this.simplifyWaypointResultXZ(result);
+      } else {
+        this.simplifyWaypointResultXZ(result._next);
+      }
+    }
   }
 
   reset() {
