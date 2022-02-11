@@ -466,6 +466,7 @@ const loadPromise = (async () => {
     magic: animations.find(a => a.isMagic),
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
+    throw: animations.find(a => a.isThrow),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
