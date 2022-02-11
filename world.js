@@ -32,8 +32,8 @@ world.appManager = appManager;
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
 
-const particleSystem = createParticleSystem();
-world.particleSystem = particleSystem;
+world.particleSystem = createParticleSystem();
+scene.add(world.particleSystem);
 
 // multiplayer
 let wsrtc = null;
