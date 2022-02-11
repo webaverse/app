@@ -271,10 +271,10 @@ export const createParticleSystem = e => {
     return particle;
   };
 
-  {
+  /* {
     const particle = rootParticleMesh.addParticle('Elements - Energy 017 Charge Up noCT noRSZ.mov');
     particle.position.set(0, 2, -0.5);
-  }
+  } */
 
   // const physicsIds = [];
   /* let activateCb = null;
