@@ -361,7 +361,7 @@ class PathFinder {
       // todo: use Vector2 instead of _x _z.
       // voxel._priority = tmpVec2.set(voxel._x, voxel._z).manhattanDistanceTo(dest)
       // voxel._priority = tmpVec2.set(voxel._x, voxel._z).distanceToSquared(dest)
-      voxel._priority = tmpVec2.set(voxel.position.x, voxel.position.z).distanceTo(this.dest);
+      voxel._priority = voxel.position.distanceTo(this.dest);
       voxel._priority += newCost;
       this.frontiers.push(voxel);
       this.frontiers.sort((a, b) => a._priority - b._priority);
