@@ -10,6 +10,7 @@ const identityQuaternion = new THREE.Quaternion();
 const heightTolerance = 0.6;
 const selectStartDestVoxelYTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
+const localVector = new THREE.Vector3();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: false});
 const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: false});
@@ -83,25 +84,7 @@ class PathFinder {
       Math.round(dest.z),
     );
 
-    const startVoxel = this.createVoxel(this.start);
-    // startVoxel.position.y = start.y; // TODO: Not use this code. Not collide/overlap with player.
-    startVoxel.updateMatrixWorld(); // Same as above;
-    const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
-    let startLayer;
-    const startYBias = Math.abs(startVoxel.position.y - start.y);
-    const start2YBias = Math.abs(startVoxel2.position.y - start.y);
-    if (startYBias < selectStartDestVoxelYTolerance && startYBias < start2YBias) {
-      startLayer = 1;
-    } else if (start2YBias < selectStartDestVoxelYTolerance && start2YBias < startYBias) {
-      startLayer = 2;
-    } else {
-      return false;
-    }
-    if (startLayer === 1) {
-      this.startVoxel = startVoxel;
-    } else if (startLayer === 2) {
-      this.startVoxel = startVoxel2;
-    }
+    this.startVoxel = this.createVoxel(this.start);
     this.startVoxel._isStart = true;
     this.startVoxel._isReached = true;
     // this.startVoxel._priority = start.manhattanDistanceTo(dest)
@@ -110,47 +93,31 @@ class PathFinder {
     this.frontiers.push(this.startVoxel);
     this.startVoxel.material = materialStart;
 
-    const destVoxel = this.createVoxel(this.dest.x, this.dest.y);
-    const destVoxel2 = this.createVoxel2(this.dest.x, this.dest.y, destVoxel);
-    let destLayer;
-    const destYBias = Math.abs(destVoxel.position.y - dest.y);
-    const dest2YBias = Math.abs(destVoxel2.position.y - dest.y);
-    if (destYBias < selectStartDestVoxelYTolerance && destYBias < dest2YBias) {
-      destLayer = 1;
-    } else if (dest2YBias < selectStartDestVoxelYTolerance && dest2YBias < destYBias) {
-      destLayer = 2;
-    } else {
-      return false;
-    }
-    if (destLayer === 1) {
-      this.destVoxel = destVoxel;
-    } else if (destLayer === 2) {
-      this.destVoxel = destVoxel2;
-    }
+    this.destVoxel = this.createVoxel(this.dest);
     this.destVoxel._isDest = true;
     this.destVoxel.material = materialDest;
 
-    // this.step();
-    this.untilFound();
-    if (this.isFound) {
-      this.simplifyWaypointResultXZ(this.waypointResult[0]);
-      this.simplifyWaypointResultXZ2(this.waypointResult[0]);
-      this.simplifyWaypointResultX(this.waypointResult[0]);
-      this.simplifyWaypointResultZ(this.waypointResult[0]);
-      this.waypointResult.shift();
-    }
-    console.log('waypointResult', this.waypointResult.length);
+    // // this.step();
+    // this.untilFound();
+    // if (this.isFound) {
+    //   this.simplifyWaypointResultXZ(this.waypointResult[0]);
+    //   this.simplifyWaypointResultXZ2(this.waypointResult[0]);
+    //   this.simplifyWaypointResultX(this.waypointResult[0]);
+    //   this.simplifyWaypointResultZ(this.waypointResult[0]);
+    //   this.waypointResult.shift();
+    // }
+    // console.log('waypointResult', this.waypointResult.length);
 
-    if (this.debugRender) {
-      this.waypointResult.forEach(result => {
-        const x = result.position.x;
-        const z = result.position.z;
-        this.getVoxel(x, z).material = materialPathSimplified;
-        this.getVoxel2(x, z).material = materialPathSimplified;
-      });
-    }
+    // if (this.debugRender) {
+    //   this.waypointResult.forEach(result => {
+    //     const x = result.position.x;
+    //     const z = result.position.z;
+    //     this.getVoxel(x, z).material = materialPathSimplified;
+    //     this.getVoxel2(x, z).material = materialPathSimplified;
+    //   });
+    // }
 
-    return this.isFound;
+    // return this.isFound;
   }
 
   simplifyWaypointResultX(result) {
@@ -319,78 +286,50 @@ class PathFinder {
   }
 
   generateVoxelMapLeft(currentVoxel) {
-    let leftVoxel = this.getVoxel(currentVoxel.position.x - 1, currentVoxel.position.z);
-    let leftVoxel2 = this.getVoxel2(currentVoxel.position.x - 1, currentVoxel.position.z);
+    localVector.copy(currentVoxel.position);
+    localVector.x += -1;
+    let leftVoxel = this.getVoxel(localVector);
     if (!leftVoxel) {
-      leftVoxel = this.createVoxel(currentVoxel.position.x - 1, currentVoxel.position.z);
-      leftVoxel2 = this.createVoxel2(currentVoxel.position.x - 1, currentVoxel.position.z, leftVoxel);
+      leftVoxel = this.createVoxel(localVector);
     }
-    if (leftVoxel2) {
-      const biasToLayer2 = leftVoxel2.position.y - currentVoxel.position.y;
-      if (biasToLayer2 < heightTolerance) {
-        currentVoxel._leftVoxel = leftVoxel2;
-      } else if (biasToLayer2 > this.voxelHeight) {
-        if (leftVoxel && leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
-          currentVoxel._leftVoxel = leftVoxel;
-        }
-      }
+    if (leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+      currentVoxel._leftVoxel = leftVoxel;
     }
   }
 
   generateVoxelMapRight(currentVoxel) {
-    let rightVoxel = this.getVoxel(currentVoxel.position.x + 1, currentVoxel.position.z);
-    let rightVoxel2 = this.getVoxel2(currentVoxel.position.x + 1, currentVoxel.position.z);
+    localVector.copy(currentVoxel.position);
+    localVector.x += 1;
+    let rightVoxel = this.getVoxel(localVector);
     if (!rightVoxel) {
-      rightVoxel = this.createVoxel(currentVoxel.position.x + 1, currentVoxel.position.z);
-      rightVoxel2 = this.createVoxel2(currentVoxel.position.x + 1, currentVoxel.position.z, rightVoxel);
+      rightVoxel = this.createVoxel(localVector);
     }
-    if (rightVoxel2) {
-      const biasToLayer2 = rightVoxel2.position.y - currentVoxel.position.y;
-      if (biasToLayer2 < heightTolerance) {
-        currentVoxel._rightVoxel = rightVoxel2;
-      } else if (biasToLayer2 > this.voxelHeight) {
-        if (rightVoxel && rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
-          currentVoxel._rightVoxel = rightVoxel;
-        }
-      }
+    if (rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+      currentVoxel._rightVoxel = rightVoxel;
     }
   }
 
   generateVoxelMapBtm(currentVoxel) {
-    let btmVoxel = this.getVoxel(currentVoxel.position.x, currentVoxel.position.z - 1);
-    let btmVoxel2 = this.getVoxel2(currentVoxel.position.x, currentVoxel.position.z - 1);
+    localVector.copy(currentVoxel.position);
+    localVector.z += -1;
+    let btmVoxel = this.getVoxel(localVector);
     if (!btmVoxel) {
-      btmVoxel = this.createVoxel(currentVoxel.position.x, currentVoxel.position.z - 1);
-      btmVoxel2 = this.createVoxel2(currentVoxel.position.x, currentVoxel.position.z - 1, btmVoxel);
+      btmVoxel = this.createVoxel(localVector);
     }
-    if (btmVoxel2) {
-      const biasToLayer2 = btmVoxel2.position.y - currentVoxel.position.y;
-      if (biasToLayer2 < heightTolerance) {
-        currentVoxel._btmVoxel = btmVoxel2;
-      } else if (biasToLayer2 > this.voxelHeight) {
-        if (btmVoxel && btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
-          currentVoxel._btmVoxel = btmVoxel;
-        }
-      }
+    if (btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+      currentVoxel._btmVoxel = btmVoxel;
     }
   }
 
   generateVoxelMapTop(currentVoxel) {
-    let topVoxel = this.getVoxel(currentVoxel.position.x, currentVoxel.position.z + 1);
-    let topVoxel2 = this.getVoxel2(currentVoxel.position.x, currentVoxel.position.z + 1);
+    localVector.copy(currentVoxel.position);
+    localVector.z += 1;
+    let topVoxel = this.getVoxel(localVector);
     if (!topVoxel) {
-      topVoxel = this.createVoxel(currentVoxel.position.x, currentVoxel.position.z + 1);
-      topVoxel2 = this.createVoxel2(currentVoxel.position.x, currentVoxel.position.z + 1, topVoxel);
+      topVoxel = this.createVoxel(localVector);
     }
-    if (topVoxel2) {
-      const biasToLayer2 = topVoxel2.position.y - currentVoxel.position.y;
-      if (biasToLayer2 < heightTolerance) {
-        currentVoxel._topVoxel = topVoxel2;
-      } else if (biasToLayer2 > this.voxelHeight) {
-        if (topVoxel && topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
-          currentVoxel._topVoxel = topVoxel;
-        }
-      }
+    if (topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+      currentVoxel._topVoxel = topVoxel;
     }
   }
 
