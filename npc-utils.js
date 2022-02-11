@@ -8,29 +8,23 @@ import physicsManager from './physics-manager.js';
 const identityQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
-const selectStartDestVoxelYTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
 const localVector = new THREE.Vector3();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: false});
 const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: false});
-const materialIdle2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(121,213,113)'), wireframe: false});
-const materialReached2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(71,163,63)'), wireframe: false});
 const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)'), wireframe: false});
-const materialFrontier2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(42,83,164)'), wireframe: false});
 // const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)'), wireframe: false});
 const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(0,255,255)'), wireframe: false});
 // const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: false});
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: false});
 const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: false});
-const materialPath2 = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(99,14,141)'), wireframe: false});
 const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(127,127,127)'), wireframe: false});
 
 class PathFinder {
-  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, highestY2 = 30, debugRender = false}) {
+  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
-    this.isRising2 = false;
     this.isGeneratedVoxelMap = false;
     this.width = (width % 2 === 0) ? (width + 1) : (width);
     this.height = (height % 2 === 0) ? (height + 1) : (height);
@@ -40,9 +34,7 @@ class PathFinder {
     this.dest = new THREE.Vector3();
     this.lowestY = lowestY;
     this.highestY = highestY;
-    this.highestY2 = highestY2;
     this.voxelsY = this.lowestY;
-    this.voxelsY2 = this.lowestY;
     this.isAutoInit = false;
     this.debugRender = debugRender;
     this.onlyShowPath = false; // test
@@ -56,13 +48,8 @@ class PathFinder {
     this.voxels.name = 'voxels';
     this.voxels.visible = debugRender;
     rootScene.add(this.voxels);
-    this.voxels2 = new THREE.Group();
-    rootScene.add(this.voxels2);
-    this.voxels2.name = 'voxels2';
-    this.voxels2.visible = debugRender;
 
     this.voxelo = {};
-    this.voxelo2 = {};
 
     this.geometry = new THREE.BoxGeometry();
     this.geometry.scale(0.5, this.voxelHeight, 0.5);
@@ -113,7 +100,6 @@ class PathFinder {
     //     const x = result.position.x;
     //     const z = result.position.z;
     //     this.getVoxel(x, z).material = materialPathSimplified;
-    //     this.getVoxel2(x, z).material = materialPathSimplified;
     //   });
     // }
 
@@ -198,9 +184,7 @@ class PathFinder {
 
     // // pure realtime, no any cache
     // this.voxels.children.length = 0;
-    // this.voxels2.children.length = 0;
     // this.voxelo = {};
-    // this.voxelo2 = {};
 
     // simple cache
     this.voxels.children.forEach(voxel => {
@@ -337,10 +321,6 @@ class PathFinder {
     return this.voxelo[`${x}_${z}`];
   }
 
-  getVoxel2(x, z) {
-    return this.voxelo2[`${x}_${z}`];
-  }
-
   tenStep() {
     for (let i = 0; i < 10; i++) this.step();
   }
@@ -363,11 +343,7 @@ class PathFinder {
       // debugRender
       if (this.onlyShowPath) voxel.visible = true;
       if (!voxel._isStart && !voxel._isDest) { // todo: Don't run if !this.debugRender.
-        if (voxel.parent === this.voxels) {
-          voxel.material = materialPath;
-        } else {
-          voxel.material = materialPath2;
-        }
+        voxel.material = materialPath;
       }
 
       voxel._isPath = true;
@@ -394,11 +370,7 @@ class PathFinder {
       this.frontiers.sort((a, b) => a._priority - b._priority);
 
       if (!voxel._isStart && !voxel._isDest) {
-        if (voxel.parent === this.voxels) {
-          voxel.material = materialFrontier;
-        } else {
-          voxel.material = materialFrontier2;
-        }
+        voxel.material = materialFrontier;
       }
       voxel._prev = prevVoxel;
     }
@@ -407,7 +379,6 @@ class PathFinder {
       this.isFound = true;
       if (this.onlyShowPath) {
         this.voxels.children.forEach(voxel => { voxel.visible = false; });
-        this.voxels2.children.forEach(voxel2 => { voxel2.visible = false; });
       }
       this.recur(voxel);
 
@@ -439,11 +410,7 @@ class PathFinder {
 
     const currentVoxel = this.frontiers.shift();
     if (!currentVoxel._isStart) {
-      if (currentVoxel.parent === this.voxels) {
-        currentVoxel.material = materialReached;
-      } else {
-        currentVoxel.material = materialReached2;
-      }
+      currentVoxel.material = materialReached;
     }
 
     this.generateVoxelMapLeft(currentVoxel);
@@ -473,25 +440,20 @@ class PathFinder {
 
   showAll() {
     this.voxels.children.forEach(voxel => { voxel.visible = true; });
-    this.voxels2.children.forEach(voxel2 => { voxel2.visible = true; });
   }
 
   toggleNonPath() {
     this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
-    this.voxels2.children.forEach(voxel2 => { if (!voxel2._isPath) voxel2.visible = !voxel2.visible; });
   }
 
   toggleVoxelsVisible() {
     this.voxels.visible = !this.voxels.visible;
-    this.voxels2.visible = !this.voxels2.visible;
   }
 
   toggleVoxelsWireframe() {
     materialIdle.wireframe = !materialIdle.wireframe;
     materialPath.wireframe = !materialPath.wireframe;
 
-    materialIdle2.wireframe = !materialIdle2.wireframe;
-    materialPath2.wireframe = !materialPath2.wireframe;
     materialPathSimplified.wireframe = !materialPathSimplified.wireframe;
 
     materialStart.wireframe = !materialStart.wireframe;
@@ -501,22 +463,11 @@ class PathFinder {
   moveDownVoxels() {
     this.voxels.position.y -= 0.5;
     this.voxels.updateMatrixWorld();
-
-    this.voxels2.position.y -= 0.5;
-    this.voxels2.updateMatrixWorld();
   }
 
   getHighestY() {
     let highestY = -Infinity;
     this.voxels.children.forEach(voxel => {
-      if (voxel.position.y > highestY) highestY = voxel.position.y;
-    });
-    return highestY;
-  }
-
-  getHighestY2() {
-    let highestY = -Infinity;
-    this.voxels2.children.forEach(voxel => {
       if (voxel.position.y > highestY) highestY = voxel.position.y;
     });
     return highestY;
