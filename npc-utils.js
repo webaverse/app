@@ -10,6 +10,7 @@ const identityQuaternion = new THREE.Quaternion();
 const heightTolerance = 0.6;
 const tmpVec2 = new THREE.Vector2();
 const localVector = new THREE.Vector3();
+const localVoxel = new THREE.Object3D();
 
 const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: false});
 const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: false});
@@ -34,6 +35,7 @@ class PathFinder {
     this.isAutoInit = false;
     this.debugRender = debugRender;
     this.onlyShowPath = false; // test
+    this.detectStep = 0.1;
     this.iterDetect = 0;
     this.maxIterDetect = 1000;
     this.iterStep = 0;
@@ -174,7 +176,12 @@ class PathFinder {
     }
   }
 
-  resetVoxel(voxel) {
+  resetVoxelDetect(voxel) {
+    voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
+    voxel._detectDir = null; // null, 1, -1
+  }
+
+  resetVoxelAStar(voxel) {
     voxel._isStart = false;
     voxel._isDest = false;
     voxel._isReached = false;
@@ -196,37 +203,40 @@ class PathFinder {
 
     // simple cache
     this.voxels.children.forEach(voxel => {
-      this.resetVoxel(voxel);
+      this.resetVoxelAStar(voxel);
     });
   }
 
+  getVoxel(position) {
+    return this.voxelo[`${position.x}_${position.y}_${position.z}`];
+  }
+
   createVoxel(position) {
-    let voxel = this.getVoxel(position);
+    this.resetVoxelDetect(localVoxel);
+    localVoxel.position.copy(position);
+    localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
+    this.iterDetect = 0;
+    this.detect(localVoxel);
+    localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
+
+    let voxel = this.getVoxel(localVoxel.position);
     if (voxel) return voxel;
 
     voxel = new THREE.Mesh(this.geometry, materialIdle);
     this.voxels.add(voxel);
-    voxel.position.copy(position);
-    voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
-    voxel._isStart = false;
-    voxel._isDest = false;
-    voxel._isReached = false;
-    voxel._priority = 0;
-    voxel._costSoFar = 0;
-    voxel._prev = null;
-    voxel._next = null;
+    this.resetVoxelAStar(voxel);
 
-    this.iterDetect = 0;
-    this.detect(voxel);
+    voxel.position.copy(localVoxel.position);
     voxel.updateMatrixWorld();
-    this.voxelo[`${position.x}_${position.z}`] = voxel;
+    this.voxelo[`${voxel.position.x}_${voxel.position.y}_${voxel.position.z}`] = voxel;
 
     return voxel;
   }
 
   detect(voxel) {
     if (this.iterDetect >= this.maxIterDetect) {
-      // console.log('maxIterDetect: detect');
+      console.warn('maxIterDetect reached! High probability created wrong redundant voxel with wrong position.y! Especially when localPlayer is flying.');
+      // TODO: Use raycast first?
       return;
     }
     this.iterDetect++;
@@ -253,7 +263,7 @@ class PathFinder {
       if (voxel._detectState === 'stopped') {
         // do nothing, stop recur
       } else {
-        voxel.position.y += voxel._detectDir * 0.1;
+        voxel.position.y += voxel._detectDir * this.detectStep;
         this.detect(voxel);
       }
     } else if (voxel._detectDir === -1) {
@@ -263,10 +273,10 @@ class PathFinder {
         }
       }
       if (voxel._detectState === 'stopped') {
-        voxel.position.y += -1 * voxel._detectDir * 0.1;
+        voxel.position.y += -1 * voxel._detectDir * this.detectStep;
         // do nothing, stop recur
       } else {
-        voxel.position.y += voxel._detectDir * 0.1;
+        voxel.position.y += voxel._detectDir * this.detectStep;
         this.detect(voxel);
       }
     }
@@ -306,10 +316,6 @@ class PathFinder {
     if (topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
       currentVoxel._topVoxel = topVoxel;
     }
-  }
-
-  getVoxel(position) {
-    return this.voxelo[`${position.x}_${position.z}`];
   }
 
   tenStep() {
