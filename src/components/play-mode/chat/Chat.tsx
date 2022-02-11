@@ -66,9 +66,12 @@ export const Chat = () => {
     //
 
     return (
-        <div className={ styles.chat } >
-            <div className={ styles.chatBtn } onClick={ handleChatBtnClick }>Chat</div>
-            <input className={ classNames( styles.chatInput, chatOpened ? styles.open : null ) } ref={ chatInput } />
+        <div className={ classNames( styles.chat, chatOpened ? styles.open : null ) }>
+            <div className={ styles.header } onClick={ handleChatBtnClick }>
+                <div className={ styles.icon } />
+                World chat
+            </div>
+            <input className={ styles.chatInput } ref={ chatInput } />
         </div>
     );
 

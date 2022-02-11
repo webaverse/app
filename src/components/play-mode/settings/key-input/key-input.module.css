@@ -1,7 +1,7 @@
 
 .keyInput {
     display: block;
-    width: 130px;
+    width: 140px;
     padding: 8px 20px;
     border: 1px solid #aaa;
     border-radius: 5px;
@@ -9,6 +9,8 @@
     text-transform: uppercase;
     cursor: pointer;
     color: #fff;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 12px;
 }
 
 .active {

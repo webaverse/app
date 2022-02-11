@@ -6,22 +6,62 @@ import styles from './key-input.module.css';
 
 //
 
-export const KeyInput = ({ initalValue, className }) => {
+export const KeyInput = ({ value, setValue, className }) => {
 
-    const [ value, setValue ] = useState( initalValue );
     const [ active, setActive ] = useState( false );
+    const keysList = new Map();
 
-    const handleKeyPress = ( event ) => {
+    const updateValue = () => {
+
+        let value = '';
+        let index = 0;
+
+        console.log( keysList );
+
+        keysList.forEach( ( key, keyIndex ) => {
+
+            let keyName = '';
+
+            if ( keyIndex === ' ' ) {
+
+                keyName = 'space';
+
+            } else {
+
+                keyName = keyIndex;
+
+            }
+
+            value += keyName;
+            index ++;
+            if ( index < keysList.size ) value += '+';
+
+        });
+
+        setValue( value );
+
+    };
+
+    const handleKeyDown = ( event ) => {
 
         event.stopPropagation();
-        setValue( event.key );
+
+        keysList.set( event.key, true );
+        updateValue();
+
+    };
+
+    const handleKeyUp = ( event ) => {
+
+        keysList.delete( event.key );
 
     };
 
     const handleWindowClick = () => {
 
         setActive( false );
-        window.removeEventListener( 'keypress', handleKeyPress );
+        window.removeEventListener( 'keydown', handleKeyDown );
+        window.removeEventListener( 'keyup', handleKeyUp );
         window.removeEventListener( 'click', handleWindowClick );
 
     };
@@ -30,7 +70,8 @@ export const KeyInput = ({ initalValue, className }) => {
 
         event.stopPropagation();
         setActive( true );
-        window.addEventListener( 'keypress', handleKeyPress );
+        window.addEventListener( 'keydown', handleKeyDown );
+        window.addEventListener( 'keyup', handleKeyUp );
         window.addEventListener( 'mousedown', handleWindowClick );
 
     };

@@ -9,7 +9,7 @@ import styles from './settings.module.css';
 //
 
 const DefaultSettings = {
-    resolution:         1,
+    resolution:         'HIGH',
     antialias:          'NONE',
     viewRange:          'HIGH',
     shadowQuality:      'HIGH',
