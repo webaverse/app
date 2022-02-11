@@ -1,9 +1,4 @@
 import * as THREE from 'three';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import easing from './easing.js';
-// import metaversefile from 'metaversefile';
-// const {useScene} = metaversefile;
-// const {useApp, useInternalsuseMaterials, useFrame, useActivate, useLoaders, useScene, usePhysics, useDefaultModules, useCleanup} = metaversefile;
 import {camera} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import {world} from './world.js';
@@ -252,14 +247,8 @@ class ParticleMesh extends THREE.InstancedMesh {
 }
 
 export const createParticleSystem = e => {
-// try {
-  // const app = useApp();
-  // const {renderer, scene, camera} = useInternals();
-  // const scene = useScene();
-
   const rootParticleMesh = new THREE.Object3D();
   const particleMeshes = [];
-  // window.particleMeshes = particleMeshes;
   rootParticleMesh.addParticle = name => {
     let particleMesh = particleMeshes.find(m => m.name === name);
     if (!particleMesh) {
@@ -276,12 +265,6 @@ export const createParticleSystem = e => {
     particle.position.set(0, 2, -0.5);
   } */
 
-  // const physicsIds = [];
-  /* let activateCb = null;
-  let frameCb = null;
-  useActivate(() => {
-    activateCb && activateCb();
-  }); */
   world.appManager.addEventListener('frame', e => {
     const {timestamp} = e.data;
     for (const particleMesh of particleMeshes) {
@@ -290,12 +273,7 @@ export const createParticleSystem = e => {
       particleMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
       particleMesh.material.uniforms.uNumFrames.needsUpdate = true;
     }
-
-    // material.uniforms.time.value = (performance.now() / 1000) % 1;
   });
 
   return rootParticleMesh;
-/* } catch(err) {
-  console.warn(err);
-} */
 };
