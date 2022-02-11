@@ -35,8 +35,8 @@ class PathFinder {
     this.height = (height % 2 === 0) ? (height + 1) : (height);
     this.voxelHeight = voxelHeight;
     this.voxelHeightHalf = this.voxelHeight / 2;
-    this.start = new THREE.Vector2(0, 3);
-    this.dest = new THREE.Vector2(13, 3);
+    this.start = new THREE.Vector3();
+    this.dest = new THREE.Vector3();
     this.lowestY = lowestY;
     this.highestY = highestY;
     this.highestY2 = highestY2;
@@ -44,7 +44,7 @@ class PathFinder {
     this.voxelsY2 = this.lowestY;
     this.isAutoInit = false;
     this.debugRender = debugRender;
-    this.onlyShowPath = true; // test
+    this.onlyShowPath = false; // test
     this.iterDetect = 0;
     this.maxIterDetect = 1000;
     this.iterStep = 0;
@@ -74,14 +74,16 @@ class PathFinder {
     this.reset();
     this.start.set(
       Math.round(start.x),
+      start.y,
       Math.round(start.z),
     );
     this.dest.set(
       Math.round(dest.x),
+      dest.y,
       Math.round(dest.z),
     );
 
-    const startVoxel = this.createVoxel(this.start.x, this.start.y);
+    const startVoxel = this.createVoxel(this.start);
     // startVoxel.position.y = start.y; // TODO: Not use this code. Not collide/overlap with player.
     startVoxel.updateMatrixWorld(); // Same as above;
     const startVoxel2 = this.createVoxel2(this.start.x, this.start.y, startVoxel);
@@ -245,24 +247,13 @@ class PathFinder {
       voxel._isPath = false;
       voxel.material = materialIdle;
     });
-    this.voxels2.children.forEach(voxel => {
-      voxel._isStart = false;
-      voxel._isDest = false;
-      voxel._isReached = false;
-      voxel._priority = 0;
-      voxel._costSoFar = 0;
-      voxel._prev = null;
-      voxel._next = null;
-      voxel._isPath = false;
-      voxel.material = materialIdle2;
-    });
   }
 
-  createVoxel(x, z) {
+  createVoxel(position) {
     const voxel = new THREE.Mesh(this.geometry, materialIdle);
     this.voxels.add(voxel);
-    voxel.position.set(x, this.lowestY, z);
-    voxel._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
+    voxel.position.copy(position);
+    voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
     voxel._isStart = false;
     voxel._isDest = false;
     voxel._isReached = false;
@@ -274,30 +265,9 @@ class PathFinder {
     this.iterDetect = 0;
     this.detect(voxel);
     voxel.updateMatrixWorld();
-    this.voxelo[`${x}_${z}`] = voxel;
+    this.voxelo[`${position.x}_${position.z}`] = voxel;
 
     return voxel;
-  }
-
-  createVoxel2(x, z, voxel) {
-    const voxel2 = new THREE.Mesh(this.geometry, materialIdle2);
-    this.voxels2.add(voxel2);
-    voxel2.position.copy(voxel.position);
-    voxel2._risingState = 'initial'; // 'initial', 'colliding', 'stopped'
-    voxel2._isStart = false;
-    voxel2._isDest = false;
-    voxel2._isReached = false;
-    voxel2._priority = 0;
-    voxel2._costSoFar = 0;
-    voxel2._prev = null;
-    voxel2._next = null;
-
-    this.iterDetect = 0;
-    this.detect2(voxel2);
-    voxel2.updateMatrixWorld();
-    this.voxelo2[`${x}_${z}`] = voxel2;
-
-    return voxel2;
   }
 
   detect(voxel) {
@@ -307,42 +277,44 @@ class PathFinder {
     }
     this.iterDetect++;
 
-    if (voxel._risingState === 'initial' || voxel._risingState === 'colliding') {
-      const collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
-      if (collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId) {
-        voxel._risingState = 'colliding';
-      } else if (voxel._risingState === 'colliding') {
-        voxel._risingState = 'stopped';
+    let collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
+    collide = collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId;
+
+    if (voxel._detectState === 'initial') {
+      if (collide) {
+        voxel._detectDir = 1;
+      } else {
+        voxel._detectDir = -1;
       }
     }
-    if (voxel.position.y >= this.highestY || voxel._risingState === 'stopped') {
-      // do nothing, stop recur
-    } else {
-      voxel.position.y += 0.1;
-      this.detect(voxel);
-    }
-  }
 
-  detect2(voxel2) {
-    if (this.iterDetect >= this.maxIterDetect) {
-      // console.log('maxIterDetect: detect2');
-      return;
-    }
-    this.iterDetect++;
-
-    if (voxel2._risingState === 'initial' || voxel2._risingState === 'colliding') {
-      const collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel2.position, identityQuaternion);
-      if (collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId) {
-        voxel2._risingState = 'colliding';
-      } else if (voxel2._risingState === 'colliding') {
-        voxel2._risingState = 'stopped';
+    if (voxel._detectDir === 1) {
+      if (voxel._detectState === 'initial' || voxel._detectState === 'colliding') {
+        if (collide) {
+          voxel._detectState = 'colliding';
+        } else if (voxel._detectState === 'colliding') {
+          voxel._detectState = 'stopped';
+        }
       }
-    }
-    if (voxel2.position.y >= this.highestY || voxel2._risingState === 'stopped') {
-      // do nothing, stop recur
-    } else {
-      voxel2.position.y += 0.1;
-      this.detect2(voxel2);
+      if (voxel._detectState === 'stopped') {
+        // do nothing, stop recur
+      } else {
+        voxel.position.y += voxel._detectDir * 0.1;
+        this.detect(voxel);
+      }
+    } else if (voxel._detectDir === -1) {
+      if (voxel._detectState === 'initial') {
+        if (collide) {
+          voxel._detectState = 'stopped';
+        }
+      }
+      if (voxel._detectState === 'stopped') {
+        voxel.position.y += -1 * voxel._detectDir * 0.1;
+        // do nothing, stop recur
+      } else {
+        voxel.position.y += voxel._detectDir * 0.1;
+        this.detect(voxel);
+      }
     }
   }
 
