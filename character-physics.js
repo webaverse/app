@@ -6,9 +6,9 @@ import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 import ioManager from './io-manager.js';
-import {getVelocityDampingFactor} from './util.js';
+import {getVelocityDampingFactor, applyVelocity} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
-import {applyVelocity} from './util.js';
+
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -40,26 +40,30 @@ class CharacterPhysics {
     this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
   }
+
   setPosition(p) {
     localVector.copy(p);
     localVector.y -= this.player.avatar.height * 0.5;
     physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
   }
+
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
     if (this.player.avatar) {
       this.velocity.add(keysDirection);
     }
   }
+
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
-        localVector.copy(physicsManager.getGravity())
-          .multiplyScalar(timeDiffS);
-        this.velocity.add(localVector);
-      }
+    if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+      localVector.copy(physicsManager.getGravity())
+        .multiplyScalar(timeDiffS);
+      this.velocity.add(localVector);
+    }
     // }
   }
+
   applyAvatarPhysicsDetail(
     velocityAvatarDirection,
     updateRig,
@@ -77,16 +81,16 @@ class CharacterPhysics {
         localVector3,
         minDist,
         timeDiffS,
-        this.player.characterControllerObject.position
+        this.player.characterControllerObject.position,
       );
       // const collided = flags !== 0;
-      const grounded = !!(flags & 0x1); 
+      const grounded = !!(flags & 0x1);
 
       this.player.characterControllerObject.updateMatrixWorld();
       this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
-      
+
       // capsule physics
       if (!this.player.hasAction('sit')) {
         // avatar facing direction
@@ -94,15 +98,15 @@ class CharacterPhysics {
           const horizontalVelocity = localVector5.set(
             this.velocity.x,
             0,
-            this.velocity.z
+            this.velocity.z,
           );
           if (horizontalVelocity.lengthSq() > 0.001) {
             localQuaternion.setFromRotationMatrix(
               localMatrix.lookAt(
                 zeroVector,
                 horizontalVelocity,
-                upVector
-              )
+                upVector,
+              ),
             );
           }
         } else {
@@ -137,7 +141,7 @@ class CharacterPhysics {
             _ensureNoJumpAction();
           } else {
             _ensureJumpAction();
-          
+
             this.velocity.y = 0;
           }
         } else {
@@ -146,7 +150,7 @@ class CharacterPhysics {
           }
         }
       } else {
-        //Outdated vehicle code
+        // Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
@@ -167,7 +171,7 @@ class CharacterPhysics {
           controlledApp.quaternion
             .setFromUnitVectors(
               localVector4.set(0, 0, -1),
-              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
+              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize(),
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
@@ -210,6 +214,7 @@ class CharacterPhysics {
       }
     }
   }
+
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
     if (this.player.hasAction('fly')) {
@@ -221,6 +226,7 @@ class CharacterPhysics {
       velocity.z *= factor;
     }
   }
+
   applyAvatarPhysics(now, timeDiffS) {
     // const renderer = getRenderer();
     // const session = renderer.xr.getSession();
@@ -238,13 +244,14 @@ class CharacterPhysics {
         // this.velocity.y = 0;
       }
     } else { */
-      if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {
-        this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
-      } else {
-        this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
-      }
+    if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {
+      this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
+    } else {
+      this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
+    }
     // }
   }
+
   /* offset the camera back from the avatar */
   updateCamera(timeDiffS) {
     const renderer = getRenderer();
@@ -259,14 +266,14 @@ class CharacterPhysics {
     switch (cameraMode) {
       case 'firstperson': {
         if (this.player.avatar) {
-          const boneNeck = this.player.avatar.foundModelBones['Neck'];
-          const boneEyeL = this.player.avatar.foundModelBones['Eye_L'];
-          const boneEyeR = this.player.avatar.foundModelBones['Eye_R'];
-          const boneHead = this.player.avatar.foundModelBones['Head'];
+          const boneNeck = this.player.avatar.foundModelBones.Neck;
+          const boneEyeL = this.player.avatar.foundModelBones.Eye_L;
+          const boneEyeR = this.player.avatar.foundModelBones.Eye_R;
+          const boneHead = this.player.avatar.foundModelBones.Head;
 
           boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
           boneNeck.updateMatrixWorld();
-    
+
           if (boneEyeL && boneEyeR) {
             boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
             boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
@@ -288,11 +295,11 @@ class CharacterPhysics {
       case 'isometric': {
         camera.position.copy(this.player.position)
         // .add(localVector.set(0, avatarHeight * 0.5, 0))
-        .sub(
-          localVector.copy(avatarCameraOffset)
-            .applyQuaternion(camera.quaternion)
-        );
-  
+          .sub(
+            localVector.copy(avatarCameraOffset)
+              .applyQuaternion(camera.quaternion),
+          );
+
         break;
       }
       default: {
@@ -303,20 +310,24 @@ class CharacterPhysics {
     camera.position.y -= crouchOffset;
     camera.updateMatrixWorld();
   }
+
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
     this.applyVelocityDamping(this.velocity, timeDiff);
   }
+
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
   }
+
   reset() {
     if (this.player.avatar) {
       this.velocity.set(0, 0, 0);
     }
   }
+
   destroy() {
     // nothing
   }

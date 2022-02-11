@@ -171,97 +171,80 @@ const defaultchargeJumpAnimation = 'chargeJump';
 const defaultStandChargeAnimation = 'standCharge';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
-// const crouchMagnitude = 0.2;
-/* const animationsSelectMap = {
-  crouch: {
-    'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-    'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-    'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-    'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-    'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
-  },
-  stand: {
-    'idle.fbx': new THREE.Vector3(0, 0, 0),
-    'jump.fbx': new THREE.Vector3(0, 1, 0),
-
-    'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-    'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-    'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-    'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-
-    'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
-    'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-
-    'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-    'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
-
-    'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
-    'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-    'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
-  },
-};
-const animationsDistanceMap = {
-  'idle.fbx': new THREE.Vector3(0, 0, 0),
-  'jump.fbx': new THREE.Vector3(0, 1, 0),
-
-  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
-  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
-  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-
-  'Fast Run.fbx': new THREE.Vector3(0, 0, -1),
-  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-
-  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
-  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
-
-  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
-  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
-  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
-  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+const animationClips = {
+  normal:{
+    walk: [
+      {name: 'left strafe walking.fbx', angle: Math.PI/2},
+      {name: 'right strafe walking.fbx', angle: -Math.PI/2},
   
-  'Crouch Idle.fbx': new THREE.Vector3(0, 0, 0),
-  'Sneaking Forward.fbx': new THREE.Vector3(0, 0, -crouchMagnitude),
-  'Sneaking Forward reverse.fbx': new THREE.Vector3(0, 0, crouchMagnitude),
-  'Crouched Sneaking Left.fbx': new THREE.Vector3(-crouchMagnitude, 0, 0),
-  'Crouched Sneaking Left reverse.fbx': new THREE.Vector3(-crouchMagnitude, 0, crouchMagnitude),
-  'Crouched Sneaking Right.fbx': new THREE.Vector3(crouchMagnitude, 0, 0),
-  'Crouched Sneaking Right reverse.fbx': new THREE.Vector3(crouchMagnitude, 0, crouchMagnitude),
-}; */
-const animationsAngleArrays = {
-  walk: [
-    {name: 'left strafe walking.fbx', angle: Math.PI/2},
-    {name: 'right strafe walking.fbx', angle: -Math.PI/2},
+      {name: 'walking.fbx', angle: 0},
+      {name: 'walking backwards.fbx', angle: Math.PI},
+    ],
+    run: [
+      {name: 'left strafe.fbx', angle: Math.PI/2},
+      {name: 'right strafe.fbx', angle: -Math.PI/2},
+  
+      {name: 'Fast Run.fbx', angle: 0},
+      {name: 'running backwards.fbx', angle: Math.PI},
+    ],
+    crouch: [
+      {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
+      {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
+      
+      {name: 'Sneaking Forward.fbx', angle: 0},
+      {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
+    ],
+  },
+  greatSword:{
+    walk: [
+      {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+    run: [
+      {name: 'left strafe reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'right strafe reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+    crouch: [
+      {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+  }
+}
 
-    {name: 'walking.fbx', angle: 0},
-    {name: 'walking backwards.fbx', angle: Math.PI},
+let animationsAngleArrays = animationClips.normal;
+// const crouchMagnitude = 0.2;
+// let animationsAngleArrays = {
+//   walk: [
+//     {name: 'left strafe walking.fbx', angle: Math.PI/2},
+//     {name: 'right strafe walking.fbx', angle: -Math.PI/2},
 
-    // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
-    // {name: 'right strafe walking reverse.fbx', angle: -Math.PI*3/4},
-  ],
-  run: [
-    {name: 'left strafe.fbx', angle: Math.PI/2},
-    {name: 'right strafe.fbx', angle: -Math.PI/2},
+//     {name: 'walking.fbx', angle: 0},
+//     {name: 'walking backwards.fbx', angle: Math.PI},
+//     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
+//     // {name: 'right strafe walking reverse.fbx', angle: -Math.PI*3/4},
+//   ],
+//   run: [
+//     {name: 'left strafe.fbx', angle: Math.PI/2},
+//     {name: 'right strafe.fbx', angle: -Math.PI/2},
 
-    {name: 'Fast Run.fbx', angle: 0},
-    {name: 'running backwards.fbx', angle: Math.PI},
+//     {name: 'Fast Run.fbx', angle: 0},
+//     {name: 'running backwards.fbx', angle: Math.PI},
 
-    // {name: 'left strafe reverse.fbx', angle: Math.PI*3/4},
-    // {name: 'right strafe reverse.fbx', angle: -Math.PI*3/4},
-  ],
-  crouch: [
-    {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
-    {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
+//     // {name: 'left strafe reverse.fbx', angle: Math.PI*3/4},
+//     // {name: 'right strafe reverse.fbx', angle: -Math.PI*3/4},
+//   ],
+//   crouch: [
+//     {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
+//     {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
     
-    {name: 'Sneaking Forward.fbx', angle: 0},
-    {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
+//     {name: 'Sneaking Forward.fbx', angle: 0},
+//     {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
     
-    // {name: 'Crouched Sneaking Left reverse.fbx', angle: Math.PI*3/4},
-    // {name: 'Crouched Sneaking Right reverse.fbx', angle: -Math.PI*3/4},
-  ],
-};
-const animationsAngleArraysMirror = {
+//     // {name: 'Crouched Sneaking Left reverse.fbx', angle: Math.PI*3/4},
+//     // {name: 'Crouched Sneaking Right reverse.fbx', angle: -Math.PI*3/4},
+//   ],
+// };
+let animationsAngleArraysMirror = {
   walk: [
     {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
     {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
@@ -275,12 +258,53 @@ const animationsAngleArraysMirror = {
     {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
   ],
 };
-const animationsIdleArrays = {
+let animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
   walk: {name: 'idle.fbx'},
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
+
+const animationClips = {
+  normal:{
+    walk: [
+      {name: 'left strafe walking.fbx', angle: Math.PI/2},
+      {name: 'right strafe walking.fbx', angle: -Math.PI/2},
+  
+      {name: 'walking.fbx', angle: 0},
+      {name: 'walking backwards.fbx', angle: Math.PI},
+    ],
+    run: [
+      {name: 'left strafe.fbx', angle: Math.PI/2},
+      {name: 'right strafe.fbx', angle: -Math.PI/2},
+  
+      {name: 'Fast Run.fbx', angle: 0},
+      {name: 'running backwards.fbx', angle: Math.PI},
+    ],
+    crouch: [
+      {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
+      {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
+      
+      {name: 'Sneaking Forward.fbx', angle: 0},
+      {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
+    ],
+  },
+  greatSword:{
+    walk: [
+      {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+    run: [
+      {name: 'left strafe reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'right strafe reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+    crouch: [
+      {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
+      {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+    ],
+  }
+}
+
 
 let animations;
 let animationStepIndices;
