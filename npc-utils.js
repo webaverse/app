@@ -89,12 +89,13 @@ class PathFinder {
       this.simplifyWaypointResultZ(this.waypointResult[0]);
       this.waypointResult.shift();
     }
-    console.log('waypointResult', this.waypointResult.length);
+    // console.log('waypointResult', this.waypointResult.length);
 
     if (this.debugRender) {
-      this.waypointResult.forEach(result => {
-        this.getVoxel(result.position).material = materialPathSimplified;
-      });
+      const len = this.waypointResult.length - 1;
+      for (let i = 0; i < len; i++) {
+        this.getVoxel(this.waypointResult[i].position).material = materialPathSimplified;
+      }
     }
 
     return this.isFound;
@@ -364,7 +365,7 @@ class PathFinder {
       voxel._prev = prevVoxel;
     }
     if (voxel._isDest) {
-      if (this.debugRender) console.log('found');
+      // if (this.debugRender) console.log('found');
       this.isFound = true;
       if (this.onlyShowPath) {
         this.voxels.children.forEach(voxel => { voxel.visible = false; });
@@ -372,7 +373,7 @@ class PathFinder {
       this.recur(voxel);
 
       this.waypointResult.length = 0;
-      let wayPoint = this.startVoxel;
+      let wayPoint = this.startVoxel; // wayPoint: voxel
       let result = new THREE.Object3D();
       result.position.copy(wayPoint.position);
       this.waypointResult.push(result);
