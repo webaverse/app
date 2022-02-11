@@ -19,21 +19,17 @@ const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rg
 // const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: false});
 const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: false});
 const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: false});
-const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(127,127,127)'), wireframe: false});
+const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: false});
 
 class PathFinder {
-  constructor({width = 15, height = 15, voxelHeight = 2, lowestY = 0.1, highestY = 15, debugRender = false}) {
+  constructor({voxelHeight = 2, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
     this.isGeneratedVoxelMap = false;
-    this.width = (width % 2 === 0) ? (width + 1) : (width);
-    this.height = (height % 2 === 0) ? (height + 1) : (height);
     this.voxelHeight = voxelHeight;
     this.voxelHeightHalf = this.voxelHeight / 2;
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
-    this.lowestY = lowestY;
-    this.highestY = highestY;
     this.voxelsY = this.lowestY;
     this.isAutoInit = false;
     this.debugRender = debugRender;
@@ -317,8 +313,8 @@ class PathFinder {
     }
   }
 
-  getVoxel(x, z) {
-    return this.voxelo[`${x}_${z}`];
+  getVoxel(position) {
+    return this.voxelo[`${position.x}_${position.z}`];
   }
 
   tenStep() {
@@ -375,7 +371,7 @@ class PathFinder {
       voxel._prev = prevVoxel;
     }
     if (voxel._isDest) {
-      // if (this.debugRender) console.log('found');
+      if (this.debugRender) console.log('found');
       this.isFound = true;
       if (this.onlyShowPath) {
         this.voxels.children.forEach(voxel => { voxel.visible = false; });
