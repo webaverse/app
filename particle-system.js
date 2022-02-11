@@ -4,17 +4,17 @@ import * as THREE from 'three';
 // import metaversefile from 'metaversefile';
 // const {useScene} = metaversefile;
 // const {useApp, useInternalsuseMaterials, useFrame, useActivate, useLoaders, useScene, usePhysics, useDefaultModules, useCleanup} = metaversefile;
-// import {scene} from './renderer.js';
+import {camera} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import {world} from './world.js';
 import loaders from './loaders.js';
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
-const localVector = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localQuaternion = new THREE.Quaternion();
+// const localVector2D = new THREE.Vector2();
+// const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 
 const maxParticles = 256;
@@ -71,14 +71,19 @@ const _makeParticleMaterial = name => {
         value: 0,
         needsUpdate: false,
       },
+      cameraBillboardQuaternion: {
+        value: new THREE.Quaternion(),
+        needsUpdate: true,
+      },
     },
     vertexShader: `\
       precision highp float;
       precision highp int;
 
       uniform float uTime;
+      uniform vec4 cameraBillboardQuaternion;
       attribute vec3 p;
-      attribute vec4 q;
+      // attribute vec4 q;
       // varying vec3 vPosition;
       varying vec2 vUv;
 
@@ -115,9 +120,11 @@ const _makeParticleMaterial = name => {
 
       void main() {
         vec3 pos = position;
-        pos = rotateVecQuat(pos, q);
+        // pos = rotateVecQuat(pos, q);
+        pos = rotateVecQuat(pos, cameraBillboardQuaternion);
+        pos = (modelMatrix * vec4(pos, 1.)).xyz;
         pos += p;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
+        gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
         vUv = uv;
         // vPosition = position;
       }
@@ -173,12 +180,18 @@ class Particle extends THREE.Object3D {
     this.index = index;
     this.parent = parent;
   }
+  update() {
+    this.parent.needsUpdate = true;
+  }
+  destroy() {
+    this.parent.removeParticle(this);
+  }
 }
 class ParticleMesh extends THREE.InstancedMesh {
   constructor(name) {
     const geometry = planeGeometry.clone();
     geometry.setAttribute('p', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
-    geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
+    // geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
     const material = _makeParticleMaterial(name);
     material.promise.then(() => {
       this.visible = true;
@@ -187,7 +200,6 @@ class ParticleMesh extends THREE.InstancedMesh {
 
     this.name = name;
     this.particles = [];
-    // this.freeList = new Uint8Array(maxParticles);
     this.count = 0;
     this.frustumCulled = false;
     this.visible = false;
@@ -201,29 +213,46 @@ class ParticleMesh extends THREE.InstancedMesh {
     };
   }
   addParticle() {
-    const index = this.particles.length;
-    const particle = new Particle(index, this);
-    this.particles.push(particle);
     this.needsUpdate = true;
-    return particle;
+
+    for (let i = 0; i < this.particles.length; i++) {
+      let particle = this.particles[i];
+      if (particle === null) {
+        particle = new Particle(i, this);
+        this.particles[i] = particle;
+        this.updateGeometry();
+        return particle;
+      }
+    }
+
+    const newParticle = new Particle(this.particles.length, this);
+    this.particles.push(newParticle);
+    return newParticle;
+  }
+  removeParticle(particle) {
+    this.particles[particle.index] = null;
+    this.needsUpdate = true;
   }
   updateGeometry() {
-    for (let i = 0; i < this.particles.length; i++) {
-      const particle = this.particles[i];
-      this.geometry.attributes.p.setXYZ(particle.index, particle.position.x, particle.position.y, particle.position.z);
-      this.geometry.attributes.q.setXYZW(particle.index, particle.quaternion.x, particle.quaternion.y, particle.quaternion.z, particle.quaternion.w);
+    let index = 0;
+    for (const particle of this.particles) {
+      if (particle !== null) {
+        this.geometry.attributes.p.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
+        // this.geometry.attributes.q.setXYZW(index, particle.quaternion.x, particle.quaternion.y, particle.quaternion.z, particle.quaternion.w);
+        index++;
+      }
     }
-    this.geometry.attributes.p.updateRange.count = this.count;
+    this.geometry.attributes.p.updateRange.count = index * 3;
     this.geometry.attributes.p.needsUpdate = true;
-    this.geometry.attributes.q.updateRange.count = this.count;
-    this.geometry.attributes.q.needsUpdate = true;
+    /* this.geometry.attributes.q.updateRange.count = index;
+    this.geometry.attributes.q.needsUpdate = true; */
 
-    this.count = this.particles.length;
+    this.count = index;
   }
 }
 
 export const createParticleSystem = e => {
-try {
+// try {
   // const app = useApp();
   // const {renderer, scene, camera} = useInternals();
   // const scene = useScene();
@@ -258,13 +287,15 @@ try {
     for (const particleMesh of particleMeshes) {
       particleMesh.material.uniforms.uTime.value = timestamp / 1000;
       particleMesh.material.uniforms.uTime.needsUpdate = true;
+      particleMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+      particleMesh.material.uniforms.uNumFrames.needsUpdate = true;
     }
 
     // material.uniforms.time.value = (performance.now() / 1000) % 1;
   });
 
   return rootParticleMesh;
-} catch(err) {
+/* } catch(err) {
   console.warn(err);
-}
+} */
 };
